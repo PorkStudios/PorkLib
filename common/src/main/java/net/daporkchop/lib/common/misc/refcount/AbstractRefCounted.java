@@ -34,13 +34,14 @@ public abstract class AbstractRefCounted implements RefCounted {
     private volatile int refCnt = 1;
 
     @Override
-    public void retain() throws AlreadyReleasedException {
+    public RefCounted retain() throws AlreadyReleasedException {
         int refCnt;
         do {
             if ((refCnt = PUnsafe.getIntVolatile(this, REFCNT_OFFSET)) == 0) {
                 throw new AlreadyReleasedException();
             }
         } while (!PUnsafe.compareAndSwapInt(this, REFCNT_OFFSET, refCnt, refCnt + 1));
+        return this;
     }
 
     @Override

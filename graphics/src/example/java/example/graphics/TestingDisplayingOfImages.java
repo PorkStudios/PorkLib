@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -15,79 +15,72 @@
 
 package example.graphics;
 
-import net.daporkchop.lib.graphics.bitmap.ColorFormat;
-import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
-import net.daporkchop.lib.graphics.bitmap.image.PImage;
+import net.daporkchop.lib.common.misc.file.PFiles;
+import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.graphics.bitmap.PBitmap;
+import net.daporkchop.lib.graphics.bitmap.PImage;
+import net.daporkchop.lib.graphics.bitmap.image.DirectImageARGB;
+import net.daporkchop.lib.graphics.color.ColorFormat;
 import net.daporkchop.lib.graphics.interpolation.ImageInterpolator;
 import net.daporkchop.lib.graphics.util.Thumbnail;
-import net.daporkchop.lib.math.interpolation.CubicInterpolationEngine;
+import net.daporkchop.lib.math.interpolation.CubicInterpolation;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Stream;
 
 /**
  * @author DaPorkchop_
  */
 public class TestingDisplayingOfImages {
     public static void main(String... args) throws InterruptedException, IOException {
-        int size = 20;
-        for (ColorFormat format : ColorFormat.values()) {
+        int size = 32;
+        for (ColorFormat format : Stream.of(
+                null
+                , ColorFormat.ARGB
+                , ColorFormat.RGB
+                , ColorFormat.ABW
+                , ColorFormat.BW
+        ).filter(Objects::nonNull).toArray(ColorFormat[]::new)) {
             PImage image = format.createImage(size, size);
+            long mask = (1L << (long) format.encodedBits()) - 1L;
             for (int x = size - 1; x >= 0; x--) {
                 for (int y = size - 1; y >= 0; y--) {
-                    if (format.isBw()) {
-                        image.setABW(x, y, (ThreadLocalRandom.current().nextInt() & 0xFF) | ((y & 1) == 0 ? 0xFF00 : 0x7700));
-                    } else {
-                        image.setARGB(x, y, (ThreadLocalRandom.current().nextInt() & 0xFFFFFF) | ((y & 1) == 0 ? 0xFF000000 : 0x77000000));
-                    }
+                    image.setRaw(x, y, ThreadLocalRandom.current().nextLong() & mask);
+                    //image.setARGB(x, y, ThreadLocalRandom.current().nextInt());
                 }
             }
 
-            image.getRenderer().fillPolygon(
-                    new int[] {
-                            5, 10, 5, 0
-                    },
-                    new int[] {
-                            0, 5, 10, 5
-                    },
-                    4,
-                    0xFFFF0000
-            );
+            if (true) {
+                image.renderer().fillPolygon(
+                        new int[]{
+                                5, 10, 5, 0
+                        },
+                        new int[]{
+                                0, 5, 10, 5
+                        },
+                        4,
+                        0xFFFF0000
+                );
+            }
 
-            if (!ImageIO.write(image.getAsBufferedImage(), "png", new File("./test_out/out.png"))) {
+            if (!ImageIO.write(image.asBufferedImage(), "png", PFiles.ensureParentDirectoryExists(new File(String.format("./test_out/%s.png", PorkUtil.className(format)))))) {
                 throw new IllegalStateException("Didn't write image!");
             }
 
-            ImageInterpolator interpolator = new ImageInterpolator(new CubicInterpolationEngine());
-            image = interpolator.interp(image, 32.0d);
+            ImageInterpolator interpolator = new ImageInterpolator(CubicInterpolation.instance());
 
-            Thumbnail thumbnail = new Thumbnail(64, 32, 16, 8, image.getWidth()).submit(image).bake();
-
-            JFrame frame = new JFrame();
-            frame.getContentPane().setLayout(new FlowLayout());
-            frame.getContentPane().add(new JLabel(format.name()));
-            for (PIcon icon : thumbnail.getIcons()) {
-                frame.getContentPane().add(new JLabel(icon.getAsSwingIcon()));
-            }
-            frame.pack();
-            frame.setVisible(true);
-            frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-            frame.addWindowListener(new WindowAdapter() {
-                @Override
-                public void windowClosed(WindowEvent e) {
-                    synchronized (frame) {
-                        frame.notify();
-                    }
-                }
-            });
-            synchronized (frame) {
-                frame.wait();
+            if (true) {
+                Thumbnail thumbnail = new Thumbnail(64, 32, 16, 8, image.width()).submit(image).bake(interpolator);
+                PorkUtil.simpleDisplayImage(true, Arrays.stream(thumbnail.getIcons()).map(PBitmap::asBufferedImage).toArray(BufferedImage[]::new));
+            } else {
+                PImage scaled = interpolator.interp(image, 16.0d);
+                PorkUtil.simpleDisplayImage(true, image.asBufferedImage(), scaled.asBufferedImage());
             }
         }
     }

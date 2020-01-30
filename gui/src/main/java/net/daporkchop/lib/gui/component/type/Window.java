@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -16,7 +16,7 @@
 package net.daporkchop.lib.gui.component.type;
 
 import lombok.NonNull;
-import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
+import net.daporkchop.lib.graphics.bitmap.PIcon;
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.NestedContainer;
@@ -60,10 +60,10 @@ public interface Window extends Container<Window, WindowState>, Resizable<Window
                 throw new NullPointerException();
             }
             PIcon icon = icons[i];
-            if (icon.isEmpty() || icon.getWidth() != icon.getHeight())  {
+            if (icon.width() == 0 || icon.height() == 0 || icon.width() != icon.height())  {
                 throw new IllegalArgumentException("Icon must be square!");
-            } else if (icon.getWidth() > max)   {
-                max = icon.getWidth();
+            } else if (icon.width() > max)   {
+                max = icon.width();
                 maxI = icon;
             }
         }

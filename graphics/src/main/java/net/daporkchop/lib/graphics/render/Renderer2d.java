@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -16,82 +16,84 @@
 package net.daporkchop.lib.graphics.render;
 
 import lombok.NonNull;
-import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
+import net.daporkchop.lib.graphics.bitmap.PBitmap;
 
 import java.awt.*;
 
 /**
+ * Used for rendering simple 2D shapes.
+ * 
  * @author DaPorkchop_
  */
-public interface Renderer2d<Impl extends Renderer2d> {
-    int getWidth();
-    int getHeight();
+public interface Renderer2d {
+    int width();
+    int height();
 
-    Impl setColor(int argb);
-    default Impl setColor(@NonNull Color color) {
+    Renderer2d setColor(int argb);
+    default Renderer2d setColor(@NonNull Color color) {
         return this.setColor(color.getRGB());
     }
-    default Impl setColor(int a, int r, int g, int b)   {
+    default Renderer2d setColor(int a, int r, int g, int b)   {
         return this.setColor((a << 24) | (r << 16) | (g << 8) | b);
     }
     int getColor();
 
-    Impl pixel(int x, int y, int argb);
-    default Impl pixel(int x, int y)    {
+    Renderer2d pixel(int x, int y, int argb);
+    default Renderer2d pixel(int x, int y)    {
         return this.pixel(x, y, this.getColor());
     }
 
-    Impl line(int x1, int y1, int x2, int y2, int argb);
-    default Impl line(int x1, int y1, int x2, int y2)   {
+    Renderer2d line(int x1, int y1, int x2, int y2, int argb);
+    default Renderer2d line(int x1, int y1, int x2, int y2)   {
         return this.line(x1, y1, x2, y2, this.getColor());
     }
 
-    Impl rect(int x, int y, int w, int h, int argb, boolean fill);
-    default Impl rect(int x, int y, int w, int h) {
+    Renderer2d rect(int x, int y, int w, int h, int argb, boolean fill);
+    default Renderer2d rect(int x, int y, int w, int h) {
         return this.rect(x, y, w, h, this.getColor(), true);
     }
-    default Impl rect(int x, int y, int w, int h, int argb) {
+    default Renderer2d rect(int x, int y, int w, int h, int argb) {
         return this.rect(x, y, w, h, argb, true);
     }
-    default Impl rect(int x, int y, int w, int h, boolean fill) {
+    default Renderer2d rect(int x, int y, int w, int h, boolean fill) {
         return this.rect(x, y, w, h, this.getColor(), fill);
     }
 
-    Impl roundRect(int x, int y, int w, int h, int arcW, int arcH, int argb, boolean fill);
-    default Impl roundRect(int x, int y, int w, int h, int arcW, int arcH)  {
+    Renderer2d roundRect(int x, int y, int w, int h, int arcW, int arcH, int argb, boolean fill);
+    default Renderer2d roundRect(int x, int y, int w, int h, int arcW, int arcH)  {
         return this.roundRect(x, y, w, h, arcW, arcH, this.getColor(), true);
     }
-    default Impl roundRect(int x, int y, int w, int h, int arcW, int arcH, int argb)  {
+    default Renderer2d roundRect(int x, int y, int w, int h, int arcW, int arcH, int argb)  {
         return this.roundRect(x, y, w, h, arcW, arcH, argb, true);
     }
-    default Impl roundRect(int x, int y, int w, int h, int arcW, int arcH, boolean fill)  {
+    default Renderer2d roundRect(int x, int y, int w, int h, int arcW, int arcH, boolean fill)  {
         return this.roundRect(x, y, w, h, arcW, arcH, this.getColor(), fill);
     }
 
-    Impl oval(int x, int y, int w, int h, int argb, boolean fill);
-    default Impl oval(int x, int y, int w, int h)   {
+    Renderer2d oval(int x, int y, int w, int h, int argb, boolean fill);
+    default Renderer2d oval(int x, int y, int w, int h)   {
         return this.oval(x, y, w, h, this.getColor(), true);
     }
-    default Impl oval(int x, int y, int w, int h, int argb)   {
+    default Renderer2d oval(int x, int y, int w, int h, int argb)   {
         return this.oval(x, y, w, h, argb, true);
     }
-    default Impl oval(int x, int y, int w, int h, boolean fill)   {
+    default Renderer2d oval(int x, int y, int w, int h, boolean fill)   {
         return this.oval(x, y, w, h, this.getColor(), fill);
     }
 
-    Impl arc(int x, int y, int w, int h, int startAngle, int angle, int argb, boolean fill);
-    default Impl arc(int x, int y, int w, int h, int startAngle, int angle) {
+    Renderer2d arc(int x, int y, int w, int h, int startAngle, int angle, int argb, boolean fill);
+    default Renderer2d arc(int x, int y, int w, int h, int startAngle, int angle) {
         return this.arc(x, y, w, h, startAngle, angle, this.getColor(), true);
     }
-    default Impl arc(int x, int y, int w, int h, int startAngle, int angle, int argb) {
+    default Renderer2d arc(int x, int y, int w, int h, int startAngle, int angle, int argb) {
         return this.arc(x, y, w, h, startAngle, angle, argb, true);
     }
-    default Impl arc(int x, int y, int w, int h, int startAngle, int angle, boolean fill) {
+    default Renderer2d arc(int x, int y, int w, int h, int startAngle, int angle, boolean fill) {
         return this.arc(x, y, w, h, startAngle, angle, this.getColor(), fill);
     }
 
     @SuppressWarnings("unchecked")
-    default Impl polyline(@NonNull int[] xPoints, @NonNull int[] yPoints, int length, int argb) {
+    default Renderer2d polyline(@NonNull int[] xPoints, @NonNull int[] yPoints, int length, int argb) {
         if (xPoints.length < length)   {
             throw new IllegalArgumentException(String.format("Invalid number of X points: %d (required: %d)", xPoints.length, length));
         } else if (yPoints.length < length) {
@@ -100,14 +102,14 @@ public interface Renderer2d<Impl extends Renderer2d> {
             for (int i = length - 2; i >= 0; i--)    {
                 this.line(xPoints[i + 1], yPoints[i + 1], xPoints[i], yPoints[i], argb);
             }
-            return (Impl) this;
+            return this;
         }
     }
-    default Impl polyline(@NonNull int[] xPoints, @NonNull int[] yPoints, int length) {
+    default Renderer2d polyline(@NonNull int[] xPoints, @NonNull int[] yPoints, int length) {
         return this.polyline(xPoints, yPoints, length, this.getColor());
     }
 
-    default Impl polygon(@NonNull int[] xPoints, @NonNull int[] yPoints, int length, int argb)  {
+    default Renderer2d polygon(@NonNull int[] xPoints, @NonNull int[] yPoints, int length, int argb)  {
         if (xPoints.length < length)   {
             throw new IllegalArgumentException(String.format("Invalid number of X points: %d (required: %d)", xPoints.length, length));
         } else if (yPoints.length < length) {
@@ -118,61 +120,61 @@ public interface Renderer2d<Impl extends Renderer2d> {
                 this.line(xPoints[i], yPoints[i], xPoints[prevI], yPoints[prevI], argb);
                 prevI = i;
             }
-            return (Impl) this;
+            return this;
         }
     }
-    default Impl polygon(@NonNull int[] xPoints, @NonNull int[] yPoints, int length) {
+    default Renderer2d polygon(@NonNull int[] xPoints, @NonNull int[] yPoints, int length) {
         return this.polygon(xPoints, yPoints, length, this.getColor());
     }
 
-    Impl fillPolygon(@NonNull int[] xPoints, @NonNull int[] yPoints, int length, int argb);
-    default Impl fillPolygon(@NonNull int[] xPoints, @NonNull int[] yPoints, int length) {
+    Renderer2d fillPolygon(@NonNull int[] xPoints, @NonNull int[] yPoints, int length, int argb);
+    default Renderer2d fillPolygon(@NonNull int[] xPoints, @NonNull int[] yPoints, int length) {
         return this.fillPolygon(xPoints, yPoints, length, this.getColor());
     }
 
-    Impl text(@NonNull String str, int x, int y, int argb);
-    default Impl text(@NonNull String str, int x, int y)  {
+    Renderer2d text(@NonNull String str, int x, int y, int argb);
+    default Renderer2d text(@NonNull String str, int x, int y)  {
         return this.text(str, x, y, this.getColor());
     }
 
-    Impl text(@NonNull CharSequence seq, int x, int y, int argb);
-    default Impl text(@NonNull CharSequence seq, int x, int y)  {
+    Renderer2d text(@NonNull CharSequence seq, int x, int y, int argb);
+    default Renderer2d text(@NonNull CharSequence seq, int x, int y)  {
         return this.text(seq, x, y, this.getColor());
     }
 
-    Impl text(@NonNull char[] chars, int x, int y, int offset, int len, int argb);
-    default Impl text(@NonNull char[] chars, int x, int y)   {
+    Renderer2d text(@NonNull char[] chars, int x, int y, int offset, int len, int argb);
+    default Renderer2d text(@NonNull char[] chars, int x, int y)   {
         return this.text(chars, x, y, 0, chars.length, this.getColor());
     }
-    default Impl text(@NonNull char[] chars, int x, int y, int offset, int len)   {
+    default Renderer2d text(@NonNull char[] chars, int x, int y, int offset, int len)   {
         return this.text(chars, x, y, offset, len, this.getColor());
     }
-    default Impl text(@NonNull char[] chars, int x, int y, int argb)   {
+    default Renderer2d text(@NonNull char[] chars, int x, int y, int argb)   {
         return this.text(chars, x, y, 0, chars.length, argb);
     }
 
-    Impl text(@NonNull byte[] chars, int x, int y, int offset, int len, int argb);
-    default Impl text(@NonNull byte[] chars, int x, int y)   {
+    Renderer2d text(@NonNull byte[] chars, int x, int y, int offset, int len, int argb);
+    default Renderer2d text(@NonNull byte[] chars, int x, int y)   {
         return this.text(chars, x, y, 0, chars.length, this.getColor());
     }
-    default Impl text(@NonNull byte[] chars, int x, int y, int offset, int len)   {
+    default Renderer2d text(@NonNull byte[] chars, int x, int y, int offset, int len)   {
         return this.text(chars, x, y, offset, len, this.getColor());
     }
-    default Impl text(@NonNull byte[] chars, int x, int y, int argb)   {
+    default Renderer2d text(@NonNull byte[] chars, int x, int y, int argb)   {
         return this.text(chars, x, y, 0, chars.length, argb);
     }
 
-    Impl image(@NonNull PIcon icon, int x, int y);
-    Impl image(@NonNull PIcon icon, int x, int y, int w, int h);
-    Impl image(@NonNull PIcon icon, int x, int y, int bgArgb);
-    Impl image(@NonNull PIcon icon, int x, int y, int w, int h, int bgArgb);
-    Impl image(@NonNull PIcon icon, int dx1, int dy1, int dx2, int dy2, int sx1, int sy1, int sx2, int sy2);
-    Impl image(@NonNull PIcon icon, int dx1, int dy1, int dx2, int dy2, int sx1, int sy1, int sx2, int sy2, int bgArgb);
+    Renderer2d image(@NonNull PBitmap icon, int x, int y);
+    Renderer2d image(@NonNull PBitmap icon, int x, int y, int w, int h);
+    Renderer2d image(@NonNull PBitmap icon, int x, int y, int bgArgb);
+    Renderer2d image(@NonNull PBitmap icon, int x, int y, int w, int h, int bgArgb);
+    Renderer2d image(@NonNull PBitmap icon, int dx1, int dy1, int dx2, int dy2, int sx1, int sy1, int sx2, int sy2);
+    Renderer2d image(@NonNull PBitmap icon, int dx1, int dy1, int dx2, int dy2, int sx1, int sy1, int sx2, int sy2, int bgArgb);
 
-    Impl copy(int srcX, int srcY, int w, int h, int dstX, int dstY);
+    Renderer2d copy(int srcX, int srcY, int w, int h, int dstX, int dstY);
 
-    Impl clear(int x, int y, int w, int h);
-    default Impl clear()    {
-        return this.clear(0, 0, this.getWidth(), this.getHeight());
+    Renderer2d clear(int x, int y, int w, int h);
+    default Renderer2d clear()    {
+        return this.clear(0, 0, this.width(), this.height());
     }
 }

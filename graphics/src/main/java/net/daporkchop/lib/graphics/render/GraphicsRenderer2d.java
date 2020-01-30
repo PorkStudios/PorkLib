@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -23,22 +23,24 @@ import net.daporkchop.lib.graphics.bitmap.PBitmap;
 import java.awt.*;
 
 /**
+ * Implementation of {@link Renderer2d}
+ *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
 @Getter
-public class GraphicsRenderer2d implements Renderer2d<GraphicsRenderer2d> {
+public final class GraphicsRenderer2d implements Renderer2d {
     protected final Graphics delegate;
 
     protected int color = 0;
 
     @Override
-    public int getWidth() {
+    public int width() {
         return Integer.MAX_VALUE;
     }
 
     @Override
-    public int getHeight() {
+    public int height() {
         return Integer.MAX_VALUE;
     }
 
@@ -46,6 +48,15 @@ public class GraphicsRenderer2d implements Renderer2d<GraphicsRenderer2d> {
     public GraphicsRenderer2d setColor(int argb) {
         if (argb != this.color) {
             this.delegate.setColor(new Color(this.color = argb));
+        }
+        return this;
+    }
+
+    @Override
+    public GraphicsRenderer2d setColor(@NonNull Color color) {
+        if (color.getRGB() != this.color)   {
+            this.delegate.setColor(color);
+            this.color = color.getRGB();
         }
         return this;
     }

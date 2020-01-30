@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -19,6 +19,7 @@ import net.daporkchop.lib.graphics.color.ColorFormat;
 import net.daporkchop.lib.graphics.util.bufferedimage.FastColorModelARGB;
 import net.daporkchop.lib.graphics.util.bufferedimage.immutable.ImmutableRasterARGB;
 import net.daporkchop.lib.graphics.util.exception.BitmapCoordinatesOutOfBoundsException;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.awt.image.BufferedImage;
 
@@ -46,8 +47,28 @@ public interface PIcon extends PBitmap {
      */
     PImage mutableCopy();
 
+    /**
+     * Gets a view of this icons's data as a mutable {@link PImage}.
+     * <p>
+     * This will not duplicate the pixel data, making this an unsafe operation (as this {@link PIcon}'s contents will
+     * change when the returned {@link PImage} is modified).
+     *
+     * @return a mutable view of this icon
+     */
+    PImage unsafeMutableView();
+
+    /**
+     * @see #unsafeMutableView()
+     */
+    default PImage retainedUnsafeMutableView() {
+        return this.retain().unsafeMutableView();
+    }
+
     @Override
     default BufferedImage asBufferedImage() {
         return new BufferedImage(FastColorModelARGB.instance(), new ImmutableRasterARGB(this), false, null);
     }
+
+    @Override
+    PIcon retain() throws AlreadyReleasedException;
 }

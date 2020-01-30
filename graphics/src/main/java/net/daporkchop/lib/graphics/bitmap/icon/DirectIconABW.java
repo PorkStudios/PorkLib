@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -15,10 +15,13 @@
 
 package net.daporkchop.lib.graphics.bitmap.icon;
 
+import net.daporkchop.lib.common.misc.refcount.RefCountedDirectMemory;
+import net.daporkchop.lib.graphics.bitmap.PBitmap;
 import net.daporkchop.lib.graphics.bitmap.PIcon;
 import net.daporkchop.lib.graphics.bitmap.PImage;
 import net.daporkchop.lib.graphics.bitmap.image.DirectImageABW;
 import net.daporkchop.lib.graphics.bitmap.impl.AbstractDirectBitmapABW;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 /**
  * An implementation of {@link PIcon} that uses the ABW color format, backed by direct memory.
@@ -34,8 +37,23 @@ public final class DirectIconABW extends AbstractDirectBitmapABW implements PIco
         super(width, height, copySrcRef, copySrcOff);
     }
 
+    public DirectIconABW(int width, int height, RefCountedDirectMemory memory) {
+        super(width, height, memory);
+    }
+
     @Override
     public PImage mutableCopy() {
         return new DirectImageABW(this.width, this.height, null, this.ptr);
+    }
+
+    @Override
+    public PImage unsafeMutableView() {
+        return new DirectImageABW(this.width, this.height, this.memory);
+    }
+
+    @Override
+    public PIcon retain() throws AlreadyReleasedException {
+        super.retain();
+        return this;
     }
 }

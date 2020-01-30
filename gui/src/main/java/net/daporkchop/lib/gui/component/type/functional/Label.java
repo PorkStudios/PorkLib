@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -16,7 +16,6 @@
 package net.daporkchop.lib.gui.component.type.functional;
 
 import lombok.NonNull;
-import net.daporkchop.lib.graphics.bitmap.ColorFormat;
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.capability.IconHolder;
 import net.daporkchop.lib.gui.component.capability.TextHolder;
@@ -45,9 +44,6 @@ public interface Label extends Component<Label, LabelState>, IconHolder<Label, L
 
     Label setColor(Color color);
     Label setColor(int argb);
-    default Label setColor(int color, @NonNull ColorFormat format)  {
-        return this.setColor(format.toArgb(color));
-    }
 
     default Label trackSpinner(@NonNull Spinner spinner, @NonNull DoubleFunction<String> formatter)    {
         DoubleConsumer callback = val -> this.setText(formatter.apply(val));

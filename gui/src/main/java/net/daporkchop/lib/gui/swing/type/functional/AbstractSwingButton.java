@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -16,7 +16,7 @@
 package net.daporkchop.lib.gui.swing.type.functional;
 
 import lombok.NonNull;
-import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
+import net.daporkchop.lib.graphics.bitmap.PIcon;
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.Element;
 import net.daporkchop.lib.gui.component.capability.IconHolder;
@@ -114,7 +114,7 @@ public abstract class AbstractSwingButton<Impl extends Component<Impl, State> & 
             newIcon = null;
         } else if (icon != null && this.icons.get(state) != icon) {
             this.icons.put(state, icon);
-            newIcon = icon.getAsSwingIcon();
+            newIcon = icon.asSwingIcon();
         } else {
             return (Impl) this;
         }

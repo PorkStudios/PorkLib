@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.graphics.bitmap.impl;
 
+import net.daporkchop.lib.common.misc.refcount.RefCounted;
 import net.daporkchop.lib.common.misc.refcount.RefCountedDirectMemory;
 import net.daporkchop.lib.graphics.bitmap.PBitmap;
 import net.daporkchop.lib.unsafe.PCleaner;
@@ -36,7 +37,8 @@ public abstract class AbstractDirectBitmap extends AbstractBitmap {
     public AbstractDirectBitmap(int width, int height) {
         super(width, height);
 
-        this.cleaner = PCleaner.cleaner(this, this.ptr = PUnsafe.allocateMemory(this.memorySize()));
+        this.memory = new RefCountedDirectMemory(this.memorySize());
+        this.ptr = this.memory.addr();
     }
 
     public AbstractDirectBitmap(int width, int height, Object copySrcRef, long copySrcOff) {
@@ -45,15 +47,34 @@ public abstract class AbstractDirectBitmap extends AbstractBitmap {
         PUnsafe.copyMemory(copySrcRef, copySrcOff, null, this.ptr, this.memorySize());
     }
 
-    protected AbstractDirectBitmap(int width, int height, RefCountedDirectMemory memory)   {
+    public AbstractDirectBitmap(int width, int height, RefCountedDirectMemory memory)   {
         super(width, height);
 
-        this.memory = memory.retain();
-        this.ptr = memory.addr();
+        this.ptr = (this.memory = memory).addr();
+    }
+
+    public long memorySize() {
+        return (long) this.width * (long) this.height;
     }
 
     protected long addr(int x, int y) {
         this.assertInBounds(x, y);
         return (Integer.toUnsignedLong(y) * this.width + x);
+    }
+
+    @Override
+    public int refCnt() {
+        return this.memory.refCnt();
+    }
+
+    @Override
+    public PBitmap retain() throws AlreadyReleasedException {
+        this.memory.retain();
+        return this;
+    }
+
+    @Override
+    public boolean release() throws AlreadyReleasedException {
+        return this.memory.release();
     }
 }

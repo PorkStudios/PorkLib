@@ -15,6 +15,7 @@
 
 package net.daporkchop.lib.graphics.bitmap.impl;
 
+import net.daporkchop.lib.common.misc.refcount.RefCountedDirectMemory;
 import net.daporkchop.lib.graphics.color.ColorFormat;
 import net.daporkchop.lib.graphics.color.ColorFormatABW;
 import net.daporkchop.lib.graphics.color.ColorFormatARGB;
@@ -33,6 +34,10 @@ public abstract class AbstractDirectBitmapRGB extends AbstractDirectBitmap {
 
     public AbstractDirectBitmapRGB(int width, int height, Object copySrcRef, long copySrcOff) {
         super(width, height, copySrcRef, copySrcOff);
+    }
+
+    public AbstractDirectBitmapRGB(int width, int height, RefCountedDirectMemory memory) {
+        super(width, height, memory);
     }
 
     @Override
@@ -63,6 +68,11 @@ public abstract class AbstractDirectBitmapRGB extends AbstractDirectBitmap {
     @Override
     public int getABW(int x, int y) throws BitmapCoordinatesOutOfBoundsException {
         return ColorFormatABW.fromARGB(ColorFormatRGB.toARGB(PUnsafe.getInt(this.addr(x, y))));
+    }
+
+    @Override
+    public long memorySize() {
+        return super.memorySize() << 2L;
     }
 
     @Override

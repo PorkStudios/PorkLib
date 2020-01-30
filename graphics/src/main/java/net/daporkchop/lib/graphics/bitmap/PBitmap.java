@@ -22,6 +22,7 @@ import net.daporkchop.lib.graphics.color.ColorFormatBW;
 import net.daporkchop.lib.graphics.color.ColorFormatRGB;
 import net.daporkchop.lib.graphics.util.exception.BitmapCoordinatesOutOfBoundsException;
 import net.daporkchop.lib.unsafe.capability.Releasable;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import javax.swing.*;
 import java.awt.*;
@@ -139,4 +140,7 @@ public interface PBitmap extends RefCounted {
     default Icon asSwingIcon() {
         return new ImageIcon(this.asImage());
     }
+
+    @Override
+    PBitmap retain() throws AlreadyReleasedException;
 }

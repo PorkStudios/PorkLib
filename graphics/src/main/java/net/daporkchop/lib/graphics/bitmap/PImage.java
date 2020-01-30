@@ -24,6 +24,7 @@ import net.daporkchop.lib.graphics.render.Renderer2d;
 import net.daporkchop.lib.graphics.util.bufferedimage.FastColorModelARGB;
 import net.daporkchop.lib.graphics.util.bufferedimage.mutable.MutableRasterARGB;
 import net.daporkchop.lib.graphics.util.exception.BitmapCoordinatesOutOfBoundsException;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.awt.image.BufferedImage;
 
@@ -107,9 +108,21 @@ public interface PImage extends PBitmap {
     PIcon immutableSnapshot();
 
     /**
-     * @return an immutable snapshot of this image
+     * Gets a view of this image's data as an immutable {@link PIcon}.
+     * <p>
+     * This will not duplicate the pixel data, making this an unsafe operation (as the {@link PIcon}'s contents will
+     * change when this {@link PImage} is modified).
+     *
+     * @return an immutable view of this image
      */
-    PIcon unsafeImmutableSnapshot();
+    PIcon unsafeImmutableView();
+
+    /**
+     * @see #unsafeImmutableView()
+     */
+    default PIcon retainedUnsafeImmutableView() {
+        return this.retain().unsafeImmutableView();
+    }
 
     /**
      * Gets a {@link BufferedImage} instance with identical contents to this bitmap.
@@ -130,7 +143,10 @@ public interface PImage extends PBitmap {
     /**
      * @return an {@link Renderer2d} which can be used to draw to this {@link PImage}
      */
-    default Renderer2d renderer()   {
+    default Renderer2d renderer() {
         return new GraphicsRenderer2d(this.asImage().getGraphics());
     }
+
+    @Override
+    PImage retain() throws AlreadyReleasedException;
 }

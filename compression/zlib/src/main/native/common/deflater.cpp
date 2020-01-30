@@ -54,6 +54,7 @@ __attribute__((visibility("default"))) jlong JNICALL Java_net_daporkchop_lib_com
         const char* msg = stream->msg;
         free(stream);
         throwException(env, msg == nullptr ? "Couldn't init deflater!" : msg, ret);
+        return 0;
     }
 
     return (jlong) stream;

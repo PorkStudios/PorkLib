@@ -2,13 +2,14 @@
 //actually it's not, it was initially though
 //easier to make this by hand lol
 #include <jni.h>
-/* Header for class net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater */
 
 #ifndef _Included_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater
 #define _Included_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 /*
  * Class:     net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater
  * Method:    load
@@ -49,31 +50,8 @@ JNIEXPORT void JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZl
 JNIEXPORT jboolean JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_doDeflate
   (JNIEnv *, jobject, jlong, jint, jlong, jint);
 
-/*
- * Class:     net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater
- * Method:    output
- * Signature: (JI)V
- */
-JNIEXPORT void JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_output
-  (JNIEnv *, jobject, jlong, jint);
-
-/*
- * Class:     net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater
- * Method:    deflate
- * Signature: (Z)V
- */
-JNIEXPORT void JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_deflate
-  (JNIEnv *, jobject, jboolean);
-
-/*
- * Class:     net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater
- * Method:    reset
- * Signature: ()V
- */
-JNIEXPORT void JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_reset
-  (JNIEnv *, jobject);
-
 #ifdef __cplusplus
 }
 #endif
-#endif
+
+#endif //_Included_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater

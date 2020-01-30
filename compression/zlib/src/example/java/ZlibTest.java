@@ -13,32 +13,27 @@
  *
  */
 
-package net.daporkchop.lib.compression.zlib;
-
-import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.compression.zlib.natives.NativeZlib;
-import net.daporkchop.lib.natives.NativeCode;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import net.daporkchop.lib.compression.PDeflater;
+import net.daporkchop.lib.compression.zlib.Zlib;
 
 /**
  * @author DaPorkchop_
  */
-@UtilityClass
-public class Zlib {
-    public final NativeCode<ZlibProvider> PROVIDER = new NativeCode<>(NativeZlib::new);
+public class ZlibTest {
+    private static final int SIZE = 1 << 26; // 64 MiB
 
-    public final int LEVEL_NONE    = 0; //no compression at all
-    public final int LEVEL_FASTEST = 1; //fastest compression, worst ratio
-    public final int LEVEL_BEST    = 9; //best ratio, slowest compression
-    public final int LEVEL_DEFAULT = -1; //uses the library default level
+    public static void main(String... args) {
+        ByteBuf original = Unpooled.directBuffer(SIZE, SIZE).clear().ensureWritable(SIZE).writerIndex(SIZE);
+        ByteBuf compressedNative = Unpooled.directBuffer(SIZE, SIZE).clear().ensureWritable(SIZE);
 
-    public final int STRATEGY_FILTERED = 1;
-    public final int STRATEGY_HUFFMAN  = 2;
-    public final int STRATEGY_RLE      = 3;
-    public final int STRATEGY_FIXED    = 4;
-    public final int STRATEGY_DEFAULT  = 0;
+        try (PDeflater deflater = Zlib.PROVIDER.get().deflater(Zlib.LEVEL_DEFAULT, Zlib.STRATEGY_DEFAULT))  {
+            if (!deflater.deflate(original, compressedNative))  {
+                throw new IllegalStateException("Couldn't deflate data!");
+            }
+        }
 
-    public final int MODE_ZLIB = 0; //DEFLATE with zlib headers
-    public final int MODE_GZIP = 1; //DEFLATE with gzip headers
-    public final int MODE_RAW  = 2; //raw DEFLATE output
-    public final int MODE_AUTO = 3; //automatically detects zlib or gzip (inflater only)
+        System.out.printf("original: %d, compressed: %d\n", SIZE, compressedNative.readableBytes());
+    }
 }

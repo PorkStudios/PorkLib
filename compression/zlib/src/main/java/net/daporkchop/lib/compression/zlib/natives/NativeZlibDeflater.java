@@ -22,7 +22,6 @@ import net.daporkchop.lib.compression.PDeflater;
 import net.daporkchop.lib.compression.util.InvalidBufferTypeException;
 import net.daporkchop.lib.unsafe.PCleaner;
 import net.daporkchop.lib.unsafe.util.AbstractReleasable;
-import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 /**
  * @author DaPorkchop_
@@ -46,14 +45,27 @@ public final class NativeZlibDeflater extends AbstractReleasable implements PDef
     private int readBytes;
     private int writtenBytes;
 
-    public NativeZlibDeflater(int level, int strategy, int mode)    {
+    public NativeZlibDeflater(int level, int strategy, int mode) {
         this.ctx = allocateCtx(level, strategy, mode);
         this.cleaner = PCleaner.cleaner(this, new Releaser(this.ctx));
     }
 
     @Override
     public boolean deflate(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException {
-        return false;
+        long srcAddr = src.memoryAddress() + src.readerIndex();
+        int srcSize = src.readableBytes();
+
+        long dstAddr = dst.memoryAddress() + dst.writerIndex();
+        int dstSize = dst.writableBytes();
+
+        if (this.doDeflate(srcAddr, srcSize, dstAddr, dstSize)) {
+            //increase indices if successful
+            src.skipBytes(this.readBytes);
+            dst.writerIndex(dst.writerIndex() + this.writtenBytes);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private native boolean doDeflate(long srcAddr, int srcSize, long dstAddr, int dstSize);
@@ -72,7 +84,7 @@ public final class NativeZlibDeflater extends AbstractReleasable implements PDef
 
     @Override
     public PDeflater src(@NonNull ByteBuf src) throws InvalidBufferTypeException {
-        if (!src.hasMemoryAddress())    {
+        if (!src.hasMemoryAddress()) {
             throw new InvalidBufferTypeException(true);
         }
         this.src = src;
@@ -81,7 +93,7 @@ public final class NativeZlibDeflater extends AbstractReleasable implements PDef
 
     @Override
     public PDeflater dst(@NonNull ByteBuf dst) throws InvalidBufferTypeException {
-        if (!dst.hasMemoryAddress())    {
+        if (!dst.hasMemoryAddress()) {
             throw new InvalidBufferTypeException(true);
         }
         this.dst = dst;

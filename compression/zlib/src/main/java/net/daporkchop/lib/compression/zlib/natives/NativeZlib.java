@@ -16,6 +16,7 @@
 package net.daporkchop.lib.compression.zlib.natives;
 
 import net.daporkchop.lib.compression.PDeflater;
+import net.daporkchop.lib.compression.zlib.Zlib;
 import net.daporkchop.lib.compression.zlib.ZlibProvider;
 import net.daporkchop.lib.natives.NativeCode;
 
@@ -27,7 +28,7 @@ public final class NativeZlib extends NativeCode.NativeImpl<ZlibProvider> implem
         if (NativeCode.NativeImpl.AVAILABLE)    {
             NativeCode.loadNativeLibrary("zlib");
 
-            //NativeZlibDeflater.load();
+            NativeZlibDeflater.load();
             //NativeZlibInflater.load();
         }
     }
@@ -39,6 +40,6 @@ public final class NativeZlib extends NativeCode.NativeImpl<ZlibProvider> implem
 
     @Override
     public PDeflater deflater(int level, int strategy) {
-        return null;
+        return new NativeZlibDeflater(level, strategy, Zlib.MODE_ZLIB);
     }
 }

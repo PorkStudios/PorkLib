@@ -16,9 +16,9 @@
 package gui;
 
 import lombok.NonNull;
-import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
-import net.daporkchop.lib.graphics.bitmap.image.PImage;
-import net.daporkchop.lib.graphics.bitmap.image.direct.DirectImageRGB;
+import net.daporkchop.lib.graphics.bitmap.PIcon;
+import net.daporkchop.lib.graphics.bitmap.PImage;
+import net.daporkchop.lib.graphics.bitmap.image.DirectImageRGB;
 import net.daporkchop.lib.gui.GuiEngine;
 import net.daporkchop.lib.gui.component.orientation.advanced.Axis;
 import net.daporkchop.lib.gui.component.orientation.advanced.calculator.DistUnit;
@@ -29,11 +29,10 @@ import net.daporkchop.lib.gui.component.type.Window;
 import net.daporkchop.lib.gui.component.type.functional.ProgressBar;
 import net.daporkchop.lib.gui.component.type.functional.Slider;
 import net.daporkchop.lib.gui.component.type.functional.Table;
-import net.daporkchop.lib.gui.swing.type.functional.SwingPasswordBox;
 import net.daporkchop.lib.gui.util.Alignment;
 import net.daporkchop.lib.gui.util.ScrollCondition;
-import net.daporkchop.lib.logging.Logging;
 
+import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static net.daporkchop.lib.logging.Logging.*;
@@ -42,12 +41,12 @@ import static net.daporkchop.lib.logging.Logging.*;
  * @author DaPorkchop_
  */
 public class GuiExample {
-    public static final String LOREM_IPSUM = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.";
-    public static final GuiEngine ENGINE = GuiEngine.swing();
+    public static final String    LOREM_IPSUM = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.";
+    public static final GuiEngine ENGINE      = GuiEngine.swing();
 
     public static void main(String... args) {
         ENGINE.newWindow(64, 64, 512, 256)
-                .setTitle("Example GUI").setIcon(PImage.randomImage(32, 32), PImage.randomImage(16, 16))
+                .setTitle("Example GUI").setIcon(randomImage(32, 32), randomImage(16, 16))
                 .button("button1", button -> button
                         .orientRelative(0.3d, 0.15d, 0.4d, 0.1d)
                         .setText("Example Button!")
@@ -124,7 +123,7 @@ public class GuiExample {
                                 .configureAxis(Axis.Y, calc -> calc.min(DistUnit.RELATIVE, "dropdown1", Axis.BELOW)))
                         .minDimensionsAreValueSize()
                         .setText("Dummy text box 1")
-                        .setIcon(CheckBoxState.ENABLED_HOVERED_SELECTED, PImage.randomImage(32, 32))
+                        .setIcon(CheckBoxState.ENABLED_HOVERED_SELECTED, randomImage(32, 32))
                         .addSelectionListener(selected -> logger.info("Checkbox %sselected!", selected ? "" : "de")))
                 .checkBox("checkBox2", checkBox -> checkBox
                         .orientAdvanced(adv -> adv
@@ -132,7 +131,7 @@ public class GuiExample {
                                 .configureAxis(Axis.Y, calc -> calc.min(DistUnit.RELATIVE, "checkBox1", Axis.BELOW)))
                         .minDimensionsAreValueSize()
                         .setText("Text box 2!")
-                        .setIcon(PImage.randomImage(32, 32)))
+                        .setIcon(randomImage(32, 32)))
                 .radioGroupFast("group1")
                 .radioButton("radioButton1", "group1", button -> button
                         .orientAdvanced(adv -> adv
@@ -260,7 +259,22 @@ public class GuiExample {
 
     private static PIcon filledImage(int rgb) {
         PImage img = new DirectImageRGB(32, 32);
-        img.fillRGB(rgb);
-        return img;
+        for (int x = 0; x < 32; x++) {
+            for (int y = 0; y < 32; y++) {
+                img.setRGB(x, y, rgb);
+            }
+        }
+        return img.unsafeImmutableView();
+    }
+
+    private static PIcon randomImage(int width, int height) {
+        PImage img = new DirectImageRGB(width, height);
+        Random random = ThreadLocalRandom.current();
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                img.setRGB(x, y, random.nextInt() >>> 8);
+            }
+        }
+        return img.unsafeImmutableView();
     }
 }

@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -16,7 +16,7 @@
 package net.daporkchop.lib.gui.swing.type.functional;
 
 import lombok.NonNull;
-import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
+import net.daporkchop.lib.graphics.bitmap.PIcon;
 import net.daporkchop.lib.gui.component.state.ElementState;
 import net.daporkchop.lib.gui.component.state.functional.LabelState;
 import net.daporkchop.lib.gui.component.type.functional.Label;
@@ -35,8 +35,8 @@ import java.awt.*;
  * @author DaPorkchop_
  */
 public class SwingLabel extends SwingComponent<Label, JLabel, LabelState> implements Label {
-    protected PIcon enabledIcon;
-    protected PIcon disabledIcon;
+    protected       PIcon   enabledIcon;
+    protected       PIcon   disabledIcon;
     protected final boolean originallyOpaque;
 
     public SwingLabel(String name) {
@@ -118,11 +118,11 @@ public class SwingLabel extends SwingComponent<Label, JLabel, LabelState> implem
             if (state == null || state == LabelState.ENABLED) {
                 if (this.enabledIcon != icon) {
                     this.enabledIcon = icon;
-                    this.swing.setIcon(icon == null ? null : icon.getAsSwingIcon());
+                    this.swing.setIcon(icon == null ? null : icon.asSwingIcon());
                 }
             } else if (this.disabledIcon != icon) {
                 this.disabledIcon = icon;
-                this.swing.setDisabledIcon(icon == null ? null : icon.getAsSwingIcon());
+                this.swing.setDisabledIcon(icon == null ? null : icon.asSwingIcon());
             }
         } else {
             SwingUtilities.invokeLater(() -> this.setIcon(state, icon));

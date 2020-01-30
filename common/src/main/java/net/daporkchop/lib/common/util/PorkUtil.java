@@ -259,17 +259,19 @@ public class PorkUtil {
     }
 
     public void simpleDisplayImage(@NonNull BufferedImage img) {
-        simpleDisplayImage(img, false);
+        simpleDisplayImage(false, img);
     }
 
-    public void simpleDisplayImage(@NonNull BufferedImage img, boolean wait) {
+    public void simpleDisplayImage(boolean block, @NonNull BufferedImage... imgs) {
         JFrame frame = new JFrame();
         frame.getContentPane().setLayout(new FlowLayout());
-        frame.getContentPane().add(new JLabel(new ImageIcon(img)));
+        for (BufferedImage img : imgs)  {
+            frame.getContentPane().add(new JLabel(new ImageIcon(img)));
+        }
         frame.pack();
         frame.setVisible(true);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        if (wait) {
+        if (block) {
             CompletableFuture future = new CompletableFuture();
             frame.addWindowListener(new WindowAdapter() {
                 @Override

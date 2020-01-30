@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -17,10 +17,12 @@ package net.daporkchop.lib.graphics.util;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
+import net.daporkchop.lib.graphics.bitmap.PBitmap;
+import net.daporkchop.lib.graphics.bitmap.PIcon;
+import net.daporkchop.lib.graphics.bitmap.PImage;
 import net.daporkchop.lib.graphics.interpolation.ImageInterpolator;
-import net.daporkchop.lib.math.interpolation.InterpolationEngine;
-import net.daporkchop.lib.math.interpolation.LinearInterpolationEngine;
+import net.daporkchop.lib.math.interpolation.Interpolation;
+import net.daporkchop.lib.math.interpolation.LinearInterpolation;
 
 import java.util.Arrays;
 
@@ -29,31 +31,34 @@ import java.util.Arrays;
  *
  * @author DaPorkchop_
  */
-public class Thumbnail {
+public final class Thumbnail {
     protected final int[] sizes;
-    protected final PIcon[] icons;
+    protected final PBitmap[] icons;
     @Getter
     protected boolean baked = false;
 
     public Thumbnail(@NonNull int... sizes) {
-        Arrays.sort(this.sizes = sizes);
-        this.icons = new PIcon[sizes.length];
+        this.sizes = sizes = Arrays.stream(sizes)
+                .distinct()
+                .sorted()
+                .toArray();
+        this.icons = new PBitmap[sizes.length];
         if (sizes.length == 0) {
             this.baked = true;
         }
     }
 
     public Thumbnail bake() {
-        return this.bake(new ImageInterpolator(new LinearInterpolationEngine()));
+        return this.bake(new ImageInterpolator(LinearInterpolation.instance()));
     }
 
-    public Thumbnail bake(@NonNull InterpolationEngine engine) {
+    public Thumbnail bake(@NonNull Interpolation engine) {
         return this.bake(new ImageInterpolator(engine));
     }
 
     public Thumbnail bake(@NonNull ImageInterpolator interpolator) {
         if (!this.baked) {
-            PIcon highestRes = null;
+            PBitmap highestRes = null;
             for (int i = this.sizes.length - 1; i >= 0; i--) {
                 if (this.icons[i] != null) {
                     highestRes = this.icons[i];
@@ -65,7 +70,7 @@ public class Thumbnail {
             }
             for (int i = this.sizes.length - 1; i >= 0; i--) {
                 if (this.icons[i] == null) {
-                    this.icons[i] = interpolator.interp(highestRes, this.sizes[i], this.sizes[i]);
+                    this.icons[i] = interpolator.interp(highestRes, this.sizes[i], this.sizes[i]).immutableSnapshot();
                 }
             }
             this.baked = true;
@@ -73,24 +78,24 @@ public class Thumbnail {
         return this;
     }
 
-    public Thumbnail submit(@NonNull PIcon icon)    {
-        if (icon.isEmpty() || icon.getWidth() != icon.getHeight())  {
+    public Thumbnail submit(@NonNull PBitmap icon)    {
+        if (icon.empty() || icon.width() != icon.height())  {
             throw new IllegalArgumentException("Icon is not a square!");
         }
         if (!this.baked)    {
             for (int i = this.sizes.length - 1; i >= 0; i--)    {
-                if (this.sizes[i] == icon.getWidth())   {
-                    this.icons[i] = icon;
+                if (this.sizes[i] == icon.width())   {
+                    this.icons[i] = icon instanceof PImage ? ((PImage) icon).immutableSnapshot() : icon;
                     return this;
                 }
             }
 
-            throw new IllegalArgumentException(String.format("Icon with size %d doesn't match any of the thumbnail resolutions!", icon.getWidth()));
+            throw new IllegalArgumentException(String.format("Icon with size %d doesn't match any of the thumbnail resolutions!", icon.width()));
         }
         return this;
     }
 
-    public PIcon[] getIcons() {
+    public PBitmap[] getIcons() {
         if (this.baked) {
             return this.icons.clone();
         } else {

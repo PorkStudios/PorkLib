@@ -26,29 +26,24 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
  * @author DaPorkchop_
  */
 @ToString
-public class DirectMemoryBlock extends DirectMemoryHolder.AbstractConstantSize implements MemoryBlock {
+public final class DirectMemoryBlock extends DirectMemoryHolder.AbstractConstantSize implements MemoryBlock {
     public DirectMemoryBlock(long size) {
         super(size);
     }
 
     @Override
-    public long memoryAddress() {
+    public Object memoryRef() {
+        return null;
+    }
+
+    @Override
+    public long memoryOff() {
         return this.pos;
     }
 
     @Override
     public long memorySize() {
         return this.size;
-    }
-
-    @Override
-    public Object refObj() {
-        return null;
-    }
-
-    @Override
-    public boolean isAbsolute() {
-        return true;
     }
 
     @Override
@@ -329,5 +324,10 @@ public class DirectMemoryBlock extends DirectMemoryHolder.AbstractConstantSize i
         } else {
             PUnsafe.copyMemory(arr, PUnsafe.ARRAY_CHAR_BASE_OFFSET + (off << 1L), null, this.pos, len << 1L);
         }
+    }
+
+    @Override
+    public void clear() {
+        PUnsafe.setMemory(this.pos, this.size, (byte) 0);
     }
 }

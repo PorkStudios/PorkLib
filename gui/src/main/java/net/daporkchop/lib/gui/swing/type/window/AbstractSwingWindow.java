@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -20,7 +20,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.graphics.bitmap.icon.PIcon;
+import net.daporkchop.lib.graphics.bitmap.PIcon;
 import net.daporkchop.lib.gui.GuiEngine;
 import net.daporkchop.lib.gui.component.Element;
 import net.daporkchop.lib.gui.component.state.WindowState;
@@ -47,7 +47,7 @@ import java.util.stream.Stream;
 @Accessors(chain = true)
 public abstract class AbstractSwingWindow<Impl extends AbstractSwingWindow<Impl, Swing>, Swing extends java.awt.Window> extends SwingContainer<Window, Swing, WindowState> implements Window {
     protected BoundingBox oldDimensions;
-    protected PIcon icon;
+    protected PIcon       icon;
 
     protected boolean built = false;
     protected boolean minimized = false;
@@ -90,7 +90,7 @@ public abstract class AbstractSwingWindow<Impl extends AbstractSwingWindow<Impl,
         if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
             if (icon != this.icon) {
                 this.icon = icon;
-                this.swing.setIconImage(icon.getAsBufferedImage());
+                this.swing.setIconImage(icon.asBufferedImage());
             }
         } else {
             SwingUtilities.invokeLater(() -> this.setIcon(icon));
@@ -111,15 +111,15 @@ public abstract class AbstractSwingWindow<Impl extends AbstractSwingWindow<Impl,
                 throw new NullPointerException();
             }
             PIcon icon = icons[i];
-            if (icon.isEmpty() || icon.getWidth() != icon.getHeight()) {
+            if (icon.width() == 0 || icon.height() == 0 || icon.width() != icon.height()) {
                 throw new IllegalArgumentException("Icon must be square!");
-            } else if (icon.getWidth() > max) {
-                max = icon.getWidth();
+            } else if (icon.width() > max) {
+                max = icon.width();
                 maxI = icon;
             }
         }
         this.icon = maxI;
-        List<Image> images = Stream.of(icons).map(PIcon::getAsBufferedImage).collect(Collectors.toList());
+        List<Image> images = Stream.of(icons).map(PIcon::asBufferedImage).collect(Collectors.toList());
         if (Thread.currentThread().getClass() == GuiEngineSwing.EVENT_DISPATCH_THREAD) {
             this.swing.setIconImages(images);
         } else {

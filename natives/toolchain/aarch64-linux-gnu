@@ -2,8 +2,9 @@ export CFLAGS		:=	$(CFLAGS) -flto=auto -fno-fat-lto-objects
 export CXXFLAGS		:=	$(CXXFLAGS) -flto=auto -fno-fat-lto-objects
 export LDFLAGS		:=	$(LDFLAGS) -flto=auto -fno-fat-lto-objects
 
-export CC  := aarch64-linux-gnu-gcc
-export CXX := aarch64-linux-gnu-g++
-export LD  := aarch64-linux-gnu-g++
+export CC		:= aarch64-linux-gnu-gcc
+export CXX		:= aarch64-linux-gnu-g++
+export LD		:= aarch64-linux-gnu-g++
+export STRIP	:= aarch64-linux-gnu-strip
 
 export EXT	:=	so

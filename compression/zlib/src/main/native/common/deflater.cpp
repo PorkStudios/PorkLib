@@ -100,7 +100,7 @@ __attribute__((visibility("default"))) jboolean JNICALL Java_net_daporkchop_lib_
 
     //set stream buffers
     stream->next_in = (unsigned char*) srcAddr;
-    stream->avail_in = srcAddr;
+    stream->avail_in = srcSize;
 
     stream->next_out = (unsigned char*) dstAddr;
     stream->avail_out = dstSize;

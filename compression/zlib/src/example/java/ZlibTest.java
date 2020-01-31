@@ -18,15 +18,23 @@ import io.netty.buffer.Unpooled;
 import net.daporkchop.lib.compression.PDeflater;
 import net.daporkchop.lib.compression.zlib.Zlib;
 
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.zip.DataFormatException;
+import java.util.zip.Inflater;
+
 /**
  * @author DaPorkchop_
  */
 public class ZlibTest {
     private static final int SIZE = 1 << 26; // 64 MiB
 
-    public static void main(String... args) {
+    public static void main(String... args) throws DataFormatException {
         ByteBuf original = Unpooled.directBuffer(SIZE, SIZE).clear().ensureWritable(SIZE).writerIndex(SIZE);
-        ByteBuf compressedNative = Unpooled.directBuffer(SIZE, SIZE).clear().ensureWritable(SIZE);
+        for (int i = 0; i < 512; i += 8)   {
+            original.setLongLE(i, ThreadLocalRandom.current().nextLong());
+        }
+
+        ByteBuf compressedNative = Unpooled.directBuffer(SIZE >>> 4, SIZE >>> 4).clear().ensureWritable(SIZE >>> 4);
 
         try (PDeflater deflater = Zlib.PROVIDER.get().deflater(Zlib.LEVEL_DEFAULT, Zlib.STRATEGY_DEFAULT))  {
             if (!deflater.deflate(original, compressedNative))  {
@@ -35,5 +43,23 @@ public class ZlibTest {
         }
 
         System.out.printf("original: %d, compressed: %d\n", SIZE, compressedNative.readableBytes());
+
+        byte[] compressedHeap = new byte[compressedNative.readableBytes()];
+        compressedNative.readBytes(compressedHeap);
+
+        byte[] uncompressedHeap = new byte[SIZE];
+
+        Inflater inflater = new Inflater();
+        inflater.setInput(compressedHeap);
+        int cnt = inflater.inflate(uncompressedHeap);
+        if (cnt != SIZE)    {
+            throw new IllegalStateException(String.format("Only inflated %d/%d bytes!", cnt, SIZE));
+        }
+
+        for (int i = 0; i < SIZE; i++)  {
+            if (original.getByte(i) != uncompressedHeap[i]) {
+                throw new IllegalStateException();
+            }
+        }
     }
 }

@@ -49,7 +49,8 @@ $(CURDIR)/lib-zlib/libz-ng.a: $(TOPDIR)/zlib-ng-1.2.11.tar.gz
 	@[ ! -d lib-zlib ] || rm -rf lib-zlib/
 	@tar zxf $(TOPDIR)/zlib-ng-1.2.11.tar.gz
 	@mv zlib-ng-1.2.11/ lib-zlib/
-	@cd lib-zlib/ && CFLAGS="-fPIC -fvisibility=hidden -ffunction-sections -fdata-sections" ./configure --static --with-gzfileops && cd ..
+	@cd lib-zlib/ && ./configure --static && cd ..
+#	@cd lib-zlib/ && ./configure --static --with-gzfileops && cd ..
 	@$(MAKE) -C $(CURDIR)/lib-zlib/ -f $(CURDIR)/lib-zlib/Makefile libz-ng.a
 
 FORCE:

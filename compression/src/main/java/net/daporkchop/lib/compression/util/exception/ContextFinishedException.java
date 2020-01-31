@@ -13,36 +13,12 @@
  *
  */
 
-package net.daporkchop.lib.compression;
-
-import io.netty.buffer.ByteBuf;
-import lombok.NonNull;
-import net.daporkchop.lib.compression.util.exception.ContextFinishedException;
-import net.daporkchop.lib.compression.util.exception.InvalidBufferTypeException;
+package net.daporkchop.lib.compression.util.exception;
 
 /**
- * Deflates (compresses) data.
+ * Thrown when a {@link net.daporkchop.lib.compression.Context} is used that is already finished, and was not reset.
  *
  * @author DaPorkchop_
  */
-public interface PDeflater extends Context<PDeflater> {
-    /**
-     * Deflates the given source data into the given destination buffer.
-     * <p>
-     * Rather than expanding the destination buffer if needed, this method will simply abort compression if not enough space is available. In such a case the
-     * reader/writer indices of both buffers will remain unaffected, however the contents of the destination buffer may be modified.
-     * <p>
-     * This method will implicitly reset the context before the actual compression. Any previous state will be ignored.
-     *
-     * @param src the {@link ByteBuf} to read data from
-     * @param dst the {@link ByteBuf} to write data to
-     * @return whether or not there was enough space in the destination buffer for the compressed data
-     */
-    boolean fullDeflate(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException;
-
-    @Override
-    PDeflater update() throws ContextFinishedException;
-
-    @Override
-    boolean finish() throws ContextFinishedException;
+public final class ContextFinishedException extends RuntimeException {
 }

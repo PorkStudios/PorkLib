@@ -13,7 +13,7 @@
  *
  */
 
-package net.daporkchop.lib.compression.util;
+package net.daporkchop.lib.compression.util.exception;
 
 /**
  * Thrown when a {@link io.netty.buffer.ByteBuf} argument to a {@link net.daporkchop.lib.compression.PInflater} or {@link net.daporkchop.lib.compression.PDeflater}
@@ -21,7 +21,7 @@ package net.daporkchop.lib.compression.util;
  *
  * @author DaPorkchop_
  */
-public class InvalidBufferTypeException extends IllegalArgumentException {
+public final class InvalidBufferTypeException extends IllegalArgumentException {
     public InvalidBufferTypeException(boolean direct) {
         super(direct ? "direct buffer expected!" : "heap buffer expected!");
     }

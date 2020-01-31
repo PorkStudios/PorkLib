@@ -37,7 +37,7 @@ public class ZlibTest {
         ByteBuf compressedNative = Unpooled.directBuffer(SIZE >>> 4, SIZE >>> 4).clear().ensureWritable(SIZE >>> 4);
 
         try (PDeflater deflater = Zlib.PROVIDER.get().deflater(Zlib.LEVEL_DEFAULT, Zlib.STRATEGY_DEFAULT))  {
-            if (!deflater.deflate(original, compressedNative))  {
+            if (!deflater.fullDeflate(original, compressedNative))  {
                 throw new IllegalStateException("Couldn't deflate data!");
             }
         }

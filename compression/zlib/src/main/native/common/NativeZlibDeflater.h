@@ -28,14 +28,6 @@ JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZ
 
 /*
  * Class:     net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater
- * Method:    resetCtx
- * Signature: (J)V
- */
-JNIEXPORT void JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_resetCtx
-  (JNIEnv *, jclass, jlong);
-
-/*
- * Class:     net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater
  * Method:    releaseCtx
  * Signature: (J)V
  */
@@ -44,11 +36,19 @@ JNIEXPORT void JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZl
 
 /*
  * Class:     net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater
- * Method:    doDeflate
+ * Method:    doFullDeflate
  * Signature: (JIJI)Z
  */
-JNIEXPORT jboolean JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_doDeflate
+JNIEXPORT jboolean JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_doFullDeflate
   (JNIEnv *, jobject, jlong, jint, jlong, jint);
+
+/*
+ * Class:     net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater
+ * Method:    doReset
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_doReset
+  (JNIEnv *, jobject);
 
 #ifdef __cplusplus
 }

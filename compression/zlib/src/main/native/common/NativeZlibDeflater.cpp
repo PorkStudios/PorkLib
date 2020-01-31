@@ -11,12 +11,14 @@
 static jfieldID ctxID;
 static jfieldID readBytesID;
 static jfieldID writtenBytesID;
+static jfieldID resetID;
 
 __attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_load
         (JNIEnv* env, jclass cla)  {
     ctxID          = env->GetFieldID(cla, "ctx", "J");
     readBytesID    = env->GetFieldID(cla, "readBytes", "I");
     writtenBytesID = env->GetFieldID(cla, "writtenBytes", "I");
+    resetID        = env->GetFieldID(cla, "reset", "Z");
 }
 
 __attribute__((visibility("default"))) jlong JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_allocateCtx
@@ -60,16 +62,6 @@ __attribute__((visibility("default"))) jlong JNICALL Java_net_daporkchop_lib_com
     return (jlong) stream;
 }
 
-__attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_resetCtx
-        (JNIEnv* env, jclass cla, jlong ctx)   {
-    zng_stream* stream = (zng_stream*) ctx;
-    int ret = zng_deflateReset(stream);
-
-    if (ret != Z_OK)    {
-        throwException(env, stream->msg == nullptr ? "Couldn't reset deflater!" : stream->msg, ret);
-    }
-}
-
 __attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_releaseCtx
         (JNIEnv* env, jclass cla, jlong ctx)   {
     zng_stream* stream = (zng_stream*) ctx;
@@ -88,15 +80,9 @@ __attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_comp
     }
 }
 
-__attribute__((visibility("default"))) jboolean JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_doDeflate
+__attribute__((visibility("default"))) jboolean JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_doFullDeflate
         (JNIEnv* env, jobject obj, jlong srcAddr, jint srcSize, jlong dstAddr, jint dstSize)   {
     zng_stream* stream = (zng_stream*) env->GetLongField(obj, ctxID);
-
-    int ret = zng_deflateReset(stream);
-    if (ret != Z_OK)    {
-        throwException(env, stream->msg == nullptr ? "Couldn't reset deflater!" : stream->msg, ret);
-        return false;
-    }
 
     //set stream buffers
     stream->next_in = (unsigned char*) srcAddr;
@@ -105,7 +91,7 @@ __attribute__((visibility("default"))) jboolean JNICALL Java_net_daporkchop_lib_
     stream->next_out = (unsigned char*) dstAddr;
     stream->avail_out = dstSize;
 
-    ret = zng_deflate(stream, Z_FINISH);
+    int ret = zng_deflate(stream, Z_FINISH);
     if (ret == Z_STREAM_END)    {
         env->SetIntField(obj, readBytesID,    srcSize - stream->avail_in);
         env->SetIntField(obj, writtenBytesID, dstSize - stream->avail_out);
@@ -115,6 +101,19 @@ __attribute__((visibility("default"))) jboolean JNICALL Java_net_daporkchop_lib_
     }
 
     return false;
+}
+
+__attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_doReset
+        (JNIEnv* env, jobject obj)   {
+    zng_stream* stream = (zng_stream*) env->GetLongField(obj, ctxID);
+    int ret = zng_deflateReset(stream);
+
+    if (ret != Z_OK)    {
+        throwException(env, stream->msg == nullptr ? "Couldn't reset deflater!" : stream->msg, ret);
+        return;
+    }
+
+    env->SetBooleanField(obj, resetID, true);
 }
 
 /*

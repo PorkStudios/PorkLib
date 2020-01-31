@@ -16,8 +16,12 @@
 package net.daporkchop.lib.random;
 
 import lombok.NonNull;
+import net.daporkchop.lib.random.impl.ThreadLocalPRandom;
+import net.daporkchop.lib.random.wrapper.JavaRandomWrapper;
+import net.daporkchop.lib.random.wrapper.PRandomWrapper;
 
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Generates random numbers.
@@ -25,6 +29,24 @@ import java.util.Random;
  * @author DaPorkchop_
  */
 public interface PRandom {
+    /**
+     * Gets an instance of {@link PRandom} which provides a view of the given {@link Random} instance.
+     * <p>
+     * The returned instance will either be a proxy to the given {@link Random} instance, or the given instance directly. As
+     * such, all concurrency characteristics of the given {@link Random} instance are preserved.
+     *
+     * @return a view of the given {@link Random} as a {@link PRandom}
+     */
+    static PRandom wrap(@NonNull Random random) {
+        if (random instanceof PRandomWrapper) {
+            return ((PRandomWrapper) random).delegate();
+        } else if (random instanceof ThreadLocalRandom) {
+            return ThreadLocalPRandom.current();
+        } else {
+            return new JavaRandomWrapper(random);
+        }
+    }
+
     /**
      * Gets an instance of {@link Random} which provides a view of this {@link PRandom} instance.
      * <p>
@@ -152,6 +174,14 @@ public interface PRandom {
     /**
      * Gets a random float.
      *
+     * @param bound the maximum value to generate (exclusive)
+     * @return a random float between {@code 0} and the given bound
+     */
+    float nextFloat(float bound);
+
+    /**
+     * Gets a random float.
+     *
      * @param min the minimum value to generate (inclusive)
      * @param max the maximum value to generate (exclusive)
      * @return a random float between the given minimum and maximum values
@@ -162,6 +192,14 @@ public interface PRandom {
      * @return a random double in the range {@code 0} - {@code 1}
      */
     double nextDouble();
+
+    /**
+     * Gets a random double.
+     *
+     * @param bound the maximum value to generate (exclusive)
+     * @return a random double between {@code 0} and the given bound
+     */
+    double nextDouble(double bound);
 
     /**
      * Gets a random double.

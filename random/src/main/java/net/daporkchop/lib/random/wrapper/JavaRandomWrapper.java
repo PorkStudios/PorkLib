@@ -67,7 +67,7 @@ public final class JavaRandomWrapper implements PRandom {
         }
 
         for (int i = start; i < length; ) {
-            for (int rnd = this.delegate.nextInt(), n = Math.min(length - i, Integer.SIZE / Byte.SIZE); n-- > 0; rnd >>= Byte.SIZE) {
+            for (long rnd = this.delegate.nextLong(), n = Math.min(length - i, Long.SIZE / Byte.SIZE); n-- > 0; rnd >>= Byte.SIZE) {
                 dst[i++] = (byte) rnd;
             }
         }
@@ -95,17 +95,11 @@ public final class JavaRandomWrapper implements PRandom {
 
     @Override
     public int nextInt(int bound) {
-        if (bound <= 0) {
-            throw new IllegalArgumentException("bound must be positive");
-        }
         return this.delegate.nextInt(bound);
     }
 
     @Override
     public int nextInt(int min, int max) {
-        if (max <= min) {
-            throw new IllegalArgumentException("max must be greater than min");
-        }
         return this.delegate.nextInt(max - min) + min;
     }
 
@@ -154,6 +148,16 @@ public final class JavaRandomWrapper implements PRandom {
     }
 
     @Override
+    public float nextFloat(float bound) {
+        if (bound <= 0.0f) {
+            throw new IllegalArgumentException("bound must be positive");
+        }
+
+        float result = this.delegate.nextFloat() * bound;
+        return (result < bound) ? result : Float.intBitsToFloat(Float.floatToIntBits(bound) - 1);
+    }
+
+    @Override
     public float nextFloat(float min, float max) {
         if (max <= min) {
             throw new IllegalArgumentException("max must be greater than min");
@@ -164,6 +168,16 @@ public final class JavaRandomWrapper implements PRandom {
     @Override
     public double nextDouble() {
         return this.delegate.nextDouble();
+    }
+
+    @Override
+    public double nextDouble(double bound) {
+        if (bound <= 0.0d) {
+            throw new IllegalArgumentException("bound must be positive");
+        }
+
+        double result = this.delegate.nextDouble() * bound;
+        return (result < bound) ?  result : Double.longBitsToDouble(Double.doubleToLongBits(bound) - 1L);
     }
 
     @Override

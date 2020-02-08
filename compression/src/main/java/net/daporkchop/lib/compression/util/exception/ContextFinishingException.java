@@ -15,13 +15,10 @@
 
 package net.daporkchop.lib.compression.util.exception;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-
 /**
- * Thrown when a {@link net.daporkchop.lib.compression.Context} is used that is already finished, and was not reset.
+ * Thrown when a {@link net.daporkchop.lib.compression.Context} is updated that is already being finished (but was not completely finished), and was not reset.
  *
  * @author DaPorkchop_
  */
-public class ContextFinishedException extends RuntimeException {
+public final class ContextFinishingException extends ContextFinishedException {
 }

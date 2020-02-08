@@ -18,6 +18,7 @@ package net.daporkchop.lib.compression;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.compression.util.exception.ContextFinishedException;
+import net.daporkchop.lib.compression.util.exception.ContextFinishingException;
 import net.daporkchop.lib.compression.util.exception.InvalidBufferTypeException;
 import net.daporkchop.lib.unsafe.capability.Releasable;
 
@@ -43,8 +44,9 @@ interface Context<I extends Context<I>> extends Releasable {
      *
      * @param src the {@link ByteBuf} to read data from
      * @return this context
+     * @throws ContextFinishingException if this context is already being finished, and as such the source buffer may not be updated any more
      */
-    I src(@NonNull ByteBuf src) throws InvalidBufferTypeException;
+    I src(@NonNull ByteBuf src) throws InvalidBufferTypeException, ContextFinishingException;
 
     /**
      * Sets the context's current destination buffer when processing data in streaming mode.
@@ -62,9 +64,10 @@ interface Context<I extends Context<I>> extends Releasable {
      * Implementations may buffer any amount of data internally.
      *
      * @return this context
-     * @throws ContextFinishedException if this context is already finished and needs to be reset before being used again
+     * @throws ContextFinishedException  if this context is already finished and needs to be reset before being used again
+     * @throws ContextFinishingException if this context is already being finished (but is not yet completely finished)
      */
-    I update() throws ContextFinishedException;
+    I update() throws ContextFinishedException, ContextFinishingException;
 
     /**
      * Finishes this context.

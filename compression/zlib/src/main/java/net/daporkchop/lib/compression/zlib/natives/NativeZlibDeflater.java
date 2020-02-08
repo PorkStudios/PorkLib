@@ -20,6 +20,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.compression.PDeflater;
 import net.daporkchop.lib.compression.util.exception.ContextFinishedException;
+import net.daporkchop.lib.compression.util.exception.ContextFinishingException;
 import net.daporkchop.lib.compression.util.exception.InvalidBufferTypeException;
 import net.daporkchop.lib.unsafe.PCleaner;
 import net.daporkchop.lib.unsafe.util.AbstractReleasable;
@@ -45,6 +46,8 @@ public final class NativeZlibDeflater extends AbstractReleasable implements PDef
     private int writtenBytes;
 
     private boolean reset;
+    private boolean finishing;
+    private boolean finished;
 
     public NativeZlibDeflater(int level, int strategy, int mode) {
         this.ctx = allocateCtx(level, strategy, mode);
@@ -56,13 +59,8 @@ public final class NativeZlibDeflater extends AbstractReleasable implements PDef
     public boolean fullDeflate(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException {
         this.reset(); //this will do nothing if we're already reset
 
-        long srcAddr = src.memoryAddress() + src.readerIndex();
-        int srcSize = src.readableBytes();
-
-        long dstAddr = dst.memoryAddress() + dst.writerIndex();
-        int dstSize = dst.writableBytes();
-
-        if (this.doFullDeflate(srcAddr, srcSize, dstAddr, dstSize)) {
+        if (this.doFullDeflate(src.memoryAddress() + src.readerIndex(), src.readableBytes(),
+                dst.memoryAddress() + dst.writerIndex(), dst.writableBytes())) {
             //increase indices if successful
             src.skipBytes(this.readBytes);
             dst.writerIndex(dst.writerIndex() + this.writtenBytes);
@@ -75,15 +73,40 @@ public final class NativeZlibDeflater extends AbstractReleasable implements PDef
     private native boolean doFullDeflate(long srcAddr, int srcSize, long dstAddr, int dstSize);
 
     @Override
-    public PDeflater update() throws ContextFinishedException {
+    public PDeflater update() throws ContextFinishedException, ContextFinishingException {
+        this.update(this.src, this.dst);
         return this;
+    }
+
+    private void update(@NonNull ByteBuf src, @NonNull ByteBuf dst) {
+        if (this.finished) {
+            throw new ContextFinishedException();
+        } else if (this.finishing) {
+            throw new ContextFinishingException();
+        }
+
+        this.doUpdate(src.memoryAddress() + src.readerIndex(), src.readableBytes(),
+                dst.memoryAddress() + dst.writerIndex(), dst.writableBytes());
     }
 
     private native void doUpdate(long srcAddr, int srcSize, long dstAddr, int dstSize);
 
     @Override
     public boolean finish() throws ContextFinishedException {
-        return false;
+        if (this.finished) {
+            throw new ContextFinishedException();
+        }
+        return this.finish(this.src, this.dst);
+    }
+
+    private boolean finish(@NonNull ByteBuf src, @NonNull ByteBuf dst) {
+        if (this.finished) {
+            throw new ContextFinishedException();
+        }
+        this.finishing = true;
+
+        return this.doFinish(src.memoryAddress() + src.readerIndex(), src.readableBytes(),
+                dst.memoryAddress() + dst.writerIndex(), dst.writableBytes());
     }
 
     private native boolean doFinish(long srcAddr, int srcSize, long dstAddr, int dstSize);
@@ -96,6 +119,9 @@ public final class NativeZlibDeflater extends AbstractReleasable implements PDef
 
             this.readBytes = 0;
             this.writtenBytes = 0;
+
+            this.finishing = false;
+            this.finished = false;
 
             this.doReset();
         }

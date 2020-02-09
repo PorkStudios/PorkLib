@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -17,8 +17,6 @@ package net.daporkchop.lib.nbt;
 
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.encoding.compression.Compression;
-import net.daporkchop.lib.encoding.compression.CompressionHelper;
 import net.daporkchop.lib.nbt.tag.TagRegistry;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 
@@ -34,19 +32,11 @@ public final class NBTOutputStream extends DataOut {
     private final TagRegistry defaultRegistry;
 
     public NBTOutputStream(@NonNull OutputStream out) throws IOException {
-        this(out, Compression.NONE, TagRegistry.NOTCHIAN);
-    }
-
-    public NBTOutputStream(@NonNull OutputStream out, @NonNull CompressionHelper compression) throws IOException {
-        this(out, compression, TagRegistry.NOTCHIAN);
+        this(out, TagRegistry.NOTCHIAN);
     }
 
     public NBTOutputStream(@NonNull OutputStream out, @NonNull TagRegistry registry) throws IOException {
-        this(out, Compression.NONE, registry);
-    }
-
-    public NBTOutputStream(@NonNull OutputStream out, @NonNull CompressionHelper compression, @NonNull TagRegistry registry) throws IOException {
-        this.out = DataOut.wrap(compression.deflate(out));
+        this.out = DataOut.wrap(out);
         this.defaultRegistry = registry;
     }
 

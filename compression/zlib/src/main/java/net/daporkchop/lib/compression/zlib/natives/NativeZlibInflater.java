@@ -19,6 +19,7 @@ import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.compression.PDeflater;
+import net.daporkchop.lib.compression.PInflater;
 import net.daporkchop.lib.compression.util.exception.ContextFinishedException;
 import net.daporkchop.lib.compression.util.exception.ContextFinishingException;
 import net.daporkchop.lib.compression.util.exception.InvalidBufferTypeException;
@@ -28,10 +29,10 @@ import net.daporkchop.lib.unsafe.util.AbstractReleasable;
 /**
  * @author DaPorkchop_
  */
-public final class NativeZlibDeflater extends AbstractReleasable implements PDeflater {
+public final class NativeZlibInflater extends AbstractReleasable implements PInflater {
     static native void load();
 
-    private static native long allocateCtx(int level, int strategy, int mode);
+    private static native long allocateCtx(int mode);
 
     private static native void releaseCtx(long ctx);
 
@@ -49,21 +50,21 @@ public final class NativeZlibDeflater extends AbstractReleasable implements PDef
     private boolean finishing;
     private boolean finished;
 
-    public NativeZlibDeflater(int level, int strategy, int mode) {
-        this.ctx = allocateCtx(level, strategy, mode);
+    public NativeZlibInflater(int mode) {
+        this.ctx = allocateCtx(mode);
         this.cleaner = PCleaner.cleaner(this, new Releaser(this.ctx));
         this.reset = true;
     }
 
     @Override
-    public boolean fullDeflate(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException {
+    public boolean fullInflate(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException {
         if (!src.hasMemoryAddress() || !dst.hasMemoryAddress()) {
             throw new InvalidBufferTypeException(true);
         }
 
         this.reset(); //this will do nothing if we're already reset
 
-        if (this.doFullDeflate(src.memoryAddress() + src.readerIndex(), src.readableBytes(),
+        if (this.doFullInflate(src.memoryAddress() + src.readerIndex(), src.readableBytes(),
                 dst.memoryAddress() + dst.writerIndex(), dst.writableBytes())) {
             //increase indices if successful
             src.skipBytes(this.readBytes);
@@ -74,10 +75,10 @@ public final class NativeZlibDeflater extends AbstractReleasable implements PDef
         }
     }
 
-    private native boolean doFullDeflate(long srcAddr, int srcSize, long dstAddr, int dstSize);
+    private native boolean doFullInflate(long srcAddr, int srcSize, long dstAddr, int dstSize);
 
     @Override
-    public PDeflater update(boolean flush) throws ContextFinishedException, ContextFinishingException {
+    public PInflater update(boolean flush) throws ContextFinishedException, ContextFinishingException {
         this.update(this.src, this.dst, flush);
         return this;
     }
@@ -125,7 +126,7 @@ public final class NativeZlibDeflater extends AbstractReleasable implements PDef
     private native boolean doFinish(long srcAddr, int srcSize, long dstAddr, int dstSize);
 
     @Override
-    public PDeflater reset() {
+    public PInflater reset() {
         if (!this.reset) {
             this.src = null;
             this.dst = null;
@@ -144,7 +145,7 @@ public final class NativeZlibDeflater extends AbstractReleasable implements PDef
     private native void doReset();
 
     @Override
-    public PDeflater src(@NonNull ByteBuf src) throws InvalidBufferTypeException {
+    public PInflater src(@NonNull ByteBuf src) throws InvalidBufferTypeException {
         if (!src.hasMemoryAddress()) {
             throw new InvalidBufferTypeException(true);
         }
@@ -153,7 +154,7 @@ public final class NativeZlibDeflater extends AbstractReleasable implements PDef
     }
 
     @Override
-    public PDeflater dst(@NonNull ByteBuf dst) throws InvalidBufferTypeException {
+    public PInflater dst(@NonNull ByteBuf dst) throws InvalidBufferTypeException {
         if (!dst.hasMemoryAddress()) {
             throw new InvalidBufferTypeException(true);
         }

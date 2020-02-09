@@ -17,6 +17,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import lombok.NonNull;
 import net.daporkchop.lib.compression.PDeflater;
+import net.daporkchop.lib.compression.PInflater;
 import net.daporkchop.lib.compression.zlib.Zlib;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -39,7 +40,7 @@ public class ZlibTest {
         }
 
         {
-            ByteBuf compressedNative = Unpooled.directBuffer(SIZE >>> 4, SIZE >>> 4).clear().ensureWritable(SIZE >>> 4);
+            ByteBuf compressedNative = Unpooled.directBuffer(SIZE >>> 4, SIZE >>> 4);
 
             try (PDeflater deflater = Zlib.PROVIDER.get().deflater()) {
                 if (!deflater.fullDeflate(original, compressedNative)) {
@@ -50,23 +51,34 @@ public class ZlibTest {
             System.out.printf("original: %d, compressed: %d\n", SIZE, compressedNative.readableBytes());
 
             byte[] compressedHeap = new byte[compressedNative.readableBytes()];
-            compressedNative.readBytes(compressedHeap);
-            compressedNative.release();
+            compressedNative.getBytes(0, compressedHeap);
 
             byte[] uncompressedHeap = new byte[SIZE];
 
-            Inflater inflater = new Inflater();
-            inflater.setInput(compressedHeap);
-            int cnt = inflater.inflate(uncompressedHeap);
-            if (cnt != SIZE) {
-                throw new IllegalStateException(String.format("Only inflated %d/%d bytes!", cnt, SIZE));
+            {
+                Inflater inflater = new Inflater();
+                inflater.setInput(compressedHeap);
+                int cnt = inflater.inflate(uncompressedHeap);
+                if (cnt != SIZE) {
+                    throw new IllegalStateException(String.format("Only inflated %d/%d bytes!", cnt, SIZE));
+                }
+                inflater.end();
             }
 
             validateEqual(original, Unpooled.wrappedBuffer(uncompressedHeap), 0, SIZE);
+
+            ByteBuf uncompressedNative = Unpooled.directBuffer(SIZE, SIZE);
+            try (PInflater inflater = Zlib.PROVIDER.get().inflater())   {
+                if (!inflater.fullInflate(compressedNative, uncompressedNative))    {
+                    throw new IllegalStateException("Couldn't inflate data!");
+                }
+            }
+
+            validateEqual(original, uncompressedNative, 0, SIZE);
         }
 
         {
-            ByteBuf compressedNative = Unpooled.directBuffer(SIZE >>> 4, SIZE >>> 4).clear().ensureWritable(SIZE >>> 4);
+            ByteBuf compressedNative = Unpooled.directBuffer(SIZE >>> 4, SIZE >>> 4);
 
             try (PDeflater deflater = Zlib.PROVIDER.get().deflater()) {
                 deflater.dst(compressedNative);
@@ -86,19 +98,30 @@ public class ZlibTest {
             System.out.printf("original: %d, compressed: %d\n", SIZE, compressedNative.readableBytes());
 
             byte[] compressedHeap = new byte[compressedNative.readableBytes()];
-            compressedNative.readBytes(compressedHeap);
-            compressedNative.release();
+            compressedNative.getBytes(0, compressedHeap);
 
             byte[] uncompressedHeap = new byte[SIZE];
 
-            Inflater inflater = new Inflater();
-            inflater.setInput(compressedHeap);
-            int cnt = inflater.inflate(uncompressedHeap);
-            if (cnt != SIZE) {
-                throw new IllegalStateException(String.format("Only inflated %d/%d bytes!", cnt, SIZE));
+            {
+                Inflater inflater = new Inflater();
+                inflater.setInput(compressedHeap);
+                int cnt = inflater.inflate(uncompressedHeap);
+                if (cnt != SIZE) {
+                    throw new IllegalStateException(String.format("Only inflated %d/%d bytes!", cnt, SIZE));
+                }
+                inflater.end();
             }
 
             validateEqual(original, Unpooled.wrappedBuffer(uncompressedHeap), 0, SIZE);
+
+            ByteBuf uncompressedNative = Unpooled.directBuffer(SIZE, SIZE);
+            try (PInflater inflater = Zlib.PROVIDER.get().inflater())   {
+                if (!inflater.fullInflate(compressedNative, uncompressedNative))    {
+                    throw new IllegalStateException("Couldn't inflate data!");
+                }
+            }
+
+            validateEqual(original, uncompressedNative, 0, SIZE);
         }
     }
 

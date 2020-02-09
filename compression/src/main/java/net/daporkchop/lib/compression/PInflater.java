@@ -17,6 +17,8 @@ package net.daporkchop.lib.compression;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
+import net.daporkchop.lib.compression.util.exception.ContextFinishedException;
+import net.daporkchop.lib.compression.util.exception.ContextFinishingException;
 import net.daporkchop.lib.compression.util.exception.InvalidBufferTypeException;
 
 /**
@@ -37,5 +39,11 @@ public interface PInflater extends Context<PInflater> {
      * @param dst the {@link ByteBuf} to write data to
      * @return whether or not there was enough space in the destination buffer for the decompressed data
      */
-    boolean inflate(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException;
+    boolean fullInflate(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException;
+
+    @Override
+    PInflater update(boolean flush) throws ContextFinishedException, ContextFinishingException;
+
+    @Override
+    boolean finish() throws ContextFinishedException;
 }

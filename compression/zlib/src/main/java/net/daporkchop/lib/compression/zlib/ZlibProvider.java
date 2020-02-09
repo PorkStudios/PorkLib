@@ -16,6 +16,7 @@
 package net.daporkchop.lib.compression.zlib;
 
 import net.daporkchop.lib.compression.PDeflater;
+import net.daporkchop.lib.compression.PInflater;
 
 /**
  * A wrapper around a Zlib implementation.
@@ -54,7 +55,7 @@ public interface ZlibProvider {
     }
 
     /**
-     * Creates a new {@link PDeflater}.
+     * Creates a new {@link PDeflater} that will use Gzip headers.
      *
      * @return a new {@link PDeflater}
      */
@@ -63,7 +64,7 @@ public interface ZlibProvider {
     }
 
     /**
-     * Creates a new {@link PDeflater}.
+     * Creates a new {@link PDeflater} that will use Gzip headers.
      *
      * @param level the {@link Zlib} level to use
      * @return a new {@link PDeflater} with the given level
@@ -73,7 +74,7 @@ public interface ZlibProvider {
     }
 
     /**
-     * Creates a new {@link PDeflater}.
+     * Creates a new {@link PDeflater} that will use Gzip headers.
      *
      * @param level    the {@link Zlib} level to use
      * @param strategy the {@link Zlib} strategy to use
@@ -93,4 +94,39 @@ public interface ZlibProvider {
      * @return a new {@link PDeflater} with the given level and strategy
      */
     PDeflater deflater(int level, int strategy, int mode);
+
+    /**
+     * Creates a new {@link PInflater}.
+     *
+     * @return a new {@link PInflater}
+     */
+    default PInflater inflater() {
+        return this.inflater(Zlib.MODE_ZLIB);
+    }
+
+    /**
+     * Creates a new {@link PInflater} that will use Gzip headers.
+     *
+     * @return a new {@link PInflater}
+     */
+    default PInflater inflaterGzip() {
+        return this.inflater(Zlib.MODE_GZIP);
+    }
+
+    /**
+     * Creates a new {@link PInflater} that will automatically detect whether the compressed data is in Zlib or Gzip format.
+     *
+     * @return a new {@link PInflater}
+     */
+    default PInflater inflaterAuto() {
+        return this.inflater(Zlib.MODE_AUTO);
+    }
+
+    /**
+     * Creates a new {@link PInflater}.
+     *
+     * @param mode the {@link Zlib} mode to use. Must be one of {@link Zlib#MODE_ZLIB}, {@link Zlib#MODE_GZIP}, {@link Zlib#MODE_RAW} or {@link Zlib#MODE_AUTO}
+     * @return a new {@link PInflater}
+     */
+    PInflater inflater(int mode);
 }

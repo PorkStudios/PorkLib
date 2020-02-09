@@ -43,6 +43,7 @@ public final class NativeZlibInflater extends AbstractReleasable implements Zlib
 
     private ByteBuf src;
     private ByteBuf dst;
+    private ByteBuf dict;
 
     private int readBytes;
     private int writtenBytes;
@@ -65,9 +66,12 @@ public final class NativeZlibInflater extends AbstractReleasable implements Zlib
         }
 
         this.reset(); //this will do nothing if we're already reset
+        this.reset = false;
 
+        ByteBuf dict = this.dict;
         if (this.doFullInflate(src.memoryAddress() + src.readerIndex(), src.readableBytes(),
-                dst.memoryAddress() + dst.writerIndex(), dst.writableBytes())) {
+                dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
+                dict == null ? 0L : dict.memoryAddress(), dict == null ? 0 : dict.readableBytes())) {
             //increase indices if successful
             src.skipBytes(this.readBytes);
             dst.writerIndex(dst.writerIndex() + this.writtenBytes);
@@ -77,25 +81,27 @@ public final class NativeZlibInflater extends AbstractReleasable implements Zlib
         }
     }
 
-    private native boolean doFullInflate(long srcAddr, int srcSize, long dstAddr, int dstSize);
+    private native boolean doFullInflate(long srcAddr, int srcSize, long dstAddr, int dstSize, long dictAddr, int dictSize);
 
     @Override
     public PInflater update(boolean flush) throws ContextFinishedException, ContextFinishingException {
-        this.update(this.src, this.dst, flush);
+        this.update(this.src, this.dst, this.dict, flush);
         return this;
     }
 
-    private void update(@NonNull ByteBuf src, @NonNull ByteBuf dst, boolean flush) {
+    private void update(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict, boolean flush) {
         if (this.finished) {
             throw new ContextFinishedException();
         } else if (this.finishing) {
             throw new ContextFinishingException();
         }
 
+        this.reset = false;
         this.started = true;
 
         this.doUpdate(src.memoryAddress() + src.readerIndex(), src.readableBytes(),
                 dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
+                dict == null ? 0L : dict.memoryAddress(), dict == null ? 0 : dict.readableBytes(),
                 flush);
 
         //increase indices
@@ -103,23 +109,25 @@ public final class NativeZlibInflater extends AbstractReleasable implements Zlib
         dst.writerIndex(dst.writerIndex() + this.writtenBytes);
     }
 
-    private native void doUpdate(long srcAddr, int srcSize, long dstAddr, int dstSize, boolean flush);
+    private native void doUpdate(long srcAddr, int srcSize, long dstAddr, int dstSize, long dictAddr, int dictSize, boolean flush);
 
     @Override
     public boolean finish() throws ContextFinishedException {
-        return this.finish(this.src, this.dst);
+        return this.finish(this.src, this.dst, this.dict);
     }
 
-    private boolean finish(@NonNull ByteBuf src, @NonNull ByteBuf dst) {
+    private boolean finish(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) {
         if (this.finished) {
-            throw new ContextFinishedException();
+            return true;
         }
 
+        this.reset = false;
         this.started = true;
         this.finishing = true;
 
         if (this.doFinish(src.memoryAddress() + src.readerIndex(), src.readableBytes(),
-                dst.memoryAddress() + dst.writerIndex(), dst.writableBytes())) {
+                dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
+                dict == null ? 0L : dict.memoryAddress(), dict == null ? 0 : dict.readableBytes())) {
             //increase indices if successful
             src.skipBytes(this.readBytes);
             dst.writerIndex(dst.writerIndex() + this.writtenBytes);
@@ -129,13 +137,17 @@ public final class NativeZlibInflater extends AbstractReleasable implements Zlib
         }
     }
 
-    private native boolean doFinish(long srcAddr, int srcSize, long dstAddr, int dstSize);
+    private native boolean doFinish(long srcAddr, int srcSize, long dstAddr, int dstSize, long dictAddr, int dictSize);
 
     @Override
     public PInflater reset() {
         if (!this.reset) {
             this.src = null;
             this.dst = null;
+            if (this.dict != null)  {
+                this.dict.release();
+                this.dict = null;
+            }
 
             this.readBytes = 0;
             this.writtenBytes = 0;
@@ -157,15 +169,14 @@ public final class NativeZlibInflater extends AbstractReleasable implements Zlib
             throw new InvalidBufferTypeException(true);
         } else if (this.started)    {
             throw new IllegalStateException("Cannot set dictionary after decompression has started!");
+        } else if (this.dict != null)   {
+            throw new IllegalStateException("Dictionary has already been set!");
         }
 
-        this.doDict(dict.memoryAddress() + dict.readerIndex(), dict.readableBytes());
-        dict.skipBytes(dict.readableBytes());
+        this.dict = dict.retainedSlice();
 
         return this;
     }
-
-    private native void doDict(long dictAddr, int dictSize);
 
     @Override
     public PInflater src(@NonNull ByteBuf src) throws InvalidBufferTypeException {

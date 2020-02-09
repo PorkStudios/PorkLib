@@ -42,6 +42,7 @@ public final class NativeZlibDeflater extends AbstractReleasable implements Zlib
 
     private ByteBuf src;
     private ByteBuf dst;
+    private ByteBuf dict;
 
     private int readBytes;
     private int writtenBytes;
@@ -64,6 +65,7 @@ public final class NativeZlibDeflater extends AbstractReleasable implements Zlib
         }
 
         this.reset(); //this will do nothing if we're already reset
+        this.reset = false;
 
         if (this.doFullDeflate(src.memoryAddress() + src.readerIndex(), src.readableBytes(),
                 dst.memoryAddress() + dst.writerIndex(), dst.writableBytes())) {
@@ -91,6 +93,7 @@ public final class NativeZlibDeflater extends AbstractReleasable implements Zlib
             throw new ContextFinishingException();
         }
 
+        this.reset = false;
         this.started = true;
 
         this.doUpdate(src.memoryAddress() + src.readerIndex(), src.readableBytes(),
@@ -114,6 +117,7 @@ public final class NativeZlibDeflater extends AbstractReleasable implements Zlib
             throw new ContextFinishedException();
         }
 
+        this.reset = false;
         this.started = true;
         this.finishing = true;
 
@@ -135,6 +139,10 @@ public final class NativeZlibDeflater extends AbstractReleasable implements Zlib
         if (!this.reset) {
             this.src = null;
             this.dst = null;
+            if (this.dict != null)  {
+                this.dict.release();
+                this.dict = null;
+            }
 
             this.readBytes = 0;
             this.writtenBytes = 0;
@@ -156,10 +164,12 @@ public final class NativeZlibDeflater extends AbstractReleasable implements Zlib
             throw new InvalidBufferTypeException(true);
         } else if (this.started)    {
             throw new IllegalStateException("Cannot set dictionary after compression has started!");
+        } else if (this.dict != null)   {
+            throw new IllegalStateException("Dictionary has already been set!");
         }
 
-        this.doDict(dict.memoryAddress() + dict.readerIndex(), dict.readableBytes());
-        dict.skipBytes(dict.readableBytes());
+        this.dict = dict = dict.retainedSlice();
+        this.doDict(dict.memoryAddress(), dict.readableBytes());
 
         return this;
     }

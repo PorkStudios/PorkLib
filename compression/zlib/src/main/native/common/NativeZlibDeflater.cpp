@@ -114,6 +114,7 @@ __attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_comp
     int ret = zng_deflate(stream, flush ? Z_SYNC_FLUSH : Z_NO_FLUSH);
     if (ret != Z_OK)    {
         throwException(env, stream->msg == nullptr ? "Invalid return value from deflate()!" : stream->msg, ret);
+        return;
     }
 
     env->SetIntField(obj, readBytesID,    srcSize - stream->avail_in);
@@ -134,6 +135,7 @@ __attribute__((visibility("default"))) jboolean JNICALL Java_net_daporkchop_lib_
     int ret = zng_deflate(stream, Z_FINISH);
     if (ret != Z_STREAM_END && ret != Z_OK)    {
         throwException(env, stream->msg == nullptr ? "Invalid return value from deflate()!" : stream->msg, ret);
+        return false;
     }
 
     env->SetIntField(obj, readBytesID,    srcSize - stream->avail_in);

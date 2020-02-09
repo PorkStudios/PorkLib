@@ -73,7 +73,7 @@ __attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_comp
 }
 
 __attribute__((visibility("default"))) jboolean JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibInflater_doFullInflate
-        (JNIEnv* env, jobject obj, jlong srcAddr, jint srcSize, jlong dstAddr, jint dstSize)   {
+        (JNIEnv* env, jobject obj, jlong srcAddr, jint srcSize, jlong dstAddr, jint dstSize, jlong dictAddr, jint dictSize)   {
     zng_stream* stream = (zng_stream*) env->GetLongField(obj, ctxID);
 
     //set stream buffers
@@ -84,6 +84,23 @@ __attribute__((visibility("default"))) jboolean JNICALL Java_net_daporkchop_lib_
     stream->avail_out = dstSize;
 
     int ret = zng_inflate(stream, Z_FINISH);
+    if (ret == Z_NEED_DICT)  {
+        if (dictAddr)    {
+            //set dictionary
+            ret = zng_inflateSetDictionary(stream, (unsigned char*) dictAddr, dictSize);
+            if (ret != Z_OK)    {
+                throwException(env, stream->msg == nullptr ? "Couldn't set inflater dictionary!" : stream->msg, ret);
+                return false;
+            }
+
+            //try again
+            ret = zng_inflate(stream, Z_FINISH);
+        } else {
+            throwException(env, "Dictionary needed, but none was given!", ret);
+            return false;
+        }
+    }
+
     if (ret == Z_STREAM_END)    {
         env->SetIntField(obj, readBytesID,    srcSize - stream->avail_in);
         env->SetIntField(obj, writtenBytesID, dstSize - stream->avail_out);
@@ -96,7 +113,7 @@ __attribute__((visibility("default"))) jboolean JNICALL Java_net_daporkchop_lib_
 }
 
 __attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibInflater_doUpdate
-        (JNIEnv* env, jobject obj, jlong srcAddr, jint srcSize, jlong dstAddr, jint dstSize, jboolean flush)   {
+        (JNIEnv* env, jobject obj, jlong srcAddr, jint srcSize, jlong dstAddr, jint dstSize, jlong dictAddr, jint dictSize, jboolean flush)   {
     zng_stream* stream = (zng_stream*) env->GetLongField(obj, ctxID);
 
     //set stream buffers
@@ -107,8 +124,29 @@ __attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_comp
     stream->avail_out = dstSize;
 
     int ret = zng_inflate(stream, flush ? Z_SYNC_FLUSH : Z_NO_FLUSH);
-    if (ret != Z_OK)    {
+    if (ret == Z_NEED_DICT)  {
+        if (dictAddr)    {
+            //set dictionary
+            ret = zng_inflateSetDictionary(stream, (unsigned char*) dictAddr, dictSize);
+            if (ret != Z_OK)    {
+                throwException(env, stream->msg == nullptr ? "Couldn't set inflater dictionary!" : stream->msg, ret);
+                return;
+            }
+
+            //try again
+            ret = zng_inflate(stream, flush ? Z_SYNC_FLUSH : Z_NO_FLUSH);
+        } else {
+            printf("not setting dict\n");
+            throwException(env, "Dictionary needed, but none was given!", ret);
+            return;
+        }
+    }
+
+    if (ret == Z_STREAM_END)    {
+        env->SetBooleanField(obj, finishedID, true);
+    } else if (ret != Z_OK)    {
         throwException(env, stream->msg == nullptr ? "Invalid return value from inflate()!" : stream->msg, ret);
+        return;
     }
 
     env->SetIntField(obj, readBytesID,    srcSize - stream->avail_in);
@@ -116,7 +154,7 @@ __attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_comp
 }
 
 __attribute__((visibility("default"))) jboolean JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibInflater_doFinish
-        (JNIEnv* env, jobject obj, jlong srcAddr, jint srcSize, jlong dstAddr, jint dstSize)   {
+        (JNIEnv* env, jobject obj, jlong srcAddr, jint srcSize, jlong dstAddr, jint dstSize, jlong dictAddr, jint dictSize)   {
     zng_stream* stream = (zng_stream*) env->GetLongField(obj, ctxID);
 
     //set stream buffers
@@ -127,8 +165,26 @@ __attribute__((visibility("default"))) jboolean JNICALL Java_net_daporkchop_lib_
     stream->avail_out = dstSize;
 
     int ret = zng_inflate(stream, Z_FINISH);
+    if (ret == Z_NEED_DICT)  {
+        if (dictAddr)    {
+            //set dictionary
+            ret = zng_inflateSetDictionary(stream, (unsigned char*) dictAddr, dictSize);
+            if (ret != Z_OK)    {
+                throwException(env, stream->msg == nullptr ? "Couldn't set inflater dictionary!" : stream->msg, ret);
+                return false;
+            }
+
+            //try again
+            ret = zng_inflate(stream, Z_FINISH);
+        } else {
+            throwException(env, "Dictionary needed, but none was given!", ret);
+            return false;
+        }
+    }
+
     if (ret != Z_STREAM_END && ret != Z_OK)    {
         throwException(env, stream->msg == nullptr ? "Invalid return value from inflate()!" : stream->msg, ret);
+        return false;
     }
 
     env->SetIntField(obj, readBytesID,    srcSize - stream->avail_in);

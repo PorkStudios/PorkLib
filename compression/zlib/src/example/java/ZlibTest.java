@@ -29,14 +29,14 @@ import java.util.zip.Inflater;
  */
 public class ZlibTest {
     private static final int SIZE      = 1 << 26; // 64 MiB
-    private static final int DICT_SIZE = 32768;
+    private static final int DICT_SIZE = 256 * 8;//32768;
 
     public static void main(String... args) throws DataFormatException {
         ByteBuf original = Unpooled.directBuffer(SIZE, SIZE).clear().ensureWritable(SIZE).writerIndex(SIZE);
         for (int i = 0; i < SIZE; i++) {
             original.setByte(i, i & 0xFF);
         }
-        for (int i = 0; i < 512; i += 8) {
+        for (int i = 0; i < 256; i += 8) {
             original.setLongLE(i, ThreadLocalRandom.current().nextLong());
         }
 
@@ -44,7 +44,7 @@ public class ZlibTest {
             ByteBuf compressedNative = Unpooled.directBuffer(SIZE >>> 4, SIZE >>> 4);
 
             try (PDeflater deflater = Zlib.PROVIDER.get().deflater()) {
-                if (!deflater.fullDeflate(original, compressedNative)) {
+                if (!deflater.fullDeflate(original.slice(), compressedNative)) {
                     throw new IllegalStateException("Couldn't deflate data!");
                 }
             }
@@ -73,9 +73,19 @@ public class ZlibTest {
                 if (!inflater.fullInflate(compressedNative, uncompressedNative)) {
                     throw new IllegalStateException("Couldn't inflate data!");
                 }
-            }
+                validateEqual(original, uncompressedNative, 0, SIZE);
 
-            validateEqual(original, uncompressedNative, 0, SIZE);
+                uncompressedNative.clear();
+                inflater.reset().src(compressedNative.resetReaderIndex());
+                for (int i = 0; i < 16; i++) {
+                    ByteBuf dst = uncompressedNative.slice((SIZE >>> 4) * i, SIZE >>> 4).clear();
+                    inflater.dst(dst).update(false);
+                    if (dst.isWritable()) {
+                        throw new IllegalStateException();
+                    }
+                }
+                validateEqual(original, uncompressedNative, 0, SIZE);
+            }
         }
 
         {
@@ -83,17 +93,23 @@ public class ZlibTest {
 
             try (PDeflater deflater = Zlib.PROVIDER.get().deflater()) {
                 deflater.dict(original.slice(0, DICT_SIZE));
-                deflater.dst(compressedNative);
-                for (int i = 0; i < (1 << 4); i++) {
-                    ByteBuf src = original.slice((SIZE >>> 4) * i, SIZE >>> 4);
-                    deflater.src(src).update(false);
-                    if (src.isReadable()) {
-                        throw new IllegalStateException();
+                if (false) {
+                    deflater.dst(compressedNative);
+                    for (int i = 0; i < 16; i++) {
+                        ByteBuf src = original.slice((SIZE >>> 4) * i, SIZE >>> 4);
+                        deflater.src(src).update(false);
+                        if (src.isReadable()) {
+                            throw new IllegalStateException();
+                        }
                     }
-                }
 
-                if (!deflater.finish()) {
-                    throw new IllegalStateException("Couldn't deflate data!");
+                    if (!deflater.finish()) {
+                        throw new IllegalStateException("Couldn't deflate data!");
+                    }
+                } else {
+                    if (!deflater.fullDeflate(original.slice(), compressedNative)) {
+                        throw new IllegalStateException("Couldn't deflate data!");
+                    }
                 }
             }
 
@@ -104,7 +120,7 @@ public class ZlibTest {
 
             byte[] uncompressedHeap = new byte[SIZE];
 
-            if (false) {
+            {
                 Inflater inflater = new Inflater();
 
                 inflater.setInput(compressedHeap);
@@ -124,19 +140,31 @@ public class ZlibTest {
                     throw new IllegalStateException(String.format("Only inflated %d/%d bytes!", cnt, SIZE));
                 }
                 inflater.end();
-
-                validateEqual(original, Unpooled.wrappedBuffer(uncompressedHeap), 0, SIZE);
             }
+
+            validateEqual(original, Unpooled.wrappedBuffer(uncompressedHeap), 0, SIZE);
 
             ByteBuf uncompressedNative = Unpooled.directBuffer(SIZE, SIZE);
             try (PInflater inflater = Zlib.PROVIDER.get().inflater()) {
-                if (!inflater.fullInflate(compressedNative, uncompressedNative)) {
+                if (!inflater.dict(original.slice(0, DICT_SIZE))
+                        .fullInflate(compressedNative, uncompressedNative)) {
                     throw new IllegalStateException("Couldn't inflate data!");
                 }
-            }
-            //.dict(original.slice(0, DICT_SIZE))
+                validateEqual(original, uncompressedNative, 0, SIZE);
 
-            validateEqual(original, uncompressedNative, 0, SIZE);
+                uncompressedNative.clear();
+                inflater.reset()
+                        .dict(original.slice(0, DICT_SIZE))
+                        .src(compressedNative.resetReaderIndex());
+                for (int i = 0; i < 16; i++) {
+                    ByteBuf dst = uncompressedNative.slice((SIZE >>> 4) * i, SIZE >>> 4).clear();
+                    inflater.dst(dst).update(false);
+                    if (dst.isWritable()) {
+                        throw new IllegalStateException();
+                    }
+                }
+                validateEqual(original, uncompressedNative, 0, SIZE);
+            }
         }
 
         {
@@ -144,7 +172,7 @@ public class ZlibTest {
 
             try (PDeflater deflater = Zlib.PROVIDER.get().deflater()) {
                 deflater.dst(compressedNative);
-                for (int i = 0; i < (1 << 4); i++) {
+                for (int i = 0; i < 16; i++) {
                     ByteBuf src = original.slice((SIZE >>> 4) * i, SIZE >>> 4);
                     deflater.src(src).update(true);
                     if (src.isReadable()) {
@@ -181,9 +209,19 @@ public class ZlibTest {
                 if (!inflater.fullInflate(compressedNative, uncompressedNative)) {
                     throw new IllegalStateException("Couldn't inflate data!");
                 }
-            }
+                validateEqual(original, uncompressedNative, 0, SIZE);
 
-            validateEqual(original, uncompressedNative, 0, SIZE);
+                uncompressedNative.clear();
+                inflater.reset().src(compressedNative.resetReaderIndex());
+                for (int i = 0; i < 16; i++) {
+                    ByteBuf dst = uncompressedNative.slice((SIZE >>> 4) * i, SIZE >>> 4).clear();
+                    inflater.dst(dst).update(false);
+                    if (dst.isWritable()) {
+                        throw new IllegalStateException();
+                    }
+                }
+                validateEqual(original, uncompressedNative, 0, SIZE);
+            }
         }
     }
 

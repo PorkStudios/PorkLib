@@ -90,4 +90,25 @@ interface Context<I extends Context<I>> extends Releasable {
      * @return this context
      */
     I reset();
+
+    /**
+     * @return whether or not this implementation allows use of a dictionary
+     */
+    default boolean hasDict() {
+        return false;
+    }
+
+    /**
+     * Sets the dictionary to be used by this context.
+     * <p>
+     * Must be called immediately after being initialized or reset.
+     *
+     * @param dict the new dictionary to use. This method will cause all the bytes in this {@link ByteBuf} to be read.
+     * @return this context
+     * @throws UnsupportedOperationException if this context does not allow use of a dictionary
+     * @see #hasDict()
+     */
+    default I dict(@NonNull ByteBuf dict) throws InvalidBufferTypeException, UnsupportedOperationException {
+        throw new UnsupportedOperationException();
+    }
 }

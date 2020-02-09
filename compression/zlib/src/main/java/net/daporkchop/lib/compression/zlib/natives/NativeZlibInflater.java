@@ -23,13 +23,14 @@ import net.daporkchop.lib.compression.PInflater;
 import net.daporkchop.lib.compression.util.exception.ContextFinishedException;
 import net.daporkchop.lib.compression.util.exception.ContextFinishingException;
 import net.daporkchop.lib.compression.util.exception.InvalidBufferTypeException;
+import net.daporkchop.lib.compression.zlib.ZlibInflater;
 import net.daporkchop.lib.unsafe.PCleaner;
 import net.daporkchop.lib.unsafe.util.AbstractReleasable;
 
 /**
  * @author DaPorkchop_
  */
-public final class NativeZlibInflater extends AbstractReleasable implements PInflater {
+public final class NativeZlibInflater extends AbstractReleasable implements ZlibInflater {
     static native void load();
 
     private static native long allocateCtx(int mode);
@@ -47,6 +48,7 @@ public final class NativeZlibInflater extends AbstractReleasable implements PInf
     private int writtenBytes;
 
     private boolean reset;
+    private boolean started;
     private boolean finishing;
     private boolean finished;
 
@@ -90,6 +92,8 @@ public final class NativeZlibInflater extends AbstractReleasable implements PInf
             throw new ContextFinishingException();
         }
 
+        this.started = true;
+
         this.doUpdate(src.memoryAddress() + src.readerIndex(), src.readableBytes(),
                 dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
                 flush);
@@ -110,6 +114,8 @@ public final class NativeZlibInflater extends AbstractReleasable implements PInf
         if (this.finished) {
             throw new ContextFinishedException();
         }
+
+        this.started = true;
         this.finishing = true;
 
         if (this.doFinish(src.memoryAddress() + src.readerIndex(), src.readableBytes(),
@@ -134,6 +140,7 @@ public final class NativeZlibInflater extends AbstractReleasable implements PInf
             this.readBytes = 0;
             this.writtenBytes = 0;
 
+            this.started = false;
             this.finishing = false;
             this.finished = false;
 
@@ -143,6 +150,22 @@ public final class NativeZlibInflater extends AbstractReleasable implements PInf
     }
 
     private native void doReset();
+
+    @Override
+    public PInflater dict(@NonNull ByteBuf dict) throws InvalidBufferTypeException {
+        if (!dict.hasMemoryAddress()) {
+            throw new InvalidBufferTypeException(true);
+        } else if (this.started)    {
+            throw new IllegalStateException("Cannot set dictionary after decompression has started!");
+        }
+
+        this.doDict(dict.memoryAddress() + dict.readerIndex(), dict.readableBytes());
+        dict.skipBytes(dict.readableBytes());
+
+        return this;
+    }
+
+    private native void doDict(long dictAddr, int dictSize);
 
     @Override
     public PInflater src(@NonNull ByteBuf src) throws InvalidBufferTypeException {

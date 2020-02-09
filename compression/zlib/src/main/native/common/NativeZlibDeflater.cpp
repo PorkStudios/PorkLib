@@ -159,3 +159,14 @@ __attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_comp
 
     env->SetBooleanField(obj, resetID, true);
 }
+
+__attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_doDict
+        (JNIEnv* env, jobject obj, jlong dictAddr, jint dictSize)   {
+    zng_stream* stream = (zng_stream*) env->GetLongField(obj, ctxID);
+    int ret = zng_deflateSetDictionary(stream, (unsigned char*) dictAddr, dictSize);
+
+    if (ret != Z_OK)    {
+        throwException(env, stream->msg == nullptr ? "Couldn't set deflater dictionary!" : stream->msg, ret);
+        return;
+    }
+}

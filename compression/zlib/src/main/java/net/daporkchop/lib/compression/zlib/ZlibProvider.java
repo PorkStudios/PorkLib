@@ -15,8 +15,6 @@
 
 package net.daporkchop.lib.compression.zlib;
 
-import net.daporkchop.lib.compression.PDeflater;
-import net.daporkchop.lib.compression.PInflater;
 
 /**
  * A wrapper around a Zlib implementation.
@@ -25,108 +23,108 @@ import net.daporkchop.lib.compression.PInflater;
  */
 public interface ZlibProvider {
     /**
-     * Creates a new {@link PDeflater}.
+     * Creates a new {@link ZlibDeflater}.
      *
-     * @return a new {@link PDeflater}
+     * @return a new {@link ZlibDeflater}
      */
-    default PDeflater deflater() {
+    default ZlibDeflater deflater() {
         return this.deflater(Zlib.LEVEL_DEFAULT, Zlib.STRATEGY_DEFAULT, Zlib.MODE_ZLIB);
     }
 
     /**
-     * Creates a new {@link PDeflater}.
+     * Creates a new {@link ZlibDeflater}.
      *
      * @param level the {@link Zlib} level to use
-     * @return a new {@link PDeflater} with the given level
+     * @return a new {@link ZlibDeflater} with the given level
      */
-    default PDeflater deflater(int level) {
+    default ZlibDeflater deflater(int level) {
         return this.deflater(level, Zlib.STRATEGY_DEFAULT, Zlib.MODE_ZLIB);
     }
 
     /**
-     * Creates a new {@link PDeflater}.
+     * Creates a new {@link ZlibDeflater}.
      *
      * @param level    the {@link Zlib} level to use
      * @param strategy the {@link Zlib} strategy to use
-     * @return a new {@link PDeflater} with the given level and strategy
+     * @return a new {@link ZlibDeflater} with the given level and strategy
      */
-    default PDeflater deflater(int level, int strategy) {
+    default ZlibDeflater deflater(int level, int strategy) {
         return this.deflater(level, strategy, Zlib.MODE_ZLIB);
     }
 
     /**
-     * Creates a new {@link PDeflater} that will use Gzip headers.
+     * Creates a new {@link ZlibDeflater} that will use Gzip headers.
      *
-     * @return a new {@link PDeflater}
+     * @return a new {@link ZlibDeflater}
      */
-    default PDeflater deflaterGzip() {
+    default ZlibDeflater deflaterGzip() {
         return this.deflater(Zlib.LEVEL_DEFAULT, Zlib.STRATEGY_DEFAULT, Zlib.MODE_GZIP);
     }
 
     /**
-     * Creates a new {@link PDeflater} that will use Gzip headers.
+     * Creates a new {@link ZlibDeflater} that will use Gzip headers.
      *
      * @param level the {@link Zlib} level to use
-     * @return a new {@link PDeflater} with the given level
+     * @return a new {@link ZlibDeflater} with the given level
      */
-    default PDeflater deflaterGzip(int level) {
+    default ZlibDeflater deflaterGzip(int level) {
         return this.deflater(level, Zlib.STRATEGY_DEFAULT, Zlib.MODE_GZIP);
     }
 
     /**
-     * Creates a new {@link PDeflater} that will use Gzip headers.
+     * Creates a new {@link ZlibDeflater} that will use Gzip headers.
      *
      * @param level    the {@link Zlib} level to use
      * @param strategy the {@link Zlib} strategy to use
-     * @return a new {@link PDeflater} with the given level and strategy
+     * @return a new {@link ZlibDeflater} with the given level and strategy
      */
-    default PDeflater deflaterGzip(int level, int strategy) {
+    default ZlibDeflater deflaterGzip(int level, int strategy) {
         return this.deflater(level, strategy, Zlib.MODE_GZIP);
     }
 
     /**
-     * Creates a new {@link PDeflater}.
+     * Creates a new {@link ZlibDeflater}.
      *
      * @param level    the {@link Zlib} level to use. Must be in range {@link Zlib#LEVEL_NONE} to {@link Zlib#LEVEL_BEST} (inclusive), or {@link Zlib#LEVEL_DEFAULT}
      * @param strategy the {@link Zlib} strategy to use. Must be one of {@link Zlib#STRATEGY_DEFAULT}, {@link Zlib#STRATEGY_FILTERED}, {@link Zlib#STRATEGY_HUFFMAN},
      *                 {@link Zlib#STRATEGY_RLE} or {@link Zlib#STRATEGY_FIXED}
      * @param mode     the {@link Zlib} mode to use. Must be one of {@link Zlib#MODE_ZLIB}, {@link Zlib#MODE_GZIP} or {@link Zlib#MODE_RAW}
-     * @return a new {@link PDeflater} with the given level and strategy
+     * @return a new {@link ZlibDeflater} with the given level and strategy
      */
-    PDeflater deflater(int level, int strategy, int mode);
+    ZlibDeflater deflater(int level, int strategy, int mode);
 
     /**
-     * Creates a new {@link PInflater}.
+     * Creates a new {@link ZlibInflater}.
      *
-     * @return a new {@link PInflater}
+     * @return a new {@link ZlibInflater}
      */
-    default PInflater inflater() {
+    default ZlibInflater inflater() {
         return this.inflater(Zlib.MODE_ZLIB);
     }
 
     /**
-     * Creates a new {@link PInflater} that will use Gzip headers.
+     * Creates a new {@link ZlibInflater} that will use Gzip headers.
      *
-     * @return a new {@link PInflater}
+     * @return a new {@link ZlibInflater}
      */
-    default PInflater inflaterGzip() {
+    default ZlibInflater inflaterGzip() {
         return this.inflater(Zlib.MODE_GZIP);
     }
 
     /**
-     * Creates a new {@link PInflater} that will automatically detect whether the compressed data is in Zlib or Gzip format.
+     * Creates a new {@link ZlibInflater} that will automatically detect whether the compressed data is in Zlib or Gzip format.
      *
-     * @return a new {@link PInflater}
+     * @return a new {@link ZlibInflater}
      */
-    default PInflater inflaterAuto() {
+    default ZlibInflater inflaterAuto() {
         return this.inflater(Zlib.MODE_AUTO);
     }
 
     /**
-     * Creates a new {@link PInflater}.
+     * Creates a new {@link ZlibInflater}.
      *
      * @param mode the {@link Zlib} mode to use. Must be one of {@link Zlib#MODE_ZLIB}, {@link Zlib#MODE_GZIP}, {@link Zlib#MODE_RAW} or {@link Zlib#MODE_AUTO}
-     * @return a new {@link PInflater}
+     * @return a new {@link ZlibInflater}
      */
-    PInflater inflater(int mode);
+    ZlibInflater inflater(int mode);
 }

@@ -13,41 +13,24 @@
  *
  */
 
-package net.daporkchop.lib.compression.zlib.natives;
+package net.daporkchop.lib.compression.zlib;
 
-import net.daporkchop.lib.compression.PDeflater;
+import io.netty.buffer.ByteBuf;
+import lombok.NonNull;
 import net.daporkchop.lib.compression.PInflater;
-import net.daporkchop.lib.compression.zlib.Zlib;
-import net.daporkchop.lib.compression.zlib.ZlibDeflater;
-import net.daporkchop.lib.compression.zlib.ZlibInflater;
-import net.daporkchop.lib.compression.zlib.ZlibProvider;
-import net.daporkchop.lib.natives.NativeCode;
+import net.daporkchop.lib.compression.util.exception.InvalidBufferTypeException;
 
 /**
+ * Extension of {@link PInflater} for {@link Zlib}.
+ *
  * @author DaPorkchop_
  */
-public final class NativeZlib extends NativeCode.NativeImpl<ZlibProvider> implements ZlibProvider {
-    static {
-        if (NativeCode.NativeImpl.AVAILABLE)    {
-            NativeCode.loadNativeLibrary("zlib");
-
-            NativeZlibDeflater.load();
-            NativeZlibInflater.load();
-        }
+public interface ZlibInflater extends PInflater {
+    @Override
+    default boolean hasDict() {
+        return true;
     }
 
     @Override
-    protected ZlibProvider _get() {
-        return this;
-    }
-
-    @Override
-    public ZlibDeflater deflater(int level, int strategy, int mode) {
-        return new NativeZlibDeflater(level, strategy, mode);
-    }
-
-    @Override
-    public ZlibInflater inflater(int mode) {
-        return new NativeZlibInflater(mode);
-    }
+    PInflater dict(@NonNull ByteBuf dict) throws InvalidBufferTypeException;
 }

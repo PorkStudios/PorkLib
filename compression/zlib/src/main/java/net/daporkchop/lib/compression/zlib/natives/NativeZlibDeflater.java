@@ -22,13 +22,14 @@ import net.daporkchop.lib.compression.PDeflater;
 import net.daporkchop.lib.compression.util.exception.ContextFinishedException;
 import net.daporkchop.lib.compression.util.exception.ContextFinishingException;
 import net.daporkchop.lib.compression.util.exception.InvalidBufferTypeException;
+import net.daporkchop.lib.compression.zlib.ZlibDeflater;
 import net.daporkchop.lib.unsafe.PCleaner;
 import net.daporkchop.lib.unsafe.util.AbstractReleasable;
 
 /**
  * @author DaPorkchop_
  */
-public final class NativeZlibDeflater extends AbstractReleasable implements PDeflater {
+public final class NativeZlibDeflater extends AbstractReleasable implements ZlibDeflater {
     static native void load();
 
     private static native long allocateCtx(int level, int strategy, int mode);
@@ -46,6 +47,7 @@ public final class NativeZlibDeflater extends AbstractReleasable implements PDef
     private int writtenBytes;
 
     private boolean reset;
+    private boolean started;
     private boolean finishing;
     private boolean finished;
 
@@ -89,6 +91,8 @@ public final class NativeZlibDeflater extends AbstractReleasable implements PDef
             throw new ContextFinishingException();
         }
 
+        this.started = true;
+
         this.doUpdate(src.memoryAddress() + src.readerIndex(), src.readableBytes(),
                 dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
                 flush);
@@ -109,6 +113,8 @@ public final class NativeZlibDeflater extends AbstractReleasable implements PDef
         if (this.finished) {
             throw new ContextFinishedException();
         }
+
+        this.started = true;
         this.finishing = true;
 
         if (this.doFinish(src.memoryAddress() + src.readerIndex(), src.readableBytes(),
@@ -133,6 +139,7 @@ public final class NativeZlibDeflater extends AbstractReleasable implements PDef
             this.readBytes = 0;
             this.writtenBytes = 0;
 
+            this.started = false;
             this.finishing = false;
             this.finished = false;
 
@@ -142,6 +149,22 @@ public final class NativeZlibDeflater extends AbstractReleasable implements PDef
     }
 
     private native void doReset();
+
+    @Override
+    public PDeflater dict(@NonNull ByteBuf dict) throws InvalidBufferTypeException {
+        if (!dict.hasMemoryAddress()) {
+            throw new InvalidBufferTypeException(true);
+        } else if (this.started)    {
+            throw new IllegalStateException("Cannot set dictionary after compression has started!");
+        }
+
+        this.doDict(dict.memoryAddress() + dict.readerIndex(), dict.readableBytes());
+        dict.skipBytes(dict.readableBytes());
+
+        return this;
+    }
+
+    private native void doDict(long dictAddr, int dictSize);
 
     @Override
     public PDeflater src(@NonNull ByteBuf src) throws InvalidBufferTypeException {

@@ -66,6 +66,14 @@ JNIEXPORT jboolean JNICALL Java_net_daporkchop_lib_compression_zlib_natives_Nati
 JNIEXPORT void JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_doReset
   (JNIEnv *, jobject);
 
+/*
+ * Class:     net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater
+ * Method:    doDict
+ * Signature: (JI)V
+ */
+JNIEXPORT void JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_doDict
+  (JNIEnv *, jobject, jlong, jint);
+
 #ifdef __cplusplus
 }
 #endif

@@ -17,25 +17,29 @@ package net.daporkchop.lib.compression.zstd.natives;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.common.util.PValidation;
+import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.compression.zstd.ZstdCCtx;
-import net.daporkchop.lib.compression.zstd.ZstdProvider;
-import net.daporkchop.lib.compression.zstd.util.exception.ContentSizeUnknownException;
-import net.daporkchop.lib.natives.impl.NativeFeature;
 import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
+import net.daporkchop.lib.unsafe.PCleaner;
+import net.daporkchop.lib.unsafe.util.AbstractReleasable;
 
 /**
+ * Native implementation of {@link ZstdCCtx}.
+ *
  * @author DaPorkchop_
  */
-public final class NativeZstd extends NativeFeature<ZstdProvider> implements ZstdProvider {
-    @Override
-    public boolean directAccepted() {
-        return true;
-    }
+final class NativeZstdCCtx extends AbstractReleasable implements ZstdCCtx {
+    private static native long allocateCtx();
+
+    private static native void releaseCtx(long ctx);
+
+    private final long     ctx     = allocateCtx();
+    private final PCleaner cleaner = PCleaner.cleaner(this, new Releaser(this.ctx));
 
     @Override
     public boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, int compressionLevel) throws InvalidBufferTypeException {
-        int val = this.doCompress(this.assertAcceptable(src).memoryAddress() + src.readerIndex(), src.readableBytes(),
+        int val = this.doCompress(this.ctx,
+                this.assertAcceptable(src).memoryAddress() + src.readerIndex(), src.readableBytes(),
                 this.assertAcceptable(dst).memoryAddress() + dst.writerIndex(), dst.writableBytes(),
                 compressionLevel);
 
@@ -48,48 +52,25 @@ public final class NativeZstd extends NativeFeature<ZstdProvider> implements Zst
         }
     }
 
-    private native int doCompress(long srcAddr, int srcSize, long dstAddr, int dstSize, int compressionLevel);
+    private native int doCompress(long ctx, long srcAddr, int srcSize, long dstAddr, int dstSize, int compressionLevel);
 
     @Override
-    public boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException {
-        this.assertAcceptable(src);
-        this.assertAcceptable(dst);
+    public boolean directAccepted() {
+        return true;
+    }
 
-        int val = this.doDecompress(src.memoryAddress() + src.readerIndex(), src.readableBytes(),
-                dst.memoryAddress() + dst.writerIndex(), dst.writableBytes());
+    @Override
+    protected void doRelease() {
+        this.cleaner.clean();
+    }
 
-        if (val >= 0)    {
-            src.skipBytes(src.readableBytes());
-            dst.writerIndex(dst.writerIndex() + val);
-            return true;
-        } else {
-            return false;
+    @RequiredArgsConstructor
+    private static final class Releaser implements Runnable {
+        private final long ctx;
+
+        @Override
+        public void run() {
+            releaseCtx(this.ctx);
         }
-    }
-
-    private native int doDecompress(long srcAddr, int srcSize, long dstAddr, int dstSize);
-
-    @Override
-    public long frameContentSize(@NonNull ByteBuf src) throws InvalidBufferTypeException, ContentSizeUnknownException {
-        long size = this.doFrameContentSize(this.assertAcceptable(src).memoryAddress() + src.readerIndex(), src.readableBytes());
-        if (size >= 0L) {
-            return size;
-        } else {
-            throw new ContentSizeUnknownException();
-        }
-    }
-
-    private native long doFrameContentSize(long srcAddr, int srcSize);
-
-    @Override
-    public long compressBound(long srcSize) {
-        return this.doCompressBound(PValidation.ensureNonNegative(srcSize));
-    }
-
-    private native long doCompressBound(long srcSize);
-
-    @Override
-    public ZstdCCtx compressionContext() {
-        return new NativeZstdCCtx();
     }
 }

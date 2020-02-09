@@ -22,16 +22,16 @@ import lombok.experimental.UtilityClass;
  */
 @UtilityClass
 public class PValidation {
-    public long ensureNonNegative(long value) {
-        if (value < 0L) {
-            throw new IllegalArgumentException(value + " < 0");
+    public long ensurePositive(long value) {
+        if (value <= 0L) {
+            throw new IllegalArgumentException(value + " <= 0");
         }
         return value;
     }
 
-    public int ensureNonNegative(int value) {
-        if (value < 0) {
-            throw new IllegalArgumentException(value + " < 0");
+    public int ensurePositive(int value) {
+        if (value <= 0) {
+            throw new IllegalArgumentException(value + " <= 0");
         }
         return value;
     }
@@ -50,20 +50,6 @@ public class PValidation {
         return value;
     }
 
-    public long ensurePositive(long value) {
-        if (value <= 0L) {
-            throw new IllegalArgumentException(value + " <= 0");
-        }
-        return value;
-    }
-
-    public int ensurePositive(int value) {
-        if (value <= 0) {
-            throw new IllegalArgumentException(value + " <= 0");
-        }
-        return value;
-    }
-
     public long ensureNegative(long value) {
         if (value >= 0L) {
             throw new IllegalArgumentException(value + " >= 0");
@@ -76,5 +62,59 @@ public class PValidation {
             throw new IllegalArgumentException(value + " >= 0");
         }
         return value;
+    }
+
+    public long ensureNonNegative(long value) {
+        if (value < 0L) {
+            throw new IllegalArgumentException(value + " < 0");
+        }
+        return value;
+    }
+
+    public int ensureNonNegative(int value) {
+        if (value < 0) {
+            throw new IllegalArgumentException(value + " < 0");
+        }
+        return value;
+    }
+
+    public int toIntSafe(long value)  {
+        int i = (int) value;
+        if (i != value) {
+            throw new IllegalArgumentException(value + " cannot fit in an int!");
+        }
+        return i;
+    }
+
+    public int toPositiveIntSafe(long value)  {
+        int i = (int) ensurePositive(value);
+        if (i != value) {
+            throw new IllegalArgumentException(value + " cannot fit in an int!");
+        }
+        return i;
+    }
+
+    public int toNonPositiveIntSafe(long value)  {
+        int i = (int) ensureNonPositive(value);
+        if (i != value) {
+            throw new IllegalArgumentException(value + " cannot fit in an int!");
+        }
+        return i;
+    }
+
+    public int toNegativeIntSafe(long value)  {
+        int i = (int) ensureNegative(value);
+        if (i != value) {
+            throw new IllegalArgumentException(value + " cannot fit in an int!");
+        }
+        return i;
+    }
+
+    public int toNonNegativeIntSafe(long value)  {
+        int i = (int) ensureNonNegative(value);
+        if (i != value) {
+            throw new IllegalArgumentException(value + " cannot fit in an int!");
+        }
+        return i;
     }
 }

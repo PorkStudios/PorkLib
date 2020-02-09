@@ -17,20 +17,18 @@ package net.daporkchop.lib.compression.zstd;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.compression.zstd.util.exception.ContentSizeUnknownException;
-import net.daporkchop.lib.natives.impl.Feature;
 import net.daporkchop.lib.natives.util.BufferTyped;
 import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
+import net.daporkchop.lib.unsafe.capability.Releasable;
 
 /**
- * Representation of a Zstd implementation.
+ * Compression context for {@link Zstd}.
+ * <p>
+ * Not thread-safe.
  *
  * @author DaPorkchop_
  */
-public interface ZstdProvider extends BufferTyped, Feature<ZstdProvider> {
-    @Override
-    boolean directAccepted();
-
+public interface ZstdCCtx extends BufferTyped, Releasable {
     /**
      * Compresses the given source data into a single Zstd frame into the given destination buffer at the default compression level.
      *
@@ -52,38 +50,4 @@ public interface ZstdProvider extends BufferTyped, Feature<ZstdProvider> {
      * @return whether or not compression was successful. If {@code false}, the destination buffer was too small for the compressed data
      */
     boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, int compressionLevel) throws InvalidBufferTypeException;
-
-    /**
-     * Decompresses the given Zstd-compressed into the given destination buffer.
-     * <p>
-     * If the destination buffer does not have enough space writable for the decompressed data, the operation will fail and both buffer's indices will remain
-     * unchanged, however the destination buffer's contents may be modified.
-     *
-     * @param src the {@link ByteBuf} to read compressed data from
-     * @param dst the {@link ByteBuf} to write decompressed data to
-     * @return whether or not decompression was successful. If {@code false}, the destination buffer was too small for the decompressed data
-     */
-    boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException;
-
-    /**
-     * Gets the decompressed size of the given Zstd-compressed data.
-     *
-     * @param src the {@link ByteBuf} containing the compressed data. This {@link ByteBuf}'s indices will not be modified by this method
-     * @return the size (in bytes) of the decompressed data
-     * @throws ContentSizeUnknownException if the decompressed size cannot be determined
-     */
-    long frameContentSize(@NonNull ByteBuf src) throws InvalidBufferTypeException, ContentSizeUnknownException;
-
-    /**
-     * Gets the maximum (worst-case) compressed size for input data of the given length.
-     *
-     * @param srcSize the size (in bytes) of the source data
-     * @return the worst-case size of the compressed data
-     */
-    long compressBound(long srcSize);
-
-    /**
-     * @return a re-usable context for simple compression
-     */
-    ZstdCCtx compressionContext();
 }

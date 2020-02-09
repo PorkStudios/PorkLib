@@ -16,7 +16,9 @@
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import lombok.NonNull;
+import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.compression.zstd.Zstd;
+import net.daporkchop.lib.compression.zstd.ZstdCCtx;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -24,14 +26,14 @@ import java.util.concurrent.ThreadLocalRandom;
  * @author DaPorkchop_
  */
 public class ZstdTest {
-    private static final int SIZE      = 1 << 26; // 64 MiB
+    private static final int SIZE = 1 << 26; // 64 MiB
 
-    private static final int BOUND_SIZE = (int) Zstd.PROVIDER.compressBound(SIZE);
+    private static final int BOUND_SIZE = PValidation.toPositiveIntSafe(Zstd.PROVIDER.compressBound(SIZE));
 
     public static void main(String... args) {
         System.out.printf("original: %d, worst-case compressed: %d\n", 1 << 16L, Zstd.PROVIDER.compressBound(1 << 16L));
 
-        ByteBuf original = Unpooled.directBuffer(SIZE, SIZE).clear().ensureWritable(SIZE).writerIndex(SIZE);
+        ByteBuf original = Unpooled.directBuffer(SIZE, SIZE).clear().ensureWritable(SIZE).writerIndex(SIZE).markWriterIndex();
         for (int i = 0; i < SIZE; i++) {
             original.setByte(i, i & 0xFF);
         }
@@ -41,16 +43,32 @@ public class ZstdTest {
 
         ByteBuf compressed = Unpooled.directBuffer(BOUND_SIZE, BOUND_SIZE);
 
-        Zstd.PROVIDER.compress(original.slice(), compressed, Zstd.LEVEL_DEFAULT);
-        System.out.printf("original: %d, compressed: %d\n", original.readableBytes(), compressed.readableBytes());
+        if (true) { //benchmark simple vs context compression
+            long start = System.currentTimeMillis();
+            for (int i = 0; i < 256; i++) {
+                Zstd.PROVIDER.compress(original.clear().resetWriterIndex(), compressed.clear(), Zstd.LEVEL_MAX);
+            }
+            System.out.printf("simple: %.2fs\n", (System.currentTimeMillis() - start) / 1000.0d);
 
-        int uncompressedSize = (int) Zstd.PROVIDER.frameContentSize(compressed);
-        System.out.printf("original size: %d, frame content size: %d\n", SIZE, uncompressedSize);
-        ByteBuf uncompressed = Unpooled.directBuffer(uncompressedSize, uncompressedSize);
+            start = System.currentTimeMillis();
+            try (ZstdCCtx ctx = Zstd.PROVIDER.compressionContext()) {
+                for (int i = 0; i < 256; i++) {
+                    ctx.compress(original.clear().resetWriterIndex(), compressed.clear(), Zstd.LEVEL_MAX);
+                }
+            }
+            System.out.printf("context: %.2fs\n", (System.currentTimeMillis() - start) / 1000.0d);
+        } else if (false) {
+            Zstd.PROVIDER.compress(original.slice(), compressed, Zstd.LEVEL_DEFAULT);
+            System.out.printf("original: %d, compressed: %d\n", original.readableBytes(), compressed.readableBytes());
 
-        Zstd.PROVIDER.decompress(compressed, uncompressed);
+            int uncompressedSize = PValidation.toPositiveIntSafe(Zstd.PROVIDER.frameContentSize(compressed));
+            System.out.printf("original size: %d, frame content size: %d\n", SIZE, uncompressedSize);
+            ByteBuf uncompressed = Unpooled.directBuffer(uncompressedSize, uncompressedSize);
 
-        validateEqual(original, uncompressed, 0, SIZE);
+            Zstd.PROVIDER.decompress(compressed, uncompressed);
+
+            validateEqual(original, uncompressed, 0, SIZE);
+        }
     }
 
     private static void validateEqual(@NonNull ByteBuf a, @NonNull ByteBuf b, int start, int size) {

@@ -89,7 +89,7 @@ public class ZlibTest {
         }
 
         {
-            ByteBuf compressedNative = Unpooled.directBuffer(SIZE >>> 4, SIZE >>> 4);
+            ByteBuf compressedNative = Unpooled.directBuffer(16, SIZE >>> 4);
 
             try (PDeflater deflater = Zlib.PROVIDER.get().deflater()) {
                 deflater.dict(original.slice(0, DICT_SIZE));
@@ -106,6 +106,8 @@ public class ZlibTest {
                     if (!deflater.finish()) {
                         throw new IllegalStateException("Couldn't deflate data!");
                     }
+                } else if (true) {
+                    deflater.fullDeflateGrowing(original.slice(), compressedNative);
                 } else {
                     if (!deflater.fullDeflate(original.slice(), compressedNative)) {
                         throw new IllegalStateException("Couldn't deflate data!");

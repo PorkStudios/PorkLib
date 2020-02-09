@@ -41,6 +41,28 @@ public interface PDeflater extends Context<PDeflater> {
      */
     boolean fullDeflate(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException;
 
+    /**
+     * Deflates the given source data into the given destination buffer.
+     * <p>
+     * This will continually grow the destination buffer until there is enough space for deflation to be finished successfully.
+     * <p>
+     * This method will implicitly reset the context before the actual compression. Any previous state will be ignored.
+     *
+     * @param src the {@link ByteBuf} to read data from
+     * @param dst the {@link ByteBuf} to write data to
+     */
+    default void fullDeflateGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException {
+        this.reset().src(src).dst(dst);
+
+        do {
+            this.update(false);
+        } while (src.isReadable() && dst.ensureWritable(8192).isWritable());
+
+        while (!this.finish()) {
+            dst.ensureWritable(8192);
+        }
+    }
+
     @Override
     PDeflater update(boolean flush) throws ContextFinishedException, ContextFinishingException;
 

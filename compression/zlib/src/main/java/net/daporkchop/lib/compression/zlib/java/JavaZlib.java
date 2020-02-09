@@ -13,61 +13,34 @@
  *
  */
 
-package net.daporkchop.lib.natives.zlib;
+package net.daporkchop.lib.compression.zlib.java;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.unsafe.PCleaner;
-import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
+import net.daporkchop.lib.compression.zlib.ZlibDeflater;
+import net.daporkchop.lib.compression.zlib.ZlibInflater;
+import net.daporkchop.lib.compression.zlib.ZlibProvider;
+import net.daporkchop.lib.natives.NativeCode;
 
 /**
- * Implementation of {@link PDeflater} using native code.
- *
  * @author DaPorkchop_
  */
-@Getter
-@Accessors(fluent = true)
-public final class NativeDeflater implements PDeflater {
-    static native void load();
-
-    private static native long init(int level, int mode);
-
-    private static native void end(long ctx);
-
-    @Getter(AccessLevel.NONE)
-    private final long ctx;
-
-    @Getter(AccessLevel.NONE)
-    private final PCleaner cleaner;
-
-    private int readBytes;
-    private int writtenBytes;
-
-    private boolean finished;
-
-    NativeDeflater(int level, @NonNull ZlibMode mode) {
-        long ctx = this.ctx = init(level, mode.ordinal());
-        this.cleaner = PCleaner.cleaner(this, () -> end(ctx));
+public final class JavaZlib extends NativeCode.Impl<ZlibProvider> implements ZlibProvider {
+    @Override
+    protected ZlibProvider _get() {
+        return this;
     }
 
     @Override
-    public native void input(long addr, int size);
+    protected boolean _available() {
+        return true;
+    }
 
     @Override
-    public native void output(long addr, int size);
+    public ZlibDeflater deflater(int level, int strategy, int mode) {
+        throw new UnsupportedOperationException(); //TODO
+    }
 
     @Override
-    public native void deflate(boolean finish);
-
-    @Override
-    public native void reset();
-
-    @Override
-    public void release() throws AlreadyReleasedException {
-        if (!this.cleaner.tryClean()) {
-            throw new AlreadyReleasedException();
-        }
+    public ZlibInflater inflater(int mode) {
+        throw new UnsupportedOperationException(); //TODO
     }
 }

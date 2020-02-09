@@ -67,8 +67,14 @@ __attribute__((visibility("default"))) jlong JNICALL Java_net_daporkchop_lib_com
 __attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_releaseCtx
         (JNIEnv* env, jclass cla, jlong ctx)   {
     zng_stream* stream = (zng_stream*) ctx;
+    int ret = zng_deflateReset(stream);
 
-    int ret = zng_deflateEnd(stream);
+    if (ret != Z_OK)    {
+        throwException(env, stream->msg == nullptr ? "Couldn't reset deflater!" : stream->msg, ret);
+        return;
+    }
+
+    ret = zng_deflateEnd(stream);
     const char* msg = stream->msg;
     free(stream);
 

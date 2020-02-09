@@ -44,4 +44,15 @@ public abstract class AbstractReleasable implements Releasable {
      * Will only be called once.
      */
     protected abstract void doRelease();
+
+    /**
+     * Asserts that this instance has not been released.
+     *
+     * @throws AlreadyReleasedException if this instance has been released
+     */
+    protected final void assertNotReleased() throws AlreadyReleasedException {
+        if (this.released != 0) {
+            throw new AlreadyReleasedException();
+        }
+    }
 }

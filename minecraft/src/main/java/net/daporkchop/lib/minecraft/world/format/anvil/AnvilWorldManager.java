@@ -28,6 +28,8 @@ import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.common.cache.Cache;
 import net.daporkchop.lib.common.cache.ThreadCache;
 import net.daporkchop.lib.common.misc.file.PFiles;
+import net.daporkchop.lib.compression.PInflater;
+import net.daporkchop.lib.compression.zlib.Zlib;
 import net.daporkchop.lib.math.vector.i.Vec2i;
 import net.daporkchop.lib.minecraft.registry.ResourceLocation;
 import net.daporkchop.lib.minecraft.tileentity.TileEntity;
@@ -41,9 +43,6 @@ import net.daporkchop.lib.minecraft.world.format.anvil.region.RegionFile;
 import net.daporkchop.lib.minecraft.world.impl.section.DirectSectionImpl;
 import net.daporkchop.lib.minecraft.world.impl.section.HeapSectionImpl;
 import net.daporkchop.lib.minecraft.world.impl.vanilla.VanillaChunkImpl;
-import net.daporkchop.lib.natives.PNatives;
-import net.daporkchop.lib.natives.zlib.PInflater;
-import net.daporkchop.lib.natives.zlib.Zlib;
 import net.daporkchop.lib.nbt.NBTInputStream;
 import net.daporkchop.lib.nbt.alloc.NBTArrayAllocator;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
@@ -68,7 +67,7 @@ import java.util.stream.Collectors;
 public class AnvilWorldManager implements WorldManager {
     protected static final Cache<HeapSectionImpl> CHUNK_CACHE    = ThreadCache.soft(() -> new HeapSectionImpl(-1, null));
     protected static final Pattern                REGION_PATTERN = Pattern.compile("^r\\.(-?[0-9]+)\\.(-?[0-9]+)\\.mca$");
-    protected static final Cache<PInflater>       INFLATER_CACHE = ThreadCache.soft(() -> PNatives.ZLIB.get().inflater(Zlib.ZLIB_MODE_AUTO));
+    protected static final Cache<PInflater>       INFLATER_CACHE = ThreadCache.soft(() -> Zlib.PROVIDER.get().inflater(Zlib.MODE_AUTO));
 
     protected final AnvilSaveFormat format;
     protected final File            root;
@@ -145,7 +144,7 @@ public class AnvilWorldManager implements WorldManager {
                             PInflater inflater = INFLATER_CACHE.get();
                             ByteBuf uncompressed = PooledByteBufAllocator.DEFAULT.directBuffer();
                             try {
-                                inflater.inflate(compressed, uncompressed);
+                                inflater.fullInflateGrowing(compressed, uncompressed);
                                 try (NBTInputStream in = new NBTInputStream(DataIn.wrap(uncompressed), this.arrayAllocator)) {
                                     rootTag = in.readTag().getCompound("Level");
                                 }
@@ -245,26 +244,27 @@ public class AnvilWorldManager implements WorldManager {
     }
 
     private void loadSection(@NonNull DirectSectionImpl impl, @NonNull CompoundTag tag) {
-        final long addr = impl.memoryAddress();
+        final Object ref = impl.memoryRef();
+        final long addr = impl.memoryOff();
 
         PUnsafe.copyMemory(
                 tag.getByteArray("Data"),
                 PUnsafe.ARRAY_BYTE_BASE_OFFSET,
-                null,
+                ref,
                 addr + DirectSectionImpl.OFFSET_META,
                 DirectSectionImpl.SIZE_NIBBLE_LAYER
         );
         PUnsafe.copyMemory(
                 tag.getByteArray("BlockLight"),
                 PUnsafe.ARRAY_BYTE_BASE_OFFSET,
-                null,
+                ref,
                 addr + DirectSectionImpl.OFFSET_BLOCK_LIGHT,
                 DirectSectionImpl.SIZE_NIBBLE_LAYER
         );
         PUnsafe.copyMemory(
                 tag.getByteArray("SkyLight"),
                 PUnsafe.ARRAY_BYTE_BASE_OFFSET,
-                null,
+                ref,
                 addr + DirectSectionImpl.OFFSET_SKY_LIGHT,
                 DirectSectionImpl.SIZE_NIBBLE_LAYER
         );

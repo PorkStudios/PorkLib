@@ -182,7 +182,7 @@ __attribute__((visibility("default"))) jboolean JNICALL Java_net_daporkchop_lib_
         }
     }
 
-    if (ret != Z_STREAM_END && ret != Z_OK)    {
+    if (ret != Z_STREAM_END && ret != Z_OK && ret != Z_BUF_ERROR)    {
         throwException(env, stream->msg == nullptr ? "Invalid return value from inflate()!" : stream->msg, ret);
         return false;
     }

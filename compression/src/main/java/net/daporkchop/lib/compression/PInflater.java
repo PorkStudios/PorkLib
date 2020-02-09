@@ -41,6 +41,28 @@ public interface PInflater extends Context<PInflater> {
      */
     boolean fullInflate(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException;
 
+    /**
+     * Inflates the given source data into the given destination buffer.
+     * <p>
+     * This will continually grow the destination buffer until there is enough space for inflation to be finished successfully.
+     * <p>
+     * This method will implicitly reset the context before the actual decompression. Any previous state will be ignored.
+     *
+     * @param src the {@link ByteBuf} to read data from
+     * @param dst the {@link ByteBuf} to write data to
+     */
+    default void fullInflateGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException {
+        this.reset().src(src).dst(dst);
+
+        do {
+            this.update(true);
+        } while (src.isReadable() && dst.ensureWritable(8192).isWritable());
+
+        if (!this.finish()) {
+            throw new IllegalStateException();
+        }
+    }
+
     @Override
     PInflater update(boolean flush) throws ContextFinishedException, ContextFinishingException;
 

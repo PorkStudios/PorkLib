@@ -338,7 +338,7 @@ public class PorkUtil {
         }
     }
 
-    public void assertInRangeLen(int size, int start, int len) throws IndexOutOfBoundsException {
-        assertInRange(size, start, start + len);
+    public void assertInRangeLen(int size, int start, int length) throws IndexOutOfBoundsException {
+        assertInRange(size, start, start + length);
     }
 }

@@ -246,18 +246,18 @@ public final class NBTInputStream extends DataIn {
     }
 
     @Override
-    public byte[] readFully(@NonNull byte[] b) throws IOException {
-        return this.in.readFully(b);
+    public byte[] readFully(@NonNull byte[] dst) throws IOException {
+        return this.in.readFully(dst);
     }
 
     @Override
-    public byte[] readFully(@NonNull byte[] b, int off, int len) throws IOException {
-        return this.in.readFully(b, off, len);
+    public byte[] readFully(@NonNull byte[] dst, int start, int length) throws IOException {
+        return this.in.readFully(dst, start, length);
     }
 
     @Override
-    public byte[] readAllAvailableBytes() throws IOException {
-        return this.in.readAllAvailableBytes();
+    public byte[] toByteArray() throws IOException {
+        return this.in.toByteArray();
     }
 
     @Override

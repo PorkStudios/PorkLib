@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -19,7 +19,9 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.common.util.PorkUtil;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -51,9 +53,21 @@ public class BufferIn extends DataIn {
     }
 
     @Override
-    public byte[] readFully(@NonNull byte[] b, int off, int len) throws IOException {
-        this.buffer.get(b, off, len);
-        return b;
+    public byte[] readFully(@NonNull byte[] dst, int start, int length) throws EOFException, IOException {
+        PorkUtil.assertInRangeLen(dst.length, start, length);
+        if (this.buffer.remaining() >= length)   {
+            this.buffer.get(dst, start, length);
+            return dst;
+        } else {
+            throw new EOFException();
+        }
+    }
+
+    @Override
+    public byte[] toByteArray() throws IOException {
+        byte[] arr = new byte[this.buffer.remaining()];
+        this.buffer.get(arr);
+        return arr;
     }
 
     @Override
@@ -76,12 +90,12 @@ public class BufferIn extends DataIn {
     }
 
     @Override
-    public synchronized void mark(int readlimit) {
+    public void mark(int readlimit) {
         this.buffer.mark();
     }
 
     @Override
-    public synchronized void reset() throws IOException {
+    public void reset() throws IOException {
         this.buffer.reset();
     }
 

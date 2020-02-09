@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -20,9 +20,11 @@ import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.netty.NettyByteBufIn;
 import net.daporkchop.lib.binary.stream.nio.BufferIn;
 import net.daporkchop.lib.binary.stream.stream.StreamIn;
+import net.daporkchop.lib.common.util.PorkUtil;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -30,6 +32,7 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.function.Function;
 
 /**
@@ -459,48 +462,51 @@ public abstract class DataIn extends InputStream {
     }
 
     /**
-     * Attempts to fill a byte array with data.
-     * <p>
-     * Functionally equivalent to:
-     * {@code return readFully(b, 0, b.length);}
+     * Fills the given {@code byte[]} with data.
      *
-     * @param b the byte array to read into
-     * @return the {@code byte[]} that the data was read into
-     * @throws IOException if end of stream is reached before the required number required bytes are read
+     * @param dst the {@code byte[]} to read to
+     * @throws EOFException if EOF is reached before the given {@code byte[]} could be filled
+     * @throws IOException  if an IO exception occurs you dummy
      */
-    public byte[] readFully(@NonNull byte[] b) throws IOException {
-        return this.readFully(b, 0, b.length);
+    public byte[] readFully(@NonNull byte[] dst) throws EOFException, IOException {
+        return this.readFully(dst, 0, dst.length);
     }
 
     /**
-     * Attempts to fill a given region of a byte array with data.
+     * Fills the given region of the given {@code byte[]} with data.
      *
-     * @param b   the byte array to read into
-     * @param off the offset in the array to write data to
-     * @param len the number of bytes to read
-     * @return the {@code byte[]} that the data was read into
-     * @throws IOException if end of stream is reached before the required number required bytes are read
+     * @param dst    the {@code byte[]} to read to
+     * @param start  the first index (inclusive) in the {@code byte[]} to start writing to
+     * @param length the number of bytes to read into the {@code byte[]}
+     * @return the {@code byte[]}
+     * @throws EOFException if EOF is reached before the given number of bytes could be read
+     * @throws IOException  if an IO exception occurs you dummy
      */
-    public byte[] readFully(@NonNull byte[] b, int off, int len) throws IOException {
-        int i = 0;
-        while (len > 0 && (i = this.read(b, off + i, len)) != -1) {
-            len -= i;
+    public byte[] readFully(@NonNull byte[] dst, int start, int length) throws EOFException, IOException {
+        PorkUtil.assertInRangeLen(dst.length, start, length);
+        for (int i; length > 0 && (i = this.read(dst, start, length)) != -1; start += i, length -= i) ;
+        if (length != 0) {
+            throw new EOFException();
         }
-        if (i == -1) {
-            throw new IOException("Reached end of stream!");
-        }
-        return b;
+        return dst;
     }
 
     /**
-     * Reads all available bytes from this stream, as returned by {@link #available()}.
+     * Reads the entire contents of this {@link DataIn} into a {@code byte[]}.
      *
-     * @return all available bytes from this stream
+     * @return the contents of this {@link DataIn} as a {@code byte[]}
      */
-    public byte[] readAllAvailableBytes() throws IOException {
-        byte[] b = new byte[this.available()];
-        this.readFully(b);
-        return b;
+    public byte[] toByteArray() throws IOException {
+        byte[] arr = new byte[4096];
+        int pos = 0;
+        for (int i; (i = this.read(arr, pos, arr.length - pos)) != -1; pos += i) {
+            if (pos + i == arr.length) {
+                //grow array
+                byte[] old = arr;
+                System.arraycopy(old, 0, arr = new byte[arr.length << 1], 0, old.length);
+            }
+        }
+        return pos == arr.length ? arr : Arrays.copyOf(arr, pos); //don't copy if the size is exactly the size of the array already
     }
 
     /**

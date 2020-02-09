@@ -14,12 +14,12 @@
  */
 
 import lombok.NonNull;
+import net.daporkchop.lib.binary.oio.StreamUtil;
 import net.daporkchop.lib.nbt.NBTInputStream;
 import net.daporkchop.lib.nbt.NBTOutputStream;
 import net.daporkchop.lib.nbt.tag.Tag;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 import net.daporkchop.lib.nbt.tag.notch.ListTag;
-import org.apache.commons.compress.utils.IOUtils;
 import org.junit.Test;
 
 import java.io.BufferedOutputStream;
@@ -61,7 +61,7 @@ public class NBTTest {
     public void testWriting() throws IOException {
         byte[] original_uncompressed;
         try (InputStream is = new GZIPInputStream(NBTTest.class.getResourceAsStream("bigtest.nbt"))) {
-            original_uncompressed = IOUtils.toByteArray(is);
+            original_uncompressed = StreamUtil.toByteArray(is);
         }
         CompoundTag tag;
         try (NBTInputStream in = new NBTInputStream(new ByteArrayInputStream(original_uncompressed))) {

@@ -45,10 +45,10 @@ JNIEXPORT jboolean JNICALL Java_net_daporkchop_lib_compression_zlib_natives_Nati
 /*
  * Class:     net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater
  * Method:    doUpdate
- * Signature: (JIJI)V
+ * Signature: (JIJIZ)V
  */
 JNIEXPORT void JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_doUpdate
-  (JNIEnv *, jobject, jlong, jint, jlong, jint);
+  (JNIEnv *, jobject, jlong, jint, jlong, jint, jboolean);
 
 /*
  * Class:     net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater

@@ -106,7 +106,7 @@ __attribute__((visibility("default"))) jboolean JNICALL Java_net_daporkchop_lib_
 }
 
 __attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_doUpdate
-        (JNIEnv* env, jobject obj, jlong srcAddr, jint srcSize, jlong dstAddr, jint dstSize)   {
+        (JNIEnv* env, jobject obj, jlong srcAddr, jint srcSize, jlong dstAddr, jint dstSize, jboolean flush)   {
     zng_stream* stream = (zng_stream*) env->GetLongField(obj, ctxID);
 
     //set stream buffers
@@ -116,7 +116,7 @@ __attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_comp
     stream->next_out = (unsigned char*) dstAddr;
     stream->avail_out = dstSize;
 
-    int ret = zng_deflate(stream, Z_NO_FLUSH);
+    int ret = zng_deflate(stream, flush ? Z_SYNC_FLUSH : Z_NO_FLUSH);
     if (ret != Z_OK)    {
         throwException(env, stream->msg == nullptr ? "Invalid return value from deflate()!" : stream->msg, ret);
     }

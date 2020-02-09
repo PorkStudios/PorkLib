@@ -73,12 +73,12 @@ public final class NativeZlibDeflater extends AbstractReleasable implements PDef
     private native boolean doFullDeflate(long srcAddr, int srcSize, long dstAddr, int dstSize);
 
     @Override
-    public PDeflater update() throws ContextFinishedException, ContextFinishingException {
-        this.update(this.src, this.dst);
+    public PDeflater update(boolean flush) throws ContextFinishedException, ContextFinishingException {
+        this.update(this.src, this.dst, flush);
         return this;
     }
 
-    private void update(@NonNull ByteBuf src, @NonNull ByteBuf dst) {
+    private void update(@NonNull ByteBuf src, @NonNull ByteBuf dst, boolean flush) {
         if (this.finished) {
             throw new ContextFinishedException();
         } else if (this.finishing) {
@@ -86,16 +86,18 @@ public final class NativeZlibDeflater extends AbstractReleasable implements PDef
         }
 
         this.doUpdate(src.memoryAddress() + src.readerIndex(), src.readableBytes(),
-                dst.memoryAddress() + dst.writerIndex(), dst.writableBytes());
+                dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
+                flush);
+
+        //increase indices
+        src.skipBytes(this.readBytes);
+        dst.writerIndex(dst.writerIndex() + this.writtenBytes);
     }
 
-    private native void doUpdate(long srcAddr, int srcSize, long dstAddr, int dstSize);
+    private native void doUpdate(long srcAddr, int srcSize, long dstAddr, int dstSize, boolean flush);
 
     @Override
     public boolean finish() throws ContextFinishedException {
-        if (this.finished) {
-            throw new ContextFinishedException();
-        }
         return this.finish(this.src, this.dst);
     }
 
@@ -105,8 +107,15 @@ public final class NativeZlibDeflater extends AbstractReleasable implements PDef
         }
         this.finishing = true;
 
-        return this.doFinish(src.memoryAddress() + src.readerIndex(), src.readableBytes(),
-                dst.memoryAddress() + dst.writerIndex(), dst.writableBytes());
+        if (this.doFinish(src.memoryAddress() + src.readerIndex(), src.readableBytes(),
+                dst.memoryAddress() + dst.writerIndex(), dst.writableBytes())) {
+            //increase indices if successful
+            src.skipBytes(this.readBytes);
+            dst.writerIndex(dst.writerIndex() + this.writtenBytes);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private native boolean doFinish(long srcAddr, int srcSize, long dstAddr, int dstSize);

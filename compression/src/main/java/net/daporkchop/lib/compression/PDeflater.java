@@ -18,6 +18,7 @@ package net.daporkchop.lib.compression;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.compression.util.exception.ContextFinishedException;
+import net.daporkchop.lib.compression.util.exception.ContextFinishingException;
 import net.daporkchop.lib.compression.util.exception.InvalidBufferTypeException;
 
 /**
@@ -41,7 +42,7 @@ public interface PDeflater extends Context<PDeflater> {
     boolean fullDeflate(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException;
 
     @Override
-    PDeflater update() throws ContextFinishedException;
+    PDeflater update(boolean flush) throws ContextFinishedException, ContextFinishingException;
 
     @Override
     boolean finish() throws ContextFinishedException;

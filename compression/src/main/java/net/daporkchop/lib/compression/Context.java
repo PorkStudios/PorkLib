@@ -63,11 +63,13 @@ interface Context<I extends Context<I>> extends Releasable {
      * <p>
      * Implementations may buffer any amount of data internally.
      *
+     * @param flush whether or not the internal buffer should be flushed. If {@code true}, an attempt will be made to flush as much buffered data as possible. Note
+     *              that this can cause a negative impact on the compression ratio.
      * @return this context
      * @throws ContextFinishedException  if this context is already finished and needs to be reset before being used again
      * @throws ContextFinishingException if this context is already being finished (but is not yet completely finished)
      */
-    I update() throws ContextFinishedException, ContextFinishingException;
+    I update(boolean flush) throws ContextFinishedException, ContextFinishingException;
 
     /**
      * Finishes this context.

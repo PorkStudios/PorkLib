@@ -21,5 +21,6 @@ dependencies {
     compile project(":minecraft:minecraft-text")
     compile project(":primitive")
 
+    //TODO: i'm only using LoadingCache, figure out a way to not have to pull in all of guava for that one feature
     compile "com.google.guava:guava:$guavaVersion"
 }

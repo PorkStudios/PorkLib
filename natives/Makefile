@@ -17,8 +17,7 @@ export ARCHS		:=	aarch64-linux-gnu x86_64-linux-gnu x86_64-w64-mingw32
 #export ARCHS		:=	$(foreach arch,$(ARCHS),$(if $(shell which $(arch)-g++),$(arch)))
 export ARCH_TASKS	:=	$(foreach arch,$(ARCHS),build.$(arch))
 
-export MODULES		:=	../compression/zlib
-#export MODULES		:=	../compression/zlib ../compression/zstd
+export MODULES		:=	../compression/zlib ../compression/zstd
 
 export LIBDIR		:=	$(TOPDIR)/src/main/native/lib
 export LIB_URL_BASE	:=	https://cloud.daporkchop.net/programs/source/
@@ -34,7 +33,7 @@ build.%: .FORCE $(foreach module,$(MODULES),%,$(module).lib)
 %.lib: .FORCE $(LIBS)
 	@_PRJ_NAME=$(shell echo "$@" | perl -n -e '/,(.*?)\.lib$$/ && print $$1') && \
 		_ARCH=$(shell echo "$@" | perl -n -e '/^([^,]*?),.*?\.lib$$/ && print $$1') && \
-		$(MAKE) -C $(TOPDIR)/$$_PRJ_NAME BUILD=$$_ARCH PROJDIR=$(TOPDIR)/$$_PRJ_NAME $$_ARCH && \
+		$(MAKE) --no-print-directory -C $(TOPDIR)/$$_PRJ_NAME BUILD=$$_ARCH PROJDIR=$(TOPDIR)/$$_PRJ_NAME $$_ARCH && \
 		echo Built $$_PRJ_NAME for target $$_ARCH!
 
 #echo "arg = $@" && echo "prj_name = $$_PRJ_NAME" && echo "arch = $$_ARCH" && \

@@ -13,39 +13,57 @@
  *
  */
 
-package net.daporkchop.lib.compression.zlib.java;
+package net.daporkchop.lib.compression.zstd.natives;
 
-import net.daporkchop.lib.compression.zlib.ZlibDeflater;
-import net.daporkchop.lib.compression.zlib.ZlibInflater;
-import net.daporkchop.lib.compression.zlib.ZlibProvider;
+import io.netty.buffer.ByteBuf;
+import lombok.NonNull;
+import net.daporkchop.lib.compression.util.exception.InvalidBufferTypeException;
+import net.daporkchop.lib.compression.zstd.ZstdProvider;
+import net.daporkchop.lib.compression.zstd.util.exception.ContentSizeUnknownException;
 import net.daporkchop.lib.natives.NativeCode;
 
 /**
  * @author DaPorkchop_
  */
-public final class JavaZlib extends NativeCode.Impl<ZlibProvider> implements ZlibProvider {
+public final class NativeZstd extends NativeCode.NativeImpl<ZstdProvider> implements ZstdProvider {
+    static {
+        if (NativeCode.NativeImpl.AVAILABLE)    {
+            NativeCode.loadNativeLibrary("zstd");
+        }
+    }
+
     @Override
-    protected ZlibProvider _get() {
+    protected ZstdProvider _get() {
         return this;
     }
 
     @Override
-    protected boolean _available() {
+    public boolean direct() {
         return true;
     }
 
     @Override
-    public boolean direct() {
+    public boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, int compressionLevel) throws InvalidBufferTypeException {
         return false;
     }
 
     @Override
-    public ZlibDeflater deflater(int level, int strategy, int mode) {
-        throw new UnsupportedOperationException(); //TODO
+    public boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException {
+        return false;
     }
 
     @Override
-    public ZlibInflater inflater(int mode) {
-        throw new UnsupportedOperationException(); //TODO
+    public long frameContentSize(@NonNull ByteBuf src) throws InvalidBufferTypeException, ContentSizeUnknownException {
+        return 0;
     }
+
+    @Override
+    public long compressBound(long srcSize) {
+        if (srcSize < 0L)   {
+            throw new IllegalArgumentException(String.valueOf(srcSize));
+        }
+        return this.doCompressBound(srcSize);
+    }
+
+    private native long doCompressBound(long srcSize);
 }

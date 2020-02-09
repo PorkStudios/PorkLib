@@ -13,39 +13,15 @@
  *
  */
 
-package net.daporkchop.lib.compression.zlib.java;
+package net.daporkchop.lib.compression.zstd.util.exception;
 
-import net.daporkchop.lib.compression.zlib.ZlibDeflater;
-import net.daporkchop.lib.compression.zlib.ZlibInflater;
-import net.daporkchop.lib.compression.zlib.ZlibProvider;
-import net.daporkchop.lib.natives.NativeCode;
+import io.netty.buffer.ByteBuf;
+import net.daporkchop.lib.compression.zstd.ZstdProvider;
 
 /**
+ * Thrown when {@link ZstdProvider#frameContentSize(ByteBuf)} cannot identify the content size of the given frame.
+ *
  * @author DaPorkchop_
  */
-public final class JavaZlib extends NativeCode.Impl<ZlibProvider> implements ZlibProvider {
-    @Override
-    protected ZlibProvider _get() {
-        return this;
-    }
-
-    @Override
-    protected boolean _available() {
-        return true;
-    }
-
-    @Override
-    public boolean direct() {
-        return false;
-    }
-
-    @Override
-    public ZlibDeflater deflater(int level, int strategy, int mode) {
-        throw new UnsupportedOperationException(); //TODO
-    }
-
-    @Override
-    public ZlibInflater inflater(int mode) {
-        throw new UnsupportedOperationException(); //TODO
-    }
+public final class ContentSizeUnknownException extends RuntimeException {
 }

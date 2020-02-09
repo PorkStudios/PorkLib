@@ -13,39 +13,13 @@
  *
  */
 
-package net.daporkchop.lib.compression.zlib.java;
-
-import net.daporkchop.lib.compression.zlib.ZlibDeflater;
-import net.daporkchop.lib.compression.zlib.ZlibInflater;
-import net.daporkchop.lib.compression.zlib.ZlibProvider;
-import net.daporkchop.lib.natives.NativeCode;
+import net.daporkchop.lib.compression.zstd.Zstd;
 
 /**
  * @author DaPorkchop_
  */
-public final class JavaZlib extends NativeCode.Impl<ZlibProvider> implements ZlibProvider {
-    @Override
-    protected ZlibProvider _get() {
-        return this;
-    }
-
-    @Override
-    protected boolean _available() {
-        return true;
-    }
-
-    @Override
-    public boolean direct() {
-        return false;
-    }
-
-    @Override
-    public ZlibDeflater deflater(int level, int strategy, int mode) {
-        throw new UnsupportedOperationException(); //TODO
-    }
-
-    @Override
-    public ZlibInflater inflater(int mode) {
-        throw new UnsupportedOperationException(); //TODO
+public class ZstdTest {
+    public static void main(String... args) {
+        System.out.printf("original: %d, worst-case compressed: %d\n", 1 << 16L, Zstd.PROVIDER.get().compressBound(1 << 16L));
     }
 }

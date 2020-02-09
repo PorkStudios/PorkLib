@@ -16,12 +16,14 @@
 package net.daporkchop.lib.compression.zlib;
 
 
+import net.daporkchop.lib.compression.util.BufferTyped;
+
 /**
- * A wrapper around a Zlib implementation.
+ * Representation of a Zlib implementation.
  *
  * @author DaPorkchop_
  */
-public interface ZlibProvider {
+public interface ZlibProvider extends BufferTyped {
     /**
      * Creates a new {@link ZlibDeflater}.
      *

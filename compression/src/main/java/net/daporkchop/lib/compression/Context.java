@@ -17,6 +17,7 @@ package net.daporkchop.lib.compression;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
+import net.daporkchop.lib.compression.util.BufferTyped;
 import net.daporkchop.lib.compression.util.exception.ContextFinishedException;
 import net.daporkchop.lib.compression.util.exception.ContextFinishingException;
 import net.daporkchop.lib.compression.util.exception.InvalidBufferTypeException;
@@ -29,16 +30,7 @@ import net.daporkchop.lib.unsafe.capability.Releasable;
  *
  * @author DaPorkchop_
  */
-interface Context<I extends Context<I>> extends Releasable {
-    /**
-     * Checks whether this context uses direct or heap memory.
-     * <p>
-     * {@link io.netty.buffer.ByteBuf}s of the wrong type will not be accepted by any methods, and will cause an {@link InvalidBufferTypeException} to be thrown.
-     *
-     * @return whether this context uses direct or heap memory
-     */
-    boolean direct();
-
+interface Context<I extends Context<I>> extends Releasable, BufferTyped {
     /**
      * Sets the context's current source buffer when processing data in streaming mode.
      *

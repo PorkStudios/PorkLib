@@ -13,39 +13,20 @@
  *
  */
 
-package net.daporkchop.lib.compression.zlib.java;
+package net.daporkchop.lib.compression.zstd;
 
-import net.daporkchop.lib.compression.zlib.ZlibDeflater;
-import net.daporkchop.lib.compression.zlib.ZlibInflater;
-import net.daporkchop.lib.compression.zlib.ZlibProvider;
+import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.compression.zstd.natives.NativeZstd;
 import net.daporkchop.lib.natives.NativeCode;
 
 /**
  * @author DaPorkchop_
  */
-public final class JavaZlib extends NativeCode.Impl<ZlibProvider> implements ZlibProvider {
-    @Override
-    protected ZlibProvider _get() {
-        return this;
-    }
+@UtilityClass
+public class Zstd {
+    public final NativeCode<ZstdProvider> PROVIDER = new NativeCode<>(NativeZstd::new);
 
-    @Override
-    protected boolean _available() {
-        return true;
-    }
-
-    @Override
-    public boolean direct() {
-        return false;
-    }
-
-    @Override
-    public ZlibDeflater deflater(int level, int strategy, int mode) {
-        throw new UnsupportedOperationException(); //TODO
-    }
-
-    @Override
-    public ZlibInflater inflater(int mode) {
-        throw new UnsupportedOperationException(); //TODO
-    }
+    public final int LEVEL_DEFAULT = 3;
+    public final int LEVEL_MIN     = -999;
+    public final int LEVEL_MAX     = 22;
 }

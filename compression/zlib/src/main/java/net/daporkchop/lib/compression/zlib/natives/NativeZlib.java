@@ -42,6 +42,11 @@ public final class NativeZlib extends NativeCode.NativeImpl<ZlibProvider> implem
     }
 
     @Override
+    public boolean direct() {
+        return true;
+    }
+
+    @Override
     public ZlibDeflater deflater(int level, int strategy, int mode) {
         return new NativeZlibDeflater(level, strategy, mode);
     }

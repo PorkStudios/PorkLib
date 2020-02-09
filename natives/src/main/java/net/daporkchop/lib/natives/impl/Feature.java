@@ -13,22 +13,14 @@
  *
  */
 
-package net.daporkchop.lib.compression.util;
-
-import net.daporkchop.lib.compression.util.exception.InvalidBufferTypeException;
+package net.daporkchop.lib.natives.impl;
 
 /**
- * A type that accepts {@link io.netty.buffer.ByteBuf}s, but only of a certain type (either direct or heap).
- *
  * @author DaPorkchop_
  */
-public interface BufferTyped {
+public interface Feature<F extends Feature<F>> {
     /**
-     * Checks whether this implementation uses direct or heap memory.
-     * <p>
-     * {@link io.netty.buffer.ByteBuf}s of the wrong type will not be accepted by any methods, and will cause an {@link InvalidBufferTypeException} to be thrown.
-     *
-     * @return whether this implementation uses direct or heap memory
+     * @return whether or not this feature implementation is native
      */
-    boolean direct();
+    boolean isNative();
 }

@@ -13,47 +13,52 @@
  *
  */
 
-package net.daporkchop.lib.compression.zstd.natives;
+package net.daporkchop.lib.natives.util;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.natives.impl.NativeFeature;
 import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
-import net.daporkchop.lib.compression.zstd.ZstdProvider;
-import net.daporkchop.lib.compression.zstd.util.exception.ContentSizeUnknownException;
-import net.daporkchop.lib.natives.FeatureBuilder;
 
 /**
+ * A type with method(s) that accept {@link ByteBuf}(s) as parameters, but are restricted to either direct buffers only or heap buffers only. Attempting to
+ * pass a {@link ByteBuf} of an unsupported type to any superclass methods will result in an {@link InvalidBufferTypeException}.
+ *
  * @author DaPorkchop_
  */
-public final class NativeZstd extends NativeFeature<NativeZstd, ZstdProvider> implements ZstdProvider {
-    @Override
-    public boolean directAccepted() {
-        return true;
+public interface BufferTyped {
+    /**
+     * @return whether this implementation accepts direct buffers
+     */
+    boolean directAccepted();
+
+    /**
+     * @return whether this implementation accepts heap buffers
+     */
+    default boolean heapAccepted() {
+        return !this.directAccepted();
     }
 
-    @Override
-    public boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, int compressionLevel) throws InvalidBufferTypeException {
-        return false;
+    /**
+     * Checks whether the given {@link ByteBuf} is accepted by this implementation.
+     *
+     * @param buf the {@link ByteBuf} to check
+     * @return whether or not the given {@link ByteBuf} is accepted
+     */
+    default boolean isAcceptable(@NonNull ByteBuf buf) {
+        return (this.directAccepted() && buf.hasMemoryAddress()) || (this.heapAccepted() && buf.hasArray());
     }
 
-    @Override
-    public boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException {
-        return false;
-    }
-
-    @Override
-    public long frameContentSize(@NonNull ByteBuf src) throws InvalidBufferTypeException, ContentSizeUnknownException {
-        return 0;
-    }
-
-    @Override
-    public long compressBound(long srcSize) {
-        if (srcSize < 0L)   {
-            throw new IllegalArgumentException(String.valueOf(srcSize));
+    /**
+     * Ensures that the given {@link ByteBuf} will be accepted by this implementation.
+     *
+     * @param buf the {@link ByteBuf} to check
+     * @return the {@link ByteBuf}
+     * @throws InvalidBufferTypeException if the given {@link ByteBuf} is not acceptable
+     */
+    default ByteBuf assertAcceptable(@NonNull ByteBuf buf) throws InvalidBufferTypeException {
+        if (!this.isAcceptable(buf)) {
+            throw InvalidBufferTypeException.of(this.directAccepted(), this.heapAccepted());
         }
-        return this.doCompressBound(srcSize);
+        return buf;
     }
-
-    private native long doCompressBound(long srcSize);
 }

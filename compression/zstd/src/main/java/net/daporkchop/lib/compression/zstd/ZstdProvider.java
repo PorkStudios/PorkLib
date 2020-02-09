@@ -17,8 +17,9 @@ package net.daporkchop.lib.compression.zstd;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.compression.util.BufferTyped;
-import net.daporkchop.lib.compression.util.exception.InvalidBufferTypeException;
+import net.daporkchop.lib.natives.impl.Feature;
+import net.daporkchop.lib.natives.util.BufferTyped;
+import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
 import net.daporkchop.lib.compression.zstd.util.exception.ContentSizeUnknownException;
 
 /**
@@ -26,9 +27,9 @@ import net.daporkchop.lib.compression.zstd.util.exception.ContentSizeUnknownExce
  *
  * @author DaPorkchop_
  */
-public interface ZstdProvider extends BufferTyped {
+public interface ZstdProvider extends BufferTyped, Feature<ZstdProvider> {
     @Override
-    boolean direct();
+    boolean directAccepted();
 
     /**
      * Compresses the given source data into a single Zstd frame into the given destination buffer.

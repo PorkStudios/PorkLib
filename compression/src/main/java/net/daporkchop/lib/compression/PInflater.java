@@ -19,7 +19,7 @@ import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.compression.util.exception.ContextFinishedException;
 import net.daporkchop.lib.compression.util.exception.ContextFinishingException;
-import net.daporkchop.lib.compression.util.exception.InvalidBufferTypeException;
+import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
 
 /**
  * Inflates (decompresses) data.

@@ -18,7 +18,7 @@ package net.daporkchop.lib.compression.zlib;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.compression.PDeflater;
-import net.daporkchop.lib.compression.util.exception.InvalidBufferTypeException;
+import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
 
 /**
  * Extension of {@link PDeflater} for {@link Zlib}.

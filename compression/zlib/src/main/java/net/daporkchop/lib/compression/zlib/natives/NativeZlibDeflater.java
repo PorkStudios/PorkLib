@@ -21,7 +21,7 @@ import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.compression.PDeflater;
 import net.daporkchop.lib.compression.util.exception.ContextFinishedException;
 import net.daporkchop.lib.compression.util.exception.ContextFinishingException;
-import net.daporkchop.lib.compression.util.exception.InvalidBufferTypeException;
+import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
 import net.daporkchop.lib.compression.zlib.ZlibDeflater;
 import net.daporkchop.lib.unsafe.PCleaner;
 import net.daporkchop.lib.unsafe.util.AbstractReleasable;
@@ -61,7 +61,7 @@ public final class NativeZlibDeflater extends AbstractReleasable implements Zlib
     @Override
     public boolean fullDeflate(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException {
         if (!src.hasMemoryAddress() || !dst.hasMemoryAddress()) {
-            throw new InvalidBufferTypeException(true);
+            throw InvalidBufferTypeException.direct();
         }
 
         this.reset(); //this will do nothing if we're already reset
@@ -161,7 +161,7 @@ public final class NativeZlibDeflater extends AbstractReleasable implements Zlib
     @Override
     public PDeflater dict(@NonNull ByteBuf dict) throws InvalidBufferTypeException {
         if (!dict.hasMemoryAddress()) {
-            throw new InvalidBufferTypeException(true);
+            throw InvalidBufferTypeException.direct();
         } else if (this.started)    {
             throw new IllegalStateException("Cannot set dictionary after compression has started!");
         } else if (this.dict != null)   {
@@ -179,7 +179,7 @@ public final class NativeZlibDeflater extends AbstractReleasable implements Zlib
     @Override
     public PDeflater src(@NonNull ByteBuf src) throws InvalidBufferTypeException {
         if (!src.hasMemoryAddress()) {
-            throw new InvalidBufferTypeException(true);
+            throw InvalidBufferTypeException.direct();
         }
         this.src = src;
         return this;
@@ -188,14 +188,14 @@ public final class NativeZlibDeflater extends AbstractReleasable implements Zlib
     @Override
     public PDeflater dst(@NonNull ByteBuf dst) throws InvalidBufferTypeException {
         if (!dst.hasMemoryAddress()) {
-            throw new InvalidBufferTypeException(true);
+            throw InvalidBufferTypeException.direct();
         }
         this.dst = dst;
         return this;
     }
 
     @Override
-    public boolean direct() {
+    public boolean directAccepted() {
         return true;
     }
 

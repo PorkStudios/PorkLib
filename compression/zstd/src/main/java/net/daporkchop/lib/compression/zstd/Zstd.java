@@ -17,14 +17,16 @@ package net.daporkchop.lib.compression.zstd;
 
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.compression.zstd.natives.NativeZstd;
-import net.daporkchop.lib.natives.NativeCode;
+import net.daporkchop.lib.natives.FeatureBuilder;
 
 /**
  * @author DaPorkchop_
  */
 @UtilityClass
 public class Zstd {
-    public final NativeCode<ZstdProvider> PROVIDER = new NativeCode<>(NativeZstd::new);
+    public final ZstdProvider PROVIDER = FeatureBuilder.<ZstdProvider>create(Zstd.class)
+            .addNative("net.daporkchop.lib.compression.zstd.natives.NativeZstd", "zstd")
+            .build();
 
     public final int LEVEL_DEFAULT = 3;
     public final int LEVEL_MIN     = -999;

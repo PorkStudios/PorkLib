@@ -14,5 +14,7 @@
  */
 
 dependencies {
+    compile project(":natives")
+
     compile "io.netty:netty-buffer:$nettyVersion"
 }

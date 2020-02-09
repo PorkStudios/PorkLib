@@ -222,6 +222,24 @@ public class PorkUtil {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    public <T> Class<T> uninitializedClassForName(@NonNull String name) {
+        try {
+            return (Class<T>) Class.forName(name, false, null);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> Class<T> uninitializedClassForName(@NonNull String name, ClassLoader loader) {
+        try {
+            return (Class<T>) Class.forName(name, false, loader);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public boolean classExistsWithName(@NonNull String name) {
         try {
             Class.forName(name);

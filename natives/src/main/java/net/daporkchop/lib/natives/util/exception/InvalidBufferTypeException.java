@@ -13,16 +13,39 @@
  *
  */
 
-package net.daporkchop.lib.compression.util.exception;
+package net.daporkchop.lib.natives.util.exception;
 
 /**
- * Thrown when a {@link io.netty.buffer.ByteBuf} argument to a {@link net.daporkchop.lib.compression.PInflater} or {@link net.daporkchop.lib.compression.PDeflater}
- * is of the wrong type.
+ * Thrown when a {@link io.netty.buffer.ByteBuf} argument to an implementation of {@link net.daporkchop.lib.natives.util.BufferTyped} is of the wrong type.
  *
  * @author DaPorkchop_
  */
 public final class InvalidBufferTypeException extends IllegalArgumentException {
-    public InvalidBufferTypeException(boolean direct) {
-        super(direct ? "direct buffer expected!" : "heap buffer expected!");
+    public static InvalidBufferTypeException direct() {
+        return new InvalidBufferTypeException("direct buffer expected!");
+    }
+
+    public static InvalidBufferTypeException heap() {
+        return new InvalidBufferTypeException("heap buffer expected!");
+    }
+
+    public static InvalidBufferTypeException any() {
+        return new InvalidBufferTypeException("either direct or heap buffer expected!");
+    }
+
+    public static InvalidBufferTypeException of(boolean directAccepted, boolean heapAccepted) {
+        if (directAccepted && heapAccepted) {
+            return any();
+        } else if (directAccepted) {
+            return direct();
+        } else if (heapAccepted) {
+            return heap();
+        } else {
+            throw new IllegalArgumentException("neither direct nor heap buffers are accepted?!?");
+        }
+    }
+
+    private InvalidBufferTypeException(String s) {
+        super(s);
     }
 }

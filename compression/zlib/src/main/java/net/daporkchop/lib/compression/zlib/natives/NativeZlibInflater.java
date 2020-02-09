@@ -18,11 +18,10 @@ package net.daporkchop.lib.compression.zlib.natives;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.compression.PDeflater;
 import net.daporkchop.lib.compression.PInflater;
 import net.daporkchop.lib.compression.util.exception.ContextFinishedException;
 import net.daporkchop.lib.compression.util.exception.ContextFinishingException;
-import net.daporkchop.lib.compression.util.exception.InvalidBufferTypeException;
+import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
 import net.daporkchop.lib.compression.zlib.ZlibInflater;
 import net.daporkchop.lib.unsafe.PCleaner;
 import net.daporkchop.lib.unsafe.util.AbstractReleasable;
@@ -62,7 +61,7 @@ public final class NativeZlibInflater extends AbstractReleasable implements Zlib
     @Override
     public boolean fullInflate(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException {
         if (!src.hasMemoryAddress() || !dst.hasMemoryAddress()) {
-            throw new InvalidBufferTypeException(true);
+            throw InvalidBufferTypeException.direct();
         }
 
         this.reset(); //this will do nothing if we're already reset
@@ -166,7 +165,7 @@ public final class NativeZlibInflater extends AbstractReleasable implements Zlib
     @Override
     public PInflater dict(@NonNull ByteBuf dict) throws InvalidBufferTypeException {
         if (!dict.hasMemoryAddress()) {
-            throw new InvalidBufferTypeException(true);
+            throw InvalidBufferTypeException.direct();
         } else if (this.started)    {
             throw new IllegalStateException("Cannot set dictionary after decompression has started!");
         } else if (this.dict != null)   {
@@ -181,7 +180,7 @@ public final class NativeZlibInflater extends AbstractReleasable implements Zlib
     @Override
     public PInflater src(@NonNull ByteBuf src) throws InvalidBufferTypeException {
         if (!src.hasMemoryAddress()) {
-            throw new InvalidBufferTypeException(true);
+            throw InvalidBufferTypeException.direct();
         }
         this.src = src;
         return this;
@@ -190,14 +189,14 @@ public final class NativeZlibInflater extends AbstractReleasable implements Zlib
     @Override
     public PInflater dst(@NonNull ByteBuf dst) throws InvalidBufferTypeException {
         if (!dst.hasMemoryAddress()) {
-            throw new InvalidBufferTypeException(true);
+            throw InvalidBufferTypeException.direct();
         }
         this.dst = dst;
         return this;
     }
 
     @Override
-    public boolean direct() {
+    public boolean directAccepted() {
         return true;
     }
 

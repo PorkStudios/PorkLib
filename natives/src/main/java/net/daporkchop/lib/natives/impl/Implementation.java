@@ -13,13 +13,12 @@
  *
  */
 
-import net.daporkchop.lib.compression.zstd.Zstd;
+package net.daporkchop.lib.natives.impl;
 
 /**
+ * Base representation of an implementation of a {@link Feature}.
+ *
  * @author DaPorkchop_
  */
-public class ZstdTest {
-    public static void main(String... args) {
-        System.out.printf("original: %d, worst-case compressed: %d\n", 1 << 16L, Zstd.PROVIDER.compressBound(1 << 16L));
-    }
+public interface Implementation<I extends Implementation<I, F> & Feature<F>, F extends Feature<F>> {
 }

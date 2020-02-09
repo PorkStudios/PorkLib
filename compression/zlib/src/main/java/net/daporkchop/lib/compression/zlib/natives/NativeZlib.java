@@ -15,34 +15,22 @@
 
 package net.daporkchop.lib.compression.zlib.natives;
 
-import net.daporkchop.lib.compression.PDeflater;
-import net.daporkchop.lib.compression.PInflater;
-import net.daporkchop.lib.compression.zlib.Zlib;
 import net.daporkchop.lib.compression.zlib.ZlibDeflater;
 import net.daporkchop.lib.compression.zlib.ZlibInflater;
 import net.daporkchop.lib.compression.zlib.ZlibProvider;
-import net.daporkchop.lib.natives.NativeCode;
+import net.daporkchop.lib.natives.impl.NativeFeature;
 
 /**
  * @author DaPorkchop_
  */
-public final class NativeZlib extends NativeCode.NativeImpl<ZlibProvider> implements ZlibProvider {
+public final class NativeZlib extends NativeFeature<NativeZlib, ZlibProvider> implements ZlibProvider {
     static {
-        if (NativeCode.NativeImpl.AVAILABLE)    {
-            NativeCode.loadNativeLibrary("zlib");
-
-            NativeZlibDeflater.load();
-            NativeZlibInflater.load();
-        }
+        NativeZlibDeflater.load();
+        NativeZlibInflater.load();
     }
 
     @Override
-    protected ZlibProvider _get() {
-        return this;
-    }
-
-    @Override
-    public boolean direct() {
+    public boolean directAccepted() {
         return true;
     }
 

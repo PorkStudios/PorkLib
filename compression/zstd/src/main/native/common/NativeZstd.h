@@ -12,6 +12,30 @@ extern "C" {
 
 /*
  * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstd
+ * Method:    doCompress
+ * Signature: (JIJII)I
+ */
+JNIEXPORT jint JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstd_doCompress
+  (JNIEnv *, jobject, jlong, jint, jlong, jint, jint);
+
+/*
+ * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstd
+ * Method:    doDecompress
+ * Signature: (JIJI)I
+ */
+JNIEXPORT jint JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstd_doDecompress
+  (JNIEnv *, jobject, jlong, jint, jlong, jint);
+
+/*
+ * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstd
+ * Method:    doFrameContentSize
+ * Signature: (JI)J
+ */
+JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstd_doFrameContentSize
+  (JNIEnv *, jobject, jlong, jint);
+
+/*
+ * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstd
  * Method:    doCompressBound
  * Signature: (J)J
  */

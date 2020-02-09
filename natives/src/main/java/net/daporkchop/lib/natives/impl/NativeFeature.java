@@ -26,11 +26,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * Abstraction of an {@link Implementation} of a {@link Feature} using native code.
+ * Abstraction of an implementation of a {@link Feature} using native code.
  *
  * @author DaPorkchop_
  */
-public abstract class NativeFeature<I extends NativeFeature<I, F>, F extends Feature<F>> implements Feature<F>, Implementation<I, F> {
+public abstract class NativeFeature<F extends Feature<F>> implements Feature<F> {
     private static final String LIB_FMT;
     private static final String LIB_EXT;
 

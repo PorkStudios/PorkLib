@@ -23,7 +23,7 @@ import net.daporkchop.lib.natives.impl.NativeFeature;
 /**
  * @author DaPorkchop_
  */
-public final class NativeZlib extends NativeFeature<NativeZlib, ZlibProvider> implements ZlibProvider {
+public final class NativeZlib extends NativeFeature<ZlibProvider> implements ZlibProvider {
     static {
         NativeZlibDeflater.load();
         NativeZlibInflater.load();

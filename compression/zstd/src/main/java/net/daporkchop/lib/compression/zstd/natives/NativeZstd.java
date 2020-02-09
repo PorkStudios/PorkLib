@@ -17,16 +17,16 @@ package net.daporkchop.lib.compression.zstd.natives;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.natives.impl.NativeFeature;
-import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
+import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.compression.zstd.ZstdProvider;
 import net.daporkchop.lib.compression.zstd.util.exception.ContentSizeUnknownException;
-import net.daporkchop.lib.natives.FeatureBuilder;
+import net.daporkchop.lib.natives.impl.NativeFeature;
+import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
 
 /**
  * @author DaPorkchop_
  */
-public final class NativeZstd extends NativeFeature<NativeZstd, ZstdProvider> implements ZstdProvider {
+public final class NativeZstd extends NativeFeature<ZstdProvider> implements ZstdProvider {
     @Override
     public boolean directAccepted() {
         return true;
@@ -34,25 +34,58 @@ public final class NativeZstd extends NativeFeature<NativeZstd, ZstdProvider> im
 
     @Override
     public boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, int compressionLevel) throws InvalidBufferTypeException {
-        return false;
+        this.assertAcceptable(src);
+        this.assertAcceptable(dst);
+
+        int val = this.doCompress(src.memoryAddress() + src.readerIndex(), src.readableBytes(),
+                dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
+                compressionLevel);
+
+        if (val >= 0)    {
+            src.skipBytes(src.readableBytes());
+            dst.writerIndex(dst.writerIndex() + val);
+            return true;
+        } else {
+            return false;
+        }
     }
+
+    private native int doCompress(long srcAddr, int srcSize, long dstAddr, int dstSize, int compressionLevel);
 
     @Override
     public boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException {
-        return false;
+        this.assertAcceptable(src);
+        this.assertAcceptable(dst);
+
+        int val = this.doDecompress(src.memoryAddress() + src.readerIndex(), src.readableBytes(),
+                dst.memoryAddress() + dst.writerIndex(), dst.writableBytes());
+
+        if (val >= 0)    {
+            src.skipBytes(src.readableBytes());
+            dst.writerIndex(dst.writerIndex() + val);
+            return true;
+        } else {
+            return false;
+        }
     }
+
+    private native int doDecompress(long srcAddr, int srcSize, long dstAddr, int dstSize);
 
     @Override
     public long frameContentSize(@NonNull ByteBuf src) throws InvalidBufferTypeException, ContentSizeUnknownException {
-        return 0;
+        long size = this.doFrameContentSize(this.assertAcceptable(src).memoryAddress() + src.readerIndex(), src.readableBytes());
+        if (size >= 0L) {
+            return size;
+        } else {
+            throw new ContentSizeUnknownException();
+        }
     }
+
+    private native long doFrameContentSize(long srcAddr, int srcSize);
 
     @Override
     public long compressBound(long srcSize) {
-        if (srcSize < 0L)   {
-            throw new IllegalArgumentException(String.valueOf(srcSize));
-        }
-        return this.doCompressBound(srcSize);
+        return this.doCompressBound(PValidation.ensureNonNegative(srcSize));
     }
 
     private native long doCompressBound(long srcSize);

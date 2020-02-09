@@ -1,5 +1,7 @@
 export SHELL		:=	/bin/bash
 
+export NPROC		:=	$(shell nproc)
+
 export TARGET		:=	$(shell basename $(CURDIR))
 export TOPDIR		:=	$(CURDIR)
 export TOOLCHAINS	:=	$(CURDIR)/toolchain

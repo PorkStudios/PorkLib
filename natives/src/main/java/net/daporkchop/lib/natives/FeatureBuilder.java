@@ -20,7 +20,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.natives.impl.Feature;
-import net.daporkchop.lib.natives.impl.Implementation;
 import net.daporkchop.lib.natives.impl.NativeFeature;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
@@ -29,10 +28,10 @@ import java.util.Collection;
 import java.util.function.Supplier;
 
 /**
- * A container around multiple {@link Implementation}s of a {@link Feature}.
+ * A container around multiple implementations of a {@link Feature}.
  * <p>
- * Serves mainly to automatically choose the best {@link Implementation} to use, and to avoid unnecessary loading of {@link Implementation} classes that won't
- * actually end up being used.
+ * Serves mainly to automatically choose the best implementation to use, and to avoid unnecessary loading of implementation classes that won't actually end
+ * up being used.
  *
  * @param <F> the type of the {@link Feature} to be implemented
  * @author DaPorkchop_

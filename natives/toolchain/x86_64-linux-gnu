@@ -1,6 +1,6 @@
-export CFLAGS		:=	$(CFLAGS) -flto=auto -fno-fat-lto-objects
-export CXXFLAGS		:=	$(CXXFLAGS) -flto=auto -fno-fat-lto-objects
-export LDFLAGS		:=	$(LDFLAGS) -flto=auto -fno-fat-lto-objects
+export CFLAGS		:=	$(CFLAGS) -flto=$(NPROC) -fno-fat-lto-objects
+export CXXFLAGS		:=	$(CXXFLAGS) -flto=$(NPROC) -fno-fat-lto-objects
+export LDFLAGS		:=	$(LDFLAGS) -flto=$(NPROC) -fno-fat-lto-objects
 
 export CC		:= x86_64-linux-gnu-gcc
 export CXX		:= x86_64-linux-gnu-g++

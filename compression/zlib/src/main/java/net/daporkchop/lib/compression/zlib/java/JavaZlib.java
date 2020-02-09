@@ -24,7 +24,7 @@ import net.daporkchop.lib.natives.impl.NativeFeature;
 /**
  * @author DaPorkchop_
  */
-public final class JavaZlib extends NativeFeature<JavaZlib, ZlibProvider> implements ZlibProvider {
+public final class JavaZlib extends NativeFeature<ZlibProvider> implements ZlibProvider {
     @Override
     public boolean directAccepted() {
         return false;

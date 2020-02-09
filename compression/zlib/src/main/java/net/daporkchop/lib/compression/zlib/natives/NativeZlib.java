@@ -39,7 +39,7 @@ public final class NativeZlib extends NativeCode.NativeImpl<ZlibProvider> implem
     }
 
     @Override
-    public PDeflater deflater(int level, int strategy) {
-        return new NativeZlibDeflater(level, strategy, Zlib.MODE_ZLIB);
+    public PDeflater deflater(int level, int strategy, int mode) {
+        return new NativeZlibDeflater(level, strategy, mode);
     }
 }

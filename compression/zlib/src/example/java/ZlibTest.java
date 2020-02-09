@@ -41,7 +41,7 @@ public class ZlibTest {
         {
             ByteBuf compressedNative = Unpooled.directBuffer(SIZE >>> 4, SIZE >>> 4).clear().ensureWritable(SIZE >>> 4);
 
-            try (PDeflater deflater = Zlib.PROVIDER.get().deflater(Zlib.LEVEL_DEFAULT, Zlib.STRATEGY_DEFAULT)) {
+            try (PDeflater deflater = Zlib.PROVIDER.get().deflater()) {
                 if (!deflater.fullDeflate(original, compressedNative)) {
                     throw new IllegalStateException("Couldn't deflate data!");
                 }
@@ -68,7 +68,7 @@ public class ZlibTest {
         {
             ByteBuf compressedNative = Unpooled.directBuffer(SIZE >>> 4, SIZE >>> 4).clear().ensureWritable(SIZE >>> 4);
 
-            try (PDeflater deflater = Zlib.PROVIDER.get().deflater(Zlib.LEVEL_DEFAULT, Zlib.STRATEGY_DEFAULT)) {
+            try (PDeflater deflater = Zlib.PROVIDER.get().deflater()) {
                 deflater.dst(compressedNative);
                 for (int i = 0; i < (1 << 4); i++) {
                     ByteBuf src = original.slice((SIZE >>> 4) * i, SIZE >>> 4);

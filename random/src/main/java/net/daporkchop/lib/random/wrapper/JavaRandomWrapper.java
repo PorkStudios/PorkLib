@@ -99,8 +99,8 @@ public final class JavaRandomWrapper implements PRandom {
     }
 
     @Override
-    public int nextInt(int min, int max) {
-        return this.delegate.nextInt(max - min) + min;
+    public int nextInt(int origin, int bound) {
+        return this.delegate.nextInt(bound - origin) + origin;
     }
 
     @Override
@@ -135,11 +135,11 @@ public final class JavaRandomWrapper implements PRandom {
     }
 
     @Override
-    public long nextLong(int min, int max) {
-        if (max <= min) {
+    public long nextLong(int origin, int bound) {
+        if (bound <= origin) {
             throw new IllegalArgumentException("max must be greater than min");
         }
-        return this.nextLong(max - min) + min;
+        return this.nextLong(bound - origin) + origin;
     }
 
     @Override
@@ -158,11 +158,11 @@ public final class JavaRandomWrapper implements PRandom {
     }
 
     @Override
-    public float nextFloat(float min, float max) {
-        if (max <= min) {
+    public float nextFloat(float origin, float bound) {
+        if (bound <= origin) {
             throw new IllegalArgumentException("max must be greater than min");
         }
-        return (this.delegate.nextFloat() * (max - min)) + min;
+        return (this.delegate.nextFloat() * (bound - origin)) + origin;
     }
 
     @Override
@@ -181,10 +181,10 @@ public final class JavaRandomWrapper implements PRandom {
     }
 
     @Override
-    public double nextDouble(double min, double max) {
-        if (max <= min) {
+    public double nextDouble(double origin, double bound) {
+        if (bound <= origin) {
             throw new IllegalArgumentException("max must be greater than min");
         }
-        return (this.delegate.nextDouble() * (max - min)) + min;
+        return (this.delegate.nextDouble() * (bound - origin)) + origin;
     }
 }

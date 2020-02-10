@@ -15,39 +15,29 @@
 
 package net.daporkchop.lib.random.impl;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.random.PRandom;
-import net.daporkchop.lib.unsafe.PUnsafe;
+import net.daporkchop.lib.random.wrapper.PRandomWrapper;
 
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.DoubleStream;
-import java.util.stream.IntStream;
-import java.util.stream.LongStream;
 
 /**
- * Functionally identical to Java's built-in {@link ThreadLocalRandom}. However, many method implementations are copied to
- * this class to ensure that performance remains optimal.
+ * A fast implementation of {@link PRandom} based on Java's {@link java.util.SplittableRandom}.
+ * <p>
+ * This is NOT thread-safe. Attempting to share an instance of this class among multiple threads is likely to result in duplicate values
+ * being returned to multiple threads.
  *
  * @author DaPorkchop_
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class ThreadLocalPRandom extends Random implements PRandom {
-    private static final long SEED  = PUnsafe.pork_getOffset(Thread.class, "threadLocalRandomSeed");
+@AllArgsConstructor
+public final class FastPRandom implements PRandom {
     private static final long GAMMA = 0x9e3779b97f4a7c15L;
 
     private static final double DOUBLE_UNIT = 0x1.0p-53;
     private static final float  FLOAT_UNIT  = 0x1.0p-24f;
-
-    private static final ThreadLocalPRandom INSTANCE = new ThreadLocalPRandom();
-
-    public static ThreadLocalPRandom current() {
-        ThreadLocalRandom.current(); //init thread local state
-        return INSTANCE;
-    }
 
     private static long mix64(long z) {
         z = (z ^ (z >>> 33)) * 0xff51afd7ed558ccdL;
@@ -60,76 +50,57 @@ public final class ThreadLocalPRandom extends Random implements PRandom {
         return (int) (((z ^ (z >>> 33)) * 0xc4ceb9fe1a85ec53L) >>> 32);
     }
 
-    private static long nextSeed() {
-        Thread t = Thread.currentThread();
-        long r = PUnsafe.getLong(t, SEED) + GAMMA;
-        PUnsafe.putLong(t, SEED, r);
-        return r;
+    private long seed;
+
+    /**
+     * Creates a new {@link FastPRandom} instance using a seed based on the current time.
+     */
+    public FastPRandom() {
+        this(mix64(System.currentTimeMillis()) ^ mix64(System.nanoTime()));
+    }
+
+    private long nextSeed() {
+        return this.seed += GAMMA;
     }
 
     @Override
     public Random asJava() {
-        return ThreadLocalRandom.current();
-    }
-
-    @Override
-    public void setSeed(long seed) {
-        throw new UnsupportedOperationException();
+        return new PRandomWrapper(this);
     }
 
     @Override
     public boolean nextBoolean() {
-        return mix32(nextSeed()) < 0;
+        return mix32(this.nextSeed()) != 0;
     }
 
     @Override
     public byte nextByte() {
-        return (byte) (mix32(nextSeed()) & 0xFF);
-    }
-
-    @Override
-    public void nextBytes(@NonNull byte[] dst) {
-        ThreadLocalRandom.current().nextBytes(dst);
+        return (byte) (mix32(this.nextSeed()) & 0xFF);
     }
 
     @Override
     public void nextBytes(@NonNull byte[] dst, int start, int length) {
         PorkUtil.assertInRangeLen(dst.length, start, length);
-
-        //optimization for filling the whole array
-        if (start == 0 && length == dst.length) {
-            ThreadLocalRandom.current().nextBytes(dst);
-            return;
-        }
-
-        for (int i = start; i < length; ) {
-            for (long rnd = this.nextLong(), n = Math.min(length - i, Long.SIZE / Byte.SIZE); n-- > 0; rnd >>= Byte.SIZE) {
-                dst[i++] = (byte) rnd;
-            }
-        }
     }
 
     @Override
     public short nextShort() {
-        return (short) (mix32(nextSeed()) & 0xFFFF);
+        return (short) (mix32(this.nextSeed()) & 0xFFFF);
     }
 
     @Override
     public int next(int bits) {
-        //ThreadLocalRandom has the following comment:
-        // We must define this, but never use it.
-        //why not? need to figure that out...
         return mix32(nextSeed()) >>> (bits ^ 0x1F);
     }
 
     @Override
     public int nextInt() {
-        return mix32(nextSeed());
+        return mix32(this.nextSeed());
     }
 
     @Override
     public int nextUnsignedInt() {
-        return mix32(nextSeed()) >>> 1;
+        return mix32(this.nextSeed()) >>> 1;
     }
 
     @Override
@@ -138,7 +109,7 @@ public final class ThreadLocalPRandom extends Random implements PRandom {
             throw new IllegalArgumentException("bound must be positive");
         }
 
-        int r = mix32(nextSeed());
+        int r = mix32(this.nextSeed());
         int m = bound - 1;
         if ((bound & m) == 0) {
             r &= m;
@@ -270,70 +241,5 @@ public final class ThreadLocalPRandom extends Random implements PRandom {
 
         double result = (mix64(nextSeed()) >>> 11L) * DOUBLE_UNIT * (bound - origin) + origin;
         return (result < bound) ? result : Double.longBitsToDouble(Double.doubleToLongBits(bound) - 1L);
-    }
-
-    @Override
-    public double nextGaussian() {
-        return ThreadLocalRandom.current().nextGaussian();
-    }
-
-    @Override
-    public IntStream ints(long streamSize) {
-        return ThreadLocalRandom.current().ints(streamSize);
-    }
-
-    @Override
-    public IntStream ints() {
-        return ThreadLocalRandom.current().ints();
-    }
-
-    @Override
-    public IntStream ints(long streamSize, int randomNumberMin, int randomNumberBound) {
-        return ThreadLocalRandom.current().ints(streamSize, randomNumberMin, randomNumberBound);
-    }
-
-    @Override
-    public IntStream ints(int randomNumberMin, int randomNumberBound) {
-        return ThreadLocalRandom.current().ints(randomNumberMin, randomNumberBound);
-    }
-
-    @Override
-    public LongStream longs(long streamSize) {
-        return ThreadLocalRandom.current().longs(streamSize);
-    }
-
-    @Override
-    public LongStream longs() {
-        return ThreadLocalRandom.current().longs();
-    }
-
-    @Override
-    public LongStream longs(long streamSize, long randomNumberMin, long randomNumberBound) {
-        return ThreadLocalRandom.current().longs(streamSize, randomNumberMin, randomNumberBound);
-    }
-
-    @Override
-    public LongStream longs(long randomNumberMin, long randomNumberBound) {
-        return ThreadLocalRandom.current().longs(randomNumberMin, randomNumberBound);
-    }
-
-    @Override
-    public DoubleStream doubles(long streamSize) {
-        return ThreadLocalRandom.current().doubles(streamSize);
-    }
-
-    @Override
-    public DoubleStream doubles() {
-        return ThreadLocalRandom.current().doubles();
-    }
-
-    @Override
-    public DoubleStream doubles(long streamSize, double randomNumberMin, double randomNumberBound) {
-        return ThreadLocalRandom.current().doubles(streamSize, randomNumberMin, randomNumberBound);
-    }
-
-    @Override
-    public DoubleStream doubles(double randomNumberMin, double randomNumberBound) {
-        return ThreadLocalRandom.current().doubles(randomNumberMin, randomNumberBound);
     }
 }

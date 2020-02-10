@@ -122,11 +122,11 @@ public interface PRandom {
     /**
      * Gets a random int.
      *
-     * @param min the minimum value to generate (inclusive)
-     * @param max the maximum value to generate (exclusive)
+     * @param origin the minimum value to generate (inclusive)
+     * @param bound  the maximum value to generate (exclusive)
      * @return a random int between the given minimum and maximum values
      */
-    int nextInt(int min, int max);
+    int nextInt(int origin, int bound);
 
     /**
      * Gets a random long value with the given number of bits.
@@ -160,11 +160,11 @@ public interface PRandom {
     /**
      * Gets a random long.
      *
-     * @param min the minimum value to generate (inclusive)
-     * @param max the maximum value to generate (exclusive)
+     * @param origin the minimum value to generate (inclusive)
+     * @param bound  the maximum value to generate (exclusive)
      * @return a random long between the given minimum and maximum values
      */
-    long nextLong(int min, int max);
+    long nextLong(int origin, int bound);
 
     /**
      * @return a random float in the range {@code 0} - {@code 1}
@@ -182,11 +182,16 @@ public interface PRandom {
     /**
      * Gets a random float.
      *
-     * @param min the minimum value to generate (inclusive)
-     * @param max the maximum value to generate (exclusive)
+     * @param origin the minimum value to generate (inclusive)
+     * @param bound  the maximum value to generate (exclusive)
      * @return a random float between the given minimum and maximum values
      */
-    float nextFloat(float min, float max);
+    float nextFloat(float origin, float bound);
+
+    /**
+     * @return a random float with gaussian distribution centered on {@code 0} and with a standard deviation of {@code 1}
+     */
+    float nextGaussianFloat();
 
     /**
      * @return a random double in the range {@code 0} - {@code 1}
@@ -204,9 +209,14 @@ public interface PRandom {
     /**
      * Gets a random double.
      *
-     * @param min the minimum value to generate (inclusive)
-     * @param max the maximum value to generate (exclusive)
+     * @param origin the minimum value to generate (inclusive)
+     * @param bound  the maximum value to generate (exclusive)
      * @return a random double between the given minimum and maximum values
      */
-    double nextDouble(double min, double max);
+    double nextDouble(double origin, double bound);
+
+    /**
+     * @return a random double with gaussian distribution centered on {@code 0} and with a standard deviation of {@code 1}
+     */
+    double nextGaussianDouble();
 }

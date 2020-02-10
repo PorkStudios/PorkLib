@@ -79,4 +79,9 @@ public final class PRandomWrapper extends Random {
     public double nextDouble() {
         return this.delegate.nextDouble();
     }
+
+    @Override
+    public double nextGaussian() {
+        return this.delegate.nextGaussianDouble();
+    }
 }

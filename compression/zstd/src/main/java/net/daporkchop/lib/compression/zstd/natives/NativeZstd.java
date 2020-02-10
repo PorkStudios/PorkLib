@@ -19,6 +19,7 @@ import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.compression.zstd.ZstdCCtx;
+import net.daporkchop.lib.compression.zstd.ZstdDCtx;
 import net.daporkchop.lib.compression.zstd.ZstdProvider;
 import net.daporkchop.lib.compression.zstd.util.exception.ContentSizeUnknownException;
 import net.daporkchop.lib.natives.impl.NativeFeature;
@@ -91,5 +92,10 @@ public final class NativeZstd extends NativeFeature<ZstdProvider> implements Zst
     @Override
     public ZstdCCtx compressionContext() {
         return new NativeZstdCCtx();
+    }
+
+    @Override
+    public ZstdDCtx decompressionContext() {
+        return new NativeZstdDCtx();
     }
 }

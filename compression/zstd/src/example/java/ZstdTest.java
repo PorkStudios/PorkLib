@@ -19,6 +19,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.compression.zstd.Zstd;
 import net.daporkchop.lib.compression.zstd.ZstdCCtx;
+import net.daporkchop.lib.compression.zstd.ZstdDCtx;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -43,20 +44,55 @@ public class ZstdTest {
 
         ByteBuf compressed = Unpooled.directBuffer(BOUND_SIZE, BOUND_SIZE);
 
-        if (true) { //benchmark simple vs context compression
+        if (false) { //benchmark simple vs context compression
             long start = System.currentTimeMillis();
             for (int i = 0; i < 256; i++) {
-                Zstd.PROVIDER.compress(original.clear().resetWriterIndex(), compressed.clear(), Zstd.LEVEL_MAX);
+                if (!Zstd.PROVIDER.compress(original.clear().writerIndex(SIZE), compressed.clear(), Zstd.LEVEL_MAX)) {
+                    throw new IllegalStateException();
+                }
             }
             System.out.printf("simple: %.2fs\n", (System.currentTimeMillis() - start) / 1000.0d);
 
             start = System.currentTimeMillis();
             try (ZstdCCtx ctx = Zstd.PROVIDER.compressionContext()) {
                 for (int i = 0; i < 256; i++) {
-                    ctx.compress(original.clear().resetWriterIndex(), compressed.clear(), Zstd.LEVEL_MAX);
+                    if (!ctx.compress(original.clear().writerIndex(SIZE), compressed.clear(), Zstd.LEVEL_MAX)) {
+                        throw new IllegalStateException();
+                    }
                 }
             }
             System.out.printf("context: %.2fs\n", (System.currentTimeMillis() - start) / 1000.0d);
+        } else if (true) { //benchmark simple vs context decompression
+            Zstd.PROVIDER.compress(original.clear().writerIndex(SIZE), compressed.clear(), Zstd.LEVEL_MAX);
+            compressed.markWriterIndex();
+
+            int uncompressedSize = PValidation.toPositiveIntSafe(Zstd.PROVIDER.frameContentSize(compressed));
+            ByteBuf uncompressed = Unpooled.directBuffer(uncompressedSize, uncompressedSize);
+
+            long start = System.currentTimeMillis();
+            for (int i = 0; i < 256; i++) {
+                if (!Zstd.PROVIDER.decompress(compressed.clear().resetWriterIndex(), uncompressed.clear())) {
+                    throw new IllegalStateException();
+                }
+            }
+            System.out.printf("simple: %.2fs\n", (System.currentTimeMillis() - start) / 1000.0d);
+
+            start = System.currentTimeMillis();
+            try (ZstdDCtx ctx = Zstd.PROVIDER.decompressionContext()) {
+                for (int i = 0; i < 256; i++) {
+                    if (!ctx.decompress(compressed.clear().resetWriterIndex(), uncompressed.clear())) {
+                        throw new IllegalStateException();
+                    }
+                }
+            }
+            System.out.printf("context: %.2fs\n", (System.currentTimeMillis() - start) / 1000.0d);
+
+            try (ZstdDCtx ctx = Zstd.PROVIDER.decompressionContext()) {
+                if (!ctx.decompress(compressed.clear().resetWriterIndex(), uncompressed.clear())) {
+                    throw new IllegalStateException();
+                }
+            }
+            validateEqual(original, uncompressed, 0, SIZE);
         } else if (false) {
             Zstd.PROVIDER.compress(original.slice(), compressed, Zstd.LEVEL_DEFAULT);
             System.out.printf("original: %d, compressed: %d\n", original.readableBytes(), compressed.readableBytes());

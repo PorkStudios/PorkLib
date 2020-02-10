@@ -86,4 +86,9 @@ public interface ZstdProvider extends BufferTyped, Feature<ZstdProvider> {
      * @return a re-usable context for simple compression
      */
     ZstdCCtx compressionContext();
+
+    /**
+     * @return a re-usable context for simple decompression
+     */
+    ZstdDCtx decompressionContext();
 }

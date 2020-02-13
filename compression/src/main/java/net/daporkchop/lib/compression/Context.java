@@ -17,14 +17,12 @@ package net.daporkchop.lib.compression;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.compression.util.exception.ContextFinishedException;
-import net.daporkchop.lib.compression.util.exception.ContextFinishingException;
 import net.daporkchop.lib.natives.util.BufferTyped;
 import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
 import net.daporkchop.lib.unsafe.capability.Releasable;
 
 /**
- * Base interface for deflaters and inflaters.
+ * Base interface for {@link PDeflater} and {@link PDeflater}.
  * <p>
  * Unless explicitly specified, implementations of this class are not safe for use on multiple threads.
  *
@@ -32,52 +30,14 @@ import net.daporkchop.lib.unsafe.capability.Releasable;
  */
 interface Context<I extends Context<I>> extends Releasable, BufferTyped {
     /**
-     * Sets the context's current source buffer when processing data in streaming mode.
-     *
-     * @param src the {@link ByteBuf} to read data from
-     * @return this context
-     * @throws ContextFinishingException if this context is already being finished, and as such the source buffer may not be updated any more
+     * @return the {@link CompressionProvider} that created this context
      */
-    I src(@NonNull ByteBuf src) throws InvalidBufferTypeException, ContextFinishingException;
-
-    /**
-     * Sets the context's current destination buffer when processing data in streaming mode.
-     *
-     * @param dst the {@link ByteBuf} to write data to
-     * @return this context
-     */
-    I dst(@NonNull ByteBuf dst) throws InvalidBufferTypeException;
-
-    /**
-     * Updates this context, processing as much data as possible.
-     * <p>
-     * This will read from the source buffer and write to the destination buffer until the source buffer runs dry or the destination buffer fills up.
-     * <p>
-     * Implementations may buffer any amount of data internally.
-     *
-     * @param flush whether or not the internal buffer should be flushed. If {@code true}, an attempt will be made to flush as much buffered data as possible. Note
-     *              that this can cause a negative impact on the compression ratio.
-     * @return this context
-     * @throws ContextFinishedException  if this context is already finished and needs to be reset before being used again
-     * @throws ContextFinishingException if this context is already being finished (but is not yet completely finished)
-     */
-    I update(boolean flush) throws ContextFinishedException, ContextFinishingException;
-
-    /**
-     * Finishes this context.
-     * <p>
-     * This will read from the source buffer and write to the destination buffer until the source buffer runs dry or the destination buffer fills up, and then
-     * attempt to flush any internally buffered data and finish the (de)compression process.
-     *
-     * @return whether or not the context could be completed. If {@code false}, there is not enough space in the destination buffer for the context to finish
-     * @throws ContextFinishedException if this context is already finished and needs to be reset before being used again
-     */
-    boolean finish() throws ContextFinishedException;
+    CompressionProvider provider();
 
     /**
      * Resets this context.
      * <p>
-     * This will erase any internal buffers and reset the source and destination buffers to {@code null}.
+     * This will reset the dictionary buffer to {@code null}.
      *
      * @return this context
      */

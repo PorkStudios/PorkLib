@@ -17,6 +17,10 @@ package net.daporkchop.lib.compression.zstd;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
+import net.daporkchop.lib.compression.CCtx;
+import net.daporkchop.lib.compression.CompressionProvider;
+import net.daporkchop.lib.compression.DCtx;
+import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelException;
 import net.daporkchop.lib.compression.zstd.util.exception.ContentSizeUnknownException;
 import net.daporkchop.lib.natives.impl.Feature;
 import net.daporkchop.lib.natives.util.BufferTyped;
@@ -27,7 +31,7 @@ import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
  *
  * @author DaPorkchop_
  */
-public interface ZstdProvider extends BufferTyped, Feature<ZstdProvider> {
+public interface ZstdProvider extends CompressionProvider, Feature<ZstdProvider> {
     @Override
     boolean directAccepted();
 
@@ -82,13 +86,9 @@ public interface ZstdProvider extends BufferTyped, Feature<ZstdProvider> {
      */
     long compressBound(long srcSize);
 
-    /**
-     * @return a re-usable context for simple compression
-     */
-    ZstdCCtx compressionContext();
+    @Override
+    ZstdCCtx compressionContext(int level) throws InvalidCompressionLevelException;
 
-    /**
-     * @return a re-usable context for simple decompression
-     */
+    @Override
     ZstdDCtx decompressionContext();
 }

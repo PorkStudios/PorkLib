@@ -26,7 +26,7 @@ import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
  *
  * @author DaPorkchop_
  */
-public interface PInflater extends Context<PInflater> {
+public interface PInflater extends StreamingContext<PInflater> {
     /**
      * Inflates the given source data into the given destination buffer.
      * <p>

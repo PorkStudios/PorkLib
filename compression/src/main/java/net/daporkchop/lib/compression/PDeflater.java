@@ -26,7 +26,7 @@ import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
  *
  * @author DaPorkchop_
  */
-public interface PDeflater extends Context<PDeflater> {
+public interface PDeflater extends StreamingContext<PDeflater> {
     /**
      * Deflates the given source data into the given destination buffer.
      * <p>

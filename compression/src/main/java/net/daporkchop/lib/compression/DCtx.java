@@ -13,37 +13,28 @@
  *
  */
 
-package net.daporkchop.lib.compression.zstd;
+package net.daporkchop.lib.compression;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.compression.CCtx;
+import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelException;
 import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
 
 /**
- * Compression context for {@link Zstd}.
- * <p>
- * Not thread-safe.
+ * A context for doing repeated one-shot compression operations.
  *
  * @author DaPorkchop_
  */
-public interface ZstdCCtx extends CCtx {
+public interface DCtx extends Context<DCtx> {
     /**
-     * Compresses the given source data into the given destination buffer at the currently configured compression level.
-     *
-     * @see CCtx#compress(ByteBuf, ByteBuf)
-     */
-    @Override
-    default boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException {
-        return this.compress(src, dst, this.level());
-    }
-
-    /**
-     * Compresses the given source data into a single Zstd frame into the given destination buffer at the given Zstd level.
+     * Decompresses the given compressed data into the given destination buffer.
      * <p>
-     * This is possible because Zstd allows using the same context for any compression level without having to reallocate it.
+     * If the destination buffer does not have enough space writable for the decompressed data, the operation will fail and both buffer's indices will remain
+     * unchanged, however the destination buffer's contents may be modified.
      *
-     * @see #compress(ByteBuf, ByteBuf)
+     * @param src the {@link ByteBuf} to read compressed data from
+     * @param dst the {@link ByteBuf} to write decompressed data to
+     * @return whether or not decompression was successful. If {@code false}, the destination buffer was too small for the decompressed data
      */
-    boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, int compressionLevel) throws InvalidBufferTypeException;
+    boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException;
 }

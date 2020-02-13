@@ -75,7 +75,7 @@ public class PorkUtil {
     );
 
     public final DateFormat DATE_FORMAT     = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-    public final String     PORKLIB_VERSION = "0.5.0-SNAPSHOT";
+    public final String     PORKLIB_VERSION = "0.5.1-SNAPSHOT";
     public final int        CPU_COUNT       = Runtime.getRuntime().availableProcessors();
 
     static {

@@ -17,9 +17,8 @@ package net.daporkchop.lib.compression.zstd;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.natives.util.BufferTyped;
+import net.daporkchop.lib.compression.DCtx;
 import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
-import net.daporkchop.lib.unsafe.capability.Releasable;
 
 /**
  * Deompression context for {@link Zstd}.
@@ -28,16 +27,11 @@ import net.daporkchop.lib.unsafe.capability.Releasable;
  *
  * @author DaPorkchop_
  */
-public interface ZstdDCtx extends BufferTyped, Releasable {
+public interface ZstdDCtx extends DCtx {
     /**
-     * Decompresses the given Zstd-compressed into the given destination buffer.
-     * <p>
-     * If the destination buffer does not have enough space writable for the decompressed data, the operation will fail and both buffer's indices will remain
-     * unchanged, however the destination buffer's contents may be modified.
+     * Decompresses the given Zstd-compressed data into the given destination buffer.
      *
-     * @param src the {@link ByteBuf} to read compressed data from
-     * @param dst the {@link ByteBuf} to write decompressed data to
-     * @return whether or not decompression was successful. If {@code false}, the destination buffer was too small for the decompressed data
+     * @see DCtx#decompress(ByteBuf, ByteBuf)
      */
     boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException;
 }

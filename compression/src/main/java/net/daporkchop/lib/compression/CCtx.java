@@ -13,37 +13,42 @@
  *
  */
 
-package net.daporkchop.lib.compression.zstd;
+package net.daporkchop.lib.compression;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.compression.CCtx;
+import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelException;
 import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
 
 /**
- * Compression context for {@link Zstd}.
- * <p>
- * Not thread-safe.
+ * A context for doing repeated one-shot compression operations.
  *
  * @author DaPorkchop_
  */
-public interface ZstdCCtx extends CCtx {
+public interface CCtx extends Context<CCtx> {
     /**
      * Compresses the given source data into the given destination buffer at the currently configured compression level.
+     * <p>
+     * If the destination buffer does not have enough space writable for the compressed data, the operation will fail and both buffer's indices will remain
+     * unchanged, however the destination buffer's contents may be modified.
      *
-     * @see CCtx#compress(ByteBuf, ByteBuf)
+     * @param src the {@link ByteBuf} to read source data from
+     * @param dst the {@link ByteBuf} to write compressed data to
+     * @return whether or not compression was successful. If {@code false}, the destination buffer was too small for the compressed data
      */
-    @Override
-    default boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException {
-        return this.compress(src, dst, this.level());
-    }
+    boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException;
 
     /**
-     * Compresses the given source data into a single Zstd frame into the given destination buffer at the given Zstd level.
-     * <p>
-     * This is possible because Zstd allows using the same context for any compression level without having to reallocate it.
-     *
-     * @see #compress(ByteBuf, ByteBuf)
+     * @return the currently configured compression level
      */
-    boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, int compressionLevel) throws InvalidBufferTypeException;
+    int level();
+
+    /**
+     * Updates this context's compression level.
+     *
+     * @param level the new compression level to use
+     * @return this context
+     * @throws InvalidCompressionLevelException if the given compression level is invalid
+     */
+    CCtx level(int level) throws InvalidCompressionLevelException;
 }

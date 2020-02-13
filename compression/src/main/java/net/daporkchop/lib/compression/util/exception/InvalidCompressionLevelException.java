@@ -13,37 +13,26 @@
  *
  */
 
-package net.daporkchop.lib.compression.zstd;
+package net.daporkchop.lib.compression.util.exception;
 
-import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.compression.CCtx;
-import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
+import net.daporkchop.lib.compression.CompressionProvider;
 
 /**
- * Compression context for {@link Zstd}.
- * <p>
- * Not thread-safe.
+ * Thrown when an invalid compression level is given.
  *
  * @author DaPorkchop_
  */
-public interface ZstdCCtx extends CCtx {
-    /**
-     * Compresses the given source data into the given destination buffer at the currently configured compression level.
-     *
-     * @see CCtx#compress(ByteBuf, ByteBuf)
-     */
-    @Override
-    default boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException {
-        return this.compress(src, dst, this.level());
+public final class InvalidCompressionLevelException extends IllegalArgumentException {
+    public static int validate(int level, @NonNull CompressionProvider provider) throws InvalidCompressionLevelException    {
+        if (level < provider.levelFast() || level > provider.levelBest()) {
+            throw new InvalidCompressionLevelException(level, provider);
+        }
+
+        return level;
     }
 
-    /**
-     * Compresses the given source data into a single Zstd frame into the given destination buffer at the given Zstd level.
-     * <p>
-     * This is possible because Zstd allows using the same context for any compression level without having to reallocate it.
-     *
-     * @see #compress(ByteBuf, ByteBuf)
-     */
-    boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, int compressionLevel) throws InvalidBufferTypeException;
+    public InvalidCompressionLevelException(int level, @NonNull CompressionProvider provider) {
+        super(String.format("Invalid level %d (must be in range %d-%d)", level, provider.levelFast(), provider.levelBest()));
+    }
 }

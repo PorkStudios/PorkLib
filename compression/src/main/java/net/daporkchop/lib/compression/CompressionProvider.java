@@ -15,10 +15,53 @@
 
 package net.daporkchop.lib.compression;
 
+import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelException;
+import net.daporkchop.lib.natives.util.BufferTyped;
+
 /**
  * An implementation of a compression algorithm.
  *
  * @author DaPorkchop_
  */
-public interface CompressionProvider {
+public interface CompressionProvider extends BufferTyped {
+    @Override
+    boolean directAccepted();
+
+    /**
+     * @return the compression level with the worst compression ratio in exchange for the shortest compression times
+     */
+    int levelFast();
+
+    /**
+     * @return the compression level used by default
+     */
+    int levelDefault();
+
+    /**
+     * @return the compression level with the best compression ratio in exchange for the longest compression times
+     */
+    int levelBest();
+
+    /**
+     * Creates a new {@link CCtx} with the default compression level.
+     *
+     * @see #compressionContext(int)
+     */
+    default CCtx compressionContext() {
+        return this.compressionContext(this.levelDefault());
+    }
+
+    /**
+     * Creates a new {@link CCtx} with the given compression level.
+     *
+     * @param level the compression level to use
+     * @return a new {@link CCtx} with the given compression level
+     * @throws InvalidCompressionLevelException if the given compression level is invalid
+     */
+    CCtx compressionContext(int level) throws InvalidCompressionLevelException;
+
+    /**
+     * @return a new {@link DCtx}
+     */
+    DCtx decompressionContext();
 }

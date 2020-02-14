@@ -17,7 +17,6 @@ package net.daporkchop.lib.compression;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelException;
 import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
 
 /**
@@ -31,6 +30,8 @@ public interface DCtx extends Context<DCtx> {
      * <p>
      * If the destination buffer does not have enough space writable for the decompressed data, the operation will fail and both buffer's indices will remain
      * unchanged, however the destination buffer's contents may be modified.
+     * <p>
+     * The currently configured dictionary will always remain unaffected by this method.
      *
      * @param src the {@link ByteBuf} to read compressed data from
      * @param dst the {@link ByteBuf} to write decompressed data to

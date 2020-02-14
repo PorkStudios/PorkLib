@@ -43,6 +43,29 @@ public interface CompressionProvider extends BufferTyped {
     int levelBest();
 
     /**
+     * Creates a new {@link PDeflater} with the default compression level.
+     *
+     * @see #deflater(int)
+     */
+    default PDeflater deflater() {
+        return this.deflater(this.levelDefault());
+    }
+
+    /**
+     * Creates a new {@link PDeflater} with the given compression level.
+     *
+     * @param level the compression level to use
+     * @return a new {@link PDeflater} with the given compression level
+     * @throws InvalidCompressionLevelException if the given compression level is invalid
+     */
+    PDeflater deflater(int level) throws InvalidCompressionLevelException;
+
+    /**
+     * @return a new {@link PInflater}
+     */
+    PInflater inflater();
+
+    /**
      * Creates a new {@link CCtx} with the default compression level.
      *
      * @see #compressionContext(int)

@@ -16,6 +16,7 @@
 package net.daporkchop.lib.compression.zlib;
 
 
+import net.daporkchop.lib.compression.CompressionProvider;
 import net.daporkchop.lib.natives.impl.Feature;
 import net.daporkchop.lib.natives.util.BufferTyped;
 
@@ -24,12 +25,28 @@ import net.daporkchop.lib.natives.util.BufferTyped;
  *
  * @author DaPorkchop_
  */
-public interface ZlibProvider extends BufferTyped, Feature<ZlibProvider> {
+public interface ZlibProvider extends CompressionProvider, Feature<ZlibProvider> {
+    @Override
+    default int levelFast() {
+        return Zlib.LEVEL_FASTEST;
+    }
+
+    @Override
+    default int levelDefault() {
+        return Zlib.LEVEL_DEFAULT;
+    }
+
+    @Override
+    default int levelBest() {
+        return Zlib.LEVEL_BEST;
+    }
+
     /**
      * Creates a new {@link ZlibDeflater}.
      *
      * @return a new {@link ZlibDeflater}
      */
+    @Override
     default ZlibDeflater deflater() {
         return this.deflater(Zlib.LEVEL_DEFAULT, Zlib.STRATEGY_DEFAULT, Zlib.MODE_ZLIB);
     }
@@ -40,6 +57,7 @@ public interface ZlibProvider extends BufferTyped, Feature<ZlibProvider> {
      * @param level the {@link Zlib} level to use
      * @return a new {@link ZlibDeflater} with the given level
      */
+    @Override
     default ZlibDeflater deflater(int level) {
         return this.deflater(level, Zlib.STRATEGY_DEFAULT, Zlib.MODE_ZLIB);
     }
@@ -101,6 +119,7 @@ public interface ZlibProvider extends BufferTyped, Feature<ZlibProvider> {
      *
      * @return a new {@link ZlibInflater}
      */
+    @Override
     default ZlibInflater inflater() {
         return this.inflater(Zlib.MODE_ZLIB);
     }

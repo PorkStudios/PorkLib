@@ -15,6 +15,11 @@
 
 package net.daporkchop.lib.compression.zlib.natives;
 
+import net.daporkchop.lib.compression.CCtx;
+import net.daporkchop.lib.compression.DCtx;
+import net.daporkchop.lib.compression.util.StreamingWrapperCCtx;
+import net.daporkchop.lib.compression.util.StreamingWrapperDCtx;
+import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelException;
 import net.daporkchop.lib.compression.zlib.ZlibDeflater;
 import net.daporkchop.lib.compression.zlib.ZlibInflater;
 import net.daporkchop.lib.compression.zlib.ZlibProvider;
@@ -35,12 +40,22 @@ public final class NativeZlib extends NativeFeature<ZlibProvider> implements Zli
     }
 
     @Override
+    public CCtx compressionContext(int level) throws InvalidCompressionLevelException {
+        return new StreamingWrapperCCtx(this, level);
+    }
+
+    @Override
+    public DCtx decompressionContext() {
+        return new StreamingWrapperDCtx(this);
+    }
+
+    @Override
     public ZlibDeflater deflater(int level, int strategy, int mode) {
-        return new NativeZlibDeflater(level, strategy, mode);
+        return new NativeZlibDeflater(this, level, strategy, mode);
     }
 
     @Override
     public ZlibInflater inflater(int mode) {
-        return new NativeZlibInflater(mode);
+        return new NativeZlibInflater(this, mode);
     }
 }

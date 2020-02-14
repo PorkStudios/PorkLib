@@ -16,19 +16,22 @@
 package net.daporkchop.lib.compression.zlib.natives;
 
 import io.netty.buffer.ByteBuf;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.compression.PDeflater;
 import net.daporkchop.lib.compression.util.exception.ContextFinishedException;
 import net.daporkchop.lib.compression.util.exception.ContextFinishingException;
-import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
 import net.daporkchop.lib.compression.zlib.ZlibDeflater;
+import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
 import net.daporkchop.lib.unsafe.PCleaner;
 import net.daporkchop.lib.unsafe.util.AbstractReleasable;
 
 /**
  * @author DaPorkchop_
  */
+@Accessors(fluent = true)
 public final class NativeZlibDeflater extends AbstractReleasable implements ZlibDeflater {
     static native void load();
 
@@ -38,7 +41,9 @@ public final class NativeZlibDeflater extends AbstractReleasable implements Zlib
 
     private final long ctx;
 
-    private final PCleaner cleaner;
+    @Getter
+    private final NativeZlib provider;
+    private final PCleaner   cleaner;
 
     private ByteBuf src;
     private ByteBuf dst;
@@ -52,7 +57,9 @@ public final class NativeZlibDeflater extends AbstractReleasable implements Zlib
     private boolean finishing;
     private boolean finished;
 
-    public NativeZlibDeflater(int level, int strategy, int mode) {
+    NativeZlibDeflater(@NonNull NativeZlib provider, int level, int strategy, int mode) {
+        this.provider = provider;
+
         this.ctx = allocateCtx(level, strategy, mode);
         this.cleaner = PCleaner.cleaner(this, new Releaser(this.ctx));
         this.reset = true;
@@ -139,7 +146,7 @@ public final class NativeZlibDeflater extends AbstractReleasable implements Zlib
         if (!this.reset) {
             this.src = null;
             this.dst = null;
-            if (this.dict != null)  {
+            if (this.dict != null) {
                 this.dict.release();
                 this.dict = null;
             }
@@ -162,9 +169,9 @@ public final class NativeZlibDeflater extends AbstractReleasable implements Zlib
     public PDeflater dict(@NonNull ByteBuf dict) throws InvalidBufferTypeException {
         if (!dict.hasMemoryAddress()) {
             throw InvalidBufferTypeException.direct();
-        } else if (this.started)    {
+        } else if (this.started) {
             throw new IllegalStateException("Cannot set dictionary after compression has started!");
-        } else if (this.dict != null)   {
+        } else if (this.dict != null) {
             throw new IllegalStateException("Dictionary has already been set!");
         }
 

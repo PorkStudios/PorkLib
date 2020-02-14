@@ -31,6 +31,8 @@ public interface CCtx extends Context<CCtx> {
      * <p>
      * If the destination buffer does not have enough space writable for the compressed data, the operation will fail and both buffer's indices will remain
      * unchanged, however the destination buffer's contents may be modified.
+     * <p>
+     * The currently configured dictionary will always remain unaffected by this method.
      *
      * @param src the {@link ByteBuf} to read source data from
      * @param dst the {@link ByteBuf} to write compressed data to

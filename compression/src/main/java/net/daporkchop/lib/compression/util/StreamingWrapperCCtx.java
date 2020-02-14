@@ -36,13 +36,13 @@ public class StreamingWrapperCCtx extends AbstractReleasable implements CCtx {
     @Getter
     protected final CompressionProvider provider;
 
-    protected PDeflater deflater;
+    protected final PDeflater deflater;
     protected ByteBuf   dict;
     @Getter
-    protected int       level;
+    protected final int       level;
 
     public StreamingWrapperCCtx(@NonNull CompressionProvider provider, int level) {
-        this(provider, provider.deflater(level), level);
+        this(provider, null, level);
     }
 
     protected StreamingWrapperCCtx(@NonNull CompressionProvider provider, @NonNull PDeflater deflater, int level) {
@@ -59,18 +59,6 @@ public class StreamingWrapperCCtx extends AbstractReleasable implements CCtx {
             this.deflater.dict(this.dict);
         }
         return this.deflater.fullDeflate(src, dst);
-    }
-
-    @Override
-    public CCtx level(int level) throws InvalidCompressionLevelException {
-        if (level != this.level) {
-            InvalidCompressionLevelException.validate(level, this.provider);
-
-            //release deflater with old level and create new one with the new level
-            this.deflater.release();
-            this.deflater = this.provider.deflater(this.level = level);
-        }
-        return this;
     }
 
     @Override
@@ -127,6 +115,5 @@ public class StreamingWrapperCCtx extends AbstractReleasable implements CCtx {
     @Override
     protected void doRelease() {
         this.deflater.release();
-        this.deflater = null;
     }
 }

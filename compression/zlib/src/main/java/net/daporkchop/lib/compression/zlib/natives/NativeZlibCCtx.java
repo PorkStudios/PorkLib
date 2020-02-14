@@ -15,44 +15,25 @@
 
 package net.daporkchop.lib.compression.zlib.natives;
 
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.compression.util.StreamingWrapperCCtx;
 import net.daporkchop.lib.compression.zlib.ZlibCCtx;
-import net.daporkchop.lib.compression.zlib.ZlibDCtx;
-import net.daporkchop.lib.compression.zlib.ZlibDeflater;
-import net.daporkchop.lib.compression.zlib.ZlibInflater;
-import net.daporkchop.lib.compression.zlib.ZlibProvider;
-import net.daporkchop.lib.natives.impl.NativeFeature;
 
 /**
  * @author DaPorkchop_
  */
-public final class NativeZlib extends NativeFeature<ZlibProvider> implements ZlibProvider {
-    static {
-        NativeZlibDeflater.load();
-        NativeZlibInflater.load();
-    }
+@Getter
+@Accessors(fluent = true)
+final class NativeZlibCCtx extends StreamingWrapperCCtx implements ZlibCCtx {
+    private final int strategy;
+    private final int mode;
 
-    @Override
-    public boolean directAccepted() {
-        return true;
-    }
+    NativeZlibCCtx(@NonNull NativeZlib provider, int level, int strategy, int mode) {
+        super(provider, provider.deflater(level, strategy, mode), level);
 
-    @Override
-    public ZlibCCtx compressionContext(int level, int strategy, int mode) {
-        return new NativeZlibCCtx(this, level, strategy, mode);
-    }
-
-    @Override
-    public ZlibDCtx decompressionContext(int mode) {
-        return new NativeZlibDCtx(this, mode);
-    }
-
-    @Override
-    public ZlibDeflater deflater(int level, int strategy, int mode) {
-        return new NativeZlibDeflater(this, level, strategy, mode);
-    }
-
-    @Override
-    public ZlibInflater inflater(int mode) {
-        return new NativeZlibInflater(this, mode);
+        this.strategy = strategy;
+        this.mode = mode;
     }
 }

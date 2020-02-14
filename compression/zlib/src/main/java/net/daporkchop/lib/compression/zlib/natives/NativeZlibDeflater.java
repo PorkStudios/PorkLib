@@ -32,7 +32,7 @@ import net.daporkchop.lib.unsafe.util.AbstractReleasable;
  * @author DaPorkchop_
  */
 @Accessors(fluent = true)
-public final class NativeZlibDeflater extends AbstractReleasable implements ZlibDeflater {
+final class NativeZlibDeflater extends AbstractReleasable implements ZlibDeflater {
     static native void load();
 
     private static native long allocateCtx(int level, int strategy, int mode);

@@ -27,7 +27,7 @@ import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
  */
 public interface CCtx extends Context<CCtx> {
     /**
-     * Compresses the given source data into the given destination buffer at the currently configured compression level.
+     * Compresses the given source data into the given destination buffer at the configured compression level.
      * <p>
      * If the destination buffer does not have enough space writable for the compressed data, the operation will fail and both buffer's indices will remain
      * unchanged, however the destination buffer's contents may be modified.
@@ -41,16 +41,7 @@ public interface CCtx extends Context<CCtx> {
     boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException;
 
     /**
-     * @return the currently configured compression level
+     * @return the configured compression level
      */
     int level();
-
-    /**
-     * Updates this context's compression level.
-     *
-     * @param level the new compression level to use
-     * @return this context
-     * @throws InvalidCompressionLevelException if the given compression level is invalid
-     */
-    CCtx level(int level) throws InvalidCompressionLevelException;
 }

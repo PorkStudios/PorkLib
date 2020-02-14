@@ -32,7 +32,7 @@ import net.daporkchop.lib.unsafe.util.AbstractReleasable;
  * @author DaPorkchop_
  */
 @Accessors(fluent = true)
-public final class NativeZlibInflater extends AbstractReleasable implements ZlibInflater {
+final class NativeZlibInflater extends AbstractReleasable implements ZlibInflater {
     static native void load();
 
     private static native long allocateCtx(int mode);

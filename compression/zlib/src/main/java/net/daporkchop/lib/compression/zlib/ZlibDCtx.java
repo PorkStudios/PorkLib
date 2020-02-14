@@ -13,46 +13,19 @@
  *
  */
 
-package net.daporkchop.lib.compression.zlib.natives;
+package net.daporkchop.lib.compression.zlib;
 
-import net.daporkchop.lib.compression.zlib.ZlibCCtx;
-import net.daporkchop.lib.compression.zlib.ZlibDCtx;
-import net.daporkchop.lib.compression.zlib.ZlibDeflater;
-import net.daporkchop.lib.compression.zlib.ZlibInflater;
-import net.daporkchop.lib.compression.zlib.ZlibProvider;
-import net.daporkchop.lib.natives.impl.NativeFeature;
+import net.daporkchop.lib.compression.CCtx;
+import net.daporkchop.lib.compression.DCtx;
 
 /**
+ * An extension of {@link DCtx} for {@link Zlib}.
+ *
  * @author DaPorkchop_
  */
-public final class NativeZlib extends NativeFeature<ZlibProvider> implements ZlibProvider {
-    static {
-        NativeZlibDeflater.load();
-        NativeZlibInflater.load();
-    }
-
-    @Override
-    public boolean directAccepted() {
-        return true;
-    }
-
-    @Override
-    public ZlibCCtx compressionContext(int level, int strategy, int mode) {
-        return new NativeZlibCCtx(this, level, strategy, mode);
-    }
-
-    @Override
-    public ZlibDCtx decompressionContext(int mode) {
-        return new NativeZlibDCtx(this, mode);
-    }
-
-    @Override
-    public ZlibDeflater deflater(int level, int strategy, int mode) {
-        return new NativeZlibDeflater(this, level, strategy, mode);
-    }
-
-    @Override
-    public ZlibInflater inflater(int mode) {
-        return new NativeZlibInflater(this, mode);
-    }
+public interface ZlibDCtx extends DCtx {
+    /**
+     * @return the configured wrapping mode
+     */
+    int mode();
 }

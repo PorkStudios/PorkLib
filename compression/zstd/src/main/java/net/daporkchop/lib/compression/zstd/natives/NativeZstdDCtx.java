@@ -16,8 +16,11 @@
 package net.daporkchop.lib.compression.zstd.natives;
 
 import io.netty.buffer.ByteBuf;
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.compression.zstd.ZstdCCtx;
 import net.daporkchop.lib.compression.zstd.ZstdDCtx;
 import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
@@ -29,6 +32,8 @@ import net.daporkchop.lib.unsafe.util.AbstractReleasable;
  *
  * @author DaPorkchop_
  */
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+@Accessors(fluent = true)
 final class NativeZstdDCtx extends AbstractReleasable implements ZstdDCtx {
     private static native long allocateCtx();
 
@@ -37,13 +42,18 @@ final class NativeZstdDCtx extends AbstractReleasable implements ZstdDCtx {
     private final long     ctx     = allocateCtx();
     private final PCleaner cleaner = PCleaner.cleaner(this, new Releaser(this.ctx));
 
+    @Getter
+    private final NativeZstd provider;
+    private       ByteBuf    dict;
+
     @Override
     public boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException {
         int val = this.doDecompress(this.ctx,
                 this.assertAcceptable(src).memoryAddress() + src.readerIndex(), src.readableBytes(),
-                this.assertAcceptable(dst).memoryAddress() + dst.writerIndex(), dst.writableBytes());
+                this.assertAcceptable(dst).memoryAddress() + dst.writerIndex(), dst.writableBytes(),
+                this.dict != null ? this.dict.memoryAddress() : 0L, this.dict != null ? this.dict.readableBytes() : 0);
 
-        if (val >= 0)    {
+        if (val >= 0) {
             src.skipBytes(src.readableBytes());
             dst.writerIndex(dst.writerIndex() + val);
             return true;
@@ -52,7 +62,7 @@ final class NativeZstdDCtx extends AbstractReleasable implements ZstdDCtx {
         }
     }
 
-    private native int doDecompress(long ctx, long srcAddr, int srcSize, long dstAddr, int dstSize);
+    private native int doDecompress(long ctx, long srcAddr, int srcSize, long dstAddr, int dstSize, long dictAddr, int dictSize);
 
     @Override
     public boolean directAccepted() {
@@ -61,7 +71,23 @@ final class NativeZstdDCtx extends AbstractReleasable implements ZstdDCtx {
 
     @Override
     protected void doRelease() {
+        this.reset();
         this.cleaner.clean();
+    }
+
+    @Override
+    public ZstdDCtx reset() {
+        if (this.dict != null) {
+            this.dict.release();
+            this.dict = null;
+        }
+        return this;
+    }
+
+    @Override
+    public ZstdDCtx dict(@NonNull ByteBuf dict) throws InvalidBufferTypeException {
+        this.dict = this.reset().assertAcceptable(dict).retainedSlice();
+        return this;
     }
 
     @RequiredArgsConstructor

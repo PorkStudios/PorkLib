@@ -15,11 +15,14 @@
 
 package net.daporkchop.lib.compression.zlib.natives;
 
+import io.netty.buffer.ByteBuf;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.compression.CCtx;
 import net.daporkchop.lib.compression.util.StreamingWrapperCCtx;
 import net.daporkchop.lib.compression.zlib.ZlibCCtx;
+import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
 
 /**
  * @author DaPorkchop_
@@ -35,5 +38,17 @@ final class NativeZlibCCtx extends StreamingWrapperCCtx implements ZlibCCtx {
 
         this.strategy = strategy;
         this.mode = mode;
+    }
+
+    @Override
+    public ZlibCCtx reset() {
+        super.reset();
+        return this;
+    }
+
+    @Override
+    public ZlibCCtx dict(@NonNull ByteBuf dict) throws InvalidBufferTypeException {
+        super.dict(dict);
+        return this;
     }
 }

@@ -34,4 +34,15 @@ public interface ZstdDCtx extends DCtx {
      * @see DCtx#decompress(ByteBuf, ByteBuf)
      */
     boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException;
+
+    @Override
+    ZstdDCtx reset();
+
+    @Override
+    default boolean hasDict() {
+        return true;
+    }
+
+    @Override
+    ZstdDCtx dict(@NonNull ByteBuf dict) throws InvalidBufferTypeException;
 }

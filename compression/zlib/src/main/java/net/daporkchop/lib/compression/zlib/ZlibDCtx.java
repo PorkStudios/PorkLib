@@ -15,8 +15,11 @@
 
 package net.daporkchop.lib.compression.zlib;
 
+import io.netty.buffer.ByteBuf;
+import lombok.NonNull;
 import net.daporkchop.lib.compression.CCtx;
 import net.daporkchop.lib.compression.DCtx;
+import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
 
 /**
  * An extension of {@link DCtx} for {@link Zlib}.
@@ -28,4 +31,15 @@ public interface ZlibDCtx extends DCtx {
      * @return the configured wrapping mode
      */
     int mode();
+
+    @Override
+    ZlibDCtx reset();
+
+    @Override
+    default boolean hasDict() {
+        return true;
+    }
+
+    @Override
+    ZlibDCtx dict(@NonNull ByteBuf dict) throws InvalidBufferTypeException;
 }

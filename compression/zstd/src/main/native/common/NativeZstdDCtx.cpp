@@ -25,8 +25,10 @@ __attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_comp
 }
 
 __attribute__((visibility("default"))) jint JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDCtx_doDecompress
-        (JNIEnv* env, jobject obj, jlong ctx, jlong srcAddr, jint srcSize, jlong dstAddr, jint dstSize)   {
-    auto ret = ZSTD_decompressDCtx((ZSTD_DCtx*) ctx, (void*) dstAddr, dstSize, (void*) srcAddr, srcSize);
+        (JNIEnv* env, jobject obj, jlong ctx, jlong srcAddr, jint srcSize, jlong dstAddr, jint dstSize, jlong dictAddr, jint dictSize)   {
+    auto ret = dictAddr
+            ? ZSTD_decompress_usingDict((ZSTD_DCtx*) ctx, (void*) dstAddr, dstSize, (void*) srcAddr, srcSize, (void*) dictAddr, dictSize)
+            : ZSTD_decompressDCtx((ZSTD_DCtx*) ctx, (void*) dstAddr, dstSize, (void*) srcAddr, srcSize);
 
     if (ZSTD_isError(ret))  {
         if (ZSTD_getErrorCode(ret) == ZSTD_error_dstSize_tooSmall) {

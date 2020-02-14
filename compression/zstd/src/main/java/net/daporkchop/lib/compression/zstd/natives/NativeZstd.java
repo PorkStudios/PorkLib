@@ -18,6 +18,10 @@ package net.daporkchop.lib.compression.zstd.natives;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.common.util.PValidation;
+import net.daporkchop.lib.compression.PDeflater;
+import net.daporkchop.lib.compression.PInflater;
+import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelException;
+import net.daporkchop.lib.compression.zstd.Zstd;
 import net.daporkchop.lib.compression.zstd.ZstdCCtx;
 import net.daporkchop.lib.compression.zstd.ZstdDCtx;
 import net.daporkchop.lib.compression.zstd.ZstdProvider;
@@ -32,6 +36,21 @@ public final class NativeZstd extends NativeFeature<ZstdProvider> implements Zst
     @Override
     public boolean directAccepted() {
         return true;
+    }
+
+    @Override
+    public int levelFast() {
+        return Zstd.LEVEL_MIN;
+    }
+
+    @Override
+    public int levelDefault() {
+        return Zstd.LEVEL_DEFAULT;
+    }
+
+    @Override
+    public int levelBest() {
+        return Zstd.LEVEL_MAX;
     }
 
     @Override
@@ -90,12 +109,22 @@ public final class NativeZstd extends NativeFeature<ZstdProvider> implements Zst
     private native long doCompressBound(long srcSize);
 
     @Override
-    public ZstdCCtx compressionContext() {
-        return new NativeZstdCCtx();
+    public PDeflater deflater(int level) throws InvalidCompressionLevelException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public PInflater inflater() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public ZstdCCtx compressionContext(int level) throws InvalidCompressionLevelException {
+        return new NativeZstdCCtx(this, level);
     }
 
     @Override
     public ZstdDCtx decompressionContext() {
-        return new NativeZstdDCtx();
+        return new NativeZstdDCtx(this);
     }
 }

@@ -46,4 +46,15 @@ public interface ZstdCCtx extends CCtx {
      * @see #compress(ByteBuf, ByteBuf)
      */
     boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, int compressionLevel) throws InvalidBufferTypeException;
+
+    @Override
+    ZstdCCtx reset();
+
+    @Override
+    default boolean hasDict() {
+        return true;
+    }
+
+    @Override
+    ZstdCCtx dict(@NonNull ByteBuf dict) throws InvalidBufferTypeException;
 }

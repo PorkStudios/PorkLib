@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -21,7 +21,9 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.common.util.PorkUtil;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.nio.charset.Charset;
 
@@ -177,22 +179,34 @@ public class NettyByteBufIn extends DataIn {
 
     @Override
     public CharSequence readText(long size, @NonNull Charset charset) throws IOException {
-        if (size > Integer.MAX_VALUE)   {
+        if (size > Integer.MAX_VALUE) {
             throw new IllegalArgumentException("size parameter too large!");
         }
         return this.buf.readCharSequence((int) size, charset);
     }
 
     @Override
-    public byte[] readFully(@NonNull byte[] b) throws IOException {
-        this.buf.readBytes(b);
-        return b;
+    public byte[] readFully(@NonNull byte[] dst) throws IOException {
+        this.buf.readBytes(dst);
+        return dst;
     }
 
     @Override
-    public byte[] readFully(@NonNull byte[] b, int off, int len) throws IOException {
-        this.buf.readBytes(b, off, len);
-        return b;
+    public byte[] readFully(@NonNull byte[] dst, int start, int length) throws EOFException, IOException {
+        PorkUtil.assertInRangeLen(dst.length, start, length);
+        if (this.buf.isReadable(length)) {
+            this.buf.readBytes(dst, start, length);
+            return dst;
+        } else {
+            throw new EOFException();
+        }
+    }
+
+    @Override
+    public byte[] toByteArray() throws IOException {
+        byte[] arr = new byte[this.buf.readableBytes()];
+        this.buf.readBytes(arr);
+        return arr;
     }
 
     @Override

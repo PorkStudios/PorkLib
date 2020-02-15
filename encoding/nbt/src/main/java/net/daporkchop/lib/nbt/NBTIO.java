@@ -17,7 +17,6 @@ package net.daporkchop.lib.nbt;
 
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.nbt.tag.TagRegistry;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 
@@ -29,6 +28,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * Helper class for reading and writing NBT tags.
@@ -76,7 +77,7 @@ public class NBTIO {
     }
 
     public CompoundTag readGzipCompressed(@NonNull InputStream inputStream, @NonNull TagRegistry registry) throws IOException {
-        return new NBTInputStream(inputStream, Compression.GZIP_NORMAL).readTag(registry);
+        return new NBTInputStream(new GZIPInputStream(inputStream)).readTag(registry);
     }
 
     public CompoundTag readGzipCompressed(@NonNull File file) throws IOException {
@@ -85,7 +86,7 @@ public class NBTIO {
 
     public CompoundTag readGzipCompressed(@NonNull File file, @NonNull TagRegistry registry) throws IOException {
         verifyFileExists(file, false);
-        try (NBTInputStream in = new NBTInputStream(new BufferedInputStream(new FileInputStream(file)), Compression.GZIP_NORMAL)) {
+        try (NBTInputStream in = new NBTInputStream(new GZIPInputStream(new FileInputStream(file)))) {
             return in.readTag(registry);
         }
     }
@@ -115,7 +116,7 @@ public class NBTIO {
     }
 
     public void writeGzipCompressed(@NonNull OutputStream out, @NonNull CompoundTag tag, @NonNull TagRegistry registry) throws IOException {
-        NBTOutputStream nbtOut = new NBTOutputStream(out, Compression.GZIP_NORMAL);
+        NBTOutputStream nbtOut = new NBTOutputStream(new GZIPOutputStream(out));
         nbtOut.writeTag(tag, registry);
     }
 
@@ -125,7 +126,7 @@ public class NBTIO {
 
     public void writeGzipCompressed(@NonNull File file, @NonNull CompoundTag tag, @NonNull TagRegistry registry) throws IOException {
         verifyFileExists(file, true);
-        try (NBTOutputStream out = new NBTOutputStream(new BufferedOutputStream(new FileOutputStream(file)), Compression.GZIP_NORMAL)) {
+        try (NBTOutputStream out = new NBTOutputStream(new GZIPOutputStream(new FileOutputStream(file)))) {
             out.writeTag(tag, registry);
         }
     }

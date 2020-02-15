@@ -75,7 +75,7 @@ public class PorkUtil {
     );
 
     public final DateFormat DATE_FORMAT     = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-    public final String     PORKLIB_VERSION = "0.5.0-SNAPSHOT";
+    public final String     PORKLIB_VERSION = "0.5.1-SNAPSHOT";
     public final int        CPU_COUNT       = Runtime.getRuntime().availableProcessors();
 
     static {
@@ -222,6 +222,24 @@ public class PorkUtil {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    public <T> Class<T> uninitializedClassForName(@NonNull String name) {
+        try {
+            return (Class<T>) Class.forName(name, false, null);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> Class<T> uninitializedClassForName(@NonNull String name, ClassLoader loader) {
+        try {
+            return (Class<T>) Class.forName(name, false, loader);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public boolean classExistsWithName(@NonNull String name) {
         try {
             Class.forName(name);
@@ -338,7 +356,7 @@ public class PorkUtil {
         }
     }
 
-    public void assertInRangeLen(int size, int start, int len) throws IndexOutOfBoundsException {
-        assertInRange(size, start, start + len);
+    public void assertInRangeLen(int size, int start, int length) throws IndexOutOfBoundsException {
+        assertInRange(size, start, start + length);
     }
 }

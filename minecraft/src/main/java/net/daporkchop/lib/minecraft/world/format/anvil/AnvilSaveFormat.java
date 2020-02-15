@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -17,8 +17,6 @@ package net.daporkchop.lib.minecraft.world.format.anvil;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.common.misc.Tuple;
-import net.daporkchop.lib.encoding.compression.Compression;
 import net.daporkchop.lib.minecraft.registry.IDRegistry;
 import net.daporkchop.lib.minecraft.registry.IDRegistryBuilder;
 import net.daporkchop.lib.minecraft.registry.ResourceLocation;
@@ -29,18 +27,16 @@ import net.daporkchop.lib.minecraft.world.format.SaveFormat;
 import net.daporkchop.lib.minecraft.world.format.WorldManager;
 import net.daporkchop.lib.nbt.NBTInputStream;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
-import net.daporkchop.lib.nbt.tag.notch.IntTag;
 import net.daporkchop.lib.nbt.tag.notch.ListTag;
-import net.daporkchop.lib.nbt.tag.notch.StringTag;
 import net.daporkchop.lib.primitive.function.biconsumer.IntObjBiConsumer;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.GZIPInputStream;
 
 /**
  * @author DaPorkchop_
@@ -80,7 +76,7 @@ public class AnvilSaveFormat implements SaveFormat {
             } else {
                 throw new UnsupportedOperationException("create world");
             }
-            try (NBTInputStream is = new NBTInputStream(new FileInputStream(levelDat_file), Compression.GZIP_NORMAL)) {
+            try (NBTInputStream is = new NBTInputStream(new GZIPInputStream(new FileInputStream(levelDat_file)))) {
                 this.levelDat = is.readTag();
             }
         }

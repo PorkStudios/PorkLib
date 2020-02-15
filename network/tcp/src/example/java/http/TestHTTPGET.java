@@ -22,7 +22,6 @@ import io.netty.util.concurrent.Promise;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.logging.LogAmount;
-import net.daporkchop.lib.logging.Logging;
 import net.daporkchop.lib.network.endpoint.PClient;
 import net.daporkchop.lib.network.endpoint.builder.ClientBuilder;
 import net.daporkchop.lib.network.netty.LoopPool;
@@ -85,7 +84,7 @@ public class TestHTTPGET {
                     if (this.headers != null)   {
                         throw new IllegalStateException("Headers already read!");
                     } else {
-                        this.headers = Arrays.stream(new String(in.readAllAvailableBytes(), StandardCharsets.UTF_8).split("\r\n"))
+                        this.headers = Arrays.stream(new String(in.toByteArray(), StandardCharsets.UTF_8).split("\r\n"))
                                 .map(s -> s.split(": ", 2))
                                 .filter(a -> a.length == 2)
                                 .collect(Collectors.toMap(a -> a[0], a -> a[1]));

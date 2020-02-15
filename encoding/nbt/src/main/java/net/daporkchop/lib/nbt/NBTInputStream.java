@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -19,18 +19,14 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.encoding.compression.Compression;
-import net.daporkchop.lib.encoding.compression.CompressionHelper;
 import net.daporkchop.lib.nbt.alloc.DefaultNBTArrayAllocator;
 import net.daporkchop.lib.nbt.alloc.NBTArrayAllocator;
-import net.daporkchop.lib.nbt.tag.Tag;
 import net.daporkchop.lib.nbt.tag.TagRegistry;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Stack;
 import java.util.function.Function;
 
 /**
@@ -47,35 +43,19 @@ public final class NBTInputStream extends DataIn {
     protected final NBTArrayAllocator alloc;
 
     public NBTInputStream(@NonNull InputStream in) throws IOException {
-        this(in, Compression.NONE, TagRegistry.NOTCHIAN, DefaultNBTArrayAllocator.INSTANCE);
-    }
-
-    public NBTInputStream(@NonNull InputStream in, @NonNull CompressionHelper compression) throws IOException {
-        this(in, compression, TagRegistry.NOTCHIAN, DefaultNBTArrayAllocator.INSTANCE);
+        this(in, TagRegistry.NOTCHIAN, DefaultNBTArrayAllocator.INSTANCE);
     }
 
     public NBTInputStream(@NonNull InputStream in, @NonNull TagRegistry registry) throws IOException {
-        this(in, Compression.NONE, registry, DefaultNBTArrayAllocator.INSTANCE);
-    }
-
-    public NBTInputStream(@NonNull InputStream in, @NonNull CompressionHelper compression, @NonNull TagRegistry registry) throws IOException {
-        this(in, compression, registry, DefaultNBTArrayAllocator.INSTANCE);
+        this(in, registry, DefaultNBTArrayAllocator.INSTANCE);
     }
 
     public NBTInputStream(@NonNull InputStream in, @NonNull NBTArrayAllocator alloc) throws IOException {
-        this(in, Compression.NONE, TagRegistry.NOTCHIAN, alloc);
-    }
-
-    public NBTInputStream(@NonNull InputStream in, @NonNull CompressionHelper compression, @NonNull NBTArrayAllocator alloc) throws IOException {
-        this(in, compression, TagRegistry.NOTCHIAN, alloc);
+        this(in, TagRegistry.NOTCHIAN, alloc);
     }
 
     public NBTInputStream(@NonNull InputStream in, @NonNull TagRegistry registry, @NonNull NBTArrayAllocator alloc) throws IOException {
-        this(in, Compression.NONE, registry, alloc);
-    }
-
-    public NBTInputStream(@NonNull InputStream in, @NonNull CompressionHelper compression, @NonNull TagRegistry registry, @NonNull NBTArrayAllocator alloc) throws IOException {
-        this.in = DataIn.wrap(compression.inflate(in));
+        this.in = DataIn.wrap(in);
         this.defaultRegistry = registry;
         this.alloc = alloc;
     }
@@ -266,18 +246,18 @@ public final class NBTInputStream extends DataIn {
     }
 
     @Override
-    public byte[] readFully(@NonNull byte[] b) throws IOException {
-        return this.in.readFully(b);
+    public byte[] readFully(@NonNull byte[] dst) throws IOException {
+        return this.in.readFully(dst);
     }
 
     @Override
-    public byte[] readFully(@NonNull byte[] b, int off, int len) throws IOException {
-        return this.in.readFully(b, off, len);
+    public byte[] readFully(@NonNull byte[] dst, int start, int length) throws IOException {
+        return this.in.readFully(dst, start, length);
     }
 
     @Override
-    public byte[] readAllAvailableBytes() throws IOException {
-        return this.in.readAllAvailableBytes();
+    public byte[] toByteArray() throws IOException {
+        return this.in.toByteArray();
     }
 
     @Override

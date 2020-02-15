@@ -93,27 +93,26 @@ public class URLEncoding {
             } else if (c == ' ') {
                 dst.append('+');
             } else {
-                dst.append('%');
                 if (c < 0x80) {
-                    Hexadecimal.encode(dst, (byte) c);
+                    Hexadecimal.encode(dst.append('%'), (byte) c);
                 } else if (c < 0x800) {
-                    Hexadecimal.encode(dst, (byte) (0xC0 | (c >> 6)));
-                    Hexadecimal.encode(dst, (byte) (0x80 | (c & 0x3F)));
+                    Hexadecimal.encode(dst.append('%'), (byte) (0xC0 | (c >> 6)));
+                    Hexadecimal.encode(dst.append('%'), (byte) (0x80 | (c & 0x3F)));
                 } else if (StringUtil.isSurrogate(c)) {
                     if (Character.isHighSurrogate(c) && ++i < length) {
                         char c2 = arr != null ? arr[i] : text.charAt(i);
                         if (Character.isLowSurrogate(c2)) {
                             int codePoint = Character.toCodePoint(c, c2);
-                            Hexadecimal.encode(dst, (byte) (0xF0 | (codePoint >> 18)));
-                            Hexadecimal.encode(dst, (byte) (0x80 | ((codePoint >> 12) & 0x3F)));
-                            Hexadecimal.encode(dst, (byte) (0x80 | ((codePoint >> 6) & 0x3F)));
-                            Hexadecimal.encode(dst, (byte) (0x80 | (codePoint & 0x3F)));
+                            Hexadecimal.encode(dst.append('%'), (byte) (0xF0 | (codePoint >> 18)));
+                            Hexadecimal.encode(dst.append('%'), (byte) (0x80 | ((codePoint >> 12) & 0x3F)));
+                            Hexadecimal.encode(dst.append('%'), (byte) (0x80 | ((codePoint >> 6) & 0x3F)));
+                            Hexadecimal.encode(dst.append('%'), (byte) (0x80 | (codePoint & 0x3F)));
                         } else {
-                            Hexadecimal.encode(dst, (byte) '?');
+                            Hexadecimal.encode(dst.append('%'), (byte) '?');
                             i--;
                         }
                     } else {
-                        Hexadecimal.encode(dst, (byte) '?');
+                        Hexadecimal.encode(dst.append('%'), (byte) '?');
                     }
                 }
             }
@@ -149,18 +148,23 @@ public class URLEncoding {
                     throw StatusCodes.BAD_REQUEST.exception();
                 }
                 if ((b & 0xE0) == 0xC0) {
-                    i += 2;
+                    i += 3;
                     int b2;
-                    if (i >= length || (b2 = Hexadecimal.decodeUnsigned(arr != null ? arr[i - 1] : text.charAt(i - 1), arr != null ? arr[i] : text.charAt(i))) < 0) {
+                    if (i >= length
+                            || (arr != null ? arr[i - 2] : text.charAt(i - 2)) != '%'
+                            || (b2 = Hexadecimal.decodeUnsigned(arr != null ? arr[i - 1] : text.charAt(i - 1), arr != null ? arr[i] : text.charAt(i))) < 0) {
                         throw StatusCodes.BAD_REQUEST.exception();
                     }
                     to.append((char) (((b & 0x1F) << 6) | (b2 & 0x3F)));
                 } else if ((b & 0xF0) == 0xF0) {
-                    i += 6;
+                    i += 9;
                     int b2, b3, b4;
                     if (i >= length
-                            || (b2 = Hexadecimal.decodeUnsigned(arr != null ? arr[i - 5] : text.charAt(i - 5), arr != null ? arr[i - 4] : text.charAt(i - 4))) < 0
-                            || (b3 = Hexadecimal.decodeUnsigned(arr != null ? arr[i - 3] : text.charAt(i - 3), arr != null ? arr[i - 2] : text.charAt(i - 2))) < 0
+                            || (arr != null ? arr[i - 8] : text.charAt(i - 8)) != '%'
+                            || (b2 = Hexadecimal.decodeUnsigned(arr != null ? arr[i - 7] : text.charAt(i - 7), arr != null ? arr[i - 6] : text.charAt(i - 6))) < 0
+                            || (arr != null ? arr[i - 5] : text.charAt(i - 5)) != '%'
+                            || (b3 = Hexadecimal.decodeUnsigned(arr != null ? arr[i - 4] : text.charAt(i - 4), arr != null ? arr[i - 3] : text.charAt(i - 3))) < 0
+                            || (arr != null ? arr[i - 2] : text.charAt(i - 2)) != '%'
                             || (b4 = Hexadecimal.decodeUnsigned(arr != null ? arr[i - 1] : text.charAt(i - 1), arr != null ? arr[i] : text.charAt(i))) < 0) {
                         throw StatusCodes.BAD_REQUEST.exception();
                     }

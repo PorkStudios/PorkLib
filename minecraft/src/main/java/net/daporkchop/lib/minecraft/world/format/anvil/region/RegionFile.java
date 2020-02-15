@@ -16,13 +16,7 @@
 package net.daporkchop.lib.minecraft.world.format.anvil.region;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.PooledByteBufAllocator;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.binary.stream.netty.NettyByteBufOut;
-import net.daporkchop.lib.binary.stream.stream.StreamOut;
-import net.daporkchop.lib.encoding.compression.CompressionHelper;
 import net.daporkchop.lib.minecraft.world.format.anvil.region.ex.CorruptedRegionException;
 import net.daporkchop.lib.minecraft.world.format.anvil.region.ex.ReadOnlyRegionException;
 import net.daporkchop.lib.minecraft.world.format.anvil.region.impl.BufferedRegionFile;
@@ -31,8 +25,6 @@ import net.daporkchop.lib.minecraft.world.format.anvil.region.impl.OverclockedRe
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 
 /**
@@ -63,25 +55,6 @@ public interface RegionFile extends AutoCloseable {
     }
 
     /**
-     * Gets an {@link InputStream} that can inflate and read the contents of the chunk at the given coordinates (relative to this region).
-     *
-     * @param x the chunk's X coordinate
-     * @param z the chunk's Z coordinate
-     * @return an {@link InputStream} that can inflate and read the contents of the chunk at the given coordinates, or {@code null} if the chunk is not present
-     * @throws IOException if an IO exception occurs you dummy
-     */
-    default InputStream read(int x, int z) throws IOException {
-        ByteBuf buf = this.readDirect(x, z);
-        if (buf == null) {
-            return null;
-        } else {
-            DataIn in = DataIn.wrap(buf, true);
-            byte compressionId = buf.readByte();
-            return compressionId == RegionConstants.ID_NONE ? in : RegionConstants.COMPRESSION_IDS.get(compressionId).inflate(in);
-        }
-    }
-
-    /**
      * Reads the raw contents of the chunk at the given coordinates into a buffer.
      * <p>
      * Make sure to release the buffer after use!
@@ -92,67 +65,6 @@ public interface RegionFile extends AutoCloseable {
      * @throws IOException if an IO exception occurs you dummy
      */
     ByteBuf readDirect(int x, int z) throws IOException;
-
-    /**
-     * Gets a {@link DataOut} that will compress data written to it using the given compression type. The compressed data will be written to disk at the specified
-     * region-local chunk coordinates when the {@link DataOut} instance is closed (using {@link DataOut#close()}.
-     *
-     * @param x           the chunk's X coordinate
-     * @param z           the chunk's Z coordinate
-     * @param compression the type of compression to use
-     * @return a {@link DataOut} for writing data to the given chunk
-     * @throws ReadOnlyRegionException if the region is opened in read-only mode
-     * @throws IOException             if an IO exception occurs you dummy
-     */
-    default DataOut write(int x, int z, @NonNull CompressionHelper compression) throws ReadOnlyRegionException, IOException {
-        byte compressionId = RegionConstants.REVERSE_COMPRESSION_IDS.get(compression);
-        if (compressionId == -1) {
-            throw new IllegalArgumentException(String.format("Unregistered compression format: %s", compression));
-        } else {
-            return this.write(x, z, compression, compressionId);
-        }
-    }
-
-    /**
-     * Gets a {@link DataOut} that will compress data written to it using the given compression type. The compressed data will be written to disk at the specified
-     * region-local chunk coordinates when the {@link DataOut} instance is closed (using {@link DataOut#close()}.
-     *
-     * @param x             the chunk's X coordinate
-     * @param z             the chunk's Z coordinate
-     * @param compression   the type of compression to use
-     * @param compressionId the compression's ID, for writing to disk for decompression
-     * @return a {@link DataOut} for writing data to the given chunk
-     * @throws ReadOnlyRegionException if the region is opened in read-only mode
-     * @throws IOException             if an IO exception occurs you dummy
-     */
-    default DataOut write(int x, int z, @NonNull CompressionHelper compression, byte compressionId) throws ReadOnlyRegionException, IOException {
-        RegionConstants.assertInBounds(x, z);
-        this.assertWritable();
-
-        ByteBuf buf = PooledByteBufAllocator.DEFAULT.ioBuffer(RegionConstants.SECTOR_BYTES << 2).writeInt(-1).writeByte(compressionId);
-
-        OutputStream out = DataOut.wrap(buf);
-        OutputStream compressedOut = compression.deflate(out);
-
-        if (out == compressedOut) {
-            //no compression will be applied, wrap buffer directly
-            return new NettyByteBufOut(buf) {
-                @Override
-                protected boolean handleClose(@NonNull ByteBuf buf) throws IOException {
-                    RegionFile.this.writeDirect(x, z, this.buf.setInt(0, this.buf.readableBytes() - RegionConstants.LENGTH_HEADER_SIZE));
-                    return false;
-                }
-            };
-        } else {
-            return new StreamOut(compressedOut) {
-                @Override
-                public void close() throws IOException {
-                    this.out.close();
-                    RegionFile.this.writeDirect(x, z, buf.setInt(0, buf.readableBytes() - RegionConstants.LENGTH_HEADER_SIZE));
-                }
-            };
-        }
-    }
 
     /**
      * Writes raw chunk data to the region at the given region-local coordinates.

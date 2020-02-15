@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -14,13 +14,12 @@
  */
 
 import lombok.NonNull;
-import net.daporkchop.lib.encoding.compression.Compression;
+import net.daporkchop.lib.binary.oio.StreamUtil;
 import net.daporkchop.lib.nbt.NBTInputStream;
 import net.daporkchop.lib.nbt.NBTOutputStream;
 import net.daporkchop.lib.nbt.tag.Tag;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 import net.daporkchop.lib.nbt.tag.notch.ListTag;
-import org.apache.commons.compress.utils.IOUtils;
 import org.junit.Test;
 
 import java.io.BufferedOutputStream;
@@ -30,6 +29,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.zip.GZIPInputStream;
 
 /**
  * @author DaPorkchop_
@@ -60,9 +60,8 @@ public class NBTTest {
     @Test
     public void testWriting() throws IOException {
         byte[] original_uncompressed;
-        try (InputStream is = NBTTest.class.getResourceAsStream("bigtest.nbt")) {
-            byte[] b = IOUtils.toByteArray(is);
-            original_uncompressed = Compression.GZIP_NORMAL.inflate(b);
+        try (InputStream is = new GZIPInputStream(NBTTest.class.getResourceAsStream("bigtest.nbt"))) {
+            original_uncompressed = StreamUtil.toByteArray(is);
         }
         CompoundTag tag;
         try (NBTInputStream in = new NBTInputStream(new ByteArrayInputStream(original_uncompressed))) {
@@ -103,7 +102,7 @@ public class NBTTest {
 
     @Test
     public void testBig() throws IOException {
-        try (NBTInputStream in = new NBTInputStream(NBTTest.class.getResourceAsStream("bigtest.nbt"), Compression.GZIP_NORMAL)) {
+        try (NBTInputStream in = new NBTInputStream(new GZIPInputStream(NBTTest.class.getResourceAsStream("bigtest.nbt")))) {
             CompoundTag tag = in.readTag();
             printTagRecursive(tag, 0);
         }

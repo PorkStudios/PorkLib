@@ -49,12 +49,17 @@ public class NettyHttpUtil {
 
     //protected final Pattern _BASE_URL_PATTERN = Pattern.compile("^((?:[\\/A-Za-z+*\\-._]|%(?:[a-zA-Z0-9]{2})+)+)(\\?(?:(?1)(?:=(?1)+)?&)*(?:(?1)+(?:=(?1)+)?))?(?:#((?1)*))?$");
 
+    //protected final String _URL_CHARS = "[A-Za-z0-9-._~:\\/?#[\\]@!\\$&'\\(\\)\\*\\+,;=]";
+    protected final String _URL_CHARS = "[A-Za-z0-9-._~:\\/\\[\\]@!\\$&'\\(\\)\\*\\+,;=]";
+    protected final String _PARAMS_CHARS = "[A-Za-z0-9-._~:\\/\\[\\]@!\\$&'\\(\\)\\*\\+,;]";
+
     //formatting for regex101:
     //^(?<path>((?:[\/A-Za-z0-9+*\-._]|%(?:[a-fA-F0-9]{2})+)+))(?>\?(?<params>(?>(?2)(?>=(?2))?)(?>&(?&params))?)?)?(?>#(?<fragment>(?2)*))?$
-    protected final Pattern _URL_PATTERN = Pattern.compile("^(?<path>((?:[\\/A-Za-z0-9+*\\-._]|%(?:[a-fA-F0-9]{2})+)+))(?>\\?(?<params>(?>(?2)(?>=(?2))?)(?>&(?'params'))?)?)?(?>#(?<fragment>(?2)*))?$");
+    protected final Pattern _URL_PATTERN = Pattern.compile("^(?<path>((?:" + _URL_CHARS + "|%(?:[a-fA-F0-9]{2})+)+))(?>\\?(?<params>(?>(?2)(?>=(?2))?)(?>&(?'params'))?)?)?(?>#(?<fragment>(?2)*))?$");
 
-    protected final Pattern _PARAMS_PATTERN = Pattern.compile("(?>^|&)(?<key>((?>[\\/A-Za-z0-9+*\\-._]|%(?:[a-fA-F0-9]{2})+)+))(?>=(?<value>(?2)))?");
+    protected final Pattern _PARAMS_PATTERN = Pattern.compile("(?>^|&)(?<key>((?>" + _PARAMS_CHARS + "|%(?:[a-fA-F0-9]{2})+)+))(?>=(?<value>(?2)))?");
 
+    //TODO: this still doesn't work correctly...
     public Query parseQuery(@NonNull HttpMethod method, @NonNull CharSequence query) throws HttpException {
         Matcher urlMatcher = _URL_PATTERN.matcher(query);
         if (!urlMatcher.find()) {

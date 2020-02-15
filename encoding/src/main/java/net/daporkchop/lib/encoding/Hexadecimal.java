@@ -32,12 +32,13 @@ import java.util.Arrays;
 @UtilityClass
 public class Hexadecimal {
     private final char[] ALPHABET = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
-    private final byte[] INDEX = new byte['f' + 1];
+    private final byte[] INDEX = new byte[128];
 
     static {
         Arrays.fill(INDEX, (byte) -1);
         for (byte i = 0; i < ALPHABET.length; i++) {
-            INDEX[ALPHABET[i]] = i;
+            INDEX[Character.toLowerCase(ALPHABET[i])] = i;
+            INDEX[Character.toUpperCase(ALPHABET[i])] = i;
         }
     }
 

@@ -21,10 +21,10 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.binary.oio.StreamUtil;
 import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.common.misc.InstancePool;
 import net.daporkchop.lib.logging.Logging;
-import sun.misc.IOUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -174,7 +174,7 @@ public class Generator {
 
         try (InputStream is = new FileInputStream(new File(".", "../../LICENSE"))) {
             LICENSE = String.format("/*\n * %s\n */",
-                    new String(IOUtils.readFully(is, -1, false))
+                    new String(StreamUtil.toByteArray(is))
                             .replace("$today.year", String.valueOf(Calendar.getInstance().get(Calendar.YEAR)))
                             /*.trim()*/.replaceAll("\n", "\n * "));
         } catch (IOException e) {
@@ -309,7 +309,7 @@ public class Generator {
                     File f = files[i];
                     lastModified = max(lastModified, f.lastModified());
                     try (InputStream is = new FileInputStream(f)) {
-                        methods[i] = new String(IOUtils.readFully(is, -1, false));
+                        methods[i] = new String(StreamUtil.toByteArray(is));
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -328,7 +328,7 @@ public class Generator {
             }
             String content;
             try (InputStream is = new FileInputStream(file)) {
-                content = new String(IOUtils.readFully(is, -1, false));
+                content = new String(StreamUtil.toByteArray(is));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

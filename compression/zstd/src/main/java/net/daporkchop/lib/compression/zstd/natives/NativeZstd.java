@@ -96,16 +96,6 @@ public final class NativeZstd extends NativeFeature<ZstdProvider> implements Zst
     private native long doCompressBoundLong(long srcSize);
 
     @Override
-    public PDeflater deflater(int level) throws InvalidCompressionLevelException {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public PInflater inflater() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public ZstdCCtx compressionContext(int level) throws InvalidCompressionLevelException {
         return new NativeZstdCCtx(this, level);
     }

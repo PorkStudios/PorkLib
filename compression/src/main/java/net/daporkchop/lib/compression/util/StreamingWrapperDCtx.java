@@ -25,6 +25,7 @@ import net.daporkchop.lib.compression.CCtx;
 import net.daporkchop.lib.compression.CompressionProvider;
 import net.daporkchop.lib.compression.DCtx;
 import net.daporkchop.lib.compression.PInflater;
+import net.daporkchop.lib.compression.StreamingCompressionProvider;
 import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
 import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelException;
 import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
@@ -39,11 +40,11 @@ import net.daporkchop.lib.unsafe.util.AbstractReleasable;
 @Accessors(fluent = true)
 public class StreamingWrapperDCtx extends AbstractReleasable implements DCtx {
     @Getter
-    protected final CompressionProvider provider;
+    protected final StreamingCompressionProvider provider;
     @NonNull
     protected final PInflater inflater;
 
-    public StreamingWrapperDCtx(@NonNull CompressionProvider provider) {
+    public StreamingWrapperDCtx(@NonNull StreamingCompressionProvider provider) {
         this(provider, provider.inflater());
     }
 

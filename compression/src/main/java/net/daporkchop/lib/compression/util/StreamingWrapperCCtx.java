@@ -24,6 +24,7 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.compression.CCtx;
 import net.daporkchop.lib.compression.CompressionProvider;
 import net.daporkchop.lib.compression.PDeflater;
+import net.daporkchop.lib.compression.StreamingCompressionProvider;
 import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
 import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelException;
 import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
@@ -39,13 +40,13 @@ import net.daporkchop.lib.unsafe.util.AbstractReleasable;
 public class StreamingWrapperCCtx extends AbstractReleasable implements CCtx {
     @Getter
     @NonNull
-    protected final CompressionProvider provider;
+    protected final StreamingCompressionProvider provider;
     @NonNull
     protected final PDeflater           deflater;
     @Getter
     protected final int                 level;
 
-    public StreamingWrapperCCtx(@NonNull CompressionProvider provider, int level) throws InvalidCompressionLevelException {
+    public StreamingWrapperCCtx(@NonNull StreamingCompressionProvider provider, int level) throws InvalidCompressionLevelException {
         this(provider, provider.deflater(level), level);
     }
 

@@ -16,6 +16,7 @@
 package net.daporkchop.lib.crypto;
 
 import lombok.NonNull;
+import net.daporkchop.lib.binary.oio.StreamUtil;
 import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.common.misc.TestRandomData;
 import net.daporkchop.lib.crypto.cipher.Cipher;
@@ -304,7 +305,7 @@ public class EncryptionTest {
                 byte[] encrypted = baos.toByteArray();
                 byte[] decrypted;
                 try (InputStream in = cipher2.decrypt(new ByteArrayInputStream(encrypted), offset, b.length)) {
-                    decrypted = IOUtils.readFully(in, -1, false);
+                    decrypted = StreamUtil.toByteArray(in);
                 }
                 if (isInvalid(b, decrypted)) {
                     throw new IllegalStateException("Decrypted data isn't the same!");

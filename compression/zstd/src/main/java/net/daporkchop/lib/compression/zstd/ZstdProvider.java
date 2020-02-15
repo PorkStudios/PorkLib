@@ -69,10 +69,10 @@ public interface ZstdProvider extends CompressionProvider, Feature<ZstdProvider>
     boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException;
 
     /**
-     * @see #frameContentSizeLong(ByteBuf)
      * @throws ValueCannotFitException if the returned value is too large to fit in an {@code int}
+     * @see #frameContentSizeLong(ByteBuf)
      */
-    default int frameContentSize(@NonNull ByteBuf src) throws InvalidBufferTypeException, ContentSizeUnknownException, ValueCannotFitException   {
+    default int frameContentSize(@NonNull ByteBuf src) throws InvalidBufferTypeException, ContentSizeUnknownException, ValueCannotFitException {
         return PValidation.toInt(this.frameContentSizeLong(src));
     }
 
@@ -95,4 +95,32 @@ public interface ZstdProvider extends CompressionProvider, Feature<ZstdProvider>
 
     @Override
     ZstdDCtx decompressionContext();
+
+    /**
+     * Digests a Zstd dictionary for compression at the default level.
+     *
+     * @param dict the {@link ByteBuf} containing the dictionary
+     * @return the digested dictionary
+     */
+    default ZstdCDict compressionDictionary(@NonNull ByteBuf dict) throws InvalidBufferTypeException {
+        return this.compressionDictionary(dict, Zstd.LEVEL_DEFAULT);
+    }
+
+    /**
+     * Digests a Zstd dictionary for compression at the given level.
+     *
+     * @param dict  the {@link ByteBuf} containing the dictionary
+     * @param level the compression level to use
+     * @return the digested dictionary
+     */
+    ZstdCDict compressionDictionary(@NonNull ByteBuf dict, int level) throws InvalidBufferTypeException;
+
+    /**
+     * Digests a Zstd dictionary for decompression.
+     *
+     * @param dict the {@link ByteBuf} containing the dictionary
+     * @return the digested dictionary
+     */
+    ZstdDDict decompressionDictionary(@NonNull ByteBuf dict) throws InvalidBufferTypeException;
+
 }

@@ -14,7 +14,7 @@ __attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_comp
     auto ret = ZSTD_freeDCtx((ZSTD_DCtx*) ctx);
 
     if (ZSTD_isError(ret))  {
-        throwException(env, ZSTD_getErrorName(ret), (int) ret);
+        throwException(env, ZSTD_getErrorName(ret), (jlong) ret);
         return;
     }
 }
@@ -27,7 +27,7 @@ __attribute__((visibility("default"))) jint JNICALL Java_net_daporkchop_lib_comp
         if (ZSTD_getErrorCode(ret) == ZSTD_error_dstSize_tooSmall) {
             return -1;
         } else {
-            throwException(env, ZSTD_getErrorName(ret), (int) ret);
+            throwException(env, ZSTD_getErrorName(ret), (jlong) ret);
             return 0;
         }
     }
@@ -43,7 +43,7 @@ __attribute__((visibility("default"))) jint JNICALL Java_net_daporkchop_lib_comp
         if (ZSTD_getErrorCode(ret) == ZSTD_error_dstSize_tooSmall) {
             return -1;
         } else {
-            throwException(env, ZSTD_getErrorName(ret), (int) ret);
+            throwException(env, ZSTD_getErrorName(ret), (jlong) ret);
             return 0;
         }
     }
@@ -53,13 +53,13 @@ __attribute__((visibility("default"))) jint JNICALL Java_net_daporkchop_lib_comp
 
 __attribute__((visibility("default"))) jint JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDCtx_doDecompressCDict
         (JNIEnv* env, jobject obj, jlong ctx, jlong srcAddr, jint srcSize, jlong dstAddr, jint dstSize, jlong dictAddr)   {
-    auto ret = ZSTD_decompress_usingDDict((ZSTD_DCtx*) ctx, (void*) dstAddr, dstSize, (void*) srcAddr, srcSize, (void*) dictAddr);
+    auto ret = ZSTD_decompress_usingDDict((ZSTD_DCtx*) ctx, (void*) dstAddr, dstSize, (void*) srcAddr, srcSize, (ZSTD_DDict*) dictAddr);
 
     if (ZSTD_isError(ret))  {
         if (ZSTD_getErrorCode(ret) == ZSTD_error_dstSize_tooSmall) {
             return -1;
         } else {
-            throwException(env, ZSTD_getErrorName(ret), (int) ret);
+            throwException(env, ZSTD_getErrorName(ret), (jlong) ret);
             return 0;
         }
     }

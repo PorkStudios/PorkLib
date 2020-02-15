@@ -14,7 +14,7 @@ __attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_comp
     auto ret = ZSTD_freeCCtx((ZSTD_CCtx*) ctx);
 
     if (ZSTD_isError(ret))  {
-        throwException(env, ZSTD_getErrorName(ret), (int) ret);
+        throwException(env, ZSTD_getErrorName(ret), (jlong) ret);
         return;
     }
 }
@@ -27,7 +27,7 @@ __attribute__((visibility("default"))) jint JNICALL Java_net_daporkchop_lib_comp
         if (ZSTD_getErrorCode(ret) == ZSTD_error_dstSize_tooSmall) {
             return -1;
         } else {
-            throwException(env, ZSTD_getErrorName(ret), (int) ret);
+            throwException(env, ZSTD_getErrorName(ret), (jlong) ret);
             return 0;
         }
     }
@@ -43,7 +43,7 @@ __attribute__((visibility("default"))) jint JNICALL Java_net_daporkchop_lib_comp
         if (ZSTD_getErrorCode(ret) == ZSTD_error_dstSize_tooSmall) {
             return -1;
         } else {
-            throwException(env, ZSTD_getErrorName(ret), (int) ret);
+            throwException(env, ZSTD_getErrorName(ret), (jlong) ret);
             return 0;
         }
     }
@@ -59,7 +59,7 @@ __attribute__((visibility("default"))) jint JNICALL Java_net_daporkchop_lib_comp
         if (ZSTD_getErrorCode(ret) == ZSTD_error_dstSize_tooSmall) {
             return -1;
         } else {
-            throwException(env, ZSTD_getErrorName(ret), (int) ret);
+            throwException(env, ZSTD_getErrorName(ret), (jlong) ret);
             return 0;
         }
     }

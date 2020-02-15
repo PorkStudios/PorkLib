@@ -12,7 +12,7 @@ __attribute__((visibility("default"))) jint JNICALL Java_net_daporkchop_lib_comp
         if (ZSTD_getErrorCode(ret) == ZSTD_error_dstSize_tooSmall) {
             return -1;
         } else {
-            throwException(env, ZSTD_getErrorName(ret), (int) ret);
+            throwException(env, ZSTD_getErrorName(ret), (jlong) ret);
             return 0;
         }
     }
@@ -28,7 +28,7 @@ __attribute__((visibility("default"))) jint JNICALL Java_net_daporkchop_lib_comp
         if (ZSTD_getErrorCode(ret) == ZSTD_error_dstSize_tooSmall) {
             return -1;
         } else {
-            throwException(env, ZSTD_getErrorName(ret), (int) ret);
+            throwException(env, ZSTD_getErrorName(ret), (jlong) ret);
             return 0;
         }
     }
@@ -41,7 +41,7 @@ __attribute__((visibility("default"))) jlong JNICALL Java_net_daporkchop_lib_com
     auto contentSize = ZSTD_getFrameContentSize((void*) srcAddr, srcSize);
 
     if (contentSize == ZSTD_CONTENTSIZE_ERROR)  {
-        throwException(env, "ZSTD_CONTENTSIZE_ERROR", (int) ZSTD_CONTENTSIZE_ERROR);
+        throwException(env, "ZSTD_CONTENTSIZE_ERROR", (jlong) ZSTD_CONTENTSIZE_ERROR);
         return 0;
     }
 

@@ -31,7 +31,7 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
  */
 @Getter
 @Accessors(fluent = true)
-final class NativeZStdCDict extends AbstractRefCounted implements ZstdCDict {
+final class NativeZstdCDict extends AbstractRefCounted implements ZstdCDict {
     private static native long createCDict(long dictAddr, int dictSize, int compressionLevel, boolean copy);
 
     private static native void releaseCDict(long dict);
@@ -45,7 +45,7 @@ final class NativeZStdCDict extends AbstractRefCounted implements ZstdCDict {
     private final NativeZstd provider;
     private final int        level;
 
-    NativeZStdCDict(@NonNull NativeZstd provider, @NonNull ByteBuf dict, int level, boolean copy) {
+    NativeZstdCDict(@NonNull NativeZstd provider, @NonNull ByteBuf dict, int level, boolean copy) {
         this.provider = provider;
         this.level = level;
 

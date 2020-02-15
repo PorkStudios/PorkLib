@@ -54,4 +54,4 @@ JNIEXPORT jint JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZs
 }
 #endif
 
-#endif //_Included_net_daporkchop_lib_compression_zstd_natives_NativeZstd
+#endif //_Included_net_daporkchop_lib_compression_zstd_natives_NativeZstdCCtx

@@ -3,7 +3,7 @@
 
 #include <lib-zlib/zlib-ng.h>
 
-__attribute__((visibility("default"))) jlong JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_compressBoundLong
+__attribute__((visibility("default"))) jlong JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlib_compressBoundLong
         (JNIEnv* env, jobject obj, jlong srcSize, jint mode)   {
     if (srcSize < 0)    {
         return throwException(env, "srcSize may not be negative!", srcSize);

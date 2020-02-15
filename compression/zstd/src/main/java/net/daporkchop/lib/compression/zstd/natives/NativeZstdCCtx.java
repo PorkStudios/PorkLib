@@ -83,7 +83,7 @@ final class NativeZstdCCtx extends AbstractReleasable implements ZstdCCtx {
 
     @Override
     public boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, @NonNull ZstdCDict dictionary) throws InvalidBufferTypeException {
-        if (!(dictionary instanceof NativeZStdCDict))    {
+        if (!(dictionary instanceof NativeZstdCDict))    {
             throw new IllegalArgumentException(dictionary.getClass().getCanonicalName());
         }
 
@@ -92,7 +92,7 @@ final class NativeZstdCCtx extends AbstractReleasable implements ZstdCCtx {
             int val = this.doCompressCDict(this.ctx,
                     this.assertAcceptable(src).memoryAddress() + src.readerIndex(), src.readableBytes(),
                     this.assertAcceptable(dst).memoryAddress() + dst.writerIndex(), dst.writableBytes(),
-                    ((NativeZStdCDict) dictionary).dict());
+                    ((NativeZstdCDict) dictionary).dict());
 
             return NativeZstdHelper.finalizeOneShot(src, dst, val);
         } finally {

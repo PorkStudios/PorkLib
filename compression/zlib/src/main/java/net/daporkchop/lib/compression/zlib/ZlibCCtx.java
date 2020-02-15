@@ -37,13 +37,7 @@ public interface ZlibCCtx extends CCtx {
     int mode();
 
     @Override
-    ZlibCCtx reset();
-
-    @Override
     default boolean hasDict() {
         return true;
     }
-
-    @Override
-    ZlibCCtx dict(@NonNull ByteBuf dict) throws InvalidBufferTypeException;
 }

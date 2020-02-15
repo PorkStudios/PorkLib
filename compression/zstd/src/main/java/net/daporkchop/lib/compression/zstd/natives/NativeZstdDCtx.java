@@ -44,25 +44,34 @@ final class NativeZstdDCtx extends AbstractReleasable implements ZstdDCtx {
 
     @Getter
     private final NativeZstd provider;
-    private       ByteBuf    dict;
 
     @Override
     public boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException {
-        int val = this.doDecompress(this.ctx,
+        int val = this.doDecompressNoDict(this.ctx,
                 this.assertAcceptable(src).memoryAddress() + src.readerIndex(), src.readableBytes(),
-                this.assertAcceptable(dst).memoryAddress() + dst.writerIndex(), dst.writableBytes(),
-                this.dict != null ? this.dict.memoryAddress() : 0L, this.dict != null ? this.dict.readableBytes() : 0);
+                this.assertAcceptable(dst).memoryAddress() + dst.writerIndex(), dst.writableBytes());
 
-        if (val >= 0) {
-            src.skipBytes(src.readableBytes());
-            dst.writerIndex(dst.writerIndex() + val);
-            return true;
-        } else {
-            return false;
-        }
+        return NativeZstdHelper.finalizeOneShot(src, dst, val);
     }
 
-    private native int doDecompress(long ctx, long srcAddr, int srcSize, long dstAddr, int dstSize, long dictAddr, int dictSize);
+    private native int doDecompressNoDict(long ctx, long srcAddr, int srcSize, long dstAddr, int dstSize);
+
+    @Override
+    public boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) throws InvalidBufferTypeException {
+        if (dict == null) {
+            //decompress without dictionary
+            return this.decompress(src, dst);
+        }
+
+        int val = this.doDecompressRawDict(this.ctx,
+                this.assertAcceptable(src).memoryAddress() + src.readerIndex(), src.readableBytes(),
+                this.assertAcceptable(dst).memoryAddress() + dst.writerIndex(), dst.writableBytes(),
+                this.assertAcceptable(dict).memoryAddress() + dict.readerIndex(), dict.readableBytes());
+
+        return NativeZstdHelper.finalizeOneShot(src, dst, val);
+    }
+
+    private native int doDecompressRawDict(long ctx, long srcAddr, int srcSize, long dstAddr, int dstSize, long dictAddr, int dictSize);
 
     @Override
     public boolean directAccepted() {
@@ -71,23 +80,7 @@ final class NativeZstdDCtx extends AbstractReleasable implements ZstdDCtx {
 
     @Override
     protected void doRelease() {
-        this.reset();
         this.cleaner.clean();
-    }
-
-    @Override
-    public ZstdDCtx reset() {
-        if (this.dict != null) {
-            this.dict.release();
-            this.dict = null;
-        }
-        return this;
-    }
-
-    @Override
-    public ZstdDCtx dict(@NonNull ByteBuf dict) throws InvalidBufferTypeException {
-        this.dict = this.reset().assertAcceptable(dict).retainedSlice();
-        return this;
     }
 
     @RequiredArgsConstructor

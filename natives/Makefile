@@ -11,6 +11,15 @@ export CFLAGS		:=	-shared -Ofast -ffast-math -fPIC -ffunction-sections -fdata-se
 export CXXFLAGS		:=	$(CFLAGS)
 export LDFLAGS		:=	$(CFLAGS) -Wl,--gc-sections
 
+ifndef PORKLIB_NATIVES_DEBUG
+export CFLAGS		:=	$(CFLAGS)
+export BUILD_TYPE	:=	release
+else
+export CFLAGS		:=	$(CFLAGS) -DPORKLIB_NATIVES_DEBUG
+export BUILD_TYPE	:=	debug
+endif
+$(info natives: building for $(BUILD_TYPE))
+
 export SOURCES		:=
 export INCLUDES		:=	$(COMMONSRC)/include $(JAVA_HOME)include $(JAVA_HOME)include/linux
 

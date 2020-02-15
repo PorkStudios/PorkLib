@@ -18,6 +18,7 @@ package net.daporkchop.lib.compression.zstd;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.compression.CCtx;
+import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
 import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
 
 /**
@@ -29,7 +30,7 @@ import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
  */
 public interface ZstdCCtx extends CCtx {
     /**
-     * Compresses the given source data into the given destination buffer at the currently configured compression level.
+     * Compresses the given source data into the given destination buffer at the configured Zstd level.
      *
      * @see CCtx#compress(ByteBuf, ByteBuf)
      */
@@ -47,14 +48,28 @@ public interface ZstdCCtx extends CCtx {
      */
     boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, int compressionLevel) throws InvalidBufferTypeException;
 
+    /**
+     * Compresses the given source data into the given destination buffer at the configured Zstd level using the given dictionary.
+     *
+     * @see CCtx#compress(ByteBuf, ByteBuf, ByteBuf)
+     */
     @Override
-    ZstdCCtx reset();
+    default boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) throws InvalidBufferTypeException, DictionaryNotAllowedException {
+        return this.compress(src, dst, dict, this.level());
+    }
+
+    /**
+     * Compresses the given source data into a single Zstd frame into the given destination buffer at the given Zstd level using the given dictionary.
+     * <p>
+     * This is possible because Zstd allows using the same context for any compression level without having to reallocate it.
+     *
+     * @see #compress(ByteBuf, ByteBuf, int)
+     * @see #compress(ByteBuf, ByteBuf, ByteBuf)
+     */
+    boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict, int compressionLevel) throws InvalidBufferTypeException;
 
     @Override
     default boolean hasDict() {
         return true;
     }
-
-    @Override
-    ZstdCCtx dict(@NonNull ByteBuf dict) throws InvalidBufferTypeException;
 }

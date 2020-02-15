@@ -16,12 +16,11 @@
 package net.daporkchop.lib.compression.zlib;
 
 
-import net.daporkchop.lib.compression.CCtx;
+import net.daporkchop.lib.common.util.PValidation;
+import net.daporkchop.lib.common.util.exception.ValueCannotFitException;
 import net.daporkchop.lib.compression.CompressionProvider;
-import net.daporkchop.lib.compression.DCtx;
 import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelException;
 import net.daporkchop.lib.natives.impl.Feature;
-import net.daporkchop.lib.natives.util.BufferTyped;
 
 /**
  * Representation of a Zlib implementation.
@@ -43,6 +42,55 @@ public interface ZlibProvider extends CompressionProvider, Feature<ZlibProvider>
     default int levelBest() {
         return Zlib.LEVEL_BEST;
     }
+
+    @Override
+    default int compressBound(int srcSize) throws ValueCannotFitException {
+        return PValidation.toInt(this.compressBoundLong(srcSize, Zlib.MODE_ZLIB));
+    }
+
+    /**
+     * Gets the maximum (worst-case) compressed size for input data of the given length using the Gzip format.
+     *
+     * @see #compressBound(int)
+     */
+    default int compressBoundGzip(int srcSize) throws ValueCannotFitException {
+        return PValidation.toInt(this.compressBoundLong(srcSize, Zlib.MODE_GZIP));
+    }
+
+    /**
+     * Gets the maximum (worst-case) compressed size for input data of the given length using the given mode.
+     *
+     * @param srcSize the size (in bytes) of the source data
+     * @param mode    the {@link Zlib} mode to use. Must be one of {@link Zlib#MODE_ZLIB}, {@link Zlib#MODE_GZIP} or {@link Zlib#MODE_RAW}
+     * @return the worst-case size of the compressed data
+     * @see #compressBound(int)
+     */
+    default int compressBound(long srcSize, int mode) throws ValueCannotFitException {
+        return PValidation.toInt(this.compressBoundLong(srcSize, mode));
+    }
+
+    @Override
+    default long compressBoundLong(long srcSize) {
+        return this.compressBoundLong(srcSize, Zlib.MODE_ZLIB);
+    }
+
+    /**
+     * Gets the maximum (worst-case) compressed size for input data of the given length using the Gzip format.
+     *
+     * @see #compressBoundLong(long)
+     */
+    default long compressBoundGzipLong(long srcSize) {
+        return this.compressBoundLong(srcSize, Zlib.MODE_GZIP);
+    }
+
+    /**
+     * Gets the maximum (worst-case) compressed size for input data of the given length using the given mode.
+     *
+     * @param srcSize the size (in bytes) of the source data
+     * @param mode    the {@link Zlib} mode to use. Must be one of {@link Zlib#MODE_ZLIB}, {@link Zlib#MODE_GZIP} or {@link Zlib#MODE_RAW}
+     * @return the worst-case size of the compressed data
+     */
+    long compressBoundLong(long srcSize, int mode);
 
     /**
      * @return a new {@link ZlibDeflater}

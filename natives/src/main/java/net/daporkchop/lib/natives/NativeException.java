@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -19,23 +19,32 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 
 /**
- * Thrown by native libraries when an exception occurs.
+ * Thrown when an exception occurs in native code.
  *
  * @author DaPorkchop_
  */
 @Getter
 @Accessors(fluent = true)
-public final class NativeCodeException extends RuntimeException {
-    protected final int err;
+public class NativeException extends RuntimeException {
+    protected final long code;
 
-    public NativeCodeException(String message, int err) {
+    public NativeException(String message) {
+        this(message, 0L);
+    }
+
+    public NativeException(String message, int code) {
+        this(message, (long) code);
+    }
+
+    public NativeException(String message, long code) {
         super(message);
 
-        this.err = err;
+        this.code = code;
     }
 
     @Override
     public String getMessage() {
-        return String.format("%d: %s", this.err, super.getMessage());
+        String message = super.getMessage();
+        return message == null ? String.valueOf(this.code) : this.code + ": " + message;
     }
 }

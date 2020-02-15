@@ -28,41 +28,14 @@ import net.daporkchop.lib.unsafe.capability.Releasable;
  *
  * @author DaPorkchop_
  */
-interface Context<I extends Context<I>> extends Releasable, BufferTyped {
+interface Context extends Releasable, BufferTyped {
     /**
      * @return the {@link CompressionProvider} that created this context
      */
     CompressionProvider provider();
 
     /**
-     * Resets this context.
-     * <p>
-     * This will reset the dictionary buffer to {@code null}.
-     *
-     * @return this context
-     */
-    I reset();
-
-    /**
      * @return whether or not this implementation allows use of a dictionary
      */
-    default boolean hasDict() {
-        return false;
-    }
-
-    /**
-     * Sets the dictionary to be used by this context.
-     * <p>
-     * Must be called immediately after being initialized or reset.
-     * <p>
-     * The dictionary will remain referenced until the context is reset.
-     *
-     * @param dict the new dictionary to use. The currently readable region of the buffer will be used as the dictionary.
-     * @return this context
-     * @throws UnsupportedOperationException if this context does not allow use of a dictionary
-     * @see #hasDict()
-     */
-    default I dict(@NonNull ByteBuf dict) throws InvalidBufferTypeException, UnsupportedOperationException {
-        throw new UnsupportedOperationException();
-    }
+    boolean hasDict();
 }

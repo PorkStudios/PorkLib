@@ -59,39 +59,24 @@ public final class NativeZstd extends NativeFeature<ZstdProvider> implements Zst
                 this.assertAcceptable(dst).memoryAddress() + dst.writerIndex(), dst.writableBytes(),
                 compressionLevel);
 
-        if (val >= 0)    {
-            src.skipBytes(src.readableBytes());
-            dst.writerIndex(dst.writerIndex() + val);
-            return true;
-        } else {
-            return false;
-        }
+        return NativeZstdHelper.finalizeOneShot(src, dst, val);
     }
 
     private native int doCompress(long srcAddr, int srcSize, long dstAddr, int dstSize, int compressionLevel);
 
     @Override
     public boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException {
-        this.assertAcceptable(src);
-        this.assertAcceptable(dst);
+        int val = this.doDecompress(this.assertAcceptable(src).memoryAddress() + src.readerIndex(), src.readableBytes(),
+                this.assertAcceptable(dst).memoryAddress() + dst.writerIndex(), dst.writableBytes());
 
-        int val = this.doDecompress(src.memoryAddress() + src.readerIndex(), src.readableBytes(),
-                dst.memoryAddress() + dst.writerIndex(), dst.writableBytes());
-
-        if (val >= 0)    {
-            src.skipBytes(src.readableBytes());
-            dst.writerIndex(dst.writerIndex() + val);
-            return true;
-        } else {
-            return false;
-        }
+        return NativeZstdHelper.finalizeOneShot(src, dst, val);
     }
 
     private native int doDecompress(long srcAddr, int srcSize, long dstAddr, int dstSize);
 
     @Override
-    public long frameContentSize(@NonNull ByteBuf src) throws InvalidBufferTypeException, ContentSizeUnknownException {
-        long size = this.doFrameContentSize(this.assertAcceptable(src).memoryAddress() + src.readerIndex(), src.readableBytes());
+    public long frameContentSizeLong(@NonNull ByteBuf src) throws InvalidBufferTypeException, ContentSizeUnknownException {
+        long size = this.doFrameContentSizeLong(this.assertAcceptable(src).memoryAddress() + src.readerIndex(), src.readableBytes());
         if (size >= 0L) {
             return size;
         } else {
@@ -99,14 +84,14 @@ public final class NativeZstd extends NativeFeature<ZstdProvider> implements Zst
         }
     }
 
-    private native long doFrameContentSize(long srcAddr, int srcSize);
+    private native long doFrameContentSizeLong(long srcAddr, int srcSize);
 
     @Override
-    public long compressBound(long srcSize) {
-        return this.doCompressBound(PValidation.ensureNonNegative(srcSize));
+    public long compressBoundLong(long srcSize) {
+        return this.doCompressBoundLong(PValidation.ensureNonNegative(srcSize));
     }
 
-    private native long doCompressBound(long srcSize);
+    private native long doCompressBoundLong(long srcSize);
 
     @Override
     public PDeflater deflater(int level) throws InvalidCompressionLevelException {

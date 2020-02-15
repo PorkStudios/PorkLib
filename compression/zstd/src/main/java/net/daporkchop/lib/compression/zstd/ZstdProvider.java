@@ -17,13 +17,12 @@ package net.daporkchop.lib.compression.zstd;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.compression.CCtx;
+import net.daporkchop.lib.common.util.PValidation;
+import net.daporkchop.lib.common.util.exception.ValueCannotFitException;
 import net.daporkchop.lib.compression.CompressionProvider;
-import net.daporkchop.lib.compression.DCtx;
 import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelException;
 import net.daporkchop.lib.compression.zstd.util.exception.ContentSizeUnknownException;
 import net.daporkchop.lib.natives.impl.Feature;
-import net.daporkchop.lib.natives.util.BufferTyped;
 import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
 
 /**
@@ -70,21 +69,26 @@ public interface ZstdProvider extends CompressionProvider, Feature<ZstdProvider>
     boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException;
 
     /**
+     * @see #frameContentSizeLong(ByteBuf)
+     * @throws ValueCannotFitException if the returned value is too large to fit in an {@code int}
+     */
+    default int frameContentSize(@NonNull ByteBuf src) throws InvalidBufferTypeException, ContentSizeUnknownException, ValueCannotFitException   {
+        return PValidation.toInt(this.frameContentSizeLong(src));
+    }
+
+    /**
      * Gets the decompressed size of the given Zstd-compressed data.
      *
      * @param src the {@link ByteBuf} containing the compressed data. This {@link ByteBuf}'s indices will not be modified by this method
      * @return the size (in bytes) of the decompressed data
      * @throws ContentSizeUnknownException if the decompressed size cannot be determined
      */
-    long frameContentSize(@NonNull ByteBuf src) throws InvalidBufferTypeException, ContentSizeUnknownException;
+    long frameContentSizeLong(@NonNull ByteBuf src) throws InvalidBufferTypeException, ContentSizeUnknownException;
 
-    /**
-     * Gets the maximum (worst-case) compressed size for input data of the given length.
-     *
-     * @param srcSize the size (in bytes) of the source data
-     * @return the worst-case size of the compressed data
-     */
-    long compressBound(long srcSize);
+    @Override
+    default ZstdCCtx compressionContext() {
+        return this.compressionContext(Zstd.LEVEL_DEFAULT);
+    }
 
     @Override
     ZstdCCtx compressionContext(int level) throws InvalidCompressionLevelException;

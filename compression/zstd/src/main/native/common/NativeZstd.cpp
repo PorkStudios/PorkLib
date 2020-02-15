@@ -4,11 +4,6 @@
 #include <lib-zstd/lib/zstd.h>
 #include <lib-zstd/lib/common/zstd_errors.h>
 
-#include <stdlib.h>
-#include <string.h>
-
-#include <stdio.h>
-
 __attribute__((visibility("default"))) jint JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstd_doCompress
         (JNIEnv* env, jobject obj, jlong srcAddr, jint srcSize, jlong dstAddr, jint dstSize, jint compressionLevel)   {
     auto ret = ZSTD_compress((void*) dstAddr, dstSize, (void*) srcAddr, srcSize, compressionLevel);
@@ -41,7 +36,7 @@ __attribute__((visibility("default"))) jint JNICALL Java_net_daporkchop_lib_comp
     return (jint) ret;
 }
 
-__attribute__((visibility("default"))) jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstd_doFrameContentSize
+__attribute__((visibility("default"))) jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstd_doFrameContentSizeLong
         (JNIEnv* env, jobject obj, jlong srcAddr, jint srcSize)   {
     auto contentSize = ZSTD_getFrameContentSize((void*) srcAddr, srcSize);
 
@@ -53,7 +48,7 @@ __attribute__((visibility("default"))) jlong JNICALL Java_net_daporkchop_lib_com
     return contentSize;
 }
 
-__attribute__((visibility("default"))) jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstd_doCompressBound
+__attribute__((visibility("default"))) jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstd_doCompressBoundLong
         (JNIEnv* env, jobject obj, jlong srcSize)   {
     return ZSTD_compressBound(srcSize);
 }

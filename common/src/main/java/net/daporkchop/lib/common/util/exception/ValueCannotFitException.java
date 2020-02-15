@@ -13,34 +13,31 @@
  *
  */
 
-package net.daporkchop.lib.compression.zlib.natives;
-
-import io.netty.buffer.ByteBuf;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.compression.PDeflater;
-import net.daporkchop.lib.compression.util.StreamingWrapperCCtx;
-import net.daporkchop.lib.compression.util.StreamingWrapperDCtx;
-import net.daporkchop.lib.compression.zlib.ZlibDCtx;
-import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
+package net.daporkchop.lib.common.util.exception;
 
 /**
+ * Thrown when a value is too large to fit within some smaller data type.
+ *
  * @author DaPorkchop_
  */
-@Getter
-@Accessors(fluent = true)
-final class NativeZlibDCtx extends StreamingWrapperDCtx implements ZlibDCtx {
-    private final int mode;
-
-    NativeZlibDCtx(@NonNull NativeZlib provider, int mode) {
-        super(provider, provider.inflater(mode));
-
-        this.mode = mode;
+public class ValueCannotFitException extends ValueOutOfBoundsException {
+    public ValueCannotFitException(String s) {
+        super(s);
     }
 
-    @Override
-    public boolean hasDict() {
-        return true;
+    public ValueCannotFitException(long value, byte overload)  {
+        super(value + " cannot fit in a byte");
+    }
+
+    public ValueCannotFitException(long value, char overload)  {
+        super(value + " cannot fit in a char");
+    }
+
+    public ValueCannotFitException(long value, short overload)  {
+        super(value + " cannot fit in a short");
+    }
+
+    public ValueCannotFitException(long value, int overload)  {
+        super(value + " cannot fit in an int");
     }
 }

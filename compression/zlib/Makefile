@@ -1,12 +1,12 @@
-OUTDIR		:=	$(PROJDIR)/src/main/resources
-
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 .PHONY: $(BUILD) clean
 
-BUILDDIR	:=	build/$(BUILD)
+export OUTDIR	:=	$(CURDIR)/src/main/resources
+BUILDDIR		:=	build/native/$(BUILD_TYPE)/$(BUILD)
 
 clean:
-	@rm -rf build/ $(foreach arch,$(ARCHS),$(OUTDIR)/$(arch))
+	@if [ -d build/native/ ]; then rm -rf build/native/; fi
+	@rm -rf $(foreach arch,$(ARCHS),$(OUTDIR)/$(arch))
 
 $(BUILD):
 	@[ -d $(BUILDDIR) ] || mkdir -p $(BUILDDIR)
@@ -26,10 +26,12 @@ OFILES			:=	$(addsuffix .o,$(subst /,__,$(CFILES)) $(subst /,__,$(CPPFILES)))
 
 INCLUDE			:=	$(addprefix -I,$(INCLUDES) $(CURDIR))
 
-build: $(OUTDIR)/$(BUILD)/libzlib.$(EXT)
-
-$(OUTDIR)/$(BUILD)/libzlib.$(EXT): $(CFILES) $(CPPFILES) $(OFILES) $(CURDIR)/lib-zlib/libz-ng.a
+build: libzlib.$(EXT)
+	@echo "Copying libzlib.$(EXT) to $(OUTDIR)/$(BUILD)/..."
 	@[ -d $(OUTDIR)/$(BUILD) ] || mkdir -p $(OUTDIR)/$(BUILD)
+	@cp libzlib.$(EXT) $(OUTDIR)/$(BUILD)/libzlib.$(EXT)
+
+libzlib.$(EXT): $(CFILES) $(CPPFILES) $(OFILES) $(CURDIR)/lib-zlib/libz-ng.a
 	@echo "Linking $@..."
 	@$(LD) $(LDFLAGS) $(INCLUDE) -o $@ $(OFILES) $(CURDIR)/lib-zlib/libz-ng.a
 	@echo "Stripping $@..."

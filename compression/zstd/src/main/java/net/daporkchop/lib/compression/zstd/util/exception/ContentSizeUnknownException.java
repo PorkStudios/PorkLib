@@ -19,7 +19,7 @@ import io.netty.buffer.ByteBuf;
 import net.daporkchop.lib.compression.zstd.ZstdProvider;
 
 /**
- * Thrown when {@link ZstdProvider#frameContentSize(ByteBuf)} cannot identify the content size of the given frame.
+ * Thrown when {@link ZstdProvider#frameContentSizeLong(ByteBuf)} cannot identify the content size of the given frame.
  *
  * @author DaPorkchop_
  */

@@ -16,12 +16,15 @@
 package net.daporkchop.lib.compression.util;
 
 import io.netty.buffer.ByteBuf;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.compression.CCtx;
 import net.daporkchop.lib.compression.CompressionProvider;
 import net.daporkchop.lib.compression.PDeflater;
+import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
 import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelException;
 import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
 import net.daporkchop.lib.unsafe.util.AbstractReleasable;
@@ -31,65 +34,42 @@ import net.daporkchop.lib.unsafe.util.AbstractReleasable;
  *
  * @author DaPorkchop_
  */
+@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 @Accessors(fluent = true)
 public class StreamingWrapperCCtx extends AbstractReleasable implements CCtx {
     @Getter
+    @NonNull
     protected final CompressionProvider provider;
-
-    protected final PDeflater deflater;
-    protected ByteBuf   dict;
+    @NonNull
+    protected final PDeflater           deflater;
     @Getter
-    protected final int       level;
+    protected final int                 level;
 
-    public StreamingWrapperCCtx(@NonNull CompressionProvider provider, int level) {
-        this(provider, null, level);
-    }
-
-    protected StreamingWrapperCCtx(@NonNull CompressionProvider provider, @NonNull PDeflater deflater, int level) {
-        this.provider = provider;
-        this.deflater = deflater;
-        this.level = level;
+    public StreamingWrapperCCtx(@NonNull CompressionProvider provider, int level) throws InvalidCompressionLevelException {
+        this(provider, provider.deflater(level), level);
     }
 
     @Override
     public boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException {
+        return this.deflater.reset().fullDeflate(src, dst);
+    }
+
+    @Override
+    public boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) throws InvalidBufferTypeException, DictionaryNotAllowedException {
+        if (dict != null && !this.hasDict()) {
+            throw new DictionaryNotAllowedException();
+        }
+
         this.deflater.reset();
-        if (this.dict != null) {
-            //set dictionary if needed
-            this.deflater.dict(this.dict);
+        if (dict != null) {
+            this.deflater.dict(dict);
         }
         return this.deflater.fullDeflate(src, dst);
     }
 
     @Override
-    public CCtx reset() {
-        this.deflater.reset();
-        if (this.dict != null) {
-            this.dict.release();
-            this.dict = null;
-        }
-        return this;
-    }
-
-    @Override
     public boolean hasDict() {
         return this.deflater.hasDict();
-    }
-
-    @Override
-    public CCtx dict(@NonNull ByteBuf dict) throws InvalidBufferTypeException, UnsupportedOperationException {
-        if (!this.deflater.hasDict()) {
-            throw new UnsupportedOperationException();
-        }
-
-        //release old dictionary
-        if (this.dict != null) {
-            this.dict.release();
-            this.dict = null;
-        }
-
-        this.dict = this.deflater.assertAcceptable(dict).retainedSlice();
-        return this;
     }
 
     @Override

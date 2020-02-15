@@ -28,10 +28,18 @@ JNIEXPORT void JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZs
 
 /*
  * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdDCtx
- * Method:    doDecompress
+ * Method:    doDecompressNoDict
+ * Signature: (JJIJI)I
+ */
+JNIEXPORT jint JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDCtx_doDecompressNoDict
+  (JNIEnv *, jobject, jlong, jlong, jint, jlong, jint);
+
+/*
+ * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdDCtx
+ * Method:    doDecompressRawDict
  * Signature: (JJIJIJI)I
  */
-JNIEXPORT jint JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDCtx_doDecompress
+JNIEXPORT jint JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDCtx_doDecompressRawDict
   (JNIEnv *, jobject, jlong, jlong, jint, jlong, jint, jlong, jint);
 
 #ifdef __cplusplus

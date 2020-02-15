@@ -20,5 +20,5 @@ package net.daporkchop.lib.compression.util.exception;
  *
  * @author DaPorkchop_
  */
-public final class ContextFinishingException extends ContextFinishedException {
+public class ContextFinishingException extends ContextFinishedException {
 }

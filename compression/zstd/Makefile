@@ -1,12 +1,12 @@
-OUTDIR		:=	$(PROJDIR)/src/main/resources
-
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 .PHONY: $(BUILD) clean
 
-BUILDDIR	:=	build/$(BUILD)
+export OUTDIR	:=	$(CURDIR)/src/main/resources
+BUILDDIR		:=	build/native/$(BUILD_TYPE)/$(BUILD)
 
 clean:
-	@rm -rf build/ $(foreach arch,$(ARCHS),$(OUTDIR)/$(arch))
+	@if [ -d build/native/ ]; then rm -rf build/native/; fi
+	@rm -rf $(foreach arch,$(ARCHS),$(OUTDIR)/$(arch))
 
 $(BUILD):
 	@[ -d $(BUILDDIR) ] || mkdir -p $(BUILDDIR)
@@ -26,10 +26,12 @@ OFILES			:=	$(addsuffix .o,$(subst /,__,$(CFILES)) $(subst /,__,$(CPPFILES)))
 
 INCLUDE			:=	$(addprefix -I,$(INCLUDES) $(CURDIR))
 
-build: $(OUTDIR)/$(BUILD)/libzstd.$(EXT)
-
-$(OUTDIR)/$(BUILD)/libzstd.$(EXT): $(CFILES) $(CPPFILES) $(OFILES) $(CURDIR)/lib-zstd/lib/libzstd.a
+build: libzstd.$(EXT)
+	@echo "Copying libzstd.$(EXT) to $(OUTDIR)/$(BUILD)/..."
 	@[ -d $(OUTDIR)/$(BUILD) ] || mkdir -p $(OUTDIR)/$(BUILD)
+	@cp libzstd.$(EXT) $(OUTDIR)/$(BUILD)/libzstd.$(EXT)
+
+libzstd.$(EXT): $(CFILES) $(CPPFILES) $(OFILES) $(CURDIR)/lib-zstd/lib/libzstd.a
 	@echo "Linking $@..."
 	@$(LD) $(LDFLAGS) $(INCLUDE) -o $@ $(OFILES) $(CURDIR)/lib-zstd/lib/libzstd.a
 	@echo "Stripping $@..."

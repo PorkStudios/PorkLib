@@ -23,7 +23,7 @@ import net.daporkchop.lib.compression.CompressionProvider;
  *
  * @author DaPorkchop_
  */
-public final class InvalidCompressionLevelException extends IllegalArgumentException {
+public class InvalidCompressionLevelException extends IllegalArgumentException {
     public static int validate(int level, @NonNull CompressionProvider provider) throws InvalidCompressionLevelException    {
         if (level < provider.levelFast() || level > provider.levelBest()) {
             throw new InvalidCompressionLevelException(level, provider);

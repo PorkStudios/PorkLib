@@ -28,21 +28,8 @@ import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
  * @author DaPorkchop_
  */
 public interface ZstdDCtx extends DCtx {
-    /**
-     * Decompresses the given Zstd-compressed data into the given destination buffer.
-     *
-     * @see DCtx#decompress(ByteBuf, ByteBuf)
-     */
-    boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException;
-
-    @Override
-    ZstdDCtx reset();
-
     @Override
     default boolean hasDict() {
         return true;
     }
-
-    @Override
-    ZstdDCtx dict(@NonNull ByteBuf dict) throws InvalidBufferTypeException;
 }

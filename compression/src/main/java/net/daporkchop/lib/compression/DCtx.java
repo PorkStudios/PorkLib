@@ -17,6 +17,7 @@ package net.daporkchop.lib.compression;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
+import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
 import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
 
 /**
@@ -24,18 +25,28 @@ import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
  *
  * @author DaPorkchop_
  */
-public interface DCtx extends Context<DCtx> {
+public interface DCtx extends Context {
+    /**
+     * Convenience method, equivalent to {@code decompress(src, dst, null);}.
+     *
+     * @see #decompress(ByteBuf, ByteBuf, ByteBuf)
+     */
+    default boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException {
+        return this.decompress(src, dst, null);
+    }
+
     /**
      * Decompresses the given compressed data into the given destination buffer.
      * <p>
      * If the destination buffer does not have enough space writable for the decompressed data, the operation will fail and both buffer's indices will remain
      * unchanged, however the destination buffer's contents may be modified.
      * <p>
-     * The currently configured dictionary will always remain unaffected by this method.
+     * In either case, the indices of the dictionary buffer remain unaffected.
      *
      * @param src the {@link ByteBuf} to read compressed data from
      * @param dst the {@link ByteBuf} to write decompressed data to
+     * @param dict the (possibly {@code null}) {@link ByteBuf} containing the dictionary to be used for decompression
      * @return whether or not decompression was successful. If {@code false}, the destination buffer was too small for the decompressed data
      */
-    boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException;
+    boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) throws InvalidBufferTypeException, DictionaryNotAllowedException;
 }

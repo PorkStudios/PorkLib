@@ -25,6 +25,7 @@ import net.daporkchop.lib.compression.CCtx;
 import net.daporkchop.lib.compression.CompressionProvider;
 import net.daporkchop.lib.compression.DCtx;
 import net.daporkchop.lib.compression.PInflater;
+import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
 import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelException;
 import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
 import net.daporkchop.lib.unsafe.util.AbstractReleasable;
@@ -39,10 +40,8 @@ import net.daporkchop.lib.unsafe.util.AbstractReleasable;
 public class StreamingWrapperDCtx extends AbstractReleasable implements DCtx {
     @Getter
     protected final CompressionProvider provider;
-
     @NonNull
-    protected PInflater inflater;
-    protected ByteBuf   dict;
+    protected final PInflater inflater;
 
     public StreamingWrapperDCtx(@NonNull CompressionProvider provider) {
         this(provider, provider.inflater());
@@ -50,43 +49,25 @@ public class StreamingWrapperDCtx extends AbstractReleasable implements DCtx {
 
     @Override
     public boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException {
+        return this.inflater.reset().fullInflate(src, dst);
+    }
+
+    @Override
+    public boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) throws InvalidBufferTypeException, DictionaryNotAllowedException {
+        if (dict != null && !this.hasDict())    {
+            throw new DictionaryNotAllowedException();
+        }
+
         this.inflater.reset();
-        if (this.dict != null) {
-            //set dictionary if needed
-            this.inflater.dict(this.dict);
+        if (dict != null) {
+            this.inflater.dict(dict);
         }
         return this.inflater.fullInflate(src, dst);
     }
 
     @Override
-    public DCtx reset() {
-        this.inflater.reset();
-        if (this.dict != null) {
-            this.dict.release();
-            this.dict = null;
-        }
-        return this;
-    }
-
-    @Override
     public boolean hasDict() {
         return this.inflater.hasDict();
-    }
-
-    @Override
-    public DCtx dict(@NonNull ByteBuf dict) throws InvalidBufferTypeException, UnsupportedOperationException {
-        if (!this.inflater.hasDict()) {
-            throw new UnsupportedOperationException();
-        }
-
-        //release old dictionary
-        if (this.dict != null) {
-            this.dict.release();
-            this.dict = null;
-        }
-
-        this.dict = this.inflater.assertAcceptable(dict).retainedSlice();
-        return this;
     }
 
     @Override
@@ -112,6 +93,5 @@ public class StreamingWrapperDCtx extends AbstractReleasable implements DCtx {
     @Override
     protected void doRelease() {
         this.inflater.release();
-        this.inflater = null;
     }
 }

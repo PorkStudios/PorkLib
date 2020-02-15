@@ -19,15 +19,14 @@ import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.compression.util.exception.ContextFinishedException;
 import net.daporkchop.lib.compression.util.exception.ContextFinishingException;
-import net.daporkchop.lib.natives.util.BufferTyped;
+import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
 import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
-import net.daporkchop.lib.unsafe.capability.Releasable;
 
 /**
  * Base interface for {@link PDeflater} and {@link PDeflater}.
  * @author DaPorkchop_
  */
-interface StreamingContext<I extends StreamingContext<I>> extends Context<I> {
+interface StreamingContext<I extends StreamingContext<I>> extends Context {
     /**
      * Sets the context's current source buffer when processing data in streaming mode.
      *
@@ -74,10 +73,25 @@ interface StreamingContext<I extends StreamingContext<I>> extends Context<I> {
     /**
      * Resets this context.
      * <p>
-     * This will erase any internal buffers and reset the source, destination and dictionary buffers to {@code null}.
+     * This will discard any internal buffers and reset the source, destination and dictionary buffers to {@code null}.
      *
      * @return this context
      */
-    @Override
     I reset();
+
+    /**
+     * Sets the dictionary to be used by this context.
+     * <p>
+     * Must be called immediately after being initialized or reset.
+     * <p>
+     * The dictionary will remain referenced until the context is reset.
+     *
+     * @param dict the new dictionary to use. The currently readable region of the buffer will be used as the dictionary.
+     * @return this context
+     * @throws DictionaryNotAllowedException if this context does not allow use of a dictionary
+     * @see #hasDict()
+     */
+    default I dict(@NonNull ByteBuf dict) throws InvalidBufferTypeException, DictionaryNotAllowedException {
+        throw new DictionaryNotAllowedException();
+    }
 }

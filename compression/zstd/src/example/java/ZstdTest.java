@@ -66,7 +66,7 @@ public class ZstdTest {
             Zstd.PROVIDER.compress(original.clear().writerIndex(SIZE), compressed.clear(), Zstd.LEVEL_MAX);
             compressed.markWriterIndex();
 
-            int uncompressedSize = PValidation.toPositiveIntSafe(Zstd.PROVIDER.frameContentSize(compressed));
+            int uncompressedSize = Zstd.PROVIDER.frameContentSize(compressed);
             ByteBuf uncompressed = Unpooled.directBuffer(uncompressedSize, uncompressedSize);
 
             long start = System.currentTimeMillis();
@@ -97,7 +97,7 @@ public class ZstdTest {
             Zstd.PROVIDER.compress(original.slice(), compressed, Zstd.LEVEL_DEFAULT);
             System.out.printf("original: %d, compressed: %d\n", original.readableBytes(), compressed.readableBytes());
 
-            int uncompressedSize = PValidation.toPositiveIntSafe(Zstd.PROVIDER.frameContentSize(compressed));
+            int uncompressedSize = PValidation.toPositiveIntSafe(Zstd.PROVIDER.frameContentSizeLong(compressed));
             System.out.printf("original size: %d, frame content size: %d\n", SIZE, uncompressedSize);
             ByteBuf uncompressed = Unpooled.directBuffer(uncompressedSize, uncompressedSize);
 

@@ -16,105 +16,91 @@
 package net.daporkchop.lib.common.util;
 
 import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.common.util.exception.ValueCannotFitException;
+import net.daporkchop.lib.common.util.exception.ValueOutOfBoundsException;
 
 /**
  * @author DaPorkchop_
  */
 @UtilityClass
 public class PValidation {
-    public long ensurePositive(long value) {
+    public long ensurePositive(long value) throws ValueOutOfBoundsException {
         if (value <= 0L) {
-            throw new IllegalArgumentException(value + " <= 0");
+            throw new ValueOutOfBoundsException(value + " <= 0");
         }
         return value;
     }
 
-    public int ensurePositive(int value) {
+    public int ensurePositive(int value) throws ValueOutOfBoundsException {
         if (value <= 0) {
-            throw new IllegalArgumentException(value + " <= 0");
+            throw new ValueOutOfBoundsException(value + " <= 0");
         }
         return value;
     }
 
-    public long ensureNonPositive(long value) {
+    public long ensureNonPositive(long value) throws ValueOutOfBoundsException {
         if (value > 0L) {
-            throw new IllegalArgumentException(value + " > 0");
+            throw new ValueOutOfBoundsException(value + " > 0");
         }
         return value;
     }
 
-    public int ensureNonPositive(int value) {
+    public int ensureNonPositive(int value) throws ValueOutOfBoundsException {
         if (value > 0) {
-            throw new IllegalArgumentException(value + " > 0");
+            throw new ValueOutOfBoundsException(value + " > 0");
         }
         return value;
     }
 
-    public long ensureNegative(long value) {
+    public long ensureNegative(long value) throws ValueOutOfBoundsException {
         if (value >= 0L) {
-            throw new IllegalArgumentException(value + " >= 0");
+            throw new ValueOutOfBoundsException(value + " >= 0");
         }
         return value;
     }
 
-    public int ensureNegative(int value) {
+    public int ensureNegative(int value) throws ValueOutOfBoundsException {
         if (value >= 0) {
-            throw new IllegalArgumentException(value + " >= 0");
+            throw new ValueOutOfBoundsException(value + " >= 0");
         }
         return value;
     }
 
-    public long ensureNonNegative(long value) {
+    public long ensureNonNegative(long value) throws ValueOutOfBoundsException {
         if (value < 0L) {
-            throw new IllegalArgumentException(value + " < 0");
+            throw new ValueOutOfBoundsException(value + " < 0");
         }
         return value;
     }
 
-    public int ensureNonNegative(int value) {
+    public int ensureNonNegative(int value) throws ValueOutOfBoundsException {
         if (value < 0) {
-            throw new IllegalArgumentException(value + " < 0");
+            throw new ValueOutOfBoundsException(value + " < 0");
         }
         return value;
     }
 
-    public int toIntSafe(long value)  {
+    public int toInt(long value) throws ValueCannotFitException {
         int i = (int) value;
         if (i != value) {
-            throw new IllegalArgumentException(value + " cannot fit in an int!");
+            throw new ValueCannotFitException(value, 0);
         }
         return i;
     }
 
-    public int toPositiveIntSafe(long value)  {
-        int i = (int) ensurePositive(value);
-        if (i != value) {
-            throw new IllegalArgumentException(value + " cannot fit in an int!");
-        }
-        return i;
+    public int toPositiveIntSafe(long value) throws ValueCannotFitException, ValueOutOfBoundsException  {
+        return ensurePositive(toInt(value));
     }
 
-    public int toNonPositiveIntSafe(long value)  {
-        int i = (int) ensureNonPositive(value);
-        if (i != value) {
-            throw new IllegalArgumentException(value + " cannot fit in an int!");
-        }
-        return i;
+    public int toNonPositiveIntSafe(long value) throws ValueCannotFitException, ValueOutOfBoundsException  {
+        return ensureNonPositive(toInt(value));
     }
 
-    public int toNegativeIntSafe(long value)  {
-        int i = (int) ensureNegative(value);
-        if (i != value) {
-            throw new IllegalArgumentException(value + " cannot fit in an int!");
-        }
-        return i;
+    public int toNegativeIntSafe(long value) throws ValueCannotFitException, ValueOutOfBoundsException  {
+        return ensureNegative(toInt(value));
     }
 
-    public int toNonNegativeIntSafe(long value)  {
-        int i = (int) ensureNonNegative(value);
-        if (i != value) {
-            throw new IllegalArgumentException(value + " cannot fit in an int!");
-        }
-        return i;
+    public int toNonNegativeIntSafe(long value) throws ValueCannotFitException, ValueOutOfBoundsException  {
+        return ensureNonNegative(toInt(value));
     }
 }

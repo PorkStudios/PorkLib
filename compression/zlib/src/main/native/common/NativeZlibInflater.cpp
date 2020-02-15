@@ -3,11 +3,6 @@
 
 #include <lib-zlib/zlib-ng.h>
 
-#include <stdlib.h>
-#include <string.h>
-
-#include <stdio.h>
-
 static jfieldID ctxID;
 static jfieldID readBytesID;
 static jfieldID writtenBytesID;
@@ -44,14 +39,13 @@ __attribute__((visibility("default"))) jlong JNICALL Java_net_daporkchop_lib_com
             return 0;
     }
 
-    zng_stream* stream = (zng_stream*) malloc(sizeof(zng_stream));
-    memset(stream, 0, sizeof(zng_stream));
+    zng_stream* stream = (zng_stream*) new char[sizeof(zng_stream)]();
 
     int ret = zng_inflateInit2(stream, windowBits);
 
     if (ret != Z_OK)    {
         const char* msg = stream->msg;
-        free(stream);
+        delete stream;
         throwException(env, msg == nullptr ? "Couldn't init inflater!" : msg, ret);
         return 0;
     }
@@ -65,7 +59,7 @@ __attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_comp
 
     int ret = zng_inflateEnd(stream);
     const char* msg = stream->msg;
-    free(stream);
+    delete stream;
 
     if (ret != Z_OK)    {
         throwException(env, msg == nullptr ? "Couldn't end inflater!" : msg, ret);

@@ -41,14 +41,7 @@ final class NativeZlibCCtx extends StreamingWrapperCCtx implements ZlibCCtx {
     }
 
     @Override
-    public ZlibCCtx reset() {
-        super.reset();
-        return this;
-    }
-
-    @Override
-    public ZlibCCtx dict(@NonNull ByteBuf dict) throws InvalidBufferTypeException {
-        super.dict(dict);
-        return this;
+    public boolean hasDict() {
+        return true;
     }
 }

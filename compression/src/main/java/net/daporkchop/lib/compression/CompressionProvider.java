@@ -15,6 +15,8 @@
 
 package net.daporkchop.lib.compression;
 
+import net.daporkchop.lib.common.util.PValidation;
+import net.daporkchop.lib.common.util.exception.ValueCannotFitException;
 import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelException;
 import net.daporkchop.lib.natives.util.BufferTyped;
 
@@ -41,6 +43,22 @@ public interface CompressionProvider extends BufferTyped {
      * @return the compression level with the best compression ratio in exchange for the longest compression times
      */
     int levelBest();
+
+    /**
+     * @see #compressBoundLong(long)
+     * @throws ValueCannotFitException if the returned value is too large to fit in an {@code int}
+     */
+    default int compressBound(int srcSize) throws ValueCannotFitException {
+        return PValidation.toInt(this.compressBoundLong(srcSize));
+    }
+
+    /**
+     * Gets the maximum (worst-case) compressed size for input data of the given length.
+     *
+     * @param srcSize the size (in bytes) of the source data
+     * @return the worst-case size of the compressed data
+     */
+    long compressBoundLong(long srcSize);
 
     /**
      * Creates a new {@link PDeflater} with the default compression level.

@@ -17,7 +17,7 @@ package net.daporkchop.lib.compression;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelException;
+import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
 import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
 
 /**
@@ -25,20 +25,31 @@ import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
  *
  * @author DaPorkchop_
  */
-public interface CCtx extends Context<CCtx> {
+public interface CCtx extends Context {
+    /**
+     * Convenience method, equivalent to {@code compress(src, dst, null);}.
+     *
+     * @see #compress(ByteBuf, ByteBuf, ByteBuf)
+     */
+    default boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException {
+        return this.compress(src, dst, null);
+    }
+
     /**
      * Compresses the given source data into the given destination buffer at the configured compression level.
      * <p>
      * If the destination buffer does not have enough space writable for the compressed data, the operation will fail and both buffer's indices will remain
      * unchanged, however the destination buffer's contents may be modified.
      * <p>
-     * The currently configured dictionary will always remain unaffected by this method.
+     * In either case, the indices of the dictionary buffer remain unaffected.
      *
-     * @param src the {@link ByteBuf} to read source data from
-     * @param dst the {@link ByteBuf} to write compressed data to
+     * @param src  the {@link ByteBuf} to read source data from
+     * @param dst  the {@link ByteBuf} to write compressed data to
+     * @param dict the (possibly {@code null}) {@link ByteBuf} containing the dictionary to be used for compression
      * @return whether or not compression was successful. If {@code false}, the destination buffer was too small for the compressed data
+     * @throws DictionaryNotAllowedException if the dictionary buffer is not {@code null} and this context does not allow use of a dictionary
      */
-    boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException;
+    boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) throws InvalidBufferTypeException, DictionaryNotAllowedException;
 
     /**
      * @return the configured compression level

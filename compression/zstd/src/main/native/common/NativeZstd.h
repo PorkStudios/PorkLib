@@ -31,7 +31,7 @@ JNIEXPORT jint JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZs
  * Method:    doFrameContentSize
  * Signature: (JI)J
  */
-JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstd_doFrameContentSize
+JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstd_doFrameContentSizeLong
   (JNIEnv *, jobject, jlong, jint);
 
 /*
@@ -39,7 +39,7 @@ JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZ
  * Method:    doCompressBound
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstd_doCompressBound
+JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstd_doCompressBoundLong
   (JNIEnv *, jobject, jlong);
 
 #ifdef __cplusplus

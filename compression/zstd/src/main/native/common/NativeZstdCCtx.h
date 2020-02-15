@@ -42,6 +42,14 @@ JNIEXPORT jint JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZs
 JNIEXPORT jint JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdCCtx_doCompressRawDict
   (JNIEnv *, jobject, jlong, jlong, jint, jlong, jint, jlong, jint, jint);
 
+/*
+ * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdCCtx
+ * Method:    doCompressCDict
+ * Signature: (JJIJIJII)I
+ */
+JNIEXPORT jint JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdCCtx_doCompressCDict
+  (JNIEnv *, jobject, jlong, jlong, jint, jlong, jint, jlong);
+
 #ifdef __cplusplus
 }
 #endif

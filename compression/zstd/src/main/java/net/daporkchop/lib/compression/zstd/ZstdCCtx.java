@@ -29,6 +29,9 @@ import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
  * @author DaPorkchop_
  */
 public interface ZstdCCtx extends CCtx {
+    @Override
+    ZstdProvider provider();
+
     /**
      * Compresses the given source data into the given destination buffer at the configured Zstd level.
      *
@@ -67,6 +70,16 @@ public interface ZstdCCtx extends CCtx {
      * @see #compress(ByteBuf, ByteBuf, ByteBuf)
      */
     boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict, int compressionLevel) throws InvalidBufferTypeException;
+
+    /**
+     * Compresses the given source data into a single Zstd frame into the given destination buffer using the given dictionary.
+     * <p>
+     * As the dictionary has already been digested, this is far faster than the other dictionary compression methods.
+     *
+     * @param dictionary the dictionary to use
+     * @see #compress(ByteBuf, ByteBuf)
+     */
+    boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, @NonNull ZstdCDict dictionary) throws InvalidBufferTypeException;
 
     @Override
     default boolean hasDict() {

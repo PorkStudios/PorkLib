@@ -15,34 +15,28 @@
 
 package net.daporkchop.lib.compression.zstd;
 
-import io.netty.buffer.ByteBuf;
-import lombok.NonNull;
-import net.daporkchop.lib.compression.DCtx;
-import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
+import io.netty.util.ReferenceCounted;
+import net.daporkchop.lib.common.misc.refcount.RefCounted;
+import net.daporkchop.lib.compression.CompressionProvider;
+import net.daporkchop.lib.unsafe.capability.Releasable;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 /**
- * Deompression context for {@link Zstd}.
- * <p>
- * Not thread-safe.
+ * A digested dictionary used by {@link Zstd} compression.
  *
  * @author DaPorkchop_
  */
-public interface ZstdDCtx extends DCtx {
-    @Override
+public interface ZstdCDict extends RefCounted {
+    /**
+     * @return the {@link CompressionProvider} that created this context
+     */
     ZstdProvider provider();
 
     /**
-     * Decompresses the given compressed data into the given destination buffer using the given dictionary.
-     * <p>
-     * As the dictionary has already been digested, this is far faster than {@link #decompress(ByteBuf, ByteBuf, ByteBuf)}.
-     *
-     * @param dictionary the dictionary to use
-     * @see #decompress(ByteBuf, ByteBuf)
+     * @return the compression level that the dictionary will use
      */
-    boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst, @NonNull ZstdDDict dictionary) throws InvalidBufferTypeException;
+    int level();
 
     @Override
-    default boolean hasDict() {
-        return true;
-    }
+    ZstdCDict retain() throws AlreadyReleasedException;
 }

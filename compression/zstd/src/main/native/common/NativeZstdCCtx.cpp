@@ -50,3 +50,19 @@ __attribute__((visibility("default"))) jint JNICALL Java_net_daporkchop_lib_comp
 
     return (jint) ret;
 }
+
+__attribute__((visibility("default"))) jint JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdCCtx_doCompressCDict
+        (JNIEnv* env, jobject obj, jlong ctx, jlong srcAddr, jint srcSize, jlong dstAddr, jint dstSize, jlong dictAddr)   {
+    auto ret = ZSTD_compress_usingCDict((ZSTD_CCtx*) ctx, (void*) dstAddr, dstSize, (void*) srcAddr, srcSize, (ZSTD_CDict*) dictAddr);
+
+    if (ZSTD_isError(ret))  {
+        if (ZSTD_getErrorCode(ret) == ZSTD_error_dstSize_tooSmall) {
+            return -1;
+        } else {
+            throwException(env, ZSTD_getErrorName(ret), (int) ret);
+            return 0;
+        }
+    }
+
+    return (jint) ret;
+}

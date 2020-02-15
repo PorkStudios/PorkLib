@@ -21,6 +21,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.compression.zstd.ZstdCCtx;
+import net.daporkchop.lib.compression.zstd.ZstdCDict;
 import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
 import net.daporkchop.lib.unsafe.PCleaner;
 import net.daporkchop.lib.unsafe.util.AbstractReleasable;
@@ -79,6 +80,27 @@ final class NativeZstdCCtx extends AbstractReleasable implements ZstdCCtx {
     }
 
     private native int doCompressRawDict(long ctx, long srcAddr, int srcSize, long dstAddr, int dstSize, long dictAddr, int dictSize, int compressionLevel);
+
+    @Override
+    public boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, @NonNull ZstdCDict dictionary) throws InvalidBufferTypeException {
+        if (!(dictionary instanceof NativeZStdCDict))    {
+            throw new IllegalArgumentException(dictionary.getClass().getCanonicalName());
+        }
+
+        dictionary.retain();
+        try {
+            int val = this.doCompressCDict(this.ctx,
+                    this.assertAcceptable(src).memoryAddress() + src.readerIndex(), src.readableBytes(),
+                    this.assertAcceptable(dst).memoryAddress() + dst.writerIndex(), dst.writableBytes(),
+                    ((NativeZStdCDict) dictionary).dict());
+
+            return NativeZstdHelper.finalizeOneShot(src, dst, val);
+        } finally {
+            dictionary.release();
+        }
+    }
+
+    private native int doCompressCDict(long ctx, long srcAddr, int srcSize, long dstAddr, int dstSize, long dictAddr);
 
     @Override
     public boolean directAccepted() {

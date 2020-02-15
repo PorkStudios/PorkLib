@@ -21,42 +21,31 @@ import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelExce
 import net.daporkchop.lib.natives.util.BufferTyped;
 
 /**
- * An implementation of a compression algorithm.
+ * An implementation of a compression algorithm that supports one-shot compression via {@link CCtx} and {@link DCtx}.
  *
  * @author DaPorkchop_
  */
-public interface CompressionProvider extends BufferTyped {
-    @Override
-    boolean directAccepted();
-
+public interface OneShotCompressionProvider extends CompressionProvider {
     /**
-     * @return the compression level with the worst compression ratio in exchange for the shortest compression times
+     * Creates a new {@link CCtx} with the default compression level.
+     *
+     * @see #compressionContext(int)
      */
-    int levelFast();
-
-    /**
-     * @return the compression level used by default
-     */
-    int levelDefault();
-
-    /**
-     * @return the compression level with the best compression ratio in exchange for the longest compression times
-     */
-    int levelBest();
-
-    /**
-     * @see #compressBoundLong(long)
-     * @throws ValueCannotFitException if the returned value is too large to fit in an {@code int}
-     */
-    default int compressBound(int srcSize) throws ValueCannotFitException {
-        return PValidation.toInt(this.compressBoundLong(srcSize));
+    default CCtx compressionContext() {
+        return this.compressionContext(this.levelDefault());
     }
 
     /**
-     * Gets the maximum (worst-case) compressed size for input data of the given length.
+     * Creates a new {@link CCtx} with the given compression level.
      *
-     * @param srcSize the size (in bytes) of the source data
-     * @return the worst-case size of the compressed data
+     * @param level the compression level to use
+     * @return a new {@link CCtx} with the given compression level
+     * @throws InvalidCompressionLevelException if the given compression level is invalid
      */
-    long compressBoundLong(long srcSize);
+    CCtx compressionContext(int level) throws InvalidCompressionLevelException;
+
+    /**
+     * @return a new {@link DCtx}
+     */
+    DCtx decompressionContext();
 }

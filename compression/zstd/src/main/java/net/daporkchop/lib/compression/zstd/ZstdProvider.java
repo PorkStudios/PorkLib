@@ -20,6 +20,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.common.util.exception.ValueCannotFitException;
 import net.daporkchop.lib.compression.CompressionProvider;
+import net.daporkchop.lib.compression.OneShotCompressionProvider;
 import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelException;
 import net.daporkchop.lib.compression.zstd.util.exception.ContentSizeUnknownException;
 import net.daporkchop.lib.natives.impl.Feature;
@@ -30,10 +31,7 @@ import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
  *
  * @author DaPorkchop_
  */
-public interface ZstdProvider extends CompressionProvider, Feature<ZstdProvider> {
-    @Override
-    boolean directAccepted();
-
+public interface ZstdProvider extends OneShotCompressionProvider, Feature<ZstdProvider> {
     /**
      * Compresses the given source data into a single Zstd frame into the given destination buffer at the default compression level.
      *

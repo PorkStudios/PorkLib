@@ -41,6 +41,9 @@ public abstract class NativeFeature<F extends Feature<F>> implements Feature<F> 
         switch (PlatformInfo.OPERATING_SYSTEM)  {
             case Linux:
                 switch (PlatformInfo.ARCHITECTURE)  {
+                    case ARM:
+                        LIB_FMT = "/arm-linux-gnueabi/lib";
+                        break;
                     case AARCH64:
                         LIB_FMT = "/aarch64-linux-gnu/lib";
                         break;

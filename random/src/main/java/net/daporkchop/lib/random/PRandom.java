@@ -16,6 +16,7 @@
 package net.daporkchop.lib.random;
 
 import lombok.NonNull;
+import net.daporkchop.lib.random.impl.AbstractFastPRandom;
 import net.daporkchop.lib.random.impl.ThreadLocalPRandom;
 import net.daporkchop.lib.random.wrapper.JavaRandomWrapper;
 import net.daporkchop.lib.random.wrapper.PRandomWrapper;
@@ -42,6 +43,8 @@ public interface PRandom {
             return ((PRandomWrapper) random).delegate();
         } else if (random instanceof ThreadLocalRandom) {
             return ThreadLocalPRandom.current();
+        } else if (random instanceof AbstractFastPRandom)   {
+            return (AbstractFastPRandom) random;
         } else {
             return new JavaRandomWrapper(random);
         }

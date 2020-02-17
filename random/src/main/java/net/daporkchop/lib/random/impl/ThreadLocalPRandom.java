@@ -19,7 +19,6 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.random.PRandom;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.util.Random;
@@ -35,12 +34,9 @@ import java.util.stream.LongStream;
  * @author DaPorkchop_
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class ThreadLocalPRandom extends Random implements PRandom {
+public final class ThreadLocalPRandom extends AbstractFastPRandom {
     private static final long SEED  = PUnsafe.pork_getOffset(Thread.class, "threadLocalRandomSeed");
     private static final long GAMMA = 0x9e3779b97f4a7c15L;
-
-    private static final double DOUBLE_UNIT = 0x1.0p-53;
-    private static final float  FLOAT_UNIT  = 0x1.0p-24f;
 
     private static final ThreadLocalPRandom INSTANCE = new ThreadLocalPRandom();
 
@@ -248,6 +244,11 @@ public final class ThreadLocalPRandom extends Random implements PRandom {
     }
 
     @Override
+    public float nextGaussianFloat() {
+        return (float) ThreadLocalRandom.current().nextGaussian();
+    }
+
+    @Override
     public double nextDouble() {
         return (mix64(nextSeed()) >>> 11L) * DOUBLE_UNIT;
     }
@@ -270,6 +271,11 @@ public final class ThreadLocalPRandom extends Random implements PRandom {
 
         double result = (mix64(nextSeed()) >>> 11L) * DOUBLE_UNIT * (bound - origin) + origin;
         return (result < bound) ? result : Double.longBitsToDouble(Double.doubleToLongBits(bound) - 1L);
+    }
+
+    @Override
+    public double nextGaussianDouble() {
+        return ThreadLocalRandom.current().nextGaussian();
     }
 
     @Override

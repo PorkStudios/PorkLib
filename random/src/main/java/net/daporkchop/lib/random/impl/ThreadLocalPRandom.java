@@ -90,18 +90,10 @@ public final class ThreadLocalPRandom extends AbstractFastPRandom {
 
     @Override
     public void nextBytes(@NonNull byte[] dst, int start, int length) {
-        PorkUtil.assertInRangeLen(dst.length, start, length);
-
-        //optimization for filling the whole array
         if (start == 0 && length == dst.length) {
             ThreadLocalRandom.current().nextBytes(dst);
-            return;
-        }
-
-        for (int i = start; i < length; ) {
-            for (long rnd = this.nextLong(), n = Math.min(length - i, Long.SIZE / Byte.SIZE); n-- > 0; rnd >>= Byte.SIZE) {
-                dst[i++] = (byte) rnd;
-            }
+        } else {
+            super.nextBytes(dst, start, length);
         }
     }
 

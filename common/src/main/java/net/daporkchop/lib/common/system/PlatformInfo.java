@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -26,7 +26,7 @@ import java.util.Arrays;
  */
 @UtilityClass
 public class PlatformInfo {
-    public static final Architecture ARCHITECTURE;
+    public final Architecture ARCHITECTURE;
 
     static {
         //obligatory "i use arch btw" comment
@@ -81,7 +81,7 @@ public class PlatformInfo {
         }
     }
 
-    public static final OperatingSystem OPERATING_SYSTEM;
+    public final OperatingSystem OPERATING_SYSTEM;
 
     static {
         String os = System.getProperty("os.name", "").toLowerCase().replaceAll("[^a-z0-9]+", "");
@@ -103,11 +103,27 @@ public class PlatformInfo {
         }
     }
 
-    public static final int JAVA_VERSION;
+    public final int JAVA_VERSION;
 
     static {
         int[] version = Arrays.stream(System.getProperty("java.specification.version", "1.6").split("\\.")).mapToInt(Integer::parseInt).toArray();
 
         JAVA_VERSION = version[0] == 1 ? version[1] : version[0];
+    }
+
+    public final boolean IS_32BIT = ARCHITECTURE.bits() == 32;
+    public final boolean IS_64BIT = ARCHITECTURE.bits() == 64;
+
+    public final boolean UNALIGNED;
+
+    static {
+        boolean unaligned = ARCHITECTURE == Architecture.x86 || ARCHITECTURE == Architecture.x86_64;
+        if (!unaligned) {
+            try {
+                //TODO
+            } finally {
+            }
+        }
+        UNALIGNED = unaligned;
     }
 }

@@ -16,8 +16,10 @@
 package net.daporkchop.lib.random.impl;
 
 import lombok.NonNull;
+import net.daporkchop.lib.common.system.PlatformInfo;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.random.PRandom;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.util.Random;
 
@@ -54,8 +56,55 @@ public abstract class AbstractFastPRandom extends Random implements PRandom {
     }
 
     @Override
+    public void nextBytes(@NonNull byte[] dst) {
+        this.nextBytes(dst, 0, dst.length);
+    }
+
+    @Override
     public void nextBytes(@NonNull byte[] dst, int start, int length) {
         PorkUtil.assertInRangeLen(dst.length, start, length);
+        if (length == 0)   {
+            return;
+        }
+
+        if (PlatformInfo.IS_64BIT)  {
+            this.nextBytes64(dst, start, length);
+        } else if (PlatformInfo.IS_32BIT)   {
+            this.nextBytes32(dst, start, length);
+        } else {
+            this.nextBytesDefault(dst, start, length);
+        }
+    }
+
+    private void nextBytes64(byte[] dst, int start, int length) {
+        int i = start;
+        int end = start + length;
+        if (!PlatformInfo.UNALIGNED && (i & 0x7) != 0) {
+            //pad to next word boundary
+            this.ne
+        }
+
+        int words = 0;
+    }
+
+    private void nextBytesDefault64(byte[] dst, int start, int length) {
+        for (int i = start; i < length; )   {
+            for (long rnd = this.nextLong(), n = Math.min(length - i, 8); n-- > 0; rnd >>>= 8) {
+                dst[i++] = (byte) rnd;
+            }
+        }
+    }
+
+    private void nextBytes32(byte[] dst, int start, int length) {
+        //TODO
+    }
+
+    private void nextBytesDefault(byte[] dst, int start, int length) {
+        for (int i = start; i < length; )   {
+            for (int rnd = this.nextInt(), n = Math.min(length - i, 4); n-- > 0; rnd >>>= 8) {
+                dst[i++] = (byte) rnd;
+            }
+        }
     }
 
     @Override

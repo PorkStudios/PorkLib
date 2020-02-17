@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -15,20 +15,29 @@
 
 package net.daporkchop.lib.common.system;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+
 /**
  * An enumeration of common CPU architectures.
  *
  * @author DaPorkchop_
  */
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
 public enum Architecture {
-    x86,
-    x86_64,
-    Itanium,
-    SPARC,
-    SPARC_64,
-    ARM,
-    AARCH64,
-    PowerPC,
-    PowerPC_64,
-    UNKNOWN;
+    x86(32),
+    x86_64(64),
+    Itanium(64),
+    SPARC(32),
+    SPARC_64(64),
+    ARM(32),
+    AARCH64(64),
+    PowerPC(32),
+    PowerPC_64(64),
+    UNKNOWN(-1);
+
+    private final int bits;
 }

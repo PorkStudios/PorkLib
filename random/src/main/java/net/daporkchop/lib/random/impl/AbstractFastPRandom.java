@@ -68,40 +68,98 @@ public abstract class AbstractFastPRandom extends Random implements PRandom {
         }
 
         if (PlatformInfo.IS_64BIT)  {
-            this.nextBytes64(dst, start, length);
+            if (length < 8 * 2)     {
+                this.nextBytes64(dst, start, length);
+            } else {
+                this.nextBytes64Fast(dst, start, length);
+            }
         } else if (PlatformInfo.IS_32BIT)   {
-            this.nextBytes32(dst, start, length);
+            if (length < 4 * 2) {
+                this.nextBytes32(dst, start, length);
+            } else {
+                this.nextBytes32Fast(dst, start, length);
+            }
         } else {
-            this.nextBytesDefault(dst, start, length);
+            //fallback for unknown systems
+            this.nextBytes32(dst, start, length);
         }
     }
 
-    private void nextBytes64(byte[] dst, int start, int length) {
-        int i = start;
-        int end = start + length;
+    protected final void nextBytes64Fast(byte[] dst, int start, int length) {
+        long i = PUnsafe.ARRAY_BYTE_BASE_OFFSET + start; //current address
+        final long end = PUnsafe.ARRAY_BYTE_BASE_OFFSET + start + length; //final address (exclusive)
+
         if (!PlatformInfo.UNALIGNED && (i & 0x7) != 0) {
-            //pad to next word boundary
-            this.ne
+            //pad to next word boundary on platforms that don't support unaligned memory access
+            long val = this.nextLong();
+            do {
+                //this will never run more than 7 times, so val will never be fully consumed
+                PUnsafe.putByte(dst, i++, (byte) val);
+                val >>>= 8L;
+                length--;
+            } while (i < end && (i & 0x7) != 0);
         }
 
-        int words = 0;
+        for (int words = length >>> 3; words > 0; i += 8L, words--) {
+            //generate entire words at a time
+            PUnsafe.putLong(dst, i, PlatformInfo.IS_BIG_ENDIAN ? Long.reverseBytes(this.nextLong()) : this.nextLong());
+        }
+
+        int bytes = length & 0x7; //number of single bytes remaining after word-filling
+        if (bytes != 0) {
+            //fill remaining bytes
+            long val = this.nextLong();
+            do {
+                PUnsafe.putByte(dst, i++, (byte) val);
+                val >>>= 8L;
+            } while (i < end);
+        }
     }
 
-    private void nextBytesDefault64(byte[] dst, int start, int length) {
+    protected final void nextBytes64(byte[] dst, int start, int length) {
         for (int i = start; i < length; )   {
-            for (long rnd = this.nextLong(), n = Math.min(length - i, 8); n-- > 0; rnd >>>= 8) {
+            int n = Math.min(length - i, 8);
+            for (long rnd = this.nextLong(); n-- > 0; rnd >>>= 8L, n--) {
                 dst[i++] = (byte) rnd;
             }
         }
     }
 
-    private void nextBytes32(byte[] dst, int start, int length) {
-        //TODO
+    protected final void nextBytes32Fast(byte[] dst, int start, int length) {
+        long i = PUnsafe.ARRAY_BYTE_BASE_OFFSET + start; //current address
+        final long end = PUnsafe.ARRAY_BYTE_BASE_OFFSET + start + length; //final address (exclusive)
+
+        if (!PlatformInfo.UNALIGNED && (i & 0x3) != 0) {
+            //pad to next word boundary on platforms that don't support unaligned memory access
+            int val = this.nextInt();
+            do {
+                //this will never run more than 3 times, so val will never be fully consumed
+                PUnsafe.putByte(dst, i++, (byte) val);
+                val >>>= 8;
+                length--;
+            } while (i < end && (i & 0x3) != 0);
+        }
+
+        for (int words = length >>> 2; words > 0; i += 4L, words--) {
+            //generate entire words at a time
+            PUnsafe.putInt(dst, i, PlatformInfo.IS_BIG_ENDIAN ? Integer.reverseBytes(this.nextInt()) : this.nextInt());
+        }
+
+        int bytes = length & 0x3; //number of single bytes remaining after word-filling
+        if (bytes != 0) {
+            //fill remaining bytes
+            int val = this.nextInt();
+            do {
+                PUnsafe.putByte(dst, i++, (byte) val);
+                val >>>= 8;
+            } while (i < end);
+        }
     }
 
-    private void nextBytesDefault(byte[] dst, int start, int length) {
+    protected final void nextBytes32(byte[] dst, int start, int length) {
         for (int i = start; i < length; )   {
-            for (int rnd = this.nextInt(), n = Math.min(length - i, 4); n-- > 0; rnd >>>= 8) {
+            int n = Math.min(length - i, 4);
+            for (int rnd = this.nextInt(); n-- > 0; rnd >>>= 8, n--) {
                 dst[i++] = (byte) rnd;
             }
         }

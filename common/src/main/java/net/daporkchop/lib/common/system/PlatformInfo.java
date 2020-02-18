@@ -17,6 +17,7 @@ package net.daporkchop.lib.common.system;
 
 import lombok.experimental.UtilityClass;
 
+import java.nio.ByteOrder;
 import java.util.Arrays;
 
 /**
@@ -126,4 +127,7 @@ public class PlatformInfo {
         }
         UNALIGNED = unaligned;
     }
+
+    public final boolean IS_LITTLE_ENDIAN = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN;
+    public final boolean IS_BIG_ENDIAN    = ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN;
 }

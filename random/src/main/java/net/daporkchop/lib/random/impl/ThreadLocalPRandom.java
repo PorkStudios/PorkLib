@@ -70,7 +70,9 @@ public final class ThreadLocalPRandom extends AbstractFastPRandom {
 
     @Override
     public void setSeed(long seed) {
-        throw new UnsupportedOperationException();
+        if (INSTANCE != null)   {
+            throw new UnsupportedOperationException();
+        }
     }
 
     @Override

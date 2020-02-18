@@ -68,16 +68,16 @@ public abstract class AbstractFastPRandom extends Random implements PRandom {
         }
 
         if (PlatformInfo.IS_64BIT)  {
-            if (length < 8 * 2)     {
-                this.nextBytes64(dst, start, length);
-            } else {
+            if (PlatformInfo.IS_LITTLE_ENDIAN && length >= 8 * 2)     {
                 this.nextBytes64Fast(dst, start, length);
+            } else {
+                this.nextBytes64(dst, start, length);
             }
         } else if (PlatformInfo.IS_32BIT)   {
-            if (length < 4 * 2) {
-                this.nextBytes32(dst, start, length);
-            } else {
+            if (PlatformInfo.IS_LITTLE_ENDIAN && length >=  4 * 2) {
                 this.nextBytes32Fast(dst, start, length);
+            } else {
+                this.nextBytes32(dst, start, length);
             }
         } else {
             //fallback for unknown systems
@@ -92,17 +92,17 @@ public abstract class AbstractFastPRandom extends Random implements PRandom {
         if (!PlatformInfo.UNALIGNED && (i & 0x7) != 0) {
             //pad to next word boundary on platforms that don't support unaligned memory access
             long val = this.nextLong();
+            length -= i & 0x7;
             do {
                 //this will never run more than 7 times, so val will never be fully consumed
                 PUnsafe.putByte(dst, i++, (byte) val);
                 val >>>= 8L;
-                length--;
             } while (i < end && (i & 0x7) != 0);
         }
 
         for (int words = length >>> 3; words > 0; i += 8L, words--) {
             //generate entire words at a time
-            PUnsafe.putLong(dst, i, PlatformInfo.IS_BIG_ENDIAN ? Long.reverseBytes(this.nextLong()) : this.nextLong());
+            PUnsafe.putLong(dst, i, this.nextLong());
         }
 
         int bytes = length & 0x7; //number of single bytes remaining after word-filling
@@ -131,18 +131,18 @@ public abstract class AbstractFastPRandom extends Random implements PRandom {
 
         if (!PlatformInfo.UNALIGNED && (i & 0x3) != 0) {
             //pad to next word boundary on platforms that don't support unaligned memory access
+            length -= i & 0x3;
             int val = this.nextInt();
             do {
                 //this will never run more than 3 times, so val will never be fully consumed
                 PUnsafe.putByte(dst, i++, (byte) val);
                 val >>>= 8;
-                length--;
             } while (i < end && (i & 0x3) != 0);
         }
 
         for (int words = length >>> 2; words > 0; i += 4L, words--) {
             //generate entire words at a time
-            PUnsafe.putInt(dst, i, PlatformInfo.IS_BIG_ENDIAN ? Integer.reverseBytes(this.nextInt()) : this.nextInt());
+            PUnsafe.putInt(dst, i, this.nextInt());
         }
 
         int bytes = length & 0x3; //number of single bytes remaining after word-filling

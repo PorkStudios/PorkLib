@@ -166,6 +166,11 @@ public final class JavaRandomWrapper implements PRandom {
     }
 
     @Override
+    public float nextGaussianFloat() {
+        return (float) this.delegate.nextGaussian();
+    }
+
+    @Override
     public double nextDouble() {
         return this.delegate.nextDouble();
     }
@@ -186,5 +191,10 @@ public final class JavaRandomWrapper implements PRandom {
             throw new IllegalArgumentException("max must be greater than min");
         }
         return (this.delegate.nextDouble() * (bound - origin)) + origin;
+    }
+
+    @Override
+    public double nextGaussianDouble() {
+        return this.delegate.nextGaussian();
     }
 }

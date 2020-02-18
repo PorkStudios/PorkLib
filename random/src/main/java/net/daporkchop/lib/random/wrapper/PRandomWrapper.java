@@ -13,31 +13,75 @@
  *
  */
 
-package net.daporkchop.lib.common.system;
+package net.daporkchop.lib.random.wrapper;
 
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.random.PRandom;
+
+import java.util.Random;
 
 /**
- * An enumeration of common CPU architectures.
+ * A wrapper around {@link PRandom} to make it a {@link Random}.
  *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public enum Architecture {
-    x86(32),
-    x86_64(64),
-    Itanium(64),
-    SPARC(32),
-    SPARC_64(64),
-    ARM(32),
-    AARCH64(64),
-    PowerPC(32),
-    PowerPC_64(64),
-    UNKNOWN(-1);
+public final class PRandomWrapper extends Random {
+    @NonNull
+    private final PRandom delegate;
 
-    private final int bits;
+    @Override
+    public void setSeed(long seed) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    protected int next(int bits) {
+        return this.delegate.next(bits);
+    }
+
+    @Override
+    public void nextBytes(byte[] bytes) {
+        this.delegate.nextBytes(bytes);
+    }
+
+    @Override
+    public int nextInt() {
+        return this.delegate.nextInt();
+    }
+
+    @Override
+    public int nextInt(int bound) {
+        return this.delegate.nextInt(bound);
+    }
+
+    @Override
+    public long nextLong() {
+        return this.delegate.nextLong();
+    }
+
+    @Override
+    public boolean nextBoolean() {
+        return this.delegate.nextBoolean();
+    }
+
+    @Override
+    public float nextFloat() {
+        return this.delegate.nextFloat();
+    }
+
+    @Override
+    public double nextDouble() {
+        return this.delegate.nextDouble();
+    }
+
+    @Override
+    public double nextGaussian() {
+        return this.delegate.nextGaussianDouble();
+    }
 }

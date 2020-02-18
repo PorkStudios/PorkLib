@@ -15,29 +15,24 @@
 
 package net.daporkchop.lib.common.system;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
-
 /**
- * An enumeration of common CPU architectures.
+ * Wrapper around {@link java.nio.ByteOrder} with some additional helper utilities.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-public enum Architecture {
-    x86(32),
-    x86_64(64),
-    Itanium(64),
-    SPARC(32),
-    SPARC_64(64),
-    ARM(32),
-    AARCH64(64),
-    PowerPC(32),
-    PowerPC_64(64),
-    UNKNOWN(-1);
+public enum Endianess {
+    BIG,
+    LITTLE;
 
-    private final int bits;
+    /**
+     * The native byte order on this system.
+     */
+    public static final Endianess NATIVE = PlatformInfo.IS_BIG_ENDIAN ? BIG : LITTLE;
+
+    /**
+     * @return whether or not this is the system's native endianess
+     */
+    public boolean isNative()   {
+        return this == NATIVE;
+    }
 }

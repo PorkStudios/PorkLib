@@ -51,6 +51,7 @@ include 'network:tcp'
 include 'noise'
 include 'primitive'
 include 'primitive:generator'
+include 'random'
 include 'reflection'
 include 'unsafe'
 

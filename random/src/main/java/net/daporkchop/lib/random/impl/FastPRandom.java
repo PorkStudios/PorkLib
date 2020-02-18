@@ -13,31 +13,55 @@
  *
  */
 
-package net.daporkchop.lib.common.system;
+package net.daporkchop.lib.random.impl;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
+import lombok.AllArgsConstructor;
+import net.daporkchop.lib.random.PRandom;
 
 /**
- * An enumeration of common CPU architectures.
+ * A fast implementation of {@link PRandom} based on Java's {@link java.util.SplittableRandom}.
+ * <p>
+ * This is NOT thread-safe. Attempting to share an instance of this class among multiple threads is likely to result in duplicate values
+ * being returned to multiple threads.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-public enum Architecture {
-    x86(32),
-    x86_64(64),
-    Itanium(64),
-    SPARC(32),
-    SPARC_64(64),
-    ARM(32),
-    AARCH64(64),
-    PowerPC(32),
-    PowerPC_64(64),
-    UNKNOWN(-1);
+@AllArgsConstructor
+public final class FastPRandom extends AbstractFastPRandom {
+    private static final long GAMMA = 0x9e3779b97f4a7c15L;
 
-    private final int bits;
+    private static long mix64(long z) {
+        z = (z ^ (z >>> 33)) * 0xff51afd7ed558ccdL;
+        z = (z ^ (z >>> 33)) * 0xc4ceb9fe1a85ec53L;
+        return z ^ (z >>> 33);
+    }
+
+    private static int mix32(long z) {
+        z = (z ^ (z >>> 33)) * 0xff51afd7ed558ccdL;
+        return (int) (((z ^ (z >>> 33)) * 0xc4ceb9fe1a85ec53L) >>> 32);
+    }
+
+    private long seed;
+
+    /**
+     * Creates a new {@link FastPRandom} instance using a seed based on the current time.
+     */
+    public FastPRandom() {
+        this(mix64(System.currentTimeMillis()) ^ mix64(System.nanoTime()));
+    }
+
+    @Override
+    public int nextInt() {
+        return mix32(this.seed += GAMMA);
+    }
+
+    @Override
+    public long nextLong() {
+        return mix64(this.seed += GAMMA);
+    }
+
+    @Override
+    public void setSeed(long seed) {
+        this.seed = seed;
+    }
 }

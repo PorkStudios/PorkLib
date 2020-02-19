@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -13,20 +13,38 @@
  *
  */
 
-package noise.image;
-
-import net.daporkchop.lib.noise.NoiseEngineType;
+package net.daporkchop.lib.noise;
 
 /**
+ * A source for obtaining noise values.
+ *
  * @author DaPorkchop_
  */
-public class OpenSimplexImageTest extends ImageTest {
-    public static void main(String... args) {
-        new OpenSimplexImageTest().test();
-    }
+public interface NoiseSource {
+    /**
+     * Gets the noise value at the given 1D position.
+     *
+     * @param x the X position
+     * @return the noise value at the given position
+     */
+    double get(double x);
 
-    @Override
-    protected NoiseEngineType getType() {
-        return NoiseEngineType.OPENSIMPLEX;
-    }
+    /**
+     * Gets the noise value at the given 2D position.
+     *
+     * @param x the X position
+     * @param y the Y position
+     * @return the noise value at the given position
+     */
+    double get(double x, double y);
+
+    /**
+     * Gets the noise value at the given 3D position.
+     *
+     * @param x the X position
+     * @param y the Y position
+     * @param z the Z position
+     * @return the noise value at the given position
+     */
+    double get(double x, double y, double z);
 }

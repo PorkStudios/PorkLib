@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -15,18 +15,28 @@
 
 package noise.image;
 
-import net.daporkchop.lib.noise.NoiseEngineType;
+
+import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.noise.NoiseSource;
+import net.daporkchop.lib.noise.engine.PorkianNoiseEngine;
+import net.daporkchop.lib.random.impl.ThreadLocalPRandom;
+
+import java.awt.image.BufferedImage;
 
 /**
  * @author DaPorkchop_
  */
-public class PorkianImageTest extends ImageTest {
+public class PorkianImageTest {
     public static void main(String... args) {
-        new PorkianImageTest().test();
-    }
+        BufferedImage img = new BufferedImage(512, 512, BufferedImage.TYPE_INT_ARGB);
 
-    @Override
-    protected NoiseEngineType getType() {
-        return NoiseEngineType.PORKIAN;
+        NoiseSource src = new PorkianNoiseEngine(ThreadLocalPRandom.current());
+        for (int x = 0; x < 512; x++)   {
+            for (int y = 0; y < 512; y++)   {
+                img.setRGB(x, y, 0xFF000000 | (int) ((src.get(x * 0.025d, y * 0.025d) * 0.5d + 0.5d) * 256.0d));
+            }
+        }
+
+        PorkUtil.simpleDisplayImage(true, img);
     }
 }

@@ -100,7 +100,7 @@ public abstract class NativeFeature<F extends Feature<F>> implements Feature<F> 
             }
 
             return true;
-        } catch (Exception e) {
+        } catch (Exception | UnsatisfiedLinkError e) {
             return false;
         }
     }

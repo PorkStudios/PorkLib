@@ -58,15 +58,27 @@ public final class FeatureBuilder<F extends Feature<F>> {
     public FeatureBuilder<F> addNative(@NonNull String className, @NonNull String libName, @NonNull ClassLoader loader) {
         if (NativeFeature.AVAILABLE) {
             this.implementations.add(() -> {
-                Class<F> clazz = PorkUtil.uninitializedClassForName(className, loader);
-                return NativeFeature.loadNativeLibrary(libName, clazz) ? PUnsafe.allocateInstance(clazz) : null;
+                try {
+                    Class<F> clazz = PorkUtil.uninitializedClassForName(className, loader);
+                    return NativeFeature.loadNativeLibrary(libName, clazz) ? PUnsafe.allocateInstance(clazz) : null;
+                } catch (Exception e)    {
+                    return null;
+                }
             });
         }
         return this;
     }
 
     public FeatureBuilder<F> addJava(@NonNull String className) {
-        this.implementations.add(() -> PUnsafe.allocateInstance(PorkUtil.uninitializedClassForName(className)));
+        return this.addJava(className, this.currentClass.getClassLoader());
+    }
+
+    public FeatureBuilder<F> addJava(@NonNull String className, @NonNull Class<?> currentClass) {
+        return this.addJava(className, currentClass.getClassLoader());
+    }
+
+    public FeatureBuilder<F> addJava(@NonNull String className, @NonNull ClassLoader loader) {
+        this.implementations.add(() -> PUnsafe.allocateInstance(PorkUtil.uninitializedClassForName(className, loader)));
         return this;
     }
 

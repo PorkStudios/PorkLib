@@ -16,47 +16,47 @@
 package net.daporkchop.lib.noise.engine;
 
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.util.PArrays;
 import net.daporkchop.lib.noise.NoiseSource;
 import net.daporkchop.lib.random.PRandom;
 
 import java.util.stream.IntStream;
 
+import static net.daporkchop.lib.math.interpolation.PEasing.*;
 import static net.daporkchop.lib.math.primitive.PMath.*;
+import static net.daporkchop.lib.random.impl.FastPRandom.mix64;
 
 /**
  * An implementation of Porkian v2 noise, which is a simple value noise algorithm.
  *
  * @author DaPorkchop_
  */
-public final class PorkianNoiseEngine implements NoiseSource {
+@RequiredArgsConstructor
+public final class PorkianV2NoiseEngine implements NoiseSource {
+    protected static final double DOUBLE_UNIT = 0x1.0p-53;
+
     private static final double[] DEFAULT_STATE = IntStream.range(-128, 128)
             .mapToDouble(i -> i / 128.0d)
             .toArray();
 
-    private static int mix(int x) {
-        return ((x * 1711285531) ^ x) & 0xFF;
+    private static double fade(double t) {
+        return t * t * t * (t * (t * 6.0d - 15.0d) + 10.0d);
     }
 
-    private static int mix(int x, int y) {
-        return (((x * 1711285531) ^ x) + ((y * 2046617201) ^ y)) & 0xFF;
-    }
+    private final long seed;
 
-    private static int mix(int x, int y, int z) {
-        return (((x * 1711285531) ^ x) + ((y * 2046617201) ^ y) + ((z * 1275136279) ^ z)) & 0xFF;
-    }
-
-    private final double[] state;
-
-    public PorkianNoiseEngine(@NonNull PRandom random) {
-        PArrays.shuffle(this.state = DEFAULT_STATE.clone(), random.asJava());
+    public PorkianV2NoiseEngine(@NonNull PRandom random) {
+        this.seed = random.nextLong();
     }
 
     @Override
     public double get(double x) {
         final int xI = floorI(x);
 
-        return lerp(this.state[mix(xI)], this.state[mix(xI + 1)], x - xI);
+        x = fade(x - xI);
+
+        return lerp(this.mix(xI), this.mix(xI + 1), x) * 2.0d - 1.0d;
     }
 
     @Override
@@ -64,9 +64,12 @@ public final class PorkianNoiseEngine implements NoiseSource {
         final int xI = floorI(x);
         final int yI = floorI(y);
 
+        x = fade(x - xI);
+        y = fade(y - yI);
+
         return lerp(
-                lerp(this.state[mix(xI, yI)], this.state[mix(xI + 1, yI)], x - xI),
-                lerp(this.state[mix(xI, yI + 1)], this.state[mix(xI + 1, yI + 1)], x - xI), y - yI);
+                lerp(this.mix(xI, yI), this.mix(xI + 1, yI), x),
+                lerp(this.mix(xI, yI + 1), this.mix(xI + 1, yI + 1), x), y) * 2.0d - 1.0d;
     }
 
     @Override
@@ -75,12 +78,31 @@ public final class PorkianNoiseEngine implements NoiseSource {
         final int yI = floorI(y);
         final int zI = floorI(z);
 
+        x = fade(x - xI);
+        y = fade(y - yI);
+        z = fade(z - zI);
+
         return lerp(
                 lerp(
-                        lerp(this.state[mix(xI, yI, zI)], this.state[mix(xI + 1, yI, zI)], x - xI),
-                        lerp(this.state[mix(xI, yI + 1, zI)], this.state[mix(xI + 1, yI + 1, zI)], x - xI), y - yI),
+                        lerp(this.mix(xI, yI, zI), this.mix(xI + 1, yI, zI), x),
+                        lerp(this.mix(xI, yI + 1, zI), this.mix(xI + 1, yI + 1, zI), x), y),
                 lerp(
-                        lerp(this.state[mix(xI, yI, zI + 1)], this.state[mix(xI + 1, yI, zI + 1)], x - xI),
-                        lerp(this.state[mix(xI, yI + 1, zI + 1)], this.state[mix(xI + 1, yI + 1, zI + 1)], x - xI), y - yI), z - zI);
+                        lerp(this.mix(xI, yI, zI + 1), this.mix(xI + 1, yI, zI + 1), x),
+                        lerp(this.mix(xI, yI + 1, zI + 1), this.mix(xI + 1, yI + 1, zI + 1), x), y), z) * 2.0d - 1.0d;
+    }
+
+    private double mix(int x) {
+        return (mix64(x ^ this.seed) >>> 11L) * DOUBLE_UNIT;
+    }
+
+    private double mix(int x, int y) {
+        return ((mix64(x ^ this.seed)
+                + mix64(y ^ this.seed)) >>> 11L) * DOUBLE_UNIT;
+    }
+
+    private double mix(int x, int y, int z) {
+        return ((mix64(x ^ this.seed)
+                + mix64(y ^ this.seed)
+                + mix64(z ^ this.seed)) >>> 11L) * DOUBLE_UNIT;
     }
 }

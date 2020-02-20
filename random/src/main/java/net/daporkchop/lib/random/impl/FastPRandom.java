@@ -30,13 +30,13 @@ import net.daporkchop.lib.random.PRandom;
 public final class FastPRandom extends AbstractFastPRandom {
     private static final long GAMMA = 0x9e3779b97f4a7c15L;
 
-    private static long mix64(long z) {
+    public static long mix64(long z) {
         z = (z ^ (z >>> 33)) * 0xff51afd7ed558ccdL;
         z = (z ^ (z >>> 33)) * 0xc4ceb9fe1a85ec53L;
         return z ^ (z >>> 33);
     }
 
-    private static int mix32(long z) {
+    public static int mix32(long z) {
         z = (z ^ (z >>> 33)) * 0xff51afd7ed558ccdL;
         return (int) (((z ^ (z >>> 33)) * 0xc4ceb9fe1a85ec53L) >>> 32);
     }

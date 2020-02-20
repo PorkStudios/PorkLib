@@ -16,4 +16,6 @@
 dependencies {
     compile project(":math")
     compile project(":random")
+
+    testCompile project(":graphics")
 }

@@ -17,23 +17,33 @@ package noise.image;
 
 
 import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.graphics.color.ColorFormatRGB;
 import net.daporkchop.lib.noise.NoiseSource;
-import net.daporkchop.lib.noise.engine.PorkianNoiseEngine;
+import net.daporkchop.lib.noise.engine.PorkianV2NoiseEngine;
 import net.daporkchop.lib.random.impl.ThreadLocalPRandom;
 
 import java.awt.image.BufferedImage;
+
+import static net.daporkchop.lib.math.primitive.PMath.*;
 
 /**
  * @author DaPorkchop_
  */
 public class PorkianImageTest {
     public static void main(String... args) {
-        BufferedImage img = new BufferedImage(512, 512, BufferedImage.TYPE_INT_ARGB);
+        int size = 512;
+        double scale = 0.025d;
 
-        NoiseSource src = new PorkianNoiseEngine(ThreadLocalPRandom.current());
-        for (int x = 0; x < 512; x++)   {
-            for (int y = 0; y < 512; y++)   {
-                img.setRGB(x, y, 0xFF000000 | (int) ((src.get(x * 0.025d, y * 0.025d) * 0.5d + 0.5d) * 256.0d));
+        BufferedImage img = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+
+        NoiseSource src = new PorkianV2NoiseEngine(ThreadLocalPRandom.current());
+        for (int x = 0; x < size; x++) {
+            for (int y = 0; y < size; y++) {
+                double val = src.get(x * scale, y * scale);
+                int col = val < 0.0d
+                        ? lerpI(0x00, 0xFF, -val) << 16
+                        : lerpI(0x00, 0xFF, val) << 8;
+                img.setRGB(x, y, ColorFormatRGB.toARGB(col));
             }
         }
 

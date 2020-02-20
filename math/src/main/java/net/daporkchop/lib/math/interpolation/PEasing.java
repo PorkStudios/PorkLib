@@ -13,41 +13,54 @@
  *
  */
 
-package noise.image;
+package net.daporkchop.lib.math.interpolation;
 
+import lombok.experimental.UtilityClass;
 
-import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.graphics.color.ColorFormatRGB;
-import net.daporkchop.lib.noise.NoiseSource;
-import net.daporkchop.lib.noise.engine.PerlinNoiseEngine;
-import net.daporkchop.lib.noise.engine.PorkianV2NoiseEngine;
-import net.daporkchop.lib.random.impl.ThreadLocalPRandom;
-
-import java.awt.image.BufferedImage;
-
-import static net.daporkchop.lib.math.primitive.PMath.*;
+import static java.lang.StrictMath.*;
 
 /**
+ * Implementations of some of Robert Penner's easing functions.
+ * <p>
+ * Adapted from <a href="https://github.com/glslify/glsl-easings">glsl-easings</a>.
+ *
  * @author DaPorkchop_
  */
-public class PorkianImageTest {
-    public static void main(String... args) {
-        int size = 512;
-        double scale = 0.025d;
+@UtilityClass
+public class PEasing {
+    public static float sinInOut(float t) {
+        return -0.5f * ((float) cos(t * Math.PI) - 1.0f);
+    }
 
-        BufferedImage img = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+    public static double sinInOut(double t) {
+        return -0.5d * (cos(t * Math.PI) - 1.0d);
+    }
 
-        NoiseSource src = new PerlinNoiseEngine(ThreadLocalPRandom.current());
-        for (int x = 0; x < size; x++) {
-            for (int y = 0; y < size; y++) {
-                double val = src.get(x * scale, y * scale);
-                int col = val < 0.0d
-                        ? lerpI(0x00, 0xFF, -val) << 16
-                        : lerpI(0x00, 0xFF, val) << 8;
-                img.setRGB(x, y, ColorFormatRGB.toARGB(col));
-            }
+    public static float quadraticInOut(float t) {
+        float p = t * t * 2.0f;
+        return t < 0.5f ? p : -p + (4.0f * t) - 1.0f;
+    }
+
+    public static double quadraticInOut(double t) {
+        double p = t * t * 2.0d;
+        return t < 0.5d ? p : -p + (4.0d * t) - 1.0d;
+    }
+
+    public static float cubicInOut(float t)   {
+        if (t < 0.5f)   {
+            return t * t * t * 4.0f;
+        } else {
+            t = t * 2.0f - 2.0f;
+            return t * t * t * 0.5f + 1.0f;
         }
+    }
 
-        PorkUtil.simpleDisplayImage(true, img);
+    public static double cubicInOut(double t)   {
+        if (t < 0.5d)   {
+            return t * t * t * 4.0d;
+        } else {
+            t = t * 2.0d - 2.0d;
+            return t * t * t * 0.5d + 1.0d;
+        }
     }
 }

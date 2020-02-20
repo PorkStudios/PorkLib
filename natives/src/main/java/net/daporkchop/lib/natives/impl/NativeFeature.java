@@ -17,13 +17,13 @@ package net.daporkchop.lib.natives.impl;
 
 import lombok.NonNull;
 import net.daporkchop.lib.common.system.PlatformInfo;
-import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Method;
 
 /**
  * Abstraction of an implementation of a {@link Feature} using native code.
@@ -38,11 +38,11 @@ public abstract class NativeFeature<F extends Feature<F>> implements Feature<F> 
 
     static {
         //these are the platforms that we compile native libraries for
-        switch (PlatformInfo.OPERATING_SYSTEM)  {
+        switch (PlatformInfo.OPERATING_SYSTEM) {
             case Linux:
-                switch (PlatformInfo.ARCHITECTURE)  {
+                switch (PlatformInfo.ARCHITECTURE) {
                     case ARM:
-                        LIB_FMT = "/arm-linux-gnueabi/lib";
+                        LIB_FMT = "/arm-linux-gnueabihf/lib"; //TODO: something about hard float detection
                         break;
                     case AARCH64:
                         LIB_FMT = "/aarch64-linux-gnu/lib";
@@ -56,7 +56,7 @@ public abstract class NativeFeature<F extends Feature<F>> implements Feature<F> 
                 LIB_EXT = LIB_FMT == null ? null : ".so";
                 break;
             case Windows:
-                switch (PlatformInfo.ARCHITECTURE)  {
+                switch (PlatformInfo.ARCHITECTURE) {
                     case x86_64:
                         LIB_FMT = "/x86_64-w64-mingw32/lib";
                         break;
@@ -89,7 +89,15 @@ public abstract class NativeFeature<F extends Feature<F>> implements Feature<F> 
                 byte[] arr = new byte[PUnsafe.pageSize()];
                 for (int b; (b = is.read(arr)) >= 0; os.write(arr, 0, b)) ;
             }
-            System.load(file.getAbsolutePath());
+
+            try {
+                Method method = Runtime.class.getDeclaredMethod("load0", Class.class, String.class);
+                method.setAccessible(true);
+                method.invoke(Runtime.getRuntime(), clazz, file.getAbsolutePath());
+            } catch (NoSuchMethodException e) {
+                //this really isn't as good because it means that the library is considered to have been loaded by NativeFeature
+                System.load(file.getAbsolutePath());
+            }
         } catch (Exception e) {
             throw new RuntimeException(String.format("Unable to load library \"%s\"", name), e);
         }

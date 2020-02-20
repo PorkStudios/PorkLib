@@ -94,15 +94,15 @@ public abstract class NativeFeature<F extends Feature<F>> implements Feature<F> 
                 Method method = Runtime.class.getDeclaredMethod("load0", Class.class, String.class);
                 method.setAccessible(true);
                 method.invoke(Runtime.getRuntime(), clazz, file.getAbsolutePath());
-            } catch (NoSuchMethodException e) {
+            } catch (Exception e) {
                 //this really isn't as good because it means that the library is considered to have been loaded by NativeFeature
                 System.load(file.getAbsolutePath());
             }
-        } catch (Exception e) {
-            throw new RuntimeException(String.format("Unable to load library \"%s\"", name), e);
-        }
 
-        return true;
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     @Override

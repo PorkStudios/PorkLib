@@ -16,11 +16,13 @@
 package net.daporkchop.lib.unsafe;
 
 import lombok.NonNull;
+import net.daporkchop.lib.unsafe.cleaner.Java9Cleaner;
 import net.daporkchop.lib.unsafe.cleaner.SunCleaner;
 import sun.misc.Cleaner;
 
-import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BiFunction;
 
 /**
  * A wrapper around {@link Cleaner}.
@@ -30,7 +32,16 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * @author DaPorkchop_
  */
-public interface PCleaner {
+public abstract class PCleaner {
+    private static final BiFunction<Object, Runnable, PCleaner> CLEANER_PROVIDER;
+
+    static {
+        int[] version = Arrays.stream(System.getProperty("java.specification.version", "1.6").split("\\.")).mapToInt(Integer::parseInt).toArray();
+        int javaVersion = version[0] == 1 ? version[1] : version[0];
+
+        CLEANER_PROVIDER = javaVersion <= 8 ? SunCleaner::new : Java9Cleaner::new;
+    }
+
     /**
      * Makes a new cleaner targeting a given object. When that object is garbage collected, the given
      * cleaner function will be executed.
@@ -39,8 +50,8 @@ public interface PCleaner {
      * @param cleaner the function to run once the target object has been garbage collected
      * @return an instance of {@link PCleaner}
      */
-    static PCleaner cleaner(@NonNull Object o, @NonNull Runnable cleaner) {
-        return new SunCleaner(o, cleaner);
+    public static PCleaner cleaner(@NonNull Object o, @NonNull Runnable cleaner) {
+        return CLEANER_PROVIDER.apply(o, cleaner);
     }
 
     /**
@@ -55,8 +66,6 @@ public interface PCleaner {
      * longer be a valid pointer to an allocated memory block, and when the cleaner does run, the results
      * are undefined. If you plan to do something similar, make sure to do the following:
      * - Instead of calling {@link PUnsafe#freeMemory(long)}, use {@link #clean()}
-     * - If you call {@link PUnsafe#reallocateMemory(long, long)}, make sure to replace the cleaner function by using {@link #setCleanTask(Runnable)}
-     * - If for whatever reason you cannot do that, invalidate the cleaner using {@link #invalidate()}
      * It is highly advisable to use {@link #cleaner(Object, AtomicLong)} unless you are sure that
      * the address will not change.
      *
@@ -64,8 +73,8 @@ public interface PCleaner {
      * @param addr the address of the memory to free once the target object has been garbage collected
      * @return an instance of {@link PCleaner}
      */
-    static PCleaner cleaner(@NonNull Object o, long addr) {
-        return new SunCleaner(o, () -> PUnsafe.freeMemory(addr));
+    public static PCleaner cleaner(@NonNull Object o, long addr) {
+        return CLEANER_PROVIDER.apply(o, () -> PUnsafe.freeMemory(addr));
     }
 
     /**
@@ -81,8 +90,8 @@ public interface PCleaner {
      *                been garbage collected
      * @return an instance of {@link PCleaner}
      */
-    static PCleaner cleaner(@NonNull Object o, @NonNull AtomicLong addrRef) {
-        return new SunCleaner(o, () -> {
+    public static PCleaner cleaner(@NonNull Object o, @NonNull AtomicLong addrRef) {
+        return CLEANER_PROVIDER.apply(o, () -> {
             long addr = addrRef.getAndSet(-1L);
             if (addr > 0L) {
                 PUnsafe.freeMemory(addr);
@@ -95,10 +104,10 @@ public interface PCleaner {
      *
      * @return whether or not the cleaner was run
      */
-    boolean clean();
+    public abstract boolean clean();
 
     /**
      * @return whether or not this cleaner has already been run
      */
-    boolean hasRun();
+    public abstract boolean hasRun();
 }

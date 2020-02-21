@@ -40,7 +40,7 @@ import java.util.function.Predicate;
  */
 @Getter
 @SuppressWarnings("unchecked")
-public final class SunCleaner implements PCleaner {
+public final class SunCleaner extends PCleaner {
     protected static final long     CLEANER_NEXT_OFFSET  = PUnsafe.pork_getOffset(Cleaner.class, "next");
     protected static final long     CLEANER_THUNK_OFFSET = PUnsafe.pork_getOffset(Cleaner.class, "thunk");
 

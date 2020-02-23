@@ -22,15 +22,20 @@ import net.daporkchop.lib.random.PRandom;
 import static net.daporkchop.lib.math.primitive.PMath.*;
 
 /**
+ * Implementation of Perlin noise.
+ * <p>
+ * Based on <a href="https://github.com/nvpro-samples/shared_sources/blob/master/noise/noise1234.cpp">shared_sources/noise</a>.
+ *
  * @author DaPorkchop_
+ * @see WeightedPerlinNoiseEngine
  */
-public final class PerlinNoiseEngine implements NoiseSource {
-    private static double fade(double t) {
+public class PerlinNoiseEngine implements NoiseSource {
+    protected static double fade(double t) {
         return t * t * t * (t * (t * 6.0d - 15.0d) + 10.0d);
     }
 
-    private static double grad(int hash, double x) {
-        int h = hash & 15;
+    protected static double grad(int hash, double x) {
+        int h = hash & 0xF;
         double grad = 1.0d + (h & 7);
         if ((h & 8) == 0) {
             grad = -grad;
@@ -38,14 +43,14 @@ public final class PerlinNoiseEngine implements NoiseSource {
         return grad * x;
     }
 
-    private static double grad(int hash, double x, double y) {
+    protected static double grad(int hash, double x, double y) {
         int h = hash & 7;
         double u = h < 4 ? x : y;
         double v = h < 4 ? y : x;
         return ((h & 1) == 0 ? -u : u) + ((h & 2) == 0 ? -2.0d * v : 2.0d * v);
     }
 
-    private static double grad(int hash, double x, double y, double z) {
+    protected static double grad(int hash, double x, double y, double z) {
         int h = hash & 15;
         double u = h < 8 ? x : y;
         double v = h < 4 ? y : h == 12 || h == 14 ? x : z;
@@ -55,16 +60,16 @@ public final class PerlinNoiseEngine implements NoiseSource {
     private final byte[] p;
 
     public PerlinNoiseEngine(@NonNull PRandom random) {
-            this.p = new byte[256];
-            for (int i = 0; i < 256; i++) {
-                this.p[i] = (byte) i;
-            }
-            for (int i = 0; i < 256; i++) {
-                int j = random.nextInt(256);
-                byte v = this.p[j];
-                this.p[j] = this.p[i];
-                this.p[i] = v;
-            }
+        this.p = new byte[256];
+        for (int i = 0; i < 256; i++) {
+            this.p[i] = (byte) i;
+        }
+        for (int i = 0; i < 256; i++) {
+            int j = random.nextInt(256);
+            byte v = this.p[j];
+            this.p[j] = this.p[i];
+            this.p[i] = v;
+        }
     }
 
     @Override

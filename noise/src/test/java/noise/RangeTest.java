@@ -17,10 +17,13 @@ package noise;
 
 import net.daporkchop.lib.noise.NoiseSource;
 import net.daporkchop.lib.noise.engine.PerlinNoiseEngine;
+import net.daporkchop.lib.noise.engine.PorkianV2NoiseEngine;
+import net.daporkchop.lib.noise.engine.WeightedPerlinNoiseEngine;
 import net.daporkchop.lib.random.PRandom;
 import net.daporkchop.lib.random.impl.FastPRandom;
-import net.daporkchop.lib.random.impl.ThreadLocalPRandom;
 import org.junit.Test;
+
+import java.util.Arrays;
 
 /**
  * @author DaPorkchop_
@@ -31,43 +34,52 @@ public class RangeTest {
 
     @Test
     public void testRange() {
-        PRandom random = new FastPRandom();
-
         NoiseSource[] sources = {
-                new PerlinNoiseEngine(random)
+                new PorkianV2NoiseEngine(new FastPRandom()),
+                new PerlinNoiseEngine(new FastPRandom()),
+                new WeightedPerlinNoiseEngine(new FastPRandom())
         };
 
-        for (NoiseSource src : sources) {
-            double min = Double.MAX_VALUE;
-            double max = Double.MIN_VALUE;
-            for (int i = 0; i < SAMPLES; i++)   {
-                double val = src.get(random.nextDouble(-RANGE, RANGE));
-                min = Math.min(val, min);
-                max = Math.max(val, max);
-            }
-            System.out.printf("1D %s: min=%f, max=%f\n", src.getClass().getCanonicalName(), min, max);
-        }
+        Arrays.stream(sources).parallel()
+                .forEach(src -> {
+                    PRandom random = new FastPRandom();
+                    long start = System.currentTimeMillis();
+                    double min = Double.MAX_VALUE;
+                    double max = Double.MIN_VALUE;
+                    for (int i = 0; i < SAMPLES; i++)   {
+                        double val = src.get(random.nextDouble(-RANGE, RANGE));
+                        min = Math.min(val, min);
+                        max = Math.max(val, max);
+                    }
+                    System.out.printf("1D %s: min=%f, max=%f, time=%.2fs\n", src.getClass().getCanonicalName(), min, max, (System.currentTimeMillis() - start) / 1000.0d);
+                });
 
-        for (NoiseSource src : sources) {
-            double min = Double.MAX_VALUE;
-            double max = Double.MIN_VALUE;
-            for (int i = 0; i < SAMPLES; i++)   {
-                double val = src.get(random.nextDouble(-RANGE, RANGE), random.nextDouble(-RANGE, RANGE));
-                min = Math.min(val, min);
-                max = Math.max(val, max);
-            }
-            System.out.printf("2D %s: min=%f, max=%f\n", src.getClass().getCanonicalName(), min, max);
-        }
+        Arrays.stream(sources).parallel()
+                .forEach(src -> {
+                    PRandom random = new FastPRandom();
+                    long start = System.currentTimeMillis();
+                    double min = Double.MAX_VALUE;
+                    double max = Double.MIN_VALUE;
+                    for (int i = 0; i < SAMPLES; i++)   {
+                        double val = src.get(random.nextDouble(-RANGE, RANGE), random.nextDouble(-RANGE, RANGE));
+                        min = Math.min(val, min);
+                        max = Math.max(val, max);
+                    }
+                    System.out.printf("2D %s: min=%f, max=%f, time=%.2fs\n", src.getClass().getCanonicalName(), min, max, (System.currentTimeMillis() - start) / 1000.0d);
+                });
 
-        for (NoiseSource src : sources) {
-            double min = Double.MAX_VALUE;
-            double max = Double.MIN_VALUE;
-            for (int i = 0; i < SAMPLES; i++)   {
-                double val = src.get(random.nextDouble(-RANGE, RANGE), random.nextDouble(-RANGE, RANGE), random.nextDouble(-RANGE, RANGE));
-                min = Math.min(val, min);
-                max = Math.max(val, max);
-            }
-            System.out.printf("3D %s: min=%f, max=%f\n", src.getClass().getCanonicalName(), min, max);
-        }
+        Arrays.stream(sources).parallel()
+                .forEach(src -> {
+                    PRandom random = new FastPRandom();
+                    long start = System.currentTimeMillis();
+                    double min = Double.MAX_VALUE;
+                    double max = Double.MIN_VALUE;
+                    for (int i = 0; i < SAMPLES; i++)   {
+                        double val = src.get(random.nextDouble(-RANGE, RANGE), random.nextDouble(-RANGE, RANGE), random.nextDouble(-RANGE, RANGE));
+                        min = Math.min(val, min);
+                        max = Math.max(val, max);
+                    }
+                    System.out.printf("3D %s: min=%f, max=%f, time=%.2fs\n", src.getClass().getCanonicalName(), min, max, (System.currentTimeMillis() - start) / 1000.0d);
+                });
     }
 }

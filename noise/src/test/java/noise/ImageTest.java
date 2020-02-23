@@ -21,6 +21,8 @@ import net.daporkchop.lib.graphics.color.ColorFormatRGB;
 import net.daporkchop.lib.noise.NoiseSource;
 import net.daporkchop.lib.noise.engine.PerlinNoiseEngine;
 import net.daporkchop.lib.noise.engine.PorkianV2NoiseEngine;
+import net.daporkchop.lib.noise.engine.WeightedPerlinNoiseEngine;
+import net.daporkchop.lib.random.impl.FastPRandom;
 import net.daporkchop.lib.random.impl.ThreadLocalPRandom;
 
 import java.awt.image.BufferedImage;
@@ -37,20 +39,27 @@ public class ImageTest {
 
         BufferedImage img = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
 
-        NoiseSource src = new PerlinNoiseEngine(ThreadLocalPRandom.current());
-        for (int x = 0; x < size; x++) {
-            for (int y = 0; y < size; y++) {
-                double val = src.get(x * scale, y * scale);
-                if (val < -1.0d || val > 1.0d)  {
-                    //throw new IllegalStateException(String.format("(%d,%d) (%f,%f): %f", x, y, x * scale, y * scale, val));
-                }
-                int col = val < 0.0d
-                        ? lerpI(0x00, 0xFF, -val) << 16
-                        : lerpI(0x00, 0xFF, val) << 8;
-                img.setRGB(x, y, ColorFormatRGB.toARGB(col));
-            }
-        }
+        NoiseSource[] sources = {
+                new PorkianV2NoiseEngine(new FastPRandom()),
+                new PerlinNoiseEngine(new FastPRandom()),
+                new WeightedPerlinNoiseEngine(new FastPRandom())
+        };
 
-        PorkUtil.simpleDisplayImage(true, img);
+        for (NoiseSource src : sources) {
+            for (int x = 0; x < size; x++) {
+                for (int y = 0; y < size; y++) {
+                    double val = src.get(x * scale, y * scale);
+                    if (val < -1.0d || val > 1.0d)  {
+                        //throw new IllegalStateException(String.format("(%d,%d) (%f,%f): %f", x, y, x * scale, y * scale, val));
+                    }
+                    int col = val < 0.0d
+                            ? lerpI(0x00, 0xFF, -val) << 16
+                            : lerpI(0x00, 0xFF, val) << 8;
+                    img.setRGB(x, y, ColorFormatRGB.toARGB(col));
+                }
+            }
+            System.out.println(src.getClass().getCanonicalName());
+            PorkUtil.simpleDisplayImage(true, img);
+        }
     }
 }

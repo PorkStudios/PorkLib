@@ -33,12 +33,8 @@ import static net.daporkchop.lib.random.impl.FastPRandom.mix64;
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-public final class PorkianV2NoiseEngine implements NoiseSource {
+public class PorkianV2NoiseEngine implements NoiseSource {
     protected static final double DOUBLE_UNIT = 0x1.0p-53;
-
-    private static final double[] DEFAULT_STATE = IntStream.range(-128, 128)
-            .mapToDouble(i -> i / 128.0d)
-            .toArray();
 
     private static double fade(double t) {
         return t * t * t * (t * (t * 6.0d - 15.0d) + 10.0d);

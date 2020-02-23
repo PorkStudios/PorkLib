@@ -115,7 +115,7 @@ public class DirectSectionImpl implements Section, AccessibleDirectMemoryHolder 
 
     @Override
     public void release() throws AlreadyReleasedException {
-        if (!this.cleaner.tryClean()) {
+        if (!this.cleaner.clean()) {
             throw new AlreadyReleasedException();
         }
     }

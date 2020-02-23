@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -15,16 +15,14 @@
 
 package net.daporkchop.lib.unsafe;
 
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.unsafe.cleaner.Java9Cleaner;
+import net.daporkchop.lib.unsafe.cleaner.SunCleaner;
 import sun.misc.Cleaner;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BiFunction;
 
 /**
  * A wrapper around {@link Cleaner}.
@@ -34,14 +32,15 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-public final class PCleaner {
-    protected static final long     CLEANER_NEXT_OFFSET  = PUnsafe.pork_getOffset(Cleaner.class, "next");
-    protected static final long     CLEANER_THUNK_OFFSET = PUnsafe.pork_getOffset(Cleaner.class, "thunk");
-    protected static final Runnable NOOP_RUNNABLE        = () -> {};
+public abstract class PCleaner {
+    private static final BiFunction<Object, Runnable, PCleaner> CLEANER_PROVIDER;
 
-    protected static Method CLEANER_REMOVE;
+    static {
+        int[] version = Arrays.stream(System.getProperty("java.specification.version", "1.6").split("\\.")).mapToInt(Integer::parseInt).toArray();
+        int javaVersion = version[0] == 1 ? version[1] : version[0];
+
+        CLEANER_PROVIDER = javaVersion <= 8 ? SunCleaner::new : Java9Cleaner::new;
+    }
 
     /**
      * Makes a new cleaner targeting a given object. When that object is garbage collected, the given
@@ -52,7 +51,7 @@ public final class PCleaner {
      * @return an instance of {@link PCleaner}
      */
     public static PCleaner cleaner(@NonNull Object o, @NonNull Runnable cleaner) {
-        return new PCleaner(Cleaner.create(o, cleaner));
+        return CLEANER_PROVIDER.apply(o, cleaner);
     }
 
     /**
@@ -67,8 +66,6 @@ public final class PCleaner {
      * longer be a valid pointer to an allocated memory block, and when the cleaner does run, the results
      * are undefined. If you plan to do something similar, make sure to do the following:
      * - Instead of calling {@link PUnsafe#freeMemory(long)}, use {@link #clean()}
-     * - If you call {@link PUnsafe#reallocateMemory(long, long)}, make sure to replace the cleaner function by using {@link #setCleanTask(Runnable)}
-     * - If for whatever reason you cannot do that, invalidate the cleaner using {@link #invalidate()}
      * It is highly advisable to use {@link #cleaner(Object, AtomicLong)} unless you are sure that
      * the address will not change.
      *
@@ -77,7 +74,7 @@ public final class PCleaner {
      * @return an instance of {@link PCleaner}
      */
     public static PCleaner cleaner(@NonNull Object o, long addr) {
-        return new PCleaner(Cleaner.create(o, () -> PUnsafe.freeMemory(addr)));
+        return CLEANER_PROVIDER.apply(o, () -> PUnsafe.freeMemory(addr));
     }
 
     /**
@@ -94,99 +91,23 @@ public final class PCleaner {
      * @return an instance of {@link PCleaner}
      */
     public static PCleaner cleaner(@NonNull Object o, @NonNull AtomicLong addrRef) {
-        return new PCleaner(Cleaner.create(o, () -> {
+        return CLEANER_PROVIDER.apply(o, () -> {
             long addr = addrRef.getAndSet(-1L);
-            if (addr != -1L) {
+            if (addr > 0L) {
                 PUnsafe.freeMemory(addr);
             }
-        }));
+        });
     }
-
-    private static boolean remove(Cleaner cl) {
-        if (CLEANER_REMOVE == null) {
-            try {
-                CLEANER_REMOVE = Cleaner.class.getDeclaredMethod("remove", Cleaner.class);
-                CLEANER_REMOVE.setAccessible(true);
-            } catch (NoSuchMethodException e) {
-                PUnsafe.throwException(e);
-                throw new RuntimeException(e);
-            }
-        }
-        try {
-            return (Boolean) CLEANER_REMOVE.invoke(null, cl);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            PUnsafe.throwException(e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    @NonNull
-    private final Cleaner delegate;
 
     /**
      * Runs this cleaner. If this cleaner has already been run, this function does nothing.
-     */
-    public void clean() {
-        this.delegate.clean();
-    }
-
-    /**
-     * Checks whether or not this cleaner has already been run
-     *
-     * @return whether or not this cleaner has already been run
-     */
-    public boolean isCleaned() {
-        return PUnsafe.getObject(this.delegate, CLEANER_NEXT_OFFSET) == this.delegate;
-    }
-
-    /**
-     * Attempts to run this cleaner.
      *
      * @return whether or not the cleaner was run
      */
-    public boolean tryClean() {
-        if (!remove(this.delegate)) {
-            return false;
-        } else {
-            try {
-                PUnsafe.<Runnable>getObject(this.delegate, CLEANER_THUNK_OFFSET).run();
-                return true;
-            } catch (Throwable t) {
-                AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
-                    if (System.err != null) {
-                        new Error("Cleaner terminated abnormally", t).printStackTrace();
-                    }
-                    System.exit(1);
-                    return null;
-                });
-                return false;
-            }
-        }
-    }
+    public abstract boolean clean();
 
     /**
-     * Sets the function that will be executed when this cleaner runs.
-     *
-     * @param runnable the cleaner function
+     * @return whether or not this cleaner has already been run
      */
-    public void setCleanTask(@NonNull Runnable runnable) {
-        PUnsafe.putObjectVolatile(this.delegate, CLEANER_THUNK_OFFSET, runnable);
-    }
-
-    /**
-     * Disables this cleaner by setting the task to an empty function.
-     *
-     * @see #invalidate()
-     */
-    public void disable() {
-        PUnsafe.putObjectVolatile(this.delegate, CLEANER_THUNK_OFFSET, NOOP_RUNNABLE);
-    }
-
-    /**
-     * Completely disables a cleaner by first disabling and then running it.
-     */
-    public void invalidate() {
-        this.disable();
-        this.clean();
-    }
+    public abstract boolean hasRun();
 }

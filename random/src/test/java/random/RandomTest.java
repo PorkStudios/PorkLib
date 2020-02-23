@@ -18,6 +18,7 @@ package random;
 import net.daporkchop.lib.common.misc.Tuple;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.random.PRandom;
+import net.daporkchop.lib.random.impl.FastJavaPRandom;
 import net.daporkchop.lib.random.impl.FastPRandom;
 import net.daporkchop.lib.random.impl.ThreadLocalPRandom;
 import org.junit.Assume;
@@ -28,11 +29,15 @@ import java.util.Comparator;
 import java.util.Random;
 import java.util.SplittableRandom;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 /**
  * @author DaPorkchop_
  */
 public class RandomTest {
+    private static final ThreadLocal<byte[]> BENCHMARK_CACHE = ThreadLocal.withInitial(() -> new byte[8192]);
+    private static final int BENCHMARK_ROUNDS = 1000000 / 10;
+
     @Test
     public void testRandom()    {
         PRandom r1 = new FastPRandom(1234L);
@@ -56,37 +61,47 @@ public class RandomTest {
     @Test
     public void benchmarkRandom()   {
         Object[] rngs =  {
-                new FastPRandom(),
                 ThreadLocalPRandom.current(),
                 new Random(),
                 ThreadLocalRandom.current(),
-                io.netty.util.internal.ThreadLocalRandom.current()
+                io.netty.util.internal.ThreadLocalRandom.current(),
+                new FastPRandom(),
+                new FastJavaPRandom()
         };
 
-        final int rounds = 1000000;
-        final byte[] arr = new byte[8192];
+        System.out.printf("Testing random implementations: generating %d bytes %d times\n", BENCHMARK_CACHE.get().length, BENCHMARK_ROUNDS);
 
-        System.out.printf("Testing random implementations: generating %d bytes %d times\n", arr.length, rounds);
+        System.out.println("Initial warmup phase...");
 
-        Arrays.stream(rngs)
+        Arrays.stream(rngs).parallel().forEach(RandomTest::doTest);
+
+        System.out.println("Benchmarking...");
+
+        Arrays.stream(rngs).parallel()
                 .map(rng -> {
                     long start = System.currentTimeMillis();
-                    if (rng instanceof Random) {
-                        Random r = (Random) rng;
-                        for (int i = 0; i < rounds; i++)    {
-                            r.nextBytes(arr);
-                        }
-                    } else if (rng instanceof PRandom) {
-                        PRandom r = (PRandom) rng;
-                        for (int i = 0; i < rounds; i++)    {
-                            r.nextBytes(arr);
-                        }
-                    } else {
-                        throw new IllegalArgumentException(PorkUtil.className(rng));
-                    }
+                    doTest(rng);
                     return new Tuple<>(System.currentTimeMillis() - start, PorkUtil.className(rng));
                 })
                 .sorted(Comparator.comparingLong(Tuple::getA))
+                .collect(Collectors.toList())
                 .forEach(tuple -> System.out.printf("%.2fs: %s\n", tuple.getA() / 1000.0d, tuple.getB()));
+    }
+
+    private static void doTest(Object rng)  {
+        final byte[] arr = BENCHMARK_CACHE.get();
+        if (rng instanceof Random) {
+            final Random r = (Random) rng;
+            for (int i = 0; i < BENCHMARK_ROUNDS; i++)    {
+                r.nextBytes(arr);
+            }
+        } else if (rng instanceof PRandom) {
+            final PRandom r = (PRandom) rng;
+            for (int i = 0; i < BENCHMARK_ROUNDS; i++)    {
+                r.nextBytes(arr);
+            }
+        } else {
+            throw new IllegalArgumentException(PorkUtil.className(rng));
+        }
     }
 }

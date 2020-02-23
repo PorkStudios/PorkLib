@@ -13,7 +13,7 @@
  *
  */
 
-package noise.image;
+package noise;
 
 
 import net.daporkchop.lib.common.util.PorkUtil;
@@ -30,7 +30,7 @@ import static net.daporkchop.lib.math.primitive.PMath.*;
 /**
  * @author DaPorkchop_
  */
-public class PorkianImageTest {
+public class ImageTest {
     public static void main(String... args) {
         int size = 512;
         double scale = 0.025d;
@@ -41,6 +41,9 @@ public class PorkianImageTest {
         for (int x = 0; x < size; x++) {
             for (int y = 0; y < size; y++) {
                 double val = src.get(x * scale, y * scale);
+                if (val < -1.0d || val > 1.0d)  {
+                    //throw new IllegalStateException(String.format("(%d,%d) (%f,%f): %f", x, y, x * scale, y * scale, val));
+                }
                 int col = val < 0.0d
                         ? lerpI(0x00, 0xFF, -val) << 16
                         : lerpI(0x00, 0xFF, val) << 8;

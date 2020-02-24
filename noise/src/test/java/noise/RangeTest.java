@@ -16,6 +16,7 @@
 package noise;
 
 import net.daporkchop.lib.noise.NoiseSource;
+import net.daporkchop.lib.noise.engine.OpenSimplexNoiseEngine;
 import net.daporkchop.lib.noise.engine.PerlinNoiseEngine;
 import net.daporkchop.lib.noise.engine.PorkianV2NoiseEngine;
 import net.daporkchop.lib.noise.engine.WeightedPerlinNoiseEngine;
@@ -37,7 +38,8 @@ public class RangeTest {
         NoiseSource[] sources = {
                 new PorkianV2NoiseEngine(new FastPRandom()),
                 new PerlinNoiseEngine(new FastPRandom()),
-                new WeightedPerlinNoiseEngine(new FastPRandom())
+                new WeightedPerlinNoiseEngine(new FastPRandom()),
+                new OpenSimplexNoiseEngine(new FastPRandom())
         };
 
         Arrays.stream(sources).parallel()

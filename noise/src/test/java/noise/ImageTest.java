@@ -19,6 +19,7 @@ package noise;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.graphics.color.ColorFormatRGB;
 import net.daporkchop.lib.noise.NoiseSource;
+import net.daporkchop.lib.noise.engine.OpenSimplexNoiseEngine;
 import net.daporkchop.lib.noise.engine.PerlinNoiseEngine;
 import net.daporkchop.lib.noise.engine.PorkianV2NoiseEngine;
 import net.daporkchop.lib.noise.engine.WeightedPerlinNoiseEngine;
@@ -42,7 +43,8 @@ public class ImageTest {
         NoiseSource[] sources = {
                 new PorkianV2NoiseEngine(new FastPRandom()),
                 new PerlinNoiseEngine(new FastPRandom()),
-                new WeightedPerlinNoiseEngine(new FastPRandom())
+                new WeightedPerlinNoiseEngine(new FastPRandom()),
+                new OpenSimplexNoiseEngine(new FastPRandom())
         };
 
         for (NoiseSource src : sources) {

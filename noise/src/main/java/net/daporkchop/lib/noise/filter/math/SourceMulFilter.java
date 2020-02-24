@@ -13,55 +13,56 @@
  *
  */
 
-package net.daporkchop.lib.random.impl;
+package net.daporkchop.lib.noise.filter.math;
 
-import lombok.AllArgsConstructor;
-import net.daporkchop.lib.random.PRandom;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.noise.NoiseSource;
 
 /**
- * A fast implementation of {@link PRandom} based on Java's {@link java.util.SplittableRandom}.
- * <p>
- * This is NOT thread-safe. Attempting to share an instance of this class among multiple threads is likely to result in duplicate values
- * being returned to multiple threads.
- *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-public final class FastPRandom extends AbstractFastPRandom {
-    private static final long GAMMA = 0x9e3779b97f4a7c15L;
+@Accessors(fluent = true)
+public final class SourceMulFilter implements NoiseSource {
+    @Getter
+    private final double min;
+    @Getter
+    private final double max;
 
-    public static long mix64(long z) {
-        z = (z ^ (z >>> 33)) * 0xff51afd7ed558ccdL;
-        z = (z ^ (z >>> 33)) * 0xc4ceb9fe1a85ec53L;
-        return z ^ (z >>> 33);
-    }
+    private final NoiseSource a;
+    private final NoiseSource b;
 
-    public static int mix32(long z) {
-        z = (z ^ (z >>> 33)) * 0xff51afd7ed558ccdL;
-        return (int) (((z ^ (z >>> 33)) * 0xc4ceb9fe1a85ec53L) >>> 32);
-    }
+    public SourceMulFilter(@NonNull NoiseSource a, @NonNull NoiseSource b) {
+        this.a = a;
+        this.b = b;
 
-    private long seed;
-
-    /**
-     * Creates a new {@link FastPRandom} instance using a seed based on the current time.
-     */
-    public FastPRandom() {
-        this(mix64(System.currentTimeMillis()) ^ mix64(System.nanoTime()));
-    }
-
-    @Override
-    public int nextInt() {
-        return mix32(this.seed += GAMMA);
+        double aMin = a.min();
+        double aMax = a.max();
+        double bMin = b.min();
+        double bMax = b.max();
+        //ugly solution because there might be negative numbers and i'm lazy
+        this.min = Math.min(Math.min(aMin * bMin, aMin * bMax), Math.min(aMax * bMin, aMax * bMax));
+        this.max = Math.max(Math.max(aMin * bMin, aMin * bMax), Math.max(aMax * bMin, aMax * bMax));
     }
 
     @Override
-    public long nextLong() {
-        return mix64(this.seed += GAMMA);
+    public double get(double x) {
+        return this.a.get(x) * this.b.get(x);
     }
 
     @Override
-    public void setSeed(long seed) {
-        this.seed = seed;
+    public double get(double x, double y) {
+        return this.a.get(x, y) * this.b.get(x, y);
+    }
+
+    @Override
+    public double get(double x, double y, double z) {
+        return this.a.get(x, y, z) * this.b.get(x, y, z);
+    }
+
+    @Override
+    public String toString() {
+        return this.a + " * " + this.b;
     }
 }

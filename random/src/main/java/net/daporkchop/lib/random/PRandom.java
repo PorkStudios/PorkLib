@@ -16,6 +16,8 @@
 package net.daporkchop.lib.random;
 
 import lombok.NonNull;
+import net.daporkchop.lib.common.util.PArrays;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.random.impl.AbstractFastPRandom;
 import net.daporkchop.lib.random.impl.ThreadLocalPRandom;
 import net.daporkchop.lib.random.wrapper.JavaRandomWrapper;
@@ -43,7 +45,7 @@ public interface PRandom {
             return ((PRandomWrapper) random).delegate();
         } else if (random instanceof ThreadLocalRandom) {
             return ThreadLocalPRandom.current();
-        } else if (random instanceof AbstractFastPRandom)   {
+        } else if (random instanceof AbstractFastPRandom) {
             return (AbstractFastPRandom) random;
         } else {
             return new JavaRandomWrapper(random);
@@ -59,6 +61,8 @@ public interface PRandom {
      * @return a view of this {@link PRandom} as a {@link Random}
      */
     Random asJava();
+    
+    //rng methods
 
     /**
      * @return a random boolean
@@ -222,4 +226,222 @@ public interface PRandom {
      * @return a random double with gaussian distribution centered on {@code 0} and with a standard deviation of {@code 1}
      */
     double nextGaussianDouble();
+    
+    //shuffle methods
+
+    /**
+     * Shuffles the given {@code byte[]}.
+     *
+     * @param arr the {@code byte[]} to shuffle
+     * @return the {@code byte[]}
+     */
+    default byte[] shuffle(@NonNull byte[] arr) {
+        return this.shuffle(arr, 0, arr.length);
+    }
+
+    /**
+     * Shuffles the given range of the given {@code byte[]}.
+     *
+     * @param arr    the {@code byte[]} to shuffle
+     * @param start  the index to begin shuffling at (inclusive)
+     * @param length the length of the range to shuffle
+     * @return the {@code byte[]}
+     */
+    default byte[] shuffle(@NonNull byte[] arr, int start, int length){
+        PorkUtil.assertInRangeLen(arr.length, start, length);
+        final int end = start + length;
+        for (int i = start; i < end; i++)   {
+            PArrays.swap(arr, i, this.nextInt(start, length));
+        }
+        return arr;
+    }
+
+    /**
+     * Shuffles the given {@code short[]}.
+     *
+     * @param arr the {@code short[]} to shuffle
+     * @return the {@code short[]}
+     */
+    default short[] shuffle(@NonNull short[] arr) {
+        return this.shuffle(arr, 0, arr.length);
+    }
+
+    /**
+     * Shuffles the given range of the given {@code short[]}.
+     *
+     * @param arr    the {@code short[]} to shuffle
+     * @param start  the index to begin shuffling at (inclusive)
+     * @param length the length of the range to shuffle
+     * @return the {@code short[]}
+     */
+    default short[] shuffle(@NonNull short[] arr, int start, int length){
+        PorkUtil.assertInRangeLen(arr.length, start, length);
+        final int end = start + length;
+        for (int i = start; i < end; i++)   {
+            PArrays.swap(arr, i, this.nextInt(start, length));
+        }
+        return arr;
+    }
+
+    /**
+     * Shuffles the given {@code char[]}.
+     *
+     * @param arr the {@code char[]} to shuffle
+     * @return the {@code char[]}
+     */
+    default char[] shuffle(@NonNull char[] arr) {
+        return this.shuffle(arr, 0, arr.length);
+    }
+
+    /**
+     * Shuffles the given range of the given {@code char[]}.
+     *
+     * @param arr    the {@code char[]} to shuffle
+     * @param start  the index to begin shuffling at (inclusive)
+     * @param length the length of the range to shuffle
+     * @return the {@code char[]}
+     */
+    default char[] shuffle(@NonNull char[] arr, int start, int length){
+        PorkUtil.assertInRangeLen(arr.length, start, length);
+        final int end = start + length;
+        for (int i = start; i < end; i++)   {
+            PArrays.swap(arr, i, this.nextInt(start, length));
+        }
+        return arr;
+    }
+
+    /**
+     * Shuffles the given {@code int[]}.
+     *
+     * @param arr the {@code int[]} to shuffle
+     * @return the {@code int[]}
+     */
+    default int[] shuffle(@NonNull int[] arr) {
+        return this.shuffle(arr, 0, arr.length);
+    }
+
+    /**
+     * Shuffles the given range of the given {@code int[]}.
+     *
+     * @param arr    the {@code int[]} to shuffle
+     * @param start  the index to begin shuffling at (inclusive)
+     * @param length the length of the range to shuffle
+     * @return the {@code int[]}
+     */
+    default int[] shuffle(@NonNull int[] arr, int start, int length){
+        PorkUtil.assertInRangeLen(arr.length, start, length);
+        final int end = start + length;
+        for (int i = start; i < end; i++)   {
+            PArrays.swap(arr, i, this.nextInt(start, length));
+        }
+        return arr;
+    }
+
+    /**
+     * Shuffles the given {@code long[]}.
+     *
+     * @param arr the {@code long[]} to shuffle
+     * @return the {@code long[]}
+     */
+    default long[] shuffle(@NonNull long[] arr) {
+        return this.shuffle(arr, 0, arr.length);
+    }
+
+    /**
+     * Shuffles the given range of the given {@code long[]}.
+     *
+     * @param arr    the {@code long[]} to shuffle
+     * @param start  the index to begin shuffling at (inclusive)
+     * @param length the length of the range to shuffle
+     * @return the {@code long[]}
+     */
+    default long[] shuffle(@NonNull long[] arr, int start, int length){
+        PorkUtil.assertInRangeLen(arr.length, start, length);
+        final int end = start + length;
+        for (int i = start; i < end; i++)   {
+            PArrays.swap(arr, i, this.nextInt(start, length));
+        }
+        return arr;
+    }
+
+    /**
+     * Shuffles the given {@code float[]}.
+     *
+     * @param arr the {@code float[]} to shuffle
+     * @return the {@code float[]}
+     */
+    default float[] shuffle(@NonNull float[] arr) {
+        return this.shuffle(arr, 0, arr.length);
+    }
+
+    /**
+     * Shuffles the given range of the given {@code float[]}.
+     *
+     * @param arr    the {@code float[]} to shuffle
+     * @param start  the index to begin shuffling at (inclusive)
+     * @param length the length of the range to shuffle
+     * @return the {@code float[]}
+     */
+    default float[] shuffle(@NonNull float[] arr, int start, int length){
+        PorkUtil.assertInRangeLen(arr.length, start, length);
+        final int end = start + length;
+        for (int i = start; i < end; i++)   {
+            PArrays.swap(arr, i, this.nextInt(start, length));
+        }
+        return arr;
+    }
+
+    /**
+     * Shuffles the given {@code double[]}.
+     *
+     * @param arr the {@code double[]} to shuffle
+     * @return the {@code double[]}
+     */
+    default double[] shuffle(@NonNull double[] arr) {
+        return this.shuffle(arr, 0, arr.length);
+    }
+
+    /**
+     * Shuffles the given range of the given {@code double[]}.
+     *
+     * @param arr    the {@code double[]} to shuffle
+     * @param start  the index to begin shuffling at (inclusive)
+     * @param length the length of the range to shuffle
+     * @return the {@code double[]}
+     */
+    default double[] shuffle(@NonNull double[] arr, int start, int length){
+        PorkUtil.assertInRangeLen(arr.length, start, length);
+        final int end = start + length;
+        for (int i = start; i < end; i++)   {
+            PArrays.swap(arr, i, this.nextInt(start, length));
+        }
+        return arr;
+    }
+
+    /**
+     * Shuffles the given {@code Object[]}.
+     *
+     * @param arr the {@code Object[]} to shuffle
+     * @return the {@code Object[]}
+     */
+    default <T> T[] shuffle(@NonNull T[] arr) {
+        return this.shuffle(arr, 0, arr.length);
+    }
+
+    /**
+     * Shuffles the given range of the given {@code Object[]}.
+     *
+     * @param arr    the {@code Object[]} to shuffle
+     * @param start  the index to begin shuffling at (inclusive)
+     * @param length the length of the range to shuffle
+     * @return the {@code Object[]}
+     */
+    default <T> T[] shuffle(@NonNull T[] arr, int start, int length){
+        PorkUtil.assertInRangeLen(arr.length, start, length);
+        final int end = start + length;
+        for (int i = start; i < end; i++)   {
+            PArrays.swap(arr, i, this.nextInt(start, length));
+        }
+        return arr;
+    }
 }

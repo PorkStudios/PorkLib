@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -13,20 +13,38 @@
  *
  */
 
-package noise.image;
+package noise;
 
-import net.daporkchop.lib.noise.NoiseEngineType;
+import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.noise.NoiseSource;
+import net.daporkchop.lib.noise.engine.OpenSimplexNoiseEngine;
+import net.daporkchop.lib.noise.engine.PerlinNoiseEngine;
+import net.daporkchop.lib.noise.engine.PorkianV2NoiseEngine;
+import net.daporkchop.lib.noise.engine.SimplexNoiseEngine;
+import net.daporkchop.lib.random.impl.FastPRandom;
+
+import java.util.Arrays;
+import java.util.stream.Stream;
 
 /**
+ * Contains an array of all {@link NoiseSource}s to test.
+ *
  * @author DaPorkchop_
  */
-public class OpenSimplexImageTest extends ImageTest {
-    public static void main(String... args) {
-        new OpenSimplexImageTest().test();
-    }
+@UtilityClass
+public class NoiseTests {
+    public final NoiseSource[] DEFAULT_SOURCES = {
+            new PorkianV2NoiseEngine(new FastPRandom()),
+            new PorkianV2NoiseEngine(new FastPRandom()).octaves(8),
+            new PerlinNoiseEngine(new FastPRandom()),
+            new PerlinNoiseEngine(new FastPRandom()).octaves(8),
+            new SimplexNoiseEngine(new FastPRandom()),
+            new SimplexNoiseEngine(new FastPRandom()).octaves(8),
+            new OpenSimplexNoiseEngine(new FastPRandom()),
+            new OpenSimplexNoiseEngine(new FastPRandom()).octaves(8)
+    };
 
-    @Override
-    protected NoiseEngineType getType() {
-        return NoiseEngineType.OPENSIMPLEX;
-    }
+    public final NoiseSource[] ALL_SOURCES = Arrays.stream(DEFAULT_SOURCES)
+            .flatMap(src -> Stream.of(src, src.weighted()))
+            .toArray(NoiseSource[]::new);
 }

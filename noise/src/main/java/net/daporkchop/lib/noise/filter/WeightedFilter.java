@@ -13,55 +13,61 @@
  *
  */
 
-package net.daporkchop.lib.random.impl;
+package net.daporkchop.lib.noise.filter;
 
-import lombok.AllArgsConstructor;
+import lombok.NonNull;
+import net.daporkchop.lib.noise.NoiseSource;
+import net.daporkchop.lib.noise.util.NoiseFactory;
 import net.daporkchop.lib.random.PRandom;
 
+import static net.daporkchop.lib.math.primitive.PMath.*;
+
 /**
- * A fast implementation of {@link PRandom} based on Java's {@link java.util.SplittableRandom}.
- * <p>
- * This is NOT thread-safe. Attempting to share an instance of this class among multiple threads is likely to result in duplicate values
- * being returned to multiple threads.
+ * Weights values from a {@link NoiseSource} towards the outer bounds, providing far more valley and peaks that approach -1 and 1.
  *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-public final class FastPRandom extends AbstractFastPRandom {
-    private static final long GAMMA = 0x9e3779b97f4a7c15L;
-
-    public static long mix64(long z) {
-        z = (z ^ (z >>> 33)) * 0xff51afd7ed558ccdL;
-        z = (z ^ (z >>> 33)) * 0xc4ceb9fe1a85ec53L;
-        return z ^ (z >>> 33);
+public final class WeightedFilter extends FilterNoiseSource {
+    private static double fade(double t) {
+        //the values seem to occasionally go above and below due to floating point errors
+        return clamp(t * t * (-t * 2.0d + 3.0d), 0.0d, 1.0d);
     }
 
-    public static int mix32(long z) {
-        z = (z ^ (z >>> 33)) * 0xff51afd7ed558ccdL;
-        return (int) (((z ^ (z >>> 33)) * 0xc4ceb9fe1a85ec53L) >>> 32);
+    public WeightedFilter(@NonNull NoiseSource delegate) {
+        super(delegate.toRange(0.0d, 1.0d));
     }
 
-    private long seed;
-
-    /**
-     * Creates a new {@link FastPRandom} instance using a seed based on the current time.
-     */
-    public FastPRandom() {
-        this(mix64(System.currentTimeMillis()) ^ mix64(System.nanoTime()));
+    public WeightedFilter(@NonNull NoiseFactory factory, @NonNull PRandom random) {
+        this(factory.apply(random));
     }
 
     @Override
-    public int nextInt() {
-        return mix32(this.seed += GAMMA);
+    public double min() {
+        return 0.0d;
     }
 
     @Override
-    public long nextLong() {
-        return mix64(this.seed += GAMMA);
+    public double max() {
+        return 1.0d;
     }
 
     @Override
-    public void setSeed(long seed) {
-        this.seed = seed;
+    public double get(double x) {
+        return fade(this.delegate.get(x));
+    }
+
+    @Override
+    public double get(double x, double y) {
+        return fade(this.delegate.get(x, y));
+    }
+
+    @Override
+    public double get(double x, double y, double z) {
+        return fade(this.delegate.get(x, y, z));
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Weighted(%s)", this.delegate);
     }
 }

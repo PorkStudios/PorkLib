@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -24,31 +24,31 @@ import lombok.experimental.UtilityClass;
  */
 @UtilityClass
 public class PMath {
-    public long clamp(long val, long min, long max) {
+    public static long clamp(long val, long min, long max) {
         return min(max(val, min), max);
     }
 
-    public int clamp(int val, int min, int max) {
+    public static int clamp(int val, int min, int max) {
         return min(max(val, min), max);
     }
 
-    public short clamp(short val, short min, short max) {
+    public static short clamp(short val, short min, short max) {
         return min(max(val, min), max);
     }
 
-    public byte clamp(byte val, byte min, byte max) {
+    public static byte clamp(byte val, byte min, byte max) {
         return min(max(val, min), max);
     }
 
-    public float clamp(float val, float min, float max) {
+    public static float clamp(float val, float min, float max) {
         return min(max(val, min), max);
     }
 
-    public double clamp(double val, double min, double max) {
+    public static double clamp(double val, double min, double max) {
         return min(max(val, min), max);
     }
 
-    public byte divmod(byte[] number, int firstDigit, int base, int divisor) {
+    public static byte divmod(byte[] number, int firstDigit, int base, int divisor) {
         // this is just long division which accounts for the base of the input digits
         int remainder = 0;
         for (int i = firstDigit; i < number.length; i++) {
@@ -60,111 +60,111 @@ public class PMath {
         return (byte) remainder;
     }
 
-    public int floorI(double d) {
-        int i = (int) d;
-        return d < i ? i - 1 : i;
-    }
-
-    public long floorL(double d) {
-        long l = (long) d;
-        return d < l ? l - 1L : l;
-    }
-
-    public int floorI(float f) {
+    public static int floorI(float f) {
         int i = (int) f;
         return f < i ? i - 1 : i;
     }
 
-    public long floorL(float f) {
+    public static long floorL(float f) {
         long l = (long) f;
         return f < l ? l - 1L : l;
     }
 
-    public int ceilI(double d) {
+    public static int floorI(double d) {
         int i = (int) d;
-        return d < i ? i : i + 1;
+        return d < i ? i - 1 : i;
     }
 
-    public long ceilL(double d) {
+    public static long floorL(double d) {
         long l = (long) d;
-        return d < l ? l : l + 1L;
+        return d < l ? l - 1L : l;
     }
 
-    public int ceilI(float f) {
+    public static int ceilI(float f) {
         int i = (int) f;
         return f < i ? i : i + 1;
     }
 
-    public long ceilL(float f) {
+    public static long ceilL(float f) {
         long l = (long) f;
         return f < l ? l : l + 1L;
     }
 
-    public int roundI(double d) {
+    public static int ceilI(double d) {
+        int i = (int) d;
+        return d < i ? i : i + 1;
+    }
+
+    public static long ceilL(double d) {
+        long l = (long) d;
+        return d < l ? l : l + 1L;
+    }
+
+    public static int roundI(float f) {
+        return Math.round(f);
+    }
+
+    public static long roundL(float f) {
+        return Math.round(f);
+    }
+
+    public static int roundI(double d) {
         return (int) Math.round(d);
     }
 
-    public long roundL(double d) {
+    public static long roundL(double d) {
         return Math.round(d);
     }
 
-    public int roundI(float f) {
-        return Math.round(f);
-    }
-
-    public long roundL(float f) {
-        return Math.round(f);
-    }
-
-    public long max(long a, long b) {
+    public static long max(long a, long b) {
         return a > b ? a : b;
     }
 
-    public int max(int a, int b) {
+    public static int max(int a, int b) {
         return a > b ? a : b;
     }
 
-    public short max(short a, short b) {
+    public static short max(short a, short b) {
         return a > b ? a : b;
     }
 
-    public byte max(byte a, byte b) {
+    public static byte max(byte a, byte b) {
         return a > b ? a : b;
     }
 
-    public float max(float a, float b) {
+    public static float max(float a, float b) {
         return a > b ? a : b;
     }
 
-    public double max(double a, double b) {
+    public static double max(double a, double b) {
         return a > b ? a : b;
     }
 
-    public long min(long a, long b) {
+    public static long min(long a, long b) {
         return a > b ? b : a;
     }
 
-    public int min(int a, int b) {
+    public static int min(int a, int b) {
         return a > b ? b : a;
     }
 
-    public short min(short a, short b) {
+    public static short min(short a, short b) {
         return a > b ? b : a;
     }
 
-    public byte min(byte a, byte b) {
+    public static byte min(byte a, byte b) {
         return a > b ? b : a;
     }
 
-    public float min(float a, float b) {
+    public static float min(float a, float b) {
         return a > b ? b : a;
     }
 
-    public double min(double a, double b) {
+    public static double min(double a, double b) {
         return a > b ? b : a;
     }
 
-    public long pow(long val, long exp) {
+    public static long pow(long val, long exp) {
         if (val == 0 || exp == 0)   {
             return 0;
         } else {
@@ -176,7 +176,7 @@ public class PMath {
         }
     }
 
-    public int pow(int val, int exp) {
+    public static int pow(int val, int exp) {
         if (val == 0 || exp == 0)   {
             return 0;
         } else {
@@ -188,7 +188,7 @@ public class PMath {
         }
     }
 
-    public short pow(short val, short exp) {
+    public static short pow(short val, short exp) {
         if (val == 0 || exp == 0)   {
             return 0;
         } else {
@@ -200,7 +200,7 @@ public class PMath {
         }
     }
 
-    public byte pow(byte val, byte exp) {
+    public static byte pow(byte val, byte exp) {
         if (val == 0 || exp == 0)   {
             return 0;
         } else {
@@ -212,11 +212,11 @@ public class PMath {
         }
     }
 
-    public float pow(float val, float exp) {
+    public static float pow(float val, float exp) {
         return (float) powDouble(val, exp);
     }
 
-    public double powDouble(double val, double exp) {
+    public static double powDouble(double val, double exp) {
         if (val == 0.0d || exp == 0.0d)   {
             return 0.0d;
         } else {
@@ -224,11 +224,27 @@ public class PMath {
         }
     }
 
-    public int roundUp(int n, int to) {
+    public static int roundUp(int n, int to) {
         return (n + to - 1) / to * to;
     }
 
-    public long roundUp(long n, long to) {
+    public static long roundUp(long n, long to) {
         return (n + to - 1L) / to * to;
+    }
+
+    public static float lerp(float a, float b, float t)    {
+        return a + (b - a) * t;
+    }
+
+    public static double lerp(double a, double b, double t)    {
+        return a + (b - a) * t;
+    }
+
+    public static int lerpI(int a, int b, float t)    {
+        return floorI(a + (b - a) * t);
+    }
+
+    public static int lerpI(int a, int b, double t)    {
+        return floorI(a + (b - a) * t);
     }
 }

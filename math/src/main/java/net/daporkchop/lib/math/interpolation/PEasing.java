@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -13,20 +13,54 @@
  *
  */
 
-package noise.image;
+package net.daporkchop.lib.math.interpolation;
 
-import net.daporkchop.lib.noise.NoiseEngineType;
+import lombok.experimental.UtilityClass;
+
+import static java.lang.StrictMath.*;
 
 /**
+ * Implementations of some of Robert Penner's easing functions.
+ * <p>
+ * Adapted from <a href="https://github.com/glslify/glsl-easings">glsl-easings</a>.
+ *
  * @author DaPorkchop_
  */
-public class CheckerboardImageTest extends ImageTest {
-    public static void main(String... args) {
-        new CheckerboardImageTest().test();
+@UtilityClass
+public class PEasing {
+    public static float sinInOut(float t) {
+        return -0.5f * ((float) cos(t * Math.PI) - 1.0f);
     }
 
-    @Override
-    protected NoiseEngineType getType() {
-        return NoiseEngineType.CHECKERBOARD;
+    public static double sinInOut(double t) {
+        return -0.5d * (cos(t * Math.PI) - 1.0d);
+    }
+
+    public static float quadraticInOut(float t) {
+        float p = t * t * 2.0f;
+        return t < 0.5f ? p : -p + (4.0f * t) - 1.0f;
+    }
+
+    public static double quadraticInOut(double t) {
+        double p = t * t * 2.0d;
+        return t < 0.5d ? p : -p + (4.0d * t) - 1.0d;
+    }
+
+    public static float cubicInOut(float t)   {
+        if (t < 0.5f)   {
+            return t * t * t * 4.0f;
+        } else {
+            t = t * 2.0f - 2.0f;
+            return t * t * t * 0.5f + 1.0f;
+        }
+    }
+
+    public static double cubicInOut(double t)   {
+        if (t < 0.5d)   {
+            return t * t * t * 4.0d;
+        } else {
+            t = t * 2.0d - 2.0d;
+            return t * t * t * 0.5d + 1.0d;
+        }
     }
 }

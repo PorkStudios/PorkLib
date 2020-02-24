@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -13,45 +13,58 @@
  *
  */
 
-package net.daporkchop.lib.noise.engine;
+package net.daporkchop.lib.noise.filter.math;
 
 import lombok.Getter;
-
-import static net.daporkchop.lib.math.primitive.PMath.*;
+import lombok.NonNull;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.noise.NoiseSource;
+import net.daporkchop.lib.noise.filter.FilterNoiseSource;
+import net.daporkchop.lib.noise.util.NoiseFactory;
+import net.daporkchop.lib.random.PRandom;
 
 /**
  * @author DaPorkchop_
  */
-public class CheckerboardEngine implements INoiseEngine {
-    @Getter
-    private volatile long seed;
+@Accessors(fluent = true)
+public final class ScalarSubFilter extends FilterNoiseSource {
+    private final double val;
 
-    public CheckerboardEngine(long seed) {
-        this.seed = seed;
+    @Getter
+    private final double min;
+    @Getter
+    private final double max;
+
+    public ScalarSubFilter(@NonNull NoiseSource delegate, double val) {
+        super(delegate);
+
+        this.val = val;
+
+        this.min = delegate.min() - val;
+        this.max = delegate.max() - val;
+    }
+
+    public ScalarSubFilter(@NonNull NoiseFactory factory, @NonNull PRandom random, double val) {
+        this(factory.apply(random), val);
     }
 
     @Override
     public double get(double x) {
-        return (floorI(x) & 1) != 0 ? -1.0d : 1.0d;
+        return this.delegate.get(x) - this.val;
     }
 
     @Override
     public double get(double x, double y) {
-        return (floorI(x) & 1 ^ floorI(y) & 1) != 0 ? -1.0d : 1.0d;
+        return this.delegate.get(x, y) - this.val;
     }
 
     @Override
     public double get(double x, double y, double z) {
-        return (floorI(x) & 1 ^ floorI(y) & 1 ^ floorI(z) & 1) != 0 ? -1.0d : 1.0d;
+        return this.delegate.get(x, y, z) - this.val;
     }
 
     @Override
-    public double get(double x, double y, double z, double w) {
-        return (floorI(x) & 1 ^ floorI(y) & 1 ^ floorI(z) & 1 ^ floorI(w) & 1) != 0 ? -1.0d : 1.0d;
-    }
-
-    @Override
-    public void setSeed(long seed) {
-        this.seed = seed;
+    public String toString() {
+        return String.format("%s - %f", this.delegate, this.val);
     }
 }

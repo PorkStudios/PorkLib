@@ -40,10 +40,7 @@ public class PArrays {
 
     public void shuffle(@NonNull byte[] arr, @NonNull Random random) {
         for (int i = 0, length = arr.length; i < length; i++) {
-            int j = random.nextInt(arr.length);
-            byte curr = arr[i];
-            arr[i] = arr[j];
-            arr[j] = curr;
+            swap(arr, i, random.nextInt(length));
         }
     }
 
@@ -53,10 +50,7 @@ public class PArrays {
 
     public void shuffle(@NonNull short[] arr, @NonNull Random random) {
         for (int i = 0, length = arr.length; i < length; i++) {
-            int j = random.nextInt(arr.length);
-            short curr = arr[i];
-            arr[i] = arr[j];
-            arr[j] = curr;
+            swap(arr, i, random.nextInt(length));
         }
     }
 
@@ -66,10 +60,7 @@ public class PArrays {
 
     public void shuffle(@NonNull char[] arr, @NonNull Random random) {
         for (int i = 0, length = arr.length; i < length; i++) {
-            int j = random.nextInt(arr.length);
-            char curr = arr[i];
-            arr[i] = arr[j];
-            arr[j] = curr;
+            swap(arr, i, random.nextInt(length));
         }
     }
 
@@ -79,10 +70,7 @@ public class PArrays {
 
     public void shuffle(@NonNull int[] arr, @NonNull Random random) {
         for (int i = 0, length = arr.length; i < length; i++) {
-            int j = random.nextInt(arr.length);
-            int curr = arr[i];
-            arr[i] = arr[j];
-            arr[j] = curr;
+            swap(arr, i, random.nextInt(length));
         }
     }
 
@@ -92,10 +80,7 @@ public class PArrays {
 
     public void shuffle(@NonNull long[] arr, @NonNull Random random) {
         for (int i = 0, length = arr.length; i < length; i++) {
-            int j = random.nextInt(arr.length);
-            long curr = arr[i];
-            arr[i] = arr[j];
-            arr[j] = curr;
+            swap(arr, i, random.nextInt(length));
         }
     }
 
@@ -105,10 +90,7 @@ public class PArrays {
 
     public void shuffle(@NonNull float[] arr, @NonNull Random random) {
         for (int i = 0, length = arr.length; i < length; i++) {
-            int j = random.nextInt(arr.length);
-            float curr = arr[i];
-            arr[i] = arr[j];
-            arr[j] = curr;
+            swap(arr, i, random.nextInt(length));
         }
     }
 
@@ -118,23 +100,17 @@ public class PArrays {
 
     public void shuffle(@NonNull double[] arr, @NonNull Random random) {
         for (int i = 0, length = arr.length; i < length; i++) {
-            int j = random.nextInt(arr.length);
-            double curr = arr[i];
-            arr[i] = arr[j];
-            arr[j] = curr;
+            swap(arr, i, random.nextInt(length));
         }
     }
 
-    public void shuffle(@NonNull Object[] arr) {
+    public <T> void shuffle(@NonNull T[] arr) {
         shuffle(arr, ThreadLocalRandom.current());
     }
 
-    public void shuffle(@NonNull Object[] arr, @NonNull Random random) {
+    public <T> void shuffle(@NonNull T[] arr, @NonNull Random random) {
         for (int i = 0, length = arr.length; i < length; i++) {
-            int j = random.nextInt(arr.length);
-            Object curr = arr[i];
-            arr[i] = arr[j];
-            arr[j] = curr;
+            swap(arr, i, random.nextInt(length));
         }
     }
 
@@ -529,5 +505,53 @@ public class PArrays {
             }
         }
         return val;
+    }
+
+    public void swap(@NonNull byte[] arr, int i1, int i2)   {
+        byte val = arr[i1];
+        arr[i1] = arr[i2];
+        arr[i2] = val;
+    }
+
+    public void swap(@NonNull short[] arr, int i1, int i2)   {
+        short val = arr[i1];
+        arr[i1] = arr[i2];
+        arr[i2] = val;
+    }
+
+    public void swap(@NonNull char[] arr, int i1, int i2)   {
+        char val = arr[i1];
+        arr[i1] = arr[i2];
+        arr[i2] = val;
+    }
+
+    public void swap(@NonNull int[] arr, int i1, int i2)   {
+        int val = arr[i1];
+        arr[i1] = arr[i2];
+        arr[i2] = val;
+    }
+
+    public void swap(@NonNull long[] arr, int i1, int i2)   {
+        long val = arr[i1];
+        arr[i1] = arr[i2];
+        arr[i2] = val;
+    }
+
+    public void swap(@NonNull float[] arr, int i1, int i2)   {
+        float val = arr[i1];
+        arr[i1] = arr[i2];
+        arr[i2] = val;
+    }
+
+    public void swap(@NonNull double[] arr, int i1, int i2)   {
+        double val = arr[i1];
+        arr[i1] = arr[i2];
+        arr[i2] = val;
+    }
+
+    public <T> void swap(@NonNull T[] arr, int i1, int i2)   {
+        T val = arr[i1];
+        arr[i1] = arr[i2];
+        arr[i2] = val;
     }
 }

@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -13,37 +13,58 @@
  *
  */
 
-package net.daporkchop.lib.noise.engine;
+package net.daporkchop.lib.noise.filter.math;
 
 import lombok.Getter;
-import net.daporkchop.lib.common.util.PArrays;
-
-import java.util.Random;
+import lombok.NonNull;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.noise.NoiseSource;
+import net.daporkchop.lib.noise.filter.FilterNoiseSource;
+import net.daporkchop.lib.noise.util.NoiseFactory;
+import net.daporkchop.lib.random.PRandom;
 
 /**
  * @author DaPorkchop_
  */
-abstract class BasicSeedEngine implements INoiseEngine {
+@Accessors(fluent = true)
+public final class ScalarAddFilter extends FilterNoiseSource {
+    private final double val;
+
     @Getter
-    volatile long seed;
+    private final double min;
+    @Getter
+    private final double max;
 
-    volatile int[] p;
+    public ScalarAddFilter(@NonNull NoiseSource delegate, double val) {
+        super(delegate);
 
-    BasicSeedEngine(long seed) {
-        this.setSeed(seed);
+        this.val = val;
+
+        this.min = delegate.min() + val;
+        this.max = delegate.max() + val;
+    }
+
+    public ScalarAddFilter(@NonNull NoiseFactory factory, @NonNull PRandom random, double val) {
+        this(factory.apply(random), val);
     }
 
     @Override
-    public void setSeed(long seed) {
-        int[] p1 = new int[256], p2 = new int[512];
-        for (int i = 0; i < 256; i++) {
-            p1[i] = i;
-        }
-        PArrays.shuffle(p1, new Random(seed));
-        System.arraycopy(p1, 0, p2, 0, 256);
-        System.arraycopy(p1, 0, p2, 256, 256);
+    public double get(double x) {
+        return this.delegate.get(x) + this.val;
+    }
 
-        this.p = p2;
-        this.seed = seed;
+    @Override
+    public double get(double x, double y) {
+        return this.delegate.get(x, y) + this.val;
+    }
+
+    @Override
+    public double get(double x, double y, double z) {
+        return this.delegate.get(x, y, z) + this.val;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s + %f", this.delegate, this.val);
     }
 }

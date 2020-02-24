@@ -13,55 +13,52 @@
  *
  */
 
-package net.daporkchop.lib.random.impl;
+package net.daporkchop.lib.noise.filter;
 
-import lombok.AllArgsConstructor;
+import lombok.NonNull;
+import net.daporkchop.lib.noise.NoiseSource;
+import net.daporkchop.lib.noise.util.NoiseFactory;
 import net.daporkchop.lib.random.PRandom;
 
 /**
- * A fast implementation of {@link PRandom} based on Java's {@link java.util.SplittableRandom}.
- * <p>
- * This is NOT thread-safe. Attempting to share an instance of this class among multiple threads is likely to result in duplicate values
- * being returned to multiple threads.
+ * Applies a certain scale factor to a given {@link NoiseSource}.
  *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-public final class FastPRandom extends AbstractFastPRandom {
-    private static final long GAMMA = 0x9e3779b97f4a7c15L;
+public final class ScaleFilter extends FilterNoiseSource {
+    private final double scaleX;
+    private final double scaleY;
+    private final double scaleZ;
 
-    public static long mix64(long z) {
-        z = (z ^ (z >>> 33)) * 0xff51afd7ed558ccdL;
-        z = (z ^ (z >>> 33)) * 0xc4ceb9fe1a85ec53L;
-        return z ^ (z >>> 33);
+    public ScaleFilter(@NonNull NoiseSource delegate, double scaleX, double scaleY, double scaleZ) {
+        super(delegate);
+
+        this.scaleX = scaleX;
+        this.scaleY = scaleY;
+        this.scaleZ = scaleZ;
     }
 
-    public static int mix32(long z) {
-        z = (z ^ (z >>> 33)) * 0xff51afd7ed558ccdL;
-        return (int) (((z ^ (z >>> 33)) * 0xc4ceb9fe1a85ec53L) >>> 32);
-    }
-
-    private long seed;
-
-    /**
-     * Creates a new {@link FastPRandom} instance using a seed based on the current time.
-     */
-    public FastPRandom() {
-        this(mix64(System.currentTimeMillis()) ^ mix64(System.nanoTime()));
+    public ScaleFilter(@NonNull NoiseFactory factory, @NonNull PRandom random, double scaleX, double scaleY, double scaleZ) {
+        this(factory.apply(random), scaleX, scaleY, scaleZ);
     }
 
     @Override
-    public int nextInt() {
-        return mix32(this.seed += GAMMA);
+    public double get(double x) {
+        return this.delegate.get(x * this.scaleX);
     }
 
     @Override
-    public long nextLong() {
-        return mix64(this.seed += GAMMA);
+    public double get(double x, double y) {
+        return this.delegate.get(x * this.scaleX, y * this.scaleY);
     }
 
     @Override
-    public void setSeed(long seed) {
-        this.seed = seed;
+    public double get(double x, double y, double z) {
+        return this.delegate.get(x * this.scaleX, y * this.scaleY, z * this.scaleZ);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Scale(%s,(%f,%f,%f))", this.delegate, this.scaleX, this.scaleY, this.scaleZ);
     }
 }

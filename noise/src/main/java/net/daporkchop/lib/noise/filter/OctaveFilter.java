@@ -15,7 +15,10 @@
 
 package net.daporkchop.lib.noise.filter;
 
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.noise.NoiseSource;
 import net.daporkchop.lib.noise.util.NoiseFactory;
@@ -26,13 +29,34 @@ import net.daporkchop.lib.random.PRandom;
  *
  * @author DaPorkchop_
  */
+@Getter
+@Accessors(fluent = true)
 public final class OctaveFilter extends FilterNoiseSource {
+    private final double min;
+    private final double max;
+
+    @Getter(AccessLevel.NONE)
     private final int octaves;
 
     public OctaveFilter(@NonNull NoiseSource delegate, int octaves) {
         super(delegate);
 
         this.octaves = PValidation.ensurePositive(octaves);
+
+        double min = delegate.min();
+        double max = delegate.max();
+        double center = (min + max) / 2.0d;
+
+        //there's got to be a more efficient way of calculating this...
+        double octaveDeviation = Math.abs(max - center);
+        double theoreticalMaxDeviation = 0.0d;
+        for (int i = octaves - 1; i >= 0; i--) {
+            theoreticalMaxDeviation += octaveDeviation;
+            octaveDeviation *= 0.5d;
+        }
+
+        this.min = center - theoreticalMaxDeviation;
+        this.max = center + theoreticalMaxDeviation;
     }
 
     public OctaveFilter(@NonNull NoiseFactory factory, @NonNull PRandom random, int octaves) {

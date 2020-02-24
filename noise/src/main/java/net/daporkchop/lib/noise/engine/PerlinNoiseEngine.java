@@ -16,6 +16,7 @@
 package net.daporkchop.lib.noise.engine;
 
 import lombok.NonNull;
+import net.daporkchop.lib.common.cache.Cache;
 import net.daporkchop.lib.noise.NoiseSource;
 import net.daporkchop.lib.random.PRandom;
 
@@ -29,6 +30,14 @@ import static net.daporkchop.lib.math.primitive.PMath.*;
  * @author DaPorkchop_
  */
 public class PerlinNoiseEngine implements NoiseSource {
+    protected static final Cache<byte[]> INITIAL_STATE_CACHE = Cache.soft(() -> {
+        byte[] arr = new byte[256];
+        for (int i = 0; i < arr.length; i++)    {
+            arr[i] = (byte) i;
+        }
+        return arr;
+    });
+
     protected static double fade(double t) {
         return t * t * t * (t * (t * 6.0d - 15.0d) + 10.0d);
     }
@@ -107,16 +116,7 @@ public class PerlinNoiseEngine implements NoiseSource {
     protected final byte[] p;
 
     public PerlinNoiseEngine(@NonNull PRandom random) {
-        this.p = new byte[256];
-        for (int i = 0; i < 256; i++) {
-            this.p[i] = (byte) i;
-        }
-        for (int i = 0; i < 256; i++) {
-            int j = random.nextInt(256);
-            byte v = this.p[j];
-            this.p[j] = this.p[i];
-            this.p[i] = v;
-        }
+        this.p = random.shuffle(INITIAL_STATE_CACHE.get().clone());
     }
 
     @Override

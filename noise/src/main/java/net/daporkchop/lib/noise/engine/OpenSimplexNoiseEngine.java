@@ -55,19 +55,16 @@ public class OpenSimplexNoiseEngine implements NoiseSource {
             11, -4, -4, 4, -11, -4, 4, -4, -11,
     };
 
-    protected final short[] p            = new short[256];
-    protected final short[] pGradIndex3D = new short[256];
+    protected final byte[] p            = new byte[256];
+    protected final byte[] pGradIndex3D = new byte[256];
 
     public OpenSimplexNoiseEngine(@NonNull PRandom random) {
-        short[] source = new short[256];
-        for (int i = 0; i < 256; i++) {
-            source[i] = (short) i;
-        }
+        byte[] source = PerlinNoiseEngine.INITIAL_STATE_CACHE.get().clone();
 
         for (int i = 255; i >= 0; i--) {
             int r = random.nextInt(i + 1);
             this.p[i] = source[r];
-            this.pGradIndex3D[i] = (short) ((this.p[i] % (GRADIENTS_3D.length / 3)) * 3);
+            this.pGradIndex3D[i] = (byte) (((this.p[i] & 0xFF) % (GRADIENTS_3D.length / 3)) * 3);
             source[r] = source[i];
         }
     }
@@ -690,12 +687,12 @@ public class OpenSimplexNoiseEngine implements NoiseSource {
     }
 
     protected double extrapolate(int xsb, int ysb, double dx, double dy) {
-        int index = this.p[(this.p[xsb & 0xFF] + ysb) & 0xFF] & 0x0E;
+        int index = this.p[((this.p[xsb & 0xFF] & 0xFF) + ysb) & 0xFF] & 0x0E;
         return GRADIENTS_2D[index] * dx + GRADIENTS_2D[index + 1] * dy;
     }
 
     protected double extrapolate(int xsb, int ysb, int zsb, double dx, double dy, double dz) {
-        int index = this.pGradIndex3D[(this.p[(this.p[xsb & 0xFF] + ysb) & 0xFF] + zsb) & 0xFF];
+        int index = this.pGradIndex3D[((this.p[((this.p[xsb & 0xFF] & 0xFF) + ysb) & 0xFF] & 0xFF) + zsb) & 0xFF];
         return GRADIENTS_3D[index] * dx + GRADIENTS_3D[index + 1] * dy + GRADIENTS_3D[index + 2] * dz;
     }
 

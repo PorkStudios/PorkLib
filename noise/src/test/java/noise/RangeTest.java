@@ -30,11 +30,11 @@ import static noise.NoiseTests.*;
  */
 public class RangeTest {
     private static final double RANGE   = 100000.0d;
-    private static final int    SAMPLES = 50000000;
+    private static final int    SAMPLES = 20000000;
 
     @Test
     public void testRange() {
-        Arrays.stream(ALL_SOURCES).parallel()
+        Arrays.stream(DEFAULT_SOURCES).parallel()
                 .map(src -> src.toRange(-1.0d, 1.0d))
                 .map(src -> {
                     PRandom random = new FastPRandom();
@@ -46,13 +46,16 @@ public class RangeTest {
                         min = Math.min(val, min);
                         max = Math.max(val, max);
                     }
+                    if (min < -1.0d || max > 1.0d)  {
+                        throw new IllegalStateException(String.format("Out of range [-1,1] %s: min=%f,max=%f", src, min, max));
+                    }
                     return new Sample(1, src.toString(), min, max, System.nanoTime() - start);
                 })
                 .collect(Collectors.toList()).stream().sorted()
                 .forEach(Sample::print);
         System.out.println();
 
-        Arrays.stream(ALL_SOURCES).parallel()
+        Arrays.stream(DEFAULT_SOURCES).parallel()
                 .map(src -> src.toRange(-1.0d, 1.0d))
                 .map(src -> {
                     PRandom random = new FastPRandom();
@@ -64,13 +67,16 @@ public class RangeTest {
                         min = Math.min(val, min);
                         max = Math.max(val, max);
                     }
+                    if (min < -1.0d || max > 1.0d)  {
+                        throw new IllegalStateException(String.format("Out of range [-1,1] %s: min=%f,max=%f", src, min, max));
+                    }
                     return new Sample(2, src.toString(), min, max, System.nanoTime() - start);
                 })
                 .collect(Collectors.toList()).stream().sorted()
                 .forEach(Sample::print);
         System.out.println();
 
-        Arrays.stream(ALL_SOURCES).parallel()
+        Arrays.stream(DEFAULT_SOURCES).parallel()
                 .map(src -> src.toRange(-1.0d, 1.0d))
                 .map(src -> {
                     PRandom random = new FastPRandom();
@@ -81,6 +87,9 @@ public class RangeTest {
                         double val = src.get(random.nextDouble(-RANGE, RANGE), random.nextDouble(-RANGE, RANGE), random.nextDouble(-RANGE, RANGE));
                         min = Math.min(val, min);
                         max = Math.max(val, max);
+                    }
+                    if (min < -1.0d || max > 1.0d)  {
+                        throw new IllegalStateException(String.format("Out of range [-1,1] %s: min=%f,max=%f", src, min, max));
                     }
                     return new Sample(3, src.toString(), min, max, System.nanoTime() - start);
                 })

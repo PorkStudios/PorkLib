@@ -35,9 +35,13 @@ import java.util.stream.Stream;
 public class NoiseTests {
     public final NoiseSource[] DEFAULT_SOURCES = {
             new PorkianV2NoiseEngine(new FastPRandom()),
+            new PorkianV2NoiseEngine(new FastPRandom()).octaves(8),
             new PerlinNoiseEngine(new FastPRandom()),
+            new PerlinNoiseEngine(new FastPRandom()).octaves(8),
             new SimplexNoiseEngine(new FastPRandom()),
-            new OpenSimplexNoiseEngine(new FastPRandom())
+            new SimplexNoiseEngine(new FastPRandom()).octaves(8),
+            new OpenSimplexNoiseEngine(new FastPRandom()),
+            new OpenSimplexNoiseEngine(new FastPRandom()).octaves(8)
     };
 
     public final NoiseSource[] ALL_SOURCES = Arrays.stream(DEFAULT_SOURCES)

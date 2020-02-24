@@ -50,7 +50,7 @@ public class ImageTest {
                 for (int y = 0; y < size; y++) {
                     double val = src.get(x * scale, y * scale);
                     if (val < -1.0d || val > 1.0d)  {
-                        //throw new IllegalStateException(String.format("(%d,%d) (%f,%f): %f", x, y, x * scale, y * scale, val));
+                        throw new IllegalStateException(String.format("(%d,%d) (%f,%f): %f", x, y, x * scale, y * scale, val));
                     }
                     int col = val < 0.0d
                             ? lerpI(0x00, 0xFF, -val) << 16

@@ -35,26 +35,74 @@ public class PerlinNoiseEngine implements NoiseSource {
     }
 
     protected static double grad(int hash, double x) {
-        int h = hash & 0xF;
-        double grad = 1.0d + (h & 7);
-        if ((h & 8) == 0) {
-            grad = -grad;
+        if ((hash & 0x8) == 0)  {
+            return -(1.0d + (hash & 0x7)) * x;
+        } else {
+            return (1.0d + (hash & 0x7)) * x;
         }
-        return grad * x;
     }
 
     protected static double grad(int hash, double x, double y) {
-        int h = hash & 7;
-        double u = h < 4 ? x : y;
-        double v = h < 4 ? y : x;
-        return ((h & 1) == 0 ? -u : u) + ((h & 2) == 0 ? -2.0d * v : 2.0d * v);
+        switch (hash & 0x7)   {
+            case 0x0:
+                return -x - 2.0d * y;
+            case 0x1:
+                return x - 2.0d * y;
+            case 0x2:
+                return -x + 2.0d * y;
+            case 0x3:
+                return x + 2.0d * y;
+            case 0x4:
+                return -y - 2.0d * x;
+            case 0x5:
+                return y - 2.0d * x;
+            case 0x6:
+                return -y + 2.0d * x;
+            case 0x7:
+                return y + 2.0d * x;
+            default:
+                throw new IllegalStateException();
+        }
     }
 
     protected static double grad(int hash, double x, double y, double z) {
-        int h = hash & 15;
-        double u = h < 8 ? x : y;
-        double v = h < 4 ? y : h == 12 || h == 14 ? x : z;
-        return ((h & 1) == 0 ? -u : u) + ((h & 2) == 0 ? -v : v);
+        // http://riven8192.blogspot.com/2010/08/calculate-perlinnoise-twice-as-fast.html
+        switch (hash & 0xF) {
+            case 0x0:
+                return x + y;
+            case 0x1:
+                return -x + y;
+            case 0x2:
+                return x - y;
+            case 0x3:
+                return -x - y;
+            case 0x4:
+                return x + z;
+            case 0x5:
+                return -x + z;
+            case 0x6:
+                return x - z;
+            case 0x7:
+                return -x - z;
+            case 0x8:
+                return y + z;
+            case 0x9:
+                return -y + z;
+            case 0xA:
+                return y - z;
+            case 0xB:
+                return -y - z;
+            case 0xC:
+                return y + x;
+            case 0xD:
+                return -y + z;
+            case 0xE:
+                return y - x;
+            case 0xF:
+                return -y - z;
+            default:
+                throw new IllegalStateException();
+        }
     }
 
     private final byte[] p;

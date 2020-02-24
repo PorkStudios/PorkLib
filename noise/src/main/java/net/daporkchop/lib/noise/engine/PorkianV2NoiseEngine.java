@@ -17,15 +17,11 @@ package net.daporkchop.lib.noise.engine;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.common.util.PArrays;
 import net.daporkchop.lib.noise.NoiseSource;
 import net.daporkchop.lib.random.PRandom;
 
-import java.util.stream.IntStream;
-
-import static net.daporkchop.lib.math.interpolation.PEasing.*;
 import static net.daporkchop.lib.math.primitive.PMath.*;
-import static net.daporkchop.lib.random.impl.FastPRandom.mix64;
+import static net.daporkchop.lib.random.impl.FastPRandom.*;
 
 /**
  * An implementation of Porkian v2 noise, which is a simple value noise algorithm.
@@ -37,7 +33,7 @@ public class PorkianV2NoiseEngine implements NoiseSource {
     protected static final double DOUBLE_UNIT = 0x1.0p-53;
 
     private static double fade(double t) {
-        return t * t * t * (t * (t * 6.0d - 15.0d) + 10.0d);
+        return t * t * (-t * 2.0d + 3.0d);
     }
 
     private final long seed;
@@ -52,7 +48,7 @@ public class PorkianV2NoiseEngine implements NoiseSource {
 
         x = fade(x - xI);
 
-        return lerp(this.mix(xI), this.mix(xI + 1), x) * 2.0d - 1.0d;
+        return fade(lerp(this.mix(xI), this.mix(xI + 1), x)) * 2.0d - 1.0d;
     }
 
     @Override
@@ -63,9 +59,9 @@ public class PorkianV2NoiseEngine implements NoiseSource {
         x = fade(x - xI);
         y = fade(y - yI);
 
-        return lerp(
-                lerp(this.mix(xI, yI), this.mix(xI + 1, yI), x),
-                lerp(this.mix(xI, yI + 1), this.mix(xI + 1, yI + 1), x), y) * 2.0d - 1.0d;
+        return fade(lerp(
+                fade(lerp(this.mix(xI, yI), this.mix(xI + 1, yI), x)),
+                fade(lerp(this.mix(xI, yI + 1), this.mix(xI + 1, yI + 1), x)), y)) * 2.0d - 1.0d;
     }
 
     @Override
@@ -78,13 +74,13 @@ public class PorkianV2NoiseEngine implements NoiseSource {
         y = fade(y - yI);
         z = fade(z - zI);
 
-        return lerp(
-                lerp(
-                        lerp(this.mix(xI, yI, zI), this.mix(xI + 1, yI, zI), x),
-                        lerp(this.mix(xI, yI + 1, zI), this.mix(xI + 1, yI + 1, zI), x), y),
-                lerp(
-                        lerp(this.mix(xI, yI, zI + 1), this.mix(xI + 1, yI, zI + 1), x),
-                        lerp(this.mix(xI, yI + 1, zI + 1), this.mix(xI + 1, yI + 1, zI + 1), x), y), z) * 2.0d - 1.0d;
+        return fade(lerp(
+                fade(lerp(
+                        fade(lerp(this.mix(xI, yI, zI), this.mix(xI + 1, yI, zI), x)),
+                        fade(lerp(this.mix(xI, yI + 1, zI), this.mix(xI + 1, yI + 1, zI), x)), y)),
+                fade(lerp(
+                        fade(lerp(this.mix(xI, yI, zI + 1), this.mix(xI + 1, yI, zI + 1), x)),
+                        fade(lerp(this.mix(xI, yI + 1, zI + 1), this.mix(xI + 1, yI + 1, zI + 1), x)), y)), z)) * 2.0d - 1.0d;
     }
 
     private double mix(int x) {
@@ -92,13 +88,10 @@ public class PorkianV2NoiseEngine implements NoiseSource {
     }
 
     private double mix(int x, int y) {
-        return ((mix64(x ^ this.seed)
-                + mix64(y ^ this.seed)) >>> 11L) * DOUBLE_UNIT;
+        return (mix64(y ^ this.seed ^ mix64(x ^ this.seed)) >>> 11L) * DOUBLE_UNIT;
     }
 
     private double mix(int x, int y, int z) {
-        return ((mix64(x ^ this.seed)
-                + mix64(y ^ this.seed)
-                + mix64(z ^ this.seed)) >>> 11L) * DOUBLE_UNIT;
+        return (mix64(z ^ this.seed ^ mix64(y ^ this.seed ^ mix64(x ^ this.seed))) >>> 11L) * DOUBLE_UNIT;
     }
 }

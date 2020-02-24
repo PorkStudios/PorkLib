@@ -100,6 +100,20 @@ allprojects {
     }
 
     publishing {
+        repositories {
+            if (project.hasProperty("nukkitxMavenUsername") && project.hasProperty("nukkitxMavenPassword")) {
+                maven {
+                    credentials {
+                        username = "$nukkitxMavenUsername"
+                        password = "$nukkitxMavenPassword"
+                    }
+
+                    name = "NukkitX"
+                    url = url = version.endsWith('SNAPSHOT') ? "https://repo.nukkitx.com/snapshot" : "https://repo.nukkitx.com/release"
+                }
+            }
+        }
+
         publications {
             maven(MavenPublication) {
                 groupId = "net.daporkchop.lib"
@@ -115,7 +129,8 @@ allprojects {
         }
     }
 
-    build.dependsOn(publishToMavenLocal)
+    publish.dependsOn(publishToMavenLocal)
+    build.dependsOn(publish)
 
     test {
         testLogging {

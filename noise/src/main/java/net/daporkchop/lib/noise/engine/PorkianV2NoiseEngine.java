@@ -32,11 +32,11 @@ import static net.daporkchop.lib.random.impl.FastPRandom.*;
 public class PorkianV2NoiseEngine implements NoiseSource {
     protected static final double DOUBLE_UNIT = 0x1.0p-53;
 
-    private static double fade(double t) {
+    protected static double fade(double t) {
         return t * t * (-t * 2.0d + 3.0d);
     }
 
-    private final long seed;
+    protected final long seed;
 
     public PorkianV2NoiseEngine(@NonNull PRandom random) {
         this.seed = random.nextLong();
@@ -93,5 +93,10 @@ public class PorkianV2NoiseEngine implements NoiseSource {
 
     private double mix(int x, int y, int z) {
         return (mix64(z ^ this.seed ^ mix64(y ^ this.seed ^ mix64(x ^ this.seed))) >>> 11L) * DOUBLE_UNIT;
+    }
+
+    @Override
+    public String toString() {
+        return this.getClass().getCanonicalName();
     }
 }

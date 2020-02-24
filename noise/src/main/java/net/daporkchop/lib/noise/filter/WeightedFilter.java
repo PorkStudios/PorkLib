@@ -20,6 +20,8 @@ import net.daporkchop.lib.noise.NoiseSource;
 import net.daporkchop.lib.noise.util.NoiseFactory;
 import net.daporkchop.lib.random.PRandom;
 
+import static net.daporkchop.lib.math.primitive.PMath.clamp;
+
 /**
  * Weights values from a {@link NoiseSource} towards the outer bounds, providing far more valley and peaks that approach -1 and 1.
  *
@@ -27,29 +29,40 @@ import net.daporkchop.lib.random.PRandom;
  */
 public final class WeightedFilter extends FilterNoiseSource {
     private static double fade(double t) {
-        return t * t * t * (t * (t * 6.0d - 15.0d) + 10.0d);
+        //the values seem to occasionally go above and below due to floating point errors
+        return clamp(t * t * (-t * 2.0d + 3.0d), 0.0d, 1.0d);
     }
 
     public WeightedFilter(@NonNull NoiseSource delegate) {
-        super(delegate);
+        super(delegate.toRange(0.0d, 1.0d));
     }
 
     public WeightedFilter(@NonNull NoiseFactory factory, @NonNull PRandom random) {
-        super(factory, random);
+        this(factory.apply(random));
+    }
+
+    @Override
+    public double min() {
+        return 0.0d;
+    }
+
+    @Override
+    public double max() {
+        return 1.0d;
     }
 
     @Override
     public double get(double x) {
-        return fade(this.delegate.get(x) * 0.5d + 0.5d) * 2.0d - 1.0d;
+        return fade(this.delegate.get(x));
     }
 
     @Override
     public double get(double x, double y) {
-        return fade(this.delegate.get(x, y) * 0.5d + 0.5d) * 2.0d - 1.0d;
+        return fade(this.delegate.get(x, y));
     }
 
     @Override
     public double get(double x, double y, double z) {
-        return fade(this.delegate.get(x, y, z) * 0.5d + 0.5d) * 2.0d - 1.0d;
+        return fade(this.delegate.get(x, y, z));
     }
 }

@@ -13,52 +13,59 @@
  *
  */
 
-package net.daporkchop.lib.noise.filter;
+package net.daporkchop.lib.noise.filter.range;
 
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.noise.NoiseSource;
+import net.daporkchop.lib.noise.filter.FilterNoiseSource;
 import net.daporkchop.lib.noise.util.NoiseFactory;
 import net.daporkchop.lib.random.PRandom;
 
 /**
- * Applies a certain scale factor to a given {@link NoiseSource}.
+ * Converts the output range of a given {@link net.daporkchop.lib.noise.NoiseSource} to a given range.
  *
  * @author DaPorkchop_
  */
-public final class ScaleFilter extends FilterNoiseSource {
-    private final double scaleX;
-    private final double scaleY;
-    private final double scaleZ;
+@Getter
+@Accessors(fluent = true)
+public final class RangeConversionFilter extends FilterNoiseSource {
+    private final double fromMin;
+    private final double factor;
+    private final double min;
+    private final double max;
 
-    public ScaleFilter(@NonNull NoiseSource delegate, double scaleX, double scaleY, double scaleZ) {
+    public RangeConversionFilter(@NonNull NoiseSource delegate, double min, double max) {
         super(delegate);
 
-        this.scaleX = scaleX;
-        this.scaleY = scaleY;
-        this.scaleZ = scaleZ;
+        this.factor = (max - min) / (delegate.max() - (this.fromMin = delegate.min()));
+
+        this.min = min;
+        this.max = max;
     }
 
-    public ScaleFilter(@NonNull NoiseFactory factory, @NonNull PRandom random, double scaleX, double scaleY, double scaleZ) {
-        this(factory.apply(random), scaleX, scaleY, scaleZ);
+    public RangeConversionFilter(@NonNull NoiseFactory factory, @NonNull PRandom random, double min, double max) {
+        this(factory.apply(random), min, max);
     }
 
     @Override
     public double get(double x) {
-        return this.delegate.get(x * this.scaleX);
+        return (this.delegate.get(x) - this.fromMin) * this.factor + this.min;
     }
 
     @Override
     public double get(double x, double y) {
-        return this.delegate.get(x * this.scaleX, y * this.scaleY);
+        return (this.delegate.get(x, y) - this.fromMin) * this.factor + this.min;
     }
 
     @Override
     public double get(double x, double y, double z) {
-        return this.delegate.get(x * this.scaleX, y * this.scaleY, z * this.scaleZ);
+        return (this.delegate.get(x, y, z) - this.fromMin) * this.factor + this.min;
     }
 
     @Override
     public String toString() {
-        return String.format("%s(%s,scaleX=%f,scaleY=%f,scaleZ=%f)", this.getClass().getCanonicalName(), this.delegate, this.scaleX, this.scaleY, this.scaleZ);
+        return String.format("%s(%s,min=%f,max=%f)", this.getClass().getCanonicalName(), this.delegate, this.min, this.max);
     }
 }

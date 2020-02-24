@@ -37,6 +37,6 @@ public abstract class FilterNoiseSource implements NoiseSource {
 
     @Override
     public String toString() {
-        return String.format("%s(%s)", this.getClass().getCanonicalName(), this.delegate.getClass().getCanonicalName());
+        return String.format("%s(%s)", this.getClass().getCanonicalName(), this.delegate);
     }
 }

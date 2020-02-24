@@ -37,6 +37,7 @@ public class ImageTest {
         BufferedImage img = new BufferedImage(size << 1, size, BufferedImage.TYPE_INT_ARGB);
 
         for (NoiseSource src : ALL_SOURCES) {
+            src = src.toRange(-1.0d, 1.0d);
             for (int x = 0; x < size; x++) {
                 for (int y = 0; y < size; y++) {
                     double val = src.get(x * scale, y * scale);

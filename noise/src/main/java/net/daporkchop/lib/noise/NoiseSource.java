@@ -15,8 +15,17 @@
 
 package net.daporkchop.lib.noise;
 
+import lombok.NonNull;
 import net.daporkchop.lib.common.util.PValidation;
+import net.daporkchop.lib.noise.filter.LerpFilter;
+import net.daporkchop.lib.noise.filter.OctaveFilter;
+import net.daporkchop.lib.noise.filter.ScaleFilter;
 import net.daporkchop.lib.noise.filter.WeightedFilter;
+import net.daporkchop.lib.noise.filter.math.AddFilter;
+import net.daporkchop.lib.noise.filter.math.DivFilter;
+import net.daporkchop.lib.noise.filter.math.MulFilter;
+import net.daporkchop.lib.noise.filter.math.SubFilter;
+import net.daporkchop.lib.noise.filter.range.RangeConversionFilter;
 
 /**
  * A source for obtaining noise values.
@@ -24,6 +33,22 @@ import net.daporkchop.lib.noise.filter.WeightedFilter;
  * @author DaPorkchop_
  */
 public interface NoiseSource {
+    //range accessors
+
+    /**
+     * @return the minimum value that can be returned by this source
+     */
+    default double min() {
+        return -1.0d;
+    }
+
+    /**
+     * @return the maximum value that can be returned by this source
+     */
+    default double max() {
+        return 1.0d;
+    }
+
     //single value methods
 
     /**
@@ -174,7 +199,83 @@ public interface NoiseSource {
 
     //filtering methods
 
-    default NoiseSource weighted()  {
+    /**
+     * @return a {@link NoiseSource} that will interpolate linearly between {@code a} and {@code b} using this {@link NoiseSource} as the bias {@code t}
+     * @see LerpFilter
+     */
+    default NoiseSource lerped(@NonNull NoiseSource a, @NonNull NoiseSource b) {
+        return new LerpFilter(a, b, this);
+    }
+
+    /**
+     * @return this {@link NoiseSource} with the given number of octaves of fractal brownian motion applied
+     * @see OctaveFilter
+     */
+    default NoiseSource octaves(int octaves) {
+        return octaves == 1 ? this : new OctaveFilter(this, octaves);
+    }
+
+    /**
+     * @return this {@link NoiseSource} with the given scale factor applied to all input coordinates
+     * @see ScaleFilter
+     */
+    default NoiseSource scaled(double scale) {
+        return scale == 1.0d ? this : new ScaleFilter(this, scale, scale, scale);
+    }
+
+    /**
+     * @return this {@link NoiseSource} with the given scale factor applied to all input coordinates
+     * @see ScaleFilter
+     */
+    default NoiseSource scaled(double scaleX, double scaleY, double scaleZ) {
+        return scaleX == 1.0d && scaleY == 1.0d && scaleZ == 1.0d ? this : new ScaleFilter(this, scaleX, scaleY, scaleZ);
+    }
+
+    /**
+     * @return this {@link NoiseSource} with a weight applied to the values
+     * @see WeightedFilter
+     */
+    default NoiseSource weighted() {
         return new WeightedFilter(this);
+    }
+
+    /**
+     * @return this {@link NoiseSource} with the values scaled to the given range
+     * @see RangeConversionFilter
+     */
+    default NoiseSource toRange(double min, double max) {
+        return min == this.min() && max == this.max() ? this : new RangeConversionFilter(this, min, max);
+    }
+
+    /**
+     * @return this {@link NoiseSource} with the given value added to the values
+     * @see AddFilter
+     */
+    default NoiseSource add(double val) {
+        return val == 0.0d ? this : new AddFilter(this, val);
+    }
+
+    /**
+     * @return this {@link NoiseSource} with the given value subtracted from the values
+     * @see SubFilter
+     */
+    default NoiseSource sub(double val) {
+        return val == 0.0d ? this : new SubFilter(this, val);
+    }
+
+    /**
+     * @return this {@link NoiseSource} with the given value multiplied with the values
+     * @see MulFilter
+     */
+    default NoiseSource mul(double val) {
+        return val == 1.0d ? this : new MulFilter(this, val);
+    }
+
+    /**
+     * @return this {@link NoiseSource} with the given value divided from the values
+     * @see DivFilter
+     */
+    default NoiseSource div(double val) {
+        return val == 1.0d ? this : new DivFilter(this, val);
     }
 }

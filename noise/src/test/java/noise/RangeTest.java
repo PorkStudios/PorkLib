@@ -35,6 +35,7 @@ public class RangeTest {
     @Test
     public void testRange() {
         Arrays.stream(ALL_SOURCES).parallel()
+                .map(src -> src.toRange(-1.0d, 1.0d))
                 .map(src -> {
                     PRandom random = new FastPRandom();
                     long start = System.nanoTime();
@@ -52,6 +53,7 @@ public class RangeTest {
         System.out.println();
 
         Arrays.stream(ALL_SOURCES).parallel()
+                .map(src -> src.toRange(-1.0d, 1.0d))
                 .map(src -> {
                     PRandom random = new FastPRandom();
                     long start = System.nanoTime();
@@ -69,6 +71,7 @@ public class RangeTest {
         System.out.println();
 
         Arrays.stream(ALL_SOURCES).parallel()
+                .map(src -> src.toRange(-1.0d, 1.0d))
                 .map(src -> {
                     PRandom random = new FastPRandom();
                     long start = System.nanoTime();

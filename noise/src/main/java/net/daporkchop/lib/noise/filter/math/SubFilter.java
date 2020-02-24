@@ -13,52 +13,47 @@
  *
  */
 
-package net.daporkchop.lib.noise.filter;
+package net.daporkchop.lib.noise.filter.math;
 
 import lombok.NonNull;
 import net.daporkchop.lib.noise.NoiseSource;
+import net.daporkchop.lib.noise.filter.FilterNoiseSource;
 import net.daporkchop.lib.noise.util.NoiseFactory;
 import net.daporkchop.lib.random.PRandom;
 
 /**
- * Applies a certain scale factor to a given {@link NoiseSource}.
- *
  * @author DaPorkchop_
  */
-public final class ScaleFilter extends FilterNoiseSource {
-    private final double scaleX;
-    private final double scaleY;
-    private final double scaleZ;
+public final class SubFilter extends FilterNoiseSource {
+    private final double val;
 
-    public ScaleFilter(@NonNull NoiseSource delegate, double scaleX, double scaleY, double scaleZ) {
+    public SubFilter(@NonNull NoiseSource delegate, double val) {
         super(delegate);
 
-        this.scaleX = scaleX;
-        this.scaleY = scaleY;
-        this.scaleZ = scaleZ;
+        this.val = val;
     }
 
-    public ScaleFilter(@NonNull NoiseFactory factory, @NonNull PRandom random, double scaleX, double scaleY, double scaleZ) {
-        this(factory.apply(random), scaleX, scaleY, scaleZ);
+    public SubFilter(@NonNull NoiseFactory factory, @NonNull PRandom random, double val) {
+        this(factory.apply(random), val);
     }
 
     @Override
     public double get(double x) {
-        return this.delegate.get(x * this.scaleX);
+        return this.delegate.get(x) - this.val;
     }
 
     @Override
     public double get(double x, double y) {
-        return this.delegate.get(x * this.scaleX, y * this.scaleY);
+        return this.delegate.get(x, y) - this.val;
     }
 
     @Override
     public double get(double x, double y, double z) {
-        return this.delegate.get(x * this.scaleX, y * this.scaleY, z * this.scaleZ);
+        return this.delegate.get(x, y, z) - this.val;
     }
 
     @Override
     public String toString() {
-        return String.format("%s(%s,scaleX=%f,scaleY=%f,scaleZ=%f)", this.getClass().getCanonicalName(), this.delegate, this.scaleX, this.scaleY, this.scaleZ);
+        return String.format("%s(%s,val=%f)", this.getClass().getCanonicalName(), this.delegate, this.val);
     }
 }

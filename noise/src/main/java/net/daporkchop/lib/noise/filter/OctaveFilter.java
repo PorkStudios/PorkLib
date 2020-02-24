@@ -89,6 +89,6 @@ public final class OctaveFilter extends FilterNoiseSource {
 
     @Override
     public String toString() {
-        return String.format("%s(%s,octaves=%d)", this.getClass().getCanonicalName(), this.delegate.getClass().getCanonicalName(), this.octaves);
+        return String.format("%s(%s,octaves=%d)", this.getClass().getCanonicalName(), this.delegate, this.octaves);
     }
 }

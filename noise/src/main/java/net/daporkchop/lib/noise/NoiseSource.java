@@ -17,14 +17,17 @@ package net.daporkchop.lib.noise;
 
 import lombok.NonNull;
 import net.daporkchop.lib.common.util.PValidation;
+import net.daporkchop.lib.noise.engine.NoopNoiseEngine;
 import net.daporkchop.lib.noise.filter.LerpFilter;
 import net.daporkchop.lib.noise.filter.OctaveFilter;
 import net.daporkchop.lib.noise.filter.ScaleFilter;
 import net.daporkchop.lib.noise.filter.WeightedFilter;
-import net.daporkchop.lib.noise.filter.math.AddFilter;
-import net.daporkchop.lib.noise.filter.math.DivFilter;
-import net.daporkchop.lib.noise.filter.math.MulFilter;
-import net.daporkchop.lib.noise.filter.math.SubFilter;
+import net.daporkchop.lib.noise.filter.math.ScalarAddFilter;
+import net.daporkchop.lib.noise.filter.math.ScalarMulFilter;
+import net.daporkchop.lib.noise.filter.math.ScalarSubFilter;
+import net.daporkchop.lib.noise.filter.math.SourceAddFilter;
+import net.daporkchop.lib.noise.filter.math.SourceMulFilter;
+import net.daporkchop.lib.noise.filter.math.SourceSubFilter;
 import net.daporkchop.lib.noise.filter.range.RangeConversionFilter;
 
 /**
@@ -33,6 +36,8 @@ import net.daporkchop.lib.noise.filter.range.RangeConversionFilter;
  * @author DaPorkchop_
  */
 public interface NoiseSource {
+    NoopNoiseEngine ZERO = new NoopNoiseEngine(0.0d, 0.0d, 1.0d);
+
     //range accessors
 
     /**
@@ -249,33 +254,55 @@ public interface NoiseSource {
 
     /**
      * @return this {@link NoiseSource} with the given value added to the values
-     * @see AddFilter
+     * @see ScalarAddFilter
      */
     default NoiseSource add(double val) {
-        return val == 0.0d ? this : new AddFilter(this, val);
+        return val == 0.0d ? this : new ScalarAddFilter(this, val);
+    }
+
+    /**
+     * @return this {@link NoiseSource} with the values from the given {@link NoiseSource} value added to the values
+     * @see SourceAddFilter
+     */
+    default NoiseSource add(@NonNull NoiseSource val) {
+        return val == this ? this.mul(2.0d) : new SourceAddFilter(this, val);
     }
 
     /**
      * @return this {@link NoiseSource} with the given value subtracted from the values
-     * @see SubFilter
+     * @see ScalarSubFilter
      */
     default NoiseSource sub(double val) {
-        return val == 0.0d ? this : new SubFilter(this, val);
+        return val == 0.0d ? this : new ScalarSubFilter(this, val);
+    }
+
+    /**
+     * @return this {@link NoiseSource} with the values from the given {@link NoiseSource} value subtracted from the values
+     * @see SourceSubFilter
+     */
+    default NoiseSource sub(@NonNull NoiseSource val) {
+        return val == this ? ZERO : new SourceSubFilter(this, val);
     }
 
     /**
      * @return this {@link NoiseSource} with the given value multiplied with the values
-     * @see MulFilter
+     * @see ScalarMulFilter
      */
     default NoiseSource mul(double val) {
-        return val == 1.0d ? this : new MulFilter(this, val);
+        if (val == 0.0d)    {
+            return ZERO;
+        } else if (val == 1.0d) {
+            return this;
+        } else {
+            return new ScalarMulFilter(this, val);
+        }
     }
 
     /**
-     * @return this {@link NoiseSource} with the given value divided from the values
-     * @see DivFilter
+     * @return this {@link NoiseSource} with the values from the given {@link NoiseSource} value multiplied with the values
+     * @see SourceMulFilter
      */
-    default NoiseSource div(double val) {
-        return val == 1.0d ? this : new DivFilter(this, val);
+    default NoiseSource mul(@NonNull NoiseSource val) {
+        return new SourceMulFilter(this, val);
     }
 }

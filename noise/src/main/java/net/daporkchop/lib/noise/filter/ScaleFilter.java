@@ -59,6 +59,6 @@ public final class ScaleFilter extends FilterNoiseSource {
 
     @Override
     public String toString() {
-        return String.format("%s(%s,scaleX=%f,scaleY=%f,scaleZ=%f)", this.getClass().getCanonicalName(), this.delegate, this.scaleX, this.scaleY, this.scaleZ);
+        return String.format("Scale(%s,(%f,%f,%f))", this.delegate, this.scaleX, this.scaleY, this.scaleZ);
     }
 }

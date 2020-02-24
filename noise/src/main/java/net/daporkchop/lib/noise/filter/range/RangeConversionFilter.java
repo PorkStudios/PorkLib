@@ -66,6 +66,6 @@ public final class RangeConversionFilter extends FilterNoiseSource {
 
     @Override
     public String toString() {
-        return String.format("%s(%s,min=%f,max=%f)", this.getClass().getCanonicalName(), this.delegate, this.min, this.max);
+        return String.format("Range(%s,min=%f,max=%f)", this.delegate, this.min, this.max);
     }
 }

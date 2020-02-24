@@ -20,7 +20,7 @@ import net.daporkchop.lib.noise.NoiseSource;
 import net.daporkchop.lib.noise.util.NoiseFactory;
 import net.daporkchop.lib.random.PRandom;
 
-import static net.daporkchop.lib.math.primitive.PMath.clamp;
+import static net.daporkchop.lib.math.primitive.PMath.*;
 
 /**
  * Weights values from a {@link NoiseSource} towards the outer bounds, providing far more valley and peaks that approach -1 and 1.
@@ -64,5 +64,10 @@ public final class WeightedFilter extends FilterNoiseSource {
     @Override
     public double get(double x, double y, double z) {
         return fade(this.delegate.get(x, y, z));
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Weighted(%s)", this.delegate);
     }
 }

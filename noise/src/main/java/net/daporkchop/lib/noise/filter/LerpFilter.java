@@ -66,6 +66,6 @@ public final class LerpFilter implements NoiseSource {
 
     @Override
     public String toString() {
-        return String.format("%s(a=%s,b=%s,t=%s)", this.getClass().getCanonicalName(), this.a, this.b, this.t);
+        return String.format("lerp(a=%s,b=%s,t=%s)", this.a, this.b, this.t);
     }
 }

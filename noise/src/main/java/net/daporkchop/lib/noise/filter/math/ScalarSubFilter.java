@@ -15,7 +15,9 @@
 
 package net.daporkchop.lib.noise.filter.math;
 
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.noise.NoiseSource;
 import net.daporkchop.lib.noise.filter.FilterNoiseSource;
 import net.daporkchop.lib.noise.util.NoiseFactory;
@@ -24,16 +26,25 @@ import net.daporkchop.lib.random.PRandom;
 /**
  * @author DaPorkchop_
  */
-public final class SubFilter extends FilterNoiseSource {
+@Accessors(fluent = true)
+public final class ScalarSubFilter extends FilterNoiseSource {
     private final double val;
 
-    public SubFilter(@NonNull NoiseSource delegate, double val) {
+    @Getter
+    private final double min;
+    @Getter
+    private final double max;
+
+    public ScalarSubFilter(@NonNull NoiseSource delegate, double val) {
         super(delegate);
 
         this.val = val;
+
+        this.min = delegate.min() - val;
+        this.max = delegate.max() - val;
     }
 
-    public SubFilter(@NonNull NoiseFactory factory, @NonNull PRandom random, double val) {
+    public ScalarSubFilter(@NonNull NoiseFactory factory, @NonNull PRandom random, double val) {
         this(factory.apply(random), val);
     }
 
@@ -54,6 +65,6 @@ public final class SubFilter extends FilterNoiseSource {
 
     @Override
     public String toString() {
-        return String.format("%s(%s,val=%f)", this.getClass().getCanonicalName(), this.delegate, this.val);
+        return String.format("%s - %f", this.delegate, this.val);
     }
 }

@@ -13,82 +13,60 @@
  *
  */
 
-package net.daporkchop.lib.noise.filter;
+package net.daporkchop.lib.noise.filter.math;
 
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.common.util.PValidation;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.noise.NoiseSource;
+import net.daporkchop.lib.noise.filter.FilterNoiseSource;
 import net.daporkchop.lib.noise.util.NoiseFactory;
 import net.daporkchop.lib.random.PRandom;
 
 /**
- * Applies a number of octaves of fractal brownian motion to a given {@link NoiseSource}.
- *
  * @author DaPorkchop_
  */
-public final class OctaveFilter extends FilterNoiseSource {
-    private final int octaves;
+@Accessors(fluent = true)
+public final class ScalarMulFilter extends FilterNoiseSource {
+    private final double val;
 
-    public OctaveFilter(@NonNull NoiseSource delegate, int octaves) {
+    @Getter
+    private final double min;
+    @Getter
+    private final double max;
+
+    public ScalarMulFilter(@NonNull NoiseSource delegate, double val) {
         super(delegate);
 
-        this.octaves = PValidation.ensurePositive(octaves);
+        this.val = val;
+
+        double min = delegate.min();
+        double max = delegate.max();
+        this.min = Math.min(min * val, max * val);
+        this.max = Math.max(min * val, max * val);
     }
 
-    public OctaveFilter(@NonNull NoiseFactory factory, @NonNull PRandom random, int octaves) {
-        this(factory.apply(random), octaves);
+    public ScalarMulFilter(@NonNull NoiseFactory factory, @NonNull PRandom random, double val) {
+        this(factory.apply(random), val);
     }
 
     @Override
     public double get(double x) {
-        double val = 0.0d;
-        double factor = 1.0d;
-        double scale = 1.0d;
-
-        for (int i = this.octaves - 1; i >= 0; i--) {
-            val += this.delegate.get(x * scale) * factor;
-
-            factor *= 0.5d;
-            scale *= 2.0d;
-        }
-
-        return val;
+        return this.delegate.get(x) * this.val;
     }
 
     @Override
     public double get(double x, double y) {
-        double val = 0.0d;
-        double factor = 1.0d;
-        double scale = 1.0d;
-
-        for (int i = this.octaves - 1; i >= 0; i--) {
-            val += this.delegate.get(x * scale, y * scale) * factor;
-
-            factor *= 0.5d;
-            scale *= 2.0d;
-        }
-
-        return val;
+        return this.delegate.get(x, y) * this.val;
     }
 
     @Override
     public double get(double x, double y, double z) {
-        double val = 0.0d;
-        double factor = 1.0d;
-        double scale = 1.0d;
-
-        for (int i = this.octaves - 1; i >= 0; i--) {
-            val += this.delegate.get(x * scale, y * scale, z * scale) * factor;
-
-            factor *= 0.5d;
-            scale *= 2.0d;
-        }
-
-        return val;
+        return this.delegate.get(x, y, z) * this.val;
     }
 
     @Override
     public String toString() {
-        return String.format("Octaves(%s,%d)", this.delegate, this.octaves);
+        return String.format("%s * %f", this.delegate, this.val);
     }
 }

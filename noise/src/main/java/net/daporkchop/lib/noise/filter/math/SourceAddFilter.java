@@ -15,7 +15,9 @@
 
 package net.daporkchop.lib.noise.filter.math;
 
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.noise.NoiseSource;
 import net.daporkchop.lib.noise.filter.FilterNoiseSource;
 import net.daporkchop.lib.noise.util.NoiseFactory;
@@ -24,36 +26,41 @@ import net.daporkchop.lib.random.PRandom;
 /**
  * @author DaPorkchop_
  */
-public final class DivFilter extends FilterNoiseSource {
-    private final double val;
+@Accessors(fluent = true)
+public final class SourceAddFilter implements NoiseSource {
+    @Getter
+    private final double min;
+    @Getter
+    private final double max;
 
-    public DivFilter(@NonNull NoiseSource delegate, double val) {
-        super(delegate);
+    private final NoiseSource a;
+    private final NoiseSource b;
 
-        this.val = val;
-    }
+    public SourceAddFilter(@NonNull NoiseSource a, @NonNull NoiseSource b) {
+        this.a = a;
+        this.b = b;
 
-    public DivFilter(@NonNull NoiseFactory factory, @NonNull PRandom random, double val) {
-        this(factory.apply(random), val);
+        this.min = a.min() + b.min();
+        this.max = a.max() + b.max();
     }
 
     @Override
     public double get(double x) {
-        return this.delegate.get(x) / this.val;
+        return this.a.get(x) + this.b.get(x);
     }
 
     @Override
     public double get(double x, double y) {
-        return this.delegate.get(x, y) / this.val;
+        return this.a.get(x, y) + this.b.get(x, y);
     }
 
     @Override
     public double get(double x, double y, double z) {
-        return this.delegate.get(x, y, z) / this.val;
+        return this.a.get(x, y, z) + this.b.get(x, y, z);
     }
 
     @Override
     public String toString() {
-        return String.format("%s(%s,val=%f)", this.getClass().getCanonicalName(), this.delegate, this.val);
+        return this.a + " + " + this.b;
     }
 }

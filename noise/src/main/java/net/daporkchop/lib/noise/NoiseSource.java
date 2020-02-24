@@ -15,6 +15,8 @@
 
 package net.daporkchop.lib.noise;
 
+import net.daporkchop.lib.common.util.PValidation;
+
 /**
  * A source for obtaining noise values.
  *
@@ -47,4 +49,121 @@ public interface NoiseSource {
      * @return the noise value at the given position
      */
     double get(double x, double y, double z);
+
+    /**
+     * Gets a {@code double[]} filled with 1D noise values.
+     *
+     * @see #get(double[], double, double, int)
+     */
+    default double[] get(double startX, double stepX, int sizeX) {
+        return this.get(null, startX, stepX, sizeX);
+    }
+
+    /**
+     * Fills the given {@code double[]} with 1D noise values.
+     *
+     * @param dst    the {@code double[]} to store values into. If {@code null} or too small, a new one will be created and returned
+     * @param startX the initial X position to start generating values at
+     * @param stepX  the spacing along the X axis between samples
+     * @param sizeX  the number of samples to take along the X axis
+     * @return a {@code double[]} containing the computed values
+     */
+    default double[] get(double[] dst, double startX, double stepX, int sizeX) {
+        if (dst == null || dst.length < PValidation.ensureNonNegative(sizeX)) {
+            dst = new double[sizeX];
+        }
+
+        double x = startX;
+        for (int currX = 0; currX < sizeX; currX++, x += stepX) {
+            dst[currX] = this.get(x);
+        }
+
+        return dst;
+    }
+
+    /**
+     * Gets a {@code double[]} filled with 2D noise values.
+     *
+     * @see #get(double[], double, double, double, double, int, int)
+     */
+    default double[] get(double startX, double startY, double stepX, double stepY, int sizeX, int sizeY) {
+        return this.get(null, startX, startY, stepX, stepY, sizeX, sizeY);
+    }
+
+    /**
+     * Fills the given {@code double[]} with 2D noise values.
+     * <p>
+     * The values will be indexed as {@code x * sizeX + y}, where {@code 0 <= x < sizeX} and {@code 0 <= y < sizeY}.
+     *
+     * @param dst    the {@code double[]} to store values into. If {@code null} or too small, a new one will be created and returned
+     * @param startX the initial X position to start generating values at
+     * @param startY the initial Y position to start generating values at
+     * @param stepX  the spacing along the X axis between samples
+     * @param stepY  the spacing along the Y axis between samples
+     * @param sizeX  the number of samples to take along the X axis
+     * @param sizeY  the number of samples to take along the Y axis
+     * @return a {@code double[]} containing the computed values
+     */
+    default double[] get(double[] dst, double startX, double startY, double stepX, double stepY, int sizeX, int sizeY) {
+        if (dst == null || dst.length < PValidation.ensureNonNegative(sizeX) * PValidation.ensureNonNegative(sizeY)) {
+            dst = new double[sizeX * sizeY];
+        }
+
+        int i = 0;
+        double x = startX;
+        for (int currX = 0; currX < sizeX; currX++, x += stepX) {
+            double y = startY;
+            for (int currY = 0; currY < sizeY; currY++, y += stepY) {
+                dst[i++] = this.get(x, y);
+            }
+        }
+
+        return dst;
+    }
+
+    /**
+     * Gets a {@code double[]} filled with 3D noise values.
+     *
+     * @see #get(double[], double, double, double, double, double, double, int, int, int)
+     */
+    default double[] get(double startX, double startY, double startZ, double stepX, double stepY, double stepZ, int sizeX, int sizeY, int sizeZ) {
+        return this.get(null, startX, startY, startZ, stepX, stepY, stepZ, sizeX, sizeY, sizeZ);
+    }
+
+    /**
+     * Fills the given {@code double[]} with 3D noise values.
+     * <p>
+     * The values will be indexed as {@code (x * sizeX + y) * sizeY + z}, where {@code 0 <= x < sizeX} and {@code 0 <= y < sizeY} and {@code 0 <= z < sizeZ}.
+     *
+     * @param dst    the {@code double[]} to store values into. If {@code null} or too small, a new one will be created and returned
+     * @param startX the initial X position to start generating values at
+     * @param startY the initial Y position to start generating values at
+     * @param startZ the initial Z position to start generating values at
+     * @param stepX  the spacing along the X axis between samples
+     * @param stepY  the spacing along the Y axis between samples
+     * @param stepZ  the spacing along the Z axis between samples
+     * @param sizeX  the number of samples to take along the X axis
+     * @param sizeY  the number of samples to take along the Y axis
+     * @param sizeZ  the number of samples to take along the Z axis
+     * @return a {@code double[]} containing the computed values
+     */
+    default double[] get(double[] dst, double startX, double startY, double startZ, double stepX, double stepY, double stepZ, int sizeX, int sizeY, int sizeZ) {
+        if (dst == null || dst.length < PValidation.ensureNonNegative(sizeX) * PValidation.ensureNonNegative(sizeY) * PValidation.ensureNonNegative(sizeZ)) {
+            dst = new double[sizeX * sizeY * sizeZ];
+        }
+
+        int i = 0;
+        double x = startX;
+        for (int currX = 0; currX < sizeX; currX++, x += stepX) {
+            double y = startY;
+            for (int currY = 0; currY < sizeY; currY++, y += stepY) {
+                double z = startZ;
+                for (int currZ = 0; currZ < sizeZ; currZ++, z += stepZ) {
+                    dst[i++] = this.get(x, y, z);
+                }
+            }
+        }
+
+        return dst;
+    }
 }

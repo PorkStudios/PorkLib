@@ -23,7 +23,7 @@ import static net.daporkchop.lib.math.primitive.PMath.*;
 
 /**
  * Adaptation of OpenSimplex noise with some slight optimizations.
- *
+ * <p>
  * <a href="https://gist.github.com/KdotJPG/b1270127455a94ac5d19">Source</a>
  *
  * @author DaPorkchop_

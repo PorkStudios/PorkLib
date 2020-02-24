@@ -76,28 +76,25 @@ public class SimplexNoiseEngine extends PerlinNoiseEngine {
         double x2 = x0 - 1.0d + 2.0d * STRETCH_CONSTANT_2D;
         double y2 = y0 - 1.0d + 2.0d * STRETCH_CONSTANT_2D;
 
-        int ii = i & 0xFF;
-        int jj = j & 0xFF;
-
         double n0 = 0.0d;
         double t0 = 0.5d - x0 * x0 - y0 * y0;
         if (t0 >= 0.0d) {
             t0 *= t0;
-            n0 = t0 * t0 * grad(this.p[ii + this.p[jj] & 0xFF] & 0xFF, x0, y0);
+            n0 = t0 * t0 * grad(this.p[i + this.p[j & 0xFF] & 0xFF] & 0xFF, x0, y0);
         }
 
         double n1 = 0.0d;
         double t1 = 0.5d - x1 * x1 - y1 * y1;
         if (t1 >= 0.0d) {
             t1 *= t1;
-            n1 = t1 * t1 * grad(this.p[ii + i1 + this.p[jj + j1] & 0xFF] & 0xFF, x1, y1);
+            n1 = t1 * t1 * grad(this.p[i + i1 + this.p[j + j1 & 0xFF] & 0xFF] & 0xFF, x1, y1);
         }
 
         double n2 = 0.0d;
         double t2 = 0.5d - x2 * x2 - y2 * y2;
         if (t2 >= 0.0d) {
             t2 *= t2;
-            n2 = t2 * t2 * grad(this.p[ii + 1 + this.p[jj + 1] & 0xFF], x2, y2);
+            n2 = t2 * t2 * grad(this.p[i + 1 + this.p[j + 1 & 0xFF] & 0xFF], x2, y2);
         }
 
         return (n0 + n1 + n2) * 40.0d;
@@ -186,36 +183,32 @@ public class SimplexNoiseEngine extends PerlinNoiseEngine {
         double y3 = y0 - 1.0d + 3.0d * STRETCH_CONSTANT_3D;
         double z3 = z0 - 1.0d + 3.0d * STRETCH_CONSTANT_3D;
 
-        int ii = i & 0xFF;
-        int jj = j & 0xFF;
-        int kk = k & 0xFF;
-
         double n0 = 0.0d;
         double t0 = 0.6d - x0 * x0 - y0 * y0 - z0 * z0;
         if (t0 >= 0.0d) {
             t0 *= t0;
-            n0 = t0 * t0 * grad(this.p[ii + this.p[jj + this.p[kk] & 0xFF] & 0xFF] & 0xFF, x0, y0, z0);
+            n0 = t0 * t0 * grad(this.p[i + this.p[j + this.p[k & 0xFF] & 0xFF] & 0xFF] & 0xFF, x0, y0, z0);
         }
 
         double n1 = 0.0d;
         double t1 = 0.6d - x1 * x1 - y1 * y1 - z1 * z1;
         if (t1 >= 0.0d) {
             t1 *= t1;
-            n1 = t1 * t1 * grad(this.p[ii + i1 + this.p[jj + j1 + this.p[kk + k1] & 0xFF] & 0xFF] & 0xFF, x1, y1, z1);
+            n1 = t1 * t1 * grad(this.p[i + i1 + this.p[j + j1 + this.p[k + k1 & 0xFF] & 0xFF] & 0xFF] & 0xFF, x1, y1, z1);
         }
 
         double n2 = 0.0d;
         double t2 = 0.6d - x2 * x2 - y2 * y2 - z2 * z2;
         if (t2 >= 0.0d) {
             t2 *= t2;
-            n2 = t2 * t2 * grad(this.p[ii + i2 + this.p[jj + j2 + this.p[kk + k2] & 0xFF] & 0xFF] & 0xFF, x2, y2, z2);
+            n2 = t2 * t2 * grad(this.p[i + i2 + this.p[j + j2 + this.p[k + k2 & 0xFF] & 0xFF] & 0xFF] & 0xFF, x2, y2, z2);
         }
 
         double n3 = 0.0d;
         double t3 = 0.6d - x3 * x3 - y3 * y3 - z3 * z3;
         if (t3 >= 0.0d) {
             t3 *= t3;
-            n3 = t3 * t3 * grad(this.p[ii + 1 + this.p[jj + 1 + this.p[kk + 1] & 0xFF] & 0xFF], x3, y3, z3);
+            n3 = t3 * t3 * grad(this.p[i + 1 + this.p[j + 1 + this.p[k + 1 & 0xFF] & 0xFF] & 0xFF], x3, y3, z3);
         }
 
         return (n0 + n1 + n2 + n3) * 32.0d;

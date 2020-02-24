@@ -35,7 +35,7 @@ public class PerlinNoiseEngine implements NoiseSource {
     }
 
     protected static double grad(int hash, double x) {
-        if ((hash & 0x8) == 0)  {
+        if ((hash & 0x8) == 0) {
             return -(1.0d + (hash & 0x7)) * x;
         } else {
             return (1.0d + (hash & 0x7)) * x;
@@ -43,7 +43,7 @@ public class PerlinNoiseEngine implements NoiseSource {
     }
 
     protected static double grad(int hash, double x, double y) {
-        switch (hash & 0x7)   {
+        switch (hash & 0x7) {
             case 0x0:
                 return -x - 2.0d * y;
             case 0x1:

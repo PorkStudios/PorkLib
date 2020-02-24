@@ -16,6 +16,7 @@
 package net.daporkchop.lib.noise;
 
 import net.daporkchop.lib.common.util.PValidation;
+import net.daporkchop.lib.noise.filter.WeightedFilter;
 
 /**
  * A source for obtaining noise values.
@@ -23,6 +24,8 @@ import net.daporkchop.lib.common.util.PValidation;
  * @author DaPorkchop_
  */
 public interface NoiseSource {
+    //single value methods
+
     /**
      * Gets the noise value at the given 1D position.
      *
@@ -49,6 +52,8 @@ public interface NoiseSource {
      * @return the noise value at the given position
      */
     double get(double x, double y, double z);
+
+    //bulk generation methods
 
     /**
      * Gets a {@code double[]} filled with 1D noise values.
@@ -165,5 +170,11 @@ public interface NoiseSource {
         }
 
         return dst;
+    }
+
+    //filtering methods
+
+    default NoiseSource weighted()  {
+        return new WeightedFilter(this);
     }
 }

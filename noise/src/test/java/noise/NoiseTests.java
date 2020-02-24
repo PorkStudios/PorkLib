@@ -13,35 +13,34 @@
  *
  */
 
-package net.daporkchop.lib.noise.engine;
+package noise;
 
-import lombok.NonNull;
-import net.daporkchop.lib.random.PRandom;
+import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.noise.NoiseSource;
+import net.daporkchop.lib.noise.engine.OpenSimplexNoiseEngine;
+import net.daporkchop.lib.noise.engine.PerlinNoiseEngine;
+import net.daporkchop.lib.noise.engine.PorkianV2NoiseEngine;
+import net.daporkchop.lib.noise.engine.SimplexNoiseEngine;
+import net.daporkchop.lib.random.impl.FastPRandom;
+
+import java.util.Arrays;
+import java.util.stream.Stream;
 
 /**
- * Variant of {@link PerlinNoiseEngine} that weights values towards the outer bounds, providing far more valley and peaks that approach -1 and 1. However, it
- * tends to provide slightly lower performance.
+ * Contains an array of all {@link NoiseSource}s to test.
  *
  * @author DaPorkchop_
- * @see PerlinNoiseEngine
  */
-public class WeightedPerlinNoiseEngine extends PerlinNoiseEngine {
-    public WeightedPerlinNoiseEngine(@NonNull PRandom random) {
-        super(random);
-    }
+@UtilityClass
+public class NoiseTests {
+    public final NoiseSource[] DEFAULT_SOURCES = {
+            new PorkianV2NoiseEngine(new FastPRandom()),
+            new PerlinNoiseEngine(new FastPRandom()),
+            new SimplexNoiseEngine(new FastPRandom()),
+            new OpenSimplexNoiseEngine(new FastPRandom())
+    };
 
-    @Override
-    public double get(double x) {
-        return fade(super.get(x) * 0.5d + 0.5d) * 2.0d - 1.0d;
-    }
-
-    @Override
-    public double get(double x, double y) {
-        return fade(super.get(x, y) * 0.5d + 0.5d) * 2.0d - 1.0d;
-    }
-
-    @Override
-    public double get(double x, double y, double z) {
-        return fade(super.get(x, y, z) * 0.5d + 0.5d) * 2.0d - 1.0d;
-    }
+    public final NoiseSource[] ALL_SOURCES = Arrays.stream(DEFAULT_SOURCES)
+            .flatMap(src -> Stream.of(src, src.weighted()))
+            .toArray(NoiseSource[]::new);
 }

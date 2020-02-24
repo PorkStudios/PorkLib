@@ -698,4 +698,9 @@ public class OpenSimplexNoiseEngine implements NoiseSource {
         int index = this.pGradIndex3D[(this.p[(this.p[xsb & 0xFF] + ysb) & 0xFF] + zsb) & 0xFF];
         return GRADIENTS_3D[index] * dx + GRADIENTS_3D[index + 1] * dy + GRADIENTS_3D[index + 2] * dz;
     }
+
+    @Override
+    public String toString() {
+        return this.getClass().getCanonicalName();
+    }
 }

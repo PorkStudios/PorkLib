@@ -13,46 +13,52 @@
  *
  */
 
-package noise;
+package net.daporkchop.lib.noise.filter;
 
-
-import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.graphics.color.ColorFormatBW;
-import net.daporkchop.lib.graphics.color.ColorFormatRGB;
+import lombok.NonNull;
 import net.daporkchop.lib.noise.NoiseSource;
-
-import java.awt.image.BufferedImage;
-
-import static net.daporkchop.lib.math.primitive.PMath.*;
-import static noise.NoiseTests.*;
+import net.daporkchop.lib.noise.util.NoiseFactory;
+import net.daporkchop.lib.random.PRandom;
 
 /**
+ * Applies a certain scale factor to a given {@link NoiseSource}.
+ *
  * @author DaPorkchop_
  */
-public class ImageTest {
-    public static void main(String... args) {
-        int size = 512;
-        double scale = 0.025d;
+public final class ScaleFilter extends FilterNoiseSource {
+    private final double scaleX;
+    private final double scaleY;
+    private final double scaleZ;
 
-        BufferedImage img = new BufferedImage(size << 1, size, BufferedImage.TYPE_INT_ARGB);
+    public ScaleFilter(@NonNull NoiseSource delegate, double scaleX, double scaleY, double scaleZ) {
+        super(delegate);
 
-        for (NoiseSource src : ALL_SOURCES) {
-            for (int x = 0; x < size; x++) {
-                for (int y = 0; y < size; y++) {
-                    double val = src.get(x * scale, y * scale);
-                    if (val < -1.0d || val > 1.0d) {
-                        throw new IllegalStateException(String.format("(%d,%d) (%f,%f): %f", x, y, x * scale, y * scale, val));
-                    }
-                    int col = val < 0.0d
-                            ? lerpI(0x00, 0xFF, -val) << 16
-                            : lerpI(0x00, 0xFF, val) << 8;
-                    img.setRGB(x, y, ColorFormatRGB.toARGB(col));
+        this.scaleX = scaleX;
+        this.scaleY = scaleY;
+        this.scaleZ = scaleZ;
+    }
 
-                    img.setRGB(size + x, y, ColorFormatBW.toARGB(lerpI(0x00, 0xFF, val * 0.5d + 0.5d)));
-                }
-            }
-            System.out.println(src);
-            PorkUtil.simpleDisplayImage(true, img);
-        }
+    public ScaleFilter(@NonNull NoiseFactory factory, @NonNull PRandom random, double scaleX, double scaleY, double scaleZ) {
+        this(factory.apply(random), scaleX, scaleY, scaleZ);
+    }
+
+    @Override
+    public double get(double x) {
+        return this.delegate.get(x * this.scaleX);
+    }
+
+    @Override
+    public double get(double x, double y) {
+        return this.delegate.get(x * this.scaleX, y * this.scaleY);
+    }
+
+    @Override
+    public double get(double x, double y, double z) {
+        return this.delegate.get(x * this.scaleX, y * this.scaleY, z * this.scaleZ);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s(%s,scaleX=%f,scaleY=%f,scaleZ=%f)", this.getClass().getCanonicalName(), this.delegate.getClass().getCanonicalName(), this.scaleX, this.scaleY, this.scaleZ);
     }
 }

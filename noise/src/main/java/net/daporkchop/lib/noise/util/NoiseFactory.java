@@ -13,46 +13,21 @@
  *
  */
 
-package noise;
+package net.daporkchop.lib.noise.util;
 
-
-import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.graphics.color.ColorFormatBW;
-import net.daporkchop.lib.graphics.color.ColorFormatRGB;
+import lombok.NonNull;
 import net.daporkchop.lib.noise.NoiseSource;
+import net.daporkchop.lib.random.PRandom;
 
-import java.awt.image.BufferedImage;
-
-import static net.daporkchop.lib.math.primitive.PMath.*;
-import static noise.NoiseTests.*;
+import java.util.function.Function;
 
 /**
+ * A factory for creating a new {@link NoiseSource}.
+ *
  * @author DaPorkchop_
  */
-public class ImageTest {
-    public static void main(String... args) {
-        int size = 512;
-        double scale = 0.025d;
-
-        BufferedImage img = new BufferedImage(size << 1, size, BufferedImage.TYPE_INT_ARGB);
-
-        for (NoiseSource src : ALL_SOURCES) {
-            for (int x = 0; x < size; x++) {
-                for (int y = 0; y < size; y++) {
-                    double val = src.get(x * scale, y * scale);
-                    if (val < -1.0d || val > 1.0d) {
-                        throw new IllegalStateException(String.format("(%d,%d) (%f,%f): %f", x, y, x * scale, y * scale, val));
-                    }
-                    int col = val < 0.0d
-                            ? lerpI(0x00, 0xFF, -val) << 16
-                            : lerpI(0x00, 0xFF, val) << 8;
-                    img.setRGB(x, y, ColorFormatRGB.toARGB(col));
-
-                    img.setRGB(size + x, y, ColorFormatBW.toARGB(lerpI(0x00, 0xFF, val * 0.5d + 0.5d)));
-                }
-            }
-            System.out.println(src);
-            PorkUtil.simpleDisplayImage(true, img);
-        }
-    }
+@FunctionalInterface
+public interface NoiseFactory extends Function<PRandom, NoiseSource> {
+    @Override
+    NoiseSource apply(@NonNull PRandom random);
 }

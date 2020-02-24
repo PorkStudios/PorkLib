@@ -13,46 +13,45 @@
  *
  */
 
-package noise;
+package net.daporkchop.lib.noise.filter;
 
-
-import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.graphics.color.ColorFormatBW;
-import net.daporkchop.lib.graphics.color.ColorFormatRGB;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.noise.NoiseSource;
 
-import java.awt.image.BufferedImage;
-
 import static net.daporkchop.lib.math.primitive.PMath.*;
-import static noise.NoiseTests.*;
 
 /**
+ * Linearly interpolates between the noise values of two different {@link NoiseSource}s using a third {@link NoiseSource} as the bias {@code t}.
+ *
  * @author DaPorkchop_
  */
-public class ImageTest {
-    public static void main(String... args) {
-        int size = 512;
-        double scale = 0.025d;
+@RequiredArgsConstructor
+public final class LerpFilter implements NoiseSource {
+    @NonNull
+    private final NoiseSource a;
+    @NonNull
+    private final NoiseSource b;
+    @NonNull
+    private final NoiseSource t;
 
-        BufferedImage img = new BufferedImage(size << 1, size, BufferedImage.TYPE_INT_ARGB);
+    @Override
+    public double get(double x) {
+        return lerp(this.a.get(x), this.b.get(x), this.t.get(x) * 0.5d + 0.5d);
+    }
 
-        for (NoiseSource src : ALL_SOURCES) {
-            for (int x = 0; x < size; x++) {
-                for (int y = 0; y < size; y++) {
-                    double val = src.get(x * scale, y * scale);
-                    if (val < -1.0d || val > 1.0d) {
-                        throw new IllegalStateException(String.format("(%d,%d) (%f,%f): %f", x, y, x * scale, y * scale, val));
-                    }
-                    int col = val < 0.0d
-                            ? lerpI(0x00, 0xFF, -val) << 16
-                            : lerpI(0x00, 0xFF, val) << 8;
-                    img.setRGB(x, y, ColorFormatRGB.toARGB(col));
+    @Override
+    public double get(double x, double y) {
+        return lerp(this.a.get(x, y), this.b.get(x, y), this.t.get(x, y) * 0.5d + 0.5d);
+    }
 
-                    img.setRGB(size + x, y, ColorFormatBW.toARGB(lerpI(0x00, 0xFF, val * 0.5d + 0.5d)));
-                }
-            }
-            System.out.println(src);
-            PorkUtil.simpleDisplayImage(true, img);
-        }
+    @Override
+    public double get(double x, double y, double z) {
+        return lerp(this.a.get(x, y, z), this.b.get(x, y, z), this.t.get(x, y, z) * 0.5d + 0.5d);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s(a=%s,b=%s,t=%s)", this.getClass().getCanonicalName(), this.a.getClass().getCanonicalName(), this.b.getClass().getCanonicalName(), this.t.getClass().getCanonicalName());
     }
 }

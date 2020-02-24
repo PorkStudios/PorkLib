@@ -16,18 +16,14 @@
 package noise;
 
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.noise.NoiseSource;
-import net.daporkchop.lib.noise.engine.OpenSimplexNoiseEngine;
-import net.daporkchop.lib.noise.engine.PerlinNoiseEngine;
-import net.daporkchop.lib.noise.engine.PorkianV2NoiseEngine;
-import net.daporkchop.lib.noise.engine.SimplexNoiseEngine;
-import net.daporkchop.lib.noise.engine.WeightedPerlinNoiseEngine;
 import net.daporkchop.lib.random.PRandom;
 import net.daporkchop.lib.random.impl.FastPRandom;
 import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
+
+import static noise.NoiseTests.*;
 
 /**
  * @author DaPorkchop_
@@ -38,15 +34,7 @@ public class RangeTest {
 
     @Test
     public void testRange() {
-        NoiseSource[] sources = {
-                new PorkianV2NoiseEngine(new FastPRandom()),
-                new PerlinNoiseEngine(new FastPRandom()),
-                new WeightedPerlinNoiseEngine(new FastPRandom()),
-                new SimplexNoiseEngine(new FastPRandom()),
-                new OpenSimplexNoiseEngine(new FastPRandom())
-        };
-
-        Arrays.stream(sources).parallel()
+        Arrays.stream(ALL_SOURCES).parallel()
                 .map(src -> {
                     PRandom random = new FastPRandom();
                     long start = System.nanoTime();
@@ -57,13 +45,13 @@ public class RangeTest {
                         min = Math.min(val, min);
                         max = Math.max(val, max);
                     }
-                    return new Sample(1, src.getClass(), min, max, System.nanoTime() - start);
+                    return new Sample(1, src.toString(), min, max, System.nanoTime() - start);
                 })
                 .collect(Collectors.toList()).stream().sorted()
                 .forEach(Sample::print);
         System.out.println();
 
-        Arrays.stream(sources).parallel()
+        Arrays.stream(ALL_SOURCES).parallel()
                 .map(src -> {
                     PRandom random = new FastPRandom();
                     long start = System.nanoTime();
@@ -74,13 +62,13 @@ public class RangeTest {
                         min = Math.min(val, min);
                         max = Math.max(val, max);
                     }
-                    return new Sample(2, src.getClass(), min, max, System.nanoTime() - start);
+                    return new Sample(2, src.toString(), min, max, System.nanoTime() - start);
                 })
                 .collect(Collectors.toList()).stream().sorted()
                 .forEach(Sample::print);
         System.out.println();
 
-        Arrays.stream(sources).parallel()
+        Arrays.stream(ALL_SOURCES).parallel()
                 .map(src -> {
                     PRandom random = new FastPRandom();
                     long start = System.nanoTime();
@@ -91,7 +79,7 @@ public class RangeTest {
                         min = Math.min(val, min);
                         max = Math.max(val, max);
                     }
-                    return new Sample(3, src.getClass(), min, max, System.nanoTime() - start);
+                    return new Sample(3, src.toString(), min, max, System.nanoTime() - start);
                 })
                 .collect(Collectors.toList()).stream().sorted()
                 .forEach(Sample::print);
@@ -99,11 +87,11 @@ public class RangeTest {
 
     @RequiredArgsConstructor
     private static final class Sample implements Comparable<Sample> {
-        private final int      dimensions;
-        private final Class<?> clazz;
-        private final double   min;
-        private final double   max;
-        private final long     time;
+        private final int    dimensions;
+        private final String string;
+        private final double min;
+        private final double max;
+        private final long   time;
 
         @Override
         public int compareTo(Sample o) {
@@ -111,7 +99,7 @@ public class RangeTest {
         }
 
         public void print() {
-            System.out.printf("%dD %s: min=%f, max=%f, time=%.2fs\n", this.dimensions, this.clazz.getCanonicalName(), this.min, this.max, this.time / 1_000_000_000.0d);
+            System.out.printf("%dD %s: min=%f, max=%f, time=%.2fs\n", this.dimensions, this.string, this.min, this.max, this.time / 1_000_000_000.0d);
         }
     }
 }

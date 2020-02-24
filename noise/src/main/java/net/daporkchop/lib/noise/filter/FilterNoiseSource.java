@@ -13,46 +13,30 @@
  *
  */
 
-package noise;
+package net.daporkchop.lib.noise.filter;
 
-
-import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.graphics.color.ColorFormatBW;
-import net.daporkchop.lib.graphics.color.ColorFormatRGB;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.noise.NoiseSource;
-
-import java.awt.image.BufferedImage;
-
-import static net.daporkchop.lib.math.primitive.PMath.*;
-import static noise.NoiseTests.*;
+import net.daporkchop.lib.noise.util.NoiseFactory;
+import net.daporkchop.lib.random.PRandom;
 
 /**
+ * Base implementation of a {@link NoiseSource} that applies a filter to another delegate {@link NoiseSource}.
+ *
  * @author DaPorkchop_
  */
-public class ImageTest {
-    public static void main(String... args) {
-        int size = 512;
-        double scale = 0.025d;
+@RequiredArgsConstructor
+public abstract class FilterNoiseSource implements NoiseSource {
+    @NonNull
+    protected final NoiseSource delegate;
 
-        BufferedImage img = new BufferedImage(size << 1, size, BufferedImage.TYPE_INT_ARGB);
+    public FilterNoiseSource(@NonNull NoiseFactory factory, @NonNull PRandom random) {
+        this(factory.apply(random));
+    }
 
-        for (NoiseSource src : ALL_SOURCES) {
-            for (int x = 0; x < size; x++) {
-                for (int y = 0; y < size; y++) {
-                    double val = src.get(x * scale, y * scale);
-                    if (val < -1.0d || val > 1.0d) {
-                        throw new IllegalStateException(String.format("(%d,%d) (%f,%f): %f", x, y, x * scale, y * scale, val));
-                    }
-                    int col = val < 0.0d
-                            ? lerpI(0x00, 0xFF, -val) << 16
-                            : lerpI(0x00, 0xFF, val) << 8;
-                    img.setRGB(x, y, ColorFormatRGB.toARGB(col));
-
-                    img.setRGB(size + x, y, ColorFormatBW.toARGB(lerpI(0x00, 0xFF, val * 0.5d + 0.5d)));
-                }
-            }
-            System.out.println(src);
-            PorkUtil.simpleDisplayImage(true, img);
-        }
+    @Override
+    public String toString() {
+        return String.format("%s(%s)", this.getClass().getCanonicalName(), this.delegate.getClass().getCanonicalName());
     }
 }

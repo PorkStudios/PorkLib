@@ -27,7 +27,6 @@ import static net.daporkchop.lib.math.primitive.PMath.*;
  * <a href="http://staffwww.itn.liu.se/~stegu/aqsis/aqsis-newnoise/noise1234.cpp">Source</a>
  *
  * @author DaPorkchop_
- * @see WeightedPerlinNoiseEngine
  */
 public class PerlinNoiseEngine implements NoiseSource {
     protected static double fade(double t) {
@@ -205,5 +204,10 @@ public class PerlinNoiseEngine implements NoiseSource {
         double n1 = lerp(nx0, nx1, t);
 
         return lerp(n0, n1, s) * 0.87d;
+    }
+
+    @Override
+    public String toString() {
+        return this.getClass().getCanonicalName();
     }
 }

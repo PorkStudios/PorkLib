@@ -13,46 +13,43 @@
  *
  */
 
-package noise;
+package net.daporkchop.lib.noise.filter;
 
-
-import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.graphics.color.ColorFormatBW;
-import net.daporkchop.lib.graphics.color.ColorFormatRGB;
+import lombok.NonNull;
 import net.daporkchop.lib.noise.NoiseSource;
-
-import java.awt.image.BufferedImage;
-
-import static net.daporkchop.lib.math.primitive.PMath.*;
-import static noise.NoiseTests.*;
+import net.daporkchop.lib.noise.util.NoiseFactory;
+import net.daporkchop.lib.random.PRandom;
 
 /**
+ * Weights values from a {@link NoiseSource} towards the outer bounds, providing far more valley and peaks that approach -1 and 1.
+ *
  * @author DaPorkchop_
  */
-public class ImageTest {
-    public static void main(String... args) {
-        int size = 512;
-        double scale = 0.025d;
+public final class WeightedFilter extends FilterNoiseSource {
+    private static double fade(double t) {
+        return t * t * t * (t * (t * 6.0d - 15.0d) + 10.0d);
+    }
 
-        BufferedImage img = new BufferedImage(size << 1, size, BufferedImage.TYPE_INT_ARGB);
+    public WeightedFilter(@NonNull NoiseSource delegate) {
+        super(delegate);
+    }
 
-        for (NoiseSource src : ALL_SOURCES) {
-            for (int x = 0; x < size; x++) {
-                for (int y = 0; y < size; y++) {
-                    double val = src.get(x * scale, y * scale);
-                    if (val < -1.0d || val > 1.0d) {
-                        throw new IllegalStateException(String.format("(%d,%d) (%f,%f): %f", x, y, x * scale, y * scale, val));
-                    }
-                    int col = val < 0.0d
-                            ? lerpI(0x00, 0xFF, -val) << 16
-                            : lerpI(0x00, 0xFF, val) << 8;
-                    img.setRGB(x, y, ColorFormatRGB.toARGB(col));
+    public WeightedFilter(@NonNull NoiseFactory factory, @NonNull PRandom random) {
+        super(factory, random);
+    }
 
-                    img.setRGB(size + x, y, ColorFormatBW.toARGB(lerpI(0x00, 0xFF, val * 0.5d + 0.5d)));
-                }
-            }
-            System.out.println(src);
-            PorkUtil.simpleDisplayImage(true, img);
-        }
+    @Override
+    public double get(double x) {
+        return fade(this.delegate.get(x) * 0.5d + 0.5d) * 2.0d - 1.0d;
+    }
+
+    @Override
+    public double get(double x, double y) {
+        return fade(this.delegate.get(x, y) * 0.5d + 0.5d) * 2.0d - 1.0d;
+    }
+
+    @Override
+    public double get(double x, double y, double z) {
+        return fade(this.delegate.get(x, y, z) * 0.5d + 0.5d) * 2.0d - 1.0d;
     }
 }

@@ -22,9 +22,9 @@ import net.daporkchop.lib.random.PRandom;
 import static net.daporkchop.lib.math.primitive.PMath.*;
 
 /**
- * Implementation of Perlin noise.
+ * Port of Ken Perlin's improved Perlin noise as described in <a href="https://mrl.nyu.edu/~perlin/paper445.pdf">Perlin, K. (2002). Improving Noise</a>.
  * <p>
- * Based on <a href="https://github.com/nvpro-samples/shared_sources/blob/master/noise/noise1234.cpp">shared_sources/noise</a>.
+ * <a href="http://staffwww.itn.liu.se/~stegu/aqsis/aqsis-newnoise/noise1234.cpp">Source</a>
  *
  * @author DaPorkchop_
  * @see WeightedPerlinNoiseEngine
@@ -105,7 +105,7 @@ public class PerlinNoiseEngine implements NoiseSource {
         }
     }
 
-    private final byte[] p;
+    protected final byte[] p;
 
     public PerlinNoiseEngine(@NonNull PRandom random) {
         this.p = new byte[256];

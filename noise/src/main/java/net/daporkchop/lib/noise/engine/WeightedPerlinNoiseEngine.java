@@ -19,8 +19,8 @@ import lombok.NonNull;
 import net.daporkchop.lib.random.PRandom;
 
 /**
- * A modified variant of {@link PerlinNoiseEngine} that weights values towards the outer bounds, providing far more valley and peaks that approach -1 and
- * 1. However, it tends to provide slightly lower performance.
+ * Variant of {@link PerlinNoiseEngine} that weights values towards the outer bounds, providing far more valley and peaks that approach -1 and 1. However, it
+ * tends to provide slightly lower performance.
  *
  * @author DaPorkchop_
  * @see PerlinNoiseEngine

@@ -17,11 +17,13 @@ package noise;
 
 
 import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.graphics.color.ColorFormatBW;
 import net.daporkchop.lib.graphics.color.ColorFormatRGB;
 import net.daporkchop.lib.noise.NoiseSource;
 import net.daporkchop.lib.noise.engine.OpenSimplexNoiseEngine;
 import net.daporkchop.lib.noise.engine.PerlinNoiseEngine;
 import net.daporkchop.lib.noise.engine.PorkianV2NoiseEngine;
+import net.daporkchop.lib.noise.engine.SimplexNoiseEngine;
 import net.daporkchop.lib.noise.engine.WeightedPerlinNoiseEngine;
 import net.daporkchop.lib.random.impl.FastPRandom;
 import net.daporkchop.lib.random.impl.ThreadLocalPRandom;
@@ -38,12 +40,13 @@ public class ImageTest {
         int size = 512;
         double scale = 0.025d;
 
-        BufferedImage img = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage img = new BufferedImage(size << 1, size, BufferedImage.TYPE_INT_ARGB);
 
         NoiseSource[] sources = {
                 new PorkianV2NoiseEngine(new FastPRandom()),
                 new PerlinNoiseEngine(new FastPRandom()),
                 new WeightedPerlinNoiseEngine(new FastPRandom()),
+                new SimplexNoiseEngine(new FastPRandom()),
                 new OpenSimplexNoiseEngine(new FastPRandom())
         };
 
@@ -58,6 +61,8 @@ public class ImageTest {
                             ? lerpI(0x00, 0xFF, -val) << 16
                             : lerpI(0x00, 0xFF, val) << 8;
                     img.setRGB(x, y, ColorFormatRGB.toARGB(col));
+
+                    img.setRGB(size + x, y, ColorFormatBW.toARGB(lerpI(0x00, 0xFF, val * 0.5d + 0.5d)));
                 }
             }
             System.out.println(src.getClass().getCanonicalName());

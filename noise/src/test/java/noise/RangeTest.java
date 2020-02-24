@@ -19,6 +19,7 @@ import net.daporkchop.lib.noise.NoiseSource;
 import net.daporkchop.lib.noise.engine.OpenSimplexNoiseEngine;
 import net.daporkchop.lib.noise.engine.PerlinNoiseEngine;
 import net.daporkchop.lib.noise.engine.PorkianV2NoiseEngine;
+import net.daporkchop.lib.noise.engine.SimplexNoiseEngine;
 import net.daporkchop.lib.noise.engine.WeightedPerlinNoiseEngine;
 import net.daporkchop.lib.random.PRandom;
 import net.daporkchop.lib.random.impl.FastPRandom;
@@ -39,6 +40,7 @@ public class RangeTest {
                 new PorkianV2NoiseEngine(new FastPRandom()),
                 new PerlinNoiseEngine(new FastPRandom()),
                 new WeightedPerlinNoiseEngine(new FastPRandom()),
+                new SimplexNoiseEngine(new FastPRandom()),
                 new OpenSimplexNoiseEngine(new FastPRandom())
         };
 

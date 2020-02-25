@@ -43,6 +43,16 @@ public final class ScaleFilter extends FilterNoiseSource {
     }
 
     @Override
+    public double min() {
+        return this.delegate.min();
+    }
+
+    @Override
+    public double max() {
+        return this.delegate.max();
+    }
+
+    @Override
     public double get(double x) {
         return this.delegate.get(x * this.scaleX);
     }

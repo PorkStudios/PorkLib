@@ -36,6 +36,12 @@ public abstract class FilterNoiseSource implements NoiseSource {
     }
 
     @Override
+    public abstract double min();
+
+    @Override
+    public abstract double max();
+
+    @Override
     public String toString() {
         return String.format("%s(%s)", this.getClass().getCanonicalName(), this.delegate);
     }

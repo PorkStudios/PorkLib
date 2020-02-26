@@ -13,42 +13,12 @@
  *
  */
 
-rootProject.name = 'PorkLib'
+package net.daporkchop.lib.collections.map.map2d;
 
-include 'binary'
-include 'collections'
-include 'common'
-include 'compression'
-include 'compression:zlib'
-include 'compression:zstd'
-include 'crypto'
-include 'encoding'
-include 'encoding:config'
-include 'encoding:nbt'
-include 'graphics'
-include 'gui'
-include 'hash'
-include 'http'
-include 'http:http-netty'
-include 'logging'
-include 'math'
-include 'minecraft'
-include 'minecraft:minecraft-text'
-include 'minecraft:minecraft-worldscanner'
-include 'natives'
-include 'netty'
-include 'noise'
-include 'primitive'
-include 'primitive:generator'
-include 'random'
-include 'reflection'
-include 'unsafe'
-
-findProject(':compression:zlib')?.name = 'compression-zlib'
-findProject(':compression:zstd')?.name = 'compression-zstd'
-findProject(':encoding:config')?.name = 'config'
-findProject(':encoding:nbt')?.name = 'nbt'
-findProject(':http:http-netty')?.name = 'http-netty'
-findProject(':minecraft:minecraft-worldscanner')?.name = 'minecraft-worldscanner'
-findProject(':minecraft:minecraft-text')?.name = 'minecraft-text'
-
+/**
+ * A map using a pair of integer X,Y coordinates as a key rather than having to use a wrapper class.
+ *
+ * @author DaPorkchop_
+ */
+public interface Map2d {
+}

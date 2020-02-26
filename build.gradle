@@ -129,8 +129,10 @@ allprojects {
         }
     }
 
-    publish.dependsOn(publishToMavenLocal)
-    build.dependsOn(publish)
+    if (!project.name.contains("generator")) {
+        publish.dependsOn(publishToMavenLocal)
+        build.dependsOn(publish)
+    }
 
     test {
         testLogging {

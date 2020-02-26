@@ -15,7 +15,6 @@
 
 rootProject.name = 'PorkLib'
 
-include 'ai'
 include 'binary'
 include 'collections'
 include 'common'
@@ -23,7 +22,6 @@ include 'compression'
 include 'compression:zlib'
 include 'compression:zstd'
 include 'concurrent'
-include 'concurrent:parallel'
 include 'crypto'
 include 'db'
 include 'db:db-core'
@@ -57,7 +55,6 @@ include 'unsafe'
 
 findProject(':compression:zlib')?.name = 'compression-zlib'
 findProject(':compression:zstd')?.name = 'compression-zstd'
-findProject(':concurrent:parallel')?.name = 'parallel'
 findProject(':db:db-core')?.name = 'db-core'
 findProject(':db:db-extensions-leveldb')?.name = 'db-extensions-leveldb'
 findProject(':encoding:config')?.name = 'config'

@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -59,7 +59,7 @@ public class Base58WithHeaders {
 
         byte[] hash = Digest.SHA512.hash(Digest.SHA512.hash(new byte[]{version}, prefix.getBytes(StandardCharsets.UTF_8), content).getHash()).getHash();
         System.arraycopy(hash, 0, newData, (newData.length - 4), 4);
-        return Base58.INSTANCE.alphabet()[prefix.length()] + prefix + Base58.encodeBase58(newData);
+        return Base58.ALPHABET.charAt(prefix.length()) + prefix + Base58.encodeBase58(newData);
     }
 
     /**
@@ -72,8 +72,8 @@ public class Base58WithHeaders {
         List<Character> chars = pork58.chars().mapToObj(e -> (char) e).collect(Collectors.toList());
         char prefixLengthChar = chars.remove(0);
         int prefixLength = -1;
-        for (int i = 0; i < Base58.INSTANCE.alphabet().length; i++) {
-            if (Base58.INSTANCE.alphabet()[i] == (int) prefixLengthChar) {
+        for (int i = 0; i < 58; i++) {
+            if (Base58.ALPHABET.charAt(i) == (int) prefixLengthChar) {
                 prefixLength = i;
             }
         }

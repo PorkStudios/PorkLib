@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -29,19 +29,17 @@ import java.util.Arrays;
  *
  * @author DaPorkchop_
  */
-@Accessors(fluent = true)
-public class BaseN {
+public final class BaseN {
     public static BaseN of(@NonNull String alphabet) {
         return new BaseN(alphabet);
     }
 
-    @Getter
     protected final char[] alphabet;
     protected final FastCharIntMap indexes;
     protected final int length;
     protected final char zero;
 
-    protected BaseN(@NonNull String alphabet) {
+    private BaseN(@NonNull String alphabet) {
         if (alphabet.isEmpty()){
             throw new IllegalArgumentException("Alphabet cannot be null or empty!");
         }
@@ -67,7 +65,7 @@ public class BaseN {
         this.zero = this.alphabet[0];
     }
 
-    public String encode(byte[] data) {
+    public String encode(@NonNull byte[] data) {
         if (data.length == 0)   {
             return "";
         }
@@ -97,7 +95,7 @@ public class BaseN {
         return new String(encoded, outputStart, encoded.length - outputStart);
     }
 
-    public byte[] decode(String input) {
+    public byte[] decode(@NonNull CharSequence input) {
         if (input.length() == 0) {
             return new byte[0];
         }

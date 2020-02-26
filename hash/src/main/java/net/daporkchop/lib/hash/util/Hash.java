@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -19,7 +19,6 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.encoding.Hexadecimal;
-import net.daporkchop.lib.encoding.basen.Base34;
 import net.daporkchop.lib.encoding.basen.Base58;
 
 import java.util.Arrays;
@@ -50,10 +49,6 @@ public class Hash {
 
     public String toBase58WithHeaders(byte version, @NonNull String prefix) {
         return Base58WithHeaders.encode(version, prefix, this.hash);
-    }
-
-    public String toBase34() {
-        return Base34.encodeBase34(this.hash);
     }
 
     @Override

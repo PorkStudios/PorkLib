@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -15,26 +15,28 @@
 
 package net.daporkchop.lib.encoding.basen;
 
+import lombok.NonNull;
+import lombok.experimental.UtilityClass;
+
 /**
  * Data encoding format used by Bitcoin for wallet addresses
  * <p>
  * Base58 is better than Base64 for one main reason: no non-alphanumeric characters!
  * Because all characters are alphanumeric, the data will be picked up as a single word by pretty much every system.
  * That means that there won't be any line breaks, you can double-click to select the whole thing, etc.
- * <p>
- * Base58 will not work correctly on systems that aren't case-sensitive. For an encoding system that WILL work on case-insensitive
- * systems, use {@link Base34}
  *
  * @author DaPorkchop_
  */
-public interface Base58 {
-    BaseN INSTANCE = BaseN.of("123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz");
+@UtilityClass
+public class Base58 {
+    public  String ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+    private BaseN  INSTANCE = BaseN.of(ALPHABET);
 
-    static String encodeBase58(byte[] data) {
+    public static String encodeBase58(@NonNull byte[] data) {
         return INSTANCE.encode(data);
     }
 
-    static byte[] decodeBase58(String data) {
+    public static byte[] decodeBase58(@NonNull String data) {
         return INSTANCE.decode(data);
     }
 }

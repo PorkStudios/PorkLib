@@ -13,12 +13,37 @@
  *
  */
 
-dependencies {
-    compile project(":http")
-    compile project(":logging")
-    compile project(":netty")
+package net.daporkchop.lib.network.nettycommon.transport;
 
-    compile "io.netty:netty-handler:$nettyVersion"
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFactory;
+import io.netty.channel.ServerChannel;
+import io.netty.channel.socket.DatagramChannel;
+import net.daporkchop.lib.network.nettycommon.eventloopgroup.pool.EventLoopGroupPool;
 
-    compile "com.github.florianingerl.util:regex:$florianingerlRegexVersion"
+/**
+ * Container around a network transport protocol.
+ *
+ * @author DaPorkchop_
+ */
+public interface Transport {
+    /**
+     * @return the {@link EventLoopGroupPool} used for this transport protocol
+     */
+    EventLoopGroupPool eventLoopGroupPool();
+
+    /**
+     * @return a {@link ChannelFactory} for use in a {@link io.netty.bootstrap.ServerBootstrap} for TCP/IP
+     */
+    ChannelFactory<? extends ServerChannel> channelFactorySocketServer();
+
+    /**
+     * @return a {@link ChannelFactory} for use in a {@link io.netty.bootstrap.Bootstrap} for TCP/IP
+     */
+    ChannelFactory<? extends Channel> channelFactorySocketClient();
+
+    /**
+     * @return a {@link ChannelFactory} for use in a {@link io.netty.bootstrap.Bootstrap} for UDP/IP
+     */
+    ChannelFactory<? extends DatagramChannel> channelFactoryDatagram();
 }

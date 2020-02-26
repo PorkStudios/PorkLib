@@ -13,12 +13,45 @@
  *
  */
 
-dependencies {
-    compile project(":http")
-    compile project(":logging")
-    compile project(":netty")
+package net.daporkchop.lib.network.nettycommon.transport;
 
-    compile "io.netty:netty-handler:$nettyVersion"
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFactory;
+import io.netty.channel.ServerChannel;
+import io.netty.channel.socket.DatagramChannel;
+import io.netty.channel.socket.nio.NioDatagramChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.network.nettycommon.eventloopgroup.pool.EventLoopGroupPool;
 
-    compile "com.github.florianingerl.util:regex:$florianingerlRegexVersion"
+/**
+ * Implementation of {@link Transport} for Java NIO.
+ *
+ * @author DaPorkchop_
+ */
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public final class NioTransport implements Transport {
+    @NonNull
+    protected final EventLoopGroupPool eventLoopGroupPool;
+
+    @Override
+    public ChannelFactory<? extends ServerChannel> channelFactorySocketServer() {
+        return NioServerSocketChannel::new;
+    }
+
+    @Override
+    public ChannelFactory<? extends Channel> channelFactorySocketClient() {
+        return NioSocketChannel::new;
+    }
+
+    @Override
+    public ChannelFactory<? extends DatagramChannel> channelFactoryDatagram() {
+        return NioDatagramChannel::new;
+    }
 }

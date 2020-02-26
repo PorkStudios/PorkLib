@@ -13,12 +13,21 @@
  *
  */
 
-dependencies {
-    compile project(":http")
-    compile project(":logging")
-    compile project(":netty")
+package net.daporkchop.lib.network.nettycommon.eventloopgroup.factory;
 
-    compile "io.netty:netty-handler:$nettyVersion"
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 
-    compile "com.github.florianingerl.util:regex:$florianingerlRegexVersion"
+import java.util.concurrent.Executor;
+
+/**
+ * Implementation of {@link EventLoopGroupFactory} for Java NIO.
+ *
+ * @author DaPorkchop_
+ */
+public final class NioEventLoopGroupFactory implements EventLoopGroupFactory {
+    @Override
+    public EventLoopGroup create(int threads, Executor executor) {
+        return new NioEventLoopGroup(threads, executor);
+    }
 }

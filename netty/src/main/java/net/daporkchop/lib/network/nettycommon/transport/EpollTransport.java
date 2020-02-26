@@ -13,12 +13,45 @@
  *
  */
 
-dependencies {
-    compile project(":http")
-    compile project(":logging")
-    compile project(":netty")
+package net.daporkchop.lib.network.nettycommon.transport;
 
-    compile "io.netty:netty-handler:$nettyVersion"
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFactory;
+import io.netty.channel.ServerChannel;
+import io.netty.channel.epoll.EpollDatagramChannel;
+import io.netty.channel.epoll.EpollServerSocketChannel;
+import io.netty.channel.epoll.EpollSocketChannel;
+import io.netty.channel.socket.DatagramChannel;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.network.nettycommon.eventloopgroup.pool.EventLoopGroupPool;
 
-    compile "com.github.florianingerl.util:regex:$florianingerlRegexVersion"
+/**
+ * Implementation of {@link Transport} for Epoll.
+ *
+ * @author DaPorkchop_
+ */
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public final class EpollTransport implements Transport {
+    @NonNull
+    protected final EventLoopGroupPool eventLoopGroupPool;
+
+    @Override
+    public ChannelFactory<? extends ServerChannel> channelFactorySocketServer() {
+        return EpollServerSocketChannel::new;
+    }
+
+    @Override
+    public ChannelFactory<? extends Channel> channelFactorySocketClient() {
+        return EpollSocketChannel::new;
+    }
+
+    @Override
+    public ChannelFactory<? extends DatagramChannel> channelFactoryDatagram() {
+        return EpollDatagramChannel::new;
+    }
 }

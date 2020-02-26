@@ -13,12 +13,36 @@
  *
  */
 
-dependencies {
-    compile project(":http")
-    compile project(":logging")
-    compile project(":netty")
+package net.daporkchop.lib.network.nettycommon.eventloopgroup.factory;
 
-    compile "io.netty:netty-handler:$nettyVersion"
+import io.netty.channel.EventLoopGroup;
+import io.netty.util.concurrent.ThreadPerTaskExecutor;
+import lombok.NonNull;
 
-    compile "com.github.florianingerl.util:regex:$florianingerlRegexVersion"
+import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadFactory;
+
+/**
+ * Provides instances of {@link EventLoopGroup}.
+ *
+ * @author DaPorkchop_
+ */
+@FunctionalInterface
+public interface EventLoopGroupFactory {
+    default EventLoopGroup create(int threads) {
+        return this.create(threads, new ThreadPerTaskExecutor(Thread::new));
+    }
+
+    default EventLoopGroup create(int threads, @NonNull ThreadFactory threadFactory) {
+        return this.create(threads, new ThreadPerTaskExecutor(threadFactory));
+    }
+
+    /**
+     * Creates a new {@link EventLoopGroup}.
+     *
+     * @param threads  the number of threads that the new {@link EventLoopGroup} will use
+     * @param executor the executor that the threads will be run on
+     * @return a new {@link EventLoopGroup}
+     */
+    EventLoopGroup create(int threads, Executor executor);
 }

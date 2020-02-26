@@ -13,12 +13,26 @@
  *
  */
 
-dependencies {
-    compile project(":http")
-    compile project(":logging")
-    compile project(":netty")
+package net.daporkchop.lib.network.nettycommon.eventloopgroup.factory;
 
-    compile "io.netty:netty-handler:$nettyVersion"
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.Epoll;
+import io.netty.channel.epoll.EpollEventLoopGroup;
 
-    compile "com.github.florianingerl.util:regex:$florianingerlRegexVersion"
+import java.util.concurrent.Executor;
+
+/**
+ * Implementation of {@link EventLoopGroupFactory} for Epoll.
+ *
+ * @author DaPorkchop_
+ */
+public final class EpollEventLoopGroupFactory implements EventLoopGroupFactory {
+    public EpollEventLoopGroupFactory() {
+        Epoll.ensureAvailability();
+    }
+
+    @Override
+    public EventLoopGroup create(int threads, Executor executor) {
+        return new EpollEventLoopGroup(threads, executor);
+    }
 }

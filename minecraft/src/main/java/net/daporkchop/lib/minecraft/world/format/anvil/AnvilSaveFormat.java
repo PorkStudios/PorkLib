@@ -28,7 +28,7 @@ import net.daporkchop.lib.minecraft.world.format.WorldManager;
 import net.daporkchop.lib.nbt.NBTInputStream;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 import net.daporkchop.lib.nbt.tag.notch.ListTag;
-import net.daporkchop.lib.primitive.function.biconsumer.IntObjBiConsumer;
+import net.daporkchop.lib.primitive.lambda.biconsumer.IntObjBiConsumer;
 
 import java.io.File;
 import java.io.FileInputStream;

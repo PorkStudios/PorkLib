@@ -66,10 +66,20 @@ import static net.daporkchop.lib.logging.Logging.*;
 public class Generator {
     public static final AtomicLong FILES = new AtomicLong(0L);
     public static final AtomicLong SIZE = new AtomicLong(0L);
-    private static final Collection<String> TREE_ROOTS = Stream.of(
+    private static final Collection<Generator> GENERATORS = Stream.of(
             null
-            , "generated"
-            //, "test"
+            , new Generator(
+                    new File("src/main/resources/primitive/java"),
+                    new File("../src/generated/java"),
+                    Collections.emptyList())
+            /*, new Generator(
+                    new File("src/main/resources/test/java"),
+                    new File("../src/test/java"),
+                    Collections.singletonList("org.junit.*"))*/
+            , new Generator(
+                    new File("src/main/resources/lambda/java"),
+                    new File("../lambda/src/generated/java"),
+                    Collections.emptyList())
     ).filter(Objects::nonNull).collect(Collectors.toList());
     public static String LICENSE;
     private static final JsonArray EMPTY_JSON_ARRAY = new JsonArray();
@@ -187,12 +197,7 @@ public class Generator {
                 new File(".", "primitive/generator/src/main/resources"),
                 new File(".", "primitive/src/main/java/net/daporkchop/lib/primitive")
         );*/
-        for (String s : TREE_ROOTS) {
-            Generator generator = new Generator(
-                    new File(".", String.format("src/main/resources/%s/java/", s)),
-                    new File(".", String.format("../src/%s/java/", s)),
-                    "test".equalsIgnoreCase(s) ? Collections.singletonList("org.junit.*") : Collections.emptyList()
-            );
+        for (Generator generator : GENERATORS)  {
             generator.generate();
         }
 
@@ -516,11 +521,15 @@ public class Generator {
     }
 
     private void addAllExisting(@NonNull File file) {
-        for (File f : PFiles.ensureDirectoryExists(file).listFiles()) {
-            if (f.isDirectory()) {
+        File[] files = PFiles.ensureDirectoryExists(file).listFiles();
+        if (files == null)  {
+            throw new IllegalArgumentException(file.getAbsolutePath() + " has null contents!");
+        }
+        for (File f : files) {
+            if (f.isDirectory() && !f.getName().endsWith(".java")) { //why is isDirectory() returning true when it isn't?
                 this.addAllExisting(f);
             } else {
-                this.existing.add(String.format("%s.%s", this.getPackageName(f), f.getName()));
+                this.existing.add(String.format("%s.%s", this.getPackageName(file), f.getName()));
             }
         }
     }

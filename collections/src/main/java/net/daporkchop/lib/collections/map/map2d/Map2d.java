@@ -16,9 +16,9 @@
 package net.daporkchop.lib.collections.map.map2d;
 
 import lombok.NonNull;
-import net.daporkchop.lib.primitive.lambda.bifunction.IntIntObjBiFunction;
 import net.daporkchop.lib.primitive.lambda.consumer.IntIntConsumer;
 import net.daporkchop.lib.primitive.lambda.consumer.IntIntObjConsumer;
+import net.daporkchop.lib.primitive.lambda.function.IntIntObjFunction;
 
 import java.util.function.Consumer;
 
@@ -69,7 +69,7 @@ public interface Map2d<V> {
      * @param mappingFunction the function to compute the value if none exists
      * @return the existing value, or {@code null} if there was no previous value
      */
-    V computeIfAbsent(int x, int y, @NonNull IntIntObjBiFunction<V> mappingFunction);
+    V computeIfAbsent(int x, int y, @NonNull IntIntObjFunction<V> mappingFunction);
 
     /**
      * Removes the value at the given position from this map.

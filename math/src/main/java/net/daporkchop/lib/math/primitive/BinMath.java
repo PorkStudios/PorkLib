@@ -1,7 +1,7 @@
 /*
  * Adapted from the Wizardry License
  *
- * Copyright (c) 2018-2019 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_ and contributors
  *
  * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
  *
@@ -15,23 +15,26 @@
 
 package net.daporkchop.lib.math.primitive;
 
+import lombok.experimental.UtilityClass;
+
 /**
  * @author DaPorkchop_
  */
-public interface BinMath {
-    static boolean isPow2(long value) {
+@UtilityClass
+public class BinMath {
+    public static boolean isPow2(long value) {
         return value != 0L && (value & value - 1L) == 0L;
     }
 
-    static boolean isPow2(int value) {
+    public static boolean isPow2(int value) {
         return value != 0 && (value & value - 1) == 0;
     }
 
-    static boolean isPow2(short value) {
+    public static boolean isPow2(short value) {
         return value != 0 && (value & value - 1) == 0;
     }
 
-    static boolean isPow2(byte value) {
+    public static boolean isPow2(byte value) {
         return value != 0 && (value & value - 1) == 0;
     }
 
@@ -41,7 +44,7 @@ public interface BinMath {
      * @param value the number to store
      * @return the minimum number of bits required
      */
-    static int getNumBitsNeededFor(int value) {
+    public static int getNumBitsNeededFor(int value) {
         int count = 0;
         while (value > 0) {
             count++;
@@ -50,7 +53,7 @@ public interface BinMath {
         return count;
     }
 
-    static long roundToNearestPowerOf2(long value) {
+    public static long roundToNearestPowerOf2(long value) {
         long l = value - 1;
         l = l | l >> 1;
         l = l | l >> 2;
@@ -61,7 +64,7 @@ public interface BinMath {
         return l + 1;
     }
 
-    static int roundToNearestPowerOf2(int value) {
+    public static int roundToNearestPowerOf2(int value) {
         int i = value - 1;
         i = i | i >> 1;
         i = i | i >> 2;
@@ -71,7 +74,7 @@ public interface BinMath {
         return i + 1;
     }
 
-    static short roundToNearestPowerOf2(short value) {
+    public static short roundToNearestPowerOf2(short value) {
         short s = (short) (value - 1);
         s = (short) (s | s >> 1);
         s = (short) (s | s >> 2);
@@ -80,7 +83,7 @@ public interface BinMath {
         return (short) (s + 1);
     }
 
-    static int getFromFlags(int... flags)   {
+    public static int getFromFlags(int... flags)   {
         int i = 0;
         for (int flag : flags)  {
             i |= 1 << flag;
@@ -88,11 +91,23 @@ public interface BinMath {
         return i;
     }
 
-    static int setFlag(int i, int flag) {
+    public static int setFlag(int i, int flag) {
         return i | (1 << flag);
     }
 
-    static boolean getFlag(int i, int flag)    {
+    public static boolean getFlag(int i, int flag)    {
         return (i & (1 << flag)) != 0;
+    }
+
+    public static long packXY(int x, int y) {
+        return (Integer.toUnsignedLong(x) << 32L) | Integer.toUnsignedLong(y);
+    }
+
+    public static int unpackX(long packed)   {
+        return (int) (packed >>> 32L);
+    }
+
+    public static int unpackY(long packed)   {
+        return (int) packed;
     }
 }

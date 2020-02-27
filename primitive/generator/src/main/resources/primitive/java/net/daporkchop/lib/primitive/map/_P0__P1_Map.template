@@ -14,7 +14,7 @@ $$$settings$$$
 }
 _headers_
 
-import net.daporkchop.lib.primitive.lambda.biconsumer._P0__P1_BiConsumer;
+import net.daporkchop.lib.primitive.lambda.consumer._P0__P1_Consumer;
 import net.daporkchop.lib.primitive.lambda.consumer._P0_Consumer;
 import net.daporkchop.lib.primitive.lambda.consumer._P1_Consumer;
 import net.daporkchop.lib.primitive.map.sync._P0__P1_SynchronizedMap;
@@ -170,7 +170,7 @@ public interface _P0__P1_Map_gH_ extends Synchronizable<_P0__P1_Map_gH_> {
      *
      * @param consumer the function to run
      */
-    void forEach(_P0__P1_BiConsumer_gH_ consumer);
+    void forEach(_P0__P1_Consumer_gH_ consumer);
 
     /**
      * Copies every entry from another map into this one, overwriting existing entries.

@@ -14,7 +14,7 @@ $$$settings$$$
 }
 _headers_
 
-import net.daporkchop.lib.primitive.lambda.biconsumer._P0__P1_BiConsumer;
+import net.daporkchop.lib.primitive.lambda.consumer._P0__P1_Consumer;
 import net.daporkchop.lib.primitive.lambda.consumer._P0_Consumer;
 import net.daporkchop.lib.primitive.lambda.consumer._P1_Consumer;
 import net.daporkchop.lib.primitive.map._P0__P1_Map;
@@ -132,7 +132,7 @@ public final class _P0__P1_SynchronizedMap_gH_ implements _P0__P1_Map_gH_, Synch
     }
 
     @Override
-    public void forEach(_P0__P1_BiConsumer_gH_ consumer) {
+    public void forEach(_P0__P1_Consumer_gH_ consumer) {
         synchronized (this.mutex)   {
             this.delegate.forEach(consumer);
         }

@@ -15,6 +15,6 @@ _headers_
  * @see java.util.function.BiFunction
  */
 @FunctionalInterface
-public interface _P0__P1__P2_BiFunction_gH_ {
+public interface _P0__P1__P2_Function_gH_ {
     _p2_ apply(_p0_ t, _p1_ u);
 }

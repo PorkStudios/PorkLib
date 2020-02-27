@@ -47,7 +47,7 @@ public abstract class AbstractFastPRandom extends Random implements PRandom {
 
     @Override
     public boolean nextBoolean() {
-        return this.nextInt() != 0;
+        return this.nextInt() < 0;
     }
 
     @Override

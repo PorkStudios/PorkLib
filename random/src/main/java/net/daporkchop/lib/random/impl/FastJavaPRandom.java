@@ -82,6 +82,6 @@ public final class FastJavaPRandom extends AbstractFastPRandom {
 
     @Override
     public void setSeed(long seed) {
-        this.seed = seed;
+        this.seed = initialScramble(seed);
     }
 }

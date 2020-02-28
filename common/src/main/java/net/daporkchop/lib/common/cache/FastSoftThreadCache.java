@@ -21,6 +21,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import java.lang.ref.SoftReference;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
@@ -39,7 +40,7 @@ public final class FastSoftThreadCache<T> implements ThreadCache<T> {
         SoftReference<T> ref = this.threadLocal.get();
         T val;
         if (ref == null || (val = ref.get()) == null) {
-            this.threadLocal.set(new SoftReference<>(val = this.factory.get()));
+            this.threadLocal.set(new SoftReference<>(val = Objects.requireNonNull(this.factory.get())));
         }
         if (val == null) {
             throw new NullPointerException();

@@ -20,6 +20,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import java.lang.ref.SoftReference;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
@@ -35,13 +36,15 @@ public final class SoftCache<T> implements Cache<T> {
     protected SoftReference<T> ref;
 
     @Override
-    public synchronized T get() {
+    public T get() {
         T val;
         if (this.ref == null || (val = this.ref.get()) == null) {
-            this.ref = new SoftReference<>(val = this.factory.get());
-        }
-        if (val == null) {
-            throw new NullPointerException();
+            synchronized (this) {
+                //check again after obtaining lock, it may have been set by another thread
+                if (this.ref == null || (val = this.ref.get()) == null) {
+                    this.ref = new SoftReference<>(val = Objects.requireNonNull(this.factory.get()));
+                }
+            }
         }
         return val;
     }

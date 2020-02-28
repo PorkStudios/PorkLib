@@ -19,6 +19,7 @@ import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
@@ -40,7 +41,7 @@ public final class LateReferencedCache<T> implements Cache<T> {
             synchronized (this) {
                 //check again after obtaining lock, it may have been set by another thread
                 if ((value = this.value) == null) {
-                    this.value = value = this.factory.get();
+                    this.value = value = Objects.requireNonNull(this.factory.get());
                     this.factory = null; //allow factory to be GC-d
                 }
             }

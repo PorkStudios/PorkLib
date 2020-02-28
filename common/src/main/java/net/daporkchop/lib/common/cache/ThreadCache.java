@@ -18,6 +18,8 @@ package net.daporkchop.lib.common.cache;
 import lombok.NonNull;
 
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A thread cache is essentially a {@link ThreadLocal}, able to store objects per-thread
@@ -41,6 +43,7 @@ public interface ThreadCache<T> extends Cache<T> {
             return new JavaLateThreadCache<>(supplier);
         }
     }
+
     /**
      * Gets a simple {@link ThreadCache} will compute the value using the given {@link Supplier} once per thread when first requested, and store it in a
      * soft reference, allowing it to be garbage-collected later on if the garbage-collector deems it necessary. If garbage-collected, it will be
@@ -58,6 +61,27 @@ public interface ThreadCache<T> extends Cache<T> {
         } catch (ClassNotFoundException e) {
             return new JavaSoftThreadCache<>(supplier);
         }
+    }
+
+    /**
+     * Gets a {@link ThreadCache} that will cache a {@link Matcher} for the given regex.
+     *
+     * @param regex the regex to cache a {@link Matcher} for
+     * @see #regex(Pattern)
+     * @see #soft(Supplier)
+     */
+    static ThreadCache<Matcher> regex(@NonNull String regex) {
+        return regex(Pattern.compile(regex));
+    }
+
+    /**
+     * Gets a {@link ThreadCache} that will cache a {@link Matcher} for the given {@link Pattern}.
+     *
+     * @param pattern the {@link Pattern} to cache a {@link Matcher} for
+     * @see #soft(Supplier)
+     */
+    static ThreadCache<Matcher> regex(@NonNull Pattern pattern) {
+        return soft(() -> pattern.matcher(""));
     }
 
     @Override

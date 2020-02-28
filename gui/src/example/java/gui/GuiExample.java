@@ -16,9 +16,9 @@
 package gui;
 
 import lombok.NonNull;
-import net.daporkchop.lib.graphics.bitmap.PIcon;
-import net.daporkchop.lib.graphics.bitmap.PImage;
-import net.daporkchop.lib.graphics.bitmap.image.DirectImageRGB;
+import net.daporkchop.lib.imaging.bitmap.PIcon;
+import net.daporkchop.lib.imaging.bitmap.PImage;
+import net.daporkchop.lib.imaging.bitmap.image.DirectImageRGB;
 import net.daporkchop.lib.gui.GuiEngine;
 import net.daporkchop.lib.gui.component.orientation.advanced.Axis;
 import net.daporkchop.lib.gui.component.orientation.advanced.calculator.DistUnit;

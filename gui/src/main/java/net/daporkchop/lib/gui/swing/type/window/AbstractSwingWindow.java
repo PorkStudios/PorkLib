@@ -20,7 +20,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.graphics.bitmap.PIcon;
+import net.daporkchop.lib.imaging.bitmap.PIcon;
 import net.daporkchop.lib.gui.GuiEngine;
 import net.daporkchop.lib.gui.component.Element;
 import net.daporkchop.lib.gui.component.state.WindowState;

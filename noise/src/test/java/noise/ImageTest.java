@@ -17,8 +17,8 @@ package noise;
 
 
 import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.graphics.color.ColorFormatBW;
-import net.daporkchop.lib.graphics.color.ColorFormatRGB;
+import net.daporkchop.lib.imaging.color.ColorFormatBW;
+import net.daporkchop.lib.imaging.color.ColorFormatRGB;
 import net.daporkchop.lib.noise.NoiseSource;
 
 import java.awt.image.BufferedImage;

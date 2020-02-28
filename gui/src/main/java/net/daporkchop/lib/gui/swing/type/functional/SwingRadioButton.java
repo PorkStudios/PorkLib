@@ -17,14 +17,11 @@ package net.daporkchop.lib.gui.swing.type.functional;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.graphics.bitmap.PIcon;
+import net.daporkchop.lib.imaging.bitmap.PIcon;
 import net.daporkchop.lib.gui.component.state.functional.RadioButtonState;
-import net.daporkchop.lib.gui.component.type.functional.CheckBox;
 import net.daporkchop.lib.gui.component.type.functional.RadioButton;
-import net.daporkchop.lib.gui.component.type.misc.RadioButtonGroup;
 import net.daporkchop.lib.gui.swing.GuiEngineSwing;
 import net.daporkchop.lib.gui.swing.common.SwingMouseListener;
-import net.daporkchop.lib.gui.swing.impl.SwingComponent;
 import net.daporkchop.lib.gui.swing.type.misc.SwingRadioButtonGroup;
 
 import javax.swing.*;

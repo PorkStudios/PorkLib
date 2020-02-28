@@ -16,7 +16,7 @@
 package net.daporkchop.lib.gui.component.type.functional;
 
 import lombok.NonNull;
-import net.daporkchop.lib.graphics.bitmap.PIcon;
+import net.daporkchop.lib.imaging.bitmap.PIcon;
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.state.functional.DropdownState;
 

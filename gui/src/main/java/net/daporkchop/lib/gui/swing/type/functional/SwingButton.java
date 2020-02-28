@@ -19,7 +19,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.graphics.bitmap.PIcon;
+import net.daporkchop.lib.imaging.bitmap.PIcon;
 import net.daporkchop.lib.gui.component.state.functional.ButtonState;
 import net.daporkchop.lib.gui.component.type.functional.Button;
 import net.daporkchop.lib.gui.swing.GuiEngineSwing;

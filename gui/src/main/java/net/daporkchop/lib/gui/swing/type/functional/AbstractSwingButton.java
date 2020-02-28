@@ -16,21 +16,17 @@
 package net.daporkchop.lib.gui.swing.type.functional;
 
 import lombok.NonNull;
-import net.daporkchop.lib.graphics.bitmap.PIcon;
+import net.daporkchop.lib.imaging.bitmap.PIcon;
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.Element;
 import net.daporkchop.lib.gui.component.capability.IconHolder;
 import net.daporkchop.lib.gui.component.capability.TextHolder;
 import net.daporkchop.lib.gui.component.state.ElementState;
-import net.daporkchop.lib.gui.component.state.functional.ButtonState;
-import net.daporkchop.lib.gui.component.type.functional.Button;
 import net.daporkchop.lib.gui.swing.GuiEngineSwing;
 import net.daporkchop.lib.gui.swing.SwingTextAlignment;
 import net.daporkchop.lib.gui.swing.impl.SwingComponent;
-import net.daporkchop.lib.gui.swing.type.window.AbstractSwingWindow;
 import net.daporkchop.lib.gui.util.HorizontalAlignment;
 import net.daporkchop.lib.gui.util.VerticalAlignment;
-import net.daporkchop.lib.gui.util.math.BoundingBox;
 
 import javax.swing.*;
 import java.awt.*;

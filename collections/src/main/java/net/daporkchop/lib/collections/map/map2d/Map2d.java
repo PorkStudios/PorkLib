@@ -116,6 +116,13 @@ public interface Map2d<V> {
     int size();
 
     /**
+     * @return whether this map is empty
+     */
+    default boolean isEmpty() {
+        return this.size() > 0;
+    }
+
+    /**
      * Removes all entries from this map.
      */
     void clear();

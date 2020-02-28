@@ -107,7 +107,7 @@ public class PorkUtil {
      * @param chars the {@code char[]} to wrap
      * @return a new {@link String}
      */
-    public String wrap(@NonNull char[] chars) {
+    public static String wrap(@NonNull char[] chars) {
         String s = PUnsafe.allocateInstance(String.class);
         PUnsafe.putObject(s, STRING_VALUE_OFFSET, chars);
         return s;
@@ -122,7 +122,7 @@ public class PorkUtil {
      * @param seq the {@link CharSequence} to unwrap
      * @return the value of the {@link CharSequence} as a {@code char[]}, or {@code null} if the given {@link CharSequence} cannot be unwrapped
      */
-    public char[] tryUnwrap(@NonNull CharSequence seq) {
+    public static char[] tryUnwrap(@NonNull CharSequence seq) {
         if (seq instanceof String) {
             return PUnsafe.getObject(seq, STRING_VALUE_OFFSET);
         } else if (seq instanceof StringBuilder || seq instanceof StringBuffer) {
@@ -138,7 +138,7 @@ public class PorkUtil {
      * @param string the {@link String} to unwrap
      * @return the value of the {@link String} as a {@code char[]}
      */
-    public char[] unwrap(@NonNull String string) {
+    public static char[] unwrap(@NonNull String string) {
         return PUnsafe.getObject(string, STRING_VALUE_OFFSET);
     }
 
@@ -151,7 +151,7 @@ public class PorkUtil {
      * @param builder the {@link StringBuilder} to unwrap
      * @return the value of the {@link StringBuilder} as a {@code char[]}
      */
-    public char[] unwrap(@NonNull StringBuilder builder) {
+    public static char[] unwrap(@NonNull StringBuilder builder) {
         return PUnsafe.getObject(builder, ABSTRACTSTRINGBUILDER_VALUE_OFFSET);
     }
 
@@ -164,7 +164,7 @@ public class PorkUtil {
      * @param buffer the {@link StringBuffer} to unwrap
      * @return the value of the {@link StringBuffer} as a {@code char[]}
      */
-    public char[] unwrap(@NonNull StringBuffer buffer) {
+    public static char[] unwrap(@NonNull StringBuffer buffer) {
         return PUnsafe.getObject(buffer, ABSTRACTSTRINGBUILDER_VALUE_OFFSET);
     }
 
@@ -177,7 +177,7 @@ public class PorkUtil {
      * @return a subsequence of the given range of the given {@link CharSequence}
      * @see CharSequence#subSequence(int, int)
      */
-    public CharSequence subSequence(@NonNull CharSequence seq, int start, int end) {
+    public static CharSequence subSequence(@NonNull CharSequence seq, int start, int end) {
         if (start == 0 && end == seq.length()) {
             return seq;
         }
@@ -198,15 +198,15 @@ public class PorkUtil {
      * @param <T>      the value type
      * @return the value, or the fallback value if the value was {@code null}
      */
-    public <T> T fallbackIfNull(T value, T fallback) {
+    public static <T> T fallbackIfNull(T value, T fallback) {
         return value != null ? value : fallback;
     }
 
-    public StackTraceElement[] getStackTrace(@NonNull Throwable t) {
+    public static StackTraceElement[] getStackTrace(@NonNull Throwable t) {
         return GET_STACK_TRACE_WRAPPER.apply(t);
     }
 
-    public void release(@NonNull ByteBuffer buffer) {
+    public static void release(@NonNull ByteBuffer buffer) {
         Cleaner cleaner = ((sun.nio.ch.DirectBuffer) buffer).cleaner();
         if (cleaner != null) {
             cleaner.clean();
@@ -214,7 +214,7 @@ public class PorkUtil {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> Class<T> classForName(@NonNull String name) {
+    public static <T> Class<T> classForName(@NonNull String name) {
         try {
             return (Class<T>) Class.forName(name);
         } catch (ClassNotFoundException e) {
@@ -223,7 +223,7 @@ public class PorkUtil {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> Class<T> uninitializedClassForName(@NonNull String name) {
+    public static <T> Class<T> uninitializedClassForName(@NonNull String name) {
         try {
             return (Class<T>) Class.forName(name, false, null);
         } catch (ClassNotFoundException e) {
@@ -232,7 +232,7 @@ public class PorkUtil {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> Class<T> uninitializedClassForName(@NonNull String name, ClassLoader loader) {
+    public static <T> Class<T> uninitializedClassForName(@NonNull String name, ClassLoader loader) {
         try {
             return (Class<T>) Class.forName(name, false, loader);
         } catch (ClassNotFoundException e) {
@@ -240,7 +240,7 @@ public class PorkUtil {
         }
     }
 
-    public boolean classExistsWithName(@NonNull String name) {
+    public static boolean classExistsWithName(@NonNull String name) {
         try {
             Class.forName(name);
             return true;
@@ -249,7 +249,7 @@ public class PorkUtil {
         }
     }
 
-    public Method getMethod(@NonNull Class<?> clazz, @NonNull String name, @NonNull Class<?>... params) {
+    public static Method getMethod(@NonNull Class<?> clazz, @NonNull String name, @NonNull Class<?>... params) {
         try {
             return clazz.getDeclaredMethod(name, params);
         } catch (NoSuchMethodException e) {
@@ -272,15 +272,15 @@ public class PorkUtil {
      * @return a new {@link SoftCache}
      */
     @SuppressWarnings("unchecked")
-    public <K, V> Map<K, V> newSoftCache() {
+    public static <K, V> Map<K, V> newSoftCache() {
         return (Map<K, V>) new SoftCache();
     }
 
-    public void simpleDisplayImage(@NonNull BufferedImage img) {
+    public static void simpleDisplayImage(@NonNull BufferedImage img) {
         simpleDisplayImage(false, img);
     }
 
-    public void simpleDisplayImage(boolean block, @NonNull BufferedImage... imgs) {
+    public static void simpleDisplayImage(boolean block, @NonNull BufferedImage... imgs) {
         JFrame frame = new JFrame();
         frame.getContentPane().setLayout(new FlowLayout());
         for (BufferedImage img : imgs)  {
@@ -307,7 +307,7 @@ public class PorkUtil {
         }
     }
 
-    public void sleep(long millis) {
+    public static void sleep(long millis) {
         try {
             Thread.sleep(millis);
         } catch (InterruptedException e) {
@@ -315,7 +315,7 @@ public class PorkUtil {
         }
     }
 
-    public String className(Object obj) {
+    public static String className(Object obj) {
         return obj == null ? "null" : obj.getClass().getCanonicalName();
     }
 
@@ -328,11 +328,11 @@ public class PorkUtil {
         } while (Runtime.getRuntime().freeMemory() <= oldMem);
     }
 
-    public Object getNull() {
+    public static Object getNull() {
         return null;
     }
 
-    public CharSequence fastGroup(@NonNull Matcher matcher, int group) {
+    public static CharSequence fastGroup(@NonNull Matcher matcher, int group) {
         matcher.start(); //this does a < 0 check internally
         if (group < 0 || group > matcher.groupCount()) {
             throw new IndexOutOfBoundsException("No group " + group);
@@ -346,7 +346,7 @@ public class PorkUtil {
         return PUnsafe.<CharSequence>getObject(matcher, MATCHER_TEXT_OFFSET).subSequence(start, end);
     }
 
-    public void assertInRange(int size, int start, int end) throws IndexOutOfBoundsException {
+    public static void assertInRange(int size, int start, int end) throws IndexOutOfBoundsException {
         if (start < 0) {
             throw new IndexOutOfBoundsException(String.format("start (%d) < 0", start));
         } else if (end > size) {
@@ -356,7 +356,12 @@ public class PorkUtil {
         }
     }
 
-    public void assertInRangeLen(int size, int start, int length) throws IndexOutOfBoundsException {
+    public static void assertInRangeLen(int size, int start, int length) throws IndexOutOfBoundsException {
         assertInRange(size, start, start + length);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> T uncheckedCast(Object value) {
+        return (T) value;
     }
 }

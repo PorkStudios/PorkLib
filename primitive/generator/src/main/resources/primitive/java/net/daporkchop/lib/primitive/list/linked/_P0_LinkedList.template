@@ -1,0 +1,227 @@
+$$$settings$$$
+{
+     "genericNames": {
+         "P0": "E"
+     }
+}
+_headers_
+
+import net.daporkchop.lib.primitive.lambda.consumer._P0_Consumer;
+import net.daporkchop.lib.primitive.list._P0_List;
+import net.daporkchop.lib.primitive.list._P0_Listerator;
+
+/**
+ * A {@link _P0_List} backed by an array.
+ * <p>
+ * The array is doubled in size when the number of elements exceeds the size of the array, and is shrunken
+ * when cleared or the number of elements is less than 1/4 the size of the array.
+ *
+ * @author DaPorkchop_
+ */
+public class _P0_LinkedList_gH_ implements _P0_List_gH_ {
+    protected Node_gH_ first;
+    protected Node_gH_ last;
+    protected int size;
+
+    public _P0_LinkedList()  {
+        this.clear();
+    }
+
+    @Override
+    public boolean add(_p0_ val)   {
+        if (this.size++ == 0) {
+            this.first = this.last = this.newNode(val, null, null);
+        } else {
+            Node_gH_ oldLast = this.last;
+            oldLast.next = this.last = this.newNode(val, null, oldLast);
+        }
+        return true;
+    }
+
+    @Override
+    public void add(int i, _p0_ val) throws IndexOutOfBoundsException   {
+        if (i == this.size) {
+            this.add(val); //don't try to shift elements
+            return;
+        } else if (i < 0 || i > this.size)  {
+            throw new IndexOutOfBoundsException(String.valueOf(i));
+        } else if (i == 0) {
+            Node_gH_ oldFirst = this.first;
+            oldFirst.next = this.first = this.newNode(val, oldFirst, null);
+        } else {
+            Node_gH_ node = this.first;
+            while (i-- > 0) {
+                node = node.next;
+            }
+            Node_gH_ insert = this.newNode(val, node.prev, node);
+            node.prev.next = insert;
+            node.prev = insert;
+        }
+        this.size++;
+    }
+
+    @Override
+    public boolean remove(_p0_ val)    {
+        Node_gH_ node = this.first;
+        int i = 0;
+        while (node != null)    {
+            if (this.equals(val, node.val)) {
+                this.doRemove(node);
+                return true;
+            } else {
+                node = node.next;
+                i++;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public _p0_ removeAt(int i) throws IndexOutOfBoundsException   {
+        if (i < 0 || i >= this.size)  {
+            throw new IndexOutOfBoundsException(String.valueOf(i));
+        } else {
+            Node_gH_ node = this.first;
+            while (i-- > 0)   {
+                node = node.next;
+            }
+            return this.doRemove(node);
+        }
+    }
+
+    protected _p0_ doRemove(Node_gH_ node)  {
+        this.size--;
+        if (node == this.first) {
+            this.first = node.next;
+        }
+        if (node == this.last)  {
+            this.last = node.prev;
+        }
+        return node.removeSelf();
+    }
+
+    @Override
+    public _p0_ get(int i) throws IndexOutOfBoundsException   {
+        if (i < 0 || i >= this.size)  {
+            throw new IndexOutOfBoundsException(String.valueOf(i));
+        } else {
+            Node_gH_ node = this.first;
+            while (i-- > 0)   {
+                node = node.next;
+            }
+            return node.val;
+        }
+    }
+
+    @Override
+    public _p0_ set(int i, _p0_ val) throws IndexOutOfBoundsException  {
+        if (i < 0 || i >= this.size)  {
+            throw new IndexOutOfBoundsException(String.valueOf(i));
+        } else {
+            Node_gH_ node = this.first;
+            while (i-- > 0)   {
+                node = node.next;
+            }
+            return node.swapVal(val);
+        }
+    }
+
+    @Override
+    public int indexOf(_p0_ val){
+        Node_gH_ node = this.first;
+        int i = 0;
+        while (node != null)    {
+            if (this.equals(val, node.val)) {
+                return i;
+            } else {
+                node = node.next;
+                i++;
+            }
+        }
+        return -1;
+    }
+
+    @Override
+    public void forEach(_P0_Consumer_gH_ consumer)  {
+        if (consumer == null)   {
+            throw new NullPointerException("consumer");
+        }
+        Node_gH_ node = this.first;
+        while (node != null)    {
+            consumer.accept(node.val);
+            node = node.next;
+        }
+    }
+
+    @Override
+    public int size()   {
+        return this.size;
+    }
+
+    @Override
+    public void clear() {
+        this.release(); //this method is safe here
+        this.size = 0; //we just need to update the size correctly
+    }
+
+    @Override
+    public void release()   {
+        this.first = this.last = null;
+    }
+
+    protected boolean equals(_p0_ a, _p0_ b)   {
+        return _equalsP0|a|b|_;
+    }
+
+    protected Node_gH_ newNode(_p0_ val, Node_gH_ next, Node_gH_ prev)  {
+        return new Node_gH_(val, next, prev);
+    }
+
+    protected static class Node_gH_ {
+        //I changed my mind about using Unsafe here because the performance loss has no benefit to balance
+        // it out, we simply don't need atomicity here
+        //protected static final long NEXT_OFFSET = PUnsafe.pork_getOffset(Node.class, "next");
+        //protected static final long PREV_OFFSET = PUnsafe.pork_getOffset(Node.class, "prev");
+        //protected static final long VAL_OFFSET = PUnsafe.pork_getOffset(Node.class, "val");
+    
+        protected Node_gH_ next;
+        protected Node_gH_ prev;
+        protected _p0_ val;
+
+        public Node(_p0_ val, Node_gH_ next, Node_gH_ prev)   {
+            this.val = val;
+            this.next = next;
+            this.prev = prev;
+        }
+        
+        protected Node_gH_ swapNext(Node_gH_ newNext)   {
+            Node_gH_ old = this.next;
+            this.next = newNext;
+            return old;
+        }
+        
+        protected Node_gH_ swapPrev(Node_gH_ newPrev)   {
+            Node_gH_ old = this.prev;
+            this.prev = newPrev;
+            return old;
+        }
+
+        protected _p0_ swapVal(_p0_ newVal)   {
+            _p0_ old = this.val;
+            this.val = newVal;
+            return old;
+        }
+
+        protected _p0_ removeSelf() {
+            if (this.next != null)  {
+                this.next.prev = this.prev;
+            }
+            if (this.prev != null)  {
+                this.prev.next = this.next;
+            }
+            this.next = this.prev = null;
+            <%return this.swapVal(null);%>
+            <!%return this.val;%>
+        }
+    }
+}

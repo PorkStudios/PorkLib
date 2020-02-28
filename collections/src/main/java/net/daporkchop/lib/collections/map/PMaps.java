@@ -13,44 +13,15 @@
  *
  */
 
-sourceSets {
-    orig
-    generated
-    main {
-        java {
-            srcDirs = [
-                    "src/main/java",
-                    "src/generated/java",
-                    "src/orig/java"
-            ]
-        }
-    }
-}
+package net.daporkchop.lib.collections.map;
 
-dependencies {
-    origCompile project(":unsafe")
-    origCompile project(":math")
-    origCompile project(":primitive:primitive-lambda")
+import lombok.experimental.UtilityClass;
 
-    generatedCompile project(":unsafe")
-    generatedCompile project(":math")
-    generatedCompile project(":primitive:primitive-lambda")
-    generatedCompile sourceSets.orig.output
-
-    compile sourceSets.orig.compileClasspath
-    compile sourceSets.generated.compileClasspath
-}
-
-task deleteSource(type: Delete) {
-    delete "src/generated"
-    delete "src/test"
-}
-
-clean.dependsOn(deleteSource)
-
-compileJava.dependsOn(":primitive:generator:gen")
-
-compileJava {
-    options.fork = true
-    options.forkOptions.setMemoryMaximumSize("2g")
+/**
+ * Helper methods for dealing with maps.
+ *
+ * @author DaPorkchop_
+ */
+@UtilityClass
+public class PMaps {
 }

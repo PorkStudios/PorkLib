@@ -28,13 +28,9 @@ sourceSets {
 }
 
 dependencies {
-    origCompile project(":unsafe")
-    origCompile project(":math")
-    origCompile project(":primitive:primitive-lambda")
+    //origCompile project(":unsafe")
 
-    generatedCompile project(":unsafe")
-    generatedCompile project(":math")
-    generatedCompile project(":primitive:primitive-lambda")
+    //generatedCompile project(":unsafe")
     generatedCompile sourceSets.orig.output
 
     compile sourceSets.orig.compileClasspath
@@ -43,7 +39,6 @@ dependencies {
 
 task deleteSource(type: Delete) {
     delete "src/generated"
-    delete "src/test"
 }
 
 clean.dependsOn(deleteSource)

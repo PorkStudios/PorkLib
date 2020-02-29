@@ -33,7 +33,7 @@ import net.daporkchop.lib.minecraft.world.format.WorldManager;
 import net.daporkchop.lib.nbt.NBTInputStream;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 import net.daporkchop.lib.nbt.tag.notch.ListTag;
-import net.daporkchop.lib.primitive.lambda.biconsumer.IntObjBiConsumer;
+import net.daporkchop.lib.primitive.lambda.consumer.IntObjConsumer;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -92,7 +92,7 @@ public class AnvilSaveFormat implements SaveFormat {
     }
 
     @Override
-    public void loadWorlds(IntObjBiConsumer<WorldManager> callback) {
+    public void loadWorlds(IntObjConsumer<WorldManager> callback) {
         callback.accept(0, new AnvilWorldManager(this, new File(this.root, "region")));
 
         //load other dimensions

@@ -21,7 +21,7 @@
 package net.daporkchop.lib.minecraft.registry;
 
 import lombok.NonNull;
-import net.daporkchop.lib.primitive.lambda.biconsumer.ObjIntBiConsumer;
+import net.daporkchop.lib.primitive.lambda.consumer.ObjIntConsumer;
 
 import java.util.function.Consumer;
 
@@ -60,7 +60,7 @@ public interface IDRegistry {
      *
      * @param callback the callback function
      */
-    void forEach(@NonNull ObjIntBiConsumer<ResourceLocation> callback);
+    void forEach(@NonNull ObjIntConsumer<ResourceLocation> callback);
 
     /**
      * Finds the {@link ResourceLocation} with the given ID in this registry.

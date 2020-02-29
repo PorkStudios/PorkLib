@@ -26,7 +26,7 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.primitive.lambda.biconsumer.ObjIntBiConsumer;
+import net.daporkchop.lib.primitive.lambda.consumer.ObjIntConsumer;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -144,7 +144,7 @@ public class IDRegistryBuilder {
      * @param callback the callback function to run
      * @return this {@link IDRegistryBuilder} instance
      */
-    public synchronized IDRegistryBuilder forEach(@NonNull ObjIntBiConsumer<ResourceLocation> callback) {
+    public synchronized IDRegistryBuilder forEach(@NonNull ObjIntConsumer<ResourceLocation> callback) {
         for (int i = 0, size = this.list.size(); i < size; i++) {
             ResourceLocation location = this.list.get(i);
             if (location != null) {

@@ -25,7 +25,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.primitive.lambda.biconsumer.ObjIntBiConsumer;
+import net.daporkchop.lib.primitive.lambda.consumer.ObjIntConsumer;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -63,7 +63,7 @@ public class IDRegistryImpl implements IDRegistry {
     }
 
     @Override
-    public void forEach(@NonNull ObjIntBiConsumer<ResourceLocation> callback) {
+    public void forEach(@NonNull ObjIntConsumer<ResourceLocation> callback) {
         for (int i = 0, size = this.size; i < size; i++)  {
             ResourceLocation location = this.contents[i];
             if (location != null)   {

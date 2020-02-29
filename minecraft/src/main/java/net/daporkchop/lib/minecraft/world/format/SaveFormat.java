@@ -26,7 +26,7 @@ import net.daporkchop.lib.minecraft.registry.ResourceLocation;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.MinecraftSave;
 import net.daporkchop.lib.minecraft.world.World;
-import net.daporkchop.lib.primitive.lambda.biconsumer.IntObjBiConsumer;
+import net.daporkchop.lib.primitive.lambda.consumer.IntObjConsumer;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -38,7 +38,7 @@ import java.util.function.BiConsumer;
 public interface SaveFormat extends AutoCloseable {
     void init(@NonNull MinecraftSave save) throws IOException;
 
-    void loadWorlds(@NonNull IntObjBiConsumer<WorldManager> callback);
+    void loadWorlds(@NonNull IntObjConsumer<WorldManager> callback);
 
     void closeWorld(@NonNull World world) throws IOException;
 

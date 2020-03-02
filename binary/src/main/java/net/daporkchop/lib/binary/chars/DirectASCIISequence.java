@@ -25,11 +25,11 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
 import net.daporkchop.lib.unsafe.capability.Releasable;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
-import sun.nio.ch.DirectBuffer;
 
 import java.nio.MappedByteBuffer;
 
@@ -102,7 +102,7 @@ public class DirectASCIISequence implements CharSequence {
         for (int i = 0; i < len; i++) {
             arr[i] = (char) (PUnsafe.getByte(addr + i) & 0xFF);
         }
-        return PorkUtil.wrap(arr);
+        return PUnsafeStrings.wrap(arr);
     }
 
     /**

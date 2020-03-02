@@ -24,6 +24,8 @@ import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.util.exception.ValueCannotFitException;
 import net.daporkchop.lib.common.util.exception.ValueOutOfBoundsException;
 
+import static net.daporkchop.lib.common.misc.string.PStrings.*;
+
 /**
  * @author DaPorkchop_
  */
@@ -93,19 +95,33 @@ public class PValidation {
         return i;
     }
 
-    public int toPositiveIntSafe(long value) throws ValueCannotFitException, ValueOutOfBoundsException  {
+    public int toPositiveIntSafe(long value) throws ValueCannotFitException, ValueOutOfBoundsException {
         return ensurePositive(toInt(value));
     }
 
-    public int toNonPositiveIntSafe(long value) throws ValueCannotFitException, ValueOutOfBoundsException  {
+    public int toNonPositiveIntSafe(long value) throws ValueCannotFitException, ValueOutOfBoundsException {
         return ensureNonPositive(toInt(value));
     }
 
-    public int toNegativeIntSafe(long value) throws ValueCannotFitException, ValueOutOfBoundsException  {
+    public int toNegativeIntSafe(long value) throws ValueCannotFitException, ValueOutOfBoundsException {
         return ensureNegative(toInt(value));
     }
 
-    public int toNonNegativeIntSafe(long value) throws ValueCannotFitException, ValueOutOfBoundsException  {
+    public int toNonNegativeIntSafe(long value) throws ValueCannotFitException, ValueOutOfBoundsException {
         return ensureNonNegative(toInt(value));
+    }
+
+    public int checkBounds(int value, int minInclusive, int maxExclusive) throws ValueOutOfBoundsException {
+        if (value < minInclusive || value >= maxExclusive) {
+            throw new ValueOutOfBoundsException(value, minInclusive, maxExclusive);
+        }
+        return value;
+    }
+
+    public int checkIndex(int value, int minInclusive, int maxExclusive) throws ValueOutOfBoundsException {
+        if (value < minInclusive || value >= maxExclusive) {
+            throw new IndexOutOfBoundsException(fastFormat("%s, expected %s <= value < %s", value, minInclusive, maxExclusive));
+        }
+        return value;
     }
 }

@@ -22,9 +22,8 @@ package net.daporkchop.lib.encoding;
 
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
 import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.encoding.util.FastCharIntMap;
-import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -55,7 +54,7 @@ public class Hexadecimal {
             newText[a + 1] = ALPHABET[b & 0xF];
             newText[a] = ALPHABET[(b >> 4) & 0xF];
         }
-        return PorkUtil.wrap(newText);
+        return PUnsafeStrings.wrap(newText);
     }
 
     public String encode(@NonNull byte[] data, int from, int length) throws IndexOutOfBoundsException {
@@ -67,7 +66,7 @@ public class Hexadecimal {
             newText[a] = ALPHABET[(b >>> 4) & 0xF];
             newText[a + 1] = ALPHABET[b & 0xF];
         }
-        return PorkUtil.wrap(newText);
+        return PUnsafeStrings.wrap(newText);
     }
 
     public void encode(@NonNull StringBuilder to, @NonNull byte[] data) {
@@ -104,7 +103,7 @@ public class Hexadecimal {
     }
 
     public byte[] decode(@NonNull String input) {
-        final char[] chars = PorkUtil.unwrap(input);
+        final char[] chars = PUnsafeStrings.unwrap(input);
         final int length = chars.length;
         if ((length & 1) != 0)    {
             throw new IllegalArgumentException(String.format("Length not a multiple of 2: %d", length));

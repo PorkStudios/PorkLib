@@ -25,6 +25,7 @@ import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.oio.appendable.PAppendable;
 import net.daporkchop.lib.common.misc.file.PFiles;
+import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
 import net.daporkchop.lib.common.system.PlatformInfo;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.common.util.exception.file.NoSuchFileException;
@@ -36,7 +37,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.lang.ref.SoftReference;
 import java.nio.charset.StandardCharsets;
 import java.util.Formatter;
@@ -109,12 +109,12 @@ public final class UTF8FileWriter extends OutputStreamWriter implements PAppenda
 
     @Override
     public void write(@NonNull String str) throws IOException {
-        super.write(PorkUtil.unwrap(str));
+        super.write(PUnsafeStrings.unwrap(str));
     }
 
     @Override
     public void write(@NonNull String str, int off, int len) throws IOException {
-        super.write(PorkUtil.unwrap(str), off, len);
+        super.write(PUnsafeStrings.unwrap(str), off, len);
     }
 
     @Override
@@ -125,9 +125,9 @@ public final class UTF8FileWriter extends OutputStreamWriter implements PAppenda
             this.write((String) seq);
         } else {
             if (seq instanceof StringBuilder) {
-                this.write(PorkUtil.unwrap((StringBuilder) seq), 0, seq.length());
+                this.write(PUnsafeStrings.unwrap((StringBuilder) seq), 0, seq.length());
             } else if (seq instanceof StringBuffer) {
-                this.write(PorkUtil.unwrap((StringBuffer) seq), 0, seq.length());
+                this.write(PUnsafeStrings.unwrap((StringBuffer) seq), 0, seq.length());
             } else {
                 synchronized (this) {
                     for (int i = 0, size = seq.length(); i < size; i++) {
@@ -148,9 +148,9 @@ public final class UTF8FileWriter extends OutputStreamWriter implements PAppenda
         } else {
             PorkUtil.assertInRange(seq.length(), start, end);
             if (seq instanceof StringBuilder) {
-                this.write(PorkUtil.unwrap((StringBuilder) seq), start, end);
+                this.write(PUnsafeStrings.unwrap((StringBuilder) seq), start, end);
             } else if (seq instanceof StringBuffer) {
-                this.write(PorkUtil.unwrap((StringBuffer) seq), start, end);
+                this.write(PUnsafeStrings.unwrap((StringBuffer) seq), start, end);
             } else {
                 synchronized (this) {
                     for (int i = start; i < end; i++) {

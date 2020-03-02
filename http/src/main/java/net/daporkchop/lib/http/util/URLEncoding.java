@@ -23,6 +23,7 @@ package net.daporkchop.lib.http.util;
 import io.netty.util.internal.StringUtil;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.encoding.Hexadecimal;
@@ -90,7 +91,7 @@ public class URLEncoding {
         //all the ternary operators should be optimized away by the JIT compiler
         // (i'd assume that it makes two copies of the method: one for arr == null and one for arr != null)
 
-        final char[] arr = PorkUtil.tryUnwrap(text);
+        final char[] arr = PUnsafeStrings.tryUnwrap(text);
         for (int i = 0, length = arr != null ? arr.length : text.length(); i < length; i++) {
             char c = arr != null ? arr[i] : text.charAt(i);
             if (OK_CHARS.get(c) || (preserveSlash && c == '/')) {
@@ -143,7 +144,7 @@ public class URLEncoding {
         //all the ternary operators should be optimized away by the JIT compiler
         // (i'd assume that it makes two copies of the method: one for arr == null and one for arr != null)
 
-        final char[] arr = PorkUtil.tryUnwrap(text);
+        final char[] arr = PUnsafeStrings.tryUnwrap(text);
         for (int i = 0, length = arr != null ? arr.length : text.length(); i < length; i++) {
             char c = arr != null ? arr[i] : text.charAt(i);
             if (c == '%') {

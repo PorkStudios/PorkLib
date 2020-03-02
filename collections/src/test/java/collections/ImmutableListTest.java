@@ -18,52 +18,37 @@
  *
  */
 
-package net.daporkchop.lib.binary.util;
+package collections;
 
-import lombok.Getter;
-import lombok.NonNull;
-import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
-import net.daporkchop.lib.unsafe.PUnsafe;
+import net.daporkchop.lib.collections.list.PLists;
+import net.daporkchop.lib.collections.list.immutable.ImmutableSingleList;
+import org.junit.Test;
 
-import java.util.Arrays;
+import java.util.List;
 
 /**
- * A wrapper for a {@code byte[]} which allows using it as a key in a {@link java.util.Map}.
- *
  * @author DaPorkchop_
  */
-@Getter
-public final class ByteArrayAsKey {
-    private final byte[] array;
+public class ImmutableListTest {
+    @Test
+    public void testSingleList()  {
+        List<String> list = PLists.immutable("jeff");
 
-    private ByteArrayAsKey(@NonNull byte[] array) {
-        this(array, 0, array.length);
-    }
+        assert list.size() == 1;
+        assert list.get(0) == "jeff";
 
-    public ByteArrayAsKey(@NonNull byte[] array, int start, int len) {
-        this.array = Arrays.copyOfRange(array, start, start + len + 1);
-    }
-
-    @Override
-    public int hashCode() {
-        return Arrays.hashCode(this.array);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        } else if (obj instanceof byte[]) {
-            return Arrays.equals(this.array, (byte[]) obj);
-        } else {
-            return obj instanceof ByteArrayAsKey && Arrays.equals(this.array, ((ByteArrayAsKey) obj).array);
+        try {
+            list.get(1);
+            throw new IllegalStateException("1");
+        } catch (IndexOutOfBoundsException e)   {
+            System.out.println(e);
         }
-    }
 
-    @Override
-    public String toString() {
-        char[] c = new char[this.array.length >> 1];
-        PUnsafe.copyMemory(this.array, PUnsafe.ARRAY_BYTE_BASE_OFFSET, c, PUnsafe.ARRAY_CHAR_BASE_OFFSET, this.array.length);
-        return PUnsafeStrings.wrap(c);
+        try {
+            list.get(-1);
+            throw new IllegalStateException("-1");
+        } catch (IndexOutOfBoundsException e)   {
+            System.out.println(e);
+        }
     }
 }

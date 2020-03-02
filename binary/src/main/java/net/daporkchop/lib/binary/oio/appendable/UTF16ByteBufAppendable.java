@@ -25,6 +25,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
 import net.daporkchop.lib.common.system.Endianess;
 import net.daporkchop.lib.common.system.PlatformInfo;
 import net.daporkchop.lib.common.util.PorkUtil;
@@ -85,11 +86,11 @@ public final class UTF16ByteBufAppendable implements PAppendable {
 
         char[] arr = null;
         if (seq instanceof String) {
-            arr = PorkUtil.unwrap((String) seq);
+            arr = PUnsafeStrings.unwrap((String) seq);
         } else if (seq instanceof StringBuilder) {
-            arr = PorkUtil.unwrap((StringBuilder) seq);
+            arr = PUnsafeStrings.unwrap((StringBuilder) seq);
         } else if (seq instanceof StringBuffer) {
-            arr = PorkUtil.unwrap((StringBuffer) seq);
+            arr = PUnsafeStrings.unwrap((StringBuffer) seq);
         }
         if (arr != null) {
             if (this.endianess == Endianess.NATIVE) {

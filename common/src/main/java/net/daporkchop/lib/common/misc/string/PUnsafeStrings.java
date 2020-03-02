@@ -22,8 +22,10 @@ package net.daporkchop.lib.common.misc.string;
 
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
+
+import static net.daporkchop.lib.common.util.PorkUtil.*;
+import static net.daporkchop.lib.unsafe.PUnsafe.*;
 
 /**
  * Unsafe operations for {@link String}.
@@ -31,11 +33,14 @@ import net.daporkchop.lib.unsafe.PUnsafe;
  * These mostly modify the contents of the string! This is very likely to break things unless used correctly.
  *
  * @author DaPorkchop_
+ * @see PStrings
  */
 @UtilityClass
 public class PUnsafeStrings {
-    protected final long STRING_HASH_OFFSET = PUnsafe.pork_getOffset(String.class, "hash");
-    protected final long ENUM_NAME_OFFSET   = PUnsafe.pork_getOffset(Enum.class, "name");
+    protected final long STRING_VALUE_OFFSET        = pork_getOffset(String.class, "value");
+    protected final long STRING_HASH_OFFSET         = pork_getOffset(String.class, "hash");
+    protected final long ENUM_NAME_OFFSET           = pork_getOffset(Enum.class, "name");
+    protected final long STRINGBUILDER_VALUE_OFFSET = pork_getOffset(classForName("java.lang.AbstractStringBuilder"), "value");
 
     /**
      * Sets the value of {@link Enum#name()} for an {@link Enum} value.
@@ -44,7 +49,7 @@ public class PUnsafeStrings {
      * @param name  the new name to use
      * @param <E>   the enum type
      */
-    public <E extends Enum<E>> void setEnumName(@NonNull E value, @NonNull String name) {
+    public static <E extends Enum<E>> void setEnumName(@NonNull E value, @NonNull String name) {
         PUnsafe.putObject(value, ENUM_NAME_OFFSET, name);
     }
 
@@ -53,8 +58,8 @@ public class PUnsafeStrings {
      *
      * @see #replace(char[], char, char)
      */
-    public void replace(@NonNull String text, char find, char replace) {
-        replace(PorkUtil.unwrap(text), find, replace);
+    public static void replace(@NonNull String text, char find, char replace) {
+        replace(unwrap(text), find, replace);
         PUnsafe.putInt(text, STRING_HASH_OFFSET, 0);
     }
 
@@ -65,7 +70,7 @@ public class PUnsafeStrings {
      * @param find    the {@code char} to find
      * @param replace the {@code char} to use as a replacement
      */
-    public void replace(@NonNull char[] text, char find, char replace) {
+    public static void replace(@NonNull char[] text, char find, char replace) {
         final int length = text.length;
 
         for (int i = 0; i < length; i++) {
@@ -80,8 +85,8 @@ public class PUnsafeStrings {
      *
      * @see #titleFormat(char[])
      */
-    public void titleFormat(@NonNull String text) {
-        titleFormat(PorkUtil.unwrap(text));
+    public static void titleFormat(@NonNull String text) {
+        titleFormat(unwrap(text));
         PUnsafe.putInt(text, STRING_HASH_OFFSET, 0);
     }
 
@@ -92,7 +97,7 @@ public class PUnsafeStrings {
      *
      * @param text the {@code char[]} to apply title formatting to
      */
-    public void titleFormat(@NonNull char[] text) {
+    public static void titleFormat(@NonNull char[] text) {
         final int length = text.length;
 
         if (length > 0) {
@@ -102,5 +107,72 @@ public class PUnsafeStrings {
                 text[i] = Character.toLowerCase(text[i]);
             }
         }
+    }
+
+    /**
+     * Wraps a {@code char[]} into a {@link String} without copying the array.
+     *
+     * @param chars the {@code char[]} to wrap
+     * @return a new {@link String}
+     */
+    public static String wrap(@NonNull char[] chars) {
+        String s = PUnsafe.allocateInstance(String.class);
+        PUnsafe.putObject(s, STRING_VALUE_OFFSET, chars);
+        return s;
+    }
+
+    /**
+     * Unwraps a {@link CharSequence} into a {@code char[]} without copying the array, if possible.
+     * <p>
+     * Be aware that the returned {@code char[]} may be larger than the actual size of the {@link CharSequence}. It is therefore strongly advised to use
+     * {@link CharSequence#length()} instead of {@code char[]#length}.
+     *
+     * @param seq the {@link CharSequence} to unwrap
+     * @return the value of the {@link CharSequence} as a {@code char[]}, or {@code null} if the given {@link CharSequence} cannot be unwrapped
+     */
+    public static char[] tryUnwrap(@NonNull CharSequence seq) {
+        if (seq instanceof String) {
+            return PUnsafe.getObject(seq, STRING_VALUE_OFFSET);
+        } else if (seq instanceof StringBuilder || seq instanceof StringBuffer) {
+            return PUnsafe.getObject(seq, STRINGBUILDER_VALUE_OFFSET);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Unwraps a {@link String} into a {@code char[]} without copying the array.
+     *
+     * @param string the {@link String} to unwrap
+     * @return the value of the {@link String} as a {@code char[]}
+     */
+    public static char[] unwrap(@NonNull String string) {
+        return PUnsafe.getObject(string, STRING_VALUE_OFFSET);
+    }
+
+    /**
+     * Unwraps a {@link StringBuilder} into a {@code char[]} without copying the array.
+     * <p>
+     * Be aware that the returned {@code char[]} may be larger than the actual size of the {@link StringBuilder}. It is therefore strongly advised to use
+     * {@link StringBuilder#length()} instead of {@code char[]#length}.
+     *
+     * @param builder the {@link StringBuilder} to unwrap
+     * @return the value of the {@link StringBuilder} as a {@code char[]}
+     */
+    public static char[] unwrap(@NonNull StringBuilder builder) {
+        return PUnsafe.getObject(builder, STRINGBUILDER_VALUE_OFFSET);
+    }
+
+    /**
+     * Unwraps a {@link StringBuffer} into a {@code char[]} without copying the array.
+     * <p>
+     * Be aware that the returned {@code char[]} may be larger than the actual size of the {@link StringBuffer}. It is therefore strongly advised to use
+     * {@link StringBuffer#length()} instead of {@code char[]#length}.
+     *
+     * @param buffer the {@link StringBuffer} to unwrap
+     * @return the value of the {@link StringBuffer} as a {@code char[]}
+     */
+    public static char[] unwrap(@NonNull StringBuffer buffer) {
+        return PUnsafe.getObject(buffer, STRINGBUILDER_VALUE_OFFSET);
     }
 }

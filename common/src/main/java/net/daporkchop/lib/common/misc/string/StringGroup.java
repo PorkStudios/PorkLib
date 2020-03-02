@@ -21,7 +21,6 @@
 package net.daporkchop.lib.common.misc.string;
 
 import lombok.NonNull;
-import net.daporkchop.lib.common.util.PorkUtil;
 
 /**
  * Allows applying bulk operations to a number of strings at the same time.
@@ -65,7 +64,7 @@ public final class StringGroup {
         if (this.values.length == 0) {
             return "";
         } else if (this.values.length == 1) {
-            return PorkUtil.wrap(this.values[0]);
+            return PUnsafeStrings.wrap(this.values[0]);
         } else if (this.totalLength + this.values.length < 0) {
             throw new IllegalArgumentException("integer overflow");
         }
@@ -81,6 +80,6 @@ public final class StringGroup {
             i += arr.length;
         }
 
-        return PorkUtil.wrap(dst);
+        return PUnsafeStrings.wrap(dst);
     }
 }

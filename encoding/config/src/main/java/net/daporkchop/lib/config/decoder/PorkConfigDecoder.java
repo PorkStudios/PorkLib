@@ -23,18 +23,15 @@ package net.daporkchop.lib.config.decoder;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
 import net.daporkchop.lib.config.attribute.Comment;
 import net.daporkchop.lib.config.util.Element;
 import net.daporkchop.lib.reflection.util.Type;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.PrintStream;
-import java.io.Reader;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -316,6 +313,6 @@ public class PorkConfigDecoder implements ConfigDecoder {
     protected String indent(int depth)  {
         char[] c = new char[Math.max(0, depth) * 4];
         Arrays.fill(c, ' ');
-        return PorkUtil.wrap(c);
+        return PUnsafeStrings.wrap(c);
     }
 }

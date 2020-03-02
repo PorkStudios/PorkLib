@@ -25,7 +25,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import net.daporkchop.lib.common.cache.Cache;
 import net.daporkchop.lib.common.cache.ThreadCache;
-import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -68,11 +68,11 @@ public final class ResourceLocation {
         int hashCode = this.hashCode;
         if (hashCode == 0)  {
             //compute hash
-            for (char c : PorkUtil.unwrap(this.modid))  {
+            for (char c : PUnsafeStrings.unwrap(this.modid))  {
                 hashCode = hashCode * 31 + c;
             }
             hashCode = hashCode * 31 + ':';
-            for (char c : PorkUtil.unwrap(this.name))  {
+            for (char c : PUnsafeStrings.unwrap(this.name))  {
                 hashCode = hashCode * 31 + c;
             }
             if (hashCode == 0)  {

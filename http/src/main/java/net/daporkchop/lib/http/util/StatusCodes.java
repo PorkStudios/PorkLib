@@ -20,18 +20,12 @@
 
 package net.daporkchop.lib.http.util;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.misc.string.PStrings;
 import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
-import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.http.StatusCode;
 import net.daporkchop.lib.http.util.exception.GenericHttpException;
-import net.daporkchop.lib.unsafe.PUnsafe;
-
-import java.nio.charset.StandardCharsets;
 
 /**
  * The official HTTP status codes.
@@ -127,10 +121,10 @@ public enum StatusCodes implements StatusCode {
 
         if (name == null)   {
             if (false) {
-                char[] arr = PorkUtil.unwrap(this.name()).clone();
+                char[] arr = PUnsafeStrings.unwrap(this.name()).clone();
                 PUnsafeStrings.replace(arr, '_', ' ');
                 PUnsafeStrings.titleFormat(arr);
-                name = PorkUtil.wrap(arr);
+                name = PUnsafeStrings.wrap(arr);
             } else {
                 name = PStrings.split(this.name(), '_').titleFormat().join(' ');
             }

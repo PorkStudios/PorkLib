@@ -22,6 +22,7 @@ package net.daporkchop.lib.common.util;
 
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
 import net.daporkchop.lib.common.pool.handle.DefaultThreadHandledPool;
 import net.daporkchop.lib.common.pool.handle.HandledPool;
 import net.daporkchop.lib.unsafe.PUnsafe;
@@ -59,12 +60,8 @@ import java.util.regex.Matcher;
 //TODO: clean this up a bit
 @UtilityClass
 public class PorkUtil {
-    public final long STRING_VALUE_OFFSET   = PUnsafe.pork_getOffset(String.class, "value");
-    public final long MATCHER_GROUPS_OFFSET = PUnsafe.pork_getOffset(Matcher.class, "groups");
-    public final long MATCHER_TEXT_OFFSET   = PUnsafe.pork_getOffset(Matcher.class, "text");
-
-    public final Class<?> ABSTRACTSTRINGBUILDER_CLASS        = classForName("java.lang.AbstractStringBuilder");
-    public final long     ABSTRACTSTRINGBUILDER_VALUE_OFFSET = PUnsafe.pork_getOffset(ABSTRACTSTRINGBUILDER_CLASS, "value");
+    protected final long MATCHER_GROUPS_OFFSET = PUnsafe.pork_getOffset(Matcher.class, "groups");
+    protected final long MATCHER_TEXT_OFFSET   = PUnsafe.pork_getOffset(Matcher.class, "text");
 
     private final Function<Throwable, StackTraceElement[]> GET_STACK_TRACE_WRAPPER;
 
@@ -82,6 +79,8 @@ public class PorkUtil {
     public final DateFormat DATE_FORMAT     = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
     public final String     PORKLIB_VERSION = "0.5.1-SNAPSHOT";
     public final int        CPU_COUNT       = Runtime.getRuntime().availableProcessors();
+
+    public final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
 
     static {
         {
@@ -107,73 +106,6 @@ public class PorkUtil {
     }
 
     /**
-     * Wraps a {@code char[]} into a {@link String} without copying the array.
-     *
-     * @param chars the {@code char[]} to wrap
-     * @return a new {@link String}
-     */
-    public static String wrap(@NonNull char[] chars) {
-        String s = PUnsafe.allocateInstance(String.class);
-        PUnsafe.putObject(s, STRING_VALUE_OFFSET, chars);
-        return s;
-    }
-
-    /**
-     * Unwraps a {@link CharSequence} into a {@code char[]} without copying the array, if possible.
-     * <p>
-     * Be aware that the returned {@code char[]} may be larger than the actual size of the {@link CharSequence}. It is therefore strongly advised to use
-     * {@link CharSequence#length()} instead of {@code char[]#length}.
-     *
-     * @param seq the {@link CharSequence} to unwrap
-     * @return the value of the {@link CharSequence} as a {@code char[]}, or {@code null} if the given {@link CharSequence} cannot be unwrapped
-     */
-    public static char[] tryUnwrap(@NonNull CharSequence seq) {
-        if (seq instanceof String) {
-            return PUnsafe.getObject(seq, STRING_VALUE_OFFSET);
-        } else if (seq instanceof StringBuilder || seq instanceof StringBuffer) {
-            return PUnsafe.getObject(seq, ABSTRACTSTRINGBUILDER_VALUE_OFFSET);
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * Unwraps a {@link String} into a {@code char[]} without copying the array.
-     *
-     * @param string the {@link String} to unwrap
-     * @return the value of the {@link String} as a {@code char[]}
-     */
-    public static char[] unwrap(@NonNull String string) {
-        return PUnsafe.getObject(string, STRING_VALUE_OFFSET);
-    }
-
-    /**
-     * Unwraps a {@link StringBuilder} into a {@code char[]} without copying the array.
-     * <p>
-     * Be aware that the returned {@code char[]} may be larger than the actual size of the {@link StringBuilder}. It is therefore strongly advised to use
-     * {@link StringBuilder#length()} instead of {@code char[]#length}.
-     *
-     * @param builder the {@link StringBuilder} to unwrap
-     * @return the value of the {@link StringBuilder} as a {@code char[]}
-     */
-    public static char[] unwrap(@NonNull StringBuilder builder) {
-        return PUnsafe.getObject(builder, ABSTRACTSTRINGBUILDER_VALUE_OFFSET);
-    }
-
-    /**
-     * Unwraps a {@link StringBuffer} into a {@code char[]} without copying the array.
-     * <p>
-     * Be aware that the returned {@code char[]} may be larger than the actual size of the {@link StringBuffer}. It is therefore strongly advised to use
-     * {@link StringBuffer#length()} instead of {@code char[]#length}.
-     *
-     * @param buffer the {@link StringBuffer} to unwrap
-     * @return the value of the {@link StringBuffer} as a {@code char[]}
-     */
-    public static char[] unwrap(@NonNull StringBuffer buffer) {
-        return PUnsafe.getObject(buffer, ABSTRACTSTRINGBUILDER_VALUE_OFFSET);
-    }
-
-    /**
      * An alternative to {@link CharSequence#subSequence(int, int)} that can be faster for certain {@link CharSequence} implementations.
      *
      * @param seq   the {@link CharSequence} to get a subsequence of
@@ -186,12 +118,7 @@ public class PorkUtil {
         if (start == 0 && end == seq.length()) {
             return seq;
         }
-        char[] arr = null;
-        if (seq instanceof String) {
-            arr = PUnsafe.getObject(seq, STRING_VALUE_OFFSET);
-        } else if (seq instanceof StringBuilder || seq instanceof StringBuffer) {
-            arr = PUnsafe.getObject(seq, ABSTRACTSTRINGBUILDER_VALUE_OFFSET);
-        }
+        char[] arr = PUnsafeStrings.tryUnwrap(seq);
         return arr != null ? CharBuffer.wrap(arr, start, end - start) : seq.subSequence(start, end);
     }
 
@@ -288,7 +215,7 @@ public class PorkUtil {
     public static void simpleDisplayImage(boolean block, @NonNull BufferedImage... imgs) {
         JFrame frame = new JFrame();
         frame.getContentPane().setLayout(new FlowLayout());
-        for (BufferedImage img : imgs)  {
+        for (BufferedImage img : imgs) {
             frame.getContentPane().add(new JLabel(new ImageIcon(img)));
         }
         frame.pack();

@@ -22,23 +22,32 @@ package net.daporkchop.lib.common.misc.string;
 
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.util.PArrays;
 import net.daporkchop.lib.common.util.PorkUtil;
 
 import java.util.Arrays;
+import java.util.Formatter;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+
+import static net.daporkchop.lib.common.misc.string.PUnsafeStrings.*;
 
 /**
+ * Questionably safe methods for working with {@link String} and {@link CharSequence}.
+ *
  * @author DaPorkchop_
+ * @see PUnsafeStrings for some very unsafe methods
  */
 @UtilityClass
 public class PStrings {
-    public StringGroup split(@NonNull String src, char delimiter) {
-        return split(PorkUtil.unwrap(src), delimiter);
+    public static StringGroup split(@NonNull String src, char delimiter) {
+        return split(PUnsafeStrings.unwrap(src), delimiter);
     }
 
-    public StringGroup split(@NonNull char[] src, char delimiter) {
+    public static StringGroup split(@NonNull char[] src, char delimiter) {
         final int length = src.length;
         List<char[]> list = new LinkedList<>(); //probably better performance-wise (due to O(1) add time in all cases)? benchmarks needed
 
@@ -53,7 +62,69 @@ public class PStrings {
         return new StringGroup(list.toArray(new char[list.size()][]));
     }
 
-    public String clone(@NonNull String src)    {
-        return PorkUtil.wrap(PorkUtil.unwrap(src).clone());
+    public static String clone(@NonNull String src) {
+        return wrap(PUnsafeStrings.unwrap(src).clone());
+    }
+
+    /**
+     * A much faster alternative to {@link String#format(String, Object...)}, by simply replacing all occurrences of {@code %s}
+     * with the {@link Objects#toString(Object)} value of the object.
+     *
+     * @param template the {@link String} to apply the formatting to
+     * @param args     the arguments to the formatter
+     * @return a {@link String} containing the formatted text
+     */
+    public static String lightFormat(@NonNull String template, Object... args) {
+        return wrap(lightFormat(unwrap(template), args));
+    }
+
+    /**
+     * A much faster alternative to {@link String#format(String, Object...)}, by simply replacing all occurrences of {@code %s}
+     * with the {@link Objects#toString(Object)} value of the object.
+     *
+     * @param template the {@code char[]} to apply the formatting to
+     * @param args     the arguments to the formatter
+     * @return a {@code char[]} containing the formatted text
+     */
+    public static char[] lightFormat(@NonNull char[] template, Object... args) {
+        if (args == null) {
+            args = PorkUtil.EMPTY_OBJECT_ARRAY;
+        }
+
+        try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get()) {
+            StringBuilder builder = handle.value();
+            builder.setLength(0);
+
+            for (int i = 0, length = template.length, j = 0; i < length; i++) {
+                char c = template[i];
+                if (c == '%' && i + 1 < length && template[i + 1] == 's') {
+                    builder.append(Objects.toString(j < args.length ? args[j++] : null));
+                    i++;
+                } else {
+                    builder.append(c);
+                }
+            }
+
+            return Arrays.copyOf(PUnsafeStrings.unwrap(builder), builder.length());
+        }
+    }
+
+    /**
+     * A faster alternative to {@link String#format(String, Object...)}, by caching the instance of {@link StringBuilder} used
+     * internally.
+     *
+     * @param template the {@link String} to apply the formatting to
+     * @param args     the arguments to the formatter
+     * @return a {@link String} containing the formatted text
+     */
+    public static String fastFormat(@NonNull String template, Object... args) {
+        try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get()) {
+            StringBuilder builder = handle.value();
+            builder.setLength(0);
+
+            new Formatter(builder, Locale.US).format(template, args);
+
+            return builder.toString();
+        }
     }
 }

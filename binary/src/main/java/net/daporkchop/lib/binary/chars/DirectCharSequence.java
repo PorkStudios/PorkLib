@@ -23,6 +23,7 @@ package net.daporkchop.lib.binary.chars;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
@@ -88,6 +89,6 @@ public final class DirectCharSequence implements CharSequence {
         final int len = this.length;
         char[] arr = new char[len];
         PUnsafe.copyMemory(null, this.addr, arr, PUnsafe.ARRAY_CHAR_BASE_OFFSET, len * PUnsafe.ARRAY_CHAR_INDEX_SCALE);
-        return PorkUtil.wrap(arr);
+        return PUnsafeStrings.wrap(arr);
     }
 }

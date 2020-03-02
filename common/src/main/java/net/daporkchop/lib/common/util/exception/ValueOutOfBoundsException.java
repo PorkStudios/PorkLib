@@ -20,6 +20,8 @@
 
 package net.daporkchop.lib.common.util.exception;
 
+import static net.daporkchop.lib.common.misc.string.PStrings.fastFormat;
+
 /**
  * Thrown when a value is too large to fit within some smaller data type.
  *
@@ -31,30 +33,30 @@ public class ValueOutOfBoundsException extends IllegalArgumentException {
     }
 
     public ValueOutOfBoundsException(byte value, byte expectedMin, byte expectedMax)  {
-        super(String.format("%d is not within expected bounds (min: %d, max: %d)", value, expectedMin, expectedMax));
+        super(fastFormat("%s, expected %s <= value < %s", value, expectedMin, expectedMax));
     }
 
     public ValueOutOfBoundsException(short value, short expectedMin, short expectedMax)  {
-        super(String.format("%d is not within expected bounds (min: %d, max: %d)", value, expectedMin, expectedMax));
+        super(fastFormat("%s, expected %s <= value < %s", value, expectedMin, expectedMax));
     }
 
     public ValueOutOfBoundsException(char value, char expectedMin, char expectedMax)  {
-        super(String.format("%d is not within expected bounds (min: %d, max: %d)", value, expectedMin, expectedMax));
+        super(fastFormat("%s, expected %s <= value < %s", value, expectedMin, expectedMax));
     }
 
     public ValueOutOfBoundsException(int value, int expectedMin, int expectedMax)  {
-        super(String.format("%d is not within expected bounds (min: %d, max: %d)", value, expectedMin, expectedMax));
+        super(fastFormat("%s, expected %s <= value < %s", value, expectedMin, expectedMax));
     }
 
     public ValueOutOfBoundsException(long value, long expectedMin, long expectedMax)  {
-        super(String.format("%d is not within expected bounds (min: %d, max: %d)", value, expectedMin, expectedMax));
+        super(fastFormat("%s, expected %s <= value < %s", value, expectedMin, expectedMax));
     }
 
     public ValueOutOfBoundsException(float value, float expectedMin, float expectedMax)  {
-        super(String.format("%f is not within expected bounds (min: %f, max: %f)", value, expectedMin, expectedMax));
+        super(fastFormat("%s, expected %s <= value < %s", value, expectedMin, expectedMax));
     }
 
     public ValueOutOfBoundsException(double value, double expectedMin, double expectedMax)  {
-        super(String.format("%f is not within expected bounds (min: %f, max: %f)", value, expectedMin, expectedMax));
+        super(fastFormat("%s, expected %s <= value < %s", value, expectedMin, expectedMax));
     }
 }

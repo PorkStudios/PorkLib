@@ -20,10 +20,8 @@
 
 package net.daporkchop.lib.encoding.basen;
 
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
 import net.daporkchop.lib.encoding.util.FastCharIntMap;
 import net.daporkchop.lib.math.primitive.PMath;
 
@@ -48,7 +46,7 @@ public final class BaseN {
         if (alphabet.isEmpty()){
             throw new IllegalArgumentException("Alphabet cannot be null or empty!");
         }
-        this.alphabet = PorkUtil.unwrap(alphabet);
+        this.alphabet = PUnsafeStrings.unwrap(alphabet);
         this.length = alphabet.length();
 
         //check for duplicates

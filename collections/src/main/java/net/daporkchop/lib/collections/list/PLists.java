@@ -21,7 +21,8 @@
 package net.daporkchop.lib.collections.list;
 
 import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.collections.list.immutable.ImmutableSingleList;
+import net.daporkchop.lib.collections.list.immutable.ImmutableListOne;
+import net.daporkchop.lib.collections.list.immutable.ImmutableListTwo;
 
 import java.util.List;
 
@@ -32,7 +33,26 @@ import java.util.List;
  */
 @UtilityClass
 public class PLists {
-    public static <T> List<T> immutable(T value) {
-        return ImmutableSingleList.of(value);
+    /**
+     * Gets an immutable {@link List} containing the given value.
+     *
+     * @param v0  the value
+     * @param <T> the value type
+     * @return an immutable {@link List} containing the given value
+     */
+    public static <T> List<T> immutable(T v0) {
+        return ImmutableListOne.of(v0);
+    }
+
+    /**
+     * Gets an immutable {@link List} containing the two given values.
+     *
+     * @param v0  the value at index 0
+     * @param v1  the value at index 1
+     * @param <T> the value type
+     * @return an immutable {@link List} containing the two given values
+     */
+    public static <T> List<T> immutable(T v0, T v1) {
+        return ImmutableListTwo.of(v0, v1);
     }
 }

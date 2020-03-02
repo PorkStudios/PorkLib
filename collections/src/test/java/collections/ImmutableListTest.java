@@ -21,7 +21,7 @@
 package collections;
 
 import net.daporkchop.lib.collections.list.PLists;
-import net.daporkchop.lib.collections.list.immutable.ImmutableSingleList;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.List;
@@ -31,7 +31,9 @@ import java.util.List;
  */
 public class ImmutableListTest {
     @Test
-    public void testSingleList()  {
+    public void testListOne() {
+        Assert.assertSame(PLists.immutable(null), PLists.immutable(null));
+
         List<String> list = PLists.immutable("jeff");
 
         assert list.size() == 1;
@@ -40,14 +42,39 @@ public class ImmutableListTest {
         try {
             list.get(1);
             throw new IllegalStateException("1");
-        } catch (IndexOutOfBoundsException e)   {
+        } catch (IndexOutOfBoundsException e) {
             System.out.println(e);
         }
 
         try {
             list.get(-1);
             throw new IllegalStateException("-1");
-        } catch (IndexOutOfBoundsException e)   {
+        } catch (IndexOutOfBoundsException e) {
+            System.out.println(e);
+        }
+    }
+
+    @Test
+    public void testListTwo() {
+        Assert.assertSame(PLists.immutable(null, null), PLists.immutable(null, null));
+
+        List<String> list = PLists.immutable("0", "1");
+
+        assert list.size() == 2;
+        assert list.get(0) == "0";
+        assert list.get(1) == "1";
+
+        try {
+            list.get(2);
+            throw new IllegalStateException("2");
+        } catch (IndexOutOfBoundsException e) {
+            System.out.println(e);
+        }
+
+        try {
+            list.get(-1);
+            throw new IllegalStateException("-1");
+        } catch (IndexOutOfBoundsException e) {
             System.out.println(e);
         }
     }

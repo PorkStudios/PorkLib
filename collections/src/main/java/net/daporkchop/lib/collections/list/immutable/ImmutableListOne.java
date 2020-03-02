@@ -35,14 +35,14 @@ import java.util.stream.Stream;
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public final class ImmutableSingleList<T> extends ImmutableList<T> {
-    private static ImmutableSingleList NULL;
+public final class ImmutableListOne<T> extends ImmutableList<T> {
+    private static ImmutableListOne NULL;
 
     @SuppressWarnings("unchecked")
-    public static <T> ImmutableSingleList<T> of(T value) {
+    public static <T> ImmutableListOne<T> of(T value) {
         return value != null
-                ? new ImmutableSingleList<>(value)
-                : NULL != null ? NULL : (NULL = new ImmutableSingleList(null));
+                ? new ImmutableListOne<>(value)
+                : NULL != null ? NULL : (NULL = new ImmutableListOne(null));
     }
 
     protected final T value;

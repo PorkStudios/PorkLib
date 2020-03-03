@@ -25,12 +25,13 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.util.PValidation;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
- * An immutable implementation of a {@link java.util.List} that contains two values.
+ * An immutable implementation of a {@link List} that contains two values.
  *
  * @author DaPorkchop_
  */
@@ -39,7 +40,7 @@ public final class ImmutableListTwo<T> extends ImmutableList<T> {
     private static ImmutableListTwo NULL;
 
     @SuppressWarnings("unchecked")
-    public static <T> ImmutableListTwo<T> of(T v0, T v1) {
+    public static <T> List<T> of(T v0, T v1) {
         return v0 != null || v1 != null
                 ? new ImmutableListTwo<>(v0, v1)
                 : NULL != null ? NULL : (NULL = new ImmutableListTwo(null, null));
@@ -72,11 +73,6 @@ public final class ImmutableListTwo<T> extends ImmutableList<T> {
     @Override
     public Stream<T> stream() {
         return Stream.of(this.v0, this.v1);
-    }
-
-    @Override
-    public Stream<T> parallelStream() {
-        return Stream.of(this.v0, this.v1).parallel();
     }
 
     @Override

@@ -25,12 +25,13 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.util.PValidation;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
- * An immutable implementation of a {@link java.util.List} that contains a single value.
+ * An immutable implementation of a {@link List} that contains a single value.
  *
  * @author DaPorkchop_
  */
@@ -39,7 +40,7 @@ public final class ImmutableListOne<T> extends ImmutableList<T> {
     private static ImmutableListOne NULL;
 
     @SuppressWarnings("unchecked")
-    public static <T> ImmutableListOne<T> of(T value) {
+    public static <T> List<T> of(T value) {
         return value != null
                 ? new ImmutableListOne<>(value)
                 : NULL != null ? NULL : (NULL = new ImmutableListOne(null));
@@ -71,11 +72,6 @@ public final class ImmutableListOne<T> extends ImmutableList<T> {
     @Override
     public Stream<T> stream() {
         return Stream.of(this.value);
-    }
-
-    @Override
-    public Stream<T> parallelStream() {
-        return Stream.of(this.value).parallel();
     }
 
     @Override

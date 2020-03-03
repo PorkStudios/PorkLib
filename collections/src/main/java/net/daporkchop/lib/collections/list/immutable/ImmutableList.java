@@ -52,7 +52,9 @@ public abstract class ImmutableList<T> extends AbstractList<T> {
     public abstract Stream<T> stream();
 
     @Override
-    public abstract Stream<T> parallelStream();
+    public Stream<T> parallelStream()   {
+        return this.stream().parallel();
+    }
 
     @Override
     public abstract void forEach(@NonNull Consumer<? super T> action);

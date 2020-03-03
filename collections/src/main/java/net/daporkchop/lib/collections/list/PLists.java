@@ -21,10 +21,14 @@
 package net.daporkchop.lib.collections.list;
 
 import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.collections.list.immutable.ImmutableArrayList;
 import net.daporkchop.lib.collections.list.immutable.ImmutableListOne;
 import net.daporkchop.lib.collections.list.immutable.ImmutableListTwo;
+import net.daporkchop.lib.common.util.PorkUtil;
 
 import java.util.List;
+
+import static net.daporkchop.lib.common.util.PorkUtil.*;
 
 /**
  * Helper methods for {@link List}.
@@ -54,5 +58,16 @@ public class PLists {
      */
     public static <T> List<T> immutable(T v0, T v1) {
         return ImmutableListTwo.of(v0, v1);
+    }
+
+    /**
+     * Gets an immutable {@link List} containing the given values.
+     *
+     * @param values the values in the list
+     * @param <T>    the value type
+     * @return an immutable {@link List} containing the given values
+     */
+    public static <T> List<T> immutable(T... values) {
+        return ImmutableArrayList.of(fallbackIfNull(values, EMPTY_OBJECT_ARRAY), true);
     }
 }

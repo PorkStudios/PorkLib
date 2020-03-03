@@ -130,8 +130,8 @@ public class PorkUtil {
      * @param <T>      the value type
      * @return the value, or the fallback value if the value was {@code null}
      */
-    public static <T> T fallbackIfNull(T value, T fallback) {
-        return value != null ? value : fallback;
+    public static <T> T fallbackIfNull(T value, Object fallback) {
+        return value != null ? value : uncheckedCast(fallback);
     }
 
     public static StackTraceElement[] getStackTrace(@NonNull Throwable t) {

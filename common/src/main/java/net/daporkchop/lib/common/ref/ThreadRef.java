@@ -18,7 +18,7 @@
  *
  */
 
-package net.daporkchop.lib.common.cache;
+package net.daporkchop.lib.common.ref;
 
 import lombok.NonNull;
 
@@ -31,61 +31,61 @@ import java.util.regex.Pattern;
  *
  * @author DaPorkchop_
  */
-public interface ThreadCache<T> extends Cache<T> {
+public interface ThreadRef<T> extends Ref<T> {
     /**
-     * Gets a simple {@link ThreadCache} will compute the value using the given {@link Supplier} once per thread when first requested.
+     * Gets a simple {@link ThreadRef} will compute the value using the given {@link Supplier} once per thread when first requested.
      *
      * @param supplier the {@link Supplier} for the value
      * @param <T>      the value type
-     * @return a {@link ThreadCache}
+     * @return a {@link ThreadRef}
      */
-    static <T> ThreadCache<T> late(@NonNull Supplier<T> supplier) {
+    static <T> ThreadRef<T> late(@NonNull Supplier<T> supplier) {
         try {
             Class.forName("io.netty.util.concurrent.FastThreadLocal"); //make sure class exists
 
-            return new FastLateThreadCache<>(supplier);
+            return new FastLateThreadRef<>(supplier);
         } catch (ClassNotFoundException e) {
-            return new JavaLateThreadCache<>(supplier);
+            return new JavaLateThreadRef<>(supplier);
         }
     }
 
     /**
-     * Gets a simple {@link ThreadCache} will compute the value using the given {@link Supplier} once per thread when first requested, and store it in a
+     * Gets a simple {@link ThreadRef} will compute the value using the given {@link Supplier} once per thread when first requested, and store it in a
      * soft reference, allowing it to be garbage-collected later on if the garbage-collector deems it necessary. If garbage-collected, it will be
      * re-computed using the {@link Supplier} and cached again.
      *
      * @param supplier the {@link Supplier} for the value
      * @param <T>      the value type
-     * @return a {@link ThreadCache}
+     * @return a {@link ThreadRef}
      */
-    static <T> ThreadCache<T> soft(@NonNull Supplier<T> supplier) {
+    static <T> ThreadRef<T> soft(@NonNull Supplier<T> supplier) {
         try {
             Class.forName("io.netty.util.concurrent.FastThreadLocal"); //make sure class exists
 
-            return new FastSoftThreadCache<>(supplier);
+            return new FastSoftThreadRef<>(supplier);
         } catch (ClassNotFoundException e) {
-            return new JavaSoftThreadCache<>(supplier);
+            return new JavaSoftThreadRef<>(supplier);
         }
     }
 
     /**
-     * Gets a {@link ThreadCache} that will cache a {@link Matcher} for the given regex.
+     * Gets a {@link ThreadRef} that will cache a {@link Matcher} for the given regex.
      *
      * @param regex the regex to cache a {@link Matcher} for
      * @see #regex(Pattern)
      * @see #soft(Supplier)
      */
-    static ThreadCache<Matcher> regex(@NonNull String regex) {
+    static ThreadRef<Matcher> regex(@NonNull String regex) {
         return regex(Pattern.compile(regex));
     }
 
     /**
-     * Gets a {@link ThreadCache} that will cache a {@link Matcher} for the given {@link Pattern}.
+     * Gets a {@link ThreadRef} that will cache a {@link Matcher} for the given {@link Pattern}.
      *
      * @param pattern the {@link Pattern} to cache a {@link Matcher} for
      * @see #soft(Supplier)
      */
-    static ThreadCache<Matcher> regex(@NonNull Pattern pattern) {
+    static ThreadRef<Matcher> regex(@NonNull Pattern pattern) {
         return soft(() -> pattern.matcher(""));
     }
 

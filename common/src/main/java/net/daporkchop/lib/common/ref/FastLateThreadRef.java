@@ -18,46 +18,33 @@
  *
  */
 
-package net.daporkchop.lib.common.cache;
+package net.daporkchop.lib.common.ref;
 
+import io.netty.util.concurrent.FastThreadLocal;
+import lombok.AccessLevel;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 import java.util.function.Supplier;
 
 /**
- * A cache holds a reference to an object
+ * Implementation of {@link ThreadRef} that is backed by a Netty {@link FastThreadLocal}.
  *
+ * @param <T> the type of value
  * @author DaPorkchop_
  */
-public interface Cache<T> extends Supplier<T> {
-    /**
-     * Gets a simple {@link Cache} will compute the value using the given {@link Supplier} once first requested.
-     *
-     * @param factory the {@link Supplier} for the value
-     * @param <T>     the value type
-     * @return a {@link Cache}
-     */
-    static <T> Cache<T> late(@NonNull Supplier<T> factory) {
-        return new LateReferencedCache<>(factory);
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+public final class FastLateThreadRef<T> extends FastThreadLocal<T> implements ThreadRef<T> {
+    @NonNull
+    protected final Supplier<T> factory;
+
+    @Override
+    public T getUncached() {
+        return this.factory.get();
     }
 
-    /**
-     * Gets a simple {@link Cache} will compute the value using the given {@link Supplier} once first requested, and store it in a soft reference,
-     * allowing it to be garbage-collected later on if the garbage-collector deems it necessary. If garbage-collected, it will be re-computed using the
-     * {@link Supplier} and cached again.
-     *
-     * @param factory the {@link Supplier} for the value
-     * @param <T>     the value type
-     * @return a {@link Cache}
-     */
-    static <T> Cache<T> soft(@NonNull Supplier<T> factory) {
-        return new SoftCache<>(factory);
+    @Override
+    protected T initialValue() throws Exception {
+        return this.factory.get();
     }
-
-    /**
-     * Get an instance
-     *
-     * @return an instance
-     */
-    T get();
 }

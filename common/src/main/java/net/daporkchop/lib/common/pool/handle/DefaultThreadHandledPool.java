@@ -24,7 +24,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.cache.ThreadCache;
+import net.daporkchop.lib.common.ref.ThreadRef;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.util.function.Supplier;
@@ -35,14 +35,14 @@ import java.util.function.Supplier;
  * @author DaPorkchop_
  */
 public final class DefaultThreadHandledPool<V> implements HandledPool<V> {
-    protected final ThreadCache<Arena<V>> arenas;
-    protected final Supplier<V>               factory;
+    protected final ThreadRef<Arena<V>> arenas;
+    protected final Supplier<V>         factory;
 
     public DefaultThreadHandledPool(@NonNull Supplier<V> factory, int maxSize) {
         if (maxSize <= 0)   {
             throw new IllegalArgumentException("maxSize must be at least 1!");
         }
-        this.arenas = ThreadCache.late(() -> new Arena<>(this, maxSize));
+        this.arenas = ThreadRef.late(() -> new Arena<>(this, maxSize));
         this.factory = factory;
     }
 

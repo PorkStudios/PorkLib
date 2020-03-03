@@ -18,39 +18,43 @@
  *
  */
 
-package net.daporkchop.lib.common.cache;
+package net.daporkchop.lib.common.ref;
 
+import io.netty.util.concurrent.FastThreadLocal;
 import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+import java.lang.ref.SoftReference;
 import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
- * A simple implementation of {@link Cache} that computes a single value using a given {@link Supplier} once it's first requested.
+ * A {@link ThreadRef} that keeps only a soft reference to objects, and is backed by a Netty {@link FastThreadLocal}.
  *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
-public final class LateReferencedCache<T> implements Cache<T> {
+public final class FastSoftThreadRef<T> implements ThreadRef<T> {
     @NonNull
-    protected Supplier<T> factory;
-
-    protected T value;
+    private final Supplier<T> factory;
+    private final FastThreadLocal<SoftReference<T>> threadLocal = new FastThreadLocal<>();
 
     @Override
     public T get() {
-        T value = this.value;
-        if (value == null) {
-            synchronized (this) {
-                //check again after obtaining lock, it may have been set by another thread
-                if ((value = this.value) == null) {
-                    this.value = value = Objects.requireNonNull(this.factory.get());
-                    this.factory = null; //allow factory to be GC-d
-                }
-            }
+        SoftReference<T> ref = this.threadLocal.get();
+        T val;
+        if (ref == null || (val = ref.get()) == null) {
+            this.threadLocal.set(new SoftReference<>(val = Objects.requireNonNull(this.factory.get())));
         }
-        return value;
+        if (val == null) {
+            throw new NullPointerException();
+        }
+        return val;
+    }
+
+    @Override
+    public T getUncached() {
+        return this.factory.get();
     }
 }

@@ -30,8 +30,8 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.common.cache.Cache;
-import net.daporkchop.lib.common.cache.ThreadCache;
+import net.daporkchop.lib.common.ref.Ref;
+import net.daporkchop.lib.common.ref.ThreadRef;
 import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.compression.PInflater;
 import net.daporkchop.lib.compression.zlib.Zlib;
@@ -70,9 +70,9 @@ import java.util.stream.Collectors;
  */
 @Getter
 public class AnvilWorldManager implements WorldManager {
-    protected static final Cache<HeapSectionImpl> CHUNK_CACHE    = ThreadCache.soft(() -> new HeapSectionImpl(-1, null));
-    protected static final Pattern                REGION_PATTERN = Pattern.compile("^r\\.(-?[0-9]+)\\.(-?[0-9]+)\\.mca$");
-    protected static final Cache<PInflater>       INFLATER_CACHE = ThreadCache.soft(() -> Zlib.PROVIDER.inflater(Zlib.MODE_AUTO));
+    protected static final Ref<HeapSectionImpl> CHUNK_CACHE    = ThreadRef.soft(() -> new HeapSectionImpl(-1, null));
+    protected static final Pattern              REGION_PATTERN = Pattern.compile("^r\\.(-?[0-9]+)\\.(-?[0-9]+)\\.mca$");
+    protected static final Ref<PInflater>       INFLATER_CACHE = ThreadRef.soft(() -> Zlib.PROVIDER.inflater(Zlib.MODE_AUTO));
 
     protected final AnvilSaveFormat format;
     protected final File            root;

@@ -18,7 +18,7 @@
  *
  */
 
-package net.daporkchop.lib.common.cache;
+package net.daporkchop.lib.common.ref;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -26,12 +26,12 @@ import lombok.RequiredArgsConstructor;
 import java.util.function.Supplier;
 
 /**
- * Implementation of {@link ThreadCache} that is backed by a Java {@link ThreadLocal}.
+ * Implementation of {@link ThreadRef} that is backed by a Java {@link ThreadLocal}.
  *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-public final class JavaLateThreadCache<T> extends ThreadLocal<T> implements ThreadCache<T> {
+public final class JavaLateThreadRef<T> extends ThreadLocal<T> implements ThreadRef<T> {
     @NonNull
     protected final Supplier<T> factory;
 

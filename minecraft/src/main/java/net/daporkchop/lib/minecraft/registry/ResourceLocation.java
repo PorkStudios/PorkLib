@@ -23,8 +23,8 @@ package net.daporkchop.lib.minecraft.registry;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.common.cache.Cache;
-import net.daporkchop.lib.common.cache.ThreadCache;
+import net.daporkchop.lib.common.ref.Ref;
+import net.daporkchop.lib.common.ref.ThreadRef;
 import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
 
 import java.util.regex.Matcher;
@@ -37,8 +37,8 @@ import java.util.regex.Pattern;
  */
 @Getter
 public final class ResourceLocation {
-    protected static final Pattern        VALIDATION_PATTERN = Pattern.compile("^([^:]+):([^:]+)$");
-    protected static final Cache<Matcher> MATCHER_CACHE      = ThreadCache.soft(() -> VALIDATION_PATTERN.matcher(""));
+    protected static final Pattern      VALIDATION_PATTERN = Pattern.compile("^([^:]+):([^:]+)$");
+    protected static final Ref<Matcher> MATCHER_CACHE      = ThreadRef.soft(() -> VALIDATION_PATTERN.matcher(""));
 
     @NonNull
     private final String modid;

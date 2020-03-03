@@ -23,8 +23,8 @@ package net.daporkchop.lib.minecraft.text;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.cache.Cache;
-import net.daporkchop.lib.common.cache.ThreadCache;
+import net.daporkchop.lib.common.ref.Ref;
+import net.daporkchop.lib.common.ref.ThreadRef;
 import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
 
 import java.awt.Color;
@@ -70,8 +70,8 @@ public enum MCTextFormat {
     ITALIC('o'),
     RESET('r'),;
 
-    public static final  Pattern        CLEAN_PATTERN       = Pattern.compile("§[0-9a-fk-or]", Pattern.CASE_INSENSITIVE);
-    private static final Cache<Matcher> CLEAN_MATCHER_CACHE = ThreadCache.soft(() -> CLEAN_PATTERN.matcher(""));
+    public static final  Pattern      CLEAN_PATTERN       = Pattern.compile("§[0-9a-fk-or]", Pattern.CASE_INSENSITIVE);
+    private static final Ref<Matcher> CLEAN_MATCHER_CACHE = ThreadRef.soft(() -> CLEAN_PATTERN.matcher(""));
 
     public static final MCTextFormat[] VALUES = values();
     public static final MCTextFormat[] COLORS = Arrays.copyOfRange(VALUES, 0, WHITE.ordinal() + 1);

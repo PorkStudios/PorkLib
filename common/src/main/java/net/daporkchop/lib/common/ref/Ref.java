@@ -18,39 +18,46 @@
  *
  */
 
-package net.daporkchop.lib.common.cache;
+package net.daporkchop.lib.common.ref;
 
-import lombok.AccessLevel;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 
-import java.lang.ref.SoftReference;
-import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
- * A {@link ThreadCache} that keeps only a soft reference to objects, and is backed by a Java {@link ThreadLocal}.
+ * A cache holds a reference to an object
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
-public final class JavaSoftThreadCache<T> implements ThreadCache<T> {
-    @NonNull
-    private final Supplier<T> factory;
-    private final ThreadLocal<SoftReference<T>> threadLocal = new ThreadLocal<>();
-
-    @Override
-    public T get() {
-        SoftReference<T> ref = this.threadLocal.get();
-        T val;
-        if (ref == null || (val = ref.get()) == null) {
-            this.threadLocal.set(new SoftReference<>(val = Objects.requireNonNull(this.factory.get())));
-        }
-        return val;
+public interface Ref<T> extends Supplier<T> {
+    /**
+     * Gets a simple {@link Ref} will compute the value using the given {@link Supplier} once first requested.
+     *
+     * @param factory the {@link Supplier} for the value
+     * @param <T>     the value type
+     * @return a {@link Ref}
+     */
+    static <T> Ref<T> late(@NonNull Supplier<T> factory) {
+        return new LateReferencedRef<>(factory);
     }
 
-    @Override
-    public T getUncached() {
-        return this.factory.get();
+    /**
+     * Gets a simple {@link Ref} will compute the value using the given {@link Supplier} once first requested, and store it in a soft reference,
+     * allowing it to be garbage-collected later on if the garbage-collector deems it necessary. If garbage-collected, it will be re-computed using the
+     * {@link Supplier} and cached again.
+     *
+     * @param factory the {@link Supplier} for the value
+     * @param <T>     the value type
+     * @return a {@link Ref}
+     */
+    static <T> Ref<T> soft(@NonNull Supplier<T> factory) {
+        return new SoftRef<>(factory);
     }
+
+    /**
+     * Get an instance
+     *
+     * @return an instance
+     */
+    T get();
 }

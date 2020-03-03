@@ -21,7 +21,7 @@
 package net.daporkchop.lib.noise.engine;
 
 import lombok.NonNull;
-import net.daporkchop.lib.common.cache.Cache;
+import net.daporkchop.lib.common.ref.Ref;
 import net.daporkchop.lib.noise.NoiseSource;
 import net.daporkchop.lib.random.PRandom;
 
@@ -35,7 +35,7 @@ import static net.daporkchop.lib.math.primitive.PMath.*;
  * @author DaPorkchop_
  */
 public class PerlinNoiseEngine implements NoiseSource {
-    protected static final Cache<byte[]> INITIAL_STATE_CACHE = Cache.soft(() -> {
+    protected static final Ref<byte[]> INITIAL_STATE_CACHE = Ref.soft(() -> {
         byte[] arr = new byte[256];
         for (int i = 0; i < arr.length; i++)    {
             arr[i] = (byte) i;

@@ -18,39 +18,39 @@
  *
  */
 
-package net.daporkchop.lib.common.cache;
+package net.daporkchop.lib.common.ref;
 
 import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import java.lang.ref.SoftReference;
 import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
- * Implementation of {@link Cache} that uses a {@link SoftReference} to store its value.
+ * A simple implementation of {@link Ref} that computes a single value using a given {@link Supplier} once it's first requested.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
-public final class SoftCache<T> implements Cache<T> {
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+public final class LateReferencedRef<T> implements Ref<T> {
     @NonNull
-    protected final Supplier<T> factory;
+    protected Supplier<T> factory;
 
-    protected SoftReference<T> ref;
+    protected T value;
 
     @Override
     public T get() {
-        T val;
-        if (this.ref == null || (val = this.ref.get()) == null) {
+        T value = this.value;
+        if (value == null) {
             synchronized (this) {
                 //check again after obtaining lock, it may have been set by another thread
-                if (this.ref == null || (val = this.ref.get()) == null) {
-                    this.ref = new SoftReference<>(val = Objects.requireNonNull(this.factory.get()));
+                if ((value = this.value) == null) {
+                    this.value = value = Objects.requireNonNull(this.factory.get());
+                    this.factory = null; //allow factory to be GC-d
                 }
             }
         }
-        return val;
+        return value;
     }
 }

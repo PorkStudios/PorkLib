@@ -25,7 +25,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.cache.ThreadCache;
+import net.daporkchop.lib.common.ref.ThreadRef;
 import net.daporkchop.lib.nbt.alloc.DefaultNBTArrayAllocator;
 import net.daporkchop.lib.nbt.alloc.NBTArrayHandle;
 import net.daporkchop.lib.unsafe.PUnsafe;
@@ -43,7 +43,7 @@ import net.daporkchop.lib.unsafe.PUnsafe;
 @Accessors(fluent = true)
 public final class AnvilPooledNBTArrayAllocator extends DefaultNBTArrayAllocator {
     @Getter(AccessLevel.NONE)
-    protected final ThreadCache<ThreadLocalData> threadLocal = ThreadCache.late(ThreadLocalData::new);
+    protected final ThreadRef<ThreadLocalData> threadLocal = ThreadRef.late(ThreadLocalData::new);
 
     protected final int max2kbCount;
     protected final int max4kbCount;

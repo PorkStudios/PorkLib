@@ -18,9 +18,23 @@
  *
  */
 
-dependencies {
-    compile project(":math")
-    compile project(":primitive:primitive-lambda")
+package net.daporkchop.lib.collections.map;
 
-    compile "io.netty:netty-common:$nettyVersion"
+import io.netty.util.concurrent.Future;
+import lombok.NonNull;
+
+import java.util.Map;
+
+/**
+ * A specialized {@link Map} which, rather than being simply put and removed from the map, are computed from the key
+ * at some point after being requested, and return a {@link Future} which may be used to get the value when it is ready.
+ * <p>
+ * Implementations of this class do not permit {@code null} keys.
+ *
+ * @author DaPorkchop_
+ */
+public interface Cache<K, V> extends Map<K, Future<V>> {
+    default V getNow(@NonNull K key) {
+        return this.get(key).syncUninterruptibly().get();
+    }
 }

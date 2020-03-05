@@ -20,7 +20,6 @@
 
 package net.daporkchop.lib.concurrent;
 
-import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import lombok.NonNull;
@@ -28,6 +27,8 @@ import lombok.NonNull;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -43,7 +44,17 @@ import java.util.function.Function;
  */
 public interface PFuture<V> extends Future<V>, CompletionStage<V> {
     //new methods
-    EventExecutor executor();
+
+    /**
+     * Gets the {@link ExecutorService} that handles asynchronous execution for this {@link PFuture}.
+     * <p>
+     * Defaults to {@link ForkJoinPool#commonPool()}.
+     *
+     * @return the {@link ExecutorService} that handles asynchronous execution for this {@link PFuture}
+     */
+    default ExecutorService executor() {
+        return ForkJoinPool.commonPool();
+    }
 
     //Future methods
     @Override
@@ -99,7 +110,9 @@ public interface PFuture<V> extends Future<V>, CompletionStage<V> {
     <U> PFuture<U> thenApply(@NonNull Function<? super V, ? extends U> fn);
 
     @Override
-    <U> PFuture<U> thenApplyAsync(@NonNull Function<? super V, ? extends U> fn);
+    default <U> PFuture<U> thenApplyAsync(@NonNull Function<? super V, ? extends U> fn) {
+        return this.thenApplyAsync(fn, this.executor());
+    }
 
     @Override
     <U> PFuture<U> thenApplyAsync(@NonNull Function<? super V, ? extends U> fn, @NonNull Executor executor);
@@ -108,7 +121,9 @@ public interface PFuture<V> extends Future<V>, CompletionStage<V> {
     PFuture<Void> thenAccept(@NonNull Consumer<? super V> action);
 
     @Override
-    PFuture<Void> thenAcceptAsync(@NonNull Consumer<? super V> action);
+    default PFuture<Void> thenAcceptAsync(@NonNull Consumer<? super V> action) {
+        return this.thenAcceptAsync(action, this.executor());
+    }
 
     @Override
     PFuture<Void> thenAcceptAsync(@NonNull Consumer<? super V> action, @NonNull Executor executor);
@@ -117,7 +132,9 @@ public interface PFuture<V> extends Future<V>, CompletionStage<V> {
     PFuture<Void> thenRun(@NonNull Runnable action);
 
     @Override
-    PFuture<Void> thenRunAsync(@NonNull Runnable action);
+    default PFuture<Void> thenRunAsync(@NonNull Runnable action) {
+        return this.thenRunAsync(action, this.executor());
+    }
 
     @Override
     PFuture<Void> thenRunAsync(@NonNull Runnable action, @NonNull Executor executor);
@@ -126,7 +143,9 @@ public interface PFuture<V> extends Future<V>, CompletionStage<V> {
     <U, V1> CompletionStage<V1> thenCombine(@NonNull CompletionStage<? extends U> other, @NonNull BiFunction<? super V, ? super U, ? extends V1> fn);
 
     @Override
-    <U, V1> CompletionStage<V1> thenCombineAsync(@NonNull CompletionStage<? extends U> other, @NonNull BiFunction<? super V, ? super U, ? extends V1> fn);
+    default <U, V1> CompletionStage<V1> thenCombineAsync(@NonNull CompletionStage<? extends U> other, @NonNull BiFunction<? super V, ? super U, ? extends V1> fn) {
+        return this.thenCombineAsync(other, fn, this.executor());
+    }
 
     @Override
     <U, V1> CompletionStage<V1> thenCombineAsync(@NonNull CompletionStage<? extends U> other, @NonNull BiFunction<? super V, ? super U, ? extends V1> fn, @NonNull Executor executor);
@@ -135,7 +154,9 @@ public interface PFuture<V> extends Future<V>, CompletionStage<V> {
     <U> PFuture<Void> thenAcceptBoth(@NonNull CompletionStage<? extends U> other, @NonNull BiConsumer<? super V, ? super U> action);
 
     @Override
-    <U> PFuture<Void> thenAcceptBothAsync(@NonNull CompletionStage<? extends U> other, @NonNull BiConsumer<? super V, ? super U> action);
+    default <U> PFuture<Void> thenAcceptBothAsync(@NonNull CompletionStage<? extends U> other, @NonNull BiConsumer<? super V, ? super U> action) {
+        return this.thenAcceptBothAsync(other, action, this.executor());
+    }
 
     @Override
     <U> PFuture<Void> thenAcceptBothAsync(@NonNull CompletionStage<? extends U> other, @NonNull BiConsumer<? super V, ? super U> action, @NonNull Executor executor);
@@ -144,7 +165,9 @@ public interface PFuture<V> extends Future<V>, CompletionStage<V> {
     PFuture<Void> runAfterBoth(@NonNull CompletionStage<?> other, @NonNull Runnable action);
 
     @Override
-    PFuture<Void> runAfterBothAsync(@NonNull CompletionStage<?> other, @NonNull Runnable action);
+    default PFuture<Void> runAfterBothAsync(@NonNull CompletionStage<?> other, @NonNull Runnable action) {
+        return this.runAfterBothAsync(other, action, this.executor());
+    }
 
     @Override
     PFuture<Void> runAfterBothAsync(@NonNull CompletionStage<?> other, @NonNull Runnable action, @NonNull Executor executor);
@@ -153,7 +176,9 @@ public interface PFuture<V> extends Future<V>, CompletionStage<V> {
     <U> PFuture<U> applyToEither(@NonNull CompletionStage<? extends V> other, @NonNull Function<? super V, U> fn);
 
     @Override
-    <U> PFuture<U> applyToEitherAsync(@NonNull CompletionStage<? extends V> other, @NonNull Function<? super V, U> fn);
+    default <U> PFuture<U> applyToEitherAsync(@NonNull CompletionStage<? extends V> other, @NonNull Function<? super V, U> fn) {
+        return this.applyToEitherAsync(other, fn, this.executor());
+    }
 
     @Override
     <U> PFuture<U> applyToEitherAsync(@NonNull CompletionStage<? extends V> other, @NonNull Function<? super V, U> fn, @NonNull Executor executor);
@@ -162,7 +187,9 @@ public interface PFuture<V> extends Future<V>, CompletionStage<V> {
     PFuture<Void> acceptEither(@NonNull CompletionStage<? extends V> other, @NonNull Consumer<? super V> action);
 
     @Override
-    PFuture<Void> acceptEitherAsync(@NonNull CompletionStage<? extends V> other, @NonNull Consumer<? super V> action);
+    default PFuture<Void> acceptEitherAsync(@NonNull CompletionStage<? extends V> other, @NonNull Consumer<? super V> action) {
+        return this.acceptEitherAsync(other, action, this.executor());
+    }
 
     @Override
     PFuture<Void> acceptEitherAsync(@NonNull CompletionStage<? extends V> other, @NonNull Consumer<? super V> action, @NonNull Executor executor);
@@ -171,7 +198,9 @@ public interface PFuture<V> extends Future<V>, CompletionStage<V> {
     PFuture<Void> runAfterEither(@NonNull CompletionStage<?> other, @NonNull Runnable action);
 
     @Override
-    PFuture<Void> runAfterEitherAsync(@NonNull CompletionStage<?> other, @NonNull Runnable action);
+    default PFuture<Void> runAfterEitherAsync(@NonNull CompletionStage<?> other, @NonNull Runnable action) {
+        return this.runAfterEitherAsync(other, action, this.executor());
+    }
 
     @Override
     PFuture<Void> runAfterEitherAsync(@NonNull CompletionStage<?> other, @NonNull Runnable action, @NonNull Executor executor);
@@ -180,28 +209,34 @@ public interface PFuture<V> extends Future<V>, CompletionStage<V> {
     <U> PFuture<U> thenCompose(@NonNull Function<? super V, ? extends CompletionStage<U>> fn);
 
     @Override
-    <U> PFuture<U> thenComposeAsync(@NonNull Function<? super V, ? extends CompletionStage<U>> fn);
+    default <U> PFuture<U> thenComposeAsync(@NonNull Function<? super V, ? extends CompletionStage<U>> fn) {
+        return this.thenComposeAsync(fn, this.executor());
+    }
 
     @Override
     <U> PFuture<U> thenComposeAsync(@NonNull Function<? super V, ? extends CompletionStage<U>> fn, @NonNull Executor executor);
 
     @Override
-    CompletionStage<V> exceptionally(@NonNull Function<Throwable, ? extends V> fn);
+    PFuture<V> exceptionally(@NonNull Function<Throwable, ? extends V> fn);
 
     @Override
-    CompletionStage<V> whenComplete(@NonNull BiConsumer<? super V, ? super Throwable> action);
+    PFuture<V> whenComplete(@NonNull BiConsumer<? super V, ? super Throwable> action);
 
     @Override
-    CompletionStage<V> whenCompleteAsync(@NonNull BiConsumer<? super V, ? super Throwable> action);
+    default PFuture<V> whenCompleteAsync(@NonNull BiConsumer<? super V, ? super Throwable> action) {
+        return this.whenCompleteAsync(action, this.executor());
+    }
 
     @Override
-    CompletionStage<V> whenCompleteAsync(@NonNull BiConsumer<? super V, ? super Throwable> action, @NonNull Executor executor);
+    PFuture<V> whenCompleteAsync(@NonNull BiConsumer<? super V, ? super Throwable> action, @NonNull Executor executor);
 
     @Override
     <U> PFuture<U> handle(@NonNull BiFunction<? super V, Throwable, ? extends U> fn);
 
     @Override
-    <U> PFuture<U> handleAsync(@NonNull BiFunction<? super V, Throwable, ? extends U> fn);
+    default <U> PFuture<U> handleAsync(@NonNull BiFunction<? super V, Throwable, ? extends U> fn) {
+        return this.handleAsync(fn, this.executor());
+    }
 
     @Override
     <U> PFuture<U> handleAsync(@NonNull BiFunction<? super V, Throwable, ? extends U> fn, @NonNull Executor executor);

@@ -20,6 +20,7 @@
 
 package net.daporkchop.lib.concurrent;
 
+import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import lombok.NonNull;
@@ -52,7 +53,7 @@ public interface PFuture<V> extends Future<V>, CompletionStage<V> {
      *
      * @return the {@link ExecutorService} that handles asynchronous execution for this {@link PFuture}
      */
-    default ExecutorService executor() {
+    default EventExecutor executor() {
         return ForkJoinPool.commonPool();
     }
 

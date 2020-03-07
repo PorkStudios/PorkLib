@@ -45,57 +45,27 @@ import java.util.function.Function;
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Accessors(fluent = true)
-public class AutoReadWriteMap<K, V> implements ReadWriteMap<K, V> {
-    @NonNull
-    protected final Map<K, V> delegate;
-
-    @Getter
-    @NonNull
-    protected final Lock readLock;
-    @Getter
-    @NonNull
-    protected final Lock writeLock;
-
-    protected volatile LockedMap<K, V>           readLocked;
-    protected volatile LockedMap<K, V>           writeLocked;
-    protected volatile ReadWriteSet<K>           keySet;
-    protected volatile ReadWriteCollection<V>    values;
-    protected volatile ReadWriteSet<Entry<K, V>> entrySet;
-
+public class AutoReadWriteMap<K, V> extends DefaultReadWriteMap<K, V> {
     public AutoReadWriteMap(@NonNull Map<K, V> delegate) {
-        this(delegate, new ReentrantReadWriteLock());
+        super(delegate);
     }
 
     public AutoReadWriteMap(@NonNull Map<K, V> delegate, @NonNull ReadWriteLock lock) {
-        this(delegate, lock.readLock(), lock.writeLock());
+        super(delegate, lock);
+    }
+
+    public AutoReadWriteMap(@NonNull Map<K, V> delegate, @NonNull Lock readLock, @NonNull Lock writeLock) {
+        super(delegate, readLock, writeLock);
     }
 
     @Override
-    public LockedMap<K, V> readLocked() {
-        LockedMap<K, V> readLocked = this.readLocked;
-        if (readLocked == null) {
-            synchronized (this.delegate) {
-                if ((readLocked = this.readLocked) == null) {
-                    this.readLocked = readLocked = PMaps.locked(this.delegate, this.readLock);
-                }
-            }
-        }
-        return readLocked;
+    protected LockedMap<K, V> readLocked0() {
+        return PMaps.lockedAuto(this.delegate, this.readLock);
     }
 
     @Override
-    public LockedMap<K, V> writeLocked() {
-        LockedMap<K, V> writeLocked = this.writeLocked;
-        if (writeLocked == null) {
-            synchronized (this.delegate) {
-                if ((writeLocked = this.writeLocked) == null) {
-                    this.writeLocked = writeLocked = PMaps.locked(this.delegate, this.writeLock);
-                }
-            }
-        }
-        return writeLocked;
+    protected LockedMap<K, V> writeLocked0() {
+        return PMaps.lockedAuto(this.delegate, this.writeLock);
     }
 
     //
@@ -108,7 +78,7 @@ public class AutoReadWriteMap<K, V> implements ReadWriteMap<K, V> {
     public int size() {
         this.readLock.lock();
         try {
-            return this.delegate.size();
+            return super.size();
         } finally {
             this.readLock.unlock();
         }
@@ -118,7 +88,7 @@ public class AutoReadWriteMap<K, V> implements ReadWriteMap<K, V> {
     public boolean isEmpty() {
         this.readLock.lock();
         try {
-            return this.delegate.isEmpty();
+            return super.isEmpty();
         } finally {
             this.readLock.unlock();
         }
@@ -128,7 +98,7 @@ public class AutoReadWriteMap<K, V> implements ReadWriteMap<K, V> {
     public boolean containsKey(Object key) {
         this.readLock.lock();
         try {
-            return this.delegate.containsKey(key);
+            return super.containsKey(key);
         } finally {
             this.readLock.unlock();
         }
@@ -138,7 +108,7 @@ public class AutoReadWriteMap<K, V> implements ReadWriteMap<K, V> {
     public boolean containsValue(Object value) {
         this.readLock.lock();
         try {
-            return this.delegate.containsValue(value);
+            return super.containsValue(value);
         } finally {
             this.readLock.unlock();
         }
@@ -148,7 +118,7 @@ public class AutoReadWriteMap<K, V> implements ReadWriteMap<K, V> {
     public V get(Object key) {
         this.readLock.lock();
         try {
-            return this.delegate.get(key);
+            return super.get(key);
         } finally {
             this.readLock.unlock();
         }
@@ -158,7 +128,7 @@ public class AutoReadWriteMap<K, V> implements ReadWriteMap<K, V> {
     public V put(K key, V value) {
         this.writeLock.lock();
         try {
-            return this.delegate.put(key, value);
+            return super.put(key, value);
         } finally {
             this.writeLock.unlock();
         }
@@ -168,7 +138,7 @@ public class AutoReadWriteMap<K, V> implements ReadWriteMap<K, V> {
     public V remove(Object key) {
         this.writeLock.lock();
         try {
-            return this.delegate.remove(key);
+            return super.remove(key);
         } finally {
             this.writeLock.unlock();
         }
@@ -178,7 +148,7 @@ public class AutoReadWriteMap<K, V> implements ReadWriteMap<K, V> {
     public void putAll(Map<? extends K, ? extends V> m) {
         this.writeLock.lock();
         try {
-            this.delegate.putAll(m);
+            super.putAll(m);
         } finally {
             this.writeLock.unlock();
         }
@@ -188,56 +158,32 @@ public class AutoReadWriteMap<K, V> implements ReadWriteMap<K, V> {
     public void clear() {
         this.writeLock.lock();
         try {
-            this.delegate.clear();
+            super.clear();
         } finally {
             this.writeLock.unlock();
         }
     }
 
     @Override
-    public ReadWriteSet<K> keySet() {
-        ReadWriteSet<K> keySet = this.keySet;
-        if (keySet == null) {
-            synchronized (this.delegate) {
-                if ((keySet = this.keySet) == null) {
-                    this.keySet = keySet = PSets.readWrite(this.delegate.keySet(), this.readLock, this.writeLock);
-                }
-            }
-        }
-        return keySet;
+    protected ReadWriteSet<K> keySet0() {
+        return PSets.readWriteAuto(this.delegate.keySet(), this.readLock, this.writeLock);
     }
 
     @Override
-    public ReadWriteCollection<V> values() {
-        ReadWriteCollection<V> values = this.values;
-        if (values == null) {
-            synchronized (this.delegate) {
-                if ((values = this.values) == null) {
-                    this.values = values = PCollections.readWrite(this.delegate.values(), this.readLock, this.writeLock);
-                }
-            }
-        }
-        return values;
+    protected ReadWriteCollection<V> values0() {
+        return PCollections.readWriteAuto(this.delegate.values(), this.readLock, this.writeLock);
     }
 
     @Override
-    public ReadWriteSet<Entry<K, V>> entrySet() {
-        ReadWriteSet<Entry<K, V>> entrySet = this.entrySet;
-        if (entrySet == null) {
-            synchronized (this.delegate) {
-                if ((entrySet = this.entrySet) == null) {
-                    this.entrySet = entrySet = PSets.readWrite(this.delegate.entrySet(), this.readLock, this.writeLock);
-                }
-            }
-        }
-        return entrySet;
+    protected ReadWriteSet<Entry<K, V>> entrySet0() {
+        return PSets.readWriteAuto(this.delegate.entrySet(), this.readLock, this.writeLock);
     }
 
     @Override
     public V getOrDefault(Object key, V defaultValue) {
         this.readLock.lock();
         try {
-            return this.delegate.getOrDefault(key, defaultValue);
+            return super.getOrDefault(key, defaultValue);
         } finally {
             this.readLock.unlock();
         }
@@ -247,7 +193,7 @@ public class AutoReadWriteMap<K, V> implements ReadWriteMap<K, V> {
     public void forEach(BiConsumer<? super K, ? super V> action) {
         this.readLock.lock();
         try {
-            this.delegate.forEach(action);
+            super.forEach(action);
         } finally {
             this.readLock.unlock();
         }
@@ -257,7 +203,7 @@ public class AutoReadWriteMap<K, V> implements ReadWriteMap<K, V> {
     public void replaceAll(BiFunction<? super K, ? super V, ? extends V> function) {
         this.writeLock.lock();
         try {
-            this.delegate.replaceAll(function);
+            super.replaceAll(function);
         } finally {
             this.writeLock.unlock();
         }
@@ -267,7 +213,7 @@ public class AutoReadWriteMap<K, V> implements ReadWriteMap<K, V> {
     public V putIfAbsent(K key, V value) {
         this.writeLock.lock();
         try {
-            return this.delegate.putIfAbsent(key, value);
+            return super.putIfAbsent(key, value);
         } finally {
             this.writeLock.unlock();
         }
@@ -277,7 +223,7 @@ public class AutoReadWriteMap<K, V> implements ReadWriteMap<K, V> {
     public boolean remove(Object key, Object value) {
         this.writeLock.lock();
         try {
-            return this.delegate.remove(key, value);
+            return super.remove(key, value);
         } finally {
             this.writeLock.unlock();
         }
@@ -287,7 +233,7 @@ public class AutoReadWriteMap<K, V> implements ReadWriteMap<K, V> {
     public boolean replace(K key, V oldValue, V newValue) {
         this.writeLock.lock();
         try {
-            return this.delegate.replace(key, oldValue, newValue);
+            return super.replace(key, oldValue, newValue);
         } finally {
             this.writeLock.unlock();
         }
@@ -297,7 +243,7 @@ public class AutoReadWriteMap<K, V> implements ReadWriteMap<K, V> {
     public V replace(K key, V value) {
         this.writeLock.lock();
         try {
-            return this.delegate.replace(key, value);
+            return super.replace(key, value);
         } finally {
             this.writeLock.unlock();
         }
@@ -310,7 +256,7 @@ public class AutoReadWriteMap<K, V> implements ReadWriteMap<K, V> {
         if (value == null)  {
             this.writeLock.lock();
             try {
-                value = this.delegate.computeIfAbsent(key, mappingFunction);
+                value = super.computeIfAbsent(key, mappingFunction);
             } finally {
                 this.writeLock.unlock();
             }
@@ -324,7 +270,7 @@ public class AutoReadWriteMap<K, V> implements ReadWriteMap<K, V> {
         if (this.containsKey(key)) {
             this.writeLock.lock();
             try {
-                return this.delegate.computeIfPresent(key, remappingFunction);
+                return super.computeIfPresent(key, remappingFunction);
             } finally {
                 this.writeLock.unlock();
             }
@@ -337,7 +283,7 @@ public class AutoReadWriteMap<K, V> implements ReadWriteMap<K, V> {
     public V compute(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
         this.writeLock.lock();
         try {
-            return this.delegate.compute(key, remappingFunction);
+            return super.compute(key, remappingFunction);
         } finally {
             this.writeLock.unlock();
         }
@@ -347,7 +293,7 @@ public class AutoReadWriteMap<K, V> implements ReadWriteMap<K, V> {
     public V merge(K key, V value, BiFunction<? super V, ? super V, ? extends V> remappingFunction) {
         this.writeLock.lock();
         try {
-            return this.delegate.merge(key, value, remappingFunction);
+            return super.merge(key, value, remappingFunction);
         } finally {
             this.writeLock.unlock();
         }

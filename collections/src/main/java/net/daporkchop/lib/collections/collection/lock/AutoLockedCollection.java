@@ -21,15 +21,11 @@
 package net.daporkchop.lib.collections.collection.lock;
 
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Spliterator;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -40,15 +36,13 @@ import java.util.stream.Stream;
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-public class AutoLockedCollection<V> implements LockedCollection<V> {
-    @NonNull
-    protected final Collection<V> delegate;
-    @NonNull
-    protected final Lock          lock;
-
+public class AutoLockedCollection<V> extends DefaultLockedCollection<V> {
     public AutoLockedCollection(@NonNull Collection<V> delegate) {
-        this(delegate, new ReentrantLock());
+        super(delegate);
+    }
+
+    public AutoLockedCollection(@NonNull Collection<V> delegate, @NonNull Lock lock) {
+        super(delegate, lock);
     }
 
     //
@@ -69,36 +63,6 @@ public class AutoLockedCollection<V> implements LockedCollection<V> {
         return this;
     }
 
-    @Override
-    public void lock() {
-        this.lock.lock();
-    }
-
-    @Override
-    public void lockInterruptibly() throws InterruptedException {
-        this.lock.lockInterruptibly();
-    }
-
-    @Override
-    public boolean tryLock() {
-        return this.lock.tryLock();
-    }
-
-    @Override
-    public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
-        return this.lock.tryLock(time, unit);
-    }
-
-    @Override
-    public void unlock() {
-        this.lock.unlock();
-    }
-
-    @Override
-    public Condition newCondition() {
-        return this.lock.newCondition();
-    }
-
     //
     //
     // collection methods
@@ -109,7 +73,7 @@ public class AutoLockedCollection<V> implements LockedCollection<V> {
     public int size() {
         this.lock.lock();
         try {
-            return this.delegate.size();
+            return super.size();
         } finally {
             this.lock.unlock();
         }
@@ -119,7 +83,7 @@ public class AutoLockedCollection<V> implements LockedCollection<V> {
     public boolean isEmpty() {
         this.lock.lock();
         try {
-            return this.delegate.isEmpty();
+            return super.isEmpty();
         } finally {
             this.lock.unlock();
         }
@@ -129,7 +93,7 @@ public class AutoLockedCollection<V> implements LockedCollection<V> {
     public boolean contains(Object o) {
         this.lock.lock();
         try {
-            return this.delegate.contains(o);
+            return super.contains(o);
         } finally {
             this.lock.unlock();
         }
@@ -139,7 +103,7 @@ public class AutoLockedCollection<V> implements LockedCollection<V> {
     public Object[] toArray() {
         this.lock.lock();
         try {
-            return this.delegate.toArray();
+            return super.toArray();
         } finally {
             this.lock.unlock();
         }
@@ -149,7 +113,7 @@ public class AutoLockedCollection<V> implements LockedCollection<V> {
     public <T> T[] toArray(T[] a) {
         this.lock.lock();
         try {
-            return this.delegate.toArray(a);
+            return super.toArray(a);
         } finally {
             this.lock.unlock();
         }
@@ -159,7 +123,7 @@ public class AutoLockedCollection<V> implements LockedCollection<V> {
     public boolean add(V v) {
         this.lock.lock();
         try {
-            return this.delegate.add(v);
+            return super.add(v);
         } finally {
             this.lock.unlock();
         }
@@ -169,7 +133,7 @@ public class AutoLockedCollection<V> implements LockedCollection<V> {
     public boolean remove(Object o) {
         this.lock.lock();
         try {
-            return this.delegate.remove(o);
+            return super.remove(o);
         } finally {
             this.lock.unlock();
         }
@@ -179,7 +143,7 @@ public class AutoLockedCollection<V> implements LockedCollection<V> {
     public boolean containsAll(Collection<?> c) {
         this.lock.lock();
         try {
-            return this.delegate.containsAll(c);
+            return super.containsAll(c);
         } finally {
             this.lock.unlock();
         }
@@ -189,7 +153,7 @@ public class AutoLockedCollection<V> implements LockedCollection<V> {
     public boolean addAll(Collection<? extends V> c) {
         this.lock.lock();
         try {
-            return this.delegate.addAll(c);
+            return super.addAll(c);
         } finally {
             this.lock.unlock();
         }
@@ -199,7 +163,7 @@ public class AutoLockedCollection<V> implements LockedCollection<V> {
     public boolean removeAll(Collection<?> c) {
         this.lock.lock();
         try {
-            return this.delegate.removeAll(c);
+            return super.removeAll(c);
         } finally {
             this.lock.unlock();
         }
@@ -209,7 +173,7 @@ public class AutoLockedCollection<V> implements LockedCollection<V> {
     public boolean retainAll(Collection<?> c) {
         this.lock.lock();
         try {
-            return this.delegate.retainAll(c);
+            return super.retainAll(c);
         } finally {
             this.lock.unlock();
         }
@@ -219,7 +183,7 @@ public class AutoLockedCollection<V> implements LockedCollection<V> {
     public void clear() {
         this.lock.lock();
         try {
-            this.delegate.clear();
+            super.clear();
         } finally {
             this.lock.unlock();
         }
@@ -229,7 +193,7 @@ public class AutoLockedCollection<V> implements LockedCollection<V> {
     public boolean removeIf(Predicate<? super V> filter) {
         this.lock.lock();
         try {
-            return this.delegate.removeIf(filter);
+            return super.removeIf(filter);
         } finally {
             this.lock.unlock();
         }
@@ -239,7 +203,7 @@ public class AutoLockedCollection<V> implements LockedCollection<V> {
     public void forEach(Consumer<? super V> action) {
         this.lock.lock();
         try {
-            this.delegate.forEach(action);
+            super.forEach(action);
         } finally {
             this.lock.unlock();
         }
@@ -247,21 +211,21 @@ public class AutoLockedCollection<V> implements LockedCollection<V> {
 
     @Override
     public Iterator<V> iterator() {
-        return this.delegate.iterator();
+        return super.iterator();
     }
 
     @Override
     public Spliterator<V> spliterator() {
-        return this.delegate.spliterator();
+        return super.spliterator();
     }
 
     @Override
     public Stream<V> stream() {
-        return this.delegate.stream();
+        return super.stream();
     }
 
     @Override
     public Stream<V> parallelStream() {
-        return this.delegate.parallelStream();
+        return super.parallelStream();
     }
 }

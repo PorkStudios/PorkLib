@@ -33,12 +33,12 @@ import java.util.concurrent.locks.Lock;
  * @author DaPorkchop_
  */
 public class AutoLockedSet<V> extends AutoLockedCollection<V> implements LockedSet<V> {
-    public AutoLockedSet(@NonNull Set<V> delegate, Lock lock) {
-        super(delegate, lock);
-    }
-
     public AutoLockedSet(@NonNull Set<V> delegate) {
         super(delegate);
+    }
+
+    public AutoLockedSet(@NonNull Set<V> delegate, @NonNull Lock lock) {
+        super(delegate, lock);
     }
 
     @Override

@@ -21,6 +21,7 @@
 package net.daporkchop.lib.collections.set.rw;
 
 import lombok.NonNull;
+import net.daporkchop.lib.collections.collection.lock.LockedCollection;
 import net.daporkchop.lib.collections.collection.rw.AutoReadWriteCollection;
 import net.daporkchop.lib.collections.set.PSets;
 import net.daporkchop.lib.collections.set.lock.LockedSet;
@@ -51,27 +52,21 @@ public class AutoReadWriteSet<V> extends AutoReadWriteCollection<V> implements R
 
     @Override
     public LockedSet<V> readLocked() {
-        LockedSet<V> readLocked = (LockedSet<V>) this.readLocked;
-        if (readLocked == null) {
-            synchronized (this.delegate) {
-                if ((readLocked = (LockedSet<V>) this.readLocked) == null)  {
-                    this.readLocked = readLocked = PSets.lockedAuto((Set<V>) this.delegate, this.readLock);
-                }
-            }
-        }
-        return readLocked;
+        return (LockedSet<V>) super.readLocked();
+    }
+
+    @Override
+    protected LockedCollection<V> readLocked0() {
+        return PSets.lockedAuto((Set<V>) this.delegate, this.readLock);
     }
 
     @Override
     public LockedSet<V> writeLocked() {
-        LockedSet<V> writeLocked = (LockedSet<V>) this.writeLocked;
-        if (writeLocked == null) {
-            synchronized (this.delegate) {
-                if ((writeLocked = (LockedSet<V>) this.writeLocked) == null)  {
-                    this.writeLocked = writeLocked = PSets.lockedAuto((Set<V>) this.delegate, this.writeLock);
-                }
-            }
-        }
-        return writeLocked;
+        return (LockedSet<V>) super.writeLocked();
+    }
+
+    @Override
+    protected LockedCollection<V> writeLocked0() {
+        return PSets.lockedAuto((Set<V>) this.delegate, this.writeLock);
     }
 }

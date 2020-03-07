@@ -21,17 +21,13 @@
 package net.daporkchop.lib.collections.map.lock;
 
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.collections.collection.PCollections;
 import net.daporkchop.lib.collections.collection.lock.LockedCollection;
 import net.daporkchop.lib.collections.set.PSets;
 import net.daporkchop.lib.collections.set.lock.LockedSet;
 
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -42,19 +38,13 @@ import java.util.function.Function;
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-public class AutoLockedMap<K, V> implements LockedMap<K, V> {
-    @NonNull
-    protected final Map<K, V> delegate;
-    @NonNull
-    protected final Lock      lock;
-
-    protected volatile LockedSet<K>           keySet;
-    protected volatile LockedCollection<V>    values;
-    protected volatile LockedSet<Entry<K, V>> entrySet;
-
+public class AutoLockedMap<K, V> extends DefaultLockedMap<K, V> {
     public AutoLockedMap(@NonNull Map<K, V> delegate) {
-        this(delegate, new ReentrantLock());
+        super(delegate);
+    }
+
+    public AutoLockedMap(@NonNull Map<K, V> delegate, @NonNull Lock lock) {
+        super(delegate, lock);
     }
 
     //
@@ -75,36 +65,6 @@ public class AutoLockedMap<K, V> implements LockedMap<K, V> {
         return this;
     }
 
-    @Override
-    public void lock() {
-        this.lock.lock();
-    }
-
-    @Override
-    public void lockInterruptibly() throws InterruptedException {
-        this.lock.lockInterruptibly();
-    }
-
-    @Override
-    public boolean tryLock() {
-        return this.lock.tryLock();
-    }
-
-    @Override
-    public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
-        return this.lock.tryLock(time, unit);
-    }
-
-    @Override
-    public void unlock() {
-        this.lock.unlock();
-    }
-
-    @Override
-    public Condition newCondition() {
-        return this.lock.newCondition();
-    }
-
     //
     //
     // map methods
@@ -115,7 +75,7 @@ public class AutoLockedMap<K, V> implements LockedMap<K, V> {
     public int size() {
         this.lock.lock();
         try {
-            return this.delegate.size();
+            return super.size();
         } finally {
             this.lock.unlock();
         }
@@ -125,7 +85,7 @@ public class AutoLockedMap<K, V> implements LockedMap<K, V> {
     public boolean isEmpty() {
         this.lock.lock();
         try {
-            return this.delegate.isEmpty();
+            return super.isEmpty();
         } finally {
             this.lock.unlock();
         }
@@ -135,7 +95,7 @@ public class AutoLockedMap<K, V> implements LockedMap<K, V> {
     public boolean containsKey(Object key) {
         this.lock.lock();
         try {
-            return this.delegate.containsKey(key);
+            return super.containsKey(key);
         } finally {
             this.lock.unlock();
         }
@@ -145,7 +105,7 @@ public class AutoLockedMap<K, V> implements LockedMap<K, V> {
     public boolean containsValue(Object value) {
         this.lock.lock();
         try {
-            return this.delegate.containsValue(value);
+            return super.containsValue(value);
         } finally {
             this.lock.unlock();
         }
@@ -155,7 +115,7 @@ public class AutoLockedMap<K, V> implements LockedMap<K, V> {
     public V get(Object key) {
         this.lock.lock();
         try {
-            return this.delegate.get(key);
+            return super.get(key);
         } finally {
             this.lock.unlock();
         }
@@ -165,7 +125,7 @@ public class AutoLockedMap<K, V> implements LockedMap<K, V> {
     public V put(K key, V value) {
         this.lock.lock();
         try {
-            return this.delegate.put(key, value);
+            return super.put(key, value);
         } finally {
             this.lock.unlock();
         }
@@ -175,7 +135,7 @@ public class AutoLockedMap<K, V> implements LockedMap<K, V> {
     public V remove(Object key) {
         this.lock.lock();
         try {
-            return this.delegate.remove(key);
+            return super.remove(key);
         } finally {
             this.lock.unlock();
         }
@@ -185,7 +145,7 @@ public class AutoLockedMap<K, V> implements LockedMap<K, V> {
     public void putAll(Map<? extends K, ? extends V> m) {
         this.lock.lock();
         try {
-            this.delegate.putAll(m);
+            super.putAll(m);
         } finally {
             this.lock.unlock();
         }
@@ -195,59 +155,32 @@ public class AutoLockedMap<K, V> implements LockedMap<K, V> {
     public void clear() {
         this.lock.lock();
         try {
-            this.delegate.clear();
+            super.clear();
         } finally {
             this.lock.unlock();
         }
     }
 
     @Override
-    public LockedSet<K> keySet() {
-        this.lock.lock();
-        try {
-            LockedSet<K> keySet = this.keySet;
-            if (keySet == null) {
-                this.keySet = keySet = PSets.lockedAuto(this.delegate.keySet(), this.lock);
-            }
-            return keySet;
-        } finally {
-            this.lock.unlock();
-        }
+    protected LockedSet<K> keySet0() {
+        return PSets.lockedAuto(this.delegate.keySet(), this.lock);
     }
 
     @Override
-    public LockedCollection<V> values() {
-        this.lock.lock();
-        try {
-            LockedCollection<V> values = this.values;
-            if (values == null) {
-                this.values = values = PCollections.lockedAuto(this.delegate.values(), this.lock);
-            }
-            return values;
-        } finally {
-            this.lock.unlock();
-        }
+    protected LockedCollection<V> values0() {
+        return PCollections.lockedAuto(this.delegate.values(), this.lock);
     }
 
     @Override
-    public LockedSet<Entry<K, V>> entrySet() {
-        this.lock.lock();
-        try {
-            LockedSet<Entry<K, V>> entrySet = this.entrySet;
-            if (entrySet == null) {
-                this.entrySet = entrySet = PSets.lockedAuto(this.delegate.entrySet(), this.lock);
-            }
-            return entrySet;
-        } finally {
-            this.lock.unlock();
-        }
+    protected LockedSet<Entry<K, V>> entrySet0() {
+        return PSets.lockedAuto(this.delegate.entrySet(), this.lock);
     }
 
     @Override
     public V getOrDefault(Object key, V defaultValue) {
         this.lock.lock();
         try {
-            return this.delegate.getOrDefault(key, defaultValue);
+            return super.getOrDefault(key, defaultValue);
         } finally {
             this.lock.unlock();
         }
@@ -257,7 +190,7 @@ public class AutoLockedMap<K, V> implements LockedMap<K, V> {
     public void forEach(BiConsumer<? super K, ? super V> action) {
         this.lock.lock();
         try {
-            this.delegate.forEach(action);
+            super.forEach(action);
         } finally {
             this.lock.unlock();
         }
@@ -267,7 +200,7 @@ public class AutoLockedMap<K, V> implements LockedMap<K, V> {
     public void replaceAll(BiFunction<? super K, ? super V, ? extends V> function) {
         this.lock.lock();
         try {
-            this.delegate.replaceAll(function);
+            super.replaceAll(function);
         } finally {
             this.lock.unlock();
         }
@@ -277,7 +210,7 @@ public class AutoLockedMap<K, V> implements LockedMap<K, V> {
     public V putIfAbsent(K key, V value) {
         this.lock.lock();
         try {
-            return this.delegate.putIfAbsent(key, value);
+            return super.putIfAbsent(key, value);
         } finally {
             this.lock.unlock();
         }
@@ -287,7 +220,7 @@ public class AutoLockedMap<K, V> implements LockedMap<K, V> {
     public boolean remove(Object key, Object value) {
         this.lock.lock();
         try {
-            return this.delegate.remove(key, value);
+            return super.remove(key, value);
         } finally {
             this.lock.unlock();
         }
@@ -297,7 +230,7 @@ public class AutoLockedMap<K, V> implements LockedMap<K, V> {
     public boolean replace(K key, V oldValue, V newValue) {
         this.lock.lock();
         try {
-            return this.delegate.replace(key, oldValue, newValue);
+            return super.replace(key, oldValue, newValue);
         } finally {
             this.lock.unlock();
         }
@@ -307,7 +240,7 @@ public class AutoLockedMap<K, V> implements LockedMap<K, V> {
     public V replace(K key, V value) {
         this.lock.lock();
         try {
-            return this.delegate.replace(key, value);
+            return super.replace(key, value);
         } finally {
             this.lock.unlock();
         }
@@ -317,7 +250,7 @@ public class AutoLockedMap<K, V> implements LockedMap<K, V> {
     public V computeIfAbsent(K key, Function<? super K, ? extends V> mappingFunction) {
         this.lock.lock();
         try {
-            return this.delegate.computeIfAbsent(key, mappingFunction);
+            return super.computeIfAbsent(key, mappingFunction);
         } finally {
             this.lock.unlock();
         }
@@ -327,7 +260,7 @@ public class AutoLockedMap<K, V> implements LockedMap<K, V> {
     public V computeIfPresent(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
         this.lock.lock();
         try {
-            return this.delegate.computeIfPresent(key, remappingFunction);
+            return super.computeIfPresent(key, remappingFunction);
         } finally {
             this.lock.unlock();
         }
@@ -337,7 +270,7 @@ public class AutoLockedMap<K, V> implements LockedMap<K, V> {
     public V compute(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
         this.lock.lock();
         try {
-            return this.delegate.compute(key, remappingFunction);
+            return super.compute(key, remappingFunction);
         } finally {
             this.lock.unlock();
         }
@@ -347,7 +280,7 @@ public class AutoLockedMap<K, V> implements LockedMap<K, V> {
     public V merge(K key, V value, BiFunction<? super V, ? super V, ? extends V> remappingFunction) {
         this.lock.lock();
         try {
-            return this.delegate.merge(key, value, remappingFunction);
+            return super.merge(key, value, remappingFunction);
         } finally {
             this.lock.unlock();
         }

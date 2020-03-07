@@ -72,11 +72,15 @@ public class DefaultReadWriteCollection<V> implements ReadWriteCollection<V> {
         if (readLocked == null) {
             synchronized (this.delegate) {
                 if ((readLocked = this.readLocked) == null)  {
-                    this.readLocked = readLocked = PCollections.locked(this.delegate, this.readLock);
+                    this.readLocked = readLocked = this.readLocked0();
                 }
             }
         }
         return readLocked;
+    }
+
+    protected LockedCollection<V> readLocked0() {
+        return PCollections.locked(this.delegate, this.readLock);
     }
 
     @Override
@@ -85,11 +89,15 @@ public class DefaultReadWriteCollection<V> implements ReadWriteCollection<V> {
         if (writeLocked == null) {
             synchronized (this.delegate) {
                 if ((writeLocked = this.writeLocked) == null)  {
-                    this.writeLocked = writeLocked = PCollections.locked(this.delegate, this.writeLock);
+                    this.writeLocked = writeLocked = this.writeLocked0();
                 }
             }
         }
         return writeLocked;
+    }
+
+    protected LockedCollection<V> writeLocked0() {
+        return PCollections.locked(this.delegate, this.writeLock);
     }
 
     //

@@ -32,12 +32,12 @@ import java.util.concurrent.locks.Lock;
  * @author DaPorkchop_
  */
 public class DefaultLockedSet<V> extends DefaultLockedCollection<V> implements LockedSet<V> {
-    public DefaultLockedSet(@NonNull Set<V> delegate, Lock lock) {
-        super(delegate, lock);
-    }
-
     public DefaultLockedSet(@NonNull Set<V> delegate) {
         super(delegate);
+    }
+
+    public DefaultLockedSet(@NonNull Set<V> delegate, @NonNull Lock lock) {
+        super(delegate, lock);
     }
 
     @Override

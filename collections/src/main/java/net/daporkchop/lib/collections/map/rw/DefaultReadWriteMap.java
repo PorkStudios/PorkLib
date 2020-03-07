@@ -77,11 +77,15 @@ public class DefaultReadWriteMap<K, V> implements ReadWriteMap<K, V> {
         if (readLocked == null) {
             synchronized (this.delegate) {
                 if ((readLocked = this.readLocked) == null) {
-                    this.readLocked = readLocked = PMaps.locked(this.delegate, this.readLock);
+                    this.readLocked = readLocked = this.readLocked0();
                 }
             }
         }
         return readLocked;
+    }
+
+    protected LockedMap<K, V> readLocked0() {
+        return PMaps.locked(this.delegate, this.readLock);
     }
 
     @Override
@@ -90,11 +94,15 @@ public class DefaultReadWriteMap<K, V> implements ReadWriteMap<K, V> {
         if (writeLocked == null) {
             synchronized (this.delegate) {
                 if ((writeLocked = this.writeLocked) == null) {
-                    this.writeLocked = writeLocked = PMaps.locked(this.delegate, this.writeLock);
+                    this.writeLocked = writeLocked = this.writeLocked0();
                 }
             }
         }
         return writeLocked;
+    }
+
+    protected LockedMap<K, V> writeLocked0() {
+        return PMaps.locked(this.delegate, this.writeLock);
     }
 
     //
@@ -154,11 +162,15 @@ public class DefaultReadWriteMap<K, V> implements ReadWriteMap<K, V> {
         if (keySet == null) {
             synchronized (this.delegate) {
                 if ((keySet = this.keySet) == null) {
-                    this.keySet = keySet = PSets.readWrite(this.delegate.keySet(), this.readLock, this.writeLock);
+                    this.keySet = keySet = this.keySet0();
                 }
             }
         }
         return keySet;
+    }
+
+    protected ReadWriteSet<K> keySet0()  {
+        return PSets.readWrite(this.delegate.keySet(), this.readLock, this.writeLock);
     }
 
     @Override
@@ -167,11 +179,15 @@ public class DefaultReadWriteMap<K, V> implements ReadWriteMap<K, V> {
         if (values == null) {
             synchronized (this.delegate) {
                 if ((values = this.values) == null) {
-                    this.values = values = PCollections.readWrite(this.delegate.values(), this.readLock, this.writeLock);
+                    this.values = values = this.values0();
                 }
             }
         }
         return values;
+    }
+
+    protected ReadWriteCollection<V> values0()  {
+        return PCollections.readWrite(this.delegate.values(), this.readLock, this.writeLock);
     }
 
     @Override
@@ -180,11 +196,15 @@ public class DefaultReadWriteMap<K, V> implements ReadWriteMap<K, V> {
         if (entrySet == null) {
             synchronized (this.delegate) {
                 if ((entrySet = this.entrySet) == null) {
-                    this.entrySet = entrySet = PSets.readWrite(this.delegate.entrySet(), this.readLock, this.writeLock);
+                    this.entrySet = entrySet = this.entrySet0();
                 }
             }
         }
         return entrySet;
+    }
+
+    protected ReadWriteSet<Entry<K, V>> entrySet0() {
+        return PSets.readWrite(this.delegate.entrySet(), this.readLock, this.writeLock);
     }
 
     @Override

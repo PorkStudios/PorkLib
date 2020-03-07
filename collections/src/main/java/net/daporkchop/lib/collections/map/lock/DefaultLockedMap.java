@@ -161,11 +161,15 @@ public class DefaultLockedMap<K, V> implements LockedMap<K, V> {
         if (keySet == null) {
             synchronized (this.delegate) {
                 if ((keySet = this.keySet) == null) {
-                    this.keySet = keySet = PSets.locked(this.delegate.keySet(), this.lock);
+                    this.keySet = keySet = this.keySet0();
                 }
             }
         }
         return keySet;
+    }
+
+    protected LockedSet<K> keySet0()    {
+        return PSets.locked(this.delegate.keySet(), this.lock);
     }
 
     @Override
@@ -174,11 +178,15 @@ public class DefaultLockedMap<K, V> implements LockedMap<K, V> {
         if (values == null) {
             synchronized (this.delegate) {
                 if ((values = this.values) == null) {
-                    this.values = values = PCollections.locked(this.delegate.values(), this.lock);
+                    this.values = values = this.values0();
                 }
             }
         }
         return values;
+    }
+
+    protected LockedCollection<V> values0()    {
+        return PCollections.locked(this.delegate.values(), this.lock);
     }
 
     @Override
@@ -187,11 +195,15 @@ public class DefaultLockedMap<K, V> implements LockedMap<K, V> {
         if (entrySet == null) {
             synchronized (this.delegate) {
                 if ((entrySet = this.entrySet) == null) {
-                    this.entrySet = entrySet = PSets.locked(this.delegate.entrySet(), this.lock);
+                    this.entrySet = entrySet = this.entrySet0();
                 }
             }
         }
         return entrySet;
+    }
+
+    protected LockedSet<Entry<K, V>> entrySet0()    {
+        return PSets.locked(this.delegate.entrySet(), this.lock);
     }
 
     @Override

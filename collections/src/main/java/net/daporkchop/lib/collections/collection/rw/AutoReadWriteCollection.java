@@ -43,56 +43,29 @@ import java.util.stream.Stream;
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Accessors(fluent = true)
-public class AutoReadWriteCollection<V> implements ReadWriteCollection<V> {
-    @NonNull
-    protected final Collection<V> delegate;
-
-    @Getter
-    @NonNull
-    protected final Lock readLock;
-    @Getter
-    @NonNull
-    protected final Lock writeLock;
-
-    protected volatile LockedCollection<V> readLocked;
-    protected volatile LockedCollection<V> writeLocked;
-
+public class AutoReadWriteCollection<V> extends DefaultReadWriteCollection<V> {
     public AutoReadWriteCollection(@NonNull Collection<V> delegate) {
-        this(delegate, new ReentrantReadWriteLock());
+        super(delegate);
     }
 
     public AutoReadWriteCollection(@NonNull Collection<V> delegate, @NonNull ReadWriteLock lock) {
-        this(delegate, lock.readLock(), lock.writeLock());
+        super(delegate, lock);
+    }
+
+    public AutoReadWriteCollection(@NonNull Collection<V> delegate, @NonNull Lock readLock, @NonNull Lock writeLock) {
+        super(delegate, readLock, writeLock);
     }
 
     @Override
-    public LockedCollection<V> readLocked() {
-        LockedCollection<V> readLocked = this.readLocked;
-        if (readLocked == null) {
-            synchronized (this.delegate) {
-                if ((readLocked = this.readLocked) == null) {
-                    this.readLocked = readLocked = PCollections.lockedAuto(this.delegate, this.readLock);
-                }
-            }
-        }
-        return readLocked;
+    protected LockedCollection<V> readLocked0() {
+        return PCollections.lockedAuto(this.delegate, this.readLock);
     }
 
     @Override
-    public LockedCollection<V> writeLocked() {
-        LockedCollection<V> writeLocked = this.writeLocked;
-        if (writeLocked == null) {
-            synchronized (this.delegate) {
-                if ((writeLocked = this.writeLocked) == null) {
-                    this.writeLocked = writeLocked = PCollections.lockedAuto(this.delegate, this.writeLock);
-                }
-            }
-        }
-        return writeLocked;
+    protected LockedCollection<V> writeLocked0() {
+        return PCollections.lockedAuto(this.delegate, this.writeLock);
     }
-
+    
     //
     //
     // collection methods
@@ -103,7 +76,7 @@ public class AutoReadWriteCollection<V> implements ReadWriteCollection<V> {
     public int size() {
         this.readLock.lock();
         try {
-            return this.delegate.size();
+            return super.size();
         } finally {
             this.readLock.unlock();
         }
@@ -113,7 +86,7 @@ public class AutoReadWriteCollection<V> implements ReadWriteCollection<V> {
     public boolean isEmpty() {
         this.readLock.lock();
         try {
-            return this.delegate.isEmpty();
+            return super.isEmpty();
         } finally {
             this.readLock.unlock();
         }
@@ -123,7 +96,7 @@ public class AutoReadWriteCollection<V> implements ReadWriteCollection<V> {
     public boolean contains(Object o) {
         this.readLock.lock();
         try {
-            return this.delegate.contains(o);
+            return super.contains(o);
         } finally {
             this.readLock.unlock();
         }
@@ -133,7 +106,7 @@ public class AutoReadWriteCollection<V> implements ReadWriteCollection<V> {
     public Object[] toArray() {
         this.readLock.lock();
         try {
-            return this.delegate.toArray();
+            return super.toArray();
         } finally {
             this.readLock.unlock();
         }
@@ -143,7 +116,7 @@ public class AutoReadWriteCollection<V> implements ReadWriteCollection<V> {
     public <T> T[] toArray(T[] a) {
         this.readLock.lock();
         try {
-            return this.delegate.toArray(a);
+            return super.toArray(a);
         } finally {
             this.readLock.unlock();
         }
@@ -153,7 +126,7 @@ public class AutoReadWriteCollection<V> implements ReadWriteCollection<V> {
     public boolean add(V v) {
         this.writeLock.lock();
         try {
-            return this.delegate.add(v);
+            return super.add(v);
         } finally {
             this.writeLock.unlock();
         }
@@ -163,7 +136,7 @@ public class AutoReadWriteCollection<V> implements ReadWriteCollection<V> {
     public boolean remove(Object o) {
         this.writeLock.lock();
         try {
-            return this.delegate.remove(o);
+            return super.remove(o);
         } finally {
             this.writeLock.unlock();
         }
@@ -173,7 +146,7 @@ public class AutoReadWriteCollection<V> implements ReadWriteCollection<V> {
     public boolean containsAll(Collection<?> c) {
         this.readLock.lock();
         try {
-            return this.delegate.containsAll(c);
+            return super.containsAll(c);
         } finally {
             this.readLock.unlock();
         }
@@ -183,7 +156,7 @@ public class AutoReadWriteCollection<V> implements ReadWriteCollection<V> {
     public boolean addAll(Collection<? extends V> c) {
         this.writeLock.lock();
         try {
-            return this.delegate.addAll(c);
+            return super.addAll(c);
         } finally {
             this.writeLock.unlock();
         }
@@ -193,7 +166,7 @@ public class AutoReadWriteCollection<V> implements ReadWriteCollection<V> {
     public boolean removeAll(Collection<?> c) {
         this.writeLock.lock();
         try {
-            return this.delegate.removeAll(c);
+            return super.removeAll(c);
         } finally {
             this.writeLock.unlock();
         }
@@ -203,7 +176,7 @@ public class AutoReadWriteCollection<V> implements ReadWriteCollection<V> {
     public boolean retainAll(Collection<?> c) {
         this.writeLock.lock();
         try {
-            return this.delegate.retainAll(c);
+            return super.retainAll(c);
         } finally {
             this.writeLock.unlock();
         }
@@ -213,7 +186,7 @@ public class AutoReadWriteCollection<V> implements ReadWriteCollection<V> {
     public void clear() {
         this.writeLock.lock();
         try {
-            this.delegate.clear();
+            super.clear();
         } finally {
             this.writeLock.unlock();
         }
@@ -223,7 +196,7 @@ public class AutoReadWriteCollection<V> implements ReadWriteCollection<V> {
     public boolean removeIf(Predicate<? super V> filter) {
         this.writeLock.lock();
         try {
-            return this.delegate.removeIf(filter);
+            return super.removeIf(filter);
         } finally {
             this.writeLock.unlock();
         }
@@ -233,29 +206,9 @@ public class AutoReadWriteCollection<V> implements ReadWriteCollection<V> {
     public void forEach(Consumer<? super V> action) {
         this.readLock.lock();
         try {
-            this.delegate.forEach(action);
+            super.forEach(action);
         } finally {
             this.readLock.unlock();
         }
-    }
-
-    @Override
-    public Iterator<V> iterator() {
-        return this.delegate.iterator();
-    }
-
-    @Override
-    public Spliterator<V> spliterator() {
-        return this.delegate.spliterator();
-    }
-
-    @Override
-    public Stream<V> stream() {
-        return this.delegate.stream();
-    }
-
-    @Override
-    public Stream<V> parallelStream() {
-        return this.delegate.parallelStream();
     }
 }

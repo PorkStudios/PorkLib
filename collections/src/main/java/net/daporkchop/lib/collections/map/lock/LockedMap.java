@@ -18,45 +18,39 @@
  *
  */
 
-package net.daporkchop.lib.collections.map;
+package net.daporkchop.lib.collections.map.lock;
 
-import lombok.NonNull;
-import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.collections.map.lock.AutoLockedMap;
-import net.daporkchop.lib.collections.map.lock.DefaultLockedMap;
-import net.daporkchop.lib.collections.map.lock.LockedMap;
+import net.daporkchop.lib.collections.collection.lock.LockedCollection;
+import net.daporkchop.lib.collections.set.lock.LockedSet;
+import net.daporkchop.lib.common.misc.LockableResource;
 
+import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
 /**
- * Helper methods for dealing with maps.
+ * A {@link Map} that uses a {@link Lock} to manage access to it rather than synchronizing on a mutex object.
+ * <p>
+ * Unlike a {@link Map} returned by {@link java.util.Collections#synchronizedMap(Map)}, of this interface are NOT expected to automatically lock and
+ * unlock for every method invocation. This allows locking to be done manually by the user, providing performance in exchange for possible lack of
+ * safety when used incorrectly.
  *
  * @author DaPorkchop_
  */
-@UtilityClass
-public class PMaps {
-    public static <K, V> LockedMap<K, V> locked(@NonNull Map<K, V> map, boolean lockAutomatically) {
-        return lockAutomatically ? autoLocked(map) : locked(map);
-    }
+public interface LockedMap<K, V> extends Map<K, V>, LockableResource {
+    @Override
+    LockedSet<K> keySet();
 
-    public static <K, V> LockedMap<K, V> locked(@NonNull Map<K, V> map) {
-        return new DefaultLockedMap<>(map);
-    }
+    @Override
+    LockedCollection<V> values();
 
-    public static <K, V> LockedMap<K, V> autoLocked(@NonNull Map<K, V> map) {
-        return new AutoLockedMap<>(map);
-    }
+    @Override
+    LockedSet<Entry<K, V>> entrySet();
 
-    public static <K, V> LockedMap<K, V> locked(@NonNull Map<K, V> map, @NonNull Lock lock, boolean lockAutomatically) {
-        return lockAutomatically ? autoLocked(map, lock) : locked(map, lock);
-    }
+    @Override
+    LockedMap<K, V> lockAndGet();
 
-    public static <K, V> LockedMap<K, V> locked(@NonNull Map<K, V> map, @NonNull Lock lock) {
-        return new DefaultLockedMap<>(map, lock);
-    }
-
-    public static <K, V> LockedMap<K, V> autoLocked(@NonNull Map<K, V> map, @NonNull Lock lock) {
-        return new AutoLockedMap<>(map, lock);
-    }
+    @Override
+    LockedMap<K, V> lockAndGetInterruptibly() throws InterruptedException;
 }

@@ -18,45 +18,37 @@
  *
  */
 
-package net.daporkchop.lib.collections.map;
+package net.daporkchop.lib.collections.set.lock;
 
 import lombok.NonNull;
-import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.collections.map.lock.AutoLockedMap;
-import net.daporkchop.lib.collections.map.lock.DefaultLockedMap;
-import net.daporkchop.lib.collections.map.lock.LockedMap;
+import net.daporkchop.lib.collections.collection.lock.DefaultLockedCollection;
 
-import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
 /**
- * Helper methods for dealing with maps.
+ * Wrapper implementation of {@link LockedSet} around a normal {@link Set} and a {@link Lock}.
  *
  * @author DaPorkchop_
  */
-@UtilityClass
-public class PMaps {
-    public static <K, V> LockedMap<K, V> locked(@NonNull Map<K, V> map, boolean lockAutomatically) {
-        return lockAutomatically ? autoLocked(map) : locked(map);
+public class DefaultLockedSet<V> extends DefaultLockedCollection<V> implements LockedSet<V> {
+    public DefaultLockedSet(@NonNull Set<V> delegate, Lock lock) {
+        super(delegate, lock);
     }
 
-    public static <K, V> LockedMap<K, V> locked(@NonNull Map<K, V> map) {
-        return new DefaultLockedMap<>(map);
+    public DefaultLockedSet(@NonNull Set<V> delegate) {
+        super(delegate);
     }
 
-    public static <K, V> LockedMap<K, V> autoLocked(@NonNull Map<K, V> map) {
-        return new AutoLockedMap<>(map);
+    @Override
+    public DefaultLockedSet<V> lockAndGet() {
+        this.lock.lock();
+        return this;
     }
 
-    public static <K, V> LockedMap<K, V> locked(@NonNull Map<K, V> map, @NonNull Lock lock, boolean lockAutomatically) {
-        return lockAutomatically ? autoLocked(map, lock) : locked(map, lock);
-    }
-
-    public static <K, V> LockedMap<K, V> locked(@NonNull Map<K, V> map, @NonNull Lock lock) {
-        return new DefaultLockedMap<>(map, lock);
-    }
-
-    public static <K, V> LockedMap<K, V> autoLocked(@NonNull Map<K, V> map, @NonNull Lock lock) {
-        return new AutoLockedMap<>(map, lock);
+    @Override
+    public DefaultLockedSet<V> lockAndGetInterruptibly() throws InterruptedException {
+        this.lock.lockInterruptibly();
+        return this;
     }
 }

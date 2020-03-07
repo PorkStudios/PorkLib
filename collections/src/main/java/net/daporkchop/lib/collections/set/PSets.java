@@ -18,45 +18,43 @@
  *
  */
 
-package net.daporkchop.lib.collections.map;
+package net.daporkchop.lib.collections.set;
 
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.collections.map.lock.AutoLockedMap;
-import net.daporkchop.lib.collections.map.lock.DefaultLockedMap;
-import net.daporkchop.lib.collections.map.lock.LockedMap;
+import net.daporkchop.lib.collections.set.lock.AutoLockedSet;
+import net.daporkchop.lib.collections.set.lock.DefaultLockedSet;
+import net.daporkchop.lib.collections.set.lock.LockedSet;
 
-import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
 /**
- * Helper methods for dealing with maps.
- *
  * @author DaPorkchop_
  */
 @UtilityClass
-public class PMaps {
-    public static <K, V> LockedMap<K, V> locked(@NonNull Map<K, V> map, boolean lockAutomatically) {
-        return lockAutomatically ? autoLocked(map) : locked(map);
+public class PSets {
+    public static <V> LockedSet<V> locked(@NonNull Set<V> set, boolean lockAutomatically) {
+        return lockAutomatically ? autoLocked(set) : locked(set);
     }
 
-    public static <K, V> LockedMap<K, V> locked(@NonNull Map<K, V> map) {
-        return new DefaultLockedMap<>(map);
+    public static <V> LockedSet<V> locked(@NonNull Set<V> set) {
+        return new DefaultLockedSet<>(set);
     }
 
-    public static <K, V> LockedMap<K, V> autoLocked(@NonNull Map<K, V> map) {
-        return new AutoLockedMap<>(map);
+    public static <V> LockedSet<V> autoLocked(@NonNull Set<V> set) {
+        return new AutoLockedSet<>(set);
     }
 
-    public static <K, V> LockedMap<K, V> locked(@NonNull Map<K, V> map, @NonNull Lock lock, boolean lockAutomatically) {
-        return lockAutomatically ? autoLocked(map, lock) : locked(map, lock);
+    public static <V> LockedSet<V> locked(@NonNull Set<V> set, @NonNull Lock lock, boolean lockAutomatically) {
+        return lockAutomatically ? autoLocked(set, lock) : locked(set, lock);
     }
 
-    public static <K, V> LockedMap<K, V> locked(@NonNull Map<K, V> map, @NonNull Lock lock) {
-        return new DefaultLockedMap<>(map, lock);
+    public static <V> LockedSet<V> locked(@NonNull Set<V> set, @NonNull Lock lock) {
+        return new DefaultLockedSet<>(set, lock);
     }
 
-    public static <K, V> LockedMap<K, V> autoLocked(@NonNull Map<K, V> map, @NonNull Lock lock) {
-        return new AutoLockedMap<>(map, lock);
+    public static <V> LockedSet<V> autoLocked(@NonNull Set<V> set, @NonNull Lock lock) {
+        return new AutoLockedSet<>(set, lock);
     }
 }

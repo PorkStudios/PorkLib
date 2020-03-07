@@ -18,13 +18,32 @@
  *
  */
 
-package net.daporkchop.lib.collections;
+package net.daporkchop.lib.common.misc;
 
-import lombok.experimental.UtilityClass;
+import java.util.concurrent.locks.Lock;
 
 /**
+ * Allows using a lockable resource in a try-catch block.
+ *
  * @author DaPorkchop_
  */
-@UtilityClass
-public class PCollections {
+public interface LockableResource extends Lock, AutoCloseable {
+    /**
+     * Obtains a lock on this resource using {@link #lock()}, and then returns itself.
+     *
+     * @return this {@link LockableResource}
+     */
+    LockableResource lockAndGet();
+
+    /**
+     * Obtains a lock on this resource using {@link #lockInterruptibly()}, and then returns itself.
+     *
+     * @return this {@link LockableResource}
+     */
+    LockableResource lockAndGetInterruptibly() throws InterruptedException;
+
+    @Override
+    default void close() {
+        this.unlock();
+    }
 }

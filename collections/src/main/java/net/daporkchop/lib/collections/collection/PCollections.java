@@ -18,45 +18,43 @@
  *
  */
 
-package net.daporkchop.lib.collections.map;
+package net.daporkchop.lib.collections.collection;
 
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.collections.map.lock.AutoLockedMap;
-import net.daporkchop.lib.collections.map.lock.DefaultLockedMap;
-import net.daporkchop.lib.collections.map.lock.LockedMap;
+import net.daporkchop.lib.collections.collection.lock.AutoLockedCollection;
+import net.daporkchop.lib.collections.collection.lock.DefaultLockedCollection;
+import net.daporkchop.lib.collections.collection.lock.LockedCollection;
 
-import java.util.Map;
+import java.util.Collection;
 import java.util.concurrent.locks.Lock;
 
 /**
- * Helper methods for dealing with maps.
- *
  * @author DaPorkchop_
  */
 @UtilityClass
-public class PMaps {
-    public static <K, V> LockedMap<K, V> locked(@NonNull Map<K, V> map, boolean lockAutomatically) {
-        return lockAutomatically ? autoLocked(map) : locked(map);
+public class PCollections {
+    public static <V> LockedCollection<V> locked(@NonNull Collection<V> collection, boolean lockAutomatically) {
+        return lockAutomatically ? autoLocked(collection) : locked(collection);
     }
 
-    public static <K, V> LockedMap<K, V> locked(@NonNull Map<K, V> map) {
-        return new DefaultLockedMap<>(map);
+    public static <V> LockedCollection<V> locked(@NonNull Collection<V> collection) {
+        return new DefaultLockedCollection<>(collection);
     }
 
-    public static <K, V> LockedMap<K, V> autoLocked(@NonNull Map<K, V> map) {
-        return new AutoLockedMap<>(map);
+    public static <V> LockedCollection<V> autoLocked(@NonNull Collection<V> collection) {
+        return new AutoLockedCollection<>(collection);
     }
 
-    public static <K, V> LockedMap<K, V> locked(@NonNull Map<K, V> map, @NonNull Lock lock, boolean lockAutomatically) {
-        return lockAutomatically ? autoLocked(map, lock) : locked(map, lock);
+    public static <V> LockedCollection<V> locked(@NonNull Collection<V> collection, @NonNull Lock lock, boolean lockAutomatically) {
+        return lockAutomatically ? autoLocked(collection, lock) : locked(collection, lock);
     }
 
-    public static <K, V> LockedMap<K, V> locked(@NonNull Map<K, V> map, @NonNull Lock lock) {
-        return new DefaultLockedMap<>(map, lock);
+    public static <V> LockedCollection<V> locked(@NonNull Collection<V> collection, @NonNull Lock lock) {
+        return new DefaultLockedCollection<>(collection, lock);
     }
 
-    public static <K, V> LockedMap<K, V> autoLocked(@NonNull Map<K, V> map, @NonNull Lock lock) {
-        return new AutoLockedMap<>(map, lock);
+    public static <V> LockedCollection<V> autoLocked(@NonNull Collection<V> collection, @NonNull Lock lock) {
+        return new AutoLockedCollection<>(collection, lock);
     }
 }

@@ -18,46 +18,23 @@
  *
  */
 
-package net.daporkchop.lib.common.ref;
+package net.daporkchop.lib.common.ref.impl;
 
 import lombok.NonNull;
+import net.daporkchop.lib.common.ref.Ref;
 
-import java.util.function.Supplier;
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.SoftReference;
 
 /**
- * A cache holds a reference to an object
- *
  * @author DaPorkchop_
  */
-public interface Ref<T> extends Supplier<T> {
-    /**
-     * Gets a simple {@link Ref} will compute the value using the given {@link Supplier} once first requested.
-     *
-     * @param factory the {@link Supplier} for the value
-     * @param <T>     the value type
-     * @return a {@link Ref}
-     */
-    static <T> Ref<T> late(@NonNull Supplier<T> factory) {
-        return new LateReferencedRef<>(factory);
+public final class SoftRef<T> extends SoftReference<T> implements Ref<T> {
+    public SoftRef(T referent) {
+        super(referent);
     }
 
-    /**
-     * Gets a simple {@link Ref} will compute the value using the given {@link Supplier} once first requested, and store it in a soft reference,
-     * allowing it to be garbage-collected later on if the garbage-collector deems it necessary. If garbage-collected, it will be re-computed using the
-     * {@link Supplier} and cached again.
-     *
-     * @param factory the {@link Supplier} for the value
-     * @param <T>     the value type
-     * @return a {@link Ref}
-     */
-    static <T> Ref<T> soft(@NonNull Supplier<T> factory) {
-        return new SoftLateRef<>(factory);
+    public SoftRef(T referent, ReferenceQueue<? super T> q) {
+        super(referent, q);
     }
-
-    /**
-     * Get an instance
-     *
-     * @return an instance
-     */
-    T get();
 }

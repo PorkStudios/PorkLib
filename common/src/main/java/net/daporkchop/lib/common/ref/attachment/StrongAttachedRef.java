@@ -18,46 +18,29 @@
  *
  */
 
-package net.daporkchop.lib.common.ref;
+package net.daporkchop.lib.common.ref.attachment;
 
-import lombok.NonNull;
-
-import java.util.function.Supplier;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
 /**
- * A cache holds a reference to an object
- *
  * @author DaPorkchop_
  */
-public interface Ref<T> extends Supplier<T> {
-    /**
-     * Gets a simple {@link Ref} will compute the value using the given {@link Supplier} once first requested.
-     *
-     * @param factory the {@link Supplier} for the value
-     * @param <T>     the value type
-     * @return a {@link Ref}
-     */
-    static <T> Ref<T> late(@NonNull Supplier<T> factory) {
-        return new LateReferencedRef<>(factory);
-    }
+@RequiredArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
+@Accessors(fluent = true, chain = true)
+public final class StrongAttachedRef<V, A> implements AttachedRef<V, A> {
+    protected final V value;
 
-    /**
-     * Gets a simple {@link Ref} will compute the value using the given {@link Supplier} once first requested, and store it in a soft reference,
-     * allowing it to be garbage-collected later on if the garbage-collector deems it necessary. If garbage-collected, it will be re-computed using the
-     * {@link Supplier} and cached again.
-     *
-     * @param factory the {@link Supplier} for the value
-     * @param <T>     the value type
-     * @return a {@link Ref}
-     */
-    static <T> Ref<T> soft(@NonNull Supplier<T> factory) {
-        return new SoftLateRef<>(factory);
-    }
+    protected A attachment;
 
-    /**
-     * Get an instance
-     *
-     * @return an instance
-     */
-    T get();
+    @Override
+    public V get() {
+        return this.value;
+    }
 }

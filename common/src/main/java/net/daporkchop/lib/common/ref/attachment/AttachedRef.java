@@ -18,46 +18,29 @@
  *
  */
 
-package net.daporkchop.lib.common.ref;
+package net.daporkchop.lib.common.ref.attachment;
 
-import lombok.NonNull;
-
-import java.util.function.Supplier;
+import net.daporkchop.lib.common.ref.Ref;
 
 /**
- * A cache holds a reference to an object
+ * A {@link Ref} which has an additional value attached.
  *
  * @author DaPorkchop_
  */
-public interface Ref<T> extends Supplier<T> {
-    /**
-     * Gets a simple {@link Ref} will compute the value using the given {@link Supplier} once first requested.
-     *
-     * @param factory the {@link Supplier} for the value
-     * @param <T>     the value type
-     * @return a {@link Ref}
-     */
-    static <T> Ref<T> late(@NonNull Supplier<T> factory) {
-        return new LateReferencedRef<>(factory);
-    }
+public interface AttachedRef<V, A> extends Ref<V> {
+    @Override
+    V get();
 
     /**
-     * Gets a simple {@link Ref} will compute the value using the given {@link Supplier} once first requested, and store it in a soft reference,
-     * allowing it to be garbage-collected later on if the garbage-collector deems it necessary. If garbage-collected, it will be re-computed using the
-     * {@link Supplier} and cached again.
-     *
-     * @param factory the {@link Supplier} for the value
-     * @param <T>     the value type
-     * @return a {@link Ref}
+     * @return the attachment
      */
-    static <T> Ref<T> soft(@NonNull Supplier<T> factory) {
-        return new SoftLateRef<>(factory);
-    }
+    A attachment();
 
     /**
-     * Get an instance
+     * Sets the attachment.
      *
-     * @return an instance
+     * @param attachment the new attachment to set
+     * @return this {@link AttachedRef}
      */
-    T get();
+    AttachedRef attachment(A attachment);
 }

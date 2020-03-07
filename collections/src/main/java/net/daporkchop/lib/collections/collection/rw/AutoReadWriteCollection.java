@@ -18,85 +18,79 @@
  *
  */
 
-package net.daporkchop.lib.collections.collection.lock;
+package net.daporkchop.lib.collections.collection.rw;
 
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.collections.collection.PCollections;
+import net.daporkchop.lib.collections.collection.lock.LockedCollection;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Spliterator;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 /**
- * Wrapper implementation of {@link LockedCollection} around a normal {@link Collection} and a {@link Lock} that automatically locks and unlocks
- * the resource for every method call.
+ * Wrapper implementation of {@link ReadWriteCollection} around a normal {@link Collection} and a {@link ReadWriteLock} that automatically locks
+ * and unlocks the resource for every method call.
  *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-public class AutoLockedCollection<V> implements LockedCollection<V> {
+@Accessors(fluent = true)
+public class AutoReadWriteCollection<V> implements ReadWriteCollection<V> {
     @NonNull
     protected final Collection<V> delegate;
+
+    @Getter
     @NonNull
-    protected final Lock          lock;
+    protected final Lock readLock;
+    @Getter
+    @NonNull
+    protected final Lock writeLock;
 
-    public AutoLockedCollection(@NonNull Collection<V> delegate) {
-        this(delegate, new ReentrantLock());
+    protected volatile LockedCollection<V> readLocked;
+    protected volatile LockedCollection<V> writeLocked;
+
+    public AutoReadWriteCollection(@NonNull Collection<V> delegate) {
+        this(delegate, new ReentrantReadWriteLock());
     }
 
-    //
-    //
-    // lock methods
-    //
-    //
-
-    @Override
-    public AutoLockedCollection<V> lockAndGet() {
-        this.lock.lock();
-        return this;
-    }
-
-    @Override
-    public AutoLockedCollection<V> lockAndGetInterruptibly() throws InterruptedException {
-        this.lock.lockInterruptibly();
-        return this;
+    public AutoReadWriteCollection(@NonNull Collection<V> delegate, @NonNull ReadWriteLock lock) {
+        this(delegate, lock.readLock(), lock.writeLock());
     }
 
     @Override
-    public void lock() {
-        this.lock.lock();
+    public LockedCollection<V> readLocked() {
+        LockedCollection<V> readLocked = this.readLocked;
+        if (readLocked == null) {
+            synchronized (this.delegate) {
+                if ((readLocked = this.readLocked) == null) {
+                    this.readLocked = readLocked = PCollections.lockedAuto(this.delegate, this.readLock);
+                }
+            }
+        }
+        return readLocked;
     }
 
     @Override
-    public void lockInterruptibly() throws InterruptedException {
-        this.lock.lockInterruptibly();
-    }
-
-    @Override
-    public boolean tryLock() {
-        return this.lock.tryLock();
-    }
-
-    @Override
-    public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
-        return this.lock.tryLock(time, unit);
-    }
-
-    @Override
-    public void unlock() {
-        this.lock.unlock();
-    }
-
-    @Override
-    public Condition newCondition() {
-        return this.lock.newCondition();
+    public LockedCollection<V> writeLocked() {
+        LockedCollection<V> writeLocked = this.writeLocked;
+        if (writeLocked == null) {
+            synchronized (this.delegate) {
+                if ((writeLocked = this.writeLocked) == null) {
+                    this.writeLocked = writeLocked = PCollections.lockedAuto(this.delegate, this.writeLock);
+                }
+            }
+        }
+        return writeLocked;
     }
 
     //
@@ -107,141 +101,141 @@ public class AutoLockedCollection<V> implements LockedCollection<V> {
 
     @Override
     public int size() {
-        this.lock.lock();
+        this.readLock.lock();
         try {
             return this.delegate.size();
         } finally {
-            this.lock.unlock();
+            this.readLock.unlock();
         }
     }
 
     @Override
     public boolean isEmpty() {
-        this.lock.lock();
+        this.readLock.lock();
         try {
             return this.delegate.isEmpty();
         } finally {
-            this.lock.unlock();
+            this.readLock.unlock();
         }
     }
 
     @Override
     public boolean contains(Object o) {
-        this.lock.lock();
+        this.readLock.lock();
         try {
             return this.delegate.contains(o);
         } finally {
-            this.lock.unlock();
+            this.readLock.unlock();
         }
     }
 
     @Override
     public Object[] toArray() {
-        this.lock.lock();
+        this.readLock.lock();
         try {
             return this.delegate.toArray();
         } finally {
-            this.lock.unlock();
+            this.readLock.unlock();
         }
     }
 
     @Override
     public <T> T[] toArray(T[] a) {
-        this.lock.lock();
+        this.readLock.lock();
         try {
             return this.delegate.toArray(a);
         } finally {
-            this.lock.unlock();
+            this.readLock.unlock();
         }
     }
 
     @Override
     public boolean add(V v) {
-        this.lock.lock();
+        this.writeLock.lock();
         try {
             return this.delegate.add(v);
         } finally {
-            this.lock.unlock();
+            this.writeLock.unlock();
         }
     }
 
     @Override
     public boolean remove(Object o) {
-        this.lock.lock();
+        this.writeLock.lock();
         try {
             return this.delegate.remove(o);
         } finally {
-            this.lock.unlock();
+            this.writeLock.unlock();
         }
     }
 
     @Override
     public boolean containsAll(Collection<?> c) {
-        this.lock.lock();
+        this.readLock.lock();
         try {
             return this.delegate.containsAll(c);
         } finally {
-            this.lock.unlock();
+            this.readLock.unlock();
         }
     }
 
     @Override
     public boolean addAll(Collection<? extends V> c) {
-        this.lock.lock();
+        this.writeLock.lock();
         try {
             return this.delegate.addAll(c);
         } finally {
-            this.lock.unlock();
+            this.writeLock.unlock();
         }
     }
 
     @Override
     public boolean removeAll(Collection<?> c) {
-        this.lock.lock();
+        this.writeLock.lock();
         try {
             return this.delegate.removeAll(c);
         } finally {
-            this.lock.unlock();
+            this.writeLock.unlock();
         }
     }
 
     @Override
     public boolean retainAll(Collection<?> c) {
-        this.lock.lock();
+        this.writeLock.lock();
         try {
             return this.delegate.retainAll(c);
         } finally {
-            this.lock.unlock();
+            this.writeLock.unlock();
         }
     }
 
     @Override
     public void clear() {
-        this.lock.lock();
+        this.writeLock.lock();
         try {
             this.delegate.clear();
         } finally {
-            this.lock.unlock();
+            this.writeLock.unlock();
         }
     }
 
     @Override
     public boolean removeIf(Predicate<? super V> filter) {
-        this.lock.lock();
+        this.writeLock.lock();
         try {
             return this.delegate.removeIf(filter);
         } finally {
-            this.lock.unlock();
+            this.writeLock.unlock();
         }
     }
 
     @Override
     public void forEach(Consumer<? super V> action) {
-        this.lock.lock();
+        this.readLock.lock();
         try {
             this.delegate.forEach(action);
         } finally {
-            this.lock.unlock();
+            this.readLock.unlock();
         }
     }
 

@@ -25,9 +25,13 @@ import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.collections.collection.lock.AutoLockedCollection;
 import net.daporkchop.lib.collections.collection.lock.DefaultLockedCollection;
 import net.daporkchop.lib.collections.collection.lock.LockedCollection;
+import net.daporkchop.lib.collections.collection.rw.AutoReadWriteCollection;
+import net.daporkchop.lib.collections.collection.rw.DefaultReadWriteCollection;
+import net.daporkchop.lib.collections.collection.rw.ReadWriteCollection;
 
 import java.util.Collection;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
 
 /**
  * @author DaPorkchop_
@@ -35,26 +39,62 @@ import java.util.concurrent.locks.Lock;
 @UtilityClass
 public class PCollections {
     public static <V> LockedCollection<V> locked(@NonNull Collection<V> collection, boolean lockAutomatically) {
-        return lockAutomatically ? autoLocked(collection) : locked(collection);
+        return lockAutomatically ? lockedAuto(collection) : locked(collection);
     }
 
     public static <V> LockedCollection<V> locked(@NonNull Collection<V> collection) {
         return new DefaultLockedCollection<>(collection);
     }
 
-    public static <V> LockedCollection<V> autoLocked(@NonNull Collection<V> collection) {
+    public static <V> LockedCollection<V> lockedAuto(@NonNull Collection<V> collection) {
         return new AutoLockedCollection<>(collection);
     }
 
     public static <V> LockedCollection<V> locked(@NonNull Collection<V> collection, @NonNull Lock lock, boolean lockAutomatically) {
-        return lockAutomatically ? autoLocked(collection, lock) : locked(collection, lock);
+        return lockAutomatically ? lockedAuto(collection, lock) : locked(collection, lock);
     }
 
     public static <V> LockedCollection<V> locked(@NonNull Collection<V> collection, @NonNull Lock lock) {
         return new DefaultLockedCollection<>(collection, lock);
     }
 
-    public static <V> LockedCollection<V> autoLocked(@NonNull Collection<V> collection, @NonNull Lock lock) {
+    public static <V> LockedCollection<V> lockedAuto(@NonNull Collection<V> collection, @NonNull Lock lock) {
         return new AutoLockedCollection<>(collection, lock);
+    }
+
+    public static <V> ReadWriteCollection<V> readWrite(@NonNull Collection<V> collection, boolean lockAutomatically) {
+        return lockAutomatically ? readWriteAuto(collection) : readWrite(collection);
+    }
+
+    public static <V> ReadWriteCollection<V> readWrite(@NonNull Collection<V> collection) {
+        return new DefaultReadWriteCollection<>(collection);
+    }
+
+    public static <V> ReadWriteCollection<V> readWriteAuto(@NonNull Collection<V> collection) {
+        return new AutoReadWriteCollection<>(collection);
+    }
+
+    public static <V> ReadWriteCollection<V> readWrite(@NonNull Collection<V> collection, @NonNull ReadWriteLock lock, boolean lockAutomatically) {
+        return lockAutomatically ? readWriteAuto(collection, lock) : readWrite(collection, lock);
+    }
+
+    public static <V> ReadWriteCollection<V> readWrite(@NonNull Collection<V> collection, @NonNull ReadWriteLock lock) {
+        return new DefaultReadWriteCollection<>(collection, lock);
+    }
+
+    public static <V> ReadWriteCollection<V> readWriteAuto(@NonNull Collection<V> collection, @NonNull ReadWriteLock lock) {
+        return new AutoReadWriteCollection<>(collection, lock);
+    }
+
+    public static <V> ReadWriteCollection<V> readWrite(@NonNull Collection<V> collection, @NonNull Lock readLock, @NonNull Lock writeLock, boolean lockAutomatically) {
+        return lockAutomatically ? readWriteAuto(collection, readLock, writeLock) : readWrite(collection, readLock, writeLock);
+    }
+
+    public static <V> ReadWriteCollection<V> readWrite(@NonNull Collection<V> collection, @NonNull Lock readLock, @NonNull Lock writeLock) {
+        return new DefaultReadWriteCollection<>(collection, readLock, writeLock);
+    }
+
+    public static <V> ReadWriteCollection<V> readWriteAuto(@NonNull Collection<V> collection, @NonNull Lock readLock, @NonNull Lock writeLock) {
+        return new AutoReadWriteCollection<>(collection, readLock, writeLock);
     }
 }

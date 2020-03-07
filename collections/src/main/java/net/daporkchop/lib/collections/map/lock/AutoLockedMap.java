@@ -49,9 +49,9 @@ public class AutoLockedMap<K, V> implements LockedMap<K, V> {
     @NonNull
     protected final Lock      lock;
 
-    protected LockedSet<K>           keySet;
-    protected LockedCollection<V>    values;
-    protected LockedSet<Entry<K, V>> entrySet;
+    protected volatile LockedSet<K>           keySet;
+    protected volatile LockedCollection<V>    values;
+    protected volatile LockedSet<Entry<K, V>> entrySet;
 
     public AutoLockedMap(@NonNull Map<K, V> delegate) {
         this(delegate, new ReentrantLock());
@@ -207,7 +207,7 @@ public class AutoLockedMap<K, V> implements LockedMap<K, V> {
         try {
             LockedSet<K> keySet = this.keySet;
             if (keySet == null) {
-                this.keySet = keySet = PSets.autoLockedSet(this.delegate.keySet(), this.lock);
+                this.keySet = keySet = PSets.lockedAuto(this.delegate.keySet(), this.lock);
             }
             return keySet;
         } finally {
@@ -221,7 +221,7 @@ public class AutoLockedMap<K, V> implements LockedMap<K, V> {
         try {
             LockedCollection<V> values = this.values;
             if (values == null) {
-                this.values = values = PCollections.autoLockedCollection(this.delegate.values(), this.lock);
+                this.values = values = PCollections.lockedAuto(this.delegate.values(), this.lock);
             }
             return values;
         } finally {
@@ -235,7 +235,7 @@ public class AutoLockedMap<K, V> implements LockedMap<K, V> {
         try {
             LockedSet<Entry<K, V>> entrySet = this.entrySet;
             if (entrySet == null) {
-                this.entrySet = entrySet = PSets.autoLockedSet(this.delegate.entrySet(), this.lock);
+                this.entrySet = entrySet = PSets.lockedAuto(this.delegate.entrySet(), this.lock);
             }
             return entrySet;
         } finally {

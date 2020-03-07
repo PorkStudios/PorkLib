@@ -18,90 +18,83 @@
  *
  */
 
-package net.daporkchop.lib.collections.map.lock;
+package net.daporkchop.lib.collections.map.rw;
 
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.collections.collection.PCollections;
-import net.daporkchop.lib.collections.collection.lock.LockedCollection;
+import net.daporkchop.lib.collections.collection.rw.ReadWriteCollection;
+import net.daporkchop.lib.collections.map.PMaps;
+import net.daporkchop.lib.collections.map.lock.LockedMap;
 import net.daporkchop.lib.collections.set.PSets;
-import net.daporkchop.lib.collections.set.lock.LockedSet;
+import net.daporkchop.lib.collections.set.rw.ReadWriteSet;
 
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
- * Wrapper implementation of {@link LockedMap} around a normal {@link Map} and a {@link Lock}.
+ * Wrapper implementation of {@link ReadWriteMap} around a normal {@link Map} and a {@link ReadWriteLock}.
  *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-public class DefaultLockedMap<K, V> implements LockedMap<K, V> {
+@Accessors(fluent = true)
+public class DefaultReadWriteMap<K, V> implements ReadWriteMap<K, V> {
     @NonNull
     protected final Map<K, V> delegate;
+
+    @Getter
     @NonNull
-    protected final Lock      lock;
+    protected final Lock readLock;
+    @Getter
+    @NonNull
+    protected final Lock writeLock;
 
-    protected volatile LockedSet<K>           keySet;
-    protected volatile LockedCollection<V>    values;
-    protected volatile LockedSet<Entry<K, V>> entrySet;
+    protected volatile LockedMap<K, V>           readLocked;
+    protected volatile LockedMap<K, V>           writeLocked;
+    protected volatile ReadWriteSet<K>           keySet;
+    protected volatile ReadWriteCollection<V>    values;
+    protected volatile ReadWriteSet<Entry<K, V>> entrySet;
 
-    public DefaultLockedMap(@NonNull Map<K, V> delegate)    {
-        this(delegate, new ReentrantLock());
+    public DefaultReadWriteMap(@NonNull Map<K, V> delegate) {
+        this(delegate, new ReentrantReadWriteLock());
     }
 
-    //
-    //
-    // lock methods
-    //
-    //
-
-    @Override
-    public DefaultLockedMap<K, V> lockAndGet() {
-        this.lock.lock();
-        return this;
+    public DefaultReadWriteMap(@NonNull Map<K, V> delegate, @NonNull ReadWriteLock lock) {
+        this(delegate, lock.readLock(), lock.writeLock());
     }
 
     @Override
-    public DefaultLockedMap<K, V> lockAndGetInterruptibly() throws InterruptedException {
-        this.lock.lockInterruptibly();
-        return this;
+    public LockedMap<K, V> readLocked() {
+        LockedMap<K, V> readLocked = this.readLocked;
+        if (readLocked == null) {
+            synchronized (this.delegate) {
+                if ((readLocked = this.readLocked) == null) {
+                    this.readLocked = readLocked = PMaps.locked(this.delegate, this.readLock);
+                }
+            }
+        }
+        return readLocked;
     }
 
     @Override
-    public void lock() {
-        this.lock.lock();
-    }
-
-    @Override
-    public void lockInterruptibly() throws InterruptedException {
-        this.lock.lockInterruptibly();
-    }
-
-    @Override
-    public boolean tryLock() {
-        return this.lock.tryLock();
-    }
-
-    @Override
-    public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
-        return this.lock.tryLock(time, unit);
-    }
-
-    @Override
-    public void unlock() {
-        this.lock.unlock();
-    }
-
-    @Override
-    public Condition newCondition() {
-        return this.lock.newCondition();
+    public LockedMap<K, V> writeLocked() {
+        LockedMap<K, V> writeLocked = this.writeLocked;
+        if (writeLocked == null) {
+            synchronized (this.delegate) {
+                if ((writeLocked = this.writeLocked) == null) {
+                    this.writeLocked = writeLocked = PMaps.locked(this.delegate, this.writeLock);
+                }
+            }
+        }
+        return writeLocked;
     }
 
     //
@@ -156,12 +149,12 @@ public class DefaultLockedMap<K, V> implements LockedMap<K, V> {
     }
 
     @Override
-    public LockedSet<K> keySet() {
-        LockedSet<K> keySet = this.keySet;
+    public ReadWriteSet<K> keySet() {
+        ReadWriteSet<K> keySet = this.keySet;
         if (keySet == null) {
             synchronized (this.delegate) {
                 if ((keySet = this.keySet) == null) {
-                    this.keySet = keySet = PSets.locked(this.delegate.keySet(), this.lock);
+                    this.keySet = keySet = PSets.readWrite(this.delegate.keySet(), this.readLock, this.writeLock);
                 }
             }
         }
@@ -169,12 +162,12 @@ public class DefaultLockedMap<K, V> implements LockedMap<K, V> {
     }
 
     @Override
-    public LockedCollection<V> values() {
-        LockedCollection<V> values = this.values;
+    public ReadWriteCollection<V> values() {
+        ReadWriteCollection<V> values = this.values;
         if (values == null) {
             synchronized (this.delegate) {
                 if ((values = this.values) == null) {
-                    this.values = values = PCollections.locked(this.delegate.values(), this.lock);
+                    this.values = values = PCollections.readWrite(this.delegate.values(), this.readLock, this.writeLock);
                 }
             }
         }
@@ -182,12 +175,12 @@ public class DefaultLockedMap<K, V> implements LockedMap<K, V> {
     }
 
     @Override
-    public LockedSet<Entry<K, V>> entrySet() {
-        LockedSet<Entry<K, V>> entrySet = this.entrySet;
+    public ReadWriteSet<Entry<K, V>> entrySet() {
+        ReadWriteSet<Entry<K, V>> entrySet = this.entrySet;
         if (entrySet == null) {
             synchronized (this.delegate) {
                 if ((entrySet = this.entrySet) == null) {
-                    this.entrySet = entrySet = PSets.locked(this.delegate.entrySet(), this.lock);
+                    this.entrySet = entrySet = PSets.readWrite(this.delegate.entrySet(), this.readLock, this.writeLock);
                 }
             }
         }

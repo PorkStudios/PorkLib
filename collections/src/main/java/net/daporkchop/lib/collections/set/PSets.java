@@ -25,9 +25,13 @@ import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.collections.set.lock.AutoLockedSet;
 import net.daporkchop.lib.collections.set.lock.DefaultLockedSet;
 import net.daporkchop.lib.collections.set.lock.LockedSet;
+import net.daporkchop.lib.collections.set.rw.AutoReadWriteSet;
+import net.daporkchop.lib.collections.set.rw.DefaultReadWriteSet;
+import net.daporkchop.lib.collections.set.rw.ReadWriteSet;
 
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
 
 /**
  * @author DaPorkchop_
@@ -35,26 +39,62 @@ import java.util.concurrent.locks.Lock;
 @UtilityClass
 public class PSets {
     public static <V> LockedSet<V> locked(@NonNull Set<V> set, boolean lockAutomatically) {
-        return lockAutomatically ? autoLocked(set) : locked(set);
+        return lockAutomatically ? lockedAuto(set) : locked(set);
     }
 
     public static <V> LockedSet<V> locked(@NonNull Set<V> set) {
         return new DefaultLockedSet<>(set);
     }
 
-    public static <V> LockedSet<V> autoLocked(@NonNull Set<V> set) {
+    public static <V> LockedSet<V> lockedAuto(@NonNull Set<V> set) {
         return new AutoLockedSet<>(set);
     }
 
     public static <V> LockedSet<V> locked(@NonNull Set<V> set, @NonNull Lock lock, boolean lockAutomatically) {
-        return lockAutomatically ? autoLocked(set, lock) : locked(set, lock);
+        return lockAutomatically ? lockedAuto(set, lock) : locked(set, lock);
     }
 
     public static <V> LockedSet<V> locked(@NonNull Set<V> set, @NonNull Lock lock) {
         return new DefaultLockedSet<>(set, lock);
     }
 
-    public static <V> LockedSet<V> autoLocked(@NonNull Set<V> set, @NonNull Lock lock) {
+    public static <V> LockedSet<V> lockedAuto(@NonNull Set<V> set, @NonNull Lock lock) {
         return new AutoLockedSet<>(set, lock);
+    }
+
+    public static <V> ReadWriteSet<V> readWrite(@NonNull Set<V> set, boolean lockAutomatically) {
+        return lockAutomatically ? readWriteAuto(set) : readWrite(set);
+    }
+
+    public static <V> ReadWriteSet<V> readWrite(@NonNull Set<V> set) {
+        return new DefaultReadWriteSet<>(set);
+    }
+
+    public static <V> ReadWriteSet<V> readWriteAuto(@NonNull Set<V> set) {
+        return new AutoReadWriteSet<>(set);
+    }
+
+    public static <V> ReadWriteSet<V> readWrite(@NonNull Set<V> set, @NonNull ReadWriteLock lock, boolean lockAutomatically) {
+        return lockAutomatically ? readWriteAuto(set, lock) : readWrite(set, lock);
+    }
+
+    public static <V> ReadWriteSet<V> readWrite(@NonNull Set<V> set, @NonNull ReadWriteLock lock) {
+        return new DefaultReadWriteSet<>(set, lock);
+    }
+
+    public static <V> ReadWriteSet<V> readWriteAuto(@NonNull Set<V> set, @NonNull ReadWriteLock lock) {
+        return new AutoReadWriteSet<>(set, lock);
+    }
+
+    public static <V> ReadWriteSet<V> readWrite(@NonNull Set<V> set, @NonNull Lock readLock, @NonNull Lock writeLock, boolean lockAutomatically) {
+        return lockAutomatically ? readWriteAuto(set, readLock, writeLock) : readWrite(set, readLock, writeLock);
+    }
+
+    public static <V> ReadWriteSet<V> readWrite(@NonNull Set<V> set, @NonNull Lock readLock, @NonNull Lock writeLock) {
+        return new DefaultReadWriteSet<>(set, readLock, writeLock);
+    }
+
+    public static <V> ReadWriteSet<V> readWriteAuto(@NonNull Set<V> set, @NonNull Lock readLock, @NonNull Lock writeLock) {
+        return new AutoReadWriteSet<>(set, readLock, writeLock);
     }
 }

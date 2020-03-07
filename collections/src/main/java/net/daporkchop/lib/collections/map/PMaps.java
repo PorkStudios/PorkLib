@@ -25,9 +25,13 @@ import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.collections.map.lock.AutoLockedMap;
 import net.daporkchop.lib.collections.map.lock.DefaultLockedMap;
 import net.daporkchop.lib.collections.map.lock.LockedMap;
+import net.daporkchop.lib.collections.map.rw.AutoReadWriteMap;
+import net.daporkchop.lib.collections.map.rw.DefaultReadWriteMap;
+import net.daporkchop.lib.collections.map.rw.ReadWriteMap;
 
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
 
 /**
  * Helper methods for dealing with maps.
@@ -37,26 +41,62 @@ import java.util.concurrent.locks.Lock;
 @UtilityClass
 public class PMaps {
     public static <K, V> LockedMap<K, V> locked(@NonNull Map<K, V> map, boolean lockAutomatically) {
-        return lockAutomatically ? autoLocked(map) : locked(map);
+        return lockAutomatically ? lockedAuto(map) : locked(map);
     }
 
     public static <K, V> LockedMap<K, V> locked(@NonNull Map<K, V> map) {
         return new DefaultLockedMap<>(map);
     }
 
-    public static <K, V> LockedMap<K, V> autoLocked(@NonNull Map<K, V> map) {
+    public static <K, V> LockedMap<K, V> lockedAuto(@NonNull Map<K, V> map) {
         return new AutoLockedMap<>(map);
     }
 
     public static <K, V> LockedMap<K, V> locked(@NonNull Map<K, V> map, @NonNull Lock lock, boolean lockAutomatically) {
-        return lockAutomatically ? autoLocked(map, lock) : locked(map, lock);
+        return lockAutomatically ? lockedAuto(map, lock) : locked(map, lock);
     }
 
     public static <K, V> LockedMap<K, V> locked(@NonNull Map<K, V> map, @NonNull Lock lock) {
         return new DefaultLockedMap<>(map, lock);
     }
 
-    public static <K, V> LockedMap<K, V> autoLocked(@NonNull Map<K, V> map, @NonNull Lock lock) {
+    public static <K, V> LockedMap<K, V> lockedAuto(@NonNull Map<K, V> map, @NonNull Lock lock) {
         return new AutoLockedMap<>(map, lock);
+    }
+
+    public static <K, V>ReadWriteMap<K, V> readWrite(@NonNull Map<K, V> map, boolean lockAutomatically) {
+        return lockAutomatically ? readWriteAuto(map) : readWrite(map);
+    }
+
+    public static <K, V>ReadWriteMap<K, V> readWrite(@NonNull Map<K, V> map) {
+        return new DefaultReadWriteMap<>(map);
+    }
+
+    public static <K, V>ReadWriteMap<K, V> readWriteAuto(@NonNull Map<K, V> map) {
+        return new AutoReadWriteMap<>(map);
+    }
+
+    public static <K, V>ReadWriteMap<K, V> readWrite(@NonNull Map<K, V> map, @NonNull ReadWriteLock lock, boolean lockAutomatically) {
+        return lockAutomatically ? readWriteAuto(map, lock) : readWrite(map, lock);
+    }
+
+    public static <K, V>ReadWriteMap<K, V> readWrite(@NonNull Map<K, V> map, @NonNull ReadWriteLock lock) {
+        return new DefaultReadWriteMap<>(map, lock);
+    }
+
+    public static <K, V>ReadWriteMap<K, V> readWriteAuto(@NonNull Map<K, V> map, @NonNull ReadWriteLock lock) {
+        return new AutoReadWriteMap<>(map, lock);
+    }
+
+    public static <K, V>ReadWriteMap<K, V> readWrite(@NonNull Map<K, V> map, @NonNull Lock readLock, @NonNull Lock writeLock, boolean lockAutomatically) {
+        return lockAutomatically ? readWriteAuto(map, readLock, writeLock) : readWrite(map, readLock, writeLock);
+    }
+
+    public static <K, V>ReadWriteMap<K, V> readWrite(@NonNull Map<K, V> map, @NonNull Lock readLock, @NonNull Lock writeLock) {
+        return new DefaultReadWriteMap<>(map, readLock, writeLock);
+    }
+
+    public static <K, V>ReadWriteMap<K, V> readWriteAuto(@NonNull Map<K, V> map, @NonNull Lock readLock, @NonNull Lock writeLock) {
+        return new AutoReadWriteMap<>(map, readLock, writeLock);
     }
 }

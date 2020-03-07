@@ -18,84 +18,78 @@
  *
  */
 
-package net.daporkchop.lib.collections.collection.lock;
+package net.daporkchop.lib.collections.collection.rw;
 
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.collections.collection.PCollections;
+import net.daporkchop.lib.collections.collection.lock.LockedCollection;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Spliterator;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 /**
- * Wrapper implementation of {@link LockedCollection} around a normal {@link Collection} and a {@link Lock}.
+ * Wrapper implementation of {@link ReadWriteCollection} around a normal {@link Collection} and a {@link ReadWriteLock}.
  *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-public class DefaultLockedCollection<V> implements LockedCollection<V> {
+@Accessors(fluent = true)
+public class DefaultReadWriteCollection<V> implements ReadWriteCollection<V> {
     @NonNull
     protected final Collection<V> delegate;
+
+    @Getter
     @NonNull
-    protected final Lock          lock;
+    protected final Lock readLock;
+    @Getter
+    @NonNull
+    protected final Lock writeLock;
 
-    public DefaultLockedCollection(@NonNull Collection<V> delegate) {
-        this(delegate, new ReentrantLock());
+    protected volatile LockedCollection<V> readLocked;
+    protected volatile LockedCollection<V> writeLocked;
+
+    public DefaultReadWriteCollection(@NonNull Collection<V> delegate) {
+        this(delegate, new ReentrantReadWriteLock());
     }
 
-    //
-    //
-    // lock methods
-    //
-    //
-
-    @Override
-    public DefaultLockedCollection<V> lockAndGet() {
-        this.lock.lock();
-        return this;
-    }
-
-    @Override
-    public DefaultLockedCollection<V> lockAndGetInterruptibly() throws InterruptedException {
-        this.lock.lockInterruptibly();
-        return this;
+    public DefaultReadWriteCollection(@NonNull Collection<V> delegate, @NonNull ReadWriteLock lock) {
+        this(delegate, lock.readLock(), lock.writeLock());
     }
 
     @Override
-    public void lock() {
-        this.lock.lock();
+    public LockedCollection<V> readLocked() {
+        LockedCollection<V> readLocked = this.readLocked;
+        if (readLocked == null) {
+            synchronized (this.delegate) {
+                if ((readLocked = this.readLocked) == null)  {
+                    this.readLocked = readLocked = PCollections.locked(this.delegate, this.readLock);
+                }
+            }
+        }
+        return readLocked;
     }
 
     @Override
-    public void lockInterruptibly() throws InterruptedException {
-        this.lock.lockInterruptibly();
-    }
-
-    @Override
-    public boolean tryLock() {
-        return this.lock.tryLock();
-    }
-
-    @Override
-    public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
-        return this.lock.tryLock(time, unit);
-    }
-
-    @Override
-    public void unlock() {
-        this.lock.unlock();
-    }
-
-    @Override
-    public Condition newCondition() {
-        return this.lock.newCondition();
+    public LockedCollection<V> writeLocked() {
+        LockedCollection<V> writeLocked = this.writeLocked;
+        if (writeLocked == null) {
+            synchronized (this.delegate) {
+                if ((writeLocked = this.writeLocked) == null)  {
+                    this.writeLocked = writeLocked = PCollections.locked(this.delegate, this.writeLock);
+                }
+            }
+        }
+        return writeLocked;
     }
 
     //

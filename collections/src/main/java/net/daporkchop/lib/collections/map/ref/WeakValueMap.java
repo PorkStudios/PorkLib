@@ -18,20 +18,26 @@
  *
  */
 
-package net.daporkchop.lib.common.ref.impl;
+package net.daporkchop.lib.collections.map.ref;
 
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.common.ref.Ref;
+import lombok.NonNull;
+import net.daporkchop.lib.common.ref.ReferenceType;
+import net.daporkchop.lib.common.ref.attachment.AttachedRef;
+
+import java.lang.ref.ReferenceQueue;
+import java.util.Map;
 
 /**
+ * A wrapper around a {@link Map} which weakly references its values.
+ *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-public final class StrongRef<V> implements Ref<V> {
-    protected final V value;
+public class WeakValueMap<K, V> implements Map<K, V> {
+    protected final ReferenceQueue<V> queue = new ReferenceQueue<>();
+    protected final ReferenceType type;
 
-    @Override
-    public V get() {
-        return this.value;
+    protected final Map<K, Entry<K, V>> delegate;
+
+    public WeakValueMap(@NonNull Map<K, AttachedRef<V, K>> delegate, @NonNull ReferenceType ref)    {
     }
 }

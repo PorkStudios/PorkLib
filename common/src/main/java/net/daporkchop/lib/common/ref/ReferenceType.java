@@ -22,10 +22,8 @@ package net.daporkchop.lib.common.ref;
 
 import net.daporkchop.lib.common.ref.attachment.AttachedRef;
 import net.daporkchop.lib.common.ref.attachment.SoftAttachedRef;
-import net.daporkchop.lib.common.ref.attachment.StrongAttachedRef;
 import net.daporkchop.lib.common.ref.attachment.WeakAttachedRef;
 import net.daporkchop.lib.common.ref.impl.SoftRef;
-import net.daporkchop.lib.common.ref.impl.StrongRef;
 import net.daporkchop.lib.common.ref.impl.WeakRef;
 
 import java.lang.ref.ReferenceQueue;
@@ -36,17 +34,6 @@ import java.lang.ref.ReferenceQueue;
  * @author DaPorkchop_
  */
 public enum ReferenceType {
-    STRONG {
-        @Override
-        public <V> Ref<V> create(V value, ReferenceQueue<? super V> queue) {
-            return new StrongRef<>(value);
-        }
-
-        @Override
-        public <V, A> AttachedRef<V, A> createAttached(V value, A attachment, ReferenceQueue<? super V> queue) {
-            return new StrongAttachedRef<>(value, attachment);
-        }
-    },
     SOFT {
         @Override
         public <V> Ref<V> create(V value, ReferenceQueue<? super V> queue) {

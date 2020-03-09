@@ -31,26 +31,15 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.concurrent.PFuture;
-import net.daporkchop.lib.concurrent.PScheduledFuture;
 import net.daporkchop.lib.concurrent.future.DefaultPFuture;
 import net.daporkchop.lib.concurrent.future.runnable.RunnableCallablePFuture;
 import net.daporkchop.lib.concurrent.future.runnable.RunnablePFuture;
 import net.daporkchop.lib.concurrent.future.runnable.RunnableWithResultPFuture;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
-import static net.daporkchop.lib.common.util.PorkUtil.*;
 
 /**
  * Wraps a Java {@link Executor} into a Netty {@link EventExecutor} (as well as realistically possible).
@@ -58,8 +47,6 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
 public class JavaExecutorAsEventExecutor<E extends Executor> extends AbstractEventExecutor implements EventExecutor {
     @NonNull
     protected final E delegate;
@@ -148,26 +135,6 @@ public class JavaExecutorAsEventExecutor<E extends Executor> extends AbstractEve
         RunnableCallablePFuture<T> future = new RunnableCallablePFuture<>(this, task);
         this.execute(future);
         return future;
-    }
-
-    @Override
-    public PScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <V> PScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public PScheduledFuture<?> scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public PScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit) {
-        throw new UnsupportedOperationException();
     }
 
     @Override

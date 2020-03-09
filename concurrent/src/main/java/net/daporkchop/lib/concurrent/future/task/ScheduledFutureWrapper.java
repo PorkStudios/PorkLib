@@ -18,33 +18,63 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.future;
+package net.daporkchop.lib.concurrent.future.task;
 
+import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.ScheduledFuture;
 import lombok.NonNull;
-import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.concurrent.PScheduledFuture;
 
+import java.util.concurrent.Callable;
 import java.util.concurrent.Delayed;
+import java.util.concurrent.RunnableScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Wraps a Netty {@link ScheduledFuture} into a {@link PScheduledFuture}.
- *
  * @author DaPorkchop_
  */
-public class NettyScheduledFutureWrapper<V> extends NettyFutureWrapper<V> implements PScheduledFuture<V> {
-    public NettyScheduledFutureWrapper(@NonNull ScheduledFuture<V> delegate) {
-        super(delegate);
+public class ScheduledFutureWrapper<V> extends BasePromiseTask<V> implements RunnableScheduledFuture<V>, ScheduledFuture<V> {
+    private final RunnableScheduledFuture<V> delegate;
+
+    public ScheduledFutureWrapper(EventExecutor executor, Runnable runnable, V result, @NonNull RunnableScheduledFuture<V> delegate) {
+        super(executor, runnable, result);
+
+        this.delegate = delegate;
+    }
+
+    public ScheduledFutureWrapper(EventExecutor executor, Callable<V> callable, @NonNull RunnableScheduledFuture<V> delegate) {
+        super(executor, callable);
+
+        this.delegate = delegate;
+    }
+
+    @Override
+    public void run() {
+        if (!this.isPeriodic()) {
+            super.run();
+        } else if (!this.isDone()) {
+            try {
+                // Its a periodic task so we need to ignore the return value
+                this.task.call();
+            } catch (Throwable cause) {
+                if (!this.tryFailureInternal(cause)) {
+                    new RuntimeException("Failure during execution of task", cause).printStackTrace(System.err);
+                }
+            }
+        }
+    }
+
+    @Override
+    public boolean isPeriodic() {
+        return this.delegate.isPeriodic();
     }
 
     @Override
     public long getDelay(TimeUnit unit) {
-        return PorkUtil.<ScheduledFuture<?>>uncheckedCast(this.delegate).getDelay(unit);
+        return this.delegate.getDelay(unit);
     }
 
     @Override
     public int compareTo(Delayed o) {
-        return PorkUtil.<ScheduledFuture<?>>uncheckedCast(this.delegate).compareTo(o);
+        return this.delegate.compareTo(o);
     }
 }

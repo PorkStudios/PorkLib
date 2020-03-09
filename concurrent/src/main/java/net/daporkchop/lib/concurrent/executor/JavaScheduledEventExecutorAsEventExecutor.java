@@ -21,12 +21,9 @@
 package net.daporkchop.lib.concurrent.executor;
 
 import io.netty.util.concurrent.EventExecutor;
-import io.netty.util.concurrent.Future;
-import net.daporkchop.lib.concurrent.PScheduledFuture;
+import io.netty.util.concurrent.ScheduledFuture;
 
-import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -41,22 +38,22 @@ public class JavaScheduledEventExecutorAsEventExecutor<E extends ScheduledExecut
     }
 
     @Override
-    public PScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
+    public ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
+        this.delegate.schedule(command, delay, unit);
+    }
+
+    @Override
+    public <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <V> PScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit) {
+    public ScheduledFuture<?> scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public PScheduledFuture<?> scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public PScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit) {
+    public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit) {
         throw new UnsupportedOperationException();
     }
 }

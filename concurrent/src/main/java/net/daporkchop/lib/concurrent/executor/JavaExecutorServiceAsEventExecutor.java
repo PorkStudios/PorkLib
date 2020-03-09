@@ -21,34 +21,10 @@
 package net.daporkchop.lib.concurrent.executor;
 
 import io.netty.util.concurrent.EventExecutor;
-import io.netty.util.concurrent.EventExecutorGroup;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.ProgressivePromise;
-import io.netty.util.concurrent.Promise;
-import io.netty.util.concurrent.ScheduledFuture;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.util.PValidation;
-import net.daporkchop.lib.concurrent.PFuture;
-import net.daporkchop.lib.concurrent.PScheduledFuture;
-import net.daporkchop.lib.concurrent.future.DefaultPFuture;
-import net.daporkchop.lib.concurrent.future.runnable.RunnableCallablePFuture;
-import net.daporkchop.lib.concurrent.future.runnable.RunnablePFuture;
-import net.daporkchop.lib.concurrent.future.runnable.RunnableWithResultPFuture;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * Wraps a Java {@link ExecutorService} into a Netty {@link EventExecutor} (as well as realistically possible).

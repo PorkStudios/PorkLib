@@ -54,7 +54,7 @@ public interface PFuture<V> extends Future<V>, CompletionStage<V> {
      * @return the {@link ExecutorService} that handles asynchronous execution for this {@link PFuture}
      */
     default EventExecutor executor() {
-        return ForkJoinPool.commonPool();
+        return PExecutors.toNettyExecutor(ForkJoinPool.commonPool());
     }
 
     //Future methods

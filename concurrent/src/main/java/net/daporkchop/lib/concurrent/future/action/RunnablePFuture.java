@@ -18,26 +18,48 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.executor;
+package net.daporkchop.lib.concurrent.future.action;
 
-import io.netty.util.concurrent.EventExecutorGroup;
-import lombok.Getter;
+import io.netty.util.concurrent.EventExecutor;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
+import net.daporkchop.lib.concurrent.future.DefaultPFuture;
 
-import java.util.concurrent.Executor;
+import static net.daporkchop.lib.unsafe.PUnsafe.*;
 
 /**
- * Wraps a Java {@link Executor} into a Netty {@link EventExecutorGroup} (as well as realistically possible).
+ * A {@link net.daporkchop.lib.concurrent.PFuture} which will be completed with the result of a {@link Runnable} task.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-//TODO: implement
-public class JavaExecutorAsEventExecutorGroup implements EventExecutorGroup {
-    @NonNull
-    protected final Executor delegate;
+public class RunnablePFuture extends DefaultPFuture<Void> implements Runnable {
+    protected static final long STARTED_OFFSET = pork_getOffset(RunnablePFuture.class, "started");
+
+    protected Runnable task;
+    protected volatile int started = 0;
+
+    public RunnablePFuture(@NonNull EventExecutor executor, @NonNull Runnable task) {
+        super(executor);
+
+        this.task = task;
+    }
+
+    @Override
+    public void run() {
+        if (!compareAndSwapInt(this, STARTED_OFFSET, 0, 1)) {
+            throw new IllegalStateException("Already started!");
+        } else if (this.isCancelled()) {
+            //do nothing if cancelled
+            return;
+        }
+
+        try {
+            this.task.run();
+            this.trySuccess(null);
+        } catch (Throwable t) {
+            this.tryFailure(t);
+        } finally {
+            //allow GC
+            this.task = null;
+        }
+    }
 }

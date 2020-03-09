@@ -21,24 +21,83 @@
 package net.daporkchop.lib.concurrent.future;
 
 import io.netty.util.concurrent.DefaultPromise;
+import io.netty.util.concurrent.EventExecutor;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.concurrent.PFuture;
 
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
+ * Default implementation of {@link PFuture}
+ *
  * @author DaPorkchop_
  */
 public class DefaultPFuture<V> extends DefaultPromise<V> implements PFuture<V> {
+    public DefaultPFuture(@NonNull EventExecutor executor) {
+        super(executor);
+    }
+
     @Override
-    public ExecutorService executor() {
-        return null;
+    public EventExecutor executor() {
+        return super.executor();
+    }
+
+    @Override
+    public DefaultPFuture<V> await() throws InterruptedException {
+        super.await();
+        return this;
+    }
+
+    @Override
+    public DefaultPFuture<V> awaitUninterruptibly() {
+        super.awaitUninterruptibly();
+        return this;
+    }
+
+    @Override
+    public DefaultPFuture<V> addListener(GenericFutureListener<? extends Future<? super V>> listener) {
+        super.addListener(listener);
+        return this;
+    }
+
+    @Override
+    public DefaultPFuture<V> addListeners(GenericFutureListener<? extends Future<? super V>>... listeners) {
+        super.addListeners(listeners);
+        return this;
+    }
+
+    @Override
+    public DefaultPFuture<V> removeListener(GenericFutureListener<? extends Future<? super V>> listener) {
+        super.removeListener(listener);
+        return this;
+    }
+
+    @Override
+    public DefaultPFuture<V> removeListeners(GenericFutureListener<? extends Future<? super V>>... listeners) {
+        super.removeListeners(listeners);
+        return this;
+    }
+
+    @Override
+    public DefaultPFuture<V> sync() throws InterruptedException {
+        super.sync();
+        return this;
+    }
+
+    @Override
+    public DefaultPFuture<V> syncUninterruptibly() {
+        super.syncUninterruptibly();
+        return this;
     }
 
     @Override

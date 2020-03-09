@@ -18,7 +18,7 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.future.action;
+package net.daporkchop.lib.concurrent.future.runnable;
 
 import io.netty.util.concurrent.EventExecutor;
 import lombok.NonNull;
@@ -27,8 +27,8 @@ import net.daporkchop.lib.concurrent.future.DefaultPFuture;
 import static net.daporkchop.lib.unsafe.PUnsafe.*;
 
 /**
- * A {@link net.daporkchop.lib.concurrent.PFuture} which will be completed with the result of a {@link Runnable} task and has
- * a fixed result value.
+ * A {@link net.daporkchop.lib.concurrent.PFuture} which, when run will be completed with the result of a {@link Runnable} task
+ * and has a pre-determined result value.
  *
  * @author DaPorkchop_
  */

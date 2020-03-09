@@ -30,16 +30,21 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.util.PValidation;
+import net.daporkchop.lib.concurrent.PFuture;
 import net.daporkchop.lib.concurrent.future.DefaultPFuture;
-import net.daporkchop.lib.concurrent.future.action.RunnablePFuture;
-import net.daporkchop.lib.concurrent.future.action.RunnableWithResultPFuture;
+import net.daporkchop.lib.concurrent.future.runnable.RunnableCallablePFuture;
+import net.daporkchop.lib.concurrent.future.runnable.RunnablePFuture;
+import net.daporkchop.lib.concurrent.future.runnable.RunnableWithResultPFuture;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -82,7 +87,7 @@ public class JavaExecutorAsEventExecutor<E extends Executor> implements EventExe
 
     @Override
     public List<Runnable> shutdownNow() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -121,87 +126,139 @@ public class JavaExecutorAsEventExecutor<E extends Executor> implements EventExe
     }
 
     @Override
-    public <V> Future<V> newSucceededFuture(V result) {
+    public <V> PFuture<V> newSucceededFuture(V result) {
         return null;
     }
 
     @Override
-    public <V> Future<V> newFailedFuture(Throwable cause) {
+    public <V> PFuture<V> newFailedFuture(Throwable cause) {
         return null;
     }
 
     @Override
-    public Future<?> submit(Runnable task) {
+    public PFuture<?> submit(Runnable task) {
         RunnablePFuture future = new RunnablePFuture(this, task);
         this.delegate.execute(future);
         return future;
     }
 
     @Override
-    public <T> Future<T> submit(Runnable task, T result) {
+    public <T> PFuture<T> submit(Runnable task, T result) {
         RunnableWithResultPFuture<T> future = new RunnableWithResultPFuture<>(this, task, result);
         this.delegate.execute(future);
         return future;
     }
 
     @Override
-    public <T> Future<T> submit(Callable<T> task) {
-        return null;
+    public <T> PFuture<T> submit(Callable<T> task) {
+        RunnableCallablePFuture<T> future = new RunnableCallablePFuture<>(this, task);
+        this.delegate.execute(future);
+        return future;
     }
 
     @Override
     public ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public ScheduledFuture<?> scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean isShutdown() {
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean isTerminated() {
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public <T> List<java.util.concurrent.Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) throws InterruptedException {
-        return null;
+        List<java.util.concurrent.Future<T>> list = new ArrayList<>(tasks.size());
+        for (Callable<T> task : tasks) {
+            list.add(this.submit(task));
+        }
+        return list;
     }
 
     @Override
     public <T> List<java.util.concurrent.Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public <T> T invokeAny(Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
-        return null;
+        int size = PValidation.ensurePositive(tasks.size());
+        List<java.util.concurrent.Future<T>> list = new ArrayList<>(size);
+        ExecutorCompletionService<T> ecs = new ExecutorCompletionService<>(this);
+
+        try {
+            ExecutionException ee = null;
+            Iterator<? extends Callable<T>> it = tasks.iterator();
+
+            list.add(ecs.submit(it.next()));
+            size--;
+            int active = 1;
+
+            for (; ; ) {
+                java.util.concurrent.Future<T> f = ecs.poll();
+                if (f == null) {
+                    if (size > 0) {
+                        size--;
+                        list.add(ecs.submit(it.next()));
+                        active++;
+                    } else if (active != 0) {
+                        f = ecs.take();
+                    } else {
+                        break;
+                    }
+                }
+
+                if (f != null) {
+                    active--;
+                    try {
+                        return f.get();
+                    } catch (ExecutionException eex) {
+                        ee = eex;
+                    } catch (RuntimeException rex) {
+                        ee = new ExecutionException(rex);
+                    }
+                }
+            }
+
+            if (ee == null) {
+                ee = new ExecutionException(new IllegalStateException("nothing happened?!?"));
+            }
+            throw ee;
+        } finally {
+            for (java.util.concurrent.Future<T> future : list) {
+                future.cancel(true);
+            }
+        }
     }
 
     @Override
     public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override

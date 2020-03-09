@@ -25,6 +25,7 @@ import io.netty.util.concurrent.EventExecutorGroup;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.concurrent.executor.JavaExecutorAsEventExecutor;
+import net.daporkchop.lib.concurrent.executor.JavaExecutorServiceAsEventExecutor;
 
 import java.util.Collections;
 import java.util.Map;
@@ -48,8 +49,8 @@ public class PExecutors {
             return (EventExecutorGroup) executor;
         } else if (false && executor instanceof ScheduledExecutorService) {
             throw new UnsupportedOperationException();
-        } else if (false && executor instanceof ExecutorService) {
-            throw new UnsupportedOperationException();
+        } else if (executor instanceof ExecutorService) {
+            return new JavaExecutorServiceAsEventExecutor<>((ExecutorService) executor);
         } else {
             return new JavaExecutorAsEventExecutor<>(executor);
         }

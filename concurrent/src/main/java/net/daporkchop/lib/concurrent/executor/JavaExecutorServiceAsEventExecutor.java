@@ -20,7 +20,6 @@
 
 package net.daporkchop.lib.concurrent.executor;
 
-import io.netty.util.concurrent.AbstractEventExecutor;
 import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.EventExecutorGroup;
 import io.netty.util.concurrent.Future;
@@ -47,25 +46,27 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static net.daporkchop.lib.common.util.PorkUtil.*;
-
 /**
- * Wraps a Java {@link Executor} into a Netty {@link EventExecutor} (as well as realistically possible).
+ * Wraps a Java {@link ExecutorService} into a Netty {@link EventExecutor} (as well as realistically possible).
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-public class JavaExecutorAsEventExecutor<E extends Executor> extends AbstractEventExecutor implements EventExecutor {
-    @NonNull
-    protected final E delegate;
+public class JavaExecutorServiceAsEventExecutor<E extends ExecutorService> extends JavaExecutorAsEventExecutor<E> {
+    public JavaExecutorServiceAsEventExecutor(E delegate) {
+        super(delegate);
+    }
 
     @Override
     public boolean isShuttingDown() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Future<?> shutdownGracefully() {
         throw new UnsupportedOperationException();
     }
 
@@ -81,73 +82,27 @@ public class JavaExecutorAsEventExecutor<E extends Executor> extends AbstractEve
 
     @Override
     public void shutdown() {
-        throw new UnsupportedOperationException();
+        this.delegate.shutdown();
+    }
+
+    @Override
+    public List<Runnable> shutdownNow() {
+        return this.delegate.shutdownNow();
     }
 
     @Override
     public boolean isShutdown() {
-        throw new UnsupportedOperationException();
+        return this.delegate.isShutdown();
     }
 
     @Override
     public boolean isTerminated() {
-        throw new UnsupportedOperationException();
+        return this.delegate.isTerminated();
     }
 
     @Override
     public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public EventExecutorGroup parent() {
-        return this;
-    }
-
-    @Override
-    public boolean inEventLoop(Thread thread) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <V> Promise<V> newPromise() {
-        return new DefaultPFuture<>(this);
-    }
-
-    @Override
-    public <V> ProgressivePromise<V> newProgressivePromise() {
-        return null;
-    }
-
-    @Override
-    public <V> PFuture<V> newSucceededFuture(V result) {
-        return null;
-    }
-
-    @Override
-    public <V> PFuture<V> newFailedFuture(Throwable cause) {
-        return null;
-    }
-
-    @Override
-    public PFuture<?> submit(Runnable task) {
-        RunnablePFuture future = new RunnablePFuture(this, task);
-        this.execute(future);
-        return future;
-    }
-
-    @Override
-    public <T> PFuture<T> submit(Runnable task, T result) {
-        RunnableWithResultPFuture<T> future = new RunnableWithResultPFuture<>(this, task, result);
-        this.execute(future);
-        return future;
-    }
-
-    @Override
-    public <T> PFuture<T> submit(Callable<T> task) {
-        RunnableCallablePFuture<T> future = new RunnableCallablePFuture<>(this, task);
-        this.execute(future);
-        return future;
+        return this.delegate.awaitTermination(timeout, unit);
     }
 
     @Override
@@ -168,10 +123,5 @@ public class JavaExecutorAsEventExecutor<E extends Executor> extends AbstractEve
     @Override
     public PScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit) {
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void execute(Runnable command) {
-        this.delegate.execute(command);
     }
 }

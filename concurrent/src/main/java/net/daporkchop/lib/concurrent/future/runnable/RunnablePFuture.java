@@ -47,16 +47,15 @@ public class RunnablePFuture extends DefaultPFuture<Void> implements Runnable {
     public void run() {
         if (!compareAndSwapInt(this, STARTED_OFFSET, 0, 1)) {
             throw new IllegalStateException("Already started!");
-        } else if (this.isCancelled()) {
-            //do nothing if cancelled
-            return;
         }
 
         try {
-            this.task.run();
-            this.trySuccess(null);
+            if (this.setUncancellable()) {
+                this.task.run();
+                this.setSuccess(null);
+            }
         } catch (Throwable t) {
-            this.tryFailure(t);
+            this.setFailure(t);
         } finally {
             //allow GC
             this.task = null;

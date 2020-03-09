@@ -18,48 +18,45 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.future.runnable;
+package net.daporkchop.lib.concurrent.executor;
 
 import io.netty.util.concurrent.EventExecutor;
-import lombok.NonNull;
-import net.daporkchop.lib.concurrent.future.DefaultPFuture;
+import io.netty.util.concurrent.Future;
+import net.daporkchop.lib.concurrent.PScheduledFuture;
 
+import java.util.List;
 import java.util.concurrent.Callable;
-
-import static net.daporkchop.lib.unsafe.PUnsafe.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
- * A {@link net.daporkchop.lib.concurrent.PFuture} which, when run will be completed with the result of a {@link Callable} task.
+ * Wraps a Java {@link ScheduledExecutorService} into a Netty {@link EventExecutor} (as well as realistically possible).
  *
  * @author DaPorkchop_
  */
-public class RunnableCallablePFuture<V> extends DefaultPFuture<V> implements Runnable {
-    protected static final long STARTED_OFFSET = pork_getOffset(RunnableCallablePFuture.class, "started");
-
-    protected Callable<V> task;
-    protected volatile int started = 0;
-
-    public RunnableCallablePFuture(@NonNull EventExecutor executor, @NonNull Callable<V> task) {
-        super(executor);
-
-        this.task = task;
+public class JavaScheduledEventExecutorAsEventExecutor<E extends ScheduledExecutorService> extends JavaExecutorServiceAsEventExecutor<E> {
+    public JavaScheduledEventExecutorAsEventExecutor(E delegate) {
+        super(delegate);
     }
 
     @Override
-    public void run() {
-        if (!compareAndSwapInt(this, STARTED_OFFSET, 0, 1)) {
-            throw new IllegalStateException("Already started!");
-        }
+    public PScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
+        throw new UnsupportedOperationException();
+    }
 
-        try {
-            if (this.setUncancellable())    {
-                this.setSuccess(this.task.call());
-            }
-        } catch (Throwable t) {
-            this.setFailure(t);
-        } finally {
-            //allow GC
-            this.task = null;
-        }
+    @Override
+    public <V> PScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public PScheduledFuture<?> scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public PScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit) {
+        throw new UnsupportedOperationException();
     }
 }

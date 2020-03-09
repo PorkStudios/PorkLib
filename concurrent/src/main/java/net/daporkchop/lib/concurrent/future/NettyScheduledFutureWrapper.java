@@ -18,48 +18,33 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.future.runnable;
+package net.daporkchop.lib.concurrent.future;
 
-import io.netty.util.concurrent.EventExecutor;
+import io.netty.util.concurrent.ScheduledFuture;
 import lombok.NonNull;
-import net.daporkchop.lib.concurrent.future.DefaultPFuture;
+import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.concurrent.PScheduledFuture;
 
-import java.util.concurrent.Callable;
-
-import static net.daporkchop.lib.unsafe.PUnsafe.*;
+import java.util.concurrent.Delayed;
+import java.util.concurrent.TimeUnit;
 
 /**
- * A {@link net.daporkchop.lib.concurrent.PFuture} which, when run will be completed with the result of a {@link Callable} task.
+ * Wraps a Netty {@link ScheduledFuture} into a {@link PScheduledFuture}.
  *
  * @author DaPorkchop_
  */
-public class RunnableCallablePFuture<V> extends DefaultPFuture<V> implements Runnable {
-    protected static final long STARTED_OFFSET = pork_getOffset(RunnableCallablePFuture.class, "started");
-
-    protected Callable<V> task;
-    protected volatile int started = 0;
-
-    public RunnableCallablePFuture(@NonNull EventExecutor executor, @NonNull Callable<V> task) {
-        super(executor);
-
-        this.task = task;
+public class NettyScheduledFutureWrapper<V> extends NettyFutureWrapper<V> implements PScheduledFuture<V> {
+    public NettyScheduledFutureWrapper(@NonNull ScheduledFuture<V> delegate) {
+        super(delegate);
     }
 
     @Override
-    public void run() {
-        if (!compareAndSwapInt(this, STARTED_OFFSET, 0, 1)) {
-            throw new IllegalStateException("Already started!");
-        }
+    public long getDelay(TimeUnit unit) {
+        return PorkUtil.<ScheduledFuture<?>>uncheckedCast(this.delegate).getDelay(unit);
+    }
 
-        try {
-            if (this.setUncancellable())    {
-                this.setSuccess(this.task.call());
-            }
-        } catch (Throwable t) {
-            this.setFailure(t);
-        } finally {
-            //allow GC
-            this.task = null;
-        }
+    @Override
+    public int compareTo(Delayed o) {
+        return PorkUtil.<ScheduledFuture<?>>uncheckedCast(this.delegate).compareTo(o);
     }
 }

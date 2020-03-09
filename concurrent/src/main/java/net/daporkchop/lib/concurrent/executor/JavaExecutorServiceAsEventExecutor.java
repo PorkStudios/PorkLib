@@ -61,31 +61,12 @@ public class JavaExecutorServiceAsEventExecutor<E extends ExecutorService> exten
     }
 
     @Override
-    public boolean isShuttingDown() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Future<?> shutdownGracefully() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Future<?> shutdownGracefully(long quietPeriod, long timeout, TimeUnit unit) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Future<?> terminationFuture() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public void shutdown() {
         this.delegate.shutdown();
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public List<Runnable> shutdownNow() {
         return this.delegate.shutdownNow();
     }
@@ -103,25 +84,5 @@ public class JavaExecutorServiceAsEventExecutor<E extends ExecutorService> exten
     @Override
     public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
         return this.delegate.awaitTermination(timeout, unit);
-    }
-
-    @Override
-    public PScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <V> PScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public PScheduledFuture<?> scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public PScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit) {
-        throw new UnsupportedOperationException();
     }
 }

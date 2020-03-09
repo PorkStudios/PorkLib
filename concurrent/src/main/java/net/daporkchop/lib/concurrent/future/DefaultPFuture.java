@@ -38,7 +38,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
- * Default implementation of {@link PFuture}
+ * Default base implementation of {@link PFuture}.
  *
  * @author DaPorkchop_
  */

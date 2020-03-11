@@ -22,31 +22,52 @@ package net.daporkchop.lib.concurrent.future.completion;
 
 import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GenericFutureListener;
 import lombok.NonNull;
-import net.daporkchop.lib.concurrent.future.DefaultPFuture;
+
+import static net.daporkchop.lib.unsafe.PUnsafe.*;
 
 /**
- * An abstract representation of a task which will be executed upon completion of another {@link Future}.
+ * A {@link CompletionTask} which awaits the completion of two separate {@link java.util.concurrent.CompletionStage}s.
  *
  * @author DaPorkchop_
  */
-public abstract class CompletionTask<V, R> extends DefaultPFuture<R> implements GenericFutureListener<Future<V>> {
-    public CompletionTask(@NonNull EventExecutor executor) {
+public abstract class BothBiCompletionTask<V, U, R> extends CompletionTask<V, R> {
+    protected static final long RUN_OFFSET = pork_getOffset(BothBiCompletionTask.class, "run");
+
+    protected Future<V> primary;
+    protected Future<U> secondary;
+
+    protected volatile int run = 0;
+
+    public BothBiCompletionTask(@NonNull EventExecutor executor, @NonNull Future<V> primary, @NonNull Future<U> secondary) {
         super(executor);
+
+        if (primary == secondary) {
+            throw new IllegalStateException("primary may not be the same as secondary!");
+        }
+
+        this.primary = primary;
+        this.secondary = secondary;
     }
 
     @Override
     public void operationComplete(Future<V> future) throws Exception {
-        if (future.isSuccess()) {
-            try {
-                this.trySuccess(this.computeResult(future.getNow()));
-            } catch (Exception e) {
-                this.tryFailure(e);
-                throw e;
+        if (future != this.primary && future != this.secondary) {
+            throw new IllegalArgumentException();
+        } else if (future.isSuccess()) {
+            if (this.primary.isSuccess() && this.secondary.isSuccess() && compareAndSwapInt(this, RUN_OFFSET, 0, 1)) {
+                try {
+                    this.setSuccess(this.computeResult(this.primary.getNow(), this.secondary.getNow()));
+                } catch (Exception e) {
+                    this.tryFailure(e);
+                    throw e;
+                } finally {
+                    this.primary = null;
+                    this.secondary = null;
+                }
             }
         } else {
-            if (future.isCancelled())   {
+            if (future.isCancelled()) {
                 this.cancel(true);
             } else {
                 this.tryFailure(future.cause());
@@ -55,7 +76,17 @@ public abstract class CompletionTask<V, R> extends DefaultPFuture<R> implements 
         }
     }
 
-    protected abstract R computeResult(V value) throws Exception;
+    protected abstract R computeResult(V v1, U v2) throws Exception;
 
-    protected abstract void handleFailure(@NonNull Throwable cause);
+    @Override
+    protected final R computeResult(V value) throws Exception {
+        //no-op
+        return null;
+    }
+
+    @Override
+    protected void handleFailure(@NonNull Throwable cause) {
+        this.primary = null;
+        this.secondary = null;
+    }
 }

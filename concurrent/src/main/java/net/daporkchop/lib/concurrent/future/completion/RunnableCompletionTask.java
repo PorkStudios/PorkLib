@@ -29,21 +29,26 @@ import lombok.NonNull;
  * @author DaPorkchop_
  */
 public class RunnableCompletionTask<V> extends CompletionTask<V, Void> {
-    protected Runnable task;
+    protected Runnable action;
 
-    public RunnableCompletionTask(@NonNull EventExecutor executor, @NonNull Runnable task) {
+    public RunnableCompletionTask(@NonNull EventExecutor executor, @NonNull Runnable action) {
         super(executor);
 
-        this.task = task;
+        this.action = action;
     }
 
     @Override
-    protected Void computeResult(V prev) throws Exception {
+    protected Void computeResult(V value) throws Exception {
         try {
-            this.task.run();
+            this.action.run();
             return null;
         } finally {
-            this.task = null;
+            this.action = null;
         }
+    }
+
+    @Override
+    protected void handleFailure(@NonNull Throwable cause) {
+        this.action = null;
     }
 }

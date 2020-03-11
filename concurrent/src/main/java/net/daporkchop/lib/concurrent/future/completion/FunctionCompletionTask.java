@@ -21,41 +21,35 @@
 package net.daporkchop.lib.concurrent.future.completion;
 
 import io.netty.util.concurrent.EventExecutor;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GenericFutureListener;
 import lombok.NonNull;
-import net.daporkchop.lib.concurrent.future.DefaultPFuture;
+
+import java.util.function.Function;
 
 /**
- * An abstract representation of a task which will be executed upon completion of another {@link Future}.
+ * A {@link CompletionTask} which will execute a {@link Function}.
  *
  * @author DaPorkchop_
  */
-public abstract class CompletionTask<V, R> extends DefaultPFuture<R> implements GenericFutureListener<Future<V>> {
-    public CompletionTask(@NonNull EventExecutor executor) {
+public class FunctionCompletionTask<V, R> extends CompletionTask<V, R> {
+    protected Function<? super V, ? extends R> action;
+
+    public FunctionCompletionTask(@NonNull EventExecutor executor, @NonNull Function<? super V, ? extends R> action) {
         super(executor);
+
+        this.action = action;
     }
 
     @Override
-    public void operationComplete(Future<V> future) throws Exception {
-        if (future.isSuccess()) {
-            try {
-                this.trySuccess(this.computeResult(future.getNow()));
-            } catch (Exception e) {
-                this.tryFailure(e);
-                throw e;
-            }
-        } else {
-            if (future.isCancelled())   {
-                this.cancel(true);
-            } else {
-                this.tryFailure(future.cause());
-            }
-            this.handleFailure(future.cause());
+    protected R computeResult(V value) throws Exception {
+        try {
+            return this.action.apply(value);
+        } finally {
+            this.action = null;
         }
     }
 
-    protected abstract R computeResult(V value) throws Exception;
-
-    protected abstract void handleFailure(@NonNull Throwable cause);
+    @Override
+    protected void handleFailure(@NonNull Throwable cause) {
+        this.action = null;
+    }
 }

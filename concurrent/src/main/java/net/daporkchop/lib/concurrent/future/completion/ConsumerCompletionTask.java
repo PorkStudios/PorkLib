@@ -21,41 +21,36 @@
 package net.daporkchop.lib.concurrent.future.completion;
 
 import io.netty.util.concurrent.EventExecutor;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GenericFutureListener;
 import lombok.NonNull;
-import net.daporkchop.lib.concurrent.future.DefaultPFuture;
+
+import java.util.function.Consumer;
 
 /**
- * An abstract representation of a task which will be executed upon completion of another {@link Future}.
+ * A {@link CompletionTask} which will execute a {@link Consumer}.
  *
  * @author DaPorkchop_
  */
-public abstract class CompletionTask<V, R> extends DefaultPFuture<R> implements GenericFutureListener<Future<V>> {
-    public CompletionTask(@NonNull EventExecutor executor) {
+public class ConsumerCompletionTask<V> extends CompletionTask<V, Void> {
+    protected Consumer<V> action;
+
+    public ConsumerCompletionTask(@NonNull EventExecutor executor, @NonNull Consumer<V> action) {
         super(executor);
+
+        this.action = action;
     }
 
     @Override
-    public void operationComplete(Future<V> future) throws Exception {
-        if (future.isSuccess()) {
-            try {
-                this.trySuccess(this.computeResult(future.getNow()));
-            } catch (Exception e) {
-                this.tryFailure(e);
-                throw e;
-            }
-        } else {
-            if (future.isCancelled())   {
-                this.cancel(true);
-            } else {
-                this.tryFailure(future.cause());
-            }
-            this.handleFailure(future.cause());
+    protected Void computeResult(V value) throws Exception {
+        try {
+            this.action.accept(value);
+            return null;
+        } finally {
+            this.action = null;
         }
     }
 
-    protected abstract R computeResult(V value) throws Exception;
-
-    protected abstract void handleFailure(@NonNull Throwable cause);
+    @Override
+    protected void handleFailure(@NonNull Throwable cause) {
+        this.action = null;
+    }
 }

@@ -24,10 +24,7 @@ import io.netty.util.concurrent.DefaultPromise;
 import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
 import net.daporkchop.lib.concurrent.PFuture;
 
 import java.util.concurrent.CompletionStage;
@@ -98,36 +95,6 @@ public class DefaultPFuture<V> extends DefaultPromise<V> implements PFuture<V> {
     public DefaultPFuture<V> syncUninterruptibly() {
         super.syncUninterruptibly();
         return this;
-    }
-
-    @Override
-    public <U> PFuture<U> thenApply(@NonNull Function<? super V, ? extends U> fn) {
-        return null;
-    }
-
-    @Override
-    public <U> PFuture<U> thenApplyAsync(@NonNull Function<? super V, ? extends U> fn, @NonNull Executor executor) {
-        return null;
-    }
-
-    @Override
-    public PFuture<Void> thenAccept(@NonNull Consumer<? super V> action) {
-        return null;
-    }
-
-    @Override
-    public PFuture<Void> thenAcceptAsync(@NonNull Consumer<? super V> action, @NonNull Executor executor) {
-        return null;
-    }
-
-    @Override
-    public <U, V1> CompletionStage<V1> thenCombine(@NonNull CompletionStage<? extends U> other, @NonNull BiFunction<? super V, ? super U, ? extends V1> fn) {
-        return null;
-    }
-
-    @Override
-    public <U, V1> CompletionStage<V1> thenCombineAsync(@NonNull CompletionStage<? extends U> other, @NonNull BiFunction<? super V, ? super U, ? extends V1> fn, @NonNull Executor executor) {
-        return null;
     }
 
     @Override

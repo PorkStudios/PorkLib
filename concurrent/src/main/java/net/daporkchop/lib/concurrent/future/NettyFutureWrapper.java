@@ -164,36 +164,6 @@ public class NettyFutureWrapper<V> implements PFuture<V> {
     }
 
     @Override
-    public <U> PFuture<U> thenApply(@NonNull Function<? super V, ? extends U> fn) {
-        return null;
-    }
-
-    @Override
-    public <U> PFuture<U> thenApplyAsync(@NonNull Function<? super V, ? extends U> fn, @NonNull Executor executor) {
-        return null;
-    }
-
-    @Override
-    public PFuture<Void> thenAccept(@NonNull Consumer<? super V> action) {
-        return null;
-    }
-
-    @Override
-    public PFuture<Void> thenAcceptAsync(@NonNull Consumer<? super V> action, @NonNull Executor executor) {
-        return null;
-    }
-
-    @Override
-    public <U, V1> CompletionStage<V1> thenCombine(@NonNull CompletionStage<? extends U> other, @NonNull BiFunction<? super V, ? super U, ? extends V1> fn) {
-        return null;
-    }
-
-    @Override
-    public <U, V1> CompletionStage<V1> thenCombineAsync(@NonNull CompletionStage<? extends U> other, @NonNull BiFunction<? super V, ? super U, ? extends V1> fn, @NonNull Executor executor) {
-        return null;
-    }
-
-    @Override
     public <U> PFuture<Void> thenAcceptBoth(@NonNull CompletionStage<? extends U> other, @NonNull BiConsumer<? super V, ? super U> action) {
         return null;
     }

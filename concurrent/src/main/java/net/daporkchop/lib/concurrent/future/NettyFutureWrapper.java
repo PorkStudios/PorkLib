@@ -184,16 +184,6 @@ public class NettyFutureWrapper<V> implements PFuture<V> {
     }
 
     @Override
-    public PFuture<Void> thenRun(@NonNull Runnable action) {
-        return null;
-    }
-
-    @Override
-    public PFuture<Void> thenRunAsync(@NonNull Runnable action, @NonNull Executor executor) {
-        return null;
-    }
-
-    @Override
     public <U, V1> CompletionStage<V1> thenCombine(@NonNull CompletionStage<? extends U> other, @NonNull BiFunction<? super V, ? super U, ? extends V1> fn) {
         return null;
     }

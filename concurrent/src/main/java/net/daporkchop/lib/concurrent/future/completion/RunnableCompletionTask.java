@@ -18,42 +18,32 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.executor;
+package net.daporkchop.lib.concurrent.future.completion;
 
 import io.netty.util.concurrent.EventExecutor;
-import io.netty.util.concurrent.ScheduledFuture;
-
-import java.util.concurrent.Callable;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import lombok.NonNull;
 
 /**
- * Wraps a Java {@link ScheduledExecutorService} into a Netty {@link EventExecutor} (as well as realistically possible).
+ * A {@link CompletionTask} which will execute a {@link Runnable}.
  *
  * @author DaPorkchop_
  */
-public class JavaScheduledEventExecutorAsEventExecutor<E extends ScheduledExecutorService> extends JavaExecutorServiceAsEventExecutor<E> {
-    public JavaScheduledEventExecutorAsEventExecutor(E delegate) {
-        super(delegate);
+public class RunnableCompletionTask<V> extends CompletionTask<V, Void> {
+    protected Runnable task;
+
+    public RunnableCompletionTask(@NonNull EventExecutor executor, @NonNull Runnable task) {
+        super(executor);
+
+        this.task = task;
     }
 
     @Override
-    public ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
-        this.delegate.schedule(command, delay, unit);
-    }
-
-    @Override
-    public <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public ScheduledFuture<?> scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit) {
-        throw new UnsupportedOperationException();
+    protected Void computeResult(V prev) throws Exception {
+        try {
+            this.task.run();
+            return null;
+        } finally {
+            this.task = null;
+        }
     }
 }

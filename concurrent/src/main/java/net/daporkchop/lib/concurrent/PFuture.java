@@ -23,7 +23,10 @@ package net.daporkchop.lib.concurrent;
 import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
+import io.netty.util.concurrent.ImmediateEventExecutor;
 import lombok.NonNull;
+import net.daporkchop.lib.concurrent.future.DefaultPFuture;
+import net.daporkchop.lib.concurrent.future.completion.RunnableCompletionTask;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -55,6 +58,16 @@ public interface PFuture<V> extends Future<V>, CompletionStage<V> {
      */
     default EventExecutor executor() {
         return PExecutors.toNettyExecutor(ForkJoinPool.commonPool());
+    }
+
+    /**
+     * Gets a new {@link PFuture} using the same executor as this one.
+     *
+     * @param <U> the new {@link PFuture}'s value type
+     * @return the new {@link PFuture}
+     */
+    default <U> PFuture<U> split() {
+        return new DefaultPFuture<>(this.executor());
     }
 
     //Future methods
@@ -130,7 +143,9 @@ public interface PFuture<V> extends Future<V>, CompletionStage<V> {
     PFuture<Void> thenAcceptAsync(@NonNull Consumer<? super V> action, @NonNull Executor executor);
 
     @Override
-    PFuture<Void> thenRun(@NonNull Runnable action);
+    default PFuture<Void> thenRun(@NonNull Runnable action) {
+        return this.thenRunAsync(action, ImmediateEventExecutor.INSTANCE);
+    }
 
     @Override
     default PFuture<Void> thenRunAsync(@NonNull Runnable action) {
@@ -138,7 +153,12 @@ public interface PFuture<V> extends Future<V>, CompletionStage<V> {
     }
 
     @Override
-    PFuture<Void> thenRunAsync(@NonNull Runnable action, @NonNull Executor executor);
+    default PFuture<Void> thenRunAsync(@NonNull Runnable action, @NonNull Executor executor) {
+        EventExecutor eventExecutor = PExecutors.toNettyExecutor(executor);
+        RunnableCompletionTask<V> future = new RunnableCompletionTask<>(eventExecutor, action);
+        this.addListener(future);
+        return future;
+    }
 
     @Override
     <U, V1> CompletionStage<V1> thenCombine(@NonNull CompletionStage<? extends U> other, @NonNull BiFunction<? super V, ? super U, ? extends V1> fn);

@@ -32,11 +32,12 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Function;
 
+import static net.daporkchop.lib.common.util.PorkUtil.*;
+
 /**
- * Helper class for dealing with
+ * Helper class for dealing with {@link Executor} and its various extensions.
  *
  * @author DaPorkchop_
  */
@@ -46,9 +47,7 @@ public class PExecutors {
 
     private final Function<Executor, EventExecutorGroup> GLOBAL_EXECUTOR_CALCULATOR = executor -> {
         if (executor instanceof EventExecutorGroup) {
-            return (EventExecutorGroup) executor;
-        } else if (false && executor instanceof ScheduledExecutorService) {
-            throw new UnsupportedOperationException();
+            throw new IllegalStateException(className(executor));
         } else if (executor instanceof ExecutorService) {
             return new JavaExecutorServiceAsEventExecutor<>((ExecutorService) executor);
         } else {
@@ -57,10 +56,18 @@ public class PExecutors {
     };
 
     public static EventExecutorGroup toNettyExecutorGroup(@NonNull Executor executor) {
-        return GLOBAL_EXECUTORS_TO_GROUPS.computeIfAbsent(executor, GLOBAL_EXECUTOR_CALCULATOR);
+        if (executor instanceof EventExecutorGroup) {
+            return (EventExecutorGroup) executor;
+        } else {
+            return GLOBAL_EXECUTORS_TO_GROUPS.computeIfAbsent(executor, GLOBAL_EXECUTOR_CALCULATOR);
+        }
     }
 
     public static EventExecutor toNettyExecutor(@NonNull Executor executor) {
-        return toNettyExecutorGroup(executor).next();
+        if (executor instanceof EventExecutor) {
+            return (EventExecutor) executor;
+        } else {
+            return toNettyExecutorGroup(executor).next();
+        }
     }
 }

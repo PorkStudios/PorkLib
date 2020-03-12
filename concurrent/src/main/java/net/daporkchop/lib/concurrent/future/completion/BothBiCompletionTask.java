@@ -22,8 +22,11 @@ package net.daporkchop.lib.concurrent.future.completion;
 
 import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 import lombok.NonNull;
+import net.daporkchop.lib.concurrent.future.DefaultPFuture;
 
+import static net.daporkchop.lib.common.util.PorkUtil.*;
 import static net.daporkchop.lib.unsafe.PUnsafe.*;
 
 /**
@@ -31,15 +34,16 @@ import static net.daporkchop.lib.unsafe.PUnsafe.*;
  *
  * @author DaPorkchop_
  */
-public abstract class BothBiCompletionTask<V, U, R> extends CompletionTask<V, R> {
-    protected static final long RUN_OFFSET = pork_getOffset(BothBiCompletionTask.class, "run");
+public abstract class BothBiCompletionTask<V, U, R> extends DefaultPFuture<R> implements GenericFutureListener<Future<?>> {
+    protected static final long PRIMARY_OFFSET   = pork_getOffset(BothBiCompletionTask.class, "primary");
+    protected static final long SECONDARY_OFFSET = pork_getOffset(BothBiCompletionTask.class, "secondary");
 
-    protected Future<V> primary;
-    protected Future<U> secondary;
+    protected volatile Future<V> primary;
+    protected volatile Future<U> secondary;
 
-    protected volatile int run = 0;
+    protected final boolean fork;
 
-    public BothBiCompletionTask(@NonNull EventExecutor executor, @NonNull Future<V> primary, @NonNull Future<U> secondary) {
+    public BothBiCompletionTask(@NonNull EventExecutor executor, @NonNull Future<V> primary, @NonNull Future<U> secondary, boolean fork) {
         super(executor);
 
         if (primary == secondary) {
@@ -48,10 +52,14 @@ public abstract class BothBiCompletionTask<V, U, R> extends CompletionTask<V, R>
 
         this.primary = primary;
         this.secondary = secondary;
+        this.fork = fork;
+
+        primary.addListener(uncheckedCast(primary));
+        secondary.addListener(uncheckedCast(secondary));
     }
 
     @Override
-    public void operationComplete(Future<V> future) throws Exception {
+    public void operationComplete(Future future) throws Exception {
         if (future != this.primary && future != this.secondary) {
             throw new IllegalArgumentException();
         } else if (future.isSuccess()) {

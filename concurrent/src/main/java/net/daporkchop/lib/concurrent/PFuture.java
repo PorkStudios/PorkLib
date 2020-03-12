@@ -49,7 +49,11 @@ import java.util.function.Function;
  * @author DaPorkchop_
  */
 public interface PFuture<V> extends Future<V>, CompletionStage<V> {
+    //
+    //
     //new methods
+    //
+    //
 
     /**
      * Gets the {@link ExecutorService} that handles asynchronous execution for this {@link PFuture}.
@@ -72,7 +76,12 @@ public interface PFuture<V> extends Future<V>, CompletionStage<V> {
         return new DefaultPFuture<>(this.executor());
     }
 
+    //
+    //
     //Future methods
+    //
+    //
+
     @Override
     boolean isSuccess();
 
@@ -121,10 +130,17 @@ public interface PFuture<V> extends Future<V>, CompletionStage<V> {
     @Override
     V getNow();
 
+    //
+    //
     // CompletionStage methods
+    //
+    //
+
+    //apply
+
     @Override
     default <U> PFuture<U> thenApply(@NonNull Function<? super V, ? extends U> fn) {
-        return this.thenApplyAsync(fn, ImmediateEventExecutor.INSTANCE);
+        return new FunctionCompletionTask<>(this.executor(), this, false, fn);
     }
 
     @Override
@@ -135,14 +151,14 @@ public interface PFuture<V> extends Future<V>, CompletionStage<V> {
     @Override
     default <U> PFuture<U> thenApplyAsync(@NonNull Function<? super V, ? extends U> fn, @NonNull Executor executor) {
         EventExecutor eventExecutor = PExecutors.toNettyExecutor(executor);
-        FunctionCompletionTask<V, U> future = new FunctionCompletionTask<>(eventExecutor, fn);
-        this.addListener(future);
-        return future;
+        return new FunctionCompletionTask<>(eventExecutor, this, true, fn);
     }
+
+    //accept
 
     @Override
     default PFuture<Void> thenAccept(@NonNull Consumer<? super V> action) {
-        return this.thenAcceptAsync(action, ImmediateEventExecutor.INSTANCE);
+        return new ConsumerCompletionTask<>(this.executor(), this, true, action);
     }
 
     @Override
@@ -153,14 +169,14 @@ public interface PFuture<V> extends Future<V>, CompletionStage<V> {
     @Override
     default PFuture<Void> thenAcceptAsync(@NonNull Consumer<? super V> action, @NonNull Executor executor) {
         EventExecutor eventExecutor = PExecutors.toNettyExecutor(executor);
-        ConsumerCompletionTask<V> future = new ConsumerCompletionTask<>(eventExecutor, action);
-        this.addListener(future);
-        return future;
+        return new ConsumerCompletionTask<>(eventExecutor, this, true, action);
     }
+
+    //run
 
     @Override
     default PFuture<Void> thenRun(@NonNull Runnable action) {
-        return this.thenRunAsync(action, ImmediateEventExecutor.INSTANCE);
+        return new RunnableCompletionTask<>(this.executor(), this, true, action);
     }
 
     @Override
@@ -171,14 +187,14 @@ public interface PFuture<V> extends Future<V>, CompletionStage<V> {
     @Override
     default PFuture<Void> thenRunAsync(@NonNull Runnable action, @NonNull Executor executor) {
         EventExecutor eventExecutor = PExecutors.toNettyExecutor(executor);
-        RunnableCompletionTask<V> future = new RunnableCompletionTask<>(eventExecutor, action);
-        this.addListener(future);
-        return future;
+        return new RunnableCompletionTask<>(eventExecutor, this, true, action);
     }
+
+    //combine
 
     @Override
     default <U, V1> PFuture<V1> thenCombine(@NonNull CompletionStage<? extends U> other, @NonNull BiFunction<? super V, ? super U, ? extends V1> fn) {
-        return this.thenCombineAsync(other, fn, ImmediateEventExecutor.INSTANCE);
+        //TODO
     }
 
     @Override

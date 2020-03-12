@@ -21,7 +21,9 @@
 package net.daporkchop.lib.concurrent.future.completion;
 
 import io.netty.util.concurrent.EventExecutor;
+import io.netty.util.concurrent.Future;
 import lombok.NonNull;
+import net.daporkchop.lib.concurrent.future.completion.CompletionTask;
 
 import java.util.function.Consumer;
 
@@ -31,10 +33,10 @@ import java.util.function.Consumer;
  * @author DaPorkchop_
  */
 public class ConsumerCompletionTask<V> extends CompletionTask<V, Void> {
-    protected Consumer<V> action;
+    protected Consumer<? super V> action;
 
-    public ConsumerCompletionTask(@NonNull EventExecutor executor, @NonNull Consumer<V> action) {
-        super(executor);
+    public ConsumerCompletionTask(@NonNull EventExecutor executor, @NonNull Future<V> depends, boolean fork, @NonNull Consumer<? super V> action) {
+        super(executor, depends, fork);
 
         this.action = action;
     }
@@ -50,7 +52,9 @@ public class ConsumerCompletionTask<V> extends CompletionTask<V, Void> {
     }
 
     @Override
-    protected void handleFailure(@NonNull Throwable cause) {
+    public boolean tryFailure(Throwable cause) {
         this.action = null;
+
+        return super.tryFailure(cause);
     }
 }

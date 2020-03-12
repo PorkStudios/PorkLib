@@ -21,7 +21,9 @@
 package net.daporkchop.lib.concurrent.future.completion;
 
 import io.netty.util.concurrent.EventExecutor;
+import io.netty.util.concurrent.Future;
 import lombok.NonNull;
+import net.daporkchop.lib.concurrent.future.completion.CompletionTask;
 
 /**
  * A {@link CompletionTask} which will execute a {@link Runnable}.
@@ -31,8 +33,8 @@ import lombok.NonNull;
 public class RunnableCompletionTask<V> extends CompletionTask<V, Void> {
     protected Runnable action;
 
-    public RunnableCompletionTask(@NonNull EventExecutor executor, @NonNull Runnable action) {
-        super(executor);
+    public RunnableCompletionTask(@NonNull EventExecutor executor, @NonNull Future<V> depends, boolean fork, @NonNull Runnable action) {
+        super(executor, depends, fork);
 
         this.action = action;
     }
@@ -48,7 +50,9 @@ public class RunnableCompletionTask<V> extends CompletionTask<V, Void> {
     }
 
     @Override
-    protected void handleFailure(@NonNull Throwable cause) {
+    public boolean tryFailure(Throwable cause) {
         this.action = null;
+
+        return super.tryFailure(cause);
     }
 }

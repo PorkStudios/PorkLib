@@ -28,15 +28,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.concurrent.PFuture;
 
-import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * Wraps a Netty {@link Future} into a {@link PFuture}.
@@ -161,90 +155,5 @@ public class NettyFutureWrapper<V> implements PFuture<V> {
     @Override
     public V get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         return this.delegate.get(timeout, unit);
-    }
-
-    @Override
-    public <U> PFuture<Void> thenAcceptBoth(@NonNull CompletionStage<? extends U> other, @NonNull BiConsumer<? super V, ? super U> action) {
-        return null;
-    }
-
-    @Override
-    public <U> PFuture<Void> thenAcceptBothAsync(@NonNull CompletionStage<? extends U> other, @NonNull BiConsumer<? super V, ? super U> action, @NonNull Executor executor) {
-        return null;
-    }
-
-    @Override
-    public PFuture<Void> runAfterBoth(@NonNull CompletionStage<?> other, @NonNull Runnable action) {
-        return null;
-    }
-
-    @Override
-    public PFuture<Void> runAfterBothAsync(@NonNull CompletionStage<?> other, @NonNull Runnable action, @NonNull Executor executor) {
-        return null;
-    }
-
-    @Override
-    public <U> PFuture<U> applyToEither(@NonNull CompletionStage<? extends V> other, @NonNull Function<? super V, U> fn) {
-        return null;
-    }
-
-    @Override
-    public <U> PFuture<U> applyToEitherAsync(@NonNull CompletionStage<? extends V> other, @NonNull Function<? super V, U> fn, @NonNull Executor executor) {
-        return null;
-    }
-
-    @Override
-    public PFuture<Void> acceptEither(@NonNull CompletionStage<? extends V> other, @NonNull Consumer<? super V> action) {
-        return null;
-    }
-
-    @Override
-    public PFuture<Void> acceptEitherAsync(@NonNull CompletionStage<? extends V> other, @NonNull Consumer<? super V> action, @NonNull Executor executor) {
-        return null;
-    }
-
-    @Override
-    public PFuture<Void> runAfterEither(@NonNull CompletionStage<?> other, @NonNull Runnable action) {
-        return null;
-    }
-
-    @Override
-    public PFuture<Void> runAfterEitherAsync(@NonNull CompletionStage<?> other, @NonNull Runnable action, @NonNull Executor executor) {
-        return null;
-    }
-
-    @Override
-    public <U> PFuture<U> thenCompose(@NonNull Function<? super V, ? extends CompletionStage<U>> fn) {
-        return null;
-    }
-
-    @Override
-    public <U> PFuture<U> thenComposeAsync(@NonNull Function<? super V, ? extends CompletionStage<U>> fn, @NonNull Executor executor) {
-        return null;
-    }
-
-    @Override
-    public PFuture<V> exceptionally(@NonNull Function<Throwable, ? extends V> fn) {
-        return null;
-    }
-
-    @Override
-    public PFuture<V> whenComplete(@NonNull BiConsumer<? super V, ? super Throwable> action) {
-        return null;
-    }
-
-    @Override
-    public PFuture<V> whenCompleteAsync(@NonNull BiConsumer<? super V, ? super Throwable> action, @NonNull Executor executor) {
-        return null;
-    }
-
-    @Override
-    public <U> PFuture<U> handle(@NonNull BiFunction<? super V, Throwable, ? extends U> fn) {
-        return null;
-    }
-
-    @Override
-    public <U> PFuture<U> handleAsync(@NonNull BiFunction<? super V, Throwable, ? extends U> fn, @NonNull Executor executor) {
-        return null;
     }
 }

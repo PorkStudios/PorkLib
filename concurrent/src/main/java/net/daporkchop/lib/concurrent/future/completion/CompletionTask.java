@@ -26,36 +26,66 @@ import io.netty.util.concurrent.GenericFutureListener;
 import lombok.NonNull;
 import net.daporkchop.lib.concurrent.future.DefaultPFuture;
 
+import static net.daporkchop.lib.unsafe.PUnsafe.*;
+
 /**
  * An abstract representation of a task which will be executed upon completion of another {@link Future}.
  *
  * @author DaPorkchop_
  */
-public abstract class CompletionTask<V, R> extends DefaultPFuture<R> implements GenericFutureListener<Future<V>> {
-    public CompletionTask(@NonNull EventExecutor executor) {
+public abstract class CompletionTask<V, R> extends DefaultPFuture<R> implements GenericFutureListener<Future<V>>, Runnable {
+    protected static final long DEPENDS_OFFSET = pork_getOffset(CompletionTask.class, "depends");
+
+    protected volatile Future<V> depends;
+    protected final    boolean   fork;
+
+    public CompletionTask(@NonNull EventExecutor executor, @NonNull Future<V> depends, boolean fork) {
         super(executor);
+
+        this.depends = depends;
+        this.fork = fork;
+
+        depends.addListener(this);
     }
 
     @Override
     public void operationComplete(Future<V> future) throws Exception {
-        if (future.isSuccess()) {
-            try {
-                this.trySuccess(this.computeResult(future.getNow()));
-            } catch (Exception e) {
-                this.tryFailure(e);
-                throw e;
-            }
+        Future<V> depends = this.depends;
+        if (depends == null) {
+            throw new IllegalStateException("already run!");
+        } else if (depends != future) {
+            throw new IllegalArgumentException("wrong future?!?");
+        }
+
+        if (this.fork) {
+            this.executor().submit(this);
         } else {
-            if (future.isCancelled())   {
-                this.cancel(true);
+            this.run();
+        }
+    }
+
+    @Override
+    public void run() {
+        Future<V> depends = pork_swapIfNonNull(this, DEPENDS_OFFSET, null);
+        try {
+            if (depends == null) {
+                throw new IllegalStateException("already run!");
+            } else if (!depends.isDone()) {
+                throw new IllegalStateException("not done?!?");
+            } else if (depends.isSuccess()) {
+                this.trySuccess(this.computeResult(depends.getNow()));
             } else {
-                this.tryFailure(future.cause());
+                if (depends.isCancelled()) {
+                    this.cancel(true);
+                } else {
+                    this.tryFailure(depends.cause());
+                }
             }
-            this.handleFailure(future.cause());
+        } catch (Exception e) {
+            this.tryFailure(e);
+            throwException(e);
         }
     }
 
     protected abstract R computeResult(V value) throws Exception;
-
-    protected abstract void handleFailure(@NonNull Throwable cause);
 }

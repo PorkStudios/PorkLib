@@ -18,29 +18,37 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.future.completion;
+package net.daporkchop.lib.concurrent.future.completion.general;
 
 import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
-import io.netty.util.concurrent.Promise;
 import lombok.NonNull;
 import net.daporkchop.lib.concurrent.future.DefaultPFuture;
+import net.daporkchop.lib.concurrent.future.completion.CompletionTask;
+
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 
 import static net.daporkchop.lib.unsafe.PUnsafe.*;
 
 /**
- * An abstract representation of a task which will be executed upon completion of another {@link Future}.
+ * A {@link CompletionTask} which will compute its own return value from both the value and failure cause to the given {@link BiConsumer}, where
+ * at least one of the two parameters is guaranteed to be null (as a future cannot fail and return a value at once).
  *
  * @author DaPorkchop_
  */
-public abstract class CompletionTask<V, R> extends DefaultPFuture<R> implements GenericFutureListener<Future<V>>, Runnable {
-    protected volatile Future<V> depends;
-    protected final    boolean   fork;
+public class ValueOrCauseFunctionCompletionTask<V, R> extends DefaultPFuture<R> implements GenericFutureListener<Future<V>>, Runnable {
+    protected BiFunction<? super V, Throwable, ? extends R> action;
 
-    public CompletionTask(@NonNull EventExecutor executor, @NonNull Future<V> depends, boolean fork) {
+    protected volatile Future<V> depends;
+
+    protected final boolean fork;
+
+    public ValueOrCauseFunctionCompletionTask(@NonNull EventExecutor executor, @NonNull Future<V> depends, boolean fork, @NonNull BiFunction<? super V, Throwable, ? extends R> action) {
         super(executor);
 
+        this.action = action;
         this.depends = depends;
         this.fork = fork;
 
@@ -55,7 +63,6 @@ public abstract class CompletionTask<V, R> extends DefaultPFuture<R> implements 
         } else if (depends != future) {
             throw new IllegalArgumentException("wrong future?!?");
         }
-
         if (this.fork) {
             this.executor().submit(this);
         } else {
@@ -72,40 +79,18 @@ public abstract class CompletionTask<V, R> extends DefaultPFuture<R> implements 
             } else if (!depends.isDone()) {
                 throw new IllegalStateException("not done?!?");
             } else if (depends.isSuccess()) {
-                this.trySuccess(this.computeResult(depends.getNow()));
+                this.trySuccess(this.action.apply(depends.getNow(), null));
+            } else if (depends.isCancelled()) {
+                this.cancel(true);
             } else {
-                if (depends.isCancelled()) {
-                    this.cancel(true);
-                } else {
-                    this.tryFailure(depends.cause());
-                }
+                this.trySuccess(this.action.apply(null, depends.cause()));
             }
         } catch (Throwable e) {
             this.tryFailure(e);
             throwException(e);
         } finally {
+            this.action = null;
             this.depends = null;
         }
     }
-
-    protected abstract R computeResult(V value) throws Exception;
-
-    @Override
-    public CompletionTask<V, R> setFailure(Throwable cause) {
-        super.setFailure(cause);
-        this.onFailure(cause);
-        return this;
-    }
-
-    @Override
-    public boolean tryFailure(Throwable cause) {
-        if (super.tryFailure(cause))    {
-            this.onFailure(cause);
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    protected abstract void onFailure(Throwable cause);
 }

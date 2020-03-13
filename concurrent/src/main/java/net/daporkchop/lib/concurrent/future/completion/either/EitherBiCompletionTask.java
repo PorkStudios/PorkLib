@@ -87,16 +87,18 @@ public abstract class EitherBiCompletionTask<V, R> extends DefaultPFuture<R> imp
             } else if (!primary.isDone() && !secondary.isDone()) {
                 throw new IllegalStateException("not done?!?");
             } else if (primary.isSuccess()) {
-                if (compareAndSwapInt(this, RUN_OFFSET, 0, 1))  {
+                if (compareAndSwapInt(this, RUN_OFFSET, 0, 1)) {
                     this.trySuccess(this.computeResult(primary.getNow()));
                 }
             } else if (secondary.isSuccess()) {
-                if (compareAndSwapInt(this, RUN_OFFSET, 0, 1))  {
+                if (compareAndSwapInt(this, RUN_OFFSET, 0, 1)) {
                     this.trySuccess(this.computeResult(secondary.getNow()));
                 }
             } else if (primary.isDone() && secondary.isDone()) {
                 //if we get here and both futures have completed, we know that both futures completed unsuccessfully
-                this.tryFailure(primary.cause());
+                if (compareAndSwapInt(this, RUN_OFFSET, 0, 1)) {
+                    this.tryFailure(primary.cause());
+                }
             } else {
                 throw new IllegalStateException("what");
             }
@@ -104,10 +106,8 @@ public abstract class EitherBiCompletionTask<V, R> extends DefaultPFuture<R> imp
             this.tryFailure(e);
             throwException(e);
         } finally {
-            if (this.run != 0) {
-                this.primary = null;
-                this.secondary = null;
-            }
+            this.primary = null;
+            this.secondary = null;
         }
     }
 

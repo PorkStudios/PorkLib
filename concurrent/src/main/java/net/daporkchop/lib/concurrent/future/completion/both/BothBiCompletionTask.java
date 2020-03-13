@@ -36,9 +36,6 @@ import static net.daporkchop.lib.unsafe.PUnsafe.*;
  * @author DaPorkchop_
  */
 public abstract class BothBiCompletionTask<V, U, R> extends DefaultPFuture<R> implements GenericFutureListener<Future<?>>, Runnable {
-    protected static final long PRIMARY_OFFSET   = pork_getOffset(BothBiCompletionTask.class, "primary");
-    protected static final long SECONDARY_OFFSET = pork_getOffset(BothBiCompletionTask.class, "secondary");
-
     protected volatile Future<V> primary;
     protected volatile Future<U> secondary;
 
@@ -79,23 +76,23 @@ public abstract class BothBiCompletionTask<V, U, R> extends DefaultPFuture<R> im
 
     @Override
     public void run() {
-        Future<V> primary = pork_swapIfNonNull(this, PRIMARY_OFFSET, null);
-        Future<U> secondary = pork_swapIfNonNull(this, SECONDARY_OFFSET, null);
+        Future<V> primary = this.primary;
+        Future<U> secondary = this.secondary;
         try {
             if (primary == null || secondary == null) {
                 throw new IllegalStateException("already run!");
             } else if (!primary.isDone() || !secondary.isDone()) {
                 throw new IllegalStateException("not done?!?");
-            } else if (!primary.isSuccess())    {
+            } else if (!primary.isSuccess()) {
                 secondary.cancel(true);
-                if (primary.isCancelled())  {
+                if (primary.isCancelled()) {
                     this.cancel(true);
                 } else {
                     this.tryFailure(primary.cause());
                 }
-            } else if (!secondary.isSuccess())    {
+            } else if (!secondary.isSuccess()) {
                 primary.cancel(true);
-                if (secondary.isCancelled())  {
+                if (secondary.isCancelled()) {
                     this.cancel(true);
                 } else {
                     this.tryFailure(secondary.cause());
@@ -108,6 +105,9 @@ public abstract class BothBiCompletionTask<V, U, R> extends DefaultPFuture<R> im
         } catch (Throwable e) {
             this.tryFailure(e);
             throwException(e);
+        } finally {
+            this.primary = null;
+            this.secondary = null;
         }
     }
 
@@ -122,7 +122,7 @@ public abstract class BothBiCompletionTask<V, U, R> extends DefaultPFuture<R> im
 
     @Override
     public boolean tryFailure(Throwable cause) {
-        if (super.tryFailure(cause))    {
+        if (super.tryFailure(cause)) {
             this.onFailure(cause);
             return true;
         } else {

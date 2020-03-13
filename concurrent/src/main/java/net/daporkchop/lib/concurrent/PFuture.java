@@ -26,15 +26,18 @@ import io.netty.util.concurrent.GenericFutureListener;
 import lombok.NonNull;
 import net.daporkchop.lib.concurrent.future.DefaultPFuture;
 import net.daporkchop.lib.concurrent.future.NettyFutureWrapper;
+import net.daporkchop.lib.concurrent.future.completion.ConsumerCompletionTask;
+import net.daporkchop.lib.concurrent.future.completion.FunctionCompletionTask;
+import net.daporkchop.lib.concurrent.future.completion.RunnableCompletionTask;
 import net.daporkchop.lib.concurrent.future.completion.both.BothBiConsumerCompletionTask;
 import net.daporkchop.lib.concurrent.future.completion.both.BothBiFunctionCompletionTask;
 import net.daporkchop.lib.concurrent.future.completion.both.BothBiRunnableCompletionTask;
-import net.daporkchop.lib.concurrent.future.completion.ConsumerCompletionTask;
 import net.daporkchop.lib.concurrent.future.completion.either.EitherBiConsumerCompletionTask;
 import net.daporkchop.lib.concurrent.future.completion.either.EitherBiFunctionCompletionTask;
 import net.daporkchop.lib.concurrent.future.completion.either.EitherBiRunnableCompletionTask;
-import net.daporkchop.lib.concurrent.future.completion.FunctionCompletionTask;
-import net.daporkchop.lib.concurrent.future.completion.RunnableCompletionTask;
+import net.daporkchop.lib.concurrent.future.completion.general.ExceptionalCompletionTask;
+import net.daporkchop.lib.concurrent.future.completion.general.ValueOrCauseConsumerCompletionTask;
+import net.daporkchop.lib.concurrent.future.completion.general.ValueOrCauseFunctionCompletionTask;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -319,7 +322,7 @@ public interface PFuture<V> extends Future<V>, CompletionStage<V> {
     // compose
 
     @Override
-    default <U> PFuture<U> thenCompose(@NonNull Function<? super V, ? extends CompletionStage<U>> fn)   {
+    default <U> PFuture<U> thenCompose(@NonNull Function<? super V, ? extends CompletionStage<U>> fn) {
         //i really don't understand how this works or what the purpose is...
         throw new UnsupportedOperationException();
     }
@@ -330,17 +333,21 @@ public interface PFuture<V> extends Future<V>, CompletionStage<V> {
     }
 
     @Override
-    default <U> PFuture<U> thenComposeAsync(@NonNull Function<? super V, ? extends CompletionStage<U>> fn, @NonNull Executor executor)  {
+    default <U> PFuture<U> thenComposeAsync(@NonNull Function<? super V, ? extends CompletionStage<U>> fn, @NonNull Executor executor) {
         throw new UnsupportedOperationException();
     }
 
     // general listeners
 
     @Override
-    PFuture<V> exceptionally(@NonNull Function<Throwable, ? extends V> fn);
+    default PFuture<V> exceptionally(@NonNull Function<Throwable, ? extends V> fn) {
+        return new ExceptionalCompletionTask<>(this.executor(), this, false, fn);
+    }
 
     @Override
-    PFuture<V> whenComplete(@NonNull BiConsumer<? super V, ? super Throwable> action);
+    default PFuture<V> whenComplete(@NonNull BiConsumer<? super V, ? super Throwable> action) {
+        return new ValueOrCauseConsumerCompletionTask<>(this.executor(), this, false, action);
+    }
 
     @Override
     default PFuture<V> whenCompleteAsync(@NonNull BiConsumer<? super V, ? super Throwable> action) {
@@ -348,10 +355,15 @@ public interface PFuture<V> extends Future<V>, CompletionStage<V> {
     }
 
     @Override
-    PFuture<V> whenCompleteAsync(@NonNull BiConsumer<? super V, ? super Throwable> action, @NonNull Executor executor);
+    default PFuture<V> whenCompleteAsync(@NonNull BiConsumer<? super V, ? super Throwable> action, @NonNull Executor executor) {
+        EventExecutor eventExecutor = PExecutors.toNettyExecutor(executor);
+        return new ValueOrCauseConsumerCompletionTask<>(eventExecutor, this, true, action);
+    }
 
     @Override
-    <U> PFuture<U> handle(@NonNull BiFunction<? super V, Throwable, ? extends U> fn);
+    default <U> PFuture<U> handle(@NonNull BiFunction<? super V, Throwable, ? extends U> fn) {
+        return new ValueOrCauseFunctionCompletionTask<>(this.executor(), this, false, fn);
+    }
 
     @Override
     default <U> PFuture<U> handleAsync(@NonNull BiFunction<? super V, Throwable, ? extends U> fn) {
@@ -359,10 +371,13 @@ public interface PFuture<V> extends Future<V>, CompletionStage<V> {
     }
 
     @Override
-    <U> PFuture<U> handleAsync(@NonNull BiFunction<? super V, Throwable, ? extends U> fn, @NonNull Executor executor);
+    default <U> PFuture<U> handleAsync(@NonNull BiFunction<? super V, Throwable, ? extends U> fn, @NonNull Executor executor) {
+        EventExecutor eventExecutor = PExecutors.toNettyExecutor(executor);
+        return new ValueOrCauseFunctionCompletionTask<>(eventExecutor, this, true, fn);
+    }
 
     @Override
     default CompletableFuture<V> toCompletableFuture() {
-        throw new UnsupportedOperationException();
+        //TODO
     }
 }

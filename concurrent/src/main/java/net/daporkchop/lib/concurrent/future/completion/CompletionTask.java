@@ -82,7 +82,7 @@ public abstract class CompletionTask<V, R> extends DefaultPFuture<R> implements 
                     this.tryFailure(depends.cause());
                 }
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             this.tryFailure(e);
             throwException(e);
         }

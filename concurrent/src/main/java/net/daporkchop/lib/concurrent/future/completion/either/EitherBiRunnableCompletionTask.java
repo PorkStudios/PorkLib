@@ -18,32 +18,33 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.future.completion;
+package net.daporkchop.lib.concurrent.future.completion.either;
 
 import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 import lombok.NonNull;
 
-import java.util.function.BiFunction;
+import static net.daporkchop.lib.common.util.PorkUtil.*;
 
 /**
- * A {@link BothBiCompletionTask} which will execute a {@link BiFunction}.
+ * An {@link EitherBiCompletionTask} which will execute a {@link Runnable}.
  *
  * @author DaPorkchop_
  */
-public class BiFunctionCompletionTask<V, U, R> extends BothBiCompletionTask<V, U, R> {
-    protected BiFunction<? super V, ? super U, ? extends R> action;
+public class EitherBiRunnableCompletionTask extends EitherBiCompletionTask<Object, Void> {
+    protected Runnable action;
 
-    public BiFunctionCompletionTask(@NonNull EventExecutor executor, @NonNull Future<V> primary, @NonNull Future<U> secondary, boolean fork, @NonNull BiFunction<? super V, ? super U, ? extends R> action) {
-        super(executor, primary, secondary, fork);
+    public EitherBiRunnableCompletionTask(@NonNull EventExecutor executor, @NonNull Future primary, @NonNull Future secondary, boolean fork, @NonNull Runnable action) {
+        super(executor, uncheckedCast(primary), uncheckedCast(secondary), fork);
 
         this.action = action;
     }
 
     @Override
-    protected R computeResult(V v1, U v2) throws Exception {
+    protected Void computeResult(Object v) throws Exception {
         try {
-            return this.action.apply(v1, v2);
+            this.action.run();
+            return null;
         } finally {
             this.action = null;
         }

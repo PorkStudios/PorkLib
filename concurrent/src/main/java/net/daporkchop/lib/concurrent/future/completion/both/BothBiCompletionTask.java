@@ -18,14 +18,14 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.future.completion;
+package net.daporkchop.lib.concurrent.future.completion.both;
 
 import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
-import io.netty.util.concurrent.Promise;
 import lombok.NonNull;
 import net.daporkchop.lib.concurrent.future.DefaultPFuture;
+import net.daporkchop.lib.concurrent.future.completion.CompletionTask;
 
 import static net.daporkchop.lib.common.util.PorkUtil.*;
 import static net.daporkchop.lib.unsafe.PUnsafe.*;
@@ -105,7 +105,7 @@ public abstract class BothBiCompletionTask<V, U, R> extends DefaultPFuture<R> im
             } else {
                 throw new IllegalStateException("what");
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             this.tryFailure(e);
             throwException(e);
         }

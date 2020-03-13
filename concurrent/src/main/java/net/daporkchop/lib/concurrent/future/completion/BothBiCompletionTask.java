@@ -23,6 +23,7 @@ package net.daporkchop.lib.concurrent.future.completion;
 import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
+import io.netty.util.concurrent.Promise;
 import lombok.NonNull;
 import net.daporkchop.lib.concurrent.future.DefaultPFuture;
 
@@ -30,11 +31,11 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
 import static net.daporkchop.lib.unsafe.PUnsafe.*;
 
 /**
- * A {@link CompletionTask} which awaits the completion of two separate {@link java.util.concurrent.CompletionStage}s.
+ * A {@link CompletionTask} which awaits the completion of two separate {@link Future}s.
  *
  * @author DaPorkchop_
  */
-public abstract class BothBiCompletionTask<V, U, R> extends DefaultPFuture<R> implements GenericFutureListener<Future<?>> {
+public abstract class BothBiCompletionTask<V, U, R> extends DefaultPFuture<R> implements GenericFutureListener<Future<?>>, Runnable {
     protected static final long PRIMARY_OFFSET   = pork_getOffset(BothBiCompletionTask.class, "primary");
     protected static final long SECONDARY_OFFSET = pork_getOffset(BothBiCompletionTask.class, "secondary");
 
@@ -54,47 +55,80 @@ public abstract class BothBiCompletionTask<V, U, R> extends DefaultPFuture<R> im
         this.secondary = secondary;
         this.fork = fork;
 
-        primary.addListener(uncheckedCast(primary));
-        secondary.addListener(uncheckedCast(secondary));
+        primary.addListener(uncheckedCast(this));
+        secondary.addListener(uncheckedCast(this));
     }
 
     @Override
     public void operationComplete(Future future) throws Exception {
-        if (future != this.primary && future != this.secondary) {
-            throw new IllegalArgumentException();
-        } else if (future.isSuccess()) {
-            if (this.primary.isSuccess() && this.secondary.isSuccess() && compareAndSwapInt(this, RUN_OFFSET, 0, 1)) {
-                try {
-                    this.setSuccess(this.computeResult(this.primary.getNow(), this.secondary.getNow()));
-                } catch (Exception e) {
-                    this.tryFailure(e);
-                    throw e;
-                } finally {
-                    this.primary = null;
-                    this.secondary = null;
-                }
-            }
-        } else {
-            if (future.isCancelled()) {
-                this.cancel(true);
+        Future<V> primary = this.primary;
+        Future<U> secondary = this.secondary;
+        if (primary == null || secondary == null) {
+            throw new IllegalStateException("already run!");
+        } else if (primary != future && secondary != future) {
+            throw new IllegalArgumentException("wrong future?!?");
+        } else if (primary.isDone() && secondary.isDone()) {
+            //if both futures are done, fire
+            if (this.fork) {
+                this.executor().submit(this);
             } else {
-                this.tryFailure(future.cause());
+                this.run();
             }
-            this.handleFailure(future.cause());
+        }
+    }
+
+    @Override
+    public void run() {
+        Future<V> primary = pork_swapIfNonNull(this, PRIMARY_OFFSET, null);
+        Future<U> secondary = pork_swapIfNonNull(this, SECONDARY_OFFSET, null);
+        try {
+            if (primary == null || secondary == null) {
+                throw new IllegalStateException("already run!");
+            } else if (!primary.isDone() || !secondary.isDone()) {
+                throw new IllegalStateException("not done?!?");
+            } else if (!primary.isSuccess())    {
+                secondary.cancel(true);
+                if (primary.isCancelled())  {
+                    this.cancel(true);
+                } else {
+                    this.tryFailure(primary.cause());
+                }
+            } else if (!secondary.isSuccess())    {
+                primary.cancel(true);
+                if (secondary.isCancelled())  {
+                    this.cancel(true);
+                } else {
+                    this.tryFailure(secondary.cause());
+                }
+            } else if (primary.isSuccess() && secondary.isSuccess()) {
+                this.trySuccess(this.computeResult(primary.getNow(), secondary.getNow()));
+            } else {
+                throw new IllegalStateException("what");
+            }
+        } catch (Exception e) {
+            this.tryFailure(e);
+            throwException(e);
         }
     }
 
     protected abstract R computeResult(V v1, U v2) throws Exception;
 
     @Override
-    protected final R computeResult(V value) throws Exception {
-        //no-op
-        return null;
+    public BothBiCompletionTask<V, U, R> setFailure(Throwable cause) {
+        super.setFailure(cause);
+        this.onFailure(cause);
+        return this;
     }
 
     @Override
-    protected void handleFailure(@NonNull Throwable cause) {
-        this.primary = null;
-        this.secondary = null;
+    public boolean tryFailure(Throwable cause) {
+        if (super.tryFailure(cause))    {
+            this.onFailure(cause);
+            return true;
+        } else {
+            return false;
+        }
     }
+
+    protected abstract void onFailure(Throwable cause);
 }

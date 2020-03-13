@@ -23,26 +23,28 @@ package net.daporkchop.lib.concurrent.future.completion;
 import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 import lombok.NonNull;
-import net.daporkchop.lib.concurrent.future.completion.CompletionTask;
+
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 
 /**
- * A {@link CompletionTask} which will execute a {@link Runnable}.
+ * A {@link BothBiCompletionTask} which will execute a {@link BiConsumer}.
  *
  * @author DaPorkchop_
  */
-public class RunnableCompletionTask<V> extends CompletionTask<V, Void> {
-    protected Runnable action;
+public class BiConsumerCompletionTask<V, U> extends BothBiCompletionTask<V, U, Void> {
+    protected BiConsumer<? super V, ? super U> action;
 
-    public RunnableCompletionTask(@NonNull EventExecutor executor, @NonNull Future<V> depends, boolean fork, @NonNull Runnable action) {
-        super(executor, depends, fork);
+    public BiConsumerCompletionTask(@NonNull EventExecutor executor, @NonNull Future<V> primary, @NonNull Future<U> secondary, boolean fork, @NonNull BiConsumer<? super V, ? super U> action) {
+        super(executor, primary, secondary, fork);
 
         this.action = action;
     }
 
     @Override
-    protected Void computeResult(V value) throws Exception {
+    protected Void computeResult(V v1, U v2) throws Exception {
         try {
-            this.action.run();
+            this.action.accept(v1, v2);
             return null;
         } finally {
             this.action = null;

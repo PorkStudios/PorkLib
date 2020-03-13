@@ -51,9 +51,7 @@ public class FunctionCompletionTask<V, R> extends CompletionTask<V, R> {
     }
 
     @Override
-    public boolean tryFailure(Throwable cause) {
+    protected void onFailure(Throwable cause) {
         this.action = null;
-
-        return super.tryFailure(cause);
     }
 }

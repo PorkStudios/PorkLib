@@ -23,6 +23,7 @@ package net.daporkchop.lib.concurrent.future.completion;
 import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
+import io.netty.util.concurrent.Promise;
 import lombok.NonNull;
 import net.daporkchop.lib.concurrent.future.DefaultPFuture;
 
@@ -88,4 +89,23 @@ public abstract class CompletionTask<V, R> extends DefaultPFuture<R> implements 
     }
 
     protected abstract R computeResult(V value) throws Exception;
+
+    @Override
+    public CompletionTask<V, R> setFailure(Throwable cause) {
+        super.setFailure(cause);
+        this.onFailure(cause);
+        return this;
+    }
+
+    @Override
+    public boolean tryFailure(Throwable cause) {
+        if (super.tryFailure(cause))    {
+            this.onFailure(cause);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    protected abstract void onFailure(Throwable cause);
 }

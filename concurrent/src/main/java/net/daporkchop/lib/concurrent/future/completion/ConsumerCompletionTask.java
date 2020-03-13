@@ -52,9 +52,7 @@ public class ConsumerCompletionTask<V> extends CompletionTask<V, Void> {
     }
 
     @Override
-    public boolean tryFailure(Throwable cause) {
+    protected void onFailure(Throwable cause) {
         this.action = null;
-
-        return super.tryFailure(cause);
     }
 }

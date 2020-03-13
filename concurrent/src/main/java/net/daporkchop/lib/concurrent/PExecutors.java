@@ -43,6 +43,7 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
  */
 @UtilityClass
 public class PExecutors {
+    //TODO: weakhashmap is not useful if the values reference the keys...
     private final Map<Executor, EventExecutorGroup> GLOBAL_EXECUTORS_TO_GROUPS = Collections.synchronizedMap(new WeakHashMap<>());
 
     private final Function<Executor, EventExecutorGroup> GLOBAL_EXECUTOR_CALCULATOR = executor -> {

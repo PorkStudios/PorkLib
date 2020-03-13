@@ -18,7 +18,7 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.future;
+package net.daporkchop.lib.concurrent.compatibility;
 
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
@@ -28,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.concurrent.PFuture;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -40,9 +41,11 @@ import java.util.concurrent.TimeoutException;
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public class NettyFutureWrapper<V> implements PFuture<V> {
+public class NettyFutureAsPFuture<V> implements PFuture<V> {
     @NonNull
     protected final Future<V> delegate;
+
+    protected NettyFutureAsCompletableFuture<V> completableFuture;
 
     @Override
     public boolean isSuccess() {
@@ -155,5 +158,18 @@ public class NettyFutureWrapper<V> implements PFuture<V> {
     @Override
     public V get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         return this.delegate.get(timeout, unit);
+    }
+
+    @Override
+    public CompletableFuture<V> toCompletableFuture() {
+        NettyFutureAsCompletableFuture<V> completableFuture = this.completableFuture;
+        if (completableFuture == null)  {
+            synchronized (this) {
+                if ((completableFuture = this.completableFuture) == null)   {
+                    this.completableFuture = completableFuture = new NettyFutureAsCompletableFuture<>(this);
+                }
+            }
+        }
+        return completableFuture;
     }
 }

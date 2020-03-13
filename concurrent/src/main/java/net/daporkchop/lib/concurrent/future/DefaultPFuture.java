@@ -26,6 +26,9 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import lombok.NonNull;
 import net.daporkchop.lib.concurrent.PFuture;
+import net.daporkchop.lib.concurrent.compatibility.NettyFutureAsCompletableFuture;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Default base implementation of {@link PFuture}.
@@ -33,6 +36,8 @@ import net.daporkchop.lib.concurrent.PFuture;
  * @author DaPorkchop_
  */
 public class DefaultPFuture<V> extends DefaultPromise<V> implements PFuture<V> {
+    protected NettyFutureAsCompletableFuture<V> completableFuture;
+
     public DefaultPFuture(@NonNull EventExecutor executor) {
         super(executor);
     }
@@ -88,5 +93,18 @@ public class DefaultPFuture<V> extends DefaultPromise<V> implements PFuture<V> {
     public DefaultPFuture<V> syncUninterruptibly() {
         super.syncUninterruptibly();
         return this;
+    }
+
+    @Override
+    public CompletableFuture<V> toCompletableFuture() {
+        NettyFutureAsCompletableFuture<V> completableFuture = this.completableFuture;
+        if (completableFuture == null)  {
+            synchronized (this) {
+                if ((completableFuture = this.completableFuture) == null)   {
+                    this.completableFuture = completableFuture = new NettyFutureAsCompletableFuture<>(this);
+                }
+            }
+        }
+        return completableFuture;
     }
 }

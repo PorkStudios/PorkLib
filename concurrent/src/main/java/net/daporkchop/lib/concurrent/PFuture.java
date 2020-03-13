@@ -25,7 +25,6 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import lombok.NonNull;
 import net.daporkchop.lib.concurrent.future.DefaultPFuture;
-import net.daporkchop.lib.concurrent.future.NettyFutureWrapper;
 import net.daporkchop.lib.concurrent.future.completion.ConsumerCompletionTask;
 import net.daporkchop.lib.concurrent.future.completion.FunctionCompletionTask;
 import net.daporkchop.lib.concurrent.future.completion.RunnableCompletionTask;
@@ -50,8 +49,6 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static net.daporkchop.lib.common.util.PorkUtil.*;
-
 /**
  * A combination of Netty's {@link Future} with Java 8's {@link CompletionStage}.
  * <p>
@@ -60,16 +57,6 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
  * @author DaPorkchop_
  */
 public interface PFuture<V> extends Future<V>, CompletionStage<V> {
-    static <V> PFuture<V> wrap(@NonNull CompletionStage<? extends V> toWrap) {
-        if (toWrap instanceof PFuture) {
-            return uncheckedCast(toWrap);
-        } else if (toWrap instanceof Future) {
-            return new NettyFutureWrapper<>(uncheckedCast(toWrap));
-        } else if (toWrap instanceof CompletableFuture) {
-            //TODO
-        }
-        throw new IllegalArgumentException(className(toWrap));
-    }
 
     //
     //
@@ -216,7 +203,7 @@ public interface PFuture<V> extends Future<V>, CompletionStage<V> {
 
     @Override
     default <U, V1> PFuture<V1> thenCombine(@NonNull CompletionStage<? extends U> other, @NonNull BiFunction<? super V, ? super U, ? extends V1> fn) {
-        return new BothBiFunctionCompletionTask<>(this.executor(), this, wrap(other), false, fn);
+        return new BothBiFunctionCompletionTask<>(this.executor(), this, PFutures.wrap(other), false, fn);
     }
 
     @Override
@@ -227,14 +214,14 @@ public interface PFuture<V> extends Future<V>, CompletionStage<V> {
     @Override
     default <U, V1> PFuture<V1> thenCombineAsync(@NonNull CompletionStage<? extends U> other, @NonNull BiFunction<? super V, ? super U, ? extends V1> fn, @NonNull Executor executor) {
         EventExecutor eventExecutor = PExecutors.toNettyExecutor(executor);
-        return new BothBiFunctionCompletionTask<>(eventExecutor, this, wrap(other), true, fn);
+        return new BothBiFunctionCompletionTask<>(eventExecutor, this, PFutures.wrap(other), true, fn);
     }
 
     // accept both
 
     @Override
     default <U> PFuture<Void> thenAcceptBoth(@NonNull CompletionStage<? extends U> other, @NonNull BiConsumer<? super V, ? super U> action) {
-        return new BothBiConsumerCompletionTask<>(this.executor(), this, wrap(other), false, action);
+        return new BothBiConsumerCompletionTask<>(this.executor(), this, PFutures.wrap(other), false, action);
     }
 
     @Override
@@ -245,14 +232,14 @@ public interface PFuture<V> extends Future<V>, CompletionStage<V> {
     @Override
     default <U> PFuture<Void> thenAcceptBothAsync(@NonNull CompletionStage<? extends U> other, @NonNull BiConsumer<? super V, ? super U> action, @NonNull Executor executor) {
         EventExecutor eventExecutor = PExecutors.toNettyExecutor(executor);
-        return new BothBiConsumerCompletionTask<>(eventExecutor, this, wrap(other), true, action);
+        return new BothBiConsumerCompletionTask<>(eventExecutor, this, PFutures.wrap(other), true, action);
     }
 
     // run both
 
     @Override
     default PFuture<Void> runAfterBoth(@NonNull CompletionStage<?> other, @NonNull Runnable action) {
-        return new BothBiRunnableCompletionTask<>(this.executor(), this, wrap(other), false, action);
+        return new BothBiRunnableCompletionTask<>(this.executor(), this, PFutures.wrap(other), false, action);
     }
 
     @Override
@@ -263,14 +250,14 @@ public interface PFuture<V> extends Future<V>, CompletionStage<V> {
     @Override
     default PFuture<Void> runAfterBothAsync(@NonNull CompletionStage<?> other, @NonNull Runnable action, @NonNull Executor executor) {
         EventExecutor eventExecutor = PExecutors.toNettyExecutor(executor);
-        return new BothBiRunnableCompletionTask<>(eventExecutor, this, wrap(other), true, action);
+        return new BothBiRunnableCompletionTask<>(eventExecutor, this, PFutures.wrap(other), true, action);
     }
 
     // apply either
 
     @Override
     default <U> PFuture<U> applyToEither(@NonNull CompletionStage<? extends V> other, @NonNull Function<? super V, U> fn) {
-        return new EitherBiFunctionCompletionTask<>(this.executor(), this, wrap(other), false, fn);
+        return new EitherBiFunctionCompletionTask<>(this.executor(), this, PFutures.wrap(other), false, fn);
     }
 
     @Override
@@ -280,14 +267,14 @@ public interface PFuture<V> extends Future<V>, CompletionStage<V> {
 
     @Override
     default <U> PFuture<U> applyToEitherAsync(@NonNull CompletionStage<? extends V> other, @NonNull Function<? super V, U> fn, @NonNull Executor executor) {
-        return new EitherBiFunctionCompletionTask<>(this.executor(), this, wrap(other), true, fn);
+        return new EitherBiFunctionCompletionTask<>(this.executor(), this, PFutures.wrap(other), true, fn);
     }
 
     // accept either
 
     @Override
     default PFuture<Void> acceptEither(@NonNull CompletionStage<? extends V> other, @NonNull Consumer<? super V> action) {
-        return new EitherBiConsumerCompletionTask<>(this.executor(), this, wrap(other), false, action);
+        return new EitherBiConsumerCompletionTask<>(this.executor(), this, PFutures.wrap(other), false, action);
     }
 
     @Override
@@ -298,14 +285,14 @@ public interface PFuture<V> extends Future<V>, CompletionStage<V> {
     @Override
     default PFuture<Void> acceptEitherAsync(@NonNull CompletionStage<? extends V> other, @NonNull Consumer<? super V> action, @NonNull Executor executor) {
         EventExecutor eventExecutor = PExecutors.toNettyExecutor(executor);
-        return new EitherBiConsumerCompletionTask<>(eventExecutor, this, wrap(other), true, action);
+        return new EitherBiConsumerCompletionTask<>(eventExecutor, this, PFutures.wrap(other), true, action);
     }
 
     // run either
 
     @Override
     default PFuture<Void> runAfterEither(@NonNull CompletionStage<?> other, @NonNull Runnable action) {
-        return new EitherBiRunnableCompletionTask(this.executor(), this, wrap(other), false, action);
+        return new EitherBiRunnableCompletionTask(this.executor(), this, PFutures.wrap(other), false, action);
     }
 
     @Override
@@ -316,7 +303,7 @@ public interface PFuture<V> extends Future<V>, CompletionStage<V> {
     @Override
     default PFuture<Void> runAfterEitherAsync(@NonNull CompletionStage<?> other, @NonNull Runnable action, @NonNull Executor executor) {
         EventExecutor eventExecutor = PExecutors.toNettyExecutor(executor);
-        return new EitherBiRunnableCompletionTask(eventExecutor, this, wrap(other), true, action);
+        return new EitherBiRunnableCompletionTask(eventExecutor, this, PFutures.wrap(other), true, action);
     }
 
     // compose
@@ -377,7 +364,5 @@ public interface PFuture<V> extends Future<V>, CompletionStage<V> {
     }
 
     @Override
-    default CompletableFuture<V> toCompletableFuture() {
-        //TODO
-    }
+    CompletableFuture<V> toCompletableFuture();
 }

@@ -19,5 +19,7 @@
  */
 
 dependencies {
+    compile project(":reflection")
+
     compile "io.netty:netty-common:$nettyVersion"
 }

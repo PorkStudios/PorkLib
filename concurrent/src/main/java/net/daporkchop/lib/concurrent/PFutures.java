@@ -25,6 +25,7 @@ import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.concurrent.compatibility.CompletableFutureAsPFuture;
 import net.daporkchop.lib.concurrent.compatibility.NettyFutureAsCompletableFuture;
 import net.daporkchop.lib.concurrent.compatibility.NettyFutureAsPFuture;
 
@@ -53,7 +54,8 @@ public class PFutures {
             if (toWrap instanceof NettyFutureAsCompletableFuture) {
                 return wrap(uncheckedCast(((NettyFutureAsCompletableFuture) toWrap).delegate()));
             } else {
-                //TODO
+                //TODO: cache instances of this...
+                return new CompletableFutureAsPFuture<>(uncheckedCast(toWrap));
             }
         }
         throw new IllegalArgumentException(className(toWrap));

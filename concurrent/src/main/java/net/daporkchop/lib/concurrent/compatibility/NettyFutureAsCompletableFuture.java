@@ -38,7 +38,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
- * Wraps a Netty {@link Future} into a {@link CompletableFuture}.
+ * Wraps a Netty {@link Future} into a Java {@link CompletableFuture}.
  *
  * @author DaPorkchop_
  */

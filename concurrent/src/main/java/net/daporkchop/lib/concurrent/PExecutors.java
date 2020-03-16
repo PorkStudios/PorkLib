@@ -27,7 +27,8 @@ import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.concurrent.executor.JavaExecutorAsEventExecutor;
 import net.daporkchop.lib.concurrent.executor.JavaExecutorServiceAsEventExecutor;
 
-import java.util.Collections;
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.Executor;
@@ -43,24 +44,26 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
  */
 @UtilityClass
 public class PExecutors {
-    //TODO: weakhashmap is not useful if the values reference the keys...
-    private final Map<Executor, EventExecutorGroup> GLOBAL_EXECUTORS_TO_GROUPS = Collections.synchronizedMap(new WeakHashMap<>());
-
-    private final Function<Executor, EventExecutorGroup> GLOBAL_EXECUTOR_CALCULATOR = executor -> {
-        if (executor instanceof EventExecutorGroup) {
-            throw new IllegalStateException(className(executor));
-        } else if (executor instanceof ExecutorService) {
-            return new JavaExecutorServiceAsEventExecutor<>((ExecutorService) executor);
-        } else {
-            return new JavaExecutorAsEventExecutor<>(executor);
-        }
-    };
+    private final Map<Executor, Reference<EventExecutorGroup>> GLOBAL_EXECUTORS_TO_GROUPS = new WeakHashMap<>();
 
     public static EventExecutorGroup toNettyExecutorGroup(@NonNull Executor executor) {
         if (executor instanceof EventExecutorGroup) {
             return (EventExecutorGroup) executor;
         } else {
-            return GLOBAL_EXECUTORS_TO_GROUPS.computeIfAbsent(executor, GLOBAL_EXECUTOR_CALCULATOR);
+            EventExecutorGroup group;
+            synchronized (GLOBAL_EXECUTORS_TO_GROUPS) {
+                Reference<EventExecutorGroup> ref = GLOBAL_EXECUTORS_TO_GROUPS.get(executor);
+                if (ref == null || (group = ref.get()) == null) {
+                    group = executor instanceof ExecutorService
+                            ? new JavaExecutorServiceAsEventExecutor<>((ExecutorService) executor)
+                            : new JavaExecutorAsEventExecutor<>(executor);
+
+                    if (GLOBAL_EXECUTORS_TO_GROUPS.put(executor, new WeakReference<>(group)) != ref) {
+                        throw new IllegalStateException();
+                    }
+                }
+            }
+            return group;
         }
     }
 

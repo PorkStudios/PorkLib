@@ -20,14 +20,19 @@
 
 package net.daporkchop.lib.concurrent.compatibility;
 
+import io.netty.util.concurrent.CompleteFuture;
+import io.netty.util.concurrent.DefaultPromise;
+import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.concurrent.PFuture;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -38,14 +43,44 @@ import java.util.concurrent.TimeoutException;
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
 public class NettyFutureAsPFuture<V> implements PFuture<V> {
-    @NonNull
-    protected final Future<V> delegate;
+    protected static final Method DEFAULTPROMISE_EXECUTOR;
+    protected static final Method COMPLETEFUTURE_EXECUTOR;
+
+    static {
+        try {
+            DEFAULTPROMISE_EXECUTOR = DefaultPromise.class.getDeclaredMethod("executor");
+            DEFAULTPROMISE_EXECUTOR.setAccessible(true);
+
+            COMPLETEFUTURE_EXECUTOR = CompleteFuture.class.getDeclaredMethod("executor");
+            COMPLETEFUTURE_EXECUTOR.setAccessible(true);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    protected final Future<V>     delegate;
+    protected final EventExecutor executor;
 
     protected NettyFutureAsCompletableFuture<V> completableFuture;
+
+    public NettyFutureAsPFuture(@NonNull Future<V> delegate) {
+        this.delegate = delegate;
+
+        try {
+            if (delegate instanceof DefaultPromise) {
+                this.executor = (EventExecutor) DEFAULTPROMISE_EXECUTOR.invoke(delegate, PorkUtil.EMPTY_OBJECT_ARRAY);
+            } else if (delegate instanceof CompleteFuture) {
+                this.executor = (EventExecutor) COMPLETEFUTURE_EXECUTOR.invoke(delegate, PorkUtil.EMPTY_OBJECT_ARRAY);
+            } else {
+                throw new IllegalArgumentException(PorkUtil.className(delegate));
+            }
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @Override
     public boolean isSuccess() {
@@ -163,9 +198,9 @@ public class NettyFutureAsPFuture<V> implements PFuture<V> {
     @Override
     public CompletableFuture<V> toCompletableFuture() {
         NettyFutureAsCompletableFuture<V> completableFuture = this.completableFuture;
-        if (completableFuture == null)  {
+        if (completableFuture == null) {
             synchronized (this) {
-                if ((completableFuture = this.completableFuture) == null)   {
+                if ((completableFuture = this.completableFuture) == null) {
                     this.completableFuture = completableFuture = new NettyFutureAsCompletableFuture<>(this);
                 }
             }

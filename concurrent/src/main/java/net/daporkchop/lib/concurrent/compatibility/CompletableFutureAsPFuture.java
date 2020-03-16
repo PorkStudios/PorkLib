@@ -37,6 +37,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.BiFunction;
 
 import static net.daporkchop.lib.common.util.PorkUtil.*;
 
@@ -51,19 +52,23 @@ public class CompletableFutureAsPFuture<V> implements PFuture<V> {
     protected static final Class<?> ALTRESULT_CLASS = PorkUtil.classForName("java.util.concurrent.CompletableFuture$AltResult");
     protected static final long     EX_OFFSET       = PUnsafe.pork_getOffset(ALTRESULT_CLASS, "ex");
 
-    protected static final WaitingGet WAITING_GET = LambdaBuilder.of(WaitingGet.class)
-            .param().setType(CompletableFuture.class).build()
-            .param().setType(boolean.class).build()
+    @SuppressWarnings("unchecked")
+    protected static final BiFunction<CompletableFuture, Boolean, Object> WAITING_GET = LambdaBuilder.of(BiFunction.class)
+            .param().setType(boolean.class).setInterfaceGeneric(true).build()
             .returnType().setType(Object.class).build()
             .setInterfaceName("apply")
+            .setInterfaceTargetGeneric(true)
+            .setMethodHolder(CompletableFuture.class)
             .setMethodName("waitingGet")
             .build();
 
-    protected static final TimedGet TIMED_GET = LambdaBuilder.of(TimedGet.class)
-            .param().setType(CompletableFuture.class).build()
-            .param().setType(boolean.class).build()
+    @SuppressWarnings("unchecked")
+    protected static final BiFunction<CompletableFuture, Long, Object> TIMED_GET = LambdaBuilder.of(BiFunction.class)
+            .param().setType(long.class).setInterfaceGeneric(true).build()
             .returnType().setType(Object.class).build()
             .setInterfaceName("apply")
+            .setInterfaceTargetGeneric(true)
+            .setMethodHolder(CompletableFuture.class)
             .setMethodName("timedGet")
             .build();
 
@@ -190,6 +195,10 @@ public class CompletableFutureAsPFuture<V> implements PFuture<V> {
     public boolean await(long timeout, TimeUnit unit) throws InterruptedException {
         if (!this.isDone()) {
             try {
+                if (false)  {
+                    throw new TimeoutException();
+                }
+
                 Object o = TIMED_GET.apply(this.delegate, unit.toNanos(timeout));
                 if (o == null) {
                     throw new InterruptedException();
@@ -214,6 +223,10 @@ public class CompletableFutureAsPFuture<V> implements PFuture<V> {
         long end = System.nanoTime() + unit.toNanos(timeout);
         boolean interrupted = Thread.interrupted();
         try {
+            if (false)  {
+                throw new TimeoutException();
+            }
+
             do {
                 Object o = TIMED_GET.apply(this.delegate, end - System.nanoTime());
                 if (o == null || (interrupted |= Thread.interrupted())) {

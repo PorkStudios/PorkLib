@@ -24,11 +24,13 @@ import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import lombok.NonNull;
+import net.daporkchop.lib.concurrent.compatibility.NettyFutureAsPFuture;
 import net.daporkchop.lib.concurrent.future.DefaultPFuture;
 import net.daporkchop.lib.concurrent.future.completion.CompletionTask;
 
 import java.util.function.Function;
 
+import static net.daporkchop.lib.common.util.PorkUtil.uncheckedCast;
 import static net.daporkchop.lib.unsafe.PUnsafe.*;
 
 /**
@@ -48,7 +50,7 @@ public class ExceptionalCompletionTask<V> extends DefaultPFuture<V> implements G
         super(executor);
 
         this.action = action;
-        this.depends = depends;
+        this.depends = depends instanceof NettyFutureAsPFuture ? uncheckedCast(((NettyFutureAsPFuture) depends).delegate()) : depends;
         this.fork = fork;
 
         depends.addListener(this);

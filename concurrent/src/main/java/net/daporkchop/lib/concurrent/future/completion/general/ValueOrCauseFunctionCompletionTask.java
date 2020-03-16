@@ -24,12 +24,14 @@ import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import lombok.NonNull;
+import net.daporkchop.lib.concurrent.compatibility.NettyFutureAsPFuture;
 import net.daporkchop.lib.concurrent.future.DefaultPFuture;
 import net.daporkchop.lib.concurrent.future.completion.CompletionTask;
 
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
+import static net.daporkchop.lib.common.util.PorkUtil.uncheckedCast;
 import static net.daporkchop.lib.unsafe.PUnsafe.*;
 
 /**
@@ -49,7 +51,7 @@ public class ValueOrCauseFunctionCompletionTask<V, R> extends DefaultPFuture<R> 
         super(executor);
 
         this.action = action;
-        this.depends = depends;
+        this.depends = depends instanceof NettyFutureAsPFuture ? uncheckedCast(((NettyFutureAsPFuture) depends).delegate()) : depends;
         this.fork = fork;
 
         depends.addListener(this);

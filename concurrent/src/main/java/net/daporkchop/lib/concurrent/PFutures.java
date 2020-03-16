@@ -25,6 +25,7 @@ import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.concurrent.compatibility.CompletableFutureAsPFuture;
 import net.daporkchop.lib.concurrent.compatibility.NettyFutureAsCompletableFuture;
 import net.daporkchop.lib.concurrent.compatibility.NettyFutureAsPFuture;
@@ -44,7 +45,23 @@ import static net.daporkchop.lib.unsafe.PUnsafe.*;
 public class PFutures {
     protected final long DEFAULTPROMISE_EXECUTOR_OFFSET = pork_getOffset(DefaultPromise.class, "executor");
 
+    public static <V> PFuture<V> wrap(@NonNull CompletableFuture<? extends V> toWrap) {
+        return wrap((Object) toWrap);
+    }
+
     public static <V> PFuture<V> wrap(@NonNull CompletionStage<? extends V> toWrap) {
+        return wrap((Object) toWrap);
+    }
+
+    public static <V> PFuture<V> wrap(@NonNull java.util.concurrent.Future<? extends V> toWrap) {
+        return wrap((Object) toWrap);
+    }
+
+    public static <V> PFuture<V> wrap(@NonNull Future<? extends V> toWrap) {
+        return wrap((Object) toWrap);
+    }
+
+    public static <V> PFuture<V> wrap(@NonNull Object toWrap)   {
         if (toWrap instanceof PFuture) {
             return uncheckedCast(toWrap);
         } else if (toWrap instanceof Future) {
@@ -52,7 +69,7 @@ public class PFutures {
             return new NettyFutureAsPFuture<>(uncheckedCast(toWrap));
         } else if (toWrap instanceof CompletableFuture) {
             if (toWrap instanceof NettyFutureAsCompletableFuture) {
-                return wrap(uncheckedCast(((NettyFutureAsCompletableFuture) toWrap).delegate()));
+                return wrap((Object) ((NettyFutureAsCompletableFuture) toWrap).delegate());
             } else {
                 //TODO: cache instances of this...
                 return new CompletableFutureAsPFuture<>(uncheckedCast(toWrap));

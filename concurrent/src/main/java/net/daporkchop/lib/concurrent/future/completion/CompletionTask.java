@@ -23,10 +23,11 @@ package net.daporkchop.lib.concurrent.future.completion;
 import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
-import io.netty.util.concurrent.Promise;
 import lombok.NonNull;
+import net.daporkchop.lib.concurrent.compatibility.NettyFutureAsPFuture;
 import net.daporkchop.lib.concurrent.future.DefaultPFuture;
 
+import static net.daporkchop.lib.common.util.PorkUtil.*;
 import static net.daporkchop.lib.unsafe.PUnsafe.*;
 
 /**
@@ -41,7 +42,7 @@ public abstract class CompletionTask<V, R> extends DefaultPFuture<R> implements 
     public CompletionTask(@NonNull EventExecutor executor, @NonNull Future<V> depends, boolean fork) {
         super(executor);
 
-        this.depends = depends;
+        this.depends = depends instanceof NettyFutureAsPFuture ? uncheckedCast(((NettyFutureAsPFuture) depends).delegate()) : depends;
         this.fork = fork;
 
         depends.addListener(this);
@@ -99,7 +100,7 @@ public abstract class CompletionTask<V, R> extends DefaultPFuture<R> implements 
 
     @Override
     public boolean tryFailure(Throwable cause) {
-        if (super.tryFailure(cause))    {
+        if (super.tryFailure(cause)) {
             this.onFailure(cause);
             return true;
         } else {

@@ -24,9 +24,11 @@ import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import lombok.NonNull;
+import net.daporkchop.lib.concurrent.compatibility.NettyFutureAsPFuture;
 import net.daporkchop.lib.concurrent.future.DefaultPFuture;
 import net.daporkchop.lib.concurrent.future.completion.CompletionTask;
 
+import static net.daporkchop.lib.common.util.PorkUtil.uncheckedCast;
 import static net.daporkchop.lib.unsafe.PUnsafe.*;
 
 /**
@@ -49,6 +51,13 @@ public abstract class EitherBiCompletionTask<V, R> extends DefaultPFuture<R> imp
 
         if (primary == secondary) {
             throw new IllegalStateException("primary may not be the same as secondary!");
+        }
+
+        if (primary instanceof NettyFutureAsPFuture)    {
+            primary = uncheckedCast(((NettyFutureAsPFuture) primary).delegate());
+        }
+        if (secondary instanceof NettyFutureAsPFuture)    {
+            secondary = uncheckedCast(((NettyFutureAsPFuture) secondary).delegate());
         }
 
         this.primary = primary;

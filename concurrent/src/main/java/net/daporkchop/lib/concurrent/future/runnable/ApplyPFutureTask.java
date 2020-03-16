@@ -22,47 +22,34 @@ package net.daporkchop.lib.concurrent.future.runnable;
 
 import io.netty.util.concurrent.EventExecutor;
 import lombok.NonNull;
-import net.daporkchop.lib.concurrent.future.DefaultPFuture;
 
-import static net.daporkchop.lib.unsafe.PUnsafe.*;
+import java.util.function.Function;
 
 /**
- * A {@link net.daporkchop.lib.concurrent.PFuture} which, when run will be completed with the result of a {@link Runnable} task
- * and has a pre-determined result value.
+ * A {@link net.daporkchop.lib.concurrent.PFuture} which, when run, will be completed with the result of passing the given parameter to the given
+ * {@link Function} task.
  *
  * @author DaPorkchop_
  */
-public class RunnableWithResultPFuture<V> extends DefaultPFuture<V> implements Runnable {
-    protected static final long STARTED_OFFSET = pork_getOffset(RunnableWithResultPFuture.class, "started");
+public class ApplyPFutureTask<P, V> extends AbstractRunnablePFuture<V> {
+    protected P              parameter;
+    protected Function<? super P, ? extends V> action;
 
-    protected Runnable task;
-    protected V        result;
-    protected volatile int started = 0;
-
-    public RunnableWithResultPFuture(@NonNull EventExecutor executor, @NonNull Runnable task, V result) {
+    public ApplyPFutureTask(@NonNull EventExecutor executor, @NonNull Function<? super P, ? extends V> action, @NonNull P parameter) {
         super(executor);
 
-        this.task = task;
-        this.result = result;
+        this.parameter = parameter;
+        this.action = action;
     }
 
     @Override
-    public void run() {
-        if (!compareAndSwapInt(this, STARTED_OFFSET, 0, 1)) {
-            throw new IllegalStateException("Already started!");
-        }
+    protected V run0() throws Exception {
+        return this.action.apply(this.parameter);
+    }
 
-        try {
-            if (this.setUncancellable()) {
-                this.task.run();
-                this.setSuccess(this.result);
-            }
-        } catch (Throwable t) {
-            this.setFailure(t);
-        } finally {
-            //allow GC
-            this.task = null;
-            this.result = null;
-        }
+    @Override
+    protected void cleanup() {
+        this.parameter = null;
+        this.action = null;
     }
 }

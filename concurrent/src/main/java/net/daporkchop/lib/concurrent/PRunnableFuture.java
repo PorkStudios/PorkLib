@@ -18,47 +18,14 @@
  *
  */
 
-package net.daporkchop.lib.concurrent.future.runnable;
+package net.daporkchop.lib.concurrent;
 
-import io.netty.util.concurrent.EventExecutor;
-import lombok.NonNull;
-import net.daporkchop.lib.concurrent.future.DefaultPFuture;
-
-import static net.daporkchop.lib.unsafe.PUnsafe.*;
+import java.util.concurrent.RunnableFuture;
 
 /**
- * A {@link net.daporkchop.lib.concurrent.PFuture} which, when run, will be completed with the result of a {@link Runnable} task.
+ * Combination of {@link PFuture} and {@link RunnableFuture}.
  *
  * @author DaPorkchop_
  */
-public class RunnablePFuture extends DefaultPFuture<Void> implements Runnable {
-    protected static final long STARTED_OFFSET = pork_getOffset(RunnablePFuture.class, "started");
-
-    protected Runnable task;
-    protected volatile int started = 0;
-
-    public RunnablePFuture(@NonNull EventExecutor executor, @NonNull Runnable task) {
-        super(executor);
-
-        this.task = task;
-    }
-
-    @Override
-    public void run() {
-        if (!compareAndSwapInt(this, STARTED_OFFSET, 0, 1)) {
-            throw new IllegalStateException("Already started!");
-        }
-
-        try {
-            if (this.setUncancellable()) {
-                this.task.run();
-                this.setSuccess(null);
-            }
-        } catch (Throwable t) {
-            this.setFailure(t);
-        } finally {
-            //allow GC
-            this.task = null;
-        }
-    }
+public interface PRunnableFuture<V> extends PFuture<V>, RunnableFuture<V> {
 }

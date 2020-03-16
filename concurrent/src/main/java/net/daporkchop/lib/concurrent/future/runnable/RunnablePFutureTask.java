@@ -18,41 +18,33 @@
  *
  */
 
-import io.netty.util.concurrent.GlobalEventExecutor;
-import net.daporkchop.lib.concurrent.PFuture;
-import net.daporkchop.lib.concurrent.PFutures;
-import org.junit.Test;
+package net.daporkchop.lib.concurrent.future.runnable;
 
-import java.util.concurrent.CompletableFuture;
-
-import static net.daporkchop.lib.common.util.PorkUtil.*;
+import io.netty.util.concurrent.EventExecutor;
+import lombok.NonNull;
 
 /**
+ * A {@link net.daporkchop.lib.concurrent.PFuture} which, when run, will be completed with the result of a {@link Runnable} task.
+ *
  * @author DaPorkchop_
  */
-public class FutureTest {
-    @Test
-    public void test() {
-        System.out.println("Starting...");
-        PFuture<String> a = PFutures.wrap(GlobalEventExecutor.INSTANCE.submit(() -> {
-            sleep(5000L);
-            System.out.println("A");
-            return "Hello ";
-        }));
-        PFuture<String> b = PFutures.wrap(CompletableFuture.supplyAsync(() -> {
-            sleep(4000L);
-            System.out.println("B");
-            return "World";
-        }));
-        PFuture<String> c = PFutures.computeAsync(() -> {
-            sleep(5000L);
-            System.out.println("C");
-            return "!";
-        });
+public class RunnablePFutureTask extends AbstractRunnablePFuture<Void> {
+    protected Runnable action;
 
-        a.thenCombine(b, String::concat)
-                .thenCombine(c, String::concat)
-                .thenAccept(System.out::println)
-                .awaitUninterruptibly();
+    public RunnablePFutureTask(@NonNull EventExecutor executor, @NonNull Runnable action) {
+        super(executor);
+
+        this.action = action;
+    }
+
+    @Override
+    protected Void run0() throws Exception {
+        this.run();
+        return null;
+    }
+
+    @Override
+    protected void cleanup() {
+        this.action = null;
     }
 }

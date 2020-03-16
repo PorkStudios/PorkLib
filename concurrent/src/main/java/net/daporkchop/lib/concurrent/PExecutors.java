@@ -33,9 +33,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
-import java.util.function.Function;
-
-import static net.daporkchop.lib.common.util.PorkUtil.*;
+import java.util.concurrent.ForkJoinPool;
 
 /**
  * Helper class for dealing with {@link Executor} and its various extensions.
@@ -45,6 +43,8 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
 @UtilityClass
 public class PExecutors {
     private final Map<Executor, Reference<EventExecutorGroup>> GLOBAL_EXECUTORS_TO_GROUPS = new WeakHashMap<>();
+
+    public static final EventExecutor FORKJOINPOOL = toNettyExecutor(ForkJoinPool.commonPool());
 
     public static EventExecutorGroup toNettyExecutorGroup(@NonNull Executor executor) {
         if (executor instanceof EventExecutorGroup) {

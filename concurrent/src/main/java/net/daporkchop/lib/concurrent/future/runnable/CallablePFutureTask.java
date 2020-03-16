@@ -22,44 +22,30 @@ package net.daporkchop.lib.concurrent.future.runnable;
 
 import io.netty.util.concurrent.EventExecutor;
 import lombok.NonNull;
-import net.daporkchop.lib.concurrent.future.DefaultPFuture;
 
 import java.util.concurrent.Callable;
 
-import static net.daporkchop.lib.unsafe.PUnsafe.*;
-
 /**
- * A {@link net.daporkchop.lib.concurrent.PFuture} which, when run will be completed with the result of a {@link Callable} task.
+ * A {@link net.daporkchop.lib.concurrent.PFuture} which, when run, will be completed with the result of a {@link Callable} task.
  *
  * @author DaPorkchop_
  */
-public class RunnableCallablePFuture<V> extends DefaultPFuture<V> implements Runnable {
-    protected static final long STARTED_OFFSET = pork_getOffset(RunnableCallablePFuture.class, "started");
+public class CallablePFutureTask<V> extends AbstractRunnablePFuture<V> {
+    protected Callable<V> action;
 
-    protected Callable<V> task;
-    protected volatile int started = 0;
-
-    public RunnableCallablePFuture(@NonNull EventExecutor executor, @NonNull Callable<V> task) {
+    public CallablePFutureTask(@NonNull EventExecutor executor, @NonNull Callable<V> action) {
         super(executor);
 
-        this.task = task;
+        this.action = action;
     }
 
     @Override
-    public void run() {
-        if (!compareAndSwapInt(this, STARTED_OFFSET, 0, 1)) {
-            throw new IllegalStateException("Already started!");
-        }
+    protected V run0() throws Exception {
+        return this.action.call();
+    }
 
-        try {
-            if (this.setUncancellable())    {
-                this.setSuccess(this.task.call());
-            }
-        } catch (Throwable t) {
-            this.setFailure(t);
-        } finally {
-            //allow GC
-            this.task = null;
-        }
+    @Override
+    protected void cleanup() {
+        this.action = null;
     }
 }

@@ -30,9 +30,11 @@ import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.concurrent.PFuture;
+import net.daporkchop.lib.concurrent.PFutures;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -46,21 +48,6 @@ import java.util.concurrent.TimeoutException;
 @Getter
 @Accessors(fluent = true)
 public class NettyFutureAsPFuture<V> implements PFuture<V> {
-    protected static final Method DEFAULTPROMISE_EXECUTOR;
-    protected static final Method COMPLETEFUTURE_EXECUTOR;
-
-    static {
-        try {
-            DEFAULTPROMISE_EXECUTOR = DefaultPromise.class.getDeclaredMethod("executor");
-            DEFAULTPROMISE_EXECUTOR.setAccessible(true);
-
-            COMPLETEFUTURE_EXECUTOR = CompleteFuture.class.getDeclaredMethod("executor");
-            COMPLETEFUTURE_EXECUTOR.setAccessible(true);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     protected final Future<V>     delegate;
     protected final EventExecutor executor;
 
@@ -68,18 +55,7 @@ public class NettyFutureAsPFuture<V> implements PFuture<V> {
 
     public NettyFutureAsPFuture(@NonNull Future<V> delegate) {
         this.delegate = delegate;
-
-        try {
-            if (delegate instanceof DefaultPromise) {
-                this.executor = (EventExecutor) DEFAULTPROMISE_EXECUTOR.invoke(delegate, PorkUtil.EMPTY_OBJECT_ARRAY);
-            } else if (delegate instanceof CompleteFuture) {
-                this.executor = (EventExecutor) COMPLETEFUTURE_EXECUTOR.invoke(delegate, PorkUtil.EMPTY_OBJECT_ARRAY);
-            } else {
-                throw new IllegalArgumentException(PorkUtil.className(delegate));
-            }
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException(e);
-        }
+        this.executor = Objects.requireNonNull(PFutures.executor(delegate), delegate.getClass().getName());
     }
 
     @Override

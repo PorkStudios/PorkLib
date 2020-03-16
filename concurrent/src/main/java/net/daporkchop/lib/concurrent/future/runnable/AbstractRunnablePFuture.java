@@ -18,41 +18,49 @@
  *
  */
 
-import io.netty.util.concurrent.GlobalEventExecutor;
-import net.daporkchop.lib.concurrent.PFuture;
-import net.daporkchop.lib.concurrent.PFutures;
-import org.junit.Test;
+package net.daporkchop.lib.concurrent.future.runnable;
 
-import java.util.concurrent.CompletableFuture;
+import io.netty.util.concurrent.EventExecutor;
+import lombok.NonNull;
+import net.daporkchop.lib.concurrent.PRunnableFuture;
+import net.daporkchop.lib.concurrent.future.DefaultPFuture;
 
-import static net.daporkchop.lib.common.util.PorkUtil.*;
+import java.util.concurrent.RunnableFuture;
+
+import static net.daporkchop.lib.unsafe.PUnsafe.*;
 
 /**
+ * Base implementation of a {@link net.daporkchop.lib.concurrent.PFuture} which is also a {@link RunnableFuture} task.
+ *
  * @author DaPorkchop_
  */
-public class FutureTest {
-    @Test
-    public void test() {
-        System.out.println("Starting...");
-        PFuture<String> a = PFutures.wrap(GlobalEventExecutor.INSTANCE.submit(() -> {
-            sleep(5000L);
-            System.out.println("A");
-            return "Hello ";
-        }));
-        PFuture<String> b = PFutures.wrap(CompletableFuture.supplyAsync(() -> {
-            sleep(4000L);
-            System.out.println("B");
-            return "World";
-        }));
-        PFuture<String> c = PFutures.computeAsync(() -> {
-            sleep(5000L);
-            System.out.println("C");
-            return "!";
-        });
+public abstract class AbstractRunnablePFuture<V> extends DefaultPFuture<V> implements PRunnableFuture<V> {
+    protected static final long STARTED_OFFSET = pork_getOffset(AbstractRunnablePFuture.class, "started");
 
-        a.thenCombine(b, String::concat)
-                .thenCombine(c, String::concat)
-                .thenAccept(System.out::println)
-                .awaitUninterruptibly();
+    protected volatile int started = 0;
+
+    public AbstractRunnablePFuture(@NonNull EventExecutor executor) {
+        super(executor);
     }
+
+    @Override
+    public void run() {
+        if (!compareAndSwapInt(this, STARTED_OFFSET, 0, 1)) {
+            throw new IllegalStateException("Already started!");
+        }
+
+        try {
+            if (this.setUncancellable()) {
+                this.setSuccess(this.run0());
+            }
+        } catch (Throwable t) {
+            this.setFailure(t);
+        } finally {
+            this.cleanup();
+        }
+    }
+
+    protected abstract V run0() throws Exception;
+
+    protected abstract void cleanup();
 }

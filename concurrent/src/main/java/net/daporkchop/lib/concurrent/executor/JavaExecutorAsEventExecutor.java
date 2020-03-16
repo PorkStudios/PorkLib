@@ -26,16 +26,13 @@ import io.netty.util.concurrent.EventExecutorGroup;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.ProgressivePromise;
 import io.netty.util.concurrent.Promise;
-import io.netty.util.concurrent.ScheduledFuture;
-import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
 import net.daporkchop.lib.concurrent.PFuture;
 import net.daporkchop.lib.concurrent.future.DefaultPFuture;
-import net.daporkchop.lib.concurrent.future.runnable.RunnableCallablePFuture;
-import net.daporkchop.lib.concurrent.future.runnable.RunnablePFuture;
-import net.daporkchop.lib.concurrent.future.runnable.RunnableWithResultPFuture;
+import net.daporkchop.lib.concurrent.future.runnable.CallablePFutureTask;
+import net.daporkchop.lib.concurrent.future.runnable.RunnablePFutureTask;
+import net.daporkchop.lib.concurrent.future.runnable.RunnableWithResultPFutureTask;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
@@ -93,7 +90,7 @@ public class JavaExecutorAsEventExecutor<E extends Executor> extends AbstractEve
 
     @Override
     public boolean inEventLoop(Thread thread) {
-        throw new UnsupportedOperationException();
+        return false;
     }
 
     @Override
@@ -118,21 +115,21 @@ public class JavaExecutorAsEventExecutor<E extends Executor> extends AbstractEve
 
     @Override
     public PFuture<?> submit(Runnable task) {
-        RunnablePFuture future = new RunnablePFuture(this, task);
+        RunnablePFutureTask future = new RunnablePFutureTask(this, task);
         this.execute(future);
         return future;
     }
 
     @Override
     public <T> PFuture<T> submit(Runnable task, T result) {
-        RunnableWithResultPFuture<T> future = new RunnableWithResultPFuture<>(this, task, result);
+        RunnableWithResultPFutureTask<T> future = new RunnableWithResultPFutureTask<>(this, task, result);
         this.execute(future);
         return future;
     }
 
     @Override
     public <T> PFuture<T> submit(Callable<T> task) {
-        RunnableCallablePFuture<T> future = new RunnableCallablePFuture<>(this, task);
+        CallablePFutureTask<T> future = new CallablePFutureTask<>(this, task);
         this.execute(future);
         return future;
     }

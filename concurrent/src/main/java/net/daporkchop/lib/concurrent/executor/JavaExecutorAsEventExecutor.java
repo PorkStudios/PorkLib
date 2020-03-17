@@ -30,7 +30,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.concurrent.PFuture;
 import net.daporkchop.lib.concurrent.future.DefaultPFuture;
-import net.daporkchop.lib.concurrent.future.runnable.CallablePFutureTask;
+import net.daporkchop.lib.concurrent.future.runnable.SupplierPFutureTask;
 import net.daporkchop.lib.concurrent.future.runnable.RunnablePFutureTask;
 import net.daporkchop.lib.concurrent.future.runnable.RunnableWithResultPFutureTask;
 
@@ -129,7 +129,7 @@ public class JavaExecutorAsEventExecutor<E extends Executor> extends AbstractEve
 
     @Override
     public <T> PFuture<T> submit(Callable<T> task) {
-        CallablePFutureTask<T> future = new CallablePFutureTask<>(this, task);
+        SupplierPFutureTask<T> future = new SupplierPFutureTask<>(this, task);
         this.execute(future);
         return future;
     }

@@ -29,15 +29,15 @@ import net.daporkchop.lib.common.function.throwing.ERunnable;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.concurrent.PExecutors;
 import net.daporkchop.lib.concurrent.PFuture;
-import net.daporkchop.lib.reflection.lambda.LambdaBuilder;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.function.BiFunction;
 
 import static net.daporkchop.lib.common.util.PorkUtil.*;
 
@@ -52,25 +52,20 @@ public class CompletableFutureAsPFuture<V> implements PFuture<V> {
     protected static final Class<?> ALTRESULT_CLASS = PorkUtil.classForName("java.util.concurrent.CompletableFuture$AltResult");
     protected static final long     EX_OFFSET       = PUnsafe.pork_getOffset(ALTRESULT_CLASS, "ex");
 
-    @SuppressWarnings("unchecked")
-    protected static final BiFunction<CompletableFuture, Boolean, Object> WAITING_GET = LambdaBuilder.of(BiFunction.class)
-            .param().setType(boolean.class).setInterfaceGeneric(true).build()
-            .returnType().setType(Object.class).build()
-            .setInterfaceName("apply")
-            .setInterfaceTargetGeneric(true)
-            .setMethodHolder(CompletableFuture.class)
-            .setMethodName("waitingGet")
-            .build();
+    protected static final Method WAITING_GET;
+    protected static final Method TIMED_GET;
 
-    @SuppressWarnings("unchecked")
-    protected static final BiFunction<CompletableFuture, Long, Object> TIMED_GET = LambdaBuilder.of(BiFunction.class)
-            .param().setType(long.class).setInterfaceGeneric(true).build()
-            .returnType().setType(Object.class).build()
-            .setInterfaceName("apply")
-            .setInterfaceTargetGeneric(true)
-            .setMethodHolder(CompletableFuture.class)
-            .setMethodName("timedGet")
-            .build();
+    static {
+        try {
+            WAITING_GET = CompletableFuture.class.getDeclaredMethod("waitingGet", boolean.class);
+            WAITING_GET.setAccessible(true);
+
+            TIMED_GET = CompletableFuture.class.getDeclaredMethod("timedGet", long.class);
+            TIMED_GET.setAccessible(true);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @NonNull
     protected final CompletableFuture<V> delegate;
@@ -178,7 +173,14 @@ public class CompletableFutureAsPFuture<V> implements PFuture<V> {
     @Override
     public PFuture<V> await() throws InterruptedException {
         if (!this.isDone()) {
-            WAITING_GET.apply(this.delegate, true);
+            try {
+                WAITING_GET.invoke(this.delegate, true);
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                if (e.getCause() instanceof InterruptedException) {
+                    throw (InterruptedException) e.getCause();
+                }
+                throw new RuntimeException(e);
+            }
         }
         return this;
     }
@@ -186,7 +188,11 @@ public class CompletableFutureAsPFuture<V> implements PFuture<V> {
     @Override
     public PFuture<V> awaitUninterruptibly() {
         if (!this.isDone()) {
-            WAITING_GET.apply(this.delegate, false);
+            try {
+                WAITING_GET.invoke(this.delegate, false);
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                throw new RuntimeException(e);
+            }
         }
         return this;
     }
@@ -195,18 +201,17 @@ public class CompletableFutureAsPFuture<V> implements PFuture<V> {
     public boolean await(long timeout, TimeUnit unit) throws InterruptedException {
         if (!this.isDone()) {
             try {
-                if (false)  {
-                    throw new TimeoutException();
-                }
-
-                Object o = TIMED_GET.apply(this.delegate, unit.toNanos(timeout));
+                Object o = TIMED_GET.invoke(this.delegate, unit.toNanos(timeout));
                 if (o == null) {
                     throw new InterruptedException();
                 } else {
                     return true;
                 }
-            } catch (TimeoutException e) {
-                return false;
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                if (e.getCause() instanceof TimeoutException) {
+                    return false;
+                }
+                throw new RuntimeException(e);
             }
         } else {
             return true;
@@ -223,20 +228,18 @@ public class CompletableFutureAsPFuture<V> implements PFuture<V> {
         long end = System.nanoTime() + unit.toNanos(timeout);
         boolean interrupted = Thread.interrupted();
         try {
-            if (false)  {
-                throw new TimeoutException();
-            }
-
             do {
-                Object o = TIMED_GET.apply(this.delegate, end - System.nanoTime());
+                Object o = TIMED_GET.invoke(this.delegate, end - System.nanoTime());
                 if (o == null || (interrupted |= Thread.interrupted())) {
                     interrupted = true;
                 } else {
                     return true;
                 }
             } while (System.nanoTime() < end);
-        } catch (TimeoutException e) {
-            //ignore
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            if (!(e.getCause() instanceof TimeoutException)) {
+                throw new RuntimeException(e);
+            }
         } finally {
             if (interrupted) {
                 Thread.currentThread().interrupt();
@@ -266,15 +269,5 @@ public class CompletableFutureAsPFuture<V> implements PFuture<V> {
         public void runThrowing() throws Exception {
             this.listener.operationComplete(uncheckedCast(CompletableFutureAsPFuture.this));
         }
-    }
-
-    @FunctionalInterface
-    protected interface WaitingGet {
-        Object apply(CompletableFuture arg, boolean val);
-    }
-
-    @FunctionalInterface
-    protected interface TimedGet {
-        Object apply(CompletableFuture arg, long val) throws TimeoutException;
     }
 }

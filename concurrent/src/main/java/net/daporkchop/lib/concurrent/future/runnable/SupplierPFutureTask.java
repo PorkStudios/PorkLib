@@ -24,16 +24,17 @@ import io.netty.util.concurrent.EventExecutor;
 import lombok.NonNull;
 
 import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 
 /**
  * A {@link net.daporkchop.lib.concurrent.PFuture} which, when run, will be completed with the result of a {@link Callable} task.
  *
  * @author DaPorkchop_
  */
-public class CallablePFutureTask<V> extends AbstractRunnablePFuture<V> {
-    protected Callable<V> action;
+public class SupplierPFutureTask<V> extends AbstractRunnablePFuture<V> {
+    protected Supplier<? extends V> action;
 
-    public CallablePFutureTask(@NonNull EventExecutor executor, @NonNull Callable<V> action) {
+    public SupplierPFutureTask(@NonNull EventExecutor executor, @NonNull Supplier<? extends V> action) {
         super(executor);
 
         this.action = action;
@@ -41,7 +42,7 @@ public class CallablePFutureTask<V> extends AbstractRunnablePFuture<V> {
 
     @Override
     protected V run0() throws Exception {
-        return this.action.call();
+        return this.action.get();
     }
 
     @Override

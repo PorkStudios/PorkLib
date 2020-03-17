@@ -31,11 +31,11 @@ import java.util.function.Function;
  *
  * @author DaPorkchop_
  */
-public class ApplyPFutureTask<P, V> extends AbstractRunnablePFuture<V> {
+public class FunctionPFutureTask<P, V> extends AbstractRunnablePFuture<V> {
     protected P              parameter;
     protected Function<? super P, ? extends V> action;
 
-    public ApplyPFutureTask(@NonNull EventExecutor executor, @NonNull Function<? super P, ? extends V> action, @NonNull P parameter) {
+    public FunctionPFutureTask(@NonNull EventExecutor executor, @NonNull Function<? super P, ? extends V> action, @NonNull P parameter) {
         super(executor);
 
         this.parameter = parameter;

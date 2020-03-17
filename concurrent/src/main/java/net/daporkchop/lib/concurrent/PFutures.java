@@ -30,18 +30,21 @@ import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.concurrent.compatibility.CompletableFutureAsPFuture;
 import net.daporkchop.lib.concurrent.compatibility.NettyFutureAsCompletableFuture;
 import net.daporkchop.lib.concurrent.compatibility.NettyFutureAsPFuture;
-import net.daporkchop.lib.concurrent.future.runnable.ApplyPFutureTask;
-import net.daporkchop.lib.concurrent.future.runnable.CallablePFutureTask;
+import net.daporkchop.lib.concurrent.future.runnable.ConsumerPFutureTask;
+import net.daporkchop.lib.concurrent.future.runnable.FunctionPFutureTask;
 import net.daporkchop.lib.concurrent.future.runnable.RunnablePFutureTask;
 import net.daporkchop.lib.concurrent.future.runnable.RunnableWithResultPFutureTask;
+import net.daporkchop.lib.concurrent.future.runnable.SupplierPFutureTask;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ForkJoinPool;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static net.daporkchop.lib.common.util.PorkUtil.*;
 import static net.daporkchop.lib.unsafe.PUnsafe.*;
@@ -123,42 +126,123 @@ public class PFutures {
         }
     }
 
+    /**
+     * Executes the given {@link Runnable} asynchronously using {@link ForkJoinPool#commonPool()}.
+     *
+     * @param action the {@link Runnable} to run
+     * @return a {@link PFuture} which will be completed when the {@link Runnable} has finished execution
+     */
     public static PFuture<Void> runAsync(@NonNull Runnable action) {
         return runAsync(action, PExecutors.FORKJOINPOOL);
     }
 
+    /**
+     * Executes the given {@link Runnable} on the given {@link Executor}.
+     *
+     * @param action   the {@link Runnable} to run
+     * @param executor the {@link Executor} to run the action on
+     * @return a {@link PFuture} which will be completed when the {@link Runnable} has finished execution
+     */
     public static PFuture<Void> runAsync(@NonNull Runnable action, @NonNull Executor executor) {
         PRunnableFuture<Void> future = new RunnablePFutureTask(PExecutors.toNettyExecutor(executor), action);
         executor.execute(future);
         return future;
     }
 
+    /**
+     * Executes the given {@link Runnable} asynchronously using {@link ForkJoinPool#commonPool()}.
+     *
+     * @param action the {@link Runnable} to run
+     * @param result the result to complete the returned future with upon completion of the {@link Runnable}
+     * @return a {@link PFuture} which will be completed with the given result when the {@link Runnable} has been completed
+     */
     public static <V> PFuture<V> runAsync(@NonNull Runnable action, V result) {
         return runAsync(action, result, PExecutors.FORKJOINPOOL);
     }
 
+    /**
+     * Executes the given {@link Runnable} on the given {@link Executor}.
+     *
+     * @param action   the {@link Runnable} to run
+     * @param result   the result to complete the returned future with upon completion of the {@link Runnable}
+     * @param executor the {@link Executor} to run the action on
+     * @return a {@link PFuture} which will be completed with the given result when the {@link Runnable} has been completed
+     */
     public static <V> PFuture<V> runAsync(@NonNull Runnable action, V result, @NonNull Executor executor) {
         PRunnableFuture<V> future = new RunnableWithResultPFutureTask<>(PExecutors.toNettyExecutor(executor), action, result);
         executor.execute(future);
         return future;
     }
 
-    public static <V> PFuture<V> computeAsync(@NonNull Callable<V> action) {
+    /**
+     * Computes a value using the given {@link Supplier} asynchronously using {@link ForkJoinPool#commonPool()}.
+     *
+     * @param action the {@link Supplier} to use to compute the value
+     * @return a {@link PFuture} which will be completed with the value returned by the {@link Supplier}
+     */
+    public static <V> PFuture<V> computeAsync(@NonNull Supplier<? extends V> action) {
         return computeAsync(action, PExecutors.FORKJOINPOOL);
     }
 
-    public static <V> PFuture<V> computeAsync(@NonNull Callable<V> action, @NonNull Executor executor) {
-        PRunnableFuture<V> future = new CallablePFutureTask<>(PExecutors.toNettyExecutor(executor), action);
+    /**
+     * Computes a value using the given {@link Supplier} on the given {@link Executor}.
+     *
+     * @param action   the {@link Supplier} to use to compute the value
+     * @param executor the {@link Executor} to run the action on
+     * @return a {@link PFuture} which will be completed with the value returned by the {@link Supplier}
+     */
+    public static <V> PFuture<V> computeAsync(@NonNull Supplier<? extends V> action, @NonNull Executor executor) {
+        PRunnableFuture<V> future = new SupplierPFutureTask<>(PExecutors.toNettyExecutor(executor), action);
         executor.execute(future);
         return future;
     }
 
-    public static <P, V> PFuture<V> applyAsync(@NonNull Function<P, V> action, P parameter) {
+    /**
+     * Passes the given parameter to the given {@link Consumer} asynchronously using {@link ForkJoinPool#commonPool()}.
+     *
+     * @param action    the {@link Consumer} to pass the parameter to
+     * @param parameter the parameter to pass to the {@link Consumer}
+     * @return a {@link PFuture} which will be completed when the {@link Consumer} has finished execution
+     */
+    public static <P> PFuture<Void> acceptAsync(@NonNull Consumer<? super P> action, P parameter) {
+        return acceptAsync(action, parameter, PExecutors.FORKJOINPOOL);
+    }
+
+    /**
+     * Passes the given parameter to the given {@link Consumer} on the given {@link Executor}.
+     *
+     * @param action    the {@link Consumer} to pass the parameter to
+     * @param parameter the parameter to pass to the {@link Consumer}
+     * @param executor  the {@link Executor} to run the action on
+     * @return a {@link PFuture} which will be completed when the {@link Consumer} has finished execution
+     */
+    public static <P> PFuture<Void> acceptAsync(@NonNull Consumer<? super P> action, P parameter, @NonNull Executor executor) {
+        PRunnableFuture<Void> future = new ConsumerPFutureTask<>(PExecutors.toNettyExecutor(executor), action, parameter);
+        executor.execute(future);
+        return future;
+    }
+
+    /**
+     * Computes a value using the given {@link Function} asynchronously using {@link ForkJoinPool#commonPool()}.
+     *
+     * @param action    the {@link Function} to use to compute the value
+     * @param parameter the parameter to pass to the {@link Function}
+     * @return a {@link PFuture} which will be completed with the value returned by the {@link Function}
+     */
+    public static <P, V> PFuture<V> applyAsync(@NonNull Function<? super P, ? extends V> action, P parameter) {
         return applyAsync(action, parameter, PExecutors.FORKJOINPOOL);
     }
 
+    /**
+     * Computes a value using the given {@link Function} on the given {@link Executor}.
+     *
+     * @param action    the {@link Function} to use to compute the value
+     * @param parameter the parameter to pass to the {@link Function}
+     * @param executor  the {@link Executor} to run the action on
+     * @return a {@link PFuture} which will be completed with the value returned by the {@link Function}
+     */
     public static <P, V> PFuture<V> applyAsync(@NonNull Function<? super P, ? extends V> action, P parameter, @NonNull Executor executor) {
-        PRunnableFuture<V> future = new ApplyPFutureTask<>(PExecutors.toNettyExecutor(executor), action, parameter);
+        PRunnableFuture<V> future = new FunctionPFutureTask<>(PExecutors.toNettyExecutor(executor), action, parameter);
         executor.execute(future);
         return future;
     }

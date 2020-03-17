@@ -18,6 +18,40 @@
  *
  */
 
-dependencies {
-    compile "io.netty:netty-common:$nettyVersion"
+package net.daporkchop.lib.concurrent.future.runnable;
+
+import io.netty.util.concurrent.EventExecutor;
+import lombok.NonNull;
+
+import java.util.function.Consumer;
+import java.util.function.Function;
+
+/**
+ * A {@link net.daporkchop.lib.concurrent.PFuture} which, when run, will be completed with the result of passing the given parameter to the given
+ * {@link Consumer} task.
+ *
+ * @author DaPorkchop_
+ */
+public class ConsumerPFutureTask<P> extends AbstractRunnablePFuture<Void> {
+    protected P                   parameter;
+    protected Consumer<? super P> action;
+
+    public ConsumerPFutureTask(@NonNull EventExecutor executor, @NonNull Consumer<? super P> action, @NonNull P parameter) {
+        super(executor);
+
+        this.parameter = parameter;
+        this.action = action;
+    }
+
+    @Override
+    protected Void run0() throws Exception {
+        this.action.accept(this.parameter);
+        return null;
+    }
+
+    @Override
+    protected void cleanup() {
+        this.parameter = null;
+        this.action = null;
+    }
 }

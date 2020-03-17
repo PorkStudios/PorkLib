@@ -30,6 +30,8 @@ import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.concurrent.compatibility.CompletableFutureAsPFuture;
 import net.daporkchop.lib.concurrent.compatibility.NettyFutureAsCompletableFuture;
 import net.daporkchop.lib.concurrent.compatibility.NettyFutureAsPFuture;
+import net.daporkchop.lib.concurrent.future.done.FailedPFuture;
+import net.daporkchop.lib.concurrent.future.done.SucceededPFuture;
 import net.daporkchop.lib.concurrent.future.runnable.ConsumerPFutureTask;
 import net.daporkchop.lib.concurrent.future.runnable.FunctionPFutureTask;
 import net.daporkchop.lib.concurrent.future.runnable.RunnablePFutureTask;
@@ -124,6 +126,48 @@ public class PFutures {
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Returns a {@link PFuture} that has already been completed with the given value.
+     *
+     * @param value the value that the future was completed with
+     * @return a {@link PFuture} that has already been completed with the given value
+     */
+    public static <V> PFuture<V> successful(V value) {
+        return successful(value, PExecutors.FORKJOINPOOL);
+    }
+
+    /**
+     * Returns a {@link PFuture} that has already been completed with the given value.
+     *
+     * @param value    the value that the future was completed with
+     * @param executor the {@link Executor} that the future should use
+     * @return a {@link PFuture} that has already been completed with the given value
+     */
+    public static <V> PFuture<V> successful(V value, @NonNull Executor executor) {
+        return new SucceededPFuture<>(PExecutors.toNettyExecutor(executor), value);
+    }
+
+    /**
+     * Returns a {@link PFuture} that has already been unsuccessfully completed with the given cause.
+     *
+     * @param cause the cause of the future's failure
+     * @return a {@link PFuture} that has already been unsuccessfully completed with the given cause
+     */
+    public static <V> PFuture<V> failed(@NonNull Throwable cause) {
+        return failed(cause, PExecutors.FORKJOINPOOL);
+    }
+
+    /**
+     * Returns a {@link PFuture} that has already been unsuccessfully completed with the given cause.
+     *
+     * @param cause    the cause of the future's failure
+     * @param executor the {@link Executor} that the future should use
+     * @return a {@link PFuture} that has already been unsuccessfully completed with the given cause
+     */
+    public static <V> PFuture<V> failed(@NonNull Throwable cause, @NonNull Executor executor) {
+        return new FailedPFuture<>(PExecutors.toNettyExecutor(executor), cause);
     }
 
     /**

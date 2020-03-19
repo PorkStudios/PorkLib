@@ -32,6 +32,7 @@ import net.daporkchop.lib.concurrent.compatibility.NettyFutureAsCompletableFutur
 import net.daporkchop.lib.concurrent.compatibility.NettyFutureAsPFuture;
 import net.daporkchop.lib.concurrent.future.done.FailedPFuture;
 import net.daporkchop.lib.concurrent.future.done.SucceededPFuture;
+import net.daporkchop.lib.concurrent.future.runnable.CallablePFutureTask;
 import net.daporkchop.lib.concurrent.future.runnable.ConsumerPFutureTask;
 import net.daporkchop.lib.concurrent.future.runnable.FunctionPFutureTask;
 import net.daporkchop.lib.concurrent.future.runnable.RunnablePFutureTask;
@@ -40,6 +41,7 @@ import net.daporkchop.lib.concurrent.future.runnable.SupplierPFutureTask;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
@@ -237,6 +239,29 @@ public class PFutures {
      */
     public static <V> PFuture<V> computeAsync(@NonNull Supplier<? extends V> action, @NonNull Executor executor) {
         PRunnableFuture<V> future = new SupplierPFutureTask<>(PExecutors.toNettyExecutor(executor), action);
+        executor.execute(future);
+        return future;
+    }
+
+    /**
+     * Computes a value using the given {@link Callable} asynchronously using {@link ForkJoinPool#commonPool()}.
+     *
+     * @param action the {@link Callable} to use to compute the value
+     * @return a {@link PFuture} which will be completed with the value returned by the {@link Callable}
+     */
+    public static <V> PFuture<V> computeThrowableAsync(@NonNull Callable<? extends V> action) {
+        return computeThrowableAsync(action, PExecutors.FORKJOINPOOL);
+    }
+
+    /**
+     * Computes a value using the given {@link Callable} on the given {@link Executor}.
+     *
+     * @param action   the {@link Callable} to use to compute the value
+     * @param executor the {@link Executor} to run the action on
+     * @return a {@link PFuture} which will be completed with the value returned by the {@link Callable}
+     */
+    public static <V> PFuture<V> computeThrowableAsync(@NonNull Callable<? extends V> action, @NonNull Executor executor) {
+        PRunnableFuture<V> future = new CallablePFutureTask<>(PExecutors.toNettyExecutor(executor), action);
         executor.execute(future);
         return future;
     }

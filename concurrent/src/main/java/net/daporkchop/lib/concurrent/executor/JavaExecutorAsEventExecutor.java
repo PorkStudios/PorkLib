@@ -29,10 +29,8 @@ import io.netty.util.concurrent.Promise;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.concurrent.PFuture;
+import net.daporkchop.lib.concurrent.PFutures;
 import net.daporkchop.lib.concurrent.future.DefaultPFuture;
-import net.daporkchop.lib.concurrent.future.runnable.SupplierPFutureTask;
-import net.daporkchop.lib.concurrent.future.runnable.RunnablePFutureTask;
-import net.daporkchop.lib.concurrent.future.runnable.RunnableWithResultPFutureTask;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
@@ -115,23 +113,17 @@ public class JavaExecutorAsEventExecutor<E extends Executor> extends AbstractEve
 
     @Override
     public PFuture<?> submit(Runnable task) {
-        RunnablePFutureTask future = new RunnablePFutureTask(this, task);
-        this.execute(future);
-        return future;
+        return PFutures.runAsync(task, this);
     }
 
     @Override
     public <T> PFuture<T> submit(Runnable task, T result) {
-        RunnableWithResultPFutureTask<T> future = new RunnableWithResultPFutureTask<>(this, task, result);
-        this.execute(future);
-        return future;
+        return PFutures.runAsync(task, result, this);
     }
 
     @Override
     public <T> PFuture<T> submit(Callable<T> task) {
-        SupplierPFutureTask<T> future = new SupplierPFutureTask<>(this, task);
-        this.execute(future);
-        return future;
+        return PFutures.computeThrowableAsync(task, this);
     }
 
     @Override

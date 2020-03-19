@@ -26,7 +26,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.entity.content.type.ContentType;
-import net.daporkchop.lib.http.header.map.HeaderMap;
+import net.daporkchop.lib.http.header.HeaderMap;
 import net.daporkchop.lib.http.request.Request;
 
 import java.nio.charset.Charset;

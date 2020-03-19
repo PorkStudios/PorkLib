@@ -38,7 +38,7 @@ public interface Ref<T> extends Supplier<T> {
      * @return a {@link Ref}
      */
     static <T> Ref<T> late(@NonNull Supplier<T> factory) {
-        return new LateReferencedRef<>(factory);
+        return new LateRef<>(factory);
     }
 
     /**

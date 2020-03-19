@@ -18,39 +18,40 @@
  *
  */
 
-package net.daporkchop.lib.common.ref;
+package net.daporkchop.lib.http.header;
 
-import lombok.AccessLevel;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.common.misc.string.FastCaseInsensitiveStringComparator;
 
-import java.util.Objects;
-import java.util.function.Supplier;
+import java.util.TreeMap;
 
 /**
- * A simple implementation of {@link Ref} that computes a single value using a given {@link Supplier} once it's first requested.
+ * Default implementation of {@link HeaderMap}, based on a case-insensitive {@link TreeMap}.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
-public final class LateReferencedRef<T> implements Ref<T> {
-    @NonNull
-    protected Supplier<T> factory;
+public class DefaultHeaderMap extends TreeMap<String, String> implements HeaderMap {
+    public DefaultHeaderMap() {
+        super(FastCaseInsensitiveStringComparator.INSTANCE);
+    }
 
-    protected T value;
+    public DefaultHeaderMap(@NonNull HeaderMap other) {
+        this();
+
+        if (other instanceof DefaultHeaderMap) {
+            this.putAll((DefaultHeaderMap) other);
+        } else {
+            other.forEach(this::put);
+        }
+    }
 
     @Override
-    public T get() {
-        T value = this.value;
-        if (value == null) {
-            synchronized (this) {
-                //check again after obtaining lock, it may have been set by another thread
-                if ((value = this.value) == null) {
-                    this.value = value = Objects.requireNonNull(this.factory.get());
-                    this.factory = null; //allow factory to be GC-d
-                }
-            }
-        }
-        return value;
+    public String get(@NonNull String key) {
+        return super.get(key);
+    }
+
+    @Override
+    public boolean has(@NonNull String key) {
+        return super.containsKey(key);
     }
 }

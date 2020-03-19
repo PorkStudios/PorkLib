@@ -1,0 +1,86 @@
+/*
+ * Adapted from The MIT License (MIT)
+ *
+ * Copyright (c) 2018-2020 DaPorkchop_
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software
+ * is furnished to do so, subject to the following conditions:
+ *
+ * Any persons and/or organizations using this software must include the above copyright notice and this permission notice,
+ * provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+
+package net.daporkchop.lib.http.header;
+
+import lombok.NonNull;
+
+/**
+ * A {@link HeaderMap} which may be modified.
+ *
+ * @author DaPorkchop_
+ * @see DefaultMutableHeaderMap
+ */
+public interface MutableHeaderMap extends HeaderMap {
+    /**
+     * Adds a header into this map, doing nothing if the given key already has a value mapped to it.
+     *
+     * @param key   the header's key
+     * @param value the header's value
+     * @return the current value for the given key, or {@code null} if not previously present and successfully added to the map
+     */
+    String add(@NonNull String key, @NonNull String value);
+
+    /**
+     * Adds all headers from the given map into this map.
+     *
+     * @param other the {@link HeaderMap} containing the headers to add
+     * @see #add(String, String)
+     */
+    void addAll(@NonNull HeaderMap other);
+
+    /**
+     * Puts a header into this map, replacing the value currently mapped to the given key if present.
+     *
+     * @param key   the header's key
+     * @param value the header's value
+     * @return the previous value for the given key, or {@code null} if not previously present
+     */
+    String put(@NonNull String key, @NonNull String value);
+
+    /**
+     * Puts all headers from the given map into this map.
+     *
+     * @param other the {@link HeaderMap} containing the headers to put
+     * @see #put(String, String)
+     */
+    void putAll(@NonNull HeaderMap other);
+
+    /**
+     * Removes a header with the given key from this map.
+     *
+     * @param key the key of the header to remove
+     * @return the value previously mapped to the given key, or {@code null} if the given key did not exist in this map
+     */
+    String remove(@NonNull String key);
+
+    /**
+     * Removes all headers from the given map from this map.
+     *
+     * @param other the {@link HeaderMap} containing the headers to remove
+     * @see #remove(String)
+     */
+    void removeAll(@NonNull HeaderMap other);
+
+    /**
+     * Clears this map, removing all headers.
+     */
+    void clear();
+}

@@ -30,18 +30,16 @@ import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.http.HttpClient;
 import net.daporkchop.lib.http.HttpMethod;
 import net.daporkchop.lib.http.entity.HttpEntity;
-import net.daporkchop.lib.http.header.Header;
-import net.daporkchop.lib.http.header.map.ArrayHeaderMap;
-import net.daporkchop.lib.http.header.map.HeaderMap;
-import net.daporkchop.lib.http.header.map.HeaderMaps;
-import net.daporkchop.lib.http.header.map.MutableHeaderMap;
+import net.daporkchop.lib.http.header.DefaultMutableHeaderMap;
+import net.daporkchop.lib.http.header.HeaderMap;
+import net.daporkchop.lib.http.header.HeaderMaps;
+import net.daporkchop.lib.http.header.MutableHeaderMap;
 import net.daporkchop.lib.http.impl.java.JavaHttpClient;
 import net.daporkchop.lib.http.request.auth.Authentication;
 import net.daporkchop.lib.http.response.aggregate.ResponseAggregator;
 import net.daporkchop.lib.http.util.ProgressHandler;
 
 import java.net.Proxy;
-import java.util.List;
 
 /**
  * Implementation of some of the most common methods of {@link RequestBuilder}.
@@ -73,7 +71,7 @@ public abstract class AbstractRequestBuilder<V, C extends HttpClient> implements
 
     @NonNull
     @Getter
-    protected HeaderMap headers = HeaderMaps.empty();
+    protected HeaderMap headers = HeaderMaps.EMPTY;
 
     @NonNull
     protected Authentication authentication = Authentication.none();
@@ -110,38 +108,14 @@ public abstract class AbstractRequestBuilder<V, C extends HttpClient> implements
     }
 
     @Override
-    public RequestBuilder<V> putHeader(@NonNull String key, @NonNull String value) {
-        this.internalHeaderMap().put(key, value);
-        return this;
-    }
-
-    @Override
-    public RequestBuilder<V> putHeader(@NonNull String key, @NonNull List<String> values) {
-        this.internalHeaderMap().put(key, values);
-        return this;
-    }
-
-    @Override
-    public RequestBuilder<V> putHeader(@NonNull Header header) {
-        this.internalHeaderMap().put(header);
-        return this;
-    }
-
-    @Override
     public RequestBuilder<V> addHeader(@NonNull String key, @NonNull String value) {
         this.internalHeaderMap().add(key, value);
         return this;
     }
 
     @Override
-    public RequestBuilder<V> addHeader(@NonNull String key, @NonNull List<String> values) {
-        this.internalHeaderMap().add(key, values);
-        return this;
-    }
-
-    @Override
-    public RequestBuilder<V> addHeader(@NonNull Header header) {
-        this.internalHeaderMap().add(header);
+    public RequestBuilder<V> putHeader(@NonNull String key, @NonNull String value) {
+        this.internalHeaderMap().put(key, value);
         return this;
     }
 
@@ -150,10 +124,10 @@ public abstract class AbstractRequestBuilder<V, C extends HttpClient> implements
         MutableHeaderMap mutableHeaders;
         if (headers instanceof MutableHeaderMap) {
             mutableHeaders = (MutableHeaderMap) headers;
-        } else if (headers == HeaderMaps.empty()) {
-            mutableHeaders = new ArrayHeaderMap();
+        } else if (headers == HeaderMaps.EMPTY) {
+            mutableHeaders = new DefaultMutableHeaderMap();
         } else {
-            mutableHeaders = headers.mutableCopy();
+            mutableHeaders = new DefaultMutableHeaderMap(headers);
         }
         return (MutableHeaderMap) (this.headers = mutableHeaders);
     }
@@ -170,7 +144,7 @@ public abstract class AbstractRequestBuilder<V, C extends HttpClient> implements
      * Internal method only: makes a copy of the locally stored {@link HeaderMap} and prepares it to be sent.
      */
     protected HeaderMap _prepareHeaders() {
-        MutableHeaderMap headers = this.headers.mutableCopy();
+        MutableHeaderMap headers = this.internalHeaderMap();
         headers.forEach((key, value) -> {
             if (HeaderMaps.isReserved(key)) {
                 throw new IllegalArgumentException(String.format("Header key \"%s\" is reserved, but was manually set!", key));

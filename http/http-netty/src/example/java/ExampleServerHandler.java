@@ -21,13 +21,12 @@
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.http.entity.content.type.StandardContentType;
-import net.daporkchop.lib.http.header.map.HeaderMap;
+import net.daporkchop.lib.http.header.HeaderMap;
 import net.daporkchop.lib.http.message.Message;
 import net.daporkchop.lib.http.request.query.Query;
 import net.daporkchop.lib.http.server.ResponseBuilder;
 import net.daporkchop.lib.http.server.handle.ServerHandler;
 import net.daporkchop.lib.http.util.StatusCodes;
-import net.daporkchop.lib.http.util.exception.GenericHttpException;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;

@@ -20,62 +20,70 @@
 
 package net.daporkchop.lib.http.header;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.function.BiConsumer;
 
 /**
- * An implementation of {@link Header} which has only a single value.
- *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-public final class SingletonHeaderImpl implements Header {
-    @NonNull
-    protected final String key;
-    @NonNull
-    protected final String value;
-
-    public SingletonHeaderImpl(@NonNull Header source) {
-        this(source.key(), source.value());
+final class EmptyHeaderMap implements MutableHeaderMap {
+    @Override
+    public String add(@NonNull String key, @NonNull String value) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public List<String> values() {
-        return Collections.singletonList(this.value);
+    public void addAll(@NonNull HeaderMap other) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public boolean singleton() {
+    public String put(@NonNull String key, @NonNull String value) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void putAll(@NonNull HeaderMap other) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String remove(@NonNull String key) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void removeAll(@NonNull HeaderMap other) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void clear() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public int size() {
+        return 0;
+    }
+
+    @Override
+    public boolean isEmpty() {
         return true;
     }
 
     @Override
-    public String toString() {
-        return String.format("%s: %s", this.key, this.value);
+    public String get(@NonNull String key) {
+        return null;
     }
 
     @Override
-    public int hashCode() {
-        return this.key.toLowerCase().hashCode() * 31 + this.value.hashCode();
+    public boolean has(@NonNull String key) {
+        return false;
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj)    {
-            return true;
-        } else if (obj instanceof Header)   {
-            Header header = (Header) obj;
-            return this.key.equalsIgnoreCase(header.key()) && this.values().equals(header.values());
-        } else {
-            return false;
-        }
+    public void forEach(@NonNull BiConsumer<? super String, ? super String> callback) {
     }
 }

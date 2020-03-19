@@ -18,32 +18,53 @@
  *
  */
 
-package net.daporkchop.lib.http.response;
+package net.daporkchop.lib.http.header;
 
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.http.StatusCode;
-import net.daporkchop.lib.http.header.HeaderMap;
-import net.daporkchop.lib.http.request.Request;
+
+import java.util.TreeMap;
 
 /**
- * A simple implementation of {@link ResponseBody}.
+ * Default implementation of {@link MutableHeaderMap}, based on a case-insensitive {@link TreeMap}.
  *
  * @author DaPorkchop_
+ * @see DefaultHeaderMap
  */
-@Getter
-@Accessors(fluent = true)
-public final class ResponseBodyImpl<V> implements ResponseBody<V> {
-    protected final Request<V> request;
-    protected final StatusCode status;
-    protected final HeaderMap  headers;
-    protected final V          body;
+public class DefaultMutableHeaderMap extends DefaultHeaderMap implements MutableHeaderMap {
+    public DefaultMutableHeaderMap() {
+        super();
+    }
 
-    public ResponseBodyImpl(@NonNull Request<V> request, @NonNull StatusCode status, @NonNull HeaderMap headers, V body) {
-        this.request = request;
-        this.status = status;
-        this.headers = headers.snapshot();
-        this.body = body;
+    public DefaultMutableHeaderMap(@NonNull HeaderMap other) {
+        super(other);
+    }
+
+    @Override
+    public String add(@NonNull String key, @NonNull String value) {
+        return super.putIfAbsent(key, value);
+    }
+
+    @Override
+    public void addAll(@NonNull HeaderMap other) {
+        other.forEach(this::add);
+    }
+
+    @Override
+    public void putAll(@NonNull HeaderMap other) {
+        if (other instanceof DefaultHeaderMap) {
+            super.putAll((DefaultHeaderMap) other);
+        } else {
+            other.forEach(this::put);
+        }
+    }
+
+    @Override
+    public String remove(@NonNull String key) {
+        return super.remove(key);
+    }
+
+    @Override
+    public void removeAll(@NonNull HeaderMap other) {
+        other.forEach(this::remove);
     }
 }

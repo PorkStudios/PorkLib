@@ -18,32 +18,39 @@
  *
  */
 
-package net.daporkchop.lib.http.response;
+package net.daporkchop.lib.common.ref;
 
-import lombok.Getter;
+import lombok.AccessLevel;
 import lombok.NonNull;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.http.StatusCode;
-import net.daporkchop.lib.http.header.HeaderMap;
-import net.daporkchop.lib.http.request.Request;
+import lombok.RequiredArgsConstructor;
+
+import java.util.Objects;
+import java.util.function.Supplier;
 
 /**
- * A simple implementation of {@link ResponseBody}.
+ * A simple implementation of {@link Ref} that computes a single value using a given {@link Supplier} once it's first requested.
  *
  * @author DaPorkchop_
  */
-@Getter
-@Accessors(fluent = true)
-public final class ResponseBodyImpl<V> implements ResponseBody<V> {
-    protected final Request<V> request;
-    protected final StatusCode status;
-    protected final HeaderMap  headers;
-    protected final V          body;
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+public final class LateRef<T> implements Ref<T> {
+    @NonNull
+    protected Supplier<T> factory;
 
-    public ResponseBodyImpl(@NonNull Request<V> request, @NonNull StatusCode status, @NonNull HeaderMap headers, V body) {
-        this.request = request;
-        this.status = status;
-        this.headers = headers.snapshot();
-        this.body = body;
+    protected T value;
+
+    @Override
+    public T get() {
+        T value = this.value;
+        if (value == null) {
+            synchronized (this) {
+                //check again after obtaining lock, it may have been set by another thread
+                if ((value = this.value) == null) {
+                    this.value = value = Objects.requireNonNull(this.factory.get());
+                    this.factory = null; //allow factory to be GC-d
+                }
+            }
+        }
+        return value;
     }
 }

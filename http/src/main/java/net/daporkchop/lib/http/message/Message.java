@@ -20,7 +20,7 @@
 
 package net.daporkchop.lib.http.message;
 
-import net.daporkchop.lib.http.header.map.HeaderMap;
+import net.daporkchop.lib.http.header.HeaderMap;
 
 /**
  * Represents an HTTP message.

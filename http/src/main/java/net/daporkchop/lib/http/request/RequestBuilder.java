@@ -22,16 +22,9 @@ package net.daporkchop.lib.http.request;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.common.function.PFunctions;
 import net.daporkchop.lib.http.HttpClient;
 import net.daporkchop.lib.http.HttpMethod;
-import net.daporkchop.lib.http.entity.FileHttpEntity;
 import net.daporkchop.lib.http.entity.HttpEntity;
-import net.daporkchop.lib.http.entity.content.type.ContentType;
-import net.daporkchop.lib.http.entity.content.type.StandardContentType;
-import net.daporkchop.lib.http.header.Header;
-import net.daporkchop.lib.http.header.map.HeaderMap;
-import net.daporkchop.lib.http.header.map.HeaderMaps;
 import net.daporkchop.lib.http.message.MessageBuilder;
 import net.daporkchop.lib.http.request.auth.Authentication;
 import net.daporkchop.lib.http.response.aggregate.ResponseAggregator;
@@ -39,13 +32,10 @@ import net.daporkchop.lib.http.response.aggregate.ToByteArrayAggregator;
 import net.daporkchop.lib.http.response.aggregate.ToByteBufAggregator;
 import net.daporkchop.lib.http.response.aggregate.ToFileAggregator;
 import net.daporkchop.lib.http.response.aggregate.ToStringAggregator;
-import net.daporkchop.lib.http.server.ResponseBuilder;
 import net.daporkchop.lib.http.util.ProgressHandler;
 
 import java.io.File;
 import java.net.Proxy;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 /**
  * Used for configuring an HTTP request prior to sending.
@@ -173,48 +163,6 @@ public interface RequestBuilder<V> extends MessageBuilder<RequestBuilder<V>> {
      * @return this {@link RequestBuilder} instance
      */
     RequestBuilder<V> followRedirects(boolean silentlyFollowRedirects);
-
-    /**
-     * Sets a number of specific headers to be sent with the request.
-     * <p>
-     * If a header with the a given key already exists, it will be silently replaced by the new value.
-     *
-     * @param headers the headers to set
-     * @return this {@link RequestBuilder} instance
-     * @see #putHeader(Header)
-     */
-    default RequestBuilder<V> putHeaders(@NonNull Header... headers) {
-        for (Header header : headers) {
-            if (header == null) {
-                throw new NullPointerException("headers");
-            }
-        }
-        for (Header header : headers) {
-            this.putHeader(header);
-        }
-        return this;
-    }
-
-    /**
-     * Adds a number of specific headers to be sent with the request.
-     * <p>
-     * If a header with the a given key already exists, it will be silently replaced by the new value.
-     *
-     * @param headers the headers to set
-     * @return this {@link RequestBuilder} instance
-     * @see #addHeader(String, String) (Header)
-     */
-    default RequestBuilder<V> addHeaders(@NonNull Header... headers) {
-        for (Header header : headers) {
-            if (header == null) {
-                throw new NullPointerException("headers");
-            }
-        }
-        for (Header header : headers) {
-            this.addHeader(header);
-        }
-        return this;
-    }
 
     /**
      * Sets the "User-Agent" header to be sent with the request.

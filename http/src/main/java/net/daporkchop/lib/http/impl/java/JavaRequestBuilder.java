@@ -21,7 +21,7 @@
 package net.daporkchop.lib.http.impl.java;
 
 import lombok.NonNull;
-import net.daporkchop.lib.http.header.map.HeaderMap;
+import net.daporkchop.lib.http.header.HeaderMap;
 import net.daporkchop.lib.http.request.AbstractRequestBuilder;
 import net.daporkchop.lib.http.request.Request;
 import net.daporkchop.lib.http.request.RequestBuilder;
@@ -30,10 +30,6 @@ import net.daporkchop.lib.http.util.Constants;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Implementation of {@link RequestBuilder} for {@link JavaHttpClient}.

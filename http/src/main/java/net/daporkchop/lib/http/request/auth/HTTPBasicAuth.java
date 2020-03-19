@@ -21,8 +21,7 @@
 package net.daporkchop.lib.http.request.auth;
 
 import lombok.NonNull;
-import net.daporkchop.lib.http.header.Header;
-import net.daporkchop.lib.http.header.map.MutableHeaderMap;
+import net.daporkchop.lib.http.header.MutableHeaderMap;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;

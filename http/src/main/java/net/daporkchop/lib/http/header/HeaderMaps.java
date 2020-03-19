@@ -18,32 +18,36 @@
  *
  */
 
-package net.daporkchop.lib.http.response;
+package net.daporkchop.lib.http.header;
 
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.http.StatusCode;
-import net.daporkchop.lib.http.header.HeaderMap;
-import net.daporkchop.lib.http.request.Request;
+import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.common.misc.string.FastCaseInsensitiveStringComparator;
+
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
- * A simple implementation of {@link ResponseBody}.
+ * Helpers for {@link HeaderMap}.
  *
  * @author DaPorkchop_
  */
-@Getter
-@Accessors(fluent = true)
-public final class ResponseBodyImpl<V> implements ResponseBody<V> {
-    protected final Request<V> request;
-    protected final StatusCode status;
-    protected final HeaderMap  headers;
-    protected final V          body;
+@UtilityClass
+public class HeaderMaps {
+    public final MutableHeaderMap EMPTY = new EmptyHeaderMap();
 
-    public ResponseBodyImpl(@NonNull Request<V> request, @NonNull StatusCode status, @NonNull HeaderMap headers, V body) {
-        this.request = request;
-        this.status = status;
-        this.headers = headers.snapshot();
-        this.body = body;
+    private final Map<String, Object> RESERVED_KEYS = new TreeMap<>(FastCaseInsensitiveStringComparator.INSTANCE);
+
+    static {
+        RESERVED_KEYS.put("accept-encoding", null);
+        RESERVED_KEYS.put("authorization", null);
+        RESERVED_KEYS.put("content-encoding", null);
+        RESERVED_KEYS.put("content-length", null);
+        RESERVED_KEYS.put("content-type", null);
+        RESERVED_KEYS.put("transfer-encoding", null);
+    }
+
+    public boolean isReserved(@NonNull String key) {
+        return RESERVED_KEYS.containsKey(key);
     }
 }

@@ -21,7 +21,7 @@
 package net.daporkchop.lib.http.request;
 
 import lombok.NonNull;
-import net.daporkchop.lib.http.header.map.MutableHeaderMap;
+import net.daporkchop.lib.http.header.MutableHeaderMap;
 
 /**
  * Goes over the request headers on an outgoing request and modifies them before being sent.

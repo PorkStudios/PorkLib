@@ -30,15 +30,13 @@ import net.daporkchop.lib.http.entity.FileRegionHttpEntity;
 import net.daporkchop.lib.http.entity.HttpEntity;
 import net.daporkchop.lib.http.entity.content.type.ContentType;
 import net.daporkchop.lib.http.entity.content.type.StandardContentType;
-import net.daporkchop.lib.http.header.Header;
-import net.daporkchop.lib.http.header.map.HeaderMap;
+import net.daporkchop.lib.http.header.HeaderMap;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 /**
  * Base interface used by {@link net.daporkchop.lib.http.request.RequestBuilder} and {@link net.daporkchop.lib.http.server.ResponseBuilder} to allow
@@ -58,39 +56,15 @@ public interface MessageBuilder<I> {
 
     /**
      * @return this {@link MessageBuilder} instance
-     * @see net.daporkchop.lib.http.header.map.MutableHeaderMap#put(String, String)
-     */
-    I putHeader(@NonNull String key, @NonNull String value);
-
-    /**
-     * @return this {@link MessageBuilder} instance
-     * @see net.daporkchop.lib.http.header.map.MutableHeaderMap#put(String, List)
-     */
-    I putHeader(@NonNull String key, @NonNull List<String> values);
-
-    /**
-     * @return this {@link MessageBuilder} instance
-     * @see net.daporkchop.lib.http.header.map.MutableHeaderMap#put(Header)
-     */
-    I putHeader(@NonNull Header header);
-
-    /**
-     * @return this {@link MessageBuilder} instance
-     * @see net.daporkchop.lib.http.header.map.MutableHeaderMap#add(String, String)
+     * @see net.daporkchop.lib.http.header.MutableHeaderMap#add(String, String)
      */
     I addHeader(@NonNull String key, @NonNull String value);
 
     /**
      * @return this {@link MessageBuilder} instance
-     * @see net.daporkchop.lib.http.header.map.MutableHeaderMap#add(String, List)
+     * @see net.daporkchop.lib.http.header.MutableHeaderMap#put(String, String)
      */
-    I addHeader(@NonNull String key, @NonNull List<String> values);
-
-    /**
-     * @return this {@link MessageBuilder} instance
-     * @see net.daporkchop.lib.http.header.map.MutableHeaderMap#add(Header)
-     */
-    I addHeader(@NonNull Header header);
+    I putHeader(@NonNull String key, @NonNull String value);
 
     /**
      * Sets the body of the message.

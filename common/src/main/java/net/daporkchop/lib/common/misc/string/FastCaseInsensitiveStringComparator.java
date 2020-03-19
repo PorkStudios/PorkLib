@@ -18,32 +18,38 @@
  *
  */
 
-package net.daporkchop.lib.http.response;
+package net.daporkchop.lib.common.misc.string;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.http.StatusCode;
-import net.daporkchop.lib.http.header.HeaderMap;
-import net.daporkchop.lib.http.request.Request;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+import java.util.Comparator;
 
 /**
- * A simple implementation of {@link ResponseBody}.
+ * Simplified alternative to {@link String#CASE_INSENSITIVE_ORDER} which provides slightly better performance in exchange for worse compatibility
+ * with exotic locales.
  *
  * @author DaPorkchop_
  */
-@Getter
-@Accessors(fluent = true)
-public final class ResponseBodyImpl<V> implements ResponseBody<V> {
-    protected final Request<V> request;
-    protected final StatusCode status;
-    protected final HeaderMap  headers;
-    protected final V          body;
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class FastCaseInsensitiveStringComparator implements Comparator<String> {
+    public static final FastCaseInsensitiveStringComparator INSTANCE = new FastCaseInsensitiveStringComparator();
 
-    public ResponseBodyImpl(@NonNull Request<V> request, @NonNull StatusCode status, @NonNull HeaderMap headers, V body) {
-        this.request = request;
-        this.status = status;
-        this.headers = headers.snapshot();
-        this.body = body;
+    @Override
+    public int compare(String s1, String s2) {
+        int l1 = s1.length();
+        int l2 = s2.length();
+        for (int i = 0, limit = Math.min(l1, l2); i < limit; i++) {
+            char c1 = s1.charAt(i);
+            char c2 = s2.charAt(i);
+            if (c1 != c2) {
+                c1 = Character.toLowerCase(c1);
+                c2 = Character.toLowerCase(c2);
+                if (c1 != c2) {
+                    return c1 - c2;
+                }
+            }
+        }
+        return l1 - l2;
     }
 }

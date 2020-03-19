@@ -26,10 +26,9 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.http.header.map.HeaderMap;
+import net.daporkchop.lib.http.header.HeaderMap;
 import net.daporkchop.lib.http.message.MessageImpl;
 import net.daporkchop.lib.http.util.StatusCodes;
-import net.daporkchop.lib.http.util.exception.GenericHttpException;
 
 /**
  * @author DaPorkchop_

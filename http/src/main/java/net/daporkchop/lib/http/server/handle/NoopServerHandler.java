@@ -20,17 +20,14 @@
 
 package net.daporkchop.lib.http.server.handle;
 
-import io.netty.buffer.ByteBuf;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.http.HttpMethod;
-import net.daporkchop.lib.http.header.map.HeaderMap;
 import net.daporkchop.lib.http.message.Message;
 import net.daporkchop.lib.http.request.query.Query;
 import net.daporkchop.lib.http.server.ResponseBuilder;
 import net.daporkchop.lib.http.util.StatusCodes;
-import net.daporkchop.lib.http.util.exception.GenericHttpException;
 
 /**
  * An implementation of {@link ServerHandler} that simply replies with {@link StatusCodes#OK}.

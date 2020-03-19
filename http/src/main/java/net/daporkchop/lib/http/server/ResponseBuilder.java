@@ -20,27 +20,9 @@
 
 package net.daporkchop.lib.http.server;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.PooledByteBufAllocator;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.util.ReferenceCountedFileChannel;
 import net.daporkchop.lib.http.StatusCode;
-import net.daporkchop.lib.http.entity.ByteArrayHttpEntity;
-import net.daporkchop.lib.http.entity.ByteBufHttpEntity;
-import net.daporkchop.lib.http.entity.FileRegionHttpEntity;
-import net.daporkchop.lib.http.entity.HttpEntity;
-import net.daporkchop.lib.http.entity.content.type.ContentType;
-import net.daporkchop.lib.http.entity.content.type.StandardContentType;
-import net.daporkchop.lib.http.header.Header;
-import net.daporkchop.lib.http.header.map.HeaderMap;
 import net.daporkchop.lib.http.message.MessageBuilder;
-import net.daporkchop.lib.unsafe.PUnsafe;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 /**
  * Used for building a response to an incoming HTTP request.

@@ -18,24 +18,47 @@
  *
  */
 
-package net.daporkchop.lib.http.message;
+package net.daporkchop.lib.http.header;
 
-import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.http.header.HeaderMap;
+
+import java.util.function.BiConsumer;
 
 /**
- * Basic implementation of {@link Message}.
+ * A {@link HeaderMap} with only a single header.
  *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-public final class MessageImpl implements Message {
+final class SingletonHeaderMap implements HeaderMap {
     @NonNull
-    protected final HeaderMap headers;
-    protected final Object    body;
+    protected final String key;
+    @NonNull
+    protected final String value;
+
+    @Override
+    public int size() {
+        return 1;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return false;
+    }
+
+    @Override
+    public String get(@NonNull String key) {
+        return this.key.equalsIgnoreCase(key) ? this.value : null;
+    }
+
+    @Override
+    public boolean has(@NonNull String key) {
+        return this.key.equalsIgnoreCase(key);
+    }
+
+    @Override
+    public void forEach(@NonNull BiConsumer<? super String, ? super String> callback) {
+        callback.accept(this.key, this.value);
+    }
 }

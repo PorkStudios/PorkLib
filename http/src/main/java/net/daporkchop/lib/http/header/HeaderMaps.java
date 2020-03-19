@@ -34,7 +34,7 @@ import java.util.TreeMap;
  */
 @UtilityClass
 public class HeaderMaps {
-    public final MutableHeaderMap EMPTY = new EmptyHeaderMap();
+    private final MutableHeaderMap EMPTY = new EmptyHeaderMap();
 
     private final Map<String, Object> RESERVED_KEYS = new TreeMap<>(FastCaseInsensitiveStringComparator.INSTANCE);
 
@@ -45,6 +45,14 @@ public class HeaderMaps {
         RESERVED_KEYS.put("content-length", null);
         RESERVED_KEYS.put("content-type", null);
         RESERVED_KEYS.put("transfer-encoding", null);
+    }
+
+    public MutableHeaderMap empty() {
+        return EMPTY;
+    }
+
+    public HeaderMap singleton(@NonNull String key, @NonNull String value) {
+        return new SingletonHeaderMap(key, value);
     }
 
     public boolean isReserved(@NonNull String key) {

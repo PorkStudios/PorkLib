@@ -19,6 +19,7 @@
  */
 
 dependencies {
+    compile project(":concurrent")
     compile project(":encoding")
 
     testCompile "com.google.code.gson:gson:$gsonVersion"

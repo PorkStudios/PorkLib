@@ -18,7 +18,7 @@
  *
  */
 
-package net.daporkchop.lib.http.response.aggregate;
+package net.daporkchop.lib.http.message.body;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
@@ -32,7 +32,7 @@ import net.daporkchop.lib.http.response.ResponseHeaders;
  * @param <V> the result type
  * @author DaPorkchop_
  */
-public interface ResponseAggregator<A, V> {
+public interface BodyAggregator<A, V> {
     /**
      * Prepares a new temporary value for aggregating results into.
      *

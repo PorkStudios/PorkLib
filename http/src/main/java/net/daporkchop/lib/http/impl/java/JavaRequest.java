@@ -34,16 +34,14 @@ import net.daporkchop.lib.http.entity.HttpEntity;
 import net.daporkchop.lib.http.entity.transfer.TransferSession;
 import net.daporkchop.lib.http.entity.transfer.encoding.StandardTransferEncoding;
 import net.daporkchop.lib.http.entity.transfer.encoding.TransferEncoding;
-import net.daporkchop.lib.http.header.Header;
 import net.daporkchop.lib.http.header.HeaderMap;
-import net.daporkchop.lib.http.header.map.HeaderSnapshot;
 import net.daporkchop.lib.http.request.Request;
 import net.daporkchop.lib.http.response.DelegatingResponseBodyImpl;
 import net.daporkchop.lib.http.response.ResponseBody;
 import net.daporkchop.lib.http.response.ResponseHeaders;
 import net.daporkchop.lib.http.response.ResponseHeadersImpl;
-import net.daporkchop.lib.http.response.aggregate.NotifyingAggregator;
-import net.daporkchop.lib.http.response.aggregate.ResponseAggregator;
+import net.daporkchop.lib.http.message.body.NotifyingAggregator;
+import net.daporkchop.lib.http.message.body.BodyAggregator;
 import net.daporkchop.lib.http.util.Constants;
 import net.daporkchop.lib.http.util.exception.ResponseTooLargeException;
 import net.daporkchop.lib.unsafe.PUnsafe;
@@ -134,9 +132,9 @@ public abstract class JavaRequest<V> implements Request<V>, Runnable {
                 //set request headers
                 HeaderMap headers = this.builder._prepareHeaders();
                 //add all headers as properties (we don't need to use set since HeaderMap already guarantees distinct keys, so using setRequestProperty would only cause needless string comparisons)
-                headers.forEach(header -> this.connection.setRequestProperty(header.key(), header.value())); //if it's a list all the values will be joined together
+                headers.forEach(this.connection::setRequestProperty);
 
-                if (!headers.hasKey("user-agent")) {
+                if (!headers.has("user-agent")) {
                     this.connection.setRequestProperty("User-Agent", this.client.userAgents.any());
                 }
 
@@ -268,7 +266,7 @@ public abstract class JavaRequest<V> implements Request<V>, Runnable {
         }
         readBytes = 0L;
 
-        ResponseAggregator<Object, V> aggregator = this.builder.aggregator();
+        BodyAggregator<Object, V> aggregator = this.builder.aggregator();
         if (this.builder.progressHandler() != null) {
             aggregator = new NotifyingAggregator<>(aggregator, this.builder.progressHandler());
         }

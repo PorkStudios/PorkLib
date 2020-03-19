@@ -18,53 +18,45 @@
  *
  */
 
-package net.daporkchop.lib.http.response.aggregate;
+package net.daporkchop.lib.http.message.body;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.PooledByteBufAllocator;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.http.entity.content.type.ContentType;
+import net.daporkchop.lib.http.header.HeaderMap;
 import net.daporkchop.lib.http.request.Request;
-import net.daporkchop.lib.http.response.ResponseHeaders;
+
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
- * Base implementation of a {@link ResponseAggregator} that uses a {@link ByteBuf} as a temporary value.
+ * Aggregates received data into a {@link String}.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public abstract class AbstractByteBufAggregator<V> implements ResponseAggregator<ByteBuf, V> {
-    @NonNull
-    protected final ByteBufAllocator alloc;
+public final class ToStringAggregator extends AbstractByteBufAggregator<String> {
+    public ToStringAggregator(@NonNull ByteBufAllocator alloc) {
+        super(alloc);
+    }
 
-    public AbstractByteBufAggregator() {
-        this(PooledByteBufAllocator.DEFAULT);
+    public ToStringAggregator() {
     }
 
     @Override
-    public ByteBuf init(@NonNull ResponseHeaders response, @NonNull Request<V> request) throws Exception {
-        long length = response.contentLength();
-        if (length < 0L)    {
-            return this.alloc.ioBuffer();
-        } else if (length > Integer.MAX_VALUE)  {
-            throw new IllegalArgumentException(String.format("Content-Length %d is too large!", length));
-        } else {
-            return this.alloc.ioBuffer((int) length, (int) length);
+    public String doFinal(@NonNull ByteBuf temp, @NonNull Request<String> request) throws Exception {
+        HeaderMap headers = request.headersFuture().getNow().headers();
+        Charset charset = StandardCharsets.UTF_8;
+        if (headers.hasKey("content-type"))  {
+            ContentType type = ContentType.parse(headers.getValue("content-type"));
+            if (type.charsetName() != null) {
+                charset = Charset.forName(type.charsetName());
+            }
         }
-    }
-
-    @Override
-    public ByteBuf add(@NonNull ByteBuf temp, @NonNull ByteBuf data, @NonNull Request<V> request) throws Exception {
-        return temp.writeBytes(data);
-    }
-
-    @Override
-    public void deinit(@NonNull ByteBuf temp, @NonNull Request<V> request) throws Exception {
-        temp.release();
+        return temp.toString(charset);
     }
 }

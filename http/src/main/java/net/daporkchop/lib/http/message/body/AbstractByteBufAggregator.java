@@ -18,45 +18,53 @@
  *
  */
 
-package net.daporkchop.lib.http.response.aggregate;
+package net.daporkchop.lib.http.message.body;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.PooledByteBufAllocator;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.http.entity.content.type.ContentType;
-import net.daporkchop.lib.http.header.HeaderMap;
 import net.daporkchop.lib.http.request.Request;
-
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
+import net.daporkchop.lib.http.response.ResponseHeaders;
 
 /**
- * Aggregates received data into a {@link String}.
+ * Base implementation of a {@link BodyAggregator} that uses a {@link ByteBuf} as a temporary value.
  *
  * @author DaPorkchop_
  */
+@RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public final class ToStringAggregator extends AbstractByteBufAggregator<String> {
-    public ToStringAggregator(@NonNull ByteBufAllocator alloc) {
-        super(alloc);
-    }
+public abstract class AbstractByteBufAggregator<V> implements BodyAggregator<ByteBuf, V> {
+    @NonNull
+    protected final ByteBufAllocator alloc;
 
-    public ToStringAggregator() {
+    public AbstractByteBufAggregator() {
+        this(PooledByteBufAllocator.DEFAULT);
     }
 
     @Override
-    public String doFinal(@NonNull ByteBuf temp, @NonNull Request<String> request) throws Exception {
-        HeaderMap headers = request.headersFuture().getNow().headers();
-        Charset charset = StandardCharsets.UTF_8;
-        if (headers.hasKey("content-type"))  {
-            ContentType type = ContentType.parse(headers.getValue("content-type"));
-            if (type.charsetName() != null) {
-                charset = Charset.forName(type.charsetName());
-            }
+    public ByteBuf init(@NonNull ResponseHeaders response, @NonNull Request<V> request) throws Exception {
+        long length = response.contentLength();
+        if (length < 0L)    {
+            return this.alloc.ioBuffer();
+        } else if (length > Integer.MAX_VALUE)  {
+            throw new IllegalArgumentException(String.format("Content-Length %d is too large!", length));
+        } else {
+            return this.alloc.ioBuffer((int) length, (int) length);
         }
-        return temp.toString(charset);
+    }
+
+    @Override
+    public ByteBuf add(@NonNull ByteBuf temp, @NonNull ByteBuf data, @NonNull Request<V> request) throws Exception {
+        return temp.writeBytes(data);
+    }
+
+    @Override
+    public void deinit(@NonNull ByteBuf temp, @NonNull Request<V> request) throws Exception {
+        temp.release();
     }
 }

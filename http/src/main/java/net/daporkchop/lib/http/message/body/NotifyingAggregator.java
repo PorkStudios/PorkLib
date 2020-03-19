@@ -18,7 +18,7 @@
  *
  */
 
-package net.daporkchop.lib.http.response.aggregate;
+package net.daporkchop.lib.http.message.body;
 
 import io.netty.buffer.ByteBuf;
 import lombok.Getter;
@@ -30,7 +30,7 @@ import net.daporkchop.lib.http.response.ResponseHeaders;
 import net.daporkchop.lib.http.util.ProgressHandler;
 
 /**
- * A {@link ResponseAggregator} that notifies an external function of the current download progress before delegating data events on to another
+ * A {@link BodyAggregator} that notifies an external function of the current download progress before delegating data events on to another
  * aggregator.
  *
  * @author DaPorkchop_
@@ -38,14 +38,14 @@ import net.daporkchop.lib.http.util.ProgressHandler;
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public final class NotifyingAggregator<A, V> implements ResponseAggregator<A, V> {
+public final class NotifyingAggregator<A, V> implements BodyAggregator<A, V> {
     protected long progress = 0L;
     protected long total = -1L;
 
     @NonNull
-    protected final ResponseAggregator<A, V> delegate;
+    protected final BodyAggregator<A, V> delegate;
     @NonNull
-    protected final ProgressHandler handler;
+    protected final ProgressHandler      handler;
 
     @Override
     public A init(ResponseHeaders response, Request<V> request) throws Exception {

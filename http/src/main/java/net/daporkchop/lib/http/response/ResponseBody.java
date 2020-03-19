@@ -21,6 +21,7 @@
 package net.daporkchop.lib.http.response;
 
 import net.daporkchop.lib.http.message.Message;
+import net.daporkchop.lib.http.message.body.BodyAggregator;
 
 /**
  * A sub-type of {@link ResponseHeaders} which additionally contains a value.
@@ -33,7 +34,7 @@ public interface ResponseBody<V> extends ResponseHeaders<V>, Message {
     /**
      * Gets the final, aggregated value of the response.
      * <p>
-     * The contents of this field are entirely dependent on the {@link net.daporkchop.lib.http.response.aggregate.ResponseAggregator} that was used with the
+     * The contents of this field are entirely dependent on the {@link BodyAggregator} that was used with the
      * request.
      *
      * @return the final, aggregated value of the response

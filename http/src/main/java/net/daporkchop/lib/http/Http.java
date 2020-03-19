@@ -24,7 +24,6 @@ import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.misc.threadfactory.ThreadFactoryBuilder;
 import net.daporkchop.lib.http.entity.content.type.ContentType;
-import net.daporkchop.lib.http.header.Header;
 import net.daporkchop.lib.http.impl.java.JavaHttpClientBuilder;
 
 import java.nio.charset.StandardCharsets;
@@ -40,78 +39,70 @@ public class Http {
             .threadFactory(new ThreadFactoryBuilder().name("PorkLib HTTP Worker Thread #%d").formatId().collapsingId().build())
             .build();
 
-    public String getString(@NonNull String url, Header... headers) {
+    public String getString(@NonNull String url) {
         return CLIENT.request(url)
                 .followRedirects(true)
-                .putHeaders(headers)
                 .aggregateToString()
                 .send()
                 .syncBodyAndGet().body();
     }
 
-    public byte[] get(@NonNull String url, Header... headers) {
+    public byte[] get(@NonNull String url) {
         return CLIENT.request(url)
                 .followRedirects(true)
-                .putHeaders(headers)
                 .aggregateToByteArray()
                 .send()
                 .syncBodyAndGet().body();
     }
 
-    public String postUrlEncodedString(@NonNull String url, @NonNull String content, Header... headers) {
+    public String postUrlEncodedString(@NonNull String url, @NonNull String content) {
         return CLIENT.request(HttpMethod.POST, url)
                 .followRedirects(true)
-                .putHeaders(headers)
                 .body(ContentType.parse("application/x-www-form-urlencoded; charset=UTF-8"), content.getBytes(StandardCharsets.UTF_8))
                 .aggregateToString()
                 .send()
                 .syncBodyAndGet().body();
     }
 
-    public String postJsonString(@NonNull String url, @NonNull String json, Header... headers) {
+    public String postJsonString(@NonNull String url, @NonNull String json) {
         return CLIENT.request(HttpMethod.POST, url)
                 .followRedirects(true)
-                .putHeaders(headers)
                 .bodyJson(json)
                 .aggregateToString()
                 .send()
                 .syncBodyAndGet().body();
     }
 
-    public String postString(@NonNull String url, @NonNull byte[] content, @NonNull String contentType, Header... headers) {
+    public String postString(@NonNull String url, @NonNull byte[] content, @NonNull String contentType) {
         return CLIENT.request(HttpMethod.POST, url)
                 .followRedirects(true)
-                .putHeaders(headers)
                 .body(contentType, content)
                 .aggregateToString()
                 .send()
                 .syncBodyAndGet().body();
     }
 
-    public byte[] postUrlEncoded(@NonNull String url, @NonNull String content, Header... headers) {
+    public byte[] postUrlEncoded(@NonNull String url, @NonNull String content) {
         return CLIENT.request(HttpMethod.POST, url)
                 .followRedirects(true)
-                .putHeaders(headers)
                 .body(ContentType.parse("application/x-www-form-urlencoded; charset=UTF-8"), content.getBytes(StandardCharsets.UTF_8))
                 .aggregateToByteArray()
                 .send()
                 .syncBodyAndGet().body();
     }
 
-    public byte[] postJson(@NonNull String url, @NonNull String json, Header... headers) {
+    public byte[] postJson(@NonNull String url, @NonNull String json) {
         return CLIENT.request(HttpMethod.POST, url)
                 .followRedirects(true)
-                .putHeaders(headers)
                 .bodyJson(json)
                 .aggregateToByteArray()
                 .send()
                 .syncBodyAndGet().body();
     }
 
-    public byte[] post(@NonNull String url, @NonNull byte[] content, @NonNull String contentType, Header... headers) {
+    public byte[] post(@NonNull String url, @NonNull byte[] content, @NonNull String contentType) {
         return CLIENT.request(HttpMethod.POST, url)
                 .followRedirects(true)
-                .putHeaders(headers)
                 .body(contentType, content)
                 .aggregateToByteArray()
                 .send()

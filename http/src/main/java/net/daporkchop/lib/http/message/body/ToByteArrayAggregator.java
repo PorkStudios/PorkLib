@@ -18,14 +18,11 @@
  *
  */
 
-package net.daporkchop.lib.http.response.aggregate;
+package net.daporkchop.lib.http.message.body;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
 import net.daporkchop.lib.http.request.Request;
 
 /**

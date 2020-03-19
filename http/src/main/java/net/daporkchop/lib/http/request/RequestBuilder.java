@@ -27,11 +27,11 @@ import net.daporkchop.lib.http.HttpMethod;
 import net.daporkchop.lib.http.entity.HttpEntity;
 import net.daporkchop.lib.http.message.MessageBuilder;
 import net.daporkchop.lib.http.request.auth.Authentication;
-import net.daporkchop.lib.http.response.aggregate.ResponseAggregator;
-import net.daporkchop.lib.http.response.aggregate.ToByteArrayAggregator;
-import net.daporkchop.lib.http.response.aggregate.ToByteBufAggregator;
-import net.daporkchop.lib.http.response.aggregate.ToFileAggregator;
-import net.daporkchop.lib.http.response.aggregate.ToStringAggregator;
+import net.daporkchop.lib.http.message.body.BodyAggregator;
+import net.daporkchop.lib.http.message.body.ToByteArrayAggregator;
+import net.daporkchop.lib.http.message.body.ToByteBufAggregator;
+import net.daporkchop.lib.http.message.body.ToFileAggregator;
+import net.daporkchop.lib.http.message.body.ToStringAggregator;
 import net.daporkchop.lib.http.util.ProgressHandler;
 
 import java.io.File;
@@ -84,13 +84,13 @@ public interface RequestBuilder<V> extends MessageBuilder<RequestBuilder<V>> {
     RequestBuilder<V> body(@NonNull HttpEntity body) throws IllegalStateException;
 
     /**
-     * Configures this {@link RequestBuilder} to use the given {@link ResponseAggregator}.
+     * Configures this {@link RequestBuilder} to use the given {@link BodyAggregator}.
      *
-     * @param aggregator the new {@link ResponseAggregator} to use
+     * @param aggregator the new {@link BodyAggregator} to use
      * @param <V_NEW>    the new return value type
      * @return this {@link RequestBuilder} instance
      */
-    <V_NEW> RequestBuilder<V_NEW> aggregator(@NonNull ResponseAggregator<?, V_NEW> aggregator);
+    <V_NEW> RequestBuilder<V_NEW> aggregator(@NonNull BodyAggregator<?, V_NEW> aggregator);
 
     /**
      * Configures this {@link RequestBuilder} to aggregate data into a {@link String}.

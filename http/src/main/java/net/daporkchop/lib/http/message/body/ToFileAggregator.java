@@ -18,10 +18,9 @@
  *
  */
 
-package net.daporkchop.lib.http.response.aggregate;
+package net.daporkchop.lib.http.message.body;
 
 import io.netty.buffer.ByteBuf;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +42,7 @@ import java.nio.file.StandardOpenOption;
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public final class ToFileAggregator implements ResponseAggregator<FileChannel, File> {
+public final class ToFileAggregator implements BodyAggregator<FileChannel, File> {
     @NonNull
     protected final File    file;
     protected final boolean allowOverwrite;

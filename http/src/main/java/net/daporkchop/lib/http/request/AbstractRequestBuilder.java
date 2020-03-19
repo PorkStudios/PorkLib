@@ -36,7 +36,7 @@ import net.daporkchop.lib.http.header.HeaderMaps;
 import net.daporkchop.lib.http.header.MutableHeaderMap;
 import net.daporkchop.lib.http.impl.java.JavaHttpClient;
 import net.daporkchop.lib.http.request.auth.Authentication;
-import net.daporkchop.lib.http.response.aggregate.ResponseAggregator;
+import net.daporkchop.lib.http.message.body.BodyAggregator;
 import net.daporkchop.lib.http.util.ProgressHandler;
 
 import java.net.Proxy;
@@ -63,7 +63,7 @@ public abstract class AbstractRequestBuilder<V, C extends HttpClient> implements
     protected HttpEntity body;
 
     @Setter(AccessLevel.NONE)
-    protected ResponseAggregator<Object, V> aggregator;
+    protected BodyAggregator<Object, V> aggregator;
 
     protected ProgressHandler progressHandler;
 
@@ -71,7 +71,7 @@ public abstract class AbstractRequestBuilder<V, C extends HttpClient> implements
 
     @NonNull
     @Getter
-    protected HeaderMap headers = HeaderMaps.EMPTY;
+    protected HeaderMap headers = HeaderMaps.empty();
 
     @NonNull
     protected Authentication authentication = Authentication.none();
@@ -101,9 +101,9 @@ public abstract class AbstractRequestBuilder<V, C extends HttpClient> implements
 
     @Override
     @SuppressWarnings("unchecked")
-    public <V_NEW> RequestBuilder<V_NEW> aggregator(@NonNull ResponseAggregator<?, V_NEW> aggregator) {
+    public <V_NEW> RequestBuilder<V_NEW> aggregator(@NonNull BodyAggregator<?, V_NEW> aggregator) {
         AbstractRequestBuilder<V_NEW, C> _this = (AbstractRequestBuilder<V_NEW, C>) this;
-        _this.aggregator = (ResponseAggregator<Object, V_NEW>) aggregator;
+        _this.aggregator = (BodyAggregator<Object, V_NEW>) aggregator;
         return _this;
     }
 
@@ -124,7 +124,7 @@ public abstract class AbstractRequestBuilder<V, C extends HttpClient> implements
         MutableHeaderMap mutableHeaders;
         if (headers instanceof MutableHeaderMap) {
             mutableHeaders = (MutableHeaderMap) headers;
-        } else if (headers == HeaderMaps.EMPTY) {
+        } else if (headers == HeaderMaps.empty()) {
             mutableHeaders = new DefaultMutableHeaderMap();
         } else {
             mutableHeaders = new DefaultMutableHeaderMap(headers);

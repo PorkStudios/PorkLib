@@ -168,9 +168,19 @@ public class PerlinNoiseEngine implements NoiseSource {
 
     @Override
     public double get(double x, double y, double z) {
+        double far_lands=1711;
+        x*=far_lands;
+        y*=far_lands;
+        z*=far_lands;
         int ix0 = floorI(x);
         int iy0 = floorI(y);
         int iz0 = floorI(z);
+        ix0/=far_lands;
+        iy0/=far_lands;
+        iz0/=far_lands;
+        x/=far_lands;
+        y/=far_lands;
+        z/=far_lands;
         double fx0 = x - ix0;
         double fy0 = y - iy0;
         double fz0 = z - iz0;

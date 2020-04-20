@@ -20,23 +20,8 @@
 
 package net.daporkchop.lib.http.message;
 
-import net.daporkchop.lib.http.header.HeaderMap;
-
 /**
- * Represents an HTTP message.
- * <p>
- * An HTTP message consists of zero or more headers, followed by an optional message body.
- *
  * @author DaPorkchop_
  */
-public interface Message<V> {
-    /**
-     * @return the message's headers
-     */
-    HeaderMap headers();
-
-    /**
-     * @return the message's body, or {@code null} if none is set
-     */
-    Object body();
+public interface FutureMessage<V> {
 }

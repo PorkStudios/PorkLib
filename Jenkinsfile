@@ -8,11 +8,6 @@ String getDiscordMessage() {
         msg += "- no changes\n"
     }
 
-    msg += "\n**Artifacts:**\n"
-    currentBuild.rawBuild.getArtifacts().each {
-        msg += "- [" + it.getDisplayPath() + "](" + env.BUILD_URL + "artifact/" + it.getHref() + ")\n"
-    }
-
     return msg.length() > 2048 ? msg.substring(0, 2045) + "..." : msg
 }
 
@@ -46,10 +41,16 @@ pipeline {
     stages {
         stage("Build") {
             steps {
-                sh "./gradlew build -x test --no-daemon"
+                sh "chmod +x gradlew && ./gradlew build -x test --no-daemon"
             }
         }
         stage("Test") {
+            when {
+                anyOf {
+                    branch "master"
+                    branch "development"
+                }
+            }
             steps {
                 sh "./gradlew test --no-daemon"
             }
@@ -59,11 +60,11 @@ pipeline {
                 }
             }
         }
-        stage("Deploy") {
+        stage("Publish") {
             when {
                 anyOf {
                     branch "master"
-                    branch "2.0"
+                    branch "development"
                 }
             }
             steps {

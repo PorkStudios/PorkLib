@@ -39,9 +39,14 @@ pipeline {
     }
 
     stages {
+        stage("Natives") {
+            steps {
+                sh "chmod +x gradlew && ./gradlew compileNatives --no-daemon"
+            }
+        }
         stage("Build") {
             steps {
-                sh "chmod +x gradlew && ./gradlew build -x test --no-daemon"
+                sh "./gradlew build -x test -x publishToMavenLocal --no-daemon"
             }
         }
         stage("Test") {

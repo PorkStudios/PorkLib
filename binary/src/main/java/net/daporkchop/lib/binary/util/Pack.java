@@ -21,7 +21,7 @@
 package net.daporkchop.lib.binary.util;
 
 /**
- * Utilities for changing the endianess of numbers
+ * Utilities for changing the order of numbers
  *
  * @author Some BouncyCastle developer idk
  */

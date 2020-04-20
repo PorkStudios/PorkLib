@@ -18,44 +18,38 @@
  *
  */
 
-rootProject.name = 'PorkLib'
+package net.daporkchop.lib.concurrent.future.completion.both;
 
-include 'binary'
-include 'collections'
-include 'common'
-include 'compression'
-include 'compression:zlib'
-include 'compression:zstd'
-include 'concurrent'
-include 'crypto'
-include 'encoding'
-include 'encoding:config'
-include 'encoding:nbt'
-include 'gui'
-include 'hash'
-include 'http'
-include 'http:http-netty'
-include 'imaging'
-include 'logging'
-include 'math'
-include 'minecraft'
-include 'minecraft:minecraft-text'
-include 'minecraft:minecraft-worldscanner'
-include 'natives'
-include 'netty'
-include 'noise'
-include 'primitive'
-include 'primitive:generator'
-include 'primitive:lambda'
-include 'random'
-include 'reflection'
-include 'unsafe'
+import io.netty.util.concurrent.EventExecutor;
+import io.netty.util.concurrent.Future;
+import lombok.NonNull;
 
-findProject(':compression:zlib')?.name = 'compression-zlib'
-findProject(':compression:zstd')?.name = 'compression-zstd'
-findProject(':encoding:config')?.name = 'config'
-findProject(':encoding:nbt')?.name = 'nbt'
-findProject(':http:http-netty')?.name = 'http-netty'
-findProject(':minecraft:minecraft-worldscanner')?.name = 'minecraft-worldscanner'
-findProject(':minecraft:minecraft-text')?.name = 'minecraft-text'
-findProject(':primitive:lambda')?.name = 'primitive-lambda'
+/**
+ * A {@link BothBiCompletionTask} which will execute a {@link Runnable}.
+ *
+ * @author DaPorkchop_
+ */
+public class BothBiRunnableCompletionTask<V, U> extends BothBiCompletionTask<V, U, Void> {
+    protected Runnable action;
+
+    public BothBiRunnableCompletionTask(@NonNull EventExecutor executor, @NonNull Future<V> primary, @NonNull Future<U> secondary, boolean fork, @NonNull Runnable action) {
+        super(executor, primary, secondary, fork);
+
+        this.action = action;
+    }
+
+    @Override
+    protected Void computeResult(V v1, U v2) throws Exception {
+        try {
+            this.action.run();
+            return null;
+        } finally {
+            this.action = null;
+        }
+    }
+
+    @Override
+    protected void onFailure(Throwable cause) {
+        this.action = null;
+    }
+}

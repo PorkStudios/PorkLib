@@ -18,44 +18,35 @@
  *
  */
 
-rootProject.name = 'PorkLib'
+package net.daporkchop.lib.concurrent.future.runnable;
 
-include 'binary'
-include 'collections'
-include 'common'
-include 'compression'
-include 'compression:zlib'
-include 'compression:zstd'
-include 'concurrent'
-include 'crypto'
-include 'encoding'
-include 'encoding:config'
-include 'encoding:nbt'
-include 'gui'
-include 'hash'
-include 'http'
-include 'http:http-netty'
-include 'imaging'
-include 'logging'
-include 'math'
-include 'minecraft'
-include 'minecraft:minecraft-text'
-include 'minecraft:minecraft-worldscanner'
-include 'natives'
-include 'netty'
-include 'noise'
-include 'primitive'
-include 'primitive:generator'
-include 'primitive:lambda'
-include 'random'
-include 'reflection'
-include 'unsafe'
+import io.netty.util.concurrent.EventExecutor;
+import lombok.NonNull;
 
-findProject(':compression:zlib')?.name = 'compression-zlib'
-findProject(':compression:zstd')?.name = 'compression-zstd'
-findProject(':encoding:config')?.name = 'config'
-findProject(':encoding:nbt')?.name = 'nbt'
-findProject(':http:http-netty')?.name = 'http-netty'
-findProject(':minecraft:minecraft-worldscanner')?.name = 'minecraft-worldscanner'
-findProject(':minecraft:minecraft-text')?.name = 'minecraft-text'
-findProject(':primitive:lambda')?.name = 'primitive-lambda'
+import java.util.concurrent.Callable;
+import java.util.function.Supplier;
+
+/**
+ * A {@link net.daporkchop.lib.concurrent.PFuture} which, when run, will be completed with the result of a {@link Supplier}.
+ *
+ * @author DaPorkchop_
+ */
+public class SupplierPFutureTask<V> extends AbstractRunnablePFuture<V> {
+    protected Supplier<? extends V> action;
+
+    public SupplierPFutureTask(@NonNull EventExecutor executor, @NonNull Supplier<? extends V> action) {
+        super(executor);
+
+        this.action = action;
+    }
+
+    @Override
+    protected V run0() throws Exception {
+        return this.action.get();
+    }
+
+    @Override
+    protected void cleanup() {
+        this.action = null;
+    }
+}

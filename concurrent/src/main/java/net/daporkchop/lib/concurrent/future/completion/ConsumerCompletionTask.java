@@ -18,44 +18,41 @@
  *
  */
 
-rootProject.name = 'PorkLib'
+package net.daporkchop.lib.concurrent.future.completion;
 
-include 'binary'
-include 'collections'
-include 'common'
-include 'compression'
-include 'compression:zlib'
-include 'compression:zstd'
-include 'concurrent'
-include 'crypto'
-include 'encoding'
-include 'encoding:config'
-include 'encoding:nbt'
-include 'gui'
-include 'hash'
-include 'http'
-include 'http:http-netty'
-include 'imaging'
-include 'logging'
-include 'math'
-include 'minecraft'
-include 'minecraft:minecraft-text'
-include 'minecraft:minecraft-worldscanner'
-include 'natives'
-include 'netty'
-include 'noise'
-include 'primitive'
-include 'primitive:generator'
-include 'primitive:lambda'
-include 'random'
-include 'reflection'
-include 'unsafe'
+import io.netty.util.concurrent.EventExecutor;
+import io.netty.util.concurrent.Future;
+import lombok.NonNull;
+import net.daporkchop.lib.concurrent.future.completion.CompletionTask;
 
-findProject(':compression:zlib')?.name = 'compression-zlib'
-findProject(':compression:zstd')?.name = 'compression-zstd'
-findProject(':encoding:config')?.name = 'config'
-findProject(':encoding:nbt')?.name = 'nbt'
-findProject(':http:http-netty')?.name = 'http-netty'
-findProject(':minecraft:minecraft-worldscanner')?.name = 'minecraft-worldscanner'
-findProject(':minecraft:minecraft-text')?.name = 'minecraft-text'
-findProject(':primitive:lambda')?.name = 'primitive-lambda'
+import java.util.function.Consumer;
+
+/**
+ * A {@link CompletionTask} which will execute a {@link Consumer}.
+ *
+ * @author DaPorkchop_
+ */
+public class ConsumerCompletionTask<V> extends CompletionTask<V, Void> {
+    protected Consumer<? super V> action;
+
+    public ConsumerCompletionTask(@NonNull EventExecutor executor, @NonNull Future<V> depends, boolean fork, @NonNull Consumer<? super V> action) {
+        super(executor, depends, fork);
+
+        this.action = action;
+    }
+
+    @Override
+    protected Void computeResult(V value) throws Exception {
+        try {
+            this.action.accept(value);
+            return null;
+        } finally {
+            this.action = null;
+        }
+    }
+
+    @Override
+    protected void onFailure(Throwable cause) {
+        this.action = null;
+    }
+}

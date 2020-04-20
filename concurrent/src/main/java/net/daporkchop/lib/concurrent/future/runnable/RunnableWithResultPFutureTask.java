@@ -18,44 +18,37 @@
  *
  */
 
-rootProject.name = 'PorkLib'
+package net.daporkchop.lib.concurrent.future.runnable;
 
-include 'binary'
-include 'collections'
-include 'common'
-include 'compression'
-include 'compression:zlib'
-include 'compression:zstd'
-include 'concurrent'
-include 'crypto'
-include 'encoding'
-include 'encoding:config'
-include 'encoding:nbt'
-include 'gui'
-include 'hash'
-include 'http'
-include 'http:http-netty'
-include 'imaging'
-include 'logging'
-include 'math'
-include 'minecraft'
-include 'minecraft:minecraft-text'
-include 'minecraft:minecraft-worldscanner'
-include 'natives'
-include 'netty'
-include 'noise'
-include 'primitive'
-include 'primitive:generator'
-include 'primitive:lambda'
-include 'random'
-include 'reflection'
-include 'unsafe'
+import io.netty.util.concurrent.EventExecutor;
+import lombok.NonNull;
 
-findProject(':compression:zlib')?.name = 'compression-zlib'
-findProject(':compression:zstd')?.name = 'compression-zstd'
-findProject(':encoding:config')?.name = 'config'
-findProject(':encoding:nbt')?.name = 'nbt'
-findProject(':http:http-netty')?.name = 'http-netty'
-findProject(':minecraft:minecraft-worldscanner')?.name = 'minecraft-worldscanner'
-findProject(':minecraft:minecraft-text')?.name = 'minecraft-text'
-findProject(':primitive:lambda')?.name = 'primitive-lambda'
+/**
+ * A {@link net.daporkchop.lib.concurrent.PFuture} which, when run, will be completed with the result of a {@link Runnable} task and has a
+ * pre-determined result value.
+ *
+ * @author DaPorkchop_
+ */
+public class RunnableWithResultPFutureTask<V> extends AbstractRunnablePFuture<V> {
+    protected Runnable action;
+    protected V        result;
+
+    public RunnableWithResultPFutureTask(@NonNull EventExecutor executor, @NonNull Runnable action, V result) {
+        super(executor);
+
+        this.action = action;
+        this.result = result;
+    }
+
+    @Override
+    protected V run0() throws Exception {
+        this.action.run();
+        return this.result;
+    }
+
+    @Override
+    protected void cleanup() {
+        this.action = null;
+        this.result = null;
+    }
+}

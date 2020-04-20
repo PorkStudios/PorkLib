@@ -18,44 +18,33 @@
  *
  */
 
-rootProject.name = 'PorkLib'
+package net.daporkchop.lib.concurrent.future.runnable;
 
-include 'binary'
-include 'collections'
-include 'common'
-include 'compression'
-include 'compression:zlib'
-include 'compression:zstd'
-include 'concurrent'
-include 'crypto'
-include 'encoding'
-include 'encoding:config'
-include 'encoding:nbt'
-include 'gui'
-include 'hash'
-include 'http'
-include 'http:http-netty'
-include 'imaging'
-include 'logging'
-include 'math'
-include 'minecraft'
-include 'minecraft:minecraft-text'
-include 'minecraft:minecraft-worldscanner'
-include 'natives'
-include 'netty'
-include 'noise'
-include 'primitive'
-include 'primitive:generator'
-include 'primitive:lambda'
-include 'random'
-include 'reflection'
-include 'unsafe'
+import io.netty.util.concurrent.EventExecutor;
+import lombok.NonNull;
 
-findProject(':compression:zlib')?.name = 'compression-zlib'
-findProject(':compression:zstd')?.name = 'compression-zstd'
-findProject(':encoding:config')?.name = 'config'
-findProject(':encoding:nbt')?.name = 'nbt'
-findProject(':http:http-netty')?.name = 'http-netty'
-findProject(':minecraft:minecraft-worldscanner')?.name = 'minecraft-worldscanner'
-findProject(':minecraft:minecraft-text')?.name = 'minecraft-text'
-findProject(':primitive:lambda')?.name = 'primitive-lambda'
+/**
+ * A {@link net.daporkchop.lib.concurrent.PFuture} which, when run, will be completed with the result of a {@link Runnable} task.
+ *
+ * @author DaPorkchop_
+ */
+public class RunnablePFutureTask extends AbstractRunnablePFuture<Void> {
+    protected Runnable action;
+
+    public RunnablePFutureTask(@NonNull EventExecutor executor, @NonNull Runnable action) {
+        super(executor);
+
+        this.action = action;
+    }
+
+    @Override
+    protected Void run0() throws Exception {
+        this.run();
+        return null;
+    }
+
+    @Override
+    protected void cleanup() {
+        this.action = null;
+    }
+}

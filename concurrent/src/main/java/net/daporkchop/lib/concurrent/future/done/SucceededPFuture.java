@@ -18,44 +18,37 @@
  *
  */
 
-rootProject.name = 'PorkLib'
+package net.daporkchop.lib.concurrent.future.done;
 
-include 'binary'
-include 'collections'
-include 'common'
-include 'compression'
-include 'compression:zlib'
-include 'compression:zstd'
-include 'concurrent'
-include 'crypto'
-include 'encoding'
-include 'encoding:config'
-include 'encoding:nbt'
-include 'gui'
-include 'hash'
-include 'http'
-include 'http:http-netty'
-include 'imaging'
-include 'logging'
-include 'math'
-include 'minecraft'
-include 'minecraft:minecraft-text'
-include 'minecraft:minecraft-worldscanner'
-include 'natives'
-include 'netty'
-include 'noise'
-include 'primitive'
-include 'primitive:generator'
-include 'primitive:lambda'
-include 'random'
-include 'reflection'
-include 'unsafe'
+import io.netty.util.concurrent.EventExecutor;
+import lombok.NonNull;
 
-findProject(':compression:zlib')?.name = 'compression-zlib'
-findProject(':compression:zstd')?.name = 'compression-zstd'
-findProject(':encoding:config')?.name = 'config'
-findProject(':encoding:nbt')?.name = 'nbt'
-findProject(':http:http-netty')?.name = 'http-netty'
-findProject(':minecraft:minecraft-worldscanner')?.name = 'minecraft-worldscanner'
-findProject(':minecraft:minecraft-text')?.name = 'minecraft-text'
-findProject(':primitive:lambda')?.name = 'primitive-lambda'
+/**
+ * A {@link net.daporkchop.lib.concurrent.PFuture} that has already been successfully completed.
+ *
+ * @author DaPorkchop_
+ */
+public class SucceededPFuture<V> extends DonePFuture<V> {
+    protected final V value;
+
+    public SucceededPFuture(@NonNull EventExecutor executor, V value) {
+        super(executor);
+
+        this.value = value;
+    }
+
+    @Override
+    public boolean isSuccess() {
+        return true;
+    }
+
+    @Override
+    public Throwable cause() {
+        return null;
+    }
+
+    @Override
+    public V getNow() {
+        return this.value;
+    }
+}

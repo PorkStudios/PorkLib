@@ -18,44 +18,41 @@
  *
  */
 
-rootProject.name = 'PorkLib'
+import io.netty.util.concurrent.GlobalEventExecutor;
+import net.daporkchop.lib.concurrent.PFuture;
+import net.daporkchop.lib.concurrent.PFutures;
+import org.junit.Test;
 
-include 'binary'
-include 'collections'
-include 'common'
-include 'compression'
-include 'compression:zlib'
-include 'compression:zstd'
-include 'concurrent'
-include 'crypto'
-include 'encoding'
-include 'encoding:config'
-include 'encoding:nbt'
-include 'gui'
-include 'hash'
-include 'http'
-include 'http:http-netty'
-include 'imaging'
-include 'logging'
-include 'math'
-include 'minecraft'
-include 'minecraft:minecraft-text'
-include 'minecraft:minecraft-worldscanner'
-include 'natives'
-include 'netty'
-include 'noise'
-include 'primitive'
-include 'primitive:generator'
-include 'primitive:lambda'
-include 'random'
-include 'reflection'
-include 'unsafe'
+import java.util.concurrent.CompletableFuture;
 
-findProject(':compression:zlib')?.name = 'compression-zlib'
-findProject(':compression:zstd')?.name = 'compression-zstd'
-findProject(':encoding:config')?.name = 'config'
-findProject(':encoding:nbt')?.name = 'nbt'
-findProject(':http:http-netty')?.name = 'http-netty'
-findProject(':minecraft:minecraft-worldscanner')?.name = 'minecraft-worldscanner'
-findProject(':minecraft:minecraft-text')?.name = 'minecraft-text'
-findProject(':primitive:lambda')?.name = 'primitive-lambda'
+import static net.daporkchop.lib.common.util.PorkUtil.*;
+
+/**
+ * @author DaPorkchop_
+ */
+public class FutureTest {
+    @Test
+    public void test() {
+        System.out.println("Starting...");
+        PFuture<String> a = PFutures.wrap(GlobalEventExecutor.INSTANCE.submit(() -> {
+            sleep(5000L);
+            System.out.println("A");
+            return "Hello ";
+        }));
+        PFuture<String> b = PFutures.wrap(CompletableFuture.supplyAsync(() -> {
+            sleep(4000L);
+            System.out.println("B");
+            return "World";
+        }));
+        PFuture<String> c = PFutures.computeAsync(() -> {
+            sleep(5000L);
+            System.out.println("C");
+            return "!";
+        });
+
+        a.thenCombine(b, String::concat)
+                .thenCombine(c, String::concat)
+                .thenAccept(System.out::println)
+                .awaitUninterruptibly();
+    }
+}

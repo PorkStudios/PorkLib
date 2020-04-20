@@ -18,29 +18,49 @@
  *
  */
 
-package net.daporkchop.lib.common.function.throwing;
+package net.daporkchop.lib.concurrent.future.runnable;
 
-import net.daporkchop.lib.unsafe.PUnsafe;
+import io.netty.util.concurrent.EventExecutor;
+import lombok.NonNull;
+import net.daporkchop.lib.concurrent.PRunnableFuture;
+import net.daporkchop.lib.concurrent.future.DefaultPFuture;
 
-import java.io.IOException;
-import java.util.concurrent.Callable;
-import java.util.function.Supplier;
+import java.util.concurrent.RunnableFuture;
+
+import static net.daporkchop.lib.unsafe.PUnsafe.*;
 
 /**
+ * Base implementation of a {@link net.daporkchop.lib.concurrent.PFuture} which is also a {@link RunnableFuture} task.
+ *
  * @author DaPorkchop_
  */
-@FunctionalInterface
-public interface ESupplier<T> extends Supplier<T>, Callable<T> {
-    @Override
-    default T get() {
-        try {
-            return this.call();
-        } catch (Exception e) {
-            PUnsafe.throwException(e);
-            throw new RuntimeException(e);
-        }
+public abstract class AbstractRunnablePFuture<V> extends DefaultPFuture<V> implements PRunnableFuture<V> {
+    protected static final long STARTED_OFFSET = pork_getOffset(AbstractRunnablePFuture.class, "started");
+
+    protected volatile int started = 0;
+
+    public AbstractRunnablePFuture(@NonNull EventExecutor executor) {
+        super(executor);
     }
 
     @Override
-    T call() throws Exception;
+    public void run() {
+        if (!compareAndSwapInt(this, STARTED_OFFSET, 0, 1)) {
+            throw new IllegalStateException("Already started!");
+        }
+
+        try {
+            if (this.setUncancellable()) {
+                this.setSuccess(this.run0());
+            }
+        } catch (Throwable t) {
+            this.setFailure(t);
+        } finally {
+            this.cleanup();
+        }
+    }
+
+    protected abstract V run0() throws Exception;
+
+    protected abstract void cleanup();
 }

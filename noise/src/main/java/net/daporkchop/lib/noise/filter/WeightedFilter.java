@@ -25,7 +25,7 @@ import net.daporkchop.lib.noise.NoiseSource;
 import net.daporkchop.lib.noise.util.NoiseFactory;
 import net.daporkchop.lib.random.PRandom;
 
-import static net.daporkchop.lib.math.primitive.PMath.*;
+import static net.daporkchop.lib.common.math.PMath.*;
 
 /**
  * Weights values from a {@link NoiseSource} towards the outer bounds, providing far more valley and peaks that approach -1 and 1.

@@ -23,7 +23,7 @@ package net.daporkchop.lib.minecraft.world.format.anvil.region.impl;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import lombok.NonNull;
-import net.daporkchop.lib.math.primitive.PMath;
+import net.daporkchop.lib.common.math.PMath;
 import net.daporkchop.lib.minecraft.world.format.anvil.region.AbstractRegionFile;
 import net.daporkchop.lib.minecraft.world.format.anvil.region.RegionConstants;
 import net.daporkchop.lib.minecraft.world.format.anvil.region.RegionOpenOptions;

@@ -18,7 +18,7 @@
  *
  */
 
-package net.daporkchop.lib.math.primitive;
+package net.daporkchop.lib.common.math;
 
 import lombok.experimental.UtilityClass;
 

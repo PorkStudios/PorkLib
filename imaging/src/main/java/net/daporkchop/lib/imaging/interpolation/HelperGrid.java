@@ -24,7 +24,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.imaging.bitmap.PBitmap;
 import net.daporkchop.lib.math.grid.Grid2d;
 
-import static net.daporkchop.lib.math.primitive.PMath.*;
+import static net.daporkchop.lib.common.math.PMath.*;
 
 /**
  * An implementation of {@link Grid2d} as a wrapper around {@link PBitmap} for use by {@link ImageInterpolator}.

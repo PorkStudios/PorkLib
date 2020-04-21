@@ -30,7 +30,7 @@ import net.daporkchop.lib.gui.component.orientation.advanced.calculator.dist.Mul
 import net.daporkchop.lib.gui.component.orientation.advanced.calculator.dist.PXCalculator;
 import net.daporkchop.lib.gui.component.orientation.advanced.calculator.dist.RelativeCalculator;
 
-import static net.daporkchop.lib.math.primitive.PMath.*;
+import static net.daporkchop.lib.common.math.PMath.*;
 
 /**
  * @author DaPorkchop_

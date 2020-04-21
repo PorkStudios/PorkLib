@@ -22,7 +22,7 @@ package net.daporkchop.lib.crypto.cipher.seekable;
 
 import lombok.NonNull;
 import net.daporkchop.lib.crypto.cipher.Cipher;
-import net.daporkchop.lib.math.primitive.PMath;
+import net.daporkchop.lib.common.math.PMath;
 
 import java.io.InputStream;
 import java.io.OutputStream;

@@ -23,7 +23,7 @@ package net.daporkchop.lib.encoding.basen;
 import lombok.NonNull;
 import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
 import net.daporkchop.lib.encoding.util.FastCharIntMap;
-import net.daporkchop.lib.math.primitive.PMath;
+import net.daporkchop.lib.common.math.PMath;
 
 import java.util.Arrays;
 

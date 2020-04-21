@@ -29,7 +29,7 @@ import net.daporkchop.lib.imaging.color.ColorFormat;
 import net.daporkchop.lib.math.grid.Grid2d;
 import net.daporkchop.lib.math.interpolation.Interpolation;
 
-import static net.daporkchop.lib.math.primitive.PMath.*;
+import static net.daporkchop.lib.common.math.PMath.*;
 
 /**
  * @author DaPorkchop_

@@ -25,7 +25,7 @@ import net.daporkchop.lib.math.grid.Grid1d;
 import net.daporkchop.lib.math.grid.Grid2d;
 import net.daporkchop.lib.math.grid.Grid3d;
 
-import static net.daporkchop.lib.math.primitive.PMath.*;
+import static net.daporkchop.lib.common.math.PMath.*;
 
 /**
  * An interpolation algorithm.

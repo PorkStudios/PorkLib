@@ -23,7 +23,7 @@ package net.daporkchop.lib.noise.engine;
 import lombok.NonNull;
 import net.daporkchop.lib.random.PRandom;
 
-import static net.daporkchop.lib.math.primitive.PMath.*;
+import static net.daporkchop.lib.common.math.PMath.*;
 
 /**
  * Port of Ken Perlin's Simplex noise algorithm.

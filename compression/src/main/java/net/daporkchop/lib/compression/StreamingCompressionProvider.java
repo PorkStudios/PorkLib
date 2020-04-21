@@ -20,10 +20,7 @@
 
 package net.daporkchop.lib.compression;
 
-import net.daporkchop.lib.common.util.PValidation;
-import net.daporkchop.lib.common.util.exception.ValueCannotFitException;
 import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelException;
-import net.daporkchop.lib.natives.util.BufferTyped;
 
 /**
  * An implementation of a compression algorithm that supports streaming compression via {@link PDeflater} and {@link PInflater}.

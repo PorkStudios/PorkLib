@@ -22,8 +22,6 @@ package net.daporkchop.lib.compression.zlib;
 
 
 import net.daporkchop.lib.common.util.PValidation;
-import net.daporkchop.lib.common.util.exception.ValueCannotFitException;
-import net.daporkchop.lib.compression.CompressionProvider;
 import net.daporkchop.lib.compression.OneShotCompressionProvider;
 import net.daporkchop.lib.compression.StreamingCompressionProvider;
 import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelException;
@@ -51,7 +49,7 @@ public interface ZlibProvider extends StreamingCompressionProvider, OneShotCompr
     }
 
     @Override
-    default int compressBound(int srcSize) throws ValueCannotFitException {
+    default int compressBound(int srcSize) {
         return PValidation.toInt(this.compressBoundLong(srcSize, Zlib.MODE_ZLIB));
     }
 
@@ -60,7 +58,7 @@ public interface ZlibProvider extends StreamingCompressionProvider, OneShotCompr
      *
      * @see #compressBound(int)
      */
-    default int compressBoundGzip(int srcSize) throws ValueCannotFitException {
+    default int compressBoundGzip(int srcSize) {
         return PValidation.toInt(this.compressBoundLong(srcSize, Zlib.MODE_GZIP));
     }
 
@@ -72,7 +70,7 @@ public interface ZlibProvider extends StreamingCompressionProvider, OneShotCompr
      * @return the worst-case size of the compressed data
      * @see #compressBound(int)
      */
-    default int compressBound(long srcSize, int mode) throws ValueCannotFitException {
+    default int compressBound(long srcSize, int mode) {
         return PValidation.toInt(this.compressBoundLong(srcSize, mode));
     }
 

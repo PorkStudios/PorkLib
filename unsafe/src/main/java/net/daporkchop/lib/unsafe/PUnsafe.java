@@ -46,10 +46,10 @@ public class PUnsafe {
             unsafe = (Unsafe) field.get(null);
         } catch (NoSuchFieldException
                 | IllegalAccessException e) {
-            throw new RuntimeException("Unable to obtain instance of sun.misc.Unsafe", e);
+            throw new AssertionError("Unable to obtain instance of sun.misc.Unsafe", e);
         } finally {
             if ((UNSAFE = unsafe) == null)  {
-                throw new RuntimeException("Unable to obtain instance of sun.misc.Unsafe");
+                throw new AssertionError("Unable to obtain instance of sun.misc.Unsafe");
             }
         }
     }

@@ -26,6 +26,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
+import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
 import net.daporkchop.lib.unsafe.capability.Releasable;
@@ -56,7 +57,7 @@ public class DirectASCIISequence implements CharSequence {
 
     @Override
     public CharSequence subSequence(int start, int end) {
-        PorkUtil.assertInRange(this.length, start, end);
+        PValidation.checkRange(this.length, start, end);
         return start == 0 && end == this.length ? this : this.slice(start, end - start);
     }
 

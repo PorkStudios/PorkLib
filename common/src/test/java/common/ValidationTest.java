@@ -18,13 +18,32 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":encoding")
-    compile project(":hash")
-    compile project(":math")
+package common;
 
-    compile "org.bouncycastle:bcprov-jdk15on:$bouncycastleVersion"
+import net.daporkchop.lib.common.util.PValidation;
+import org.junit.Test;
 
-    testCompile project(":logging")
+/**
+ * @author DaPorkchop_
+ */
+public class ValidationTest {
+    @Test(expected = IllegalArgumentException.class)
+    public void checkArg()  {
+        PValidation.checkArg(false);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void checkState()  {
+        PValidation.checkState(false);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void checkInt()  {
+        PValidation.positive(0, "i");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void checkLong()  {
+        PValidation.positive(0L, "l");
+    }
 }

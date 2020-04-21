@@ -44,11 +44,6 @@ import java.text.SimpleDateFormat;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 
@@ -61,47 +56,42 @@ import java.util.regex.Matcher;
 @UtilityClass
 public class PorkUtil {
     protected final long MATCHER_GROUPS_OFFSET = PUnsafe.pork_getOffset(Matcher.class, "groups");
-    protected final long MATCHER_TEXT_OFFSET   = PUnsafe.pork_getOffset(Matcher.class, "text");
+    protected final long MATCHER_TEXT_OFFSET = PUnsafe.pork_getOffset(Matcher.class, "text");
 
     private final Function<Throwable, StackTraceElement[]> GET_STACK_TRACE_WRAPPER;
 
-    public final HandledPool<byte[]>        BUFFER_POOL        = new DefaultThreadHandledPool<>(() -> new byte[PUnsafe.PAGE_SIZE], 4);
+    public final int TINY_BUFFER_SIZE = 32;
+    public final int BUFFER_SIZE = PUnsafe.PAGE_SIZE;
+
+    public final HandledPool<byte[]> TINY_BUFFER_POOL = new DefaultThreadHandledPool<>(() -> new byte[TINY_BUFFER_SIZE], 4);
+    public final HandledPool<byte[]> BUFFER_POOL = new DefaultThreadHandledPool<>(() -> new byte[BUFFER_SIZE], 4);
+
     public final HandledPool<StringBuilder> STRINGBUILDER_POOL = new DefaultThreadHandledPool<>(StringBuilder::new, 4); //TODO: make this soft
 
-    private final AtomicInteger DEFAULT_EXECUTOR_THREAD_COUNTER = new AtomicInteger(0);
-    public final  Executor      DEFAULT_EXECUTOR                = new ThreadPoolExecutor(
-            0, Integer.MAX_VALUE,
-            2, TimeUnit.SECONDS,
-            new SynchronousQueue<>(),
-            runnable -> new Thread(runnable, String.format("PorkLib executor #%d", DEFAULT_EXECUTOR_THREAD_COUNTER.getAndIncrement()))
-    );
-
-    public final DateFormat DATE_FORMAT     = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-    public final String     PORKLIB_VERSION = "0.5.1-SNAPSHOT";
-    public final int        CPU_COUNT       = Runtime.getRuntime().availableProcessors();
+    public final DateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+    public final String PORKLIB_VERSION = "0.5.4-SNAPSHOT"; //TODO: set this dynamically
+    public final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
 
     public final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
 
     static {
-        {
-            Function<Throwable, StackTraceElement[]> func = t -> {
-                throw new UnsupportedOperationException();
+        Function<Throwable, StackTraceElement[]> func = t -> {
+            throw new UnsupportedOperationException();
+        };
+        try {
+            Method m = Throwable.class.getDeclaredMethod("getOurStackTrace");
+            m.setAccessible(true);
+            func = t -> {
+                try {
+                    return (StackTraceElement[]) m.invoke(t);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
             };
-            try {
-                Method m = Throwable.class.getDeclaredMethod("getOurStackTrace");
-                m.setAccessible(true);
-                func = t -> {
-                    try {
-                        return (StackTraceElement[]) m.invoke(t);
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                };
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            } finally {
-                GET_STACK_TRACE_WRAPPER = func;
-            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            GET_STACK_TRACE_WRAPPER = func;
         }
     }
 
@@ -276,20 +266,6 @@ public class PorkUtil {
             return null;
         }
         return PUnsafe.<CharSequence>getObject(matcher, MATCHER_TEXT_OFFSET).subSequence(start, end);
-    }
-
-    public static void assertInRange(int size, int start, int end) throws IndexOutOfBoundsException {
-        if (start < 0) {
-            throw new IndexOutOfBoundsException(String.format("start (%d) < 0", start));
-        } else if (end > size) {
-            throw new IndexOutOfBoundsException(String.format("end (%d) > size (%d)", end, size));
-        } else if (end < start) {
-            throw new IllegalArgumentException(String.format("end (%d) < start (%d)", end, start));
-        }
-    }
-
-    public static void assertInRangeLen(int size, int start, int length) throws IndexOutOfBoundsException {
-        assertInRange(size, start, start + length);
     }
 
     @SuppressWarnings("unchecked")

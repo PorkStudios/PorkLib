@@ -274,7 +274,7 @@ public abstract class JavaRequest<V> implements Request<V>, Runnable {
         }
         Object temp = aggregator.init(this.headers.getNow(), this);
         try (Handle<byte[]> handle = PorkUtil.BUFFER_POOL.get()) {
-            byte[] buf = handle.value();
+            byte[] buf = handle.get();
             for (int i; !this.body.isDone() && (i = bodyIn.read(buf)) > 0; ) {
                 if (maxLength >= 0L && (readBytes += i) > maxLength) {
                     //if max length is set and we've read more data than it, throw exception

@@ -66,9 +66,9 @@ public final class DefaultThreadHandledPool<V> implements HandledPool<V> {
             if (this.index > 0) {
                 HandleImpl<V> handle = this.handles[--this.index];
                 this.handles[this.index] = null;
-                return handle;
+                return handle.activate();
             } else {
-                return new HandleImpl<>(this.pool, this, this.pool.factory.get());
+                return new HandleImpl<>(this, this.pool.factory.get());
             }
         }
 
@@ -80,12 +80,8 @@ public final class DefaultThreadHandledPool<V> implements HandledPool<V> {
     }
 
     @RequiredArgsConstructor
-    @Getter
-    @Accessors(fluent = true)
     private static final class HandleImpl<V> implements Handle<V> {
         protected static final long ACTIVE_OFFSET = PUnsafe.pork_getOffset(HandleImpl.class, "active");
-
-        protected final DefaultThreadHandledPool<V> pool;
 
         protected final Arena<V> arena;
         protected final V        value;
@@ -94,16 +90,22 @@ public final class DefaultThreadHandledPool<V> implements HandledPool<V> {
 
         @Override
         public void close() {
-            if (PUnsafe.compareAndSwapInt(this, ACTIVE_OFFSET, 1, 0)) {
-                this.arena.put(this);
+            if (!PUnsafe.compareAndSwapInt(this, ACTIVE_OFFSET, 1, 0)) {
+                throw new IllegalStateException("already released!");
             }
+            this.arena.put(this);
         }
 
         protected HandleImpl<V> activate() {
             if (!PUnsafe.compareAndSwapInt(this, ACTIVE_OFFSET, 0, 1)) {
-                throw new IllegalStateException();
+                throw new IllegalStateException("already active!");
             }
             return this;
+        }
+
+        @Override
+        public V get() {
+            return this.value;
         }
     }
 }

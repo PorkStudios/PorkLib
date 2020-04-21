@@ -78,7 +78,7 @@ public class Digester {
 
     public Digester append(@NonNull InputStream in) throws IOException {
         try (Handle<byte[]> handle = PorkUtil.BUFFER_POOL.get())    {
-            byte[] b = handle.value();
+            byte[] b = handle.get();
             int i;
             while ((i = in.read(b)) != -1) {
                 this.append(b, 0, i);

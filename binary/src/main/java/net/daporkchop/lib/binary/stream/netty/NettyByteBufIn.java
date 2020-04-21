@@ -26,7 +26,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.common.util.PValidation;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -198,7 +198,7 @@ public class NettyByteBufIn extends DataIn {
 
     @Override
     public byte[] readFully(@NonNull byte[] dst, int start, int length) throws EOFException, IOException {
-        PorkUtil.assertInRangeLen(dst.length, start, length);
+        PValidation.checkRangeLen(dst.length, start, length);
         if (this.buf.isReadable(length)) {
             this.buf.readBytes(dst, start, length);
             return dst;

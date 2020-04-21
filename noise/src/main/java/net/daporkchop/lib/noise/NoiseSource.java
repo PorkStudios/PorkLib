@@ -109,7 +109,7 @@ public interface NoiseSource {
      * @return a {@code double[]} containing the computed values
      */
     default double[] get(double[] dst, double startX, double stepX, int sizeX) {
-        if (dst == null || dst.length < PValidation.ensureNonNegative(sizeX)) {
+        if (dst == null || dst.length < PValidation.notNegative(sizeX)) {
             dst = new double[sizeX];
         }
 
@@ -145,7 +145,7 @@ public interface NoiseSource {
      * @return a {@code double[]} containing the computed values
      */
     default double[] get(double[] dst, double startX, double startY, double stepX, double stepY, int sizeX, int sizeY) {
-        if (dst == null || dst.length < PValidation.ensureNonNegative(sizeX) * PValidation.ensureNonNegative(sizeY)) {
+        if (dst == null || dst.length < PValidation.notNegative(sizeX) * PValidation.notNegative(sizeY)) {
             dst = new double[sizeX * sizeY];
         }
 
@@ -188,7 +188,7 @@ public interface NoiseSource {
      * @return a {@code double[]} containing the computed values
      */
     default double[] get(double[] dst, double startX, double startY, double startZ, double stepX, double stepY, double stepZ, int sizeX, int sizeY, int sizeZ) {
-        if (dst == null || dst.length < PValidation.ensureNonNegative(sizeX) * PValidation.ensureNonNegative(sizeY) * PValidation.ensureNonNegative(sizeZ)) {
+        if (dst == null || dst.length < PValidation.notNegative(sizeX) * PValidation.notNegative(sizeY) * PValidation.notNegative(sizeZ)) {
             dst = new double[sizeX * sizeY * sizeZ];
         }
 

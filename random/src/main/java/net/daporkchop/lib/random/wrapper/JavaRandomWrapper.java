@@ -24,7 +24,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.random.PRandom;
 
 import java.util.Random;
@@ -63,7 +63,7 @@ public final class JavaRandomWrapper implements PRandom {
 
     @Override
     public void nextBytes(@NonNull byte[] dst, int start, int length) {
-        PorkUtil.assertInRangeLen(dst.length, start, length);
+        PValidation.checkRangeLen(dst.length, start, length);
 
         //optimization for filling the whole array
         if (start == 0 && length == dst.length) {

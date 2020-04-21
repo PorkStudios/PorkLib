@@ -21,107 +21,1057 @@
 package net.daporkchop.lib.common.util;
 
 import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.common.util.exception.ValueCannotFitException;
-import net.daporkchop.lib.common.util.exception.ValueOutOfBoundsException;
 
 import static net.daporkchop.lib.common.misc.string.PStrings.*;
 
 /**
+ * guava preconditions bad
+ * <p>
+ * porklib good
+ * <p>
+ * fite me
+ *
  * @author DaPorkchop_
  */
 @UtilityClass
 public class PValidation {
-    public long ensurePositive(long value) throws ValueOutOfBoundsException {
-        if (value <= 0L) {
-            throw new ValueOutOfBoundsException(value + " <= 0");
+    //
+    //
+    // argument methods
+    //
+    //
+
+    public static void checkArg(boolean flag) {
+        if (!flag) {
+            throw new IllegalArgumentException();
         }
+    }
+
+    public static void checkArg(boolean flag, boolean msg) {
+        if (!flag) {
+            throw new IllegalArgumentException(String.valueOf(msg));
+        }
+    }
+
+    public static void checkArg(boolean flag, char msg) {
+        if (!flag) {
+            throw new IllegalArgumentException(String.valueOf(msg));
+        }
+    }
+
+    public static void checkArg(boolean flag, int msg) {
+        if (!flag) {
+            throw new IllegalArgumentException(String.valueOf(msg));
+        }
+    }
+
+    public static void checkArg(boolean flag, long msg) {
+        if (!flag) {
+            throw new IllegalArgumentException(String.valueOf(msg));
+        }
+    }
+
+    public static void checkArg(boolean flag, float msg) {
+        if (!flag) {
+            throw new IllegalArgumentException(String.valueOf(msg));
+        }
+    }
+
+    public static void checkArg(boolean flag, double msg) {
+        if (!flag) {
+            throw new IllegalArgumentException(String.valueOf(msg));
+        }
+    }
+
+    public static void checkArg(boolean flag, Object msg) {
+        if (!flag) {
+            throw new IllegalArgumentException(String.valueOf(msg));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, char a0) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, a0));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, int a0) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, a0));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, long a0) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, a0));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, float a0) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, a0));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, double a0) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, a0));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, Object a0) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, a0));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, char a0, char a1) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, int a0, int a1) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, long a0, long a1) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, float a0, float a1) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, double a0, double a1) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, Object a0, Object a1) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, char a0, Object a1) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, int a0, Object a1) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, long a0, Object a1) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, float a0, Object a1) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, double a0, Object a1) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, Object a0, char a1) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, Object a0, int a1) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, Object a0, long a1) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, Object a0, float a1) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, Object a0, double a1) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, char a0, char a1, char a2) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, a0, a1, a2));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, int a0, int a1, int a2) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, a0, a1, a2));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, long a0, long a1, long a2) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, a0, a1, a2));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, float a0, float a1, float a2) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, a0, a1, a2));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, double a0, double a1, double a2) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, a0, a1, a2));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, Object a0, Object a1, Object a2) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, a0, a1, a2));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, int a0, int a1, int a2, int a3) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, a0, a1, a2, a3));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, long a0, long a1, long a2, long a3) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, a0, a1, a2, a3));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, Object a0, Object a1, Object a2, Object a3) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, a0, a1, a2, a3));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, int a0, int a1, int a2, int a3, int a4) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, a0, a1, a2, a3, a4));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, long a0, long a1, long a2, long a3, long a4) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, a0, a1, a2, a3, a4));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, Object a0, Object a1, Object a2, Object a3, Object a4) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, a0, a1, a2, a3, a4));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, Object a0, Object a1, Object a2, Object a3, Object a4, Object a5) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, a0, a1, a2, a3, a4, a5));
+        }
+    }
+
+    public static void checkArg(boolean flag, String format, Object... args) {
+        if (!flag) {
+            throw new IllegalArgumentException(fastFormat(format, args));
+        }
+    }
+
+    //
+    //
+    // state methods
+    //
+    //
+
+    public static void checkState(boolean flag) {
+        if (!flag) {
+            throw new IllegalStateException();
+        }
+    }
+
+    public static void checkState(boolean flag, boolean msg) {
+        if (!flag) {
+            throw new IllegalStateException(String.valueOf(msg));
+        }
+    }
+
+    public static void checkState(boolean flag, char msg) {
+        if (!flag) {
+            throw new IllegalStateException(String.valueOf(msg));
+        }
+    }
+
+    public static void checkState(boolean flag, int msg) {
+        if (!flag) {
+            throw new IllegalStateException(String.valueOf(msg));
+        }
+    }
+
+    public static void checkState(boolean flag, long msg) {
+        if (!flag) {
+            throw new IllegalStateException(String.valueOf(msg));
+        }
+    }
+
+    public static void checkState(boolean flag, float msg) {
+        if (!flag) {
+            throw new IllegalStateException(String.valueOf(msg));
+        }
+    }
+
+    public static void checkState(boolean flag, double msg) {
+        if (!flag) {
+            throw new IllegalStateException(String.valueOf(msg));
+        }
+    }
+
+    public static void checkState(boolean flag, Object msg) {
+        if (!flag) {
+            throw new IllegalStateException(String.valueOf(msg));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, char a0) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, a0));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, int a0) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, a0));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, long a0) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, a0));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, float a0) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, a0));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, double a0) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, a0));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, Object a0) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, a0));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, char a0, char a1) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, int a0, int a1) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, long a0, long a1) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, float a0, float a1) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, double a0, double a1) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, Object a0, Object a1) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, char a0, Object a1) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, int a0, Object a1) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, long a0, Object a1) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, float a0, Object a1) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, double a0, Object a1) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, Object a0, char a1) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, Object a0, int a1) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, Object a0, long a1) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, Object a0, float a1) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, Object a0, double a1) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, char a0, char a1, char a2) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, a0, a1, a2));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, int a0, int a1, int a2) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, a0, a1, a2));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, long a0, long a1, long a2) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, a0, a1, a2));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, float a0, float a1, float a2) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, a0, a1, a2));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, double a0, double a1, double a2) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, a0, a1, a2));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, Object a0, Object a1, Object a2) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, a0, a1, a2));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, int a0, int a1, int a2, int a3) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, a0, a1, a2, a3));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, long a0, long a1, long a2, long a3) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, a0, a1, a2, a3));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, Object a0, Object a1, Object a2, Object a3) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, a0, a1, a2, a3));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, int a0, int a1, int a2, int a3, int a4) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, a0, a1, a2, a3, a4));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, long a0, long a1, long a2, long a3, long a4) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, a0, a1, a2, a3, a4));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, Object a0, Object a1, Object a2, Object a3, Object a4) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, a0, a1, a2, a3, a4));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, Object a0, Object a1, Object a2, Object a3, Object a4, Object a5) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, a0, a1, a2, a3, a4, a5));
+        }
+    }
+
+    public static void checkState(boolean flag, String format, Object... args) {
+        if (!flag) {
+            throw new IllegalStateException(fastFormat(format, args));
+        }
+    }
+
+    //
+    //
+    // index methods
+    //
+    //
+
+    public static void checkIndex(boolean flag) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException();
+        }
+    }
+
+    public static void checkIndex(boolean flag, boolean msg) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(String.valueOf(msg));
+        }
+    }
+
+    public static void checkIndex(boolean flag, char msg) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(String.valueOf(msg));
+        }
+    }
+
+    public static void checkIndex(boolean flag, int msg) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(String.valueOf(msg));
+        }
+    }
+
+    public static void checkIndex(boolean flag, long msg) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(String.valueOf(msg));
+        }
+    }
+
+    public static void checkIndex(boolean flag, float msg) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(String.valueOf(msg));
+        }
+    }
+
+    public static void checkIndex(boolean flag, double msg) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(String.valueOf(msg));
+        }
+    }
+
+    public static void checkIndex(boolean flag, Object msg) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(String.valueOf(msg));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, char a0) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, a0));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, int a0) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, a0));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, long a0) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, a0));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, float a0) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, a0));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, double a0) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, a0));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, Object a0) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, a0));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, char a0, char a1) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, int a0, int a1) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, long a0, long a1) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, float a0, float a1) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, double a0, double a1) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, Object a0, Object a1) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, char a0, Object a1) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, int a0, Object a1) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, long a0, Object a1) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, float a0, Object a1) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, double a0, Object a1) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, Object a0, char a1) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, Object a0, int a1) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, Object a0, long a1) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, Object a0, float a1) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, Object a0, double a1) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, a0, a1));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, char a0, char a1, char a2) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, a0, a1, a2));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, int a0, int a1, int a2) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, a0, a1, a2));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, long a0, long a1, long a2) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, a0, a1, a2));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, float a0, float a1, float a2) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, a0, a1, a2));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, double a0, double a1, double a2) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, a0, a1, a2));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, Object a0, Object a1, Object a2) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, a0, a1, a2));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, int a0, int a1, int a2, int a3) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, a0, a1, a2, a3));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, long a0, long a1, long a2, long a3) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, a0, a1, a2, a3));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, Object a0, Object a1, Object a2, Object a3) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, a0, a1, a2, a3));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, int a0, int a1, int a2, int a3, int a4) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, a0, a1, a2, a3, a4));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, long a0, long a1, long a2, long a3, long a4) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, a0, a1, a2, a3, a4));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, Object a0, Object a1, Object a2, Object a3, Object a4) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, a0, a1, a2, a3, a4));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, Object a0, Object a1, Object a2, Object a3, Object a4, Object a5) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, a0, a1, a2, a3, a4, a5));
+        }
+    }
+
+    public static void checkIndex(boolean flag, String format, Object... args) {
+        if (!flag) {
+            throw new IndexOutOfBoundsException(fastFormat(format, args));
+        }
+    }
+
+    //
+    //
+    // integer methods
+    //
+    //
+
+    public static int positive(int value) {
+        checkArg(value > 0, "argument must be positive (given: %d)", value);
         return value;
     }
 
-    public int ensurePositive(int value) throws ValueOutOfBoundsException {
-        if (value <= 0) {
-            throw new ValueOutOfBoundsException(value + " <= 0");
-        }
+    public static long positive(long value) {
+        checkArg(value > 0L, "argument must be positive (given: %d)", value);
         return value;
     }
 
-    public long ensureNonPositive(long value) throws ValueOutOfBoundsException {
-        if (value > 0L) {
-            throw new ValueOutOfBoundsException(value + " > 0");
-        }
+    public static int positive(int value, Object name) {
+        checkArg(value > 0, "%2$s must be positive (given: %1$d)", value, name);
         return value;
     }
 
-    public int ensureNonPositive(int value) throws ValueOutOfBoundsException {
-        if (value > 0) {
-            throw new ValueOutOfBoundsException(value + " > 0");
-        }
+    public static long positive(long value, Object name) {
+        checkArg(value > 0L, "%2$s must be positive (given: %1$d)", value, name);
         return value;
     }
 
-    public long ensureNegative(long value) throws ValueOutOfBoundsException {
-        if (value >= 0L) {
-            throw new ValueOutOfBoundsException(value + " >= 0");
-        }
+    public static long notPositive(int value) {
+        checkArg(value <= 0, "argument must not be positive (given: %d)", value);
         return value;
     }
 
-    public int ensureNegative(int value) throws ValueOutOfBoundsException {
-        if (value >= 0) {
-            throw new ValueOutOfBoundsException(value + " >= 0");
-        }
+    public static long notPositive(long value) {
+        checkArg(value <= 0L, "argument must not be positive (given: %d)", value);
         return value;
     }
 
-    public long ensureNonNegative(long value) throws ValueOutOfBoundsException {
-        if (value < 0L) {
-            throw new ValueOutOfBoundsException(value + " < 0");
-        }
+    public static long notPositive(int value, Object name) {
+        checkArg(value <= 0, "%2$s must not be positive (given: %1$d)", value, name);
         return value;
     }
 
-    public int ensureNonNegative(int value) throws ValueOutOfBoundsException {
-        if (value < 0) {
-            throw new ValueOutOfBoundsException(value + " < 0");
-        }
+    public static long notPositive(long value, Object name) {
+        checkArg(value <= 0L, "%2$s must not be positive (given: %1$d)", value, name);
         return value;
     }
 
-    public int toInt(long value) throws ValueCannotFitException {
+    public static int negtive(int value) {
+        checkArg(value < 0, "argument must be negative (given: %d)", value);
+        return value;
+    }
+
+    public static long negtive(long value) {
+        checkArg(value < 0, "argument must be negative (given: %d)", value);
+        return value;
+    }
+
+    public static int negtive(int value, Object name) {
+        checkArg(value < 0, "%2$s must be negative (given: %1$d)", value, name);
+        return value;
+    }
+
+    public static long negtive(long value, Object name) {
+        checkArg(value < 0, "%2$s must be negative (given: %1$d)", value, name);
+        return value;
+    }
+
+    public static long notNegative(int value) {
+        checkArg(value >= 0, "argument must not be negative (given: %d)", value);
+        return value;
+    }
+
+    public static long notNegative(long value) {
+        checkArg(value >= 0L, "argument must not be negative (given: %d)", value);
+        return value;
+    }
+
+    public static long notNegative(int value, Object name) {
+        checkArg(value >= 0, "%2$s must not be negative (given: %1$d)", value, name);
+        return value;
+    }
+
+    public static long notNegative(long value, Object name) {
+        checkArg(value >= 0L, "%2$s must not be negative (given: %1$d)", value, name);
+        return value;
+    }
+
+    public static int toInt(long value) {
         int i = (int) value;
-        if (i != value) {
-            throw new ValueCannotFitException(value, 0);
-        }
+        checkArg(i == value, "%d cannot be converted losslessly to an int", value);
         return i;
     }
 
-    public int toPositiveIntSafe(long value) throws ValueCannotFitException, ValueOutOfBoundsException {
-        return ensurePositive(toInt(value));
+    public static short toShort(char value) {
+        short s = (short) value;
+        checkArg(s == value, "%d cannot be converted losslessly to a short", value);
+        return s;
     }
 
-    public int toNonPositiveIntSafe(long value) throws ValueCannotFitException, ValueOutOfBoundsException {
-        return ensureNonPositive(toInt(value));
+    public static short toShort(int value) {
+        short s = (short) value;
+        checkArg(s == value, "%d cannot be converted losslessly to a short", value);
+        return s;
     }
 
-    public int toNegativeIntSafe(long value) throws ValueCannotFitException, ValueOutOfBoundsException {
-        return ensureNegative(toInt(value));
+    public static short toShort(long value) {
+        short s = (short) value;
+        checkArg(s == value, "%d cannot be converted losslessly to a short", value);
+        return s;
     }
 
-    public int toNonNegativeIntSafe(long value) throws ValueCannotFitException, ValueOutOfBoundsException {
-        return ensureNonNegative(toInt(value));
+    public static char tochar(short value) {
+        char c = (char) value;
+        checkArg(c == value, "%d cannot be converted losslessly to a char", value);
+        return c;
     }
 
-    public int checkBounds(int value, int minInclusive, int maxExclusive) throws ValueOutOfBoundsException {
-        if (value < minInclusive || value >= maxExclusive) {
-            throw new ValueOutOfBoundsException(value, minInclusive, maxExclusive);
-        }
-        return value;
+    public static char tochar(int value) {
+        char c = (char) value;
+        checkArg(c == value, "%d cannot be converted losslessly to a char", value);
+        return c;
     }
 
-    public int checkIndex(int value, int minInclusive, int maxExclusive) throws ValueOutOfBoundsException {
-        if (value < minInclusive || value >= maxExclusive) {
-            throw new IndexOutOfBoundsException(fastFormat("%s, expected %s <= value < %s", value, minInclusive, maxExclusive));
-        }
-        return value;
+    public static char tochar(long value) {
+        char c = (char) value;
+        checkArg(c == value, "%d cannot be converted losslessly to a char", value);
+        return c;
+    }
+
+    public static byte toByte(short value) {
+        byte b = (byte) value;
+        checkArg(b == value, "%d cannot be converted losslessly to a byte", value);
+        return b;
+    }
+
+    public static byte toByte(char value) {
+        byte b = (byte) value;
+        checkArg(b == value, "%d cannot be converted losslessly to a byte", value);
+        return b;
+    }
+
+    public static byte toByte(int value) {
+        byte b = (byte) value;
+        checkArg(b == value, "%d cannot be converted losslessly to a byte", value);
+        return b;
+    }
+
+    public static byte toByte(long value) {
+        byte b = (byte) value;
+        checkArg(b == value, "%d cannot be converted losslessly to a byte", value);
+        return b;
+    }
+
+    public static int checkIndex(int totalSize, int index)  {
+        positive(totalSize, "totalSize");
+        checkIndex(index >= 0 && index < totalSize, "total: 0-%d, index: %d", totalSize, index);
+        return index;
+    }
+
+    public static long checkIndex(long totalSize, long index)  {
+        positive(totalSize, "totalSize");
+        checkIndex(index >= 0L && index < totalSize, "total: 0-%d, index: %d", totalSize, index);
+        return index;
+    }
+
+    public static int checkIndex(int totalStart, int totalEnd, int index)  {
+        positive(totalStart, "totalStart");
+        checkArg(totalEnd > totalStart, "total range is empty or backwards (totalStart: %d, totalEnd %d)", totalStart, totalEnd);
+        checkIndex(index >= totalStart && index < totalEnd, "total: %d-%d, index: %d", totalStart, totalEnd, index);
+        return index;
+    }
+
+    public static long checkIndex(long totalStart, long totalEnd, long index)  {
+        positive(totalStart, "totalStart");
+        checkArg(totalEnd > totalStart, "total range is empty or backwards (totalStart: %d, totalEnd %d)", totalStart, totalEnd);
+        checkIndex(index >= totalStart && index < totalEnd, "total: %d-%d, index: %d", totalStart, totalEnd, index);
+        return index;
+    }
+
+    public static void checkRange(int totalSize, int startInclusive, int endExclusive) {
+        positive(totalSize, "totalSize");
+        checkArg(endExclusive > startInclusive, "range is empty or backwards (startInclusive: %d, endExclusive %d)", startInclusive, endExclusive);
+        checkIndex(startInclusive >= 0 && endExclusive <= totalSize, "total: 0-%d, range: %d-%d", totalSize, startInclusive, endExclusive);
+    }
+
+    public static void checkRange(long totalSize, long startInclusive, long endExclusive) {
+        positive(totalSize, "totalSize");
+        checkArg(endExclusive > startInclusive, "range is empty or backwards (startInclusive: %d, endExclusive %d)", startInclusive, endExclusive);
+        checkIndex(startInclusive >= 0L && endExclusive <= totalSize, "total: 0-%d, range: %d-%d", totalSize, startInclusive, endExclusive);
+    }
+
+    public static void checkRange(int totalStart, int totalEnd, int startInclusive, int endExclusive) {
+        positive(totalStart, "totalStart");
+        checkArg(totalEnd > totalStart, "total range is empty or backwards (totalStart: %d, totalEnd %d)", totalStart, totalEnd);
+        checkArg(endExclusive > startInclusive, "range is empty or backwards (startInclusive: %d, endExclusive %d)", startInclusive, endExclusive);
+        checkIndex(startInclusive >= totalStart && endExclusive <= totalEnd, "total: %d-%d, range: %d-%d", totalStart, totalEnd, startInclusive, endExclusive);
+    }
+
+    public static void checkRange(long totalStart, long totalEnd, long startInclusive, long endExclusive) {
+        positive(totalStart, "totalStart");
+        checkArg(totalEnd > totalStart, "total range is empty or backwards (totalStart: %d, totalEnd %d)", totalStart, totalEnd);
+        checkArg(endExclusive > startInclusive, "range is empty or backwards (startInclusive: %d, endExclusive %d)", startInclusive, endExclusive);
+        checkIndex(startInclusive >= totalStart && endExclusive <= totalEnd, "total: %d-%d, range: %d-%d", totalStart, totalEnd, startInclusive, endExclusive);
+    }
+
+    public static void checkRangeLen(int totalSize, int startInclusive, int length) {
+        positive(totalSize, "totalSize");
+        notNegative(length, "length");
+        checkIndex(startInclusive >= 0 && startInclusive + length <= totalSize, "total: 0-%d, range: %d-%d", totalSize, startInclusive, startInclusive + length);
+    }
+
+    public static void checkRangeLen(long totalSize, long startInclusive, long length) {
+        positive(totalSize, "totalSize");
+        notNegative(length, "length");
+        checkIndex(startInclusive >= 0 && startInclusive + length <= totalSize, "total: 0-%d, range: %d-%d", totalSize, startInclusive, startInclusive + length);
+    }
+
+    public static void checkRangeLen(int totalStart, int totalEnd, int startInclusive, int length) {
+        positive(totalStart, "totalStart");
+        checkArg(totalEnd > totalStart, "total range is empty or backwards (totalStart: %d, totalEnd %d)", totalStart, totalEnd);
+        notNegative(length, "length");
+        checkIndex(startInclusive >= totalStart && startInclusive + length <= totalEnd, "total: %d-%d, range: %d-%d", totalStart, totalEnd, startInclusive, startInclusive + length);
+    }
+
+    public static void checkRangeLen(long totalStart, long totalEnd, long startInclusive, long length) {
+        positive(totalStart, "totalStart");
+        checkArg(totalEnd > totalStart, "total range is empty or backwards (totalStart: %d, totalEnd %d)", totalStart, totalEnd);
+        notNegative(length, "length");
+        checkIndex(startInclusive >= totalStart && startInclusive + length <= totalEnd, "total: %d-%d, range: %d-%d", totalStart, totalEnd, startInclusive, startInclusive + length);
     }
 }

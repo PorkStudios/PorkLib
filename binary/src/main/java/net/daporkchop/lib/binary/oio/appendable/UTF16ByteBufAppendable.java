@@ -27,7 +27,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
 import net.daporkchop.lib.common.system.PlatformInfo;
-import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
@@ -74,7 +74,7 @@ public final class UTF16ByteBufAppendable implements PAppendable {
             seq = "null";
         }
 
-        PorkUtil.assertInRange(seq.length(), start, end);
+        PValidation.checkRange(seq.length(), start, end);
         if (start == end) {
             return this;
         }

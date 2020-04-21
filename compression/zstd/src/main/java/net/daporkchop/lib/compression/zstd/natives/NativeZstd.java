@@ -23,8 +23,6 @@ package net.daporkchop.lib.compression.zstd.natives;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.common.util.PValidation;
-import net.daporkchop.lib.compression.PDeflater;
-import net.daporkchop.lib.compression.PInflater;
 import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelException;
 import net.daporkchop.lib.compression.zstd.Zstd;
 import net.daporkchop.lib.compression.zstd.ZstdCCtx;
@@ -95,7 +93,7 @@ public final class NativeZstd extends NativeFeature<ZstdProvider> implements Zst
 
     @Override
     public long compressBoundLong(long srcSize) {
-        return this.doCompressBoundLong(PValidation.ensureNonNegative(srcSize));
+        return this.doCompressBoundLong(PValidation.notNegative(srcSize));
     }
 
     private native long doCompressBoundLong(long srcSize);

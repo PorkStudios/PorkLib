@@ -46,7 +46,7 @@ public final class OctaveFilter extends FilterNoiseSource {
     public OctaveFilter(@NonNull NoiseSource delegate, int octaves) {
         super(delegate);
 
-        this.octaves = PValidation.ensurePositive(octaves);
+        this.octaves = PValidation.positive(octaves);
 
         double min = delegate.min();
         double max = delegate.max();

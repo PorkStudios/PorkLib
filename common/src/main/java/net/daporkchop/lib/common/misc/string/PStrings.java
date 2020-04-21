@@ -92,7 +92,7 @@ public class PStrings {
         }
 
         try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get()) {
-            StringBuilder builder = handle.value();
+            StringBuilder builder = handle.get();
             builder.setLength(0);
 
             for (int i = 0, length = template.length, j = 0; i < length; i++) {
@@ -119,7 +119,7 @@ public class PStrings {
      */
     public static String fastFormat(@NonNull String template, Object... args) {
         try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get()) {
-            StringBuilder builder = handle.value();
+            StringBuilder builder = handle.get();
             builder.setLength(0);
 
             new Formatter(builder, Locale.US).format(template, args);

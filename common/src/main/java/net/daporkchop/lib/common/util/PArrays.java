@@ -198,7 +198,7 @@ public class PArrays {
     }
 
     public int indexOf(@NonNull byte[] arr, byte val, int from, int to) {
-        PorkUtil.assertInRange(arr.length, from, to);
+        PValidation.checkRange(arr.length, from, to);
         for (; from < to; from++) {
             if (arr[from] == val) {
                 return from;
@@ -217,7 +217,7 @@ public class PArrays {
     }
 
     public int indexOf(@NonNull short[] arr, short val, int from, int to) {
-        PorkUtil.assertInRange(arr.length, from, to);
+        PValidation.checkRange(arr.length, from, to);
         for (; from < to; from++) {
             if (arr[from] == val) {
                 return from;
@@ -236,7 +236,7 @@ public class PArrays {
     }
 
     public int indexOf(@NonNull char[] arr, char val, int from, int to) {
-        PorkUtil.assertInRange(arr.length, from, to);
+        PValidation.checkRange(arr.length, from, to);
         for (; from < to; from++) {
             if (arr[from] == val) {
                 return from;
@@ -255,7 +255,7 @@ public class PArrays {
     }
 
     public int indexOf(@NonNull int[] arr, int val, int from, int to) {
-        PorkUtil.assertInRange(arr.length, from, to);
+        PValidation.checkRange(arr.length, from, to);
         for (; from < to; from++) {
             if (arr[from] == val) {
                 return from;
@@ -274,7 +274,7 @@ public class PArrays {
     }
 
     public int indexOf(@NonNull long[] arr, long val, int from, int to) {
-        PorkUtil.assertInRange(arr.length, from, to);
+        PValidation.checkRange(arr.length, from, to);
         for (; from < to; from++) {
             if (arr[from] == val) {
                 return from;
@@ -293,7 +293,7 @@ public class PArrays {
     }
 
     public int indexOf(@NonNull float[] arr, float val, int from, int to) {
-        PorkUtil.assertInRange(arr.length, from, to);
+        PValidation.checkRange(arr.length, from, to);
         for (; from < to; from++) {
             if (arr[from] == val) {
                 return from;
@@ -312,7 +312,7 @@ public class PArrays {
     }
 
     public int indexOf(@NonNull double[] arr, double val, int from, int to) {
-        PorkUtil.assertInRange(arr.length, from, to);
+        PValidation.checkRange(arr.length, from, to);
         for (; from < to; from++) {
             if (arr[from] == val) {
                 return from;

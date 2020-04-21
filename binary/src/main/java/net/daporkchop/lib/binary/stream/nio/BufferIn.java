@@ -20,11 +20,10 @@
 
 package net.daporkchop.lib.binary.stream.nio;
 
-import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.common.util.PValidation;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -59,7 +58,7 @@ public class BufferIn extends DataIn {
 
     @Override
     public byte[] readFully(@NonNull byte[] dst, int start, int length) throws EOFException, IOException {
-        PorkUtil.assertInRangeLen(dst.length, start, length);
+        PValidation.checkRangeLen(dst.length, start, length);
         if (this.buffer.remaining() >= length)   {
             this.buffer.get(dst, start, length);
             return dst;

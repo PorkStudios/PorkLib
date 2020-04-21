@@ -30,8 +30,17 @@ package net.daporkchop.lib.common.pool.handle;
 public interface Handle<V> extends AutoCloseable {
     /**
      * @return the value that this handle belongs to
+     * @deprecated in favor of {@link #get()}
      */
-    V value();
+    @Deprecated
+    default V value()   {
+        return this.get();
+    }
+
+    /**
+     * @return the value that this handle belongs to
+     */
+    V get();
 
     /**
      * Closes this handle, returning the value to the pool.
@@ -44,9 +53,4 @@ public interface Handle<V> extends AutoCloseable {
      */
     @Override
     void close();
-
-    /**
-     * @return the {@link HandledPool} that this handle belongs to
-     */
-    HandledPool<V> pool();
 }

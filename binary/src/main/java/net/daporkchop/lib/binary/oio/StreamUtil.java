@@ -23,7 +23,7 @@ package net.daporkchop.lib.binary.oio;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.common.util.PValidation;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -92,7 +92,7 @@ public class StreamUtil {
             //DataIn implementations might apply their own optimizations here
             ((DataIn) in).readFully(dst, start, length);
         } else {
-            PorkUtil.assertInRangeLen(dst.length, start, length);
+            PValidation.checkRangeLen(dst.length, start, length);
             for (int i; length > 0 && (i = in.read(dst, start, length)) != -1; start += i, length -= i) ;
             if (length != 0) {
                 throw new EOFException();

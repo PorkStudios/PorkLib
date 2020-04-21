@@ -28,13 +28,15 @@ import net.daporkchop.lib.compression.zstd.ZstdDCtx;
 
 import java.util.concurrent.ThreadLocalRandom;
 
+import static net.daporkchop.lib.common.util.PValidation.*;
+
 /**
  * @author DaPorkchop_
  */
 public class ZstdTest {
     private static final int SIZE = 1 << 26; // 64 MiB
 
-    private static final int BOUND_SIZE = PValidation.toPositiveIntSafe(Zstd.PROVIDER.compressBound(SIZE));
+    private static final int BOUND_SIZE = toInt(Zstd.PROVIDER.compressBound(SIZE));
 
     public static void main(String... args) {
         System.out.printf("original: %d, worst-case compressed: %d\n", 1 << 16L, Zstd.PROVIDER.compressBound(1 << 16L));
@@ -102,7 +104,7 @@ public class ZstdTest {
             Zstd.PROVIDER.compress(original.slice(), compressed, Zstd.LEVEL_DEFAULT);
             System.out.printf("original: %d, compressed: %d\n", original.readableBytes(), compressed.readableBytes());
 
-            int uncompressedSize = PValidation.toPositiveIntSafe(Zstd.PROVIDER.frameContentSizeLong(compressed));
+            int uncompressedSize = toInt(Zstd.PROVIDER.frameContentSizeLong(compressed));
             System.out.printf("original size: %d, frame content size: %d\n", SIZE, uncompressedSize);
             ByteBuf uncompressed = Unpooled.directBuffer(uncompressedSize, uncompressedSize);
 

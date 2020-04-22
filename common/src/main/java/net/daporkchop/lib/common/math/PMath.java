@@ -22,6 +22,8 @@ package net.daporkchop.lib.common.math;
 
 import lombok.experimental.UtilityClass;
 
+import static java.lang.Math.*;
+
 /**
  * A number of helper math functions.
  *
@@ -29,19 +31,19 @@ import lombok.experimental.UtilityClass;
  */
 @UtilityClass
 public class PMath {
-    public static long clamp(long val, long min, long max) {
-        return min(max(val, min), max);
+    public static byte clamp(byte val, byte min, byte max) {
+        return val < min ? min : val > max ? max : val;
+    }
+
+    public static short clamp(short val, short min, short max) {
+        return val < min ? min : val > max ? max : val;
     }
 
     public static int clamp(int val, int min, int max) {
         return min(max(val, min), max);
     }
 
-    public static short clamp(short val, short min, short max) {
-        return min(max(val, min), max);
-    }
-
-    public static byte clamp(byte val, byte min, byte max) {
+    public static long clamp(long val, long min, long max) {
         return min(max(val, min), max);
     }
 
@@ -121,56 +123,8 @@ public class PMath {
         return Math.round(d);
     }
 
-    public static long max(long a, long b) {
-        return a > b ? a : b;
-    }
-
-    public static int max(int a, int b) {
-        return a > b ? a : b;
-    }
-
-    public static short max(short a, short b) {
-        return a > b ? a : b;
-    }
-
-    public static byte max(byte a, byte b) {
-        return a > b ? a : b;
-    }
-
-    public static float max(float a, float b) {
-        return a > b ? a : b;
-    }
-
-    public static double max(double a, double b) {
-        return a > b ? a : b;
-    }
-
-    public static long min(long a, long b) {
-        return a > b ? b : a;
-    }
-
-    public static int min(int a, int b) {
-        return a > b ? b : a;
-    }
-
-    public static short min(short a, short b) {
-        return a > b ? b : a;
-    }
-
-    public static byte min(byte a, byte b) {
-        return a > b ? b : a;
-    }
-
-    public static float min(float a, float b) {
-        return a > b ? b : a;
-    }
-
-    public static double min(double a, double b) {
-        return a > b ? b : a;
-    }
-
     public static long pow(long val, long exp) {
-        if (val == 0 || exp == 0)   {
+        if (val == 0 || exp == 0) {
             return 0;
         } else {
             long a = val;
@@ -182,7 +136,7 @@ public class PMath {
     }
 
     public static int pow(int val, int exp) {
-        if (val == 0 || exp == 0)   {
+        if (val == 0 || exp == 0) {
             return 0;
         } else {
             int a = val;
@@ -194,7 +148,7 @@ public class PMath {
     }
 
     public static short pow(short val, short exp) {
-        if (val == 0 || exp == 0)   {
+        if (val == 0 || exp == 0) {
             return 0;
         } else {
             short a = val;
@@ -206,7 +160,7 @@ public class PMath {
     }
 
     public static byte pow(byte val, byte exp) {
-        if (val == 0 || exp == 0)   {
+        if (val == 0 || exp == 0) {
             return 0;
         } else {
             byte a = val;
@@ -222,7 +176,7 @@ public class PMath {
     }
 
     public static double powDouble(double val, double exp) {
-        if (val == 0.0d || exp == 0.0d)   {
+        if (val == 0.0d || exp == 0.0d) {
             return 0.0d;
         } else {
             return Math.pow(val, exp);
@@ -237,19 +191,19 @@ public class PMath {
         return (n + to - 1L) / to * to;
     }
 
-    public static float lerp(float a, float b, float t)    {
+    public static float lerp(float a, float b, float t) {
         return a + (b - a) * t;
     }
 
-    public static double lerp(double a, double b, double t)    {
+    public static double lerp(double a, double b, double t) {
         return a + (b - a) * t;
     }
 
-    public static int lerpI(int a, int b, float t)    {
+    public static int lerpI(int a, int b, float t) {
         return floorI(a + (b - a) * t);
     }
 
-    public static int lerpI(int a, int b, double t)    {
+    public static int lerpI(int a, int b, double t) {
         return floorI(a + (b - a) * t);
     }
 }

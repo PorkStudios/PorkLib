@@ -24,8 +24,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.binary.oio.StreamUtil;
 import net.daporkchop.lib.binary.stream.DataIn;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -37,7 +39,7 @@ import java.io.InputStream;
 @AllArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public class StreamIn extends DataIn {
+public class StreamIn implements DataIn {
     @NonNull
     protected final InputStream in;
 
@@ -47,57 +49,52 @@ public class StreamIn extends DataIn {
     }
 
     @Override
-    public int read(byte[] b, int off, int len) throws IOException {
-        return this.in.read(b, off, len);
+    public int readUnsignedByte() throws IOException {
+        int b = this.in.read();
+        if (b >= 0) {
+            return b;
+        } else {
+            throw new EOFException();
+        }
     }
 
     @Override
-    public int available() throws IOException {
-        return this.in.available();
+    public int read(@NonNull byte[] dst, int start, int length) throws IOException {
+        return this.in.read(dst, start, length);
     }
 
     @Override
-    public long skip(long n) throws IOException {
+    public void readFully(@NonNull byte[] dst, int start, int length) throws IOException {
+        StreamUtil.readFully(this.in, dst, start, length);
+    }
+
+    @Override
+    public long skipBytes(long n) throws IOException {
         return this.in.skip(n);
     }
 
     @Override
-    public void mark(int readlimit) {
-        this.in.mark(readlimit);
-    }
-
-    @Override
-    public void reset() throws IOException {
-        this.in.reset();
-    }
-
-    @Override
-    public boolean markSupported() {
-        return this.in.markSupported();
-    }
-
-    @Override
-    public InputStream unwrap() {
+    public InputStream asStream() throws IOException {
         return this.in;
     }
 
     @Override
     public void close() throws IOException {
+        this.in.close();
     }
 
     /**
-     * An extension of {@link StreamIn} which forwards the {@link InputStream#close()} method to the delegate {@link InputStream}.
+     * An extension of {@link StreamIn} which doesn't forwards the {@link DataIn#close()} method to the delegate {@link InputStream}.
      *
      * @author DaPorkchop_
      */
-    public static final class Closing extends StreamIn  {
-        public Closing(InputStream in) {
+    public static final class NonClosing extends StreamIn  {
+        public NonClosing(InputStream in) {
             super(in);
         }
 
         @Override
         public void close() throws IOException {
-            this.in.close();
         }
     }
 }

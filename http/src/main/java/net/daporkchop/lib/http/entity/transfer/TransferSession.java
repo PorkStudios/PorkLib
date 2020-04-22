@@ -46,7 +46,7 @@ public interface TransferSession {
     /**
      * Gets the size (in bytes) of this entity's data.
      * <p>
-     * If, for whatever reason, the data's size is not known in advance, this method should return {@code -1L}. By default, this will result in the
+     * If, for whatever reason, the data's size is not known in advance, this method should return {@code -1L}. By default, this will result delegate the
      * data being sent using the "chunked" Transfer-Encoding rather than simply setting "Content-Length".
      *
      * @return the size (in bytes) of this entity's data, or {@code -1L} if it is not known

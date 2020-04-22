@@ -18,35 +18,42 @@
  *
  */
 
-package net.daporkchop.lib.binary.stream.nio;
+package net.daporkchop.lib.binary.stream.netty;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufInputStream;
+import io.netty.buffer.Unpooled;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.AbstractDataIn;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.EOFException;
 import java.io.IOException;
-import java.nio.ByteBuffer;
+import java.io.InputStream;
 
 import static java.lang.Math.*;
 import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
- * An implementation of {@link DataIn} that can read from a {@link ByteBuffer}
+ * An implementation of {@link DataIn} that can read from a {@link ByteBuf}.
  *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-public class BufferIn extends AbstractDataIn {
+@Getter
+@Accessors(fluent = true)
+public class ByteBufIn extends AbstractDataIn {
     @NonNull
-    private final ByteBuffer delegate;
+    protected ByteBuf delegate;
 
     @Override
     protected int read0() throws IOException {
-        if (this.delegate.hasRemaining()) {
-            return this.delegate.get() & 0xFF;
+        if (this.delegate.isReadable()) {
+            return this.delegate.readByte() & 0xFF;
         } else {
             return -1;
         }
@@ -54,73 +61,103 @@ public class BufferIn extends AbstractDataIn {
 
     @Override
     protected int readSome0(@NonNull byte[] dst, int start, int length) throws IOException {
-        int count = min(this.delegate.remaining(), length);
+        int count = min(this.delegate.readableBytes(), length);
         if (count <= 0) {
             return RESULT_EOF;
         } else {
-            this.delegate.get(dst, start, count);
+            this.delegate.readBytes(dst, start, count);
             return count;
         }
     }
 
     @Override
     protected long readSome0(long addr, long length) throws IOException {
-        int count = toInt(min(this.delegate.remaining(), length));
-        int position = this.delegate.position();
+        int count = toInt(min(this.delegate.readableBytes(), length));
+        int readerIndex = this.delegate.readerIndex();
         if (count <= 0) {
             return RESULT_EOF;
-        } else if (this.delegate.isDirect()) {
-            PUnsafe.copyMemory(PUnsafe.pork_directBufferAddress(this.delegate) + position, addr, count);
+        } else if (this.delegate.hasMemoryAddress()) {
+            PUnsafe.copyMemory(this.delegate.memoryAddress() + readerIndex, addr, count);
+        } else if (this.delegate.hasArray()) {
+            PUnsafe.copyMemory(this.delegate.array(), PUnsafe.ARRAY_BYTE_BASE_OFFSET + this.delegate.arrayOffset() + readerIndex, null, addr, count);
         } else {
-            PUnsafe.copyMemory(this.delegate.array(), PUnsafe.ARRAY_BYTE_BASE_OFFSET + this.delegate.arrayOffset() + position, null, addr, count);
+            this.delegate.getBytes(readerIndex, Unpooled.wrappedBuffer(addr, count, false));
         }
-        this.delegate.position(position + count);
+        this.delegate.skipBytes(count);
         return count;
     }
 
     @Override
     protected void readAll0(@NonNull byte[] dst, int start, int length) throws EOFException, IOException {
-        int remaining = this.delegate.remaining();
-        if (length <= remaining)    {
-            this.delegate.get(dst, start, length);
+        int readableBytes = this.delegate.readableBytes();
+        if (length <= readableBytes)    {
+            this.delegate.readBytes(dst, start, length);
         } else {
             //emulate having read all the data in the buffer
-            this.delegate.position(this.delegate.limit());
+            this.delegate.skipBytes(readableBytes);
             throw new EOFException();
         }
     }
 
     @Override
     protected void readAll0(long addr, long length) throws EOFException, IOException {
-        int remaining = this.delegate.remaining();
-        if (length <= remaining)    {
-            int position = this.delegate.position();
-            if (this.delegate.isDirect()) {
-                PUnsafe.copyMemory(PUnsafe.pork_directBufferAddress(this.delegate) + position, addr, length);
+        int readableBytes = this.delegate.readableBytes();
+        if (length <= readableBytes)    {
+            int readerIndex = this.delegate.readerIndex();
+            if (this.delegate.hasMemoryAddress()) {
+                PUnsafe.copyMemory(this.delegate.memoryAddress() + readerIndex, addr, length);
+            } else if (this.delegate.hasArray()) {
+                PUnsafe.copyMemory(this.delegate.array(), PUnsafe.ARRAY_BYTE_BASE_OFFSET + this.delegate.arrayOffset() + readerIndex, null, addr, length);
             } else {
-                PUnsafe.copyMemory(this.delegate.array(), PUnsafe.ARRAY_BYTE_BASE_OFFSET + this.delegate.arrayOffset() + position, null, addr, length);
+                this.delegate.getBytes(readerIndex, Unpooled.wrappedBuffer(addr, toInt(length), false));
             }
-            this.delegate.position(position + toInt(length));
+            this.delegate.skipBytes(toInt(length));
         } else {
             //emulate having read all the data in the buffer
-            this.delegate.position(this.delegate.limit());
+            this.delegate.skipBytes(readableBytes);
             throw new EOFException();
         }
     }
 
     @Override
     protected long skip0(long count) throws IOException {
-        int countI = (int) min(count, this.delegate.remaining());
-        this.delegate.position(this.delegate.position() + countI);
+        int countI = (int) min(this.delegate.readableBytes(), count);
+        this.delegate.skipBytes(countI);
         return countI;
     }
 
     @Override
     protected long remaining0() throws IOException {
-        return this.delegate.remaining();
+        return this.delegate.readableBytes();
     }
 
     @Override
     protected void close0() throws IOException {
+    }
+
+    @Override
+    protected InputStream asStream0() {
+        return new ByteBufInputStream(this.delegate);
+    }
+
+    /**
+     * A variant of {@link ByteBufIn} that invokes {@link ByteBuf#release()} on the buffer when it is closed.
+     *
+     * @author DaPorkchop_
+     */
+    public static final class Releasing extends ByteBufIn {
+        public Releasing(ByteBuf buf) {
+            super(buf);
+        }
+
+        @Override
+        public void close() throws IOException {
+            this.delegate.release();
+        }
+
+        @Override
+        protected InputStream asStream0() {
+            return new ByteBufInputStream(this.delegate, true);
+        }
     }
 }

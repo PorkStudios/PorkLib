@@ -31,7 +31,7 @@ import java.util.function.Consumer;
  * A specialized map for storing HTTP headers.
  * <p>
  * Note that as specified in RFC2616§4.2, keys are case-insensitive. Implementations may choose to remember the capitalization of keys passed to any
- * methods in this interface, or may modify the capitalization in any way they desire. In other words: don't depend on the capitalization of keys to
+ * methods in this interface, or may modify the capitalization delegate any way they desire. In other words: don't depend on the capitalization of keys to
  * be preserved!
  * <p>
  * Unless otherwise explicitly stated, implementations make no guarantees as to thread-safety or concurrency.

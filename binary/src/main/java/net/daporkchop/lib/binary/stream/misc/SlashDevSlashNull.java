@@ -20,170 +20,293 @@
 
 package net.daporkchop.lib.binary.stream.misc;
 
+import io.netty.buffer.ByteBuf;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.wrapper.DataInAsInputStream;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.util.Arrays;
+import java.util.function.Function;
+
+import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
- * /dev/null
- * <p>
- * A {@link DataOut} implementation that simply discards all data written to it.
+ * An implementation of both {@link DataIn} and {@link DataOut} that emulates the behavior of {@code /dev/null}.
  *
  * @author DaPorkchop_
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class SlashDevSlashNull extends DataOut {
+public final class SlashDevSlashNull extends DataOut implements DataIn {
     public static final SlashDevSlashNull INSTANCE = new SlashDevSlashNull();
+    public static final InputStream AS_STREAM = new DataInAsInputStream(INSTANCE);
 
     @Override
     public void close() throws IOException {
     }
 
     @Override
+    @Deprecated
     public void write(int b) throws IOException {
     }
 
     @Override
-    public DataOut writeBoolean(boolean b) throws IOException {
-        return this;
+    public int read() throws IOException {
+        return 0;
     }
 
     @Override
-    public DataOut writeByte(byte b) throws IOException {
-        return this;
+    public boolean readBoolean() throws IOException {
+        return false;
     }
 
     @Override
-    public DataOut writeUByte(int b) throws IOException {
-        return this;
+    public byte readByte() throws IOException {
+        return 0;
     }
 
     @Override
-    public DataOut writeShort(short s) throws IOException {
-        return this;
+    public int readUnsignedByte() throws IOException {
+        return 0;
     }
 
     @Override
-    public DataOut writeUShort(int s) throws IOException {
-        return this;
+    public short readShort() throws IOException {
+        return 0;
     }
 
     @Override
-    public DataOut writeShortLE(short s) throws IOException {
-        return this;
+    public int readUnsignedShort() throws IOException {
+        return 0;
     }
 
     @Override
-    public DataOut writeUShortLE(int s) throws IOException {
-        return this;
+    public short readShortLE() throws IOException {
+        return 0;
     }
 
     @Override
-    public DataOut writeChar(char c) throws IOException {
-        return this;
+    public int readUnsignedShortLE() throws IOException {
+        return 0;
     }
 
     @Override
-    public DataOut writeCharLE(char c) throws IOException {
-        return this;
+    public char readChar() throws IOException {
+        return 0;
     }
 
     @Override
-    public DataOut writeInt(int i) throws IOException {
-        return this;
+    public char readCharLE() throws IOException {
+        return 0;
     }
 
     @Override
-    public DataOut writeUInt(long i) throws IOException {
-        return this;
+    public int readInt() throws IOException {
+        return 0;
     }
 
     @Override
-    public DataOut writeIntLE(int i) throws IOException {
-        return this;
+    public int readIntLE() throws IOException {
+        return 0;
     }
 
     @Override
-    public DataOut writeUIntLE(long i) throws IOException {
-        return this;
+    public long readLong() throws IOException {
+        return 0;
     }
 
     @Override
-    public DataOut writeLong(long l) throws IOException {
-        return this;
+    public long readLongLE() throws IOException {
+        return 0;
     }
 
     @Override
-    public DataOut writeLongLE(long l) throws IOException {
-        return this;
+    public float readFloat() throws IOException {
+        return 0;
     }
 
     @Override
-    public DataOut writeFloat(float f) throws IOException {
-        return this;
+    public float readFloatLE() throws IOException {
+        return 0;
     }
 
     @Override
-    public DataOut writeFloatLE(float f) throws IOException {
-        return this;
+    public double readDouble() throws IOException {
+        return 0;
     }
 
     @Override
-    public DataOut writeDouble(double d) throws IOException {
-        return this;
+    public double readDoubleLE() throws IOException {
+        return 0;
     }
 
     @Override
-    public DataOut writeDoubleLE(double d) throws IOException {
-        return this;
+    public String readUTF() throws IOException {
+        return "";
     }
 
     @Override
-    public DataOut writeUTF(String s) throws IOException {
-        return this;
+    public String readVarUTF() throws IOException {
+        return "";
     }
 
     @Override
-    public DataOut writeByteArray(byte[] b) throws IOException {
-        return this;
+    public String readString(@NonNull Charset charset) throws IOException {
+        return "";
     }
 
     @Override
-    public <E extends Enum<E>> DataOut writeEnum(@NonNull E e) throws IOException {
-        return this;
+    public String readVarString(@NonNull Charset charset) throws IOException {
+        return "";
     }
 
     @Override
-    public DataOut writeVarInt(int value) throws IOException {
-        return this;
+    public String readString(long size, @NonNull Charset charset) throws IOException {
+        return "";
     }
 
     @Override
-    public DataOut writeVarLong(long value) throws IOException {
-        return this;
+    public String readLine() throws IOException {
+        return "";
     }
 
     @Override
-    public long writeText(@NonNull CharSequence text, @NonNull Charset charset) throws IOException {
+    public CharSequence readText(long size, @NonNull Charset charset) throws IOException {
+        return "";
+    }
+
+    @Override
+    public <E extends Enum<E>> E readEnum(@NonNull Function<String, E> f) throws IOException {
+        return null;
+    }
+
+    @Override
+    public int readVarInt() throws IOException {
+        return 0;
+    }
+
+    @Override
+    public int readVarIntZigZag() throws IOException {
+        return 0;
+    }
+
+    @Override
+    public long readVarLong() throws IOException {
+        return 0;
+    }
+
+    @Override
+    public long readVarLongZigZag() throws IOException {
+        return 0;
+    }
+
+    @Override
+    public int read(@NonNull byte[] dst, int start, int length) throws IOException {
+        Arrays.fill(dst, start, start + length, (byte) 0);
+        return length;
+    }
+
+    @Override
+    public void readFully(@NonNull byte[] dst, int start, int length) throws IOException {
+        Arrays.fill(dst, start, start + length, (byte) 0);
+    }
+
+    @Override
+    public byte[] toByteArray() throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public int read(@NonNull ByteBuffer dst) throws IOException {
+        int count = dst.remaining();
+        if (dst.isDirect()) {
+            PUnsafe.setMemory(PUnsafe.pork_directBufferAddress(dst) + dst.position(), count, (byte) 0);
+        } else {
+            Arrays.fill(dst.array(), dst.arrayOffset() + dst.position(), dst.arrayOffset() + dst.limit(), (byte) 0);
+        }
+        dst.position(dst.limit());
+        return count;
+    }
+
+    @Override
+    public int read(@NonNull ByteBuf dst, int count) throws IOException {
+        notNegative(count, "count");
+        dst.ensureWritable(count);
+        int writerIndex = dst.writerIndex();
+        if (dst.hasMemoryAddress()) {
+            PUnsafe.setMemory(dst.memoryAddress() + writerIndex, count, (byte) 0);
+        } else if (dst.hasArray())  {
+            Arrays.fill(dst.array(), dst.arrayOffset() + writerIndex, dst.arrayOffset() + writerIndex + count, (byte) 0);
+        } else {
+            for (int i = 0; i < count; i++) {
+                dst.setByte(writerIndex + i, 0);
+            }
+        }
+        dst.writerIndex(writerIndex + count);
+        return count;
+    }
+
+    @Override
+    public int read(@NonNull ByteBuf dst, int start, int length) throws IOException {
+        checkRangeLen(dst.maxCapacity(), start, length);
+        int writerIndex = dst.writerIndex();
+        dst.ensureWritable(start + length - writerIndex);
+        if (dst.hasMemoryAddress()) {
+            PUnsafe.setMemory(dst.memoryAddress() + start, length, (byte) 0);
+        } else if (dst.hasArray())  {
+            Arrays.fill(dst.array(), dst.arrayOffset() + start, dst.arrayOffset() + start + length, (byte) 0);
+        } else {
+            for (int i = 0; i < length; i++) {
+                dst.setByte(start + i, 0);
+            }
+        }
+        return length;
+    }
+
+    @Override
+    public int readFully(@NonNull ByteBuffer dst) throws IOException {
+        return this.read(dst);
+    }
+
+    @Override
+    public int readFully(@NonNull ByteBuf dst, int count) throws IOException {
+        return this.read(dst, count);
+    }
+
+    @Override
+    public int readFully(@NonNull ByteBuf dst, int start, int length) throws IOException {
+        return this.read(dst, start, length);
+    }
+
+    @Override
+    public InputStream asStream() throws IOException {
+        return AS_STREAM;
+    }
+
+    @Override
+    public long remaining() throws IOException {
         return 0L;
     }
 
     @Override
-    public DataOut writeBytes(byte[] b) throws IOException {
-        return this;
+    public int skipBytes(int n) throws IOException {
+        return n;
     }
 
     @Override
-    public DataOut writeBytes(byte[] b, int off, int len) throws IOException {
-        return this;
+    public long skipBytes(long n) throws IOException {
+        return n;
     }
 
     @Override
-    public void write(byte[] b, int off, int len) throws IOException {
+    public boolean isOpen() {
+        return true;
     }
 }

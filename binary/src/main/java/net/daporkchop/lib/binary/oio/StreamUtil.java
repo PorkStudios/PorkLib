@@ -83,13 +83,13 @@ public class StreamUtil {
      */
     public byte[] readFully(@NonNull InputStream in, @NonNull byte[] dst, int start, int length) throws IOException {
         PValidation.checkRangeLen(dst.length, start, length);
-        int readSoFar = 0;
-        while (readSoFar < length){
-            int read = in.read(dst, start + readSoFar, length - readSoFar);
+        int total = 0;
+        while (total < length){
+            int read = in.read(dst, start + total, length - total);
             if (read < 0)   {
                 throw new EOFException();
             }
-            readSoFar += read;
+            total += read;
         }
         return dst;
     }

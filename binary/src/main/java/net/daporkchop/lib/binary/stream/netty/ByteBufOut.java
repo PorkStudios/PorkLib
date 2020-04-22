@@ -38,7 +38,7 @@ import java.nio.charset.Charset;
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public abstract class NettyByteBufOut extends DataOut {
+public abstract class ByteBufOut extends DataOut {
     @NonNull
     protected ByteBuf buf;
 
@@ -177,9 +177,9 @@ public abstract class NettyByteBufOut extends DataOut {
     protected abstract boolean handleClose(@NonNull ByteBuf buf) throws IOException;
 
     /**
-     * A basic implementation of {@link NettyByteBufOut} that simply does nothing when closed.
+     * A basic implementation of {@link ByteBufOut} that simply does nothing when closed.
      */
-    public static class Default extends NettyByteBufOut {
+    public static class Default extends ByteBufOut {
         public Default(ByteBuf buf) {
             super(buf);
         }

@@ -22,9 +22,10 @@ package net.daporkchop.lib.binary.stream;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.netty.NettyByteBufIn;
+import net.daporkchop.lib.binary.stream.netty.ByteBufIn;
 import net.daporkchop.lib.binary.stream.nio.BufferIn;
 import net.daporkchop.lib.binary.stream.stream.StreamIn;
+import net.daporkchop.lib.binary.stream.wrapper.DataInAsInputStream;
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.system.PlatformInfo;
 import net.daporkchop.lib.common.util.PValidation;
@@ -32,7 +33,6 @@ import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
 import java.io.Closeable;
 import java.io.DataInput;
 import java.io.EOFException;
@@ -71,21 +71,13 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @return the wrapped stream, or the original stream if it was already a {@link DataIn}
      */
     static DataIn wrap(@NonNull InputStream in) {
-        return in instanceof DataIn ? (DataIn) in : new StreamIn.NonClosing(in);
-    }
-
-    /**
-     * Wraps an {@link InputStream} to make it into a {@link DataIn}.
-     * <p>
-     * Calling {@link #close()} on the returned {@link DataIn} will not cause the wrapped stream to be closed.
-     *
-     * @param in the stream to wrap
-     * @return the wrapped stream, or the original stream if it was already a {@link StreamIn}
-     */
-    static DataIn wrapNonClosing(@NonNull InputStream in) {
-        return in instanceof StreamIn && !(in instanceof StreamIn.NonClosing)
-               ? (StreamIn) in
-               : new StreamIn(in instanceof DataIn ? ((DataIn) in).unwrap() : in);
+        if (in instanceof DataInAsInputStream)  {
+            return ((DataInAsInputStream) in).delegate();
+        } else if (in instanceof DataIn)    {
+            return (DataIn) in;
+        } else {
+            return new StreamIn(in);
+        }
     }
 
     /**
@@ -100,20 +92,6 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
         } else {*/
         return new BufferIn(buffer);
         //}
-    }
-
-    /**
-     * Wraps a {@link ByteBuffer} to make it into an {@link InputStream}.
-     *
-     * @param buffer the buffer to wrap
-     * @return the wrapped buffer as an {@link InputStream}
-     */
-    static InputStream wrapAsStream(@NonNull ByteBuffer buffer) {
-        if (buffer.hasArray()) {
-            return new ByteArrayInputStream(buffer.array(), buffer.position(), buffer.remaining());
-        } else {
-            return new BufferIn(buffer);
-        }
     }
 
     /**
@@ -188,7 +166,7 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @return a {@link DataIn} that can read data from the {@link ByteBuf}
      */
     static DataIn wrap(@NonNull ByteBuf buf, boolean release) {
-        return release ? new NettyByteBufIn.Releasing(buf) : new NettyByteBufIn(buf);
+        return release ? new ByteBufIn.Releasing(buf) : new ByteBufIn(buf);
     }
 
     //
@@ -725,6 +703,8 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * <p>
      * Like {@link #read(byte[], int, int)}, this will read until the buffer has no bytes available, EOF is reached, or more data cannot be read without
      * blocking. However, it is not guaranteed to read any bytes at all.
+     * <p>
+     * If EOF was already reached, this method will always return {@code -1}.
      *
      * @param dst the {@link ByteBuffer} to read data into
      * @return the actual number of bytes read
@@ -786,6 +766,8 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * <p>
      * Like {@link #read(byte[], int, int)}, this will read until the requested number of bytes have been read, EOF is reached, or more data
      * cannot be read without blocking. However, it is not guaranteed to read any bytes at all.
+     * <p>
+     * If EOF was already reached, this method will always return {@code -1}.
      *
      * @param dst   the {@link ByteBuf} to read data into
      * @param count the number of bytes to read
@@ -800,6 +782,8 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * <p>
      * Like {@link #read(byte[], int, int)}, this will read until the requested number of bytes have been read, EOF is reached, or more data
      * cannot be read without blocking. However, it is not guaranteed to read any bytes at all.
+     * <p>
+     * If EOF was already reached, this method will always return {@code -1}.
      *
      * @param dst    the {@link ByteBuf} to read data into
      * @param start  the first index in the {@link ByteBuf} to read into
@@ -889,6 +873,31 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
     //
 
     /**
+     * Gets an {@link InputStream} that may be used in place of this {@link DataIn} instance.
+     * <p>
+     * Some implementations may choose to return itself.
+     * <p>
+     * This is intended for use where a {@link DataIn} instance must be passed to external code that only accepts a
+     * traditional Java {@link InputStream}, and performance may benefit from not having all method calls be proxied
+     * by a wrapper {@link DataIn} instance.
+     * <p>
+     * Closing the resulting {@link InputStream} will also close this {@link DataIn} instance, and vice-versa.
+     *
+     * @return an {@link InputStream} that may be used in place of this {@link DataIn} instance
+     */
+    InputStream asStream() throws IOException;
+
+    /**
+     * Gets an estimate of the number of bytes that may be read without blocking.
+     * <p>
+     * If EOF has been reached, this method may return either {@code 0} or {@code -1}.
+     *
+     * @return an estimate of the number of bytes that may be read without blocking
+     * @see InputStream#available()
+     */
+    long remaining() throws IOException;
+
+    /**
      * @see DataInput#skipBytes(int)
      */
     @Override
@@ -900,19 +909,6 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @see DataInput#skipBytes(int)
      */
     long skipBytes(long n) throws IOException;
-
-    /**
-     * Gets an {@link InputStream} that may be used in place of this {@link DataIn} instance.
-     * <p>
-     * Some implementations may choose to return itself.
-     * <p>
-     * This is intended for use where a {@link DataIn} instance must be passed to external code that only accepts a
-     * traditional Java {@link InputStream}, and performance may benefit from not having all method calls be proxied
-     * by a wrapper {@link DataIn} instance.
-     *
-     * @return an {@link InputStream} that may be used in place of this {@link DataIn} instance
-     */
-    InputStream asStream() throws IOException;
 
     @Override
     boolean isOpen();

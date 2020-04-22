@@ -87,7 +87,7 @@ public final class BaseN {
                 ++inputStart; // optimization - skip leading zeros
             }
         }
-        // Preserve exactly as many leading encoded zeros in output as there were leading zeros in input.
+        // Preserve exactly as many leading encoded zeros in output as there were leading zeros delegate input.
         while (outputStart < encoded.length && encoded[outputStart] == this.zero) {
             ++outputStart;
         }

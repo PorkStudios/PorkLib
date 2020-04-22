@@ -46,7 +46,7 @@ import java.util.stream.Stream;
 /**
  * A tag that contains a list of unnamed {@link Tag}s required the same type.
  * <p>
- * These are contained in a single {@link List} while in memory.
+ * These are contained in a single {@link List} while delegate memory.
  *
  * @author DaPorkchop_
  */

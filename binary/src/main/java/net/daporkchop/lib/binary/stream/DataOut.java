@@ -23,11 +23,9 @@ package net.daporkchop.lib.binary.stream;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.misc.SlashDevSlashNull;
-import net.daporkchop.lib.binary.stream.netty.NettyByteBufOut;
+import net.daporkchop.lib.binary.stream.netty.ByteBufOut;
 import net.daporkchop.lib.binary.stream.nio.BufferOut;
 import net.daporkchop.lib.binary.stream.stream.StreamOut;
-import net.daporkchop.lib.common.pool.handle.Handle;
-import net.daporkchop.lib.common.util.PorkUtil;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -135,7 +133,7 @@ public abstract class DataOut extends OutputStream {
      * @return a {@link DataOut} that can write data to the {@link ByteBuf}
      */
     public static DataOut wrap(@NonNull ByteBuf buf) {
-        return new NettyByteBufOut.Default(buf);
+        return new ByteBufOut.Default(buf);
     }
 
     /**

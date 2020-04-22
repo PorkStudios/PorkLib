@@ -25,6 +25,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.PooledByteBufAllocator;
 import lombok.Getter;
 import lombok.NonNull;
@@ -150,7 +151,7 @@ public class AnvilWorldManager implements WorldManager {
                             ByteBuf uncompressed = PooledByteBufAllocator.DEFAULT.directBuffer();
                             try {
                                 inflater.fullInflateGrowing(compressed, uncompressed);
-                                try (NBTInputStream in = new NBTInputStream(DataIn.wrap(uncompressed), this.arrayAllocator)) {
+                                try (NBTInputStream in = new NBTInputStream(new ByteBufInputStream(uncompressed), this.arrayAllocator)) { //TODO: use DataIn again
                                     rootTag = in.readTag().getCompound("Level");
                                 }
                             } finally {

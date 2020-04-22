@@ -46,7 +46,7 @@ public class PorkConfigDecoder implements ConfigDecoder {
     @Override
     public Element.ContainerElement decode(@NonNull DataIn in) throws IOException {
         Element.ContainerElement root = Element.dummyContainer(null, null, null);
-        this.decodeInto(root, new BufferedReader(new InputStreamReader(in)));
+        this.decodeInto(root, new BufferedReader(new InputStreamReader(in.asStream())));
         return root;
     }
 

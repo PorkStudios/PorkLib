@@ -26,8 +26,6 @@ import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
 import net.daporkchop.lib.common.pool.handle.DefaultThreadHandledPool;
 import net.daporkchop.lib.common.pool.handle.HandledPool;
 import net.daporkchop.lib.unsafe.PUnsafe;
-import sun.misc.Cleaner;
-import sun.misc.SoftCache;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -130,12 +128,6 @@ public class PorkUtil {
         return GET_STACK_TRACE_WRAPPER.apply(t);
     }
 
-    public static void release(@NonNull ByteBuffer buffer) {
-        if (buffer.isDirect() && PUnsafe.pork_directBufferCleaner(buffer) != null)  {
-            PUnsafe.pork_directBufferCleaner(buffer).clean();
-        }
-    }
-
     @SuppressWarnings("unchecked")
     public static <T> Class<T> classForName(@NonNull String name) {
         try {
@@ -185,18 +177,27 @@ public class PorkUtil {
     }
 
     /**
-     * Creates a new instance of {@link SoftCache}.
+     * Creates a new instance of {@code sun.misc.SoftCache}.
      * <p>
      * This simply allows not showing compile-time warnings for using internal classes when creating
      * new instances.
      *
      * @param <K> the key type
      * @param <V> the value type
-     * @return a new {@link SoftCache}
+     * @return a new {@code sun.misc.SoftCache}
      */
     @SuppressWarnings("unchecked")
     public static <K, V> Map<K, V> newSoftCache() {
-        return (Map<K, V>) new SoftCache();
+        try {
+            Class<?> clazz = Class.forName("sun.misc.SoftCache");
+            return (Map<K, V>) clazz.newInstance();
+        } catch (ClassNotFoundException e)  {
+            throw new RuntimeException("Unable to find class: sun.misc.SoftCache", e);
+        } catch (IllegalAccessException e)  {
+            throw new AssertionError(e);
+        } catch (InstantiationException e)  {
+            throw new RuntimeException(e.getCause() == null ? e : e.getCause());
+        }
     }
 
     public static void simpleDisplayImage(@NonNull BufferedImage img) {

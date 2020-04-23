@@ -121,25 +121,10 @@ public abstract class AbstractDataIn implements DataIn {
 
     @Override
     public int read(@NonNull ByteBuf dst, int count) throws IOException {
-        this.ensureOpen();
-        if (notNegative(count, "count") == 0) {
-            return 0;
-        }
-        dst.ensureWritable(count);
-
         int writerIndex = dst.writerIndex();
-        int read;
-        if (dst.hasMemoryAddress()) {
-            read = toInt(this.readSome0(dst.memoryAddress() + writerIndex, count));
-        } else if (dst.hasArray()) {
-            read = this.readSome0(dst.array(), dst.arrayOffset() + writerIndex, count);
-        } else {
-            read = dst.writeBytes(this, count);
-        }
-        if (read > 0) {
-            dst.writerIndex(writerIndex + read);
-        }
-        return read == RESULT_BLOCKING ? 0 : read;
+        int read = this.read(dst, writerIndex, count);
+        dst.writerIndex(writerIndex + count);
+        return read;
     }
 
     @Override
@@ -149,8 +134,7 @@ public abstract class AbstractDataIn implements DataIn {
         if (length == 0) {
             return 0;
         }
-        int writerIndex = dst.writerIndex();
-        dst.ensureWritable(start + length - writerIndex);
+        dst.ensureWritable(start + length - dst.writerIndex());
 
         int read;
         if (dst.hasMemoryAddress()) {
@@ -183,29 +167,10 @@ public abstract class AbstractDataIn implements DataIn {
 
     @Override
     public int readFully(@NonNull ByteBuf dst, int count) throws IOException {
-        this.ensureOpen();
-        if (notNegative(count, "count") == 0) {
-            return 0;
-        }
-        dst.ensureWritable(count);
-
         int writerIndex = dst.writerIndex();
-        if (dst.hasMemoryAddress()) {
-            this.readAll0(dst.memoryAddress() + writerIndex, count);
-        } else if (dst.hasArray()) {
-            this.readAll0(dst.array(), dst.arrayOffset() + writerIndex, count);
-        } else {
-            int remaining = count;
-            do {
-                int read = dst.writeBytes(this, remaining);
-                if (read <= 0) {
-                    throw new EOFException();
-                }
-                remaining -= read;
-            } while (remaining > 0);
-        }
+        int read = this.readFully(dst, writerIndex, count);
         dst.writerIndex(writerIndex + count);
-        return count;
+        return read;
     }
 
     @Override
@@ -223,15 +188,9 @@ public abstract class AbstractDataIn implements DataIn {
         } else if (dst.hasArray()) {
             this.readAll0(dst.array(), dst.arrayOffset() + start, length);
         } else {
-            int remaining = length;
-            do {
-                int read = dst.setBytes(start, this, remaining);
-                if (read <= 0) {
-                    throw new EOFException();
-                }
-                start += read;
-                remaining -= read;
-            } while (remaining > 0);
+            for (ByteBuffer buffer : dst.nioBuffers(start, length))   {
+                this.readFully(buffer);
+            }
         }
         return length;
     }
@@ -360,15 +319,15 @@ public abstract class AbstractDataIn implements DataIn {
     }
 
     @Override
+    public boolean isOpen() {
+        return this.closed == 0;
+    }
+
+    @Override
     public void close() throws IOException {
         if (PUnsafe.compareAndSwapInt(this, CLOSED_OFFSET, 0, 1)) {
             this.close0();
         }
-    }
-
-    @Override
-    public boolean isOpen() {
-        return this.closed == 0;
     }
 
     protected final void ensureOpen() throws IOException {

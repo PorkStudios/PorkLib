@@ -24,60 +24,67 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.binary.stream.AbstractHeapDataOut;
 import net.daporkchop.lib.binary.stream.DataOut;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
 /**
- * An implementation of {@link DataOut} that can write data to an {@link OutputStream}.
+ * Wraps an {@link OutputStream} as a {@link DataOut}.
  *
  * @author DaPorkchop_
  */
 @AllArgsConstructor
 @Getter
 @Accessors(fluent = true, chain = true)
-public class StreamOut extends DataOut {
+public class StreamOut extends AbstractHeapDataOut {
     @NonNull
-    protected final OutputStream out;
+    protected final OutputStream delegate;
 
     @Override
-    public void write(int b) throws IOException {
-        this.out.write(b);
+    protected void write0(int b) throws IOException {
+        this.delegate.write(b);
     }
 
     @Override
-    public void write(byte[] b, int off, int len) throws IOException {
-        this.out.write(b, off, len);
+    public void write(@NonNull byte[] src, int start, int length) throws IOException {
+        this.delegate.write(src, start, length);
     }
 
     @Override
-    public void flush() throws IOException {
-        this.out.flush();
+    protected int writeSome0(@NonNull byte[] src, int start, int length) throws IOException {
+        this.delegate.write(src, start, length);
+        return length;
     }
 
     @Override
-    public OutputStream unwrap() {
-        return this.out;
+    protected void writeAll0(@NonNull byte[] src, int start, int length) throws IOException {
+        this.delegate.write(src, start, length);
     }
 
     @Override
-    public void close() throws IOException {
+    protected void flush0() throws IOException {
+        this.delegate.flush();
+    }
+
+    @Override
+    protected void close0() throws IOException {
+        this.delegate.close();
     }
 
     /**
-     * An extension of {@link StreamOut} which forwards the {@link OutputStream#close()} method to the delegate {@link OutputStream}.
+     * An extension of {@link StreamOut} which doesn't forward the {@link OutputStream#close()} method to the delegate {@link OutputStream}.
      *
      * @author DaPorkchop_
      */
-    public static final class Closing extends StreamOut {
-        public Closing(OutputStream out) {
-            super(out);
+    public static final class NonClosing extends StreamOut {
+        public NonClosing(OutputStream delegate) {
+            super(delegate);
         }
 
         @Override
-        public void close() throws IOException {
-            this.out.close();
+        protected void close0() throws IOException {
         }
     }
 }

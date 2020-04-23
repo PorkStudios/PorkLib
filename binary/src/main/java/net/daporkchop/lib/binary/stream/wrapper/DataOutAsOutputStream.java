@@ -18,47 +18,61 @@
  *
  */
 
-package net.daporkchop.lib.nbt;
+package net.daporkchop.lib.binary.stream.wrapper;
 
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.binary.stream.wrapper.ForwardingDataOut;
-import net.daporkchop.lib.nbt.tag.TagRegistry;
-import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 
 /**
+ * Wraps a {@link DataOut} as an {@link OutputStream}.
+ *
  * @author DaPorkchop_
  */
-public final class NBTOutputStream extends ForwardingDataOut {
-    private final TagRegistry defaultRegistry;
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public class DataOutAsOutputStream extends OutputStream {
+    @NonNull
+    protected final DataOut delegate;
 
-    public NBTOutputStream(@NonNull OutputStream out) throws IOException {
-        this(out, TagRegistry.NOTCHIAN);
+    @Override
+    public void write(int b) throws IOException {
+        this.delegate.write(b);
     }
 
-    public NBTOutputStream(@NonNull OutputStream out, @NonNull TagRegistry registry) throws IOException {
-        super(DataOut.wrap(out));
-        this.defaultRegistry = registry;
+    @Override
+    public void write(@NonNull byte[] src, int start, int length) throws IOException {
+        this.delegate.write(src, start, length);
     }
 
-    public void writeTag(@NonNull CompoundTag tag) throws IOException {
-        this.writeTag(tag, this.defaultRegistry);
-    }
-
-    public synchronized void writeTag(@NonNull CompoundTag tag, @NonNull TagRegistry registry) throws IOException {
-        this.writeByte(registry.getId(CompoundTag.class));
-        byte[] b = tag.getName().getBytes(StandardCharsets.UTF_8);
-        this.writeShort((short) b.length);
-        this.write(b);
-        tag.write(this, registry);
+    @Override
+    public void flush() throws IOException {
+        this.delegate.flush();
     }
 
     @Override
     public void close() throws IOException {
         this.delegate.close();
+    }
+
+    /**
+     * An extension of {@link DataOutAsOutputStream} which doesn't forward the {@link OutputStream#close()} method to the delegate {@link DataOut}.
+     *
+     * @author DaPorkchop_
+     */
+    public static final class NonClosing extends DataOutAsOutputStream {
+        public NonClosing(DataOut delegate) {
+            super(delegate);
+        }
+
+        @Override
+        public void close() throws IOException {
+        }
     }
 }

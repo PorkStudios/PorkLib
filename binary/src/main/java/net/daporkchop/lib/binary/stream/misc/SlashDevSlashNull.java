@@ -27,10 +27,11 @@ import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.binary.stream.wrapper.DataInAsInputStream;
+import net.daporkchop.lib.binary.stream.wrapper.DataOutAsOutputStream;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.Arrays;
@@ -44,18 +45,25 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  * @author DaPorkchop_
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class SlashDevSlashNull extends DataOut implements DataIn {
+public final class SlashDevSlashNull implements DataIn, DataOut {
     public static final SlashDevSlashNull INSTANCE = new SlashDevSlashNull();
-    public static final InputStream AS_STREAM = new DataInAsInputStream(INSTANCE);
+    public static final java.io.InputStream INPUT_STREAM = new InputStream();
+    public static final java.io.OutputStream OUTPUT_STREAM = new OutputStream();
+
+    @Override
+    public boolean isOpen() {
+        return true;
+    }
 
     @Override
     public void close() throws IOException {
     }
 
-    @Override
-    @Deprecated
-    public void write(int b) throws IOException {
-    }
+    //
+    //
+    // DataIn methods
+    //
+    //
 
     @Override
     public int read() throws IOException {
@@ -286,8 +294,8 @@ public final class SlashDevSlashNull extends DataOut implements DataIn {
     }
 
     @Override
-    public InputStream asInputStream() throws IOException {
-        return AS_STREAM;
+    public java.io.InputStream asInputStream() throws IOException {
+        return INPUT_STREAM;
     }
 
     @Override
@@ -305,8 +313,281 @@ public final class SlashDevSlashNull extends DataOut implements DataIn {
         return n;
     }
 
+    //
+    //
+    // DataOut methods
+    //
+    //
+
     @Override
-    public boolean isOpen() {
-        return true;
+    public void write(int b) throws IOException {
+    }
+
+    @Override
+    public void writeBoolean(boolean b) throws IOException {
+    }
+
+    @Override
+    public void writeByte(int b) throws IOException {
+    }
+
+    @Override
+    public void writeShort(int v) throws IOException {
+    }
+
+    @Override
+    public void writeShortLE(int v) throws IOException {
+    }
+
+    @Override
+    public void writeChar(int v) throws IOException {
+    }
+
+    @Override
+    public void writeCharLE(int v) throws IOException {
+    }
+
+    @Override
+    public void writeInt(int v) throws IOException {
+    }
+
+    @Override
+    public void writeIntLE(int v) throws IOException {
+    }
+
+    @Override
+    public void writeLong(long v) throws IOException {
+    }
+
+    @Override
+    public void writeLongLE(long v) throws IOException {
+    }
+
+    @Override
+    public void writeFloat(float f) throws IOException {
+    }
+
+    @Override
+    public void writeFloatLE(float f) throws IOException {
+    }
+
+    @Override
+    public void writeDouble(double d) throws IOException {
+    }
+
+    @Override
+    public void writeDoubleLE(double d) throws IOException {
+    }
+
+    @Override
+    public void writeBytes(@NonNull String text) throws IOException {
+    }
+
+    @Override
+    public long writeBytes(@NonNull CharSequence text) throws IOException {
+        return text.length();
+    }
+
+    @Override
+    public long writeBytes(@NonNull CharSequence text, int start, int length) throws IOException {
+        checkRangeLen(text.length(), start, length);
+        return length;
+    }
+
+    @Override
+    public void writeChars(@NonNull String text) throws IOException {
+    }
+
+    @Override
+    public long writeChars(@NonNull CharSequence text) throws IOException {
+        return text.length();
+    }
+
+    @Override
+    public long writeChars(@NonNull CharSequence text, int start, int length) throws IOException {
+        checkRangeLen(text.length(), start, length);
+        return length;
+    }
+
+    @Override
+    public void writeUTF(@NonNull String text) throws IOException {
+    }
+
+    @Override
+    public void writeUTF(@NonNull CharSequence text) throws IOException {
+    }
+
+    @Override
+    public void writeVarUTF(@NonNull CharSequence text) throws IOException {
+    }
+
+    @Override
+    public void writeString(@NonNull CharSequence text, @NonNull Charset charset) throws IOException {
+    }
+
+    @Override
+    public void writeVarString(@NonNull CharSequence text, @NonNull Charset charset) throws IOException {
+    }
+
+    @Override
+    public long writeText(@NonNull CharSequence text, @NonNull Charset charset) throws IOException {
+        return text.length();
+    }
+
+    @Override
+    public long writeText(@NonNull CharSequence text, int start, int length, @NonNull Charset charset) throws IOException {
+        checkRangeLen(text.length(), start, length);
+        return length;
+    }
+
+    @Override
+    public <E extends Enum<E>> void writeEnum(@NonNull E e) throws IOException {
+    }
+
+    @Override
+    public void writeVarInt(int value) throws IOException {
+    }
+
+    @Override
+    public void writeVarIntZigZag(int value) throws IOException {
+    }
+
+    @Override
+    public void writeVarLong(long value) throws IOException {
+    }
+
+    @Override
+    public void writeVarLongZigZag(long value) throws IOException {
+    }
+
+    @Override
+    public void write(@NonNull byte[] src) throws IOException {
+    }
+
+    @Override
+    public void write(@NonNull byte[] src, int start, int length) throws IOException {
+    }
+
+    @Override
+    public int write(@NonNull ByteBuffer src) throws IOException {
+        int remaining = src.remaining();
+        src.position(src.limit());
+        return remaining;
+    }
+
+    @Override
+    public int write(@NonNull ByteBuf src) throws IOException {
+        int readableBytes = src.readableBytes();
+        src.skipBytes(readableBytes);
+        return readableBytes;
+    }
+
+    @Override
+    public int write(@NonNull ByteBuf src, int count) throws IOException {
+        checkRangeLen(src.writerIndex(), src.readerIndex(), count);
+        src.skipBytes(count);
+        return count;
+    }
+
+    @Override
+    public int write(@NonNull ByteBuf src, int start, int length) throws IOException {
+        checkRangeLen(src.writerIndex(), start, length);
+        return length;
+    }
+
+    @Override
+    public int writeFully(@NonNull ByteBuffer src) throws IOException {
+        int remaining = src.remaining();
+        src.position(src.limit());
+        return remaining;
+    }
+
+    @Override
+    public int writeFully(@NonNull ByteBuf src) throws IOException {
+        int readableBytes = src.readableBytes();
+        src.skipBytes(readableBytes);
+        return readableBytes;
+    }
+
+    @Override
+    public int writeFully(@NonNull ByteBuf src, int count) throws IOException {
+        checkRangeLen(src.writerIndex(), src.readerIndex(), count);
+        src.skipBytes(count);
+        return count;
+    }
+
+    @Override
+    public int writeFully(@NonNull ByteBuf src, int start, int length) throws IOException {
+        checkRangeLen(src.writerIndex(), start, length);
+        return length;
+    }
+
+    @Override
+    public java.io.OutputStream asOutputStream() throws IOException {
+        return OUTPUT_STREAM;
+    }
+
+    @Override
+    public void flush() throws IOException {
+    }
+
+    private static final class InputStream extends DataInAsInputStream  {
+        public InputStream() {
+            super(INSTANCE);
+        }
+
+        @Override
+        public int read() throws IOException {
+            return 0;
+        }
+
+        @Override
+        public int read(@NonNull byte[] dst) throws IOException {
+            Arrays.fill(dst, (byte) 0);
+            return dst.length;
+        }
+
+        @Override
+        public int read(@NonNull byte[] dst, int start, int length) throws IOException {
+            checkRangeLen(dst.length, start, length);
+            Arrays.fill(dst, start, start + length, (byte) 0);
+            return length;
+        }
+
+        @Override
+        public long skip(long n) throws IOException {
+            return notNegative(n);
+        }
+
+        @Override
+        public int available() throws IOException {
+            return 0;
+        }
+
+        @Override
+        public void close() throws IOException {
+        }
+    }
+
+    private static final class OutputStream extends DataOutAsOutputStream    {
+        public OutputStream() {
+            super(INSTANCE);
+        }
+
+        @Override
+        public void write(int b) throws IOException {
+        }
+
+        @Override
+        public void write(@NonNull byte[] src, int start, int length) throws IOException {
+        }
+
+        @Override
+        public void flush() throws IOException {
+        }
+
+        @Override
+        public void close() throws IOException {
+        }
     }
 }

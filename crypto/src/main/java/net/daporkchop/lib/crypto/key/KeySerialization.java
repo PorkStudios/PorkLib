@@ -41,14 +41,14 @@ public class KeySerialization {
             throw new IllegalArgumentException("Must encode either public key, private key or both!");
         }
         out.writeUTF(keyPair.getCurveType().name());
-        try (ObjectOutputStream oos = new ObjectOutputStream(DataOut.wrapNonClosing(out))) {
-            if (privKey) {
-                oos.writeObject(keyPair.getPrivateKey());
-            }
-            if (pubKey) {
-                oos.writeObject(keyPair.getPublicKey());
-            }
+        ObjectOutputStream oos = new ObjectOutputStream(out.asOutputStream());
+        if (privKey) {
+            oos.writeObject(keyPair.getPrivateKey());
         }
+        if (pubKey) {
+            oos.writeObject(keyPair.getPublicKey());
+        }
+        oos.flush();
     }
 
     public static EllipticCurveKeyPair decodeEC(@NonNull DataIn in) throws IOException {
@@ -69,7 +69,7 @@ public class KeySerialization {
             } else {
                 return new EllipticCurveKeyPair(type, (BCECPrivateKey) ois.readObject());
             }
-        } catch (ClassNotFoundException e)  {
+        } catch (ClassNotFoundException e) {
             throw new IOException(e);
         }
     }

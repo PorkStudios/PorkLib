@@ -24,33 +24,34 @@ import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
-import java.io.EOFException;
 import java.io.IOException;
 
-import static java.lang.Math.*;
+import static java.lang.Math.min;
 
 /**
- * Base implementation of {@link DataIn} for heap-only implementations.
+ * Base implementation of {@link DataOut} for heap-only implementations.
  *
  * @author DaPorkchop_
  */
-public abstract class AbstractHeapDataIn extends AbstractDataIn {
+public abstract class AbstractHeapDataOut extends AbstractDataOut {
     @Override
-    protected long readSome0(long addr, long length) throws IOException {
+    protected long writeSome0(long addr, long length) throws IOException {
         try (Handle<byte[]> handle = PorkUtil.BUFFER_POOL.get()) {
             byte[] buf = handle.get();
             long total = 0L;
             boolean first = true;
             do {
-                int read = this.readSome0(buf, 0, (int) min(length - total, PorkUtil.BUFFER_SIZE));
-                if (read <= 0) {
-                    return read < 0 && first ? read : total;
+                int blockSize = (int) min(length - total, PorkUtil.BUFFER_SIZE);
+
+                //copy to heap buffer
+                PUnsafe.copyMemory(null, addr, buf, PUnsafe.ARRAY_BYTE_BASE_OFFSET, blockSize);
+
+                int written = this.writeSome0(buf, 0, blockSize);
+                if (written <= 0) {
+                    return written < 0 && first ? written : total;
                 }
 
-                //copy to direct buffer
-                PUnsafe.copyMemory(buf, PUnsafe.ARRAY_BYTE_BASE_OFFSET, null, addr + total, read);
-
-                total += read;
+                total += written;
                 first = false;
             } while (total < length);
             return total;
@@ -58,16 +59,17 @@ public abstract class AbstractHeapDataIn extends AbstractDataIn {
     }
 
     @Override
-    protected void readAll0(long addr, long length) throws EOFException, IOException {
+    protected void writeAll0(long addr, long length) throws IOException {
         try (Handle<byte[]> handle = PorkUtil.BUFFER_POOL.get()) {
             byte[] buf = handle.get();
             long total = 0L;
             do {
                 int blockSize = (int) min(length - total, PorkUtil.BUFFER_SIZE);
-                this.readAll0(buf, 0, blockSize);
 
-                //copy to direct buffer
-                PUnsafe.copyMemory(buf, PUnsafe.ARRAY_BYTE_BASE_OFFSET, null, addr + total, blockSize);
+                //copy to heap buffer
+                PUnsafe.copyMemory(null, addr, buf, PUnsafe.ARRAY_BYTE_BASE_OFFSET, blockSize);
+
+                this.writeAll0(buf, 0, blockSize);
 
                 total += blockSize;
             } while (total < length);

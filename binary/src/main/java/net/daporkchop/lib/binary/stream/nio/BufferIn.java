@@ -20,8 +20,10 @@
 
 package net.daporkchop.lib.binary.stream.nio;
 
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.AbstractDataIn;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.unsafe.PUnsafe;
@@ -34,14 +36,16 @@ import static java.lang.Math.*;
 import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
- * An implementation of {@link DataIn} that can read from a {@link ByteBuffer}
+ * An implementation of {@link DataIn} that can read from a {@link ByteBuffer}.
  *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
 public class BufferIn extends AbstractDataIn {
     @NonNull
-    private final ByteBuffer delegate;
+    protected ByteBuffer delegate;
 
     @Override
     protected int read0() throws IOException {
@@ -122,5 +126,6 @@ public class BufferIn extends AbstractDataIn {
 
     @Override
     protected void close0() throws IOException {
+        this.delegate = null;
     }
 }

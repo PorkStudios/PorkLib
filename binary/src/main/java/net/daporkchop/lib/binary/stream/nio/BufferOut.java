@@ -21,112 +21,88 @@
 package net.daporkchop.lib.binary.stream.nio;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.binary.stream.AbstractDataOut;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
+import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+
+import static java.lang.Math.*;
+import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
- * An implementation of {@link DataOut} that can write to a {@link ByteBuffer}
+ * An implementation of {@link DataOut} that can write to a {@link ByteBuffer}.
  *
  * @author DaPorkchop_
  */
 @AllArgsConstructor
-public class BufferOut extends DataOut {
+@Getter
+@Accessors(fluent = true)
+public class BufferOut extends AbstractDataOut {
     @NonNull
-    private final ByteBuffer buffer;
+    protected ByteBuffer delegate;
 
     @Override
-    public void write(int b) throws IOException {
-        this.buffer.put((byte) b);
+    protected void write0(int b) throws IOException {
+        this.delegate.put((byte) b);
     }
 
     @Override
-    public void write(@NonNull byte[] b, int off, int len) throws IOException {
-        this.buffer.put(b, off, len);
+    protected int writeSome0(@NonNull byte[] src, int start, int length) throws IOException {
+        int count = min(this.delegate.remaining(), length);
+        this.delegate.put(src, start, count);
+        return count;
     }
 
     @Override
-    public DataOut writeByte(byte b) throws IOException {
-        this.buffer.put(b);
-        return this;
+    protected long writeSome0(long addr, long length) throws IOException {
+        int count = toInt(min(this.delegate.remaining(), length));
+        int position = this.delegate.position();
+        if (this.delegate.isDirect())   {
+            PUnsafe.copyMemory(addr, PUnsafe.pork_directBufferAddress(this.delegate) + position, count);
+        } else {
+            PUnsafe.copyMemory(null, addr, this.delegate.array(), PUnsafe.ARRAY_BYTE_BASE_OFFSET + this.delegate.arrayOffset() + position, count);
+        }
+        this.delegate.position(position + count);
+        return count;
     }
 
     @Override
-    public DataOut writeShort(short s) throws IOException {
-        this.buffer.order(ByteOrder.BIG_ENDIAN).putShort(s);
-        return this;
+    protected void writeAll0(@NonNull byte[] src, int start, int length) throws IOException {
+        int count = min(this.delegate.remaining(), length);
+        if (count < length) {
+            throw new BufferOverflowException();
+        }
+        this.delegate.put(src, start, count);
     }
 
     @Override
-    public DataOut writeShortLE(short s) throws IOException {
-        this.buffer.order(ByteOrder.LITTLE_ENDIAN).putShort(s);
-        return this;
+    protected void writeAll0(long addr, long length) throws IOException {
+        int count = toInt(min(this.delegate.remaining(), length));
+        if (count < length) {
+            throw new BufferOverflowException();
+        }
+        int position = this.delegate.position();
+        if (this.delegate.isDirect())   {
+            PUnsafe.copyMemory(addr, PUnsafe.pork_directBufferAddress(this.delegate) + position, count);
+        } else {
+            PUnsafe.copyMemory(null, addr, this.delegate.array(), PUnsafe.ARRAY_BYTE_BASE_OFFSET + this.delegate.arrayOffset() + position, count);
+        }
+        this.delegate.position(position + count);
     }
 
     @Override
-    public DataOut writeChar(char c) throws IOException {
-        this.buffer.order(ByteOrder.BIG_ENDIAN).putChar(c);
-        return this;
+    protected void flush0() throws IOException {
+        //no-op
     }
 
     @Override
-    public DataOut writeCharLE(char c) throws IOException {
-        this.buffer.order(ByteOrder.LITTLE_ENDIAN).putChar(c);
-        return this;
-    }
-
-    @Override
-    public DataOut writeInt(int i) throws IOException {
-        this.buffer.order(ByteOrder.BIG_ENDIAN).putInt(i);
-        return this;
-    }
-
-    @Override
-    public DataOut writeIntLE(int i) throws IOException {
-        this.buffer.order(ByteOrder.LITTLE_ENDIAN).putInt(i);
-        return this;
-    }
-
-    @Override
-    public DataOut writeLong(long l) throws IOException {
-        this.buffer.order(ByteOrder.BIG_ENDIAN).putLong(l);
-        return this;
-    }
-
-    @Override
-    public DataOut writeLongLE(long l) throws IOException {
-        this.buffer.order(ByteOrder.LITTLE_ENDIAN).putLong(l);
-        return this;
-    }
-
-    @Override
-    public DataOut writeFloat(float f) throws IOException {
-        this.buffer.order(ByteOrder.BIG_ENDIAN).putFloat(f);
-        return this;
-    }
-
-    @Override
-    public DataOut writeFloatLE(float f) throws IOException {
-        this.buffer.order(ByteOrder.LITTLE_ENDIAN).putFloat(f);
-        return this;
-    }
-
-    @Override
-    public DataOut writeDouble(double d) throws IOException {
-        this.buffer.order(ByteOrder.BIG_ENDIAN).putDouble(d);
-        return this;
-    }
-
-    @Override
-    public DataOut writeDoubleLE(double d) throws IOException {
-        this.buffer.order(ByteOrder.LITTLE_ENDIAN).putDouble(d);
-        return this;
-    }
-
-    @Override
-    public void close() throws IOException {
+    protected void close0() throws IOException {
+        this.delegate = null;
     }
 }

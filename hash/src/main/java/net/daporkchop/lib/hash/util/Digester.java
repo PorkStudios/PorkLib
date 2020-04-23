@@ -22,6 +22,7 @@ package net.daporkchop.lib.hash.util;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.binary.stream.AbstractHeapDataOut;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.util.PorkUtil;
@@ -89,24 +90,29 @@ public class Digester {
     }
 
     public DataOut appendStream()   {
-        return new DataOut() {
+        return new AbstractHeapDataOut() {
             @Override
-            public void close() throws IOException {
-            }
-
-            @Override
-            public void write(int b) throws IOException {
+            protected void write0(int b) throws IOException {
                 Digester.this.append((byte) b);
             }
 
             @Override
-            public void write(@NonNull byte[] src, int start, int length) throws IOException {
+            protected int writeSome0(@NonNull byte[] src, int start, int length) throws IOException {
+                Digester.this.append(src, start, length);
+                return length;
+            }
+
+            @Override
+            protected void writeAll0(@NonNull byte[] src, int start, int length) throws IOException {
                 Digester.this.append(src, start, length);
             }
 
             @Override
-            public void write(@NonNull byte[] src) throws IOException {
-                Digester.this.append(src);
+            protected void flush0() throws IOException {
+            }
+
+            @Override
+            protected void close0() throws IOException {
             }
         };
     }

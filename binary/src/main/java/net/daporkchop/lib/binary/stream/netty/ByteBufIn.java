@@ -34,6 +34,7 @@ import net.daporkchop.lib.unsafe.PUnsafe;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 
 import static java.lang.Math.*;
 import static net.daporkchop.lib.common.util.PValidation.*;
@@ -133,6 +134,8 @@ public class ByteBufIn extends AbstractDataIn {
 
     @Override
     protected void close0() throws IOException {
+        this.delegate.release();
+        this.delegate = null;
     }
 
     @Override
@@ -140,24 +143,8 @@ public class ByteBufIn extends AbstractDataIn {
         return new ByteBufInputStream(this.delegate);
     }
 
-    /**
-     * A variant of {@link ByteBufIn} that invokes {@link ByteBuf#release()} on the buffer when it is closed.
-     *
-     * @author DaPorkchop_
-     */
-    public static final class Releasing extends ByteBufIn {
-        public Releasing(ByteBuf buf) {
-            super(buf);
-        }
-
-        @Override
-        public void close() throws IOException {
-            this.delegate.release();
-        }
-
-        @Override
-        protected InputStream asStream0() {
-            return new ByteBufInputStream(this.delegate, true);
-        }
+    @Override
+    public CharSequence readText(long size, @NonNull Charset charset) throws IOException {
+        return this.delegate.readCharSequence(toInt(size, "size"), charset);
     }
 }

@@ -22,7 +22,6 @@ package net.daporkchop.lib.binary.stream;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.misc.SlashDevSlashNull;
 import net.daporkchop.lib.binary.stream.netty.ByteBufOut;
 import net.daporkchop.lib.binary.stream.nio.BufferOut;
 import net.daporkchop.lib.binary.stream.stream.StreamOut;
@@ -57,14 +56,27 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  * @see DataIn
  */
 public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
+    //
+    //
+    // creators
+    //
+    //
+
     /**
      * Wraps an {@link OutputStream} to make it a {@link DataOut}.
      *
      * @param out the {@link OutputStream} to wrap
      * @return the wrapped stream, or the original stream if it was already an instance of {@link DataOut}
      */
-    public static DataOut wrap(@NonNull OutputStream out) {
-        return out instanceof DataOut ? (DataOut) out : new StreamOut.Closing(out);
+    static DataOut wrap(@NonNull OutputStream out) {
+        /*if (out instanceof DataOutAsOutputStream)   {
+            return ((DataOutAsOutputStream) out).delegate();
+        } else if (out instanceof DataOut)  {
+            return (DataOut) out;
+        } else {
+            return new StreamOut(out);
+        }*/
+        return new StreamOut(out);
     }
 
     /**
@@ -75,10 +87,14 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @param out the {@link OutputStream} to wrap
      * @return the wrapped stream, or the original stream if it was already an instance of {@link DataOut}
      */
-    public static DataOut wrapNonClosing(@NonNull OutputStream out) {
-        return out instanceof StreamOut && !(out instanceof StreamOut.Closing)
-               ? (StreamOut) out
-               : new StreamOut(out instanceof DataOut ? ((DataOut) out).asOutputStream() : out);
+    static DataOut wrapNonClosing(@NonNull OutputStream out) {
+        /*if (out instanceof DataOutAsOutputStream)   {
+            DataOut theOut = ((DataOutAsOutputStream) out).delegate();
+            if (theOut instanceof StreamOut.NonClosing) {
+                return theOut;
+            }
+        }*/
+        return new StreamOut.NonClosing(out);
     }
 
     /**
@@ -87,14 +103,14 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @param buffer the buffer to wrap
      * @return the wrapped buffer
      */
-    public static DataOut wrap(@NonNull ByteBuffer buffer) {
+    static DataOut wrap(@NonNull ByteBuffer buffer) {
         return new BufferOut(buffer);
     }
 
     /**
      * @see #wrapBuffered(File)
      */
-    public static DataOut wrap(@NonNull File file) throws IOException {
+    static DataOut wrap(@NonNull File file) throws IOException {
         return wrapBuffered(file);
     }
 
@@ -107,7 +123,7 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @return a buffered {@link DataOut} that will write to the given file
      * @throws IOException if an IO exception occurs you dummy
      */
-    public static DataOut wrapBuffered(@NonNull File file) throws IOException {
+    static DataOut wrapBuffered(@NonNull File file) throws IOException {
         return wrap(new BufferedOutputStream(new FileOutputStream(file)));
     }
 
@@ -121,7 +137,7 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @return a buffered {@link DataOut} that will write to the given file
      * @throws IOException if an IO exception occurs you dummy
      */
-    public static DataOut wrapBuffered(@NonNull File file, int bufferSize) throws IOException {
+    static DataOut wrapBuffered(@NonNull File file, int bufferSize) throws IOException {
         return wrap(new BufferedOutputStream(new FileOutputStream(file), bufferSize));
     }
 
@@ -134,7 +150,7 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @return a direct {@link DataOut} that will write to the given file
      * @throws IOException if an IO exception occurs you dummy
      */
-    public static DataOut wrapNonBuffered(@NonNull File file) throws IOException {
+    static DataOut wrapNonBuffered(@NonNull File file) throws IOException {
         return wrap(new FileOutputStream(file));
     }
 
@@ -146,18 +162,19 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @param buf the {@link ByteBuf} to write to
      * @return a {@link DataOut} that can write data to the {@link ByteBuf}
      */
-    public static DataOut wrap(@NonNull ByteBuf buf) {
-        return new ByteBufOut.Default(buf);
+    static DataOut wrap(@NonNull ByteBuf buf) {
+        return new ByteBufOut(buf.retain());
     }
 
     /**
-     * /dev/null
+     * Wraps a {@link ByteBuf} into a {@link DataOut} for writing.
      *
-     * @return an instance of {@link DataOut} that will discard any data written to it
-     * @see SlashDevSlashNull
+     * @param buf    the {@link ByteBuf} to write to
+     * @param retain if {@code true}: when the {@link DataOut} is closed (using {@link DataOut#close()}), the {@link ByteBuf} will not be released
+     * @return a {@link DataOut} that can write data to the {@link ByteBuf}
      */
-    public static DataOut slashDevSlashNull() {
-        return SlashDevSlashNull.INSTANCE;
+    static DataOut wrap(@NonNull ByteBuf buf, boolean retain) {
+        return new ByteBufOut(retain ? buf.retain() : buf);
     }
 
     //
@@ -721,7 +738,7 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * <p>
      * This method will write data until the buffer has no bytes remaining or more data cannot be written without blocking. However, it is not guaranteed
      * to write any bytes at all.
-     *
+     * <p>
      * This method will also increase the buffer's {@link ByteBuf#readerIndex()}.
      *
      * @param src the {@link ByteBuf} to write data from
@@ -729,14 +746,16 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @throws ClosedChannelException if the channel was already closed
      * @throws IOException            if an IO exception occurs you dummy
      */
-    int write(@NonNull ByteBuf src) throws IOException;
+    default int write(@NonNull ByteBuf src) throws IOException {
+        return this.write(src, src.readableBytes());
+    }
 
     /**
      * Writes the requested number of bytes from the given {@link ByteBuf}.
      * <p>
      * This method will write data until requested number of bytes have been written or more data cannot be written without blocking. However, it is not
      * guaranteed to write any bytes at all.
-     *
+     * <p>
      * This method will also increase the buffer's {@link ByteBuf#readerIndex()}.
      *
      * @param src   the {@link ByteBuf} to write data from
@@ -752,10 +771,10 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * <p>
      * This method will write data until requested number of bytes have been written or more data cannot be written without blocking. However, it is not
      * guaranteed to write any bytes at all.
-     *
+     * <p>
      * This method will not increase the buffer's {@link ByteBuf#readerIndex()}.
      *
-     * @param src   the {@link ByteBuf} to write data from
+     * @param src    the {@link ByteBuf} to write data from
      * @param start  the index of the first byte to write
      * @param length the number of bytes to write
      * @return the actual number of bytes written
@@ -824,7 +843,7 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
 
     /**
      * Writes all readable bytes from the given {@link ByteBuf}.
-     *
+     * <p>
      * This method will also increase the buffer's {@link ByteBuf#readerIndex()}.
      *
      * @param src the {@link ByteBuf} to write data from
@@ -832,11 +851,13 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @throws ClosedChannelException if the channel was already closed
      * @throws IOException            if an IO exception occurs you dummy
      */
-    int writeFully(@NonNull ByteBuf src) throws IOException;
+    default int writeFully(@NonNull ByteBuf src) throws IOException {
+        return this.writeFully(src, src.readableBytes());
+    }
 
     /**
      * Writes the requested number of bytes from the given {@link ByteBuf}.
-     *
+     * <p>
      * This method will also increase the buffer's {@link ByteBuf#readerIndex()}.
      *
      * @param src   the {@link ByteBuf} to write data from
@@ -849,10 +870,10 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
 
     /**
      * Writes all bytes in the given range in the given {@link ByteBuf}.
-     *
+     * <p>
      * This method will not increase the buffer's {@link ByteBuf#readerIndex()}.
      *
-     * @param src   the {@link ByteBuf} to write data from
+     * @param src    the {@link ByteBuf} to write data from
      * @param start  the index of the first byte to write
      * @param length the number of bytes to write
      * @return the number of bytes written
@@ -877,6 +898,13 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @return an {@link OutputStream} that may be used in place of this {@link DataOut} instance
      */
     OutputStream asOutputStream() throws IOException;
+
+    /**
+     * If this {@link DataOut} uses some kind of write buffer: attempts to flush all currently buffered data.
+     *
+     * @see OutputStream#flush()
+     */
+    void flush() throws IOException;
 
     @Override
     boolean isOpen();

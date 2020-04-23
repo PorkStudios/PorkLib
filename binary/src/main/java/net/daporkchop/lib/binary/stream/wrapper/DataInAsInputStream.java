@@ -29,6 +29,8 @@ import net.daporkchop.lib.binary.stream.DataIn;
 import java.io.IOException;
 import java.io.InputStream;
 
+import static java.lang.Math.*;
+
 /**
  * Wraps a {@link DataIn} as an {@link InputStream}.
  *
@@ -52,13 +54,18 @@ public class DataInAsInputStream extends InputStream {
     }
 
     @Override
-    public int read(@NonNull byte[] dst, int off, int len) throws IOException {
-        return this.delegate.read(dst, off, len);
+    public int read(@NonNull byte[] dst, int start, int length) throws IOException {
+        return this.delegate.read(dst, start, length);
     }
 
     @Override
     public long skip(long n) throws IOException {
         return this.delegate.skipBytes(n);
+    }
+
+    @Override
+    public int available() throws IOException {
+        return (int) min(this.delegate.remaining(), Integer.MAX_VALUE);
     }
 
     @Override
@@ -72,8 +79,8 @@ public class DataInAsInputStream extends InputStream {
      * @author DaPorkchop_
      */
     public static final class NonClosing extends DataInAsInputStream {
-        public NonClosing(DataIn in) {
-            super(in);
+        public NonClosing(DataIn delegate) {
+            super(delegate);
         }
 
         @Override

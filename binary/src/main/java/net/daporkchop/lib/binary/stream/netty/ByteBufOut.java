@@ -21,172 +21,102 @@
 package net.daporkchop.lib.binary.stream.netty;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.binary.stream.AbstractDataOut;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
+import java.nio.BufferOverflowException;
 import java.nio.charset.Charset;
 
+import static java.lang.Math.*;
+import static net.daporkchop.lib.common.util.PValidation.toInt;
+
 /**
- * An implementation of {@link DataOut} that can write to a {@link ByteBuf}
+ * An implementation of {@link DataOut} that can write to a {@link ByteBuf}.
  *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public abstract class ByteBufOut extends DataOut {
+public class ByteBufOut extends AbstractDataOut {
     @NonNull
-    protected ByteBuf buf;
+    protected ByteBuf delegate;
 
     @Override
-    public void write(int b) throws IOException {
-        this.buf.writeByte(b);
+    protected void write0(int b) throws IOException {
+        this.delegate.writeByte(b);
     }
 
     @Override
-    public void write(@NonNull byte[] b, int off, int len) throws IOException {
-        this.buf.writeBytes(b, off, len);
+    protected int writeSome0(@NonNull byte[] src, int start, int length) throws IOException {
+        int count = min(this.delegate.maxCapacity() - this.delegate.writerIndex(), length);
+        this.delegate.writeBytes(src, start, count);
+        return count;
     }
 
     @Override
-    public DataOut writeBoolean(boolean b) throws IOException {
-        this.buf.writeBoolean(b);
-        return this;
+    protected long writeSome0(long addr, long length) throws IOException {
+        int writerIndex = this.delegate.writerIndex();
+        int count = toInt(min(this.delegate.maxCapacity() - writerIndex, length));
+        this.delegate.ensureWritable(count);
+        if (this.delegate.hasMemoryAddress())   {
+            PUnsafe.copyMemory(addr, this.delegate.memoryAddress() + writerIndex, count);
+        } else if (this.delegate.hasArray())    {
+            PUnsafe.copyMemory(null, addr, this.delegate.array(), PUnsafe.ARRAY_BYTE_BASE_OFFSET + this.delegate.arrayOffset() + writerIndex, count);
+        } else {
+            this.delegate.setBytes(writerIndex, Unpooled.wrappedBuffer(addr, count, false));
+        }
+        this.delegate.writerIndex(writerIndex + count);
+        return count;
     }
 
     @Override
-    public DataOut writeByte(byte b) throws IOException {
-        this.buf.writeByte(b & 0xFF);
-        return this;
+    protected void writeAll0(@NonNull byte[] src, int start, int length) throws IOException {
+        int count = min(this.delegate.maxCapacity() - this.delegate.writerIndex(), length);
+        if (count < length) {
+            throw new BufferOverflowException();
+        }
+        this.delegate.writeBytes(src, start, length);
     }
 
     @Override
-    public DataOut writeShort(short s) throws IOException {
-        this.buf.writeShort(s & 0xFFFF);
-        return this;
+    protected void writeAll0(long addr, long length) throws IOException {
+        int writerIndex = this.delegate.writerIndex();
+        int count = toInt(min(this.delegate.maxCapacity() - writerIndex, length));
+        if (count < length) {
+            throw new BufferOverflowException();
+        }
+        this.delegate.ensureWritable(count);
+        if (this.delegate.hasMemoryAddress())   {
+            PUnsafe.copyMemory(addr, this.delegate.memoryAddress() + writerIndex, count);
+        } else if (this.delegate.hasArray())    {
+            PUnsafe.copyMemory(null, addr, this.delegate.array(), PUnsafe.ARRAY_BYTE_BASE_OFFSET + this.delegate.arrayOffset() + writerIndex, count);
+        } else {
+            this.delegate.setBytes(writerIndex, Unpooled.wrappedBuffer(addr, count, false));
+        }
+        this.delegate.writerIndex(writerIndex + count);
     }
 
     @Override
-    public DataOut writeUShort(int s) throws IOException {
-        this.buf.writeShort(s);
-        return this;
+    protected void flush0() throws IOException {
+        //no-op
     }
 
     @Override
-    public DataOut writeShortLE(short s) throws IOException {
-        this.buf.writeShortLE(s & 0xFFFF);
-        return this;
-    }
-
-    @Override
-    public DataOut writeUShortLE(int s) throws IOException {
-        this.buf.writeShortLE(s);
-        return this;
-    }
-
-    @Override
-    public DataOut writeChar(char c) throws IOException {
-        this.buf.writeChar(c);
-        return this;
-    }
-
-    @Override
-    public DataOut writeCharLE(char c) throws IOException {
-        this.buf.writeChar(Character.reverseBytes(c));
-        return this;
-    }
-
-    @Override
-    public DataOut writeInt(int i) throws IOException {
-        this.buf.writeInt(i);
-        return this;
-    }
-
-    @Override
-    public DataOut writeIntLE(int i) throws IOException {
-        this.buf.writeIntLE(i);
-        return this;
-    }
-
-    @Override
-    public DataOut writeLong(long l) throws IOException {
-        this.buf.writeLong(l);
-        return this;
-    }
-
-    @Override
-    public DataOut writeLongLE(long l) throws IOException {
-        this.buf.writeLongLE(l);
-        return this;
-    }
-
-    @Override
-    public DataOut writeFloat(float f) throws IOException {
-        this.buf.writeFloat(f);
-        return this;
-    }
-
-    @Override
-    public DataOut writeFloatLE(float f) throws IOException {
-        this.buf.writeFloatLE(f);
-        return this;
-    }
-
-    @Override
-    public DataOut writeDouble(double d) throws IOException {
-        this.buf.writeDouble(d);
-        return this;
-    }
-
-    @Override
-    public DataOut writeDoubleLE(double d) throws IOException {
-        this.buf.writeDoubleLE(d);
-        return this;
+    protected void close0() throws IOException {
+        this.delegate.release();
+        this.delegate = null;
     }
 
     @Override
     public long writeText(@NonNull CharSequence text, @NonNull Charset charset) throws IOException {
-        return this.buf.writeCharSequence(text, charset);
-    }
-
-    @Override
-    public final void close() throws IOException {
-        if (this.buf == null) {
-            throw new IllegalStateException("Already closed!");
-        }
-        try {
-            if (this.handleClose(this.buf)) {
-                this.buf.release();
-            }
-        } finally {
-            this.buf = null;
-        }
-    }
-
-    /**
-     * Called when this stream is closed.
-     *
-     * @param buf the buffer that this stream was writing to
-     * @return whether or not the buffer should be released
-     * @throws IOException if an IO exception occurs you dummy
-     */
-    protected abstract boolean handleClose(@NonNull ByteBuf buf) throws IOException;
-
-    /**
-     * A basic implementation of {@link ByteBufOut} that simply does nothing when closed.
-     */
-    public static class Default extends ByteBufOut {
-        public Default(ByteBuf buf) {
-            super(buf);
-        }
-
-        @Override
-        protected boolean handleClose(@NonNull ByteBuf buf) throws IOException {
-            return false;
-        }
+        return this.delegate.writeCharSequence(text, charset);
     }
 }

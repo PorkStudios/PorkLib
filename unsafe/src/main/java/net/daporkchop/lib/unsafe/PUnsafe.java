@@ -28,6 +28,7 @@ import sun.nio.ch.DirectBuffer;
 
 import java.lang.reflect.Field;
 import java.nio.Buffer;
+import java.nio.ByteBuffer;
 import java.security.ProtectionDomain;
 
 /**
@@ -619,5 +620,14 @@ public class PUnsafe {
 
     public static Cleaner pork_directBufferCleaner(Buffer buffer)   {
         return ((DirectBuffer) buffer).cleaner();
+    }
+
+    public static void pork_releaseBuffer(Buffer buffer) {
+        if (buffer instanceof DirectBuffer) {
+            Cleaner cleaner = pork_directBufferCleaner(buffer);
+            if (cleaner != null)    {
+                cleaner.clean();
+            }
+        }
     }
 }

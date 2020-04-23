@@ -23,6 +23,7 @@ package net.daporkchop.lib.config.decoder;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.wrapper.DataOutAsOutputStream;
 import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
 import net.daporkchop.lib.config.attribute.Comment;
 import net.daporkchop.lib.config.util.Element;
@@ -229,7 +230,7 @@ public class PorkConfigDecoder implements ConfigDecoder {
 
     @Override
     public void encode(@NonNull Element.ContainerElement root, @NonNull DataOut out) throws IOException {
-        try (PrintStream stream = new PrintStream(DataOut.wrapNonClosing(out))) {
+        try (PrintStream stream = new PrintStream(new DataOutAsOutputStream.NonClosing(out))) {
             this.encodeRecursive(root, stream, 0);
         }
     }

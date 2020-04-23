@@ -89,11 +89,7 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @return the wrapped buffer as a {@link DataIn}
      */
     static DataIn wrap(@NonNull ByteBuffer buffer) {
-        /*if (buffer.hasArray()) {
-            return new StreamIn(new ByteArrayInputStream(buffer.array(), buffer.position(), buffer.remaining()));
-        } else {*/
         return new BufferIn(buffer);
-        //}
     }
 
     /**
@@ -154,21 +150,18 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @return a {@link DataIn} that can read data from the {@link ByteBuf}
      */
     static DataIn wrap(@NonNull ByteBuf buf) {
-        return wrap(buf, false);
+        return wrap(buf, true);
     }
 
     /**
      * Wraps a {@link ByteBuf} into a {@link DataIn} for reading.
-     * <p>
-     * When the {@link DataIn} is closed (using {@link DataIn#close()}), the {@link ByteBuf} may or may not be released, depending on the value of the
-     * {@code release} parameter.
      *
-     * @param buf     the {@link ByteBuf} to read from
-     * @param release whether or not to release the buffer when the {@link DataIn} is closed
+     * @param buf    the {@link ByteBuf} to read from
+     * @param retain if {@code true}: when the {@link DataIn} is closed (using {@link DataIn#close()}), the {@link ByteBuf} will not be released
      * @return a {@link DataIn} that can read data from the {@link ByteBuf}
      */
-    static DataIn wrap(@NonNull ByteBuf buf, boolean release) {
-        return release ? new ByteBufIn.Releasing(buf) : new ByteBufIn(buf);
+    static DataIn wrap(@NonNull ByteBuf buf, boolean retain) {
+        return new ByteBufIn(retain ? buf.retain() : buf);
     }
 
     //
@@ -773,7 +766,7 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * cannot be read without blocking. However, it is not guaranteed to read any bytes at all.
      * <p>
      * If EOF was already reached, this method will always return {@code -1}.
-     *
+     * <p>
      * This method will also increase the buffer's {@link ByteBuf#writerIndex()}.
      *
      * @param dst   the {@link ByteBuf} to read data into
@@ -791,7 +784,7 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * cannot be read without blocking. However, it is not guaranteed to read any bytes at all.
      * <p>
      * If EOF was already reached, this method will always return {@code -1}.
-     *
+     * <p>
      * This method will not increase the buffer's {@link ByteBuf#writerIndex()}.
      *
      * @param dst    the {@link ByteBuf} to read data into
@@ -863,7 +856,7 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
 
     /**
      * Fills the given {@link ByteBuf} with data.
-     *
+     * <p>
      * This method will also increase the buffer's {@link ByteBuf#writerIndex()}.
      *
      * @param dst   the {@link ByteBuf} to read data into
@@ -876,7 +869,7 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
 
     /**
      * Fills the given {@link ByteBuf} with data.
-     *
+     * <p>
      * This method will not increase the buffer's {@link ByteBuf#writerIndex()}.
      *
      * @param dst    the {@link ByteBuf} to read data into

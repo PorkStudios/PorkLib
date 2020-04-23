@@ -25,7 +25,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.math.primitive.PMath;
+import net.daporkchop.lib.common.math.PMath;
 import net.daporkchop.lib.noise.NoiseSource;
 import net.daporkchop.lib.noise.filter.LerpFilter;
 import net.daporkchop.lib.noise.filter.math.ScalarAddFilter;

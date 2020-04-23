@@ -25,4 +25,6 @@ dependencies {
     compile project(":math")
 
     compile "org.bouncycastle:bcprov-jdk15on:$bouncycastleVersion"
+
+    testCompile project(":logging")
 }

@@ -27,7 +27,7 @@ import net.daporkchop.lib.gui.component.state.functional.SpinnerState;
 import java.util.function.DoubleConsumer;
 import java.util.function.IntConsumer;
 
-import static net.daporkchop.lib.math.primitive.PMath.*;
+import static net.daporkchop.lib.common.math.PMath.*;
 
 /**
  * @author DaPorkchop_

@@ -18,36 +18,32 @@
  *
  */
 
-package net.daporkchop.lib.binary.serialization.impl;
+package common;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import net.daporkchop.lib.binary.serialization.Serializer;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
-
-import java.io.IOException;
+import net.daporkchop.lib.common.util.PValidation;
+import org.junit.Test;
 
 /**
- * An implementation of {@link Serializer} that can serialize a variable-length byte array
- *
  * @author DaPorkchop_
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class ByteArraySerializer implements Serializer<byte[]> {
-    /**
-     * A shared instance of {@link ByteArraySerializer}
-     */
-    public static final Serializer<byte[]> INSTANCE = new ByteArraySerializer();
-
-    @Override
-    public void write(@NonNull byte[] val, @NonNull DataOut out) throws IOException {
-        out.writeByteArray(val);
+public class ValidationTest {
+    @Test(expected = IllegalArgumentException.class)
+    public void checkArg()  {
+        PValidation.checkArg(false);
     }
 
-    @Override
-    public byte[] read(@NonNull DataIn in) throws IOException {
-        return in.readByteArray();
+    @Test(expected = IllegalStateException.class)
+    public void checkState()  {
+        PValidation.checkState(false);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void checkInt()  {
+        PValidation.positive(0, "i");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void checkLong()  {
+        PValidation.positive(0L, "l");
     }
 }

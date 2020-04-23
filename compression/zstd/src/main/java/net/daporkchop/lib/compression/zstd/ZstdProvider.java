@@ -23,8 +23,6 @@ package net.daporkchop.lib.compression.zstd;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.common.util.PValidation;
-import net.daporkchop.lib.common.util.exception.ValueCannotFitException;
-import net.daporkchop.lib.compression.CompressionProvider;
 import net.daporkchop.lib.compression.OneShotCompressionProvider;
 import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelException;
 import net.daporkchop.lib.compression.zstd.util.exception.ContentSizeUnknownException;
@@ -72,10 +70,9 @@ public interface ZstdProvider extends OneShotCompressionProvider, Feature<ZstdPr
     boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException;
 
     /**
-     * @throws ValueCannotFitException if the returned value is too large to fit in an {@code int}
      * @see #frameContentSizeLong(ByteBuf)
      */
-    default int frameContentSize(@NonNull ByteBuf src) throws InvalidBufferTypeException, ContentSizeUnknownException, ValueCannotFitException {
+    default int frameContentSize(@NonNull ByteBuf src) throws InvalidBufferTypeException, ContentSizeUnknownException {
         return PValidation.toInt(this.frameContentSizeLong(src));
     }
 

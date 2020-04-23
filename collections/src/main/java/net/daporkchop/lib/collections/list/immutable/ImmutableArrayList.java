@@ -87,9 +87,9 @@ public final class ImmutableArrayList<T> extends ImmutableList<T> {
     @Override
     public T get(int index) {
         if (this.values != null) {
-            return this.values[PValidation.checkIndex(index, 0, this.values.length)];
+            return this.values[PValidation.checkIndex(this.values.length, index)];
         } else {
-            PValidation.checkIndex(index, 0, this.size);
+            PValidation.checkIndex(this.size, index);
             return null;
         }
     }

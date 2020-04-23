@@ -24,80 +24,100 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.binary.oio.StreamUtil;
+import net.daporkchop.lib.binary.stream.AbstractHeapDataIn;
 import net.daporkchop.lib.binary.stream.DataIn;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 
+import static java.lang.Math.*;
+
 /**
- * An implementation of {@link DataIn} that can read data from an {@link InputStream}
+ * Wraps an {@link InputStream} as a {@link DataIn}.
  *
  * @author DaPorkchop_
  */
 @AllArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public class StreamIn extends DataIn {
+public class StreamIn extends AbstractHeapDataIn {
     @NonNull
-    protected final InputStream in;
+    protected final InputStream delegate;
 
     @Override
-    public int read() throws IOException {
-        return this.in.read();
+    protected int read0() throws IOException {
+        return 0;
     }
 
     @Override
-    public int read(byte[] b, int off, int len) throws IOException {
-        return this.in.read(b, off, len);
+    public int read(@NonNull byte[] dst, int start, int length) throws IOException {
+        return this.delegate.read(dst, start, length);
     }
 
     @Override
-    public int available() throws IOException {
-        return this.in.available();
+    protected int readSome0(@NonNull byte[] dst, int start, int length) throws IOException {
+        int totalRead = 0;
+        int bytesRead = 0;
+        while (totalRead < length) {
+            int bytesToRead = min(length - totalRead, 8192);
+            if (totalRead > 0 && this.delegate.available() <= 0) {
+                break; // block at most once
+            }
+
+            bytesRead = this.delegate.read(dst, start + totalRead, bytesToRead);
+
+            if (bytesRead < 0) {
+                break;
+            } else {
+                totalRead += bytesRead;
+            }
+        }
+        if (bytesRead < 0 && totalRead == 0) {
+            return -1;
+        }
+
+        return totalRead;
     }
 
     @Override
-    public long skip(long n) throws IOException {
-        return this.in.skip(n);
+    protected void readAll0(@NonNull byte[] dst, int start, int length) throws EOFException, IOException {
+        StreamUtil.readFully(this.delegate, dst, start, length);
     }
 
     @Override
-    public void mark(int readlimit) {
-        this.in.mark(readlimit);
+    protected long skip0(long count) throws IOException {
+        return this.delegate.skip(count);
     }
 
     @Override
-    public void reset() throws IOException {
-        this.in.reset();
+    protected long remaining0() throws IOException {
+        return this.delegate.available();
     }
 
     @Override
-    public boolean markSupported() {
-        return this.in.markSupported();
+    protected void close0() throws IOException {
+        this.delegate.close();
     }
 
     @Override
-    public InputStream unwrap() {
-        return this.in;
-    }
-
-    @Override
-    public void close() throws IOException {
+    public InputStream asInputStream() {
+        return this.delegate;
     }
 
     /**
-     * An extension of {@link StreamIn} which forwards the {@link InputStream#close()} method to the delegate {@link InputStream}.
+     * An extension of {@link StreamIn} which doesn't forward the {@link DataIn#close()} method to the delegate {@link InputStream}.
      *
      * @author DaPorkchop_
      */
-    public static final class Closing extends StreamIn  {
-        public Closing(InputStream in) {
+    public static final class NonClosing extends StreamIn {
+        public NonClosing(InputStream in) {
             super(in);
         }
 
         @Override
-        public void close() throws IOException {
-            this.in.close();
+        protected void close0() throws IOException {
         }
     }
 }

@@ -46,7 +46,7 @@ public class MCTextEncoder {
         }
 
         try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get()) {
-            StringBuilder builder = handle.value();
+            StringBuilder builder = handle.get();
             builder.setLength(0);
             encode(type, builder, component);
             return builder.toString();

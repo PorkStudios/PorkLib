@@ -25,8 +25,6 @@ import net.daporkchop.lib.gui.component.Container;
 import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 
-import static net.daporkchop.lib.math.primitive.PMath.*;
-
 /**
  * TODO: come up with a better name for this class
  * The {@link Orientation} of a {@link Component} handles updating the

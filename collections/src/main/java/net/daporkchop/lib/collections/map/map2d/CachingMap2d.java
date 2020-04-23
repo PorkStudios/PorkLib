@@ -23,7 +23,7 @@ package net.daporkchop.lib.collections.map.map2d;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.math.primitive.BinMath;
+import net.daporkchop.lib.common.math.BinMath;
 import net.daporkchop.lib.primitive.lambda.consumer.IntIntConsumer;
 import net.daporkchop.lib.primitive.lambda.consumer.IntIntObjConsumer;
 import net.daporkchop.lib.primitive.lambda.function.IntIntObjFunction;
@@ -32,7 +32,7 @@ import java.util.Arrays;
 import java.util.function.Consumer;
 
 import static net.daporkchop.lib.common.util.PorkUtil.*;
-import static net.daporkchop.lib.math.primitive.BinMath.*;
+import static net.daporkchop.lib.common.math.BinMath.*;
 
 /**
  * A simple implementation of {@link Map2d} that operates as a simple hash-based cache.

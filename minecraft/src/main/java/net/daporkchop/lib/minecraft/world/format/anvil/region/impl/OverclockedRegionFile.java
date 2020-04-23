@@ -25,13 +25,11 @@ import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.binary.netty.PUnpooled;
-import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.minecraft.world.format.anvil.region.AbstractRegionFile;
 import net.daporkchop.lib.minecraft.world.format.anvil.region.RegionConstants;
 import net.daporkchop.lib.minecraft.world.format.anvil.region.RegionOpenOptions;
 import net.daporkchop.lib.minecraft.world.format.anvil.region.ex.CorruptedRegionException;
-import net.daporkchop.lib.minecraft.world.format.anvil.region.ex.ReadOnlyRegionException;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.File;
 import java.io.IOException;
@@ -185,6 +183,6 @@ public final class OverclockedRegionFile extends AbstractRegionFile {
         if (!this.readOnly())   {
             this.doFlush();
         }
-        PorkUtil.release(this.headers);
+        PUnsafe.pork_releaseBuffer(this.headers);
     }
 }

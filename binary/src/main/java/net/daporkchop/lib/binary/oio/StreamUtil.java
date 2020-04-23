@@ -22,8 +22,7 @@ package net.daporkchop.lib.binary.oio;
 
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.common.util.PValidation;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -46,21 +45,16 @@ public class StreamUtil {
      * @throws IOException if an IO exception occurs you dummy
      */
     public byte[] toByteArray(@NonNull InputStream in) throws IOException {
-        if (in instanceof DataIn) {
-            //DataIn implementations might apply their own optimizations here
-            return ((DataIn) in).toByteArray();
-        } else {
-            byte[] arr = new byte[4096];
-            int pos = 0;
-            for (int i; (i = in.read(arr, pos, arr.length - pos)) != -1; pos += i) {
-                if (pos + i == arr.length) {
-                    //grow array
-                    byte[] old = arr;
-                    System.arraycopy(old, 0, arr = new byte[arr.length << 1], 0, old.length);
-                }
+        byte[] arr = new byte[4096];
+        int pos = 0;
+        for (int i; (i = in.read(arr, pos, arr.length - pos)) != -1; pos += i) {
+            if (pos + i == arr.length) {
+                //grow array
+                byte[] old = arr;
+                System.arraycopy(old, 0, arr = new byte[arr.length << 1], 0, old.length);
             }
-            return pos == arr.length ? arr : Arrays.copyOf(arr, pos); //don't copy if the size is exactly the size of the array already
         }
+        return pos == arr.length ? arr : Arrays.copyOf(arr, pos); //don't copy if the size is exactly the size of the array already
     }
 
     /**
@@ -72,7 +66,7 @@ public class StreamUtil {
      * @throws EOFException if the given {@link InputStream} reaches EOF before the given {@code byte[]} could be filled
      * @throws IOException  if an IO exception occurs you dummy
      */
-    public byte[] readFully(@NonNull InputStream in, @NonNull byte[] dst) throws EOFException, IOException {
+    public byte[] readFully(@NonNull InputStream in, @NonNull byte[] dst) throws IOException {
         return readFully(in, dst, 0, dst.length);
     }
 
@@ -87,16 +81,15 @@ public class StreamUtil {
      * @throws EOFException if the given {@link InputStream} reaches EOF before the given number of bytes could be read
      * @throws IOException  if an IO exception occurs you dummy
      */
-    public byte[] readFully(@NonNull InputStream in, @NonNull byte[] dst, int start, int length) throws EOFException, IOException {
-        if (in instanceof DataIn) {
-            //DataIn implementations might apply their own optimizations here
-            ((DataIn) in).readFully(dst, start, length);
-        } else {
-            PorkUtil.assertInRangeLen(dst.length, start, length);
-            for (int i; length > 0 && (i = in.read(dst, start, length)) != -1; start += i, length -= i) ;
-            if (length != 0) {
+    public byte[] readFully(@NonNull InputStream in, @NonNull byte[] dst, int start, int length) throws IOException {
+        PValidation.checkRangeLen(dst.length, start, length);
+        int total = 0;
+        while (total < length){
+            int read = in.read(dst, start + total, length - total);
+            if (read < 0)   {
                 throw new EOFException();
             }
+            total += read;
         }
         return dst;
     }

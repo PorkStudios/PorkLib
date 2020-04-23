@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.noise.NoiseSource;
 import net.daporkchop.lib.random.PRandom;
 
-import static net.daporkchop.lib.math.primitive.PMath.*;
+import static net.daporkchop.lib.common.math.PMath.*;
 import static net.daporkchop.lib.random.impl.FastPRandom.*;
 
 /**

@@ -15,7 +15,7 @@ _headers_
 
 import java.util.concurrent.atomic.AtomicLong;
 
-import net.daporkchop.lib.math.primitive.BinMath;
+import net.daporkchop.lib.common.math.BinMath;
 import net.daporkchop.lib.unsafe.PCleaner;
 
 import net.daporkchop.lib.primitive.lambda.consumer._P0_Consumer;

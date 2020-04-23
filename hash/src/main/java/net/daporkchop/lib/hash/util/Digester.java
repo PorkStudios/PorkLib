@@ -22,6 +22,7 @@ package net.daporkchop.lib.hash.util;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.binary.stream.AbstractHeapDataOut;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.util.PorkUtil;
@@ -78,7 +79,7 @@ public class Digester {
 
     public Digester append(@NonNull InputStream in) throws IOException {
         try (Handle<byte[]> handle = PorkUtil.BUFFER_POOL.get())    {
-            byte[] b = handle.value();
+            byte[] b = handle.get();
             int i;
             while ((i = in.read(b)) != -1) {
                 this.append(b, 0, i);
@@ -89,24 +90,29 @@ public class Digester {
     }
 
     public DataOut appendStream()   {
-        return new DataOut() {
+        return new AbstractHeapDataOut() {
             @Override
-            public void close() throws IOException {
-            }
-
-            @Override
-            public void write(int b) throws IOException {
+            protected void write0(int b) throws IOException {
                 Digester.this.append((byte) b);
             }
 
             @Override
-            public void write(@NonNull byte[] b, int off, int len) throws IOException {
-                Digester.this.append(b, off, len);
+            protected int writeSome0(@NonNull byte[] src, int start, int length) throws IOException {
+                Digester.this.append(src, start, length);
+                return length;
             }
 
             @Override
-            public void write(@NonNull byte[] b) throws IOException {
-                Digester.this.append(b);
+            protected void writeAll0(@NonNull byte[] src, int start, int length) throws IOException {
+                Digester.this.append(src, start, length);
+            }
+
+            @Override
+            protected void flush0() throws IOException {
+            }
+
+            @Override
+            protected void close0() throws IOException {
             }
         };
     }

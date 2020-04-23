@@ -22,12 +22,10 @@ package net.daporkchop.lib.noise.filter;
 
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.math.primitive.PMath;
 import net.daporkchop.lib.noise.NoiseSource;
 
-import static net.daporkchop.lib.math.primitive.PMath.lerp;
+import static net.daporkchop.lib.common.math.PMath.lerp;
 
 /**
  * Linearly interpolates between the noise values of two different {@link NoiseSource}s using a third {@link NoiseSource} as the bias {@code t}.

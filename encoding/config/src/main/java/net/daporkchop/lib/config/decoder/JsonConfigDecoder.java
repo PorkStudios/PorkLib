@@ -59,7 +59,7 @@ public class JsonConfigDecoder implements ConfigDecoder {
     @Override
     public Element.ContainerElement decode(@NonNull DataIn in) throws IOException {
         JsonElement element;
-        try (Reader reader = new InputStreamReader(in)) {
+        try (Reader reader = new InputStreamReader(in.asInputStream())) {
             element = this.parser.parse(reader);
         }
         if (!element.isJsonObject()) {

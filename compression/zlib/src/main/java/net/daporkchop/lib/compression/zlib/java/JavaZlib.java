@@ -27,7 +27,6 @@ import net.daporkchop.lib.compression.zlib.ZlibDCtx;
 import net.daporkchop.lib.compression.zlib.ZlibDeflater;
 import net.daporkchop.lib.compression.zlib.ZlibInflater;
 import net.daporkchop.lib.compression.zlib.ZlibProvider;
-import net.daporkchop.lib.natives.FeatureBuilder;
 import net.daporkchop.lib.natives.impl.NativeFeature;
 
 /**
@@ -42,7 +41,7 @@ public final class JavaZlib extends NativeFeature<ZlibProvider> implements ZlibP
     @Override
     public long compressBoundLong(long srcSize, int mode) {
         //extracted from deflate.c, i'm assuming that the java implementation has the same limits
-        PValidation.ensureNonNegative(srcSize);
+        PValidation.notNegative(srcSize);
         long conservativeUpperBound = srcSize + ((srcSize + 7L) >> 3L) + ((srcSize + 63L) >> 6L) + 5L;
         switch (mode)   {
             case Zlib.MODE_ZLIB:

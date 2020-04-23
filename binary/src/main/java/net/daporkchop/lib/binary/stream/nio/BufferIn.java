@@ -20,161 +20,112 @@
 
 package net.daporkchop.lib.binary.stream.nio;
 
-import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.binary.stream.AbstractDataIn;
 import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+
+import static java.lang.Math.*;
+import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
- * An implementation of {@link DataIn} that can read from a {@link ByteBuffer}
+ * An implementation of {@link DataIn} that can read from a {@link ByteBuffer}.
  *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-public class BufferIn extends DataIn {
+@Getter
+@Accessors(fluent = true)
+public class BufferIn extends AbstractDataIn {
     @NonNull
-    private final ByteBuffer buffer;
+    protected ByteBuffer delegate;
 
     @Override
-    public int read() throws IOException {
-        return this.buffer.hasRemaining() ? this.buffer.get() & 0xFF : -1;
-    }
-
-    @Override
-    public int read(@NonNull byte[] b, int off, int len) throws IOException {
-        if (this.buffer.hasRemaining()) {
-            len = Math.min(len, this.buffer.remaining());
-            this.buffer.get(b, off, len);
-            return len;
+    protected int read0() throws IOException {
+        if (this.delegate.hasRemaining()) {
+            return this.delegate.get() & 0xFF;
         } else {
             return -1;
         }
     }
 
     @Override
-    public byte[] readFully(@NonNull byte[] dst, int start, int length) throws EOFException, IOException {
-        PorkUtil.assertInRangeLen(dst.length, start, length);
-        if (this.buffer.remaining() >= length)   {
-            this.buffer.get(dst, start, length);
-            return dst;
+    protected int readSome0(@NonNull byte[] dst, int start, int length) throws IOException {
+        int count = min(this.delegate.remaining(), length);
+        if (count <= 0) {
+            return RESULT_EOF;
         } else {
+            this.delegate.get(dst, start, count);
+            return count;
+        }
+    }
+
+    @Override
+    protected long readSome0(long addr, long length) throws IOException {
+        int count = toInt(min(this.delegate.remaining(), length));
+        int position = this.delegate.position();
+        if (count <= 0) {
+            return RESULT_EOF;
+        } else if (this.delegate.isDirect()) {
+            PUnsafe.copyMemory(PUnsafe.pork_directBufferAddress(this.delegate) + position, addr, count);
+        } else {
+            PUnsafe.copyMemory(this.delegate.array(), PUnsafe.ARRAY_BYTE_BASE_OFFSET + this.delegate.arrayOffset() + position, null, addr, count);
+        }
+        this.delegate.position(position + count);
+        return count;
+    }
+
+    @Override
+    protected void readAll0(@NonNull byte[] dst, int start, int length) throws EOFException, IOException {
+        int remaining = this.delegate.remaining();
+        if (length <= remaining)    {
+            this.delegate.get(dst, start, length);
+        } else {
+            //emulate having read all the data in the buffer
+            this.delegate.position(this.delegate.limit());
             throw new EOFException();
         }
     }
 
     @Override
-    public byte[] toByteArray() throws IOException {
-        byte[] arr = new byte[this.buffer.remaining()];
-        this.buffer.get(arr);
-        return arr;
-    }
-
-    @Override
-    public int available() throws IOException {
-        return this.buffer.remaining();
-    }
-
-    @Override
-    public long skip(long cnt) throws IOException {
-        if (cnt <= 0L) {
-            return 0L;
-        } else {
-            if (cnt > Integer.MAX_VALUE) {
-                cnt = Integer.MAX_VALUE;
+    protected void readAll0(long addr, long length) throws EOFException, IOException {
+        int remaining = this.delegate.remaining();
+        if (length <= remaining)    {
+            int position = this.delegate.position();
+            if (this.delegate.isDirect()) {
+                PUnsafe.copyMemory(PUnsafe.pork_directBufferAddress(this.delegate) + position, addr, length);
+            } else {
+                PUnsafe.copyMemory(this.delegate.array(), PUnsafe.ARRAY_BYTE_BASE_OFFSET + this.delegate.arrayOffset() + position, null, addr, length);
             }
-            cnt = Math.min(this.buffer.remaining(), cnt);
-            this.buffer.position(this.buffer.position() + (int) cnt);
-            return cnt;
+            this.delegate.position(position + toInt(length));
+        } else {
+            //emulate having read all the data in the buffer
+            this.delegate.position(this.delegate.limit());
+            throw new EOFException();
         }
     }
 
     @Override
-    public void mark(int readlimit) {
-        this.buffer.mark();
+    protected long skip0(long count) throws IOException {
+        int countI = (int) min(count, this.delegate.remaining());
+        this.delegate.position(this.delegate.position() + countI);
+        return countI;
     }
 
     @Override
-    public void reset() throws IOException {
-        this.buffer.reset();
+    protected long remaining0() throws IOException {
+        return this.delegate.remaining();
     }
 
     @Override
-    public boolean markSupported() {
-        return true;
-    }
-
-    @Override
-    public byte readByte() throws IOException {
-        return this.buffer.get();
-    }
-
-    @Override
-    public short readShort() throws IOException {
-        return this.buffer.order(ByteOrder.BIG_ENDIAN).getShort();
-    }
-
-    @Override
-    public short readShortLE() throws IOException {
-        return this.buffer.order(ByteOrder.LITTLE_ENDIAN).getShort();
-    }
-
-    @Override
-    public char readChar() throws IOException {
-        return this.buffer.order(ByteOrder.BIG_ENDIAN).getChar();
-    }
-
-    @Override
-    public char readCharLE() throws IOException {
-        return this.buffer.order(ByteOrder.LITTLE_ENDIAN).getChar();
-    }
-
-    @Override
-    public int readInt() throws IOException {
-        return this.buffer.order(ByteOrder.BIG_ENDIAN).getInt();
-    }
-
-    @Override
-    public int readIntLE() throws IOException {
-        return this.buffer.order(ByteOrder.LITTLE_ENDIAN).getInt();
-    }
-
-    @Override
-    public long readLong() throws IOException {
-        return this.buffer.order(ByteOrder.BIG_ENDIAN).getLong();
-    }
-
-    @Override
-    public long readLongLE() throws IOException {
-        return this.buffer.order(ByteOrder.LITTLE_ENDIAN).getLong();
-    }
-
-    @Override
-    public float readFloat() throws IOException {
-        return this.buffer.order(ByteOrder.BIG_ENDIAN).getFloat();
-    }
-
-    @Override
-    public float readFloatLE() throws IOException {
-        return this.buffer.order(ByteOrder.LITTLE_ENDIAN).getFloat();
-    }
-
-    @Override
-    public double readDouble() throws IOException {
-        return this.buffer.order(ByteOrder.BIG_ENDIAN).getDouble();
-    }
-
-    @Override
-    public double readDoubleLE() throws IOException {
-        return this.buffer.order(ByteOrder.LITTLE_ENDIAN).getDouble();
-    }
-
-    @Override
-    public void close() throws IOException {
+    protected void close0() throws IOException {
+        this.delegate = null;
     }
 }

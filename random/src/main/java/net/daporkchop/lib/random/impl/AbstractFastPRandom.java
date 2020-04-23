@@ -22,7 +22,7 @@ package net.daporkchop.lib.random.impl;
 
 import lombok.NonNull;
 import net.daporkchop.lib.common.system.PlatformInfo;
-import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.random.PRandom;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
@@ -67,7 +67,7 @@ public abstract class AbstractFastPRandom extends Random implements PRandom {
 
     @Override
     public void nextBytes(@NonNull byte[] dst, int start, int length) {
-        PorkUtil.assertInRangeLen(dst.length, start, length);
+        PValidation.checkRangeLen(dst.length, start, length);
         if (length == 0)   {
             return;
         }

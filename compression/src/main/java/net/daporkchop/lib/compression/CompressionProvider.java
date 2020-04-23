@@ -21,8 +21,6 @@
 package net.daporkchop.lib.compression;
 
 import net.daporkchop.lib.common.util.PValidation;
-import net.daporkchop.lib.common.util.exception.ValueCannotFitException;
-import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelException;
 import net.daporkchop.lib.natives.util.BufferTyped;
 
 /**
@@ -51,9 +49,8 @@ public interface CompressionProvider extends BufferTyped {
 
     /**
      * @see #compressBoundLong(long)
-     * @throws ValueCannotFitException if the returned value is too large to fit in an {@code int}
      */
-    default int compressBound(int srcSize) throws ValueCannotFitException {
+    default int compressBound(int srcSize) {
         return PValidation.toInt(this.compressBoundLong(srcSize));
     }
 

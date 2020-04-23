@@ -27,7 +27,7 @@ import net.daporkchop.lib.binary.oio.appendable.PAppendable;
 import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
 import net.daporkchop.lib.common.system.PlatformInfo;
-import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.common.util.exception.file.NoSuchFileException;
 import net.daporkchop.lib.common.util.exception.file.NotAFileException;
 
@@ -146,7 +146,7 @@ public final class UTF8FileWriter extends OutputStreamWriter implements PAppenda
         } else if (seq instanceof String) {
             this.write((String) seq, start, end);
         } else {
-            PorkUtil.assertInRange(seq.length(), start, end);
+            PValidation.checkRange(seq.length(), start, end);
             if (seq instanceof StringBuilder) {
                 this.write(PUnsafeStrings.unwrap((StringBuilder) seq), start, end);
             } else if (seq instanceof StringBuffer) {

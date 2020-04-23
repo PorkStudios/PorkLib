@@ -18,33 +18,61 @@
  *
  */
 
-package net.daporkchop.lib.binary.serialization.impl;
+package net.daporkchop.lib.binary.stream.wrapper;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.serialization.Serializer;
-import net.daporkchop.lib.binary.stream.DataIn;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataOut;
 
 import java.io.IOException;
+import java.io.OutputStream;
 
 /**
- * A {@link Serializer} that can read and write {@link String}s
+ * Wraps a {@link DataOut} as an {@link OutputStream}.
  *
  * @author DaPorkchop_
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class StringSerializer implements Serializer<String> {
-    public static final StringSerializer INSTANCE = new StringSerializer();
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public class DataOutAsOutputStream extends OutputStream {
+    @NonNull
+    protected final DataOut delegate;
 
     @Override
-    public void write(@NonNull String value, @NonNull DataOut out) throws IOException {
-        out.writeUTF(value);
+    public void write(int b) throws IOException {
+        this.delegate.write(b);
     }
 
     @Override
-    public String read(@NonNull DataIn in) throws IOException {
-        return in.readUTF();
+    public void write(@NonNull byte[] src, int start, int length) throws IOException {
+        this.delegate.write(src, start, length);
+    }
+
+    @Override
+    public void flush() throws IOException {
+        this.delegate.flush();
+    }
+
+    @Override
+    public void close() throws IOException {
+        this.delegate.close();
+    }
+
+    /**
+     * An extension of {@link DataOutAsOutputStream} which doesn't forward the {@link OutputStream#close()} method to the delegate {@link DataOut}.
+     *
+     * @author DaPorkchop_
+     */
+    public static final class NonClosing extends DataOutAsOutputStream {
+        public NonClosing(DataOut delegate) {
+            super(delegate);
+        }
+
+        @Override
+        public void close() throws IOException {
+        }
     }
 }

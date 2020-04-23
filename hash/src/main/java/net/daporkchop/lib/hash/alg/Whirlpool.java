@@ -153,7 +153,7 @@ public class Whirlpool implements DigestAlg {
 
     @Override
     public int doFinal(@NonNull byte[] out, int outOff) {
-        // sets out[outOff] .. out[outOff+DIGEST_LENGTH_BYTES]
+        // sets out[outOff] .. delegate[outOff+DIGEST_LENGTH_BYTES]
         this.finish();
 
         for (int i = 0; i < 8; i++) {

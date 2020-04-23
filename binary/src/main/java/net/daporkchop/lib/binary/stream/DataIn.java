@@ -22,53 +22,64 @@ package net.daporkchop.lib.binary.stream;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.netty.NettyByteBufIn;
+import net.daporkchop.lib.binary.stream.netty.ByteBufIn;
 import net.daporkchop.lib.binary.stream.nio.BufferIn;
 import net.daporkchop.lib.binary.stream.stream.StreamIn;
+import net.daporkchop.lib.binary.stream.wrapper.DataInAsInputStream;
+import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.system.PlatformInfo;
+import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
+import java.io.Closeable;
+import java.io.DataInput;
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.ScatteringByteChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.function.Function;
 
+import static net.daporkchop.lib.common.util.PValidation.*;
+
 /**
- * Provides simple methods for reading data from a binary form
+ * Combination of {@link DataInput}, {@link ScatteringByteChannel} and {@link InputStream}, plus some custom methods.
+ * <p>
+ * Unless otherwise specified by an implementation, instances of this class are not thread-safe. Notably, many multithreading aspects of
+ * {@link ScatteringByteChannel} are unlikely to work correctly, if at all.
  *
  * @author DaPorkchop_
  * @see DataOut
  */
-public abstract class DataIn extends InputStream {
+public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
+    //
+    //
+    // creators
+    //
+    //
+
     /**
      * Wraps an {@link InputStream} to make it into a {@link DataIn}.
      *
      * @param in the stream to wrap
      * @return the wrapped stream, or the original stream if it was already a {@link DataIn}
      */
-    public static DataIn wrap(@NonNull InputStream in) {
-        return in instanceof DataIn ? (DataIn) in : new StreamIn.Closing(in);
-    }
-
-    /**
-     * Wraps an {@link InputStream} to make it into a {@link DataIn}.
-     * <p>
-     * Calling {@link #close()} on the returned {@link DataIn} will not cause the wrapped stream to be closed.
-     *
-     * @param in the stream to wrap
-     * @return the wrapped stream, or the original stream if it was already a {@link StreamIn}
-     */
-    public static DataIn wrapNonClosing(@NonNull InputStream in) {
-        return in instanceof StreamIn && !(in instanceof StreamIn.Closing)
-                ? (StreamIn) in
-                : new StreamIn(in instanceof DataIn ? ((DataIn) in).unwrap() : in);
+    static DataIn wrap(@NonNull InputStream in) {
+        if (in instanceof DataInAsInputStream) {
+            return ((DataInAsInputStream) in).delegate();
+        } else if (in instanceof DataIn) {
+            return (DataIn) in;
+        } else {
+            return new StreamIn(in);
+        }
     }
 
     /**
@@ -77,32 +88,14 @@ public abstract class DataIn extends InputStream {
      * @param buffer the buffer to wrap
      * @return the wrapped buffer as a {@link DataIn}
      */
-    public static DataIn wrap(@NonNull ByteBuffer buffer) {
-        /*if (buffer.hasArray()) {
-            return new StreamIn(new ByteArrayInputStream(buffer.array(), buffer.position(), buffer.remaining()));
-        } else {*/
-            return new BufferIn(buffer);
-        //}
-    }
-
-    /**
-     * Wraps a {@link ByteBuffer} to make it into an {@link InputStream}.
-     *
-     * @param buffer the buffer to wrap
-     * @return the wrapped buffer as an {@link InputStream}
-     */
-    public static InputStream wrapAsStream(@NonNull ByteBuffer buffer) {
-        if (buffer.hasArray()) {
-            return new ByteArrayInputStream(buffer.array(), buffer.position(), buffer.remaining());
-        } else {
-            return new BufferIn(buffer);
-        }
+    static DataIn wrap(@NonNull ByteBuffer buffer) {
+        return new BufferIn(buffer);
     }
 
     /**
      * @see #wrapBuffered(File)
      */
-    public static DataIn wrap(@NonNull File file) throws IOException {
+    static DataIn wrap(@NonNull File file) throws IOException {
         return wrapBuffered(file);
     }
 
@@ -116,7 +109,7 @@ public abstract class DataIn extends InputStream {
      * @return a buffered {@link DataIn} that will read from the given file
      * @throws IOException if an IO exception occurs you dummy
      */
-    public static DataIn wrapBuffered(@NonNull File file) throws IOException {
+    static DataIn wrapBuffered(@NonNull File file) throws IOException {
         return wrap(new BufferedInputStream(new FileInputStream(file)));
     }
 
@@ -131,7 +124,7 @@ public abstract class DataIn extends InputStream {
      * @return a buffered {@link DataIn} that will read from the given file
      * @throws IOException if an IO exception occurs you dummy
      */
-    public static DataIn wrapBuffered(@NonNull File file, int bufferSize) throws IOException {
+    static DataIn wrapBuffered(@NonNull File file, int bufferSize) throws IOException {
         return wrap(new BufferedInputStream(new FileInputStream(file), bufferSize));
     }
 
@@ -144,9 +137,10 @@ public abstract class DataIn extends InputStream {
      * @return a direct {@link DataIn} that will read from the given file
      * @throws IOException if an IO exception occurs you dummy
      */
-    public static DataIn wrapNonBuffered(@NonNull File file) throws IOException {
+    static DataIn wrapNonBuffered(@NonNull File file) throws IOException {
         return wrap(new FileInputStream(file));
     }
+
     /**
      * Wraps a {@link ByteBuf} into a {@link DataIn} for reading.
      * <p>
@@ -155,237 +149,351 @@ public abstract class DataIn extends InputStream {
      * @param buf the {@link ByteBuf} to read from
      * @return a {@link DataIn} that can read data from the {@link ByteBuf}
      */
-    public static DataIn wrap(@NonNull ByteBuf buf) {
-        return wrap(buf, false);
+    static DataIn wrap(@NonNull ByteBuf buf) {
+        return wrap(buf, true);
     }
 
     /**
      * Wraps a {@link ByteBuf} into a {@link DataIn} for reading.
-     * <p>
-     * When the {@link DataIn} is closed (using {@link DataIn#close()}), the {@link ByteBuf} may or may not be released, depending on the value of the
-     * {@code release} parameter.
      *
-     * @param buf     the {@link ByteBuf} to read from
-     * @param release whether or not to release the buffer when the {@link DataIn} is closed
+     * @param buf    the {@link ByteBuf} to read from
+     * @param retain if {@code true}: when the {@link DataIn} is closed (using {@link DataIn#close()}), the {@link ByteBuf} will not be released
      * @return a {@link DataIn} that can read data from the {@link ByteBuf}
      */
-    public static DataIn wrap(@NonNull ByteBuf buf, boolean release) {
-        return release ? new NettyByteBufIn.Releasing(buf) : new NettyByteBufIn(buf);
+    static DataIn wrap(@NonNull ByteBuf buf, boolean retain) {
+        return new ByteBufIn(retain ? buf.retain() : buf);
+    }
+
+    //
+    //
+    // single byte read methods
+    //
+    //
+
+    /**
+     * Reads a single unsigned byte.
+     * <p>
+     * Unlike {@link #readUnsignedByte()}, this method will never throw {@link EOFException}. Once EOF is reached, it will always return {@code -1}.
+     *
+     * @return an unsigned byte, or {@code -1} if EOF has been reached
+     * @see InputStream#read()
+     */
+    int read() throws IOException;
+
+    //
+    //
+    // primitives
+    //
+    //
+
+    @Override
+    default boolean readBoolean() throws IOException {
+        return this.readUnsignedByte() != 0;
+    }
+
+    @Override
+    default byte readByte() throws IOException {
+        return (byte) this.readUnsignedByte();
+    }
+
+    @Override
+    int readUnsignedByte() throws IOException;
+
+    /**
+     * Reads a big-endian {@code short}.
+     *
+     * @see DataInput#readShort()
+     */
+    @Override
+    default short readShort() throws IOException {
+        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
+            byte[] arr = handle.get();
+            this.readFully(arr, 0, Short.BYTES);
+            if (PlatformInfo.IS_BIG_ENDIAN) {
+                return PUnsafe.getShort(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET);
+            } else {
+                return Short.reverseBytes(PUnsafe.getShort(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET));
+            }
+        }
     }
 
     /**
-     * Read a boolean.
+     * Reads an unsigned big-endian {@code short}.
      *
-     * @return a boolean
+     * @see DataInput#readUnsignedShort()
      */
-    public boolean readBoolean() throws IOException {
-        return this.read() == 1;
-    }
-
-    /**
-     * Read a byte (8-bit) value.
-     *
-     * @return a byte
-     */
-    public byte readByte() throws IOException {
-        return (byte) this.read();
-    }
-
-    /**
-     * Read a byte (8-bit) value.
-     *
-     * @return a byte
-     */
-    public int readUByte() throws IOException {
-        return this.read() & 0xFF;
-    }
-
-    /**
-     * Read a big-endian short (16-bit) value.
-     *
-     * @return a short
-     */
-    public short readShort() throws IOException {
-        return (short) (((this.read() & 0xFF) << 8)
-                | (this.read() & 0xFF));
-    }
-
-    /**
-     * Read a big-endian short (16-bit) value.
-     *
-     * @return a short
-     */
-    public int readUShort() throws IOException {
+    @Override
+    default int readUnsignedShort() throws IOException {
         return this.readShort() & 0xFFFF;
     }
 
     /**
-     * Read a little-endian short (16-bit) value.
+     * Reads a little-endian {@code short}.
      *
-     * @return a short
+     * @see #readShort()
      */
-    public short readShortLE() throws IOException {
-        return (short) ((this.read() & 0xFF)
-                | ((this.read() & 0xFF) << 8));
+    default short readShortLE() throws IOException {
+        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
+            byte[] arr = handle.get();
+            this.readFully(arr, 0, Short.BYTES);
+            if (PlatformInfo.IS_LITTLE_ENDIAN) {
+                return PUnsafe.getShort(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET);
+            } else {
+                return Short.reverseBytes(PUnsafe.getShort(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET));
+            }
+        }
     }
 
     /**
-     * Read a little-endian short (16-bit) value.
+     * Reads an unsigned little-endian {@code short}.
      *
-     * @return a short
+     * @see #readUnsignedShort()
      */
-    public int readUShortLE() throws IOException {
+    default int readUnsignedShortLE() throws IOException {
         return this.readShortLE() & 0xFFFF;
     }
 
     /**
-     * Read a big-endian char (16-bit) value.
+     * Reads a big-endian {@code char}.
      *
-     * @return a char
+     * @see DataInput#readChar()
      */
-    public char readChar() throws IOException {
-        return (char) (((this.read() & 0xFF) << 8)
-                | (this.read() & 0xFF));
+    @Override
+    default char readChar() throws IOException {
+        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
+            byte[] arr = handle.get();
+            this.readFully(arr, 0, Character.BYTES);
+            if (PlatformInfo.IS_BIG_ENDIAN) {
+                return PUnsafe.getChar(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET);
+            } else {
+                return Character.reverseBytes(PUnsafe.getChar(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET));
+            }
+        }
     }
 
     /**
-     * Read a little-endian char (16-bit) value.
+     * Reads a little-endian {@code char}.
      *
-     * @return a char
+     * @see #readChar()
      */
-    public char readCharLE() throws IOException {
-        return (char) ((this.read() & 0xFF)
-                | ((this.read() & 0xFF) << 8));
+    default char readCharLE() throws IOException {
+        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
+            byte[] arr = handle.get();
+            this.readFully(arr, 0, Character.BYTES);
+            if (PlatformInfo.IS_LITTLE_ENDIAN) {
+                return PUnsafe.getChar(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET);
+            } else {
+                return Character.reverseBytes(PUnsafe.getChar(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET));
+            }
+        }
     }
 
     /**
-     * Read a big-endian int (32-bit) value.
+     * Reads a big-endian {@code int}.
      *
-     * @return an int
+     * @see DataInput#readInt()
      */
-    public int readInt() throws IOException {
-        return ((this.read() & 0xFF) << 24)
-                | ((this.read() & 0xFF) << 16)
-                | ((this.read() & 0xFF) << 8)
-                | (this.read() & 0xFF);
+    @Override
+    default int readInt() throws IOException {
+        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
+            byte[] arr = handle.get();
+            this.readFully(arr, 0, Integer.BYTES);
+            if (PlatformInfo.IS_BIG_ENDIAN) {
+                return PUnsafe.getInt(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET);
+            } else {
+                return Integer.reverseBytes(PUnsafe.getInt(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET));
+            }
+        }
     }
 
     /**
-     * Read a big-endian int (32-bit) value.
+     * Reads a little-endian {@code int}.
      *
-     * @return an int
+     * @see #readInt()
      */
-    public long readUInt() throws IOException {
-        return this.readInt() & 0xFFFFFFFFL;
+    default int readIntLE() throws IOException {
+        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
+            byte[] arr = handle.get();
+            this.readFully(arr, 0, Integer.BYTES);
+            if (PlatformInfo.IS_LITTLE_ENDIAN) {
+                return PUnsafe.getInt(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET);
+            } else {
+                return Integer.reverseBytes(PUnsafe.getInt(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET));
+            }
+        }
     }
 
     /**
-     * Read a little-endian int (32-bit) value.
+     * Reads a big-endian {@code long}.
      *
-     * @return an int
+     * @see DataInput#readLong()
      */
-    public int readIntLE() throws IOException {
-        return (this.read() & 0xFF)
-                | ((this.read() & 0xFF) << 8)
-                | ((this.read() & 0xFF) << 16)
-                | ((this.read() & 0xFF) << 24);
+    @Override
+    default long readLong() throws IOException {
+        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
+            byte[] arr = handle.get();
+            this.readFully(arr, 0, Long.BYTES);
+            if (PlatformInfo.IS_BIG_ENDIAN) {
+                return PUnsafe.getLong(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET);
+            } else {
+                return Long.reverseBytes(PUnsafe.getLong(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET));
+            }
+        }
     }
 
     /**
-     * Read a little-endian int (32-bit) value.
+     * Reads a little-endian {@code long}.
      *
-     * @return an int
+     * @see #readLong()
      */
-    public long readUIntLE() throws IOException {
-        return this.readIntLE() & 0xFFFFFFFFL;
+    default long readLongLE() throws IOException {
+        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
+            byte[] arr = handle.get();
+            this.readFully(arr, 0, Long.BYTES);
+            if (PlatformInfo.IS_LITTLE_ENDIAN) {
+                return PUnsafe.getLong(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET);
+            } else {
+                return Long.reverseBytes(PUnsafe.getLong(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET));
+            }
+        }
     }
 
     /**
-     * Read a big-endian long (64-bit) value.
+     * Reads a big-endian {@code float}.
      *
-     * @return a long
+     * @see DataInput#readFloat()
      */
-    public long readLong() throws IOException {
-        return (((long) this.read() & 0xFF) << 56L)
-                | (((long) this.read() & 0xFF) << 48L)
-                | (((long) this.read() & 0xFF) << 40L)
-                | (((long) this.read() & 0xFF) << 32L)
-                | (((long) this.read() & 0xFF) << 24L)
-                | (((long) this.read() & 0xFF) << 16L)
-                | (((long) this.read() & 0xFF) << 8L)
-                | ((long) this.read() & 0xFF);
-    }
-
-    /**
-     * Read a little-endian long (64-bit) value.
-     *
-     * @return a long
-     */
-    public long readLongLE() throws IOException {
-        return ((long) this.read() & 0xFF)
-                | (((long) this.read() & 0xFF) << 8L)
-                | (((long) this.read() & 0xFF) << 16L)
-                | (((long) this.read() & 0xFF) << 24L)
-                | (((long) this.read() & 0xFF) << 32L)
-                | (((long) this.read() & 0xFF) << 40L)
-                | (((long) this.read() & 0xFF) << 48L)
-                | (((long) this.read() & 0xFF) << 56L);
-    }
-
-    /**
-     * Read a big-endian float (32-bit floating point) value.
-     *
-     * @return a float
-     */
-    public float readFloat() throws IOException {
+    @Override
+    default float readFloat() throws IOException {
         return Float.intBitsToFloat(this.readInt());
     }
 
     /**
-     * Read a little-endian float (32-bit floating point) value.
+     * Reads a little-endian {@code float}.
      *
-     * @return a float
+     * @see #readFloat()
      */
-    public float readFloatLE() throws IOException {
+    default float readFloatLE() throws IOException {
         return Float.intBitsToFloat(this.readIntLE());
     }
 
     /**
-     * Read a big-endian double (64-bit floating point) value.
+     * Reads a big-endian {@code double}.
      *
-     * @return a double
+     * @see DataInput#readDouble()
      */
-    public double readDouble() throws IOException {
+    @Override
+    default double readDouble() throws IOException {
         return Double.longBitsToDouble(this.readLong());
     }
 
     /**
-     * Read a little-endian double (64-bit floating point) value.
+     * Reads a little-endian {@code double}.
      *
-     * @return a double
+     * @see #readDouble()
      */
-    public double readDoubleLE() throws IOException {
+    default double readDoubleLE() throws IOException {
         return Double.longBitsToDouble(this.readLongLE());
     }
 
+    //
+    //
+    // other types
+    //
+    //
+
     /**
-     * Read a UTF-8 encoded string.
+     * Reads a UTF-8 encoded {@link String} with a 16-bit length prefix.
      *
-     * @return a string
+     * @see DataInput#readUTF()
      */
-    public String readUTF() throws IOException {
-        return new String(this.readByteArray(), StandardCharsets.UTF_8);
+    @Override
+    default String readUTF() throws IOException {
+        return this.readString(this.readUnsignedShort(), StandardCharsets.UTF_8);
     }
 
     /**
-     * Reads a plain byte array with a length prefix encoded as a varInt.
+     * Reads a UTF-8 encoded {@link String} with a varlong length prefix.
      *
-     * @return a byte array
+     * @see #readUTF()
+     * @see #readVarString(Charset)
      */
-    public byte[] readByteArray() throws IOException {
-        byte[] b = new byte[this.readVarInt()];
-        this.readFully(b);
-        return b;
+    default String readVarUTF() throws IOException {
+        return this.readString(this.readVarLong(), StandardCharsets.UTF_8);
+    }
+
+    /**
+     * Reads a {@link String} with a 16-bit length prefix, encoded using the given {@link Charset}.
+     * <p>
+     * Depending on the {@link Charset} used, certain optimizations may be applied. It is therefore recommended to use values from {@link StandardCharsets}
+     * if possible.
+     *
+     * @param charset the {@link Charset} that the {@link String} is encoded with
+     * @return the decoded {@link String}
+     * @see #readString(long, Charset)
+     */
+    default String readString(@NonNull Charset charset) throws IOException {
+        return this.readString(this.readUnsignedShort(), charset);
+    }
+
+    /**
+     * Reads a {@link String} with a varlong length prefix, encoded using the given {@link Charset}.
+     * <p>
+     * Depending on the {@link Charset} used, certain optimizations may be applied. It is therefore recommended to use values from {@link StandardCharsets}
+     * if possible.
+     *
+     * @param charset the {@link Charset} that the {@link String} is encoded with
+     * @return the decoded {@link String}
+     * @see #readString(long, Charset)
+     */
+    default String readVarString(@NonNull Charset charset) throws IOException {
+        return this.readString(this.readVarLong(), charset);
+    }
+
+    /**
+     * Reads a {@link String} encoded using the given {@link Charset}.
+     * <p>
+     * Depending on the {@link Charset} used, certain optimizations may be applied. It is therefore recommended to use values from {@link StandardCharsets}
+     * if possible.
+     *
+     * @param size    the length of the encoded {@link CharSequence} in bytes
+     * @param charset the {@link Charset} to encode the text using
+     * @return the read {@link CharSequence}
+     */
+    default String readString(long size, @NonNull Charset charset) throws IOException {
+        //TODO: it's possible for the encoded form to be more than 2^31-1 bytes without the decoded form being too large for a String
+        int length = PValidation.toInt(size, "size");
+        if (length <= PorkUtil.BUFFER_SIZE) {
+            try (Handle<byte[]> handle = PorkUtil.BUFFER_POOL.get()) {
+                return new String(this.fill(handle.get(), 0, length), 0, length, charset);
+            }
+        } else {
+            return new String(this.fill(new byte[length]), charset);
+        }
+    }
+
+    /**
+     * This method is not supported unless specifically stated so by an implementation. Its definition is incompatible with the streaming nature of
+     * {@link DataIn}, and as such cannot be implemented generically.
+     */
+    @Override
+    @Deprecated
+    default String readLine() throws IOException {
+        throw new UnsupportedOperationException(this.toString());
+    }
+
+    /**
+     * Reads a {@link CharSequence} using the given {@link Charset}.
+     * <p>
+     * Depending on the {@link Charset} used, certain optimizations may be applied. It is therefore recommended to use values from {@link StandardCharsets}
+     * if possible.
+     *
+     * @param size    the length of the encoded {@link CharSequence} in bytes
+     * @param charset the {@link Charset} to encode the text using
+     * @return the read {@link CharSequence}
+     */
+    default CharSequence readText(long size, @NonNull Charset charset) throws IOException {
+        return this.readString(size, charset);
     }
 
     /**
@@ -395,7 +503,8 @@ public abstract class DataIn extends InputStream {
      * @param <E> the enum type
      * @return a value of <E>, or null if input was null
      */
-    public <E extends Enum<E>> E readEnum(@NonNull Function<String, E> f) throws IOException {
+    @Deprecated
+    default <E extends Enum<E>> E readEnum(@NonNull Function<String, E> f) throws IOException {
         if (this.readBoolean()) {
             return f.apply(this.readUTF());
         } else {
@@ -410,20 +519,29 @@ public abstract class DataIn extends InputStream {
      *
      * @return the read value
      */
-    public int readVarInt() throws IOException {
-        int numRead = 0;
-        int result = 0;
-        byte read;
+    default int readVarInt() throws IOException {
+        int bytesRead = 0;
+        int value = 0;
+        int b;
         do {
-            read = this.readByte();
-            result |= ((read & 0b01111111) << (7 * numRead));
+            b = this.readUnsignedByte();
+            value |= ((b & 0b01111111) << (7 * bytesRead));
 
-            numRead++;
-            if (numRead > 5) {
+            if (++bytesRead > 5) {
                 throw new RuntimeException("VarInt is too big");
             }
-        } while ((read & 0b10000000) != 0);
-        return result;
+        } while ((b & 0b10000000) != 0);
+        return value;
+    }
+
+    /**
+     * Reads a VarInt with ZigZag encoding.
+     *
+     * @return the read value
+     */
+    default int readVarIntZigZag() throws IOException {
+        int i = this.readVarInt();
+        return (i >> 1) ^ -(i & 1);
     }
 
     /**
@@ -433,38 +551,71 @@ public abstract class DataIn extends InputStream {
      *
      * @return the read value
      */
-    public long readVarLong() throws IOException {
-        int numRead = 0;
-        long result = 0;
-        byte read;
+    default long readVarLong() throws IOException {
+        int bytesRead = 0;
+        long value = 0;
+        int b;
         do {
-            read = this.readByte();
-            result |= ((read & 0b01111111L) << (7 * numRead));
+            b = this.readUnsignedByte();
+            value |= ((b & 0b01111111L) << (7 * bytesRead));
 
-            numRead++;
-            if (numRead > 10) {
+            if (++bytesRead > 10) {
                 throw new RuntimeException("VarLong is too big");
             }
-        } while ((read & 0b10000000) != 0);
-        return result;
+        } while ((b & 0b10000000) != 0);
+        return value;
     }
 
     /**
-     * Reads a {@link CharSequence} using the given {@link Charset}.
-     * <p>
-     * Depending on the {@link Charset} used, certain optimizations may be applied. It is therefore recommended to use values from {@link StandardCharsets}
-     * if possible.
+     * Reads a VarLong with ZigZag encoding.
      *
-     * @param size    the length of the encoded {@link CharSequence} in bytes
-     * @param charset the {@link Charset} to encode the text using
-     * @return the read {@link CharSequence}
+     * @return the read value
      */
-    public CharSequence readText(long size, @NonNull Charset charset) throws IOException  {
-        if (size > Integer.MAX_VALUE)   {
-            throw new IllegalArgumentException("size parameter too large!");
-        }
-        return new String(this.readFully(new byte[(int) size]), charset);
+    default long readVarLongZigZag() throws IOException {
+        long l = this.readVarLong();
+        return (l >> 1L) ^ -(l & 1L);
     }
+
+    //
+    //
+    // bulk data transfer methods - byte[]
+    //
+    //
+
+    /**
+     * Fills the given {@code byte[]} with as much data as possible.
+     * <p>
+     * <p>
+     * Like {@link InputStream#read(byte[])}, this method will read data until the byte array is filled, EOF is reached, or further data cannot
+     * be read without blocking.
+     * <p>
+     * If EOF was already reached, this method will always return {@code -1}.
+     *
+     * @param dst the {@code byte[]} to read to
+     * @return the number of bytes actually read
+     * @throws IOException if an IO exception occurs you dummy
+     * @see InputStream#read(byte[])
+     */
+    default int read(@NonNull byte[] dst) throws IOException {
+        return this.read(dst, 0, dst.length);
+    }
+
+    /**
+     * Fills the given region of the given {@code byte[]} with as much data as possible.
+     * <p>
+     * Like {@link InputStream#read(byte[], int, int)}, this method will read data until the given number of bytes have been read, EOF is reached,
+     * or further data cannot be read without blocking.
+     * <p>
+     * If EOF was already reached, this method will always return {@code -1}.
+     *
+     * @param dst    the {@code byte[]} to read to
+     * @param start  the first index (inclusive) in the {@code byte[]} to start writing to
+     * @param length the number of bytes to read into the {@code byte[]}
+     * @return the number of bytes actually read
+     * @throws IOException if an IO exception occurs you dummy
+     * @see InputStream#read(byte[], int, int)
+     */
+    int read(@NonNull byte[] dst, int start, int length) throws IOException;
 
     /**
      * Fills the given {@code byte[]} with data.
@@ -473,8 +624,34 @@ public abstract class DataIn extends InputStream {
      * @throws EOFException if EOF is reached before the given {@code byte[]} could be filled
      * @throws IOException  if an IO exception occurs you dummy
      */
-    public byte[] readFully(@NonNull byte[] dst) throws EOFException, IOException {
-        return this.readFully(dst, 0, dst.length);
+    @Override
+    default void readFully(@NonNull byte[] dst) throws IOException {
+        this.readFully(dst, 0, dst.length);
+    }
+
+    /**
+     * Fills the given region of the given {@code byte[]} with data.
+     *
+     * @param dst    the {@code byte[]} to read to
+     * @param start  the first index (inclusive) in the {@code byte[]} to start writing to
+     * @param length the number of bytes to read into the {@code byte[]}
+     * @throws EOFException if EOF is reached before the given {@code byte[]} could be filled
+     * @throws IOException  if an IO exception occurs you dummy
+     */
+    @Override
+    void readFully(@NonNull byte[] dst, int start, int length) throws IOException;
+
+    /**
+     * Fills the given {@code byte[]} with data.
+     *
+     * @param dst the {@code byte[]} to read to
+     * @return the given {@code byte[]}
+     * @throws EOFException if EOF is reached before the given {@code byte[]} could be filled
+     * @throws IOException  if an IO exception occurs you dummy
+     */
+    default byte[] fill(@NonNull byte[] dst) throws IOException {
+        this.readFully(dst);
+        return dst;
     }
 
     /**
@@ -487,12 +664,8 @@ public abstract class DataIn extends InputStream {
      * @throws EOFException if EOF is reached before the given number of bytes could be read
      * @throws IOException  if an IO exception occurs you dummy
      */
-    public byte[] readFully(@NonNull byte[] dst, int start, int length) throws EOFException, IOException {
-        PorkUtil.assertInRangeLen(dst.length, start, length);
-        for (int i; length > 0 && (i = this.read(dst, start, length)) != -1; start += i, length -= i) ;
-        if (length != 0) {
-            throw new EOFException();
-        }
+    default byte[] fill(@NonNull byte[] dst, int start, int length) throws IOException {
+        this.readFully(dst, start, length);
         return dst;
     }
 
@@ -501,8 +674,8 @@ public abstract class DataIn extends InputStream {
      *
      * @return the contents of this {@link DataIn} as a {@code byte[]}
      */
-    public byte[] toByteArray() throws IOException {
-        byte[] arr = new byte[4096];
+    default byte[] toByteArray() throws IOException {
+        byte[] arr = new byte[PUnsafe.PAGE_SIZE];
         int pos = 0;
         for (int i; (i = this.read(arr, pos, arr.length - pos)) != -1; pos += i) {
             if (pos + i == arr.length) {
@@ -514,21 +687,243 @@ public abstract class DataIn extends InputStream {
         return pos == arr.length ? arr : Arrays.copyOf(arr, pos); //don't copy if the size is exactly the size of the array already
     }
 
+    //
+    //
+    // bulk transfer methods - ByteBuffer and ByteBuf - non-blocking
+    //
+    //
+
+    /**
+     * Reads data into the given {@link ByteBuffer}.
+     * <p>
+     * Like {@link #read(byte[], int, int)}, this will read until the buffer has no bytes available, EOF is reached, or more data cannot be read without
+     * blocking. However, it is not guaranteed to read any bytes at all.
+     * <p>
+     * If EOF was already reached, this method will always return {@code -1}.
+     *
+     * @param dst the {@link ByteBuffer} to read data into
+     * @return the actual number of bytes read
+     * @throws ClosedChannelException if the channel was already closed
+     * @throws IOException            if an IO exception occurs you dummy
+     */
+    @Override
+    int read(@NonNull ByteBuffer dst) throws IOException;
+
+    /**
+     * Reads data into the given {@link ByteBuffer}s.
+     * <p>
+     * Like {@link #read(byte[], int, int)}, this will read until the buffer has no bytes available, EOF is reached, or more data cannot be read without
+     * blocking. However, it is not guaranteed to read any bytes at all.
+     *
+     * @param dsts the {@link ByteBuffer}s to read data into
+     * @return the actual number of bytes read
+     * @throws ClosedChannelException if the channel was already closed
+     * @throws IOException            if an IO exception occurs you dummy
+     */
+    @Override
+    default long read(@NonNull ByteBuffer[] dsts) throws IOException {
+        return this.read(dsts, 0, dsts.length);
+    }
+
+    /**
+     * Reads data into the given {@link ByteBuffer}s.
+     * <p>
+     * Like {@link #read(byte[], int, int)}, this will read until the buffer has no bytes available, EOF is reached, or more data cannot be read without
+     * blocking. However, it is not guaranteed to read any bytes at all.
+     *
+     * @param dsts   the {@link ByteBuffer}s to read data into
+     * @param offset the index of the first {@link ByteBuffer} to read data into
+     * @param length the number of {@link ByteBuffer}s to read data into
+     * @return the actual number of bytes read
+     * @throws ClosedChannelException if the channel was already closed
+     * @throws IOException            if an IO exception occurs you dummy
+     */
+    @Override
+    default long read(@NonNull ByteBuffer[] dsts, int offset, int length) throws IOException {
+        if (!this.isOpen()) {
+            throw new ClosedChannelException();
+        }
+        checkRangeLen(dsts.length, offset, length);
+        long total = 0L;
+        for (int i = 0; i < length; i++) {
+            ByteBuffer dst = dsts[offset + i];
+            if (dst.hasRemaining()) {
+                int read = this.read(dst);
+                total += read;
+                if (dst.hasRemaining()) {
+                    //there wasn't enough data to fill the entire buffer, abort
+                    break;
+                }
+            }
+        }
+        return total;
+    }
+
+    /**
+     * Reads data into the given {@link ByteBuf}.
+     * <p>
+     * Like {@link #read(byte[], int, int)}, this will read until the requested number of bytes have been read, EOF is reached, or more data
+     * cannot be read without blocking. However, it is not guaranteed to read any bytes at all.
+     * <p>
+     * If EOF was already reached, this method will always return {@code -1}.
+     * <p>
+     * This method will also increase the buffer's {@link ByteBuf#writerIndex()}.
+     *
+     * @param dst   the {@link ByteBuf} to read data into
+     * @param count the number of bytes to read
+     * @return the actual number of bytes read
+     * @throws ClosedChannelException if the channel was already closed
+     * @throws IOException            if an IO exception occurs you dummy
+     */
+    int read(@NonNull ByteBuf dst, int count) throws IOException;
+
+    /**
+     * Reads data into the given {@link ByteBuf}.
+     * <p>
+     * Like {@link #read(byte[], int, int)}, this will read until the requested number of bytes have been read, EOF is reached, or more data
+     * cannot be read without blocking. However, it is not guaranteed to read any bytes at all.
+     * <p>
+     * If EOF was already reached, this method will always return {@code -1}.
+     * <p>
+     * This method will not increase the buffer's {@link ByteBuf#writerIndex()}.
+     *
+     * @param dst    the {@link ByteBuf} to read data into
+     * @param start  the first index in the {@link ByteBuf} to read into
+     * @param length the number of bytes to read
+     * @return the actual number of bytes read
+     * @throws ClosedChannelException if the channel was already closed
+     * @throws IOException            if an IO exception occurs you dummy
+     */
+    int read(@NonNull ByteBuf dst, int start, int length) throws IOException;
+
+    //
+    //
+    // bulk transfer methods - ByteBuffer and ByteBuf - blocking
+    //
+    //
+
+    /**
+     * Fills the given {@link ByteBuffer} with data.
+     *
+     * @param dst the {@link ByteBuffer} to read data into
+     * @return the number of bytes read
+     * @throws EOFException if EOF is reached before the buffer can be filled
+     * @throws IOException  if an IO exception occurs you dummy
+     */
+    int readFully(@NonNull ByteBuffer dst) throws IOException;
+
+    /**
+     * Fills the given {@link ByteBuffer}s with data.
+     *
+     * @param dsts the {@link ByteBuffer}s to read data into
+     * @return the number of bytes read
+     * @throws EOFException if EOF is reached before the buffers can be filled
+     * @throws IOException  if an IO exception occurs you dummy
+     */
+    default long readFully(@NonNull ByteBuffer[] dsts) throws IOException {
+        return this.readFully(dsts, 0, dsts.length);
+    }
+
+    /**
+     * Fills the given {@link ByteBuffer}s with data.
+     *
+     * @param dsts   the {@link ByteBuffer}s to read data into
+     * @param offset the index of the first {@link ByteBuffer} to read data into
+     * @param length the number of {@link ByteBuffer}s to read data into
+     * @return the number of bytes read
+     * @throws EOFException if EOF is reached before the buffers can be filled
+     * @throws IOException  if an IO exception occurs you dummy
+     */
+    default long readFully(@NonNull ByteBuffer[] dsts, int offset, int length) throws IOException {
+        if (!this.isOpen()) {
+            throw new ClosedChannelException();
+        }
+        checkRangeLen(dsts.length, offset, length);
+        long total = 0L;
+        for (int i = 0; i < length; i++) {
+            ByteBuffer dst = dsts[offset + i];
+            int remaining = dst.remaining();
+            if (remaining > 0) {
+                int read = this.readFully(dst);
+                if (read != remaining || dst.hasRemaining()) {
+                    throw new EOFException("readFully somehow didn't fill the entire buffer...");
+                }
+                total += read;
+            }
+        }
+        return total;
+    }
+
+    /**
+     * Fills the given {@link ByteBuf} with data.
+     * <p>
+     * This method will also increase the buffer's {@link ByteBuf#writerIndex()}.
+     *
+     * @param dst   the {@link ByteBuf} to read data into
+     * @param count the number of bytes to read
+     * @return the number of bytes read
+     * @throws EOFException if EOF is reached before the buffer can be filled
+     * @throws IOException  if an IO exception occurs you dummy
+     */
+    int readFully(@NonNull ByteBuf dst, int count) throws IOException;
+
+    /**
+     * Fills the given {@link ByteBuf} with data.
+     * <p>
+     * This method will not increase the buffer's {@link ByteBuf#writerIndex()}.
+     *
+     * @param dst    the {@link ByteBuf} to read data into
+     * @param start  the first index in the {@link ByteBuf} to read into
+     * @param length the number of bytes to read
+     * @return the number of bytes read
+     * @throws EOFException if EOF is reached before the buffer can be filled
+     * @throws IOException  if an IO exception occurs you dummy
+     */
+    int readFully(@NonNull ByteBuf dst, int start, int length) throws IOException;
+
+    //
+    //
+    // control methods
+    //
+    //
+
     /**
      * Gets an {@link InputStream} that may be used in place of this {@link DataIn} instance.
      * <p>
-     * An implementation may choose to return itself.
+     * Some implementations may choose to return itself.
      * <p>
-     * This is intended for use where a {@link DataIn} instance must be passed to external code that only accepts a
-     * traditional Java {@link InputStream}, and performance may benefit from not having all method calls be proxied
-     * by a wrapper {@link DataIn} instance.
+     * Closing the resulting {@link InputStream} will also close this {@link DataIn} instance, and vice-versa.
      *
      * @return an {@link InputStream} that may be used in place of this {@link DataIn} instance
      */
-    public InputStream unwrap() {
-        return this;
+    InputStream asInputStream() throws IOException;
+
+    /**
+     * Gets an estimate of the number of bytes that may be read without blocking.
+     * <p>
+     * If EOF has been reached, this method may return either {@code 0} or {@code -1}.
+     *
+     * @return an estimate of the number of bytes that may be read without blocking
+     * @see InputStream#available()
+     */
+    long remaining() throws IOException;
+
+    /**
+     * @see DataInput#skipBytes(int)
+     */
+    @Override
+    default int skipBytes(int n) throws IOException {
+        return toInt(this.skipBytes((long) n));
     }
 
+    /**
+     * @see DataInput#skipBytes(int)
+     */
+    long skipBytes(long n) throws IOException;
+
     @Override
-    public abstract void close() throws IOException;
+    boolean isOpen();
+
+    @Override
+    void close() throws IOException;
 }

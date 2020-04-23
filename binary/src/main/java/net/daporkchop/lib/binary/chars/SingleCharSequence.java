@@ -25,7 +25,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.common.util.PValidation;
 
 /**
  * A {@link CharSequence} which consists of a single letter.
@@ -56,7 +56,7 @@ public final class SingleCharSequence implements CharSequence {
 
     @Override
     public CharSequence subSequence(int start, int end) {
-        PorkUtil.assertInRange(1, start, end);
+        PValidation.checkRange(1, start, end);
         return start == end ? "" : this;
     }
 }

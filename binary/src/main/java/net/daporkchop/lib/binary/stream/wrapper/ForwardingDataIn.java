@@ -281,8 +281,8 @@ public abstract class ForwardingDataIn implements DataIn {
     }
 
     @Override
-    public InputStream asStream() throws IOException {
-        return this.delegate.asStream();
+    public InputStream asInputStream() throws IOException {
+        return this.delegate.asInputStream();
     }
 
     @Override

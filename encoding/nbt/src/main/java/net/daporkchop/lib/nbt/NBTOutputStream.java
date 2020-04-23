@@ -96,7 +96,7 @@ public final class NBTOutputStream extends DataOut {
 
     @Override
     public DataOut writeUByte(int b) throws IOException {
-        return this.out.writeUByte(b);
+        return this.out.writeUnsignedByte(b);
     }
 
     @Override
@@ -216,6 +216,6 @@ public final class NBTOutputStream extends DataOut {
 
     @Override
     public OutputStream unwrap() {
-        return this.out.unwrap();
+        return this.out.asOutputStream();
     }
 }

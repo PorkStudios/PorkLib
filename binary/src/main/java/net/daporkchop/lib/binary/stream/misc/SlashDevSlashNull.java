@@ -286,7 +286,7 @@ public final class SlashDevSlashNull extends DataOut implements DataIn {
     }
 
     @Override
-    public InputStream asStream() throws IOException {
+    public InputStream asInputStream() throws IOException {
         return AS_STREAM;
     }
 

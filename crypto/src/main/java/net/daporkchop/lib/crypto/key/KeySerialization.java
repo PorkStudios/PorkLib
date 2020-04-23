@@ -60,7 +60,7 @@ public class KeySerialization {
             throw new IllegalArgumentException("Must encode either public key, private key or both!");
         }
         CurveType type = CurveType.valueOf(in.readUTF());
-        ObjectInputStream ois = new ObjectInputStream(in.asStream());
+        ObjectInputStream ois = new ObjectInputStream(in.asInputStream());
         try {
             if (pubKey && privKey) {
                 return new EllipticCurveKeyPair(type, (BCECPrivateKey) ois.readObject(), (BCECPublicKey) ois.readObject());

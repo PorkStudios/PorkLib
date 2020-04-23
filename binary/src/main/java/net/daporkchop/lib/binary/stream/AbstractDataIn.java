@@ -329,7 +329,7 @@ public abstract class AbstractDataIn implements DataIn {
     }
 
     @Override
-    public InputStream asStream() {
+    public InputStream asInputStream() {
         InputStream inputStream = this.inputStream;
         if (inputStream == null) {
             synchronized (this) {

@@ -102,7 +102,7 @@ public class StreamIn extends AbstractHeapDataIn {
     }
 
     @Override
-    public InputStream asStream() {
+    public InputStream asInputStream() {
         return this.delegate;
     }
 

@@ -48,6 +48,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.function.Function;
 
+import static net.daporkchop.lib.common.util.PValidation.*;
+
 /**
  * Combination of {@link DataInput}, {@link ScatteringByteChannel} and {@link InputStream}, plus some custom methods.
  * <p>
@@ -71,9 +73,9 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @return the wrapped stream, or the original stream if it was already a {@link DataIn}
      */
     static DataIn wrap(@NonNull InputStream in) {
-        if (in instanceof DataInAsInputStream)  {
+        if (in instanceof DataInAsInputStream) {
             return ((DataInAsInputStream) in).delegate();
-        } else if (in instanceof DataIn)    {
+        } else if (in instanceof DataIn) {
             return (DataIn) in;
         } else {
             return new StreamIn(in);
@@ -748,17 +750,20 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
         if (!this.isOpen()) {
             throw new ClosedChannelException();
         }
-        PValidation.checkRangeLen(dsts.length, offset, length);
-        long l = 0L;
+        checkRangeLen(dsts.length, offset, length);
+        long total = 0L;
         for (int i = 0; i < length; i++) {
-            int read = 0;
-            if (dsts[i].hasRemaining() && (read = this.read(dsts[i])) == 0) {
-                //remaining space in buffer could not be filled, there is no more data available
-                break;
+            ByteBuffer dst = dsts[offset + i];
+            if (dst.hasRemaining()) {
+                int read = this.read(dst);
+                total += read;
+                if (dst.hasRemaining()) {
+                    //there wasn't enough data to fill the entire buffer, abort
+                    break;
+                }
             }
-            l += read;
         }
-        return l;
+        return total;
     }
 
     /**
@@ -768,6 +773,8 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * cannot be read without blocking. However, it is not guaranteed to read any bytes at all.
      * <p>
      * If EOF was already reached, this method will always return {@code -1}.
+     *
+     * This method will also increase the buffer's {@link ByteBuf#writerIndex()}.
      *
      * @param dst   the {@link ByteBuf} to read data into
      * @param count the number of bytes to read
@@ -784,6 +791,8 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * cannot be read without blocking. However, it is not guaranteed to read any bytes at all.
      * <p>
      * If EOF was already reached, this method will always return {@code -1}.
+     *
+     * This method will not increase the buffer's {@link ByteBuf#writerIndex()}.
      *
      * @param dst    the {@link ByteBuf} to read data into
      * @param start  the first index in the {@link ByteBuf} to read into
@@ -833,18 +842,29 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @throws IOException  if an IO exception occurs you dummy
      */
     default long readFully(@NonNull ByteBuffer[] dsts, int offset, int length) throws IOException {
-        PValidation.checkRangeLen(dsts.length, offset, length);
-        long l = 0L;
+        if (!this.isOpen()) {
+            throw new ClosedChannelException();
+        }
+        checkRangeLen(dsts.length, offset, length);
+        long total = 0L;
         for (int i = 0; i < length; i++) {
-            if (dsts[i].hasRemaining()) {
-                i += this.readFully(dsts[i]);
+            ByteBuffer dst = dsts[offset + i];
+            int remaining = dst.remaining();
+            if (remaining > 0) {
+                int read = this.readFully(dst);
+                if (read != remaining || dst.hasRemaining()) {
+                    throw new EOFException("readFully somehow didn't fill the entire buffer...");
+                }
+                total += read;
             }
         }
-        return l;
+        return total;
     }
 
     /**
      * Fills the given {@link ByteBuf} with data.
+     *
+     * This method will also increase the buffer's {@link ByteBuf#writerIndex()}.
      *
      * @param dst   the {@link ByteBuf} to read data into
      * @param count the number of bytes to read
@@ -856,6 +876,8 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
 
     /**
      * Fills the given {@link ByteBuf} with data.
+     *
+     * This method will not increase the buffer's {@link ByteBuf#writerIndex()}.
      *
      * @param dst    the {@link ByteBuf} to read data into
      * @param start  the first index in the {@link ByteBuf} to read into
@@ -877,15 +899,11 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * <p>
      * Some implementations may choose to return itself.
      * <p>
-     * This is intended for use where a {@link DataIn} instance must be passed to external code that only accepts a
-     * traditional Java {@link InputStream}, and performance may benefit from not having all method calls be proxied
-     * by a wrapper {@link DataIn} instance.
-     * <p>
      * Closing the resulting {@link InputStream} will also close this {@link DataIn} instance, and vice-versa.
      *
      * @return an {@link InputStream} that may be used in place of this {@link DataIn} instance
      */
-    InputStream asStream() throws IOException;
+    InputStream asInputStream() throws IOException;
 
     /**
      * Gets an estimate of the number of bytes that may be read without blocking.
@@ -902,7 +920,7 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      */
     @Override
     default int skipBytes(int n) throws IOException {
-        return PValidation.toInt(this.skipBytes((long) n));
+        return toInt(this.skipBytes((long) n));
     }
 
     /**

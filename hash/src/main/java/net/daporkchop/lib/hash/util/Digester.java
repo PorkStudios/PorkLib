@@ -100,13 +100,13 @@ public class Digester {
             }
 
             @Override
-            public void write(@NonNull byte[] b, int off, int len) throws IOException {
-                Digester.this.append(b, off, len);
+            public void write(@NonNull byte[] src, int start, int length) throws IOException {
+                Digester.this.append(src, start, length);
             }
 
             @Override
-            public void write(@NonNull byte[] b) throws IOException {
-                Digester.this.append(b);
+            public void write(@NonNull byte[] src) throws IOException {
+                Digester.this.append(src);
             }
         };
     }

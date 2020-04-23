@@ -37,7 +37,7 @@ public class TestMain {
     public void testVarInt() throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         for (int i = 50; i >= 0; i--) {
-            int j = ThreadLocalRandom.current().nextInt(Integer.MAX_VALUE);
+            int j = ThreadLocalRandom.current().nextInt();
             DataOut out = DataOut.wrap(baos);
             out.writeVarInt(j);
             out.close();

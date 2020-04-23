@@ -48,7 +48,7 @@ public class StreamIn extends AbstractHeapDataIn {
 
     @Override
     protected int read0() throws IOException {
-        return 0;
+        return this.delegate.read();
     }
 
     @Override

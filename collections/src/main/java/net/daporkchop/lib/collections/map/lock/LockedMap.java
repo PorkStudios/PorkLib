@@ -18,46 +18,39 @@
  *
  */
 
-package net.daporkchop.lib.common.ref;
+package net.daporkchop.lib.collections.map.lock;
 
-import lombok.NonNull;
+import net.daporkchop.lib.collections.collection.lock.LockedCollection;
+import net.daporkchop.lib.collections.set.lock.LockedSet;
+import net.daporkchop.lib.common.misc.LockableResource;
 
-import java.util.function.Supplier;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
 
 /**
- * A cache holds a reference to an object
+ * A {@link Map} that uses a {@link Lock} to manage access to it rather than synchronizing on a mutex object.
+ * <p>
+ * Unlike a {@link Map} returned by {@link java.util.Collections#synchronizedMap(Map)}, of this interface are NOT expected to automatically lock and
+ * unlock for every method invocation. This allows locking to be done manually by the user, providing performance in exchange for possible lack of
+ * safety when used incorrectly.
  *
  * @author DaPorkchop_
  */
-public interface Ref<T> extends Supplier<T> {
-    /**
-     * Gets a simple {@link Ref} will compute the value using the given {@link Supplier} once first requested.
-     *
-     * @param factory the {@link Supplier} for the value
-     * @param <T>     the value type
-     * @return a {@link Ref}
-     */
-    static <T> Ref<T> late(@NonNull Supplier<T> factory) {
-        return new LateReferencedRef<>(factory);
-    }
+public interface LockedMap<K, V> extends Map<K, V>, LockableResource {
+    @Override
+    LockedSet<K> keySet();
 
-    /**
-     * Gets a simple {@link Ref} will compute the value using the given {@link Supplier} once first requested, and store it in a soft reference,
-     * allowing it to be garbage-collected later on if the garbage-collector deems it necessary. If garbage-collected, it will be re-computed using the
-     * {@link Supplier} and cached again.
-     *
-     * @param factory the {@link Supplier} for the value
-     * @param <T>     the value type
-     * @return a {@link Ref}
-     */
-    static <T> Ref<T> soft(@NonNull Supplier<T> factory) {
-        return new SoftLateRef<>(factory);
-    }
+    @Override
+    LockedCollection<V> values();
 
-    /**
-     * Get an instance
-     *
-     * @return an instance
-     */
-    T get();
+    @Override
+    LockedSet<Entry<K, V>> entrySet();
+
+    @Override
+    LockedMap<K, V> lockAndGet();
+
+    @Override
+    LockedMap<K, V> lockAndGetInterruptibly() throws InterruptedException;
 }

@@ -18,46 +18,37 @@
  *
  */
 
-package net.daporkchop.lib.common.ref;
+package net.daporkchop.lib.collections.set.lock;
 
 import lombok.NonNull;
+import net.daporkchop.lib.collections.collection.lock.DefaultLockedCollection;
 
-import java.util.function.Supplier;
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
 
 /**
- * A cache holds a reference to an object
+ * Wrapper implementation of {@link LockedSet} around a normal {@link Set} and a {@link Lock}.
  *
  * @author DaPorkchop_
  */
-public interface Ref<T> extends Supplier<T> {
-    /**
-     * Gets a simple {@link Ref} will compute the value using the given {@link Supplier} once first requested.
-     *
-     * @param factory the {@link Supplier} for the value
-     * @param <T>     the value type
-     * @return a {@link Ref}
-     */
-    static <T> Ref<T> late(@NonNull Supplier<T> factory) {
-        return new LateReferencedRef<>(factory);
+public class DefaultLockedSet<V> extends DefaultLockedCollection<V> implements LockedSet<V> {
+    public DefaultLockedSet(@NonNull Set<V> delegate) {
+        super(delegate);
     }
 
-    /**
-     * Gets a simple {@link Ref} will compute the value using the given {@link Supplier} once first requested, and store it in a soft reference,
-     * allowing it to be garbage-collected later on if the garbage-collector deems it necessary. If garbage-collected, it will be re-computed using the
-     * {@link Supplier} and cached again.
-     *
-     * @param factory the {@link Supplier} for the value
-     * @param <T>     the value type
-     * @return a {@link Ref}
-     */
-    static <T> Ref<T> soft(@NonNull Supplier<T> factory) {
-        return new SoftLateRef<>(factory);
+    public DefaultLockedSet(@NonNull Set<V> delegate, @NonNull Lock lock) {
+        super(delegate, lock);
     }
 
-    /**
-     * Get an instance
-     *
-     * @return an instance
-     */
-    T get();
+    @Override
+    public DefaultLockedSet<V> lockAndGet() {
+        this.lock.lock();
+        return this;
+    }
+
+    @Override
+    public DefaultLockedSet<V> lockAndGetInterruptibly() throws InterruptedException {
+        this.lock.lockInterruptibly();
+        return this;
+    }
 }

@@ -34,7 +34,7 @@ import java.util.function.Supplier;
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
-public final class SoftRef<T> implements Ref<T> {
+public final class SoftLateRef<T> implements Ref<T> {
     @NonNull
     protected final Supplier<T> factory;
 

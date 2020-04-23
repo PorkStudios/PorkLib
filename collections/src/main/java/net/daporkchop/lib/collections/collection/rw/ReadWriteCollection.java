@@ -1,0 +1,107 @@
+/*
+ * Adapted from The MIT License (MIT)
+ *
+ * Copyright (c) 2018-2020 DaPorkchop_
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software
+ * is furnished to do so, subject to the following conditions:
+ *
+ * Any persons and/or organizations using this software must include the above copyright notice and this permission notice,
+ * provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+
+package net.daporkchop.lib.collections.collection.rw;
+
+import net.daporkchop.lib.collections.collection.lock.LockedCollection;
+
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Spliterator;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.stream.Stream;
+
+/**
+ * A {@link Collection} that uses a read-write lock to manage access to it.
+ * <p>
+ * Unlike a {@link Collection} returned by {@link java.util.Collections#synchronizedCollection(Collection)}, of this interface are NOT expected to
+ * automatically lock and unlock for every method invocation. This allows locking to be done manually by the user, providing performance in exchange
+ * for possible lack of safety when used incorrectly.
+ *
+ * @author DaPorkchop_
+ */
+public interface ReadWriteCollection<V> extends Collection<V>, ReadWriteLock {
+    /**
+     * Gets a view of this {@link ReadWriteCollection} as a {@link LockedCollection} which locks using this collection's read lock.
+     * <p>
+     * Note that the returned {@link LockedCollection} will only be able to obtain a read lock, which can make this unsafe to use in the event that a
+     * method on the returned {@link LockedCollection} is called that would modify the contents.
+     *
+     * @return a view of this {@link ReadWriteCollection} as a {@link LockedCollection} which locks using this collection's read lock
+     */
+    LockedCollection<V> readLocked();
+
+    /**
+     * Gets a view of this {@link ReadWriteCollection} as a {@link LockedCollection} which locks using this collection's write lock.
+     * <p>
+     * Note that the returned {@link LockedCollection} will only be able to obtain a write lock, which can lead to suboptimal performance if the returned
+     * {@link LockedCollection} is used for read-only operations.
+     *
+     * @return a view of this {@link ReadWriteCollection} as a {@link LockedCollection} which locks using this collection's write lock
+     */
+    LockedCollection<V> writeLocked();
+
+    @Override
+    Lock readLock();
+
+    @Override
+    Lock writeLock();
+
+    /**
+     * Gets an {@link Iterator} over the contents of this collection.
+     * <p>
+     * Synchronization over the returned iterator must be handled manually by the user.
+     *
+     * @see Collection#iterator()
+     */
+    @Override
+    Iterator<V> iterator();
+
+    /**
+     * Gets a {@link Spliterator} over the contents of this collection.
+     * <p>
+     * Synchronization over the returned spliterator must be handled manually by the user.
+     *
+     * @see Collection#spliterator()
+     */
+    @Override
+    Spliterator<V> spliterator();
+
+    /**
+     * Gets a {@link Stream} over the contents of this collection.
+     * <p>
+     * Synchronization over the returned stream must be handled manually by the user.
+     *
+     * @see Collection#stream()
+     */
+    @Override
+    Stream<V> stream();
+
+    /**
+     * Gets a {@link Stream} over the contents of this collection.
+     * <p>
+     * Synchronization over the returned stream must be handled manually by the user.
+     *
+     * @see Collection#parallelStream()
+     */
+    @Override
+    Stream<V> parallelStream();
+}

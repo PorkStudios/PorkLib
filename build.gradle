@@ -31,7 +31,7 @@ allprojects {
     ext {
         //general things
         javaVersion = "1.8"
-        porklibVersion = "0.5.4-SNAPSHOT"
+        porklibVersion = "0.5.5-SNAPSHOT"
 
         //dependency things
         bouncycastleVersion = "1.59"

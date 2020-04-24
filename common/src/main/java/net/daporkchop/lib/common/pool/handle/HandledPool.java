@@ -20,6 +20,10 @@
 
 package net.daporkchop.lib.common.pool.handle;
 
+import lombok.NonNull;
+
+import java.util.function.Supplier;
+
 /**
  * A simple form of resource pooling, using {@link Handle}s to manage references to pooled objects.
  *
@@ -27,6 +31,18 @@ package net.daporkchop.lib.common.pool.handle;
  * @author DaPorkchop_
  */
 public interface HandledPool<V> {
+    /**
+     * Creates a new thread-local {@link HandledPool}.
+     *
+     * @param factory              a {@link Supplier} for new value instances
+     * @param maxCapacityPerThread the maximum number of values to be stored per thread
+     * @param <V>                  the value type
+     * @return a new thread-local {@link HandledPool}
+     */
+    static <V> HandledPool<V> threadLocal(@NonNull Supplier<V> factory, int maxCapacityPerThread) {
+        return new RecyclingHandledPool<>(factory, maxCapacityPerThread);
+    }
+
     /**
      * Gets a value from this pool.
      *

@@ -23,7 +23,6 @@ package net.daporkchop.lib.common.util;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
-import net.daporkchop.lib.common.pool.handle.DefaultThreadHandledPool;
 import net.daporkchop.lib.common.pool.handle.HandledPool;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
@@ -61,12 +60,12 @@ public class PorkUtil {
     public final int TINY_BUFFER_SIZE = 32;
     public final int BUFFER_SIZE = PUnsafe.PAGE_SIZE << 2;
 
-    public final HandledPool<byte[]> TINY_BUFFER_POOL = new DefaultThreadHandledPool<>(() -> new byte[TINY_BUFFER_SIZE], 4);
-    public final HandledPool<ByteBuffer> DIRECT_TINY_BUFFER_POOL = new DefaultThreadHandledPool<>(() -> ByteBuffer.allocateDirect(TINY_BUFFER_SIZE), 4);
-    public final HandledPool<byte[]> BUFFER_POOL = new DefaultThreadHandledPool<>(() -> new byte[BUFFER_SIZE], 4);
-    public final HandledPool<ByteBuffer> DIRECT_BUFFER_POOL = new DefaultThreadHandledPool<>(() -> ByteBuffer.allocateDirect(BUFFER_SIZE), 4);
+    public final HandledPool<byte[]> TINY_BUFFER_POOL = HandledPool.threadLocal(() -> new byte[TINY_BUFFER_SIZE], 4);
+    public final HandledPool<ByteBuffer> DIRECT_TINY_BUFFER_POOL =  HandledPool.threadLocal(() -> ByteBuffer.allocateDirect(TINY_BUFFER_SIZE), 4);
+    public final HandledPool<byte[]> BUFFER_POOL =  HandledPool.threadLocal(() -> new byte[BUFFER_SIZE], 4);
+    public final HandledPool<ByteBuffer> DIRECT_BUFFER_POOL =  HandledPool.threadLocal(() -> ByteBuffer.allocateDirect(BUFFER_SIZE), 4);
 
-    public final HandledPool<StringBuilder> STRINGBUILDER_POOL = new DefaultThreadHandledPool<>(StringBuilder::new, 4); //TODO: make this soft
+    public final HandledPool<StringBuilder> STRINGBUILDER_POOL =  HandledPool.threadLocal(StringBuilder::new, 4); //TODO: make this soft
 
     public final DateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
     public final String PORKLIB_VERSION = "0.5.4-SNAPSHOT"; //TODO: set this dynamically

@@ -20,6 +20,9 @@
 
 package net.daporkchop.lib.common.pool.handle;
 
+import net.daporkchop.lib.common.misc.refcount.RefCounted;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
+
 /**
  * A handle for {@link HandledPool}.
  * <p>
@@ -27,7 +30,7 @@ package net.daporkchop.lib.common.pool.handle;
  *
  * @author DaPorkchop_
  */
-public interface Handle<V> extends AutoCloseable {
+public interface Handle<V> extends RefCounted {
     /**
      * @return the value that this handle belongs to
      * @deprecated in favor of {@link #get()}
@@ -42,15 +45,6 @@ public interface Handle<V> extends AutoCloseable {
      */
     V get();
 
-    /**
-     * Closes this handle, returning the value to the pool.
-     * <p>
-     * Note that handle instances may be re-used as well, so calling this method more than once may produce unexpected results instead of throwing an
-     * exception.
-     * <p>
-     * If this method is never called, this handle and the associated value will never be returned to the pool, and will simply be garbage-collected
-     * as normal.
-     */
     @Override
-    void close();
+    Handle<V> retain() throws AlreadyReleasedException;
 }

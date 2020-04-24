@@ -73,4 +73,10 @@ public abstract class AbstractRefCounted implements RefCounted {
      * This method will only be called once once the reference count reaches 0.
      */
     protected abstract void doRelease();
+
+    protected void ensureNotReleased()  {
+        if (PUnsafe.getIntVolatile(this, REFCNT_OFFSET) == 0)    {
+            throw new AlreadyReleasedException();
+        }
+    }
 }

@@ -594,14 +594,19 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @param value the value to write
      */
     default void writeVarInt(int value) throws IOException {
-        do {
-            byte temp = (byte) (value & 0b01111111);
-            value >>>= 7;
-            if (value != 0) {
-                temp |= 0b10000000;
-            }
-            this.write(temp);
-        } while (value != 0);
+        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get())   {
+            byte[] arr = handle.get();
+            int i = 0;
+            do {
+                byte temp = (byte) (value & 0b01111111);
+                value >>>= 7;
+                if (value != 0) {
+                    temp |= 0b10000000;
+                }
+                arr[i++] = temp;
+            } while (value != 0);
+            this.write(arr, 0, i);
+        }
     }
 
     /**
@@ -621,14 +626,19 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @param value the value to write
      */
     default void writeVarLong(long value) throws IOException {
-        do {
-            byte temp = (byte) (value & 0b01111111);
-            value >>>= 7L;
-            if (value != 0) {
-                temp |= 0b10000000;
-            }
-            this.write(temp);
-        } while (value != 0L);
+        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get())   {
+            byte[] arr = handle.get();
+            int i = 0;
+            do {
+                byte temp = (byte) (value & 0b01111111);
+                value >>>= 7L;
+                if (value != 0) {
+                    temp |= 0b10000000;
+                }
+                arr[i++] = temp;
+            } while (value != 0);
+            this.write(arr, 0, i);
+        }
     }
 
     /**

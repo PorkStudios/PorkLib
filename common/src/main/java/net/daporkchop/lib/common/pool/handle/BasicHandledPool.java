@@ -20,59 +20,71 @@
 
 package net.daporkchop.lib.common.pool.handle;
 
-import io.netty.util.Recycler;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
+import net.daporkchop.lib.common.ref.Ref;
+import net.daporkchop.lib.common.ref.ReferenceType;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.function.Supplier;
 
+import static net.daporkchop.lib.common.util.PValidation.*;
+
 /**
- * An implementation of {@link HandledPool} that operates using Netty's {@link Recycler}.
+ * Implementation of {@link HandledPool} which uses a single global allocation queue.
  *
  * @author DaPorkchop_
  */
-final class RecyclingHandledPool<V> implements HandledPool<V> {
-    private final Recycler<Wrapper<V>> recycler;
+final class BasicHandledPool<V> implements HandledPool<V> {
+    private final Deque<Ref<V>> deque;
+    private final Supplier<V> factory;
+    private final ReferenceType referenceType;
+    private final int maxCapacity;
 
-    public RecyclingHandledPool(@NonNull Supplier<V> factory, int maxCapacityPerThread) {
-        this.recycler = new Recycler<Wrapper<V>>(maxCapacityPerThread) {
-            @Override
-            protected Wrapper<V> newObject(Handle<Wrapper<V>> handle) {
-                return new Wrapper<>(handle, factory.get());
-            }
-        };
+    public BasicHandledPool(@NonNull Supplier<V> factory, @NonNull ReferenceType referenceType, int maxCapacity) {
+        this.deque = new ArrayDeque<>(positive(maxCapacity, "maxCapacity"));
+        this.factory = factory;
+        this.referenceType = referenceType;
+        this.maxCapacity = maxCapacity;
     }
 
     @Override
-    public Handle<V> get() {
+    public synchronized Handle<V> get() {
+        V value = null;
+        Ref<V> ref;
+        while ((ref = this.deque.poll()) != null && (value = ref.get()) == null) {
+        }
+        if (value == null)  {
+            value = this.factory.get();
+            ref = this.referenceType.create(value);
+        }
         //important to create new instance because of reference-counting
-        return new HandleImpl<>(this.recycler.get());
+        return new HandleImpl(value, ref);
     }
 
     @RequiredArgsConstructor
-    private static final class Wrapper<V> {
+    private final class HandleImpl extends AbstractRefCounted implements Handle<V> {
         @NonNull
-        private final Recycler.Handle<Wrapper<V>> handle;
+        protected final V value;
         @NonNull
-        private final V value;
-    }
-
-    @RequiredArgsConstructor
-    private static final class HandleImpl<V> extends AbstractRefCounted implements Handle<V> {
-        @NonNull
-        private final Wrapper<V> wrapper;
+        protected final Ref<V> ref;
 
         @Override
         protected void doRelease() {
-            this.wrapper.handle.recycle(this.wrapper);
+            synchronized (BasicHandledPool.this) {
+                if (BasicHandledPool.this.deque.size() < BasicHandledPool.this.maxCapacity) {
+                    BasicHandledPool.this.deque.addFirst(this.ref);
+                }
+            }
         }
 
         @Override
         public V get() {
             this.ensureNotReleased();
-            return this.wrapper.value;
+            return this.value;
         }
 
         @Override

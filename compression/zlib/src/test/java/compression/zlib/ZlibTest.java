@@ -18,32 +18,16 @@
  *
  */
 
-package net.daporkchop.lib.compression.zlib.natives;
+package compression.zlib;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.compression.util.StreamingWrapperCCtx;
-import net.daporkchop.lib.compression.zlib.ZlibDeflater;
+import org.junit.Test;
 
 /**
  * @author DaPorkchop_
  */
-@Getter
-@Accessors(fluent = true)
-final class NativeZlibDeflater extends StreamingWrapperCCtx implements ZlibDeflater {
-    private final int strategy;
-    private final int mode;
+public class ZlibTest {
+    @Test
+    public void testCompression()   {
 
-    NativeZlibDeflater(@NonNull NativeZlib provider, int level, int strategy, int mode) {
-        super(provider, provider.deflater(level, strategy, mode), level);
-
-        this.strategy = strategy;
-        this.mode = mode;
-    }
-
-    @Override
-    public boolean hasDict() {
-        return true;
     }
 }

@@ -20,10 +20,6 @@
 
 package net.daporkchop.lib.compression.zlib.natives;
 
-import net.daporkchop.lib.common.util.PValidation;
-import net.daporkchop.lib.compression.zlib.Zlib;
-import net.daporkchop.lib.compression.zlib.ZlibCCtx;
-import net.daporkchop.lib.compression.zlib.ZlibDCtx;
 import net.daporkchop.lib.compression.zlib.ZlibDeflater;
 import net.daporkchop.lib.compression.zlib.ZlibInflater;
 import net.daporkchop.lib.compression.zlib.ZlibProvider;
@@ -47,13 +43,13 @@ public final class NativeZlib extends NativeFeature<ZlibProvider> implements Zli
     public native long compressBoundLong(long srcSize, int mode);
 
     @Override
-    public ZlibCCtx compressionContext(int level, int strategy, int mode) {
-        return new NativeZlibCCtx(this, level, strategy, mode);
+    public ZlibDeflater compressionContext(int level, int strategy, int mode) {
+        return new NativeZlibDeflater(this, level, strategy, mode);
     }
 
     @Override
-    public ZlibDCtx decompressionContext(int mode) {
-        return new NativeZlibDCtx(this, mode);
+    public ZlibInflater decompressionContext(int mode) {
+        return new NativeZlibInflater(this, mode);
     }
 
     @Override

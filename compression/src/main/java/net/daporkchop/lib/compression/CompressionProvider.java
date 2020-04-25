@@ -20,18 +20,23 @@
 
 package net.daporkchop.lib.compression;
 
+import lombok.NonNull;
 import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.compression.context.PDeflater;
 import net.daporkchop.lib.compression.context.PInflater;
-import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelException;
+import net.daporkchop.lib.compression.option.DeflaterOptions;
+import net.daporkchop.lib.compression.option.InflaterOptions;
 import net.daporkchop.lib.natives.util.BufferTyped;
 
 /**
  * An implementation of a compression algorithm.
+ * <p>
+ * This interface is not intended to be referenced directly by user code, rather, implementations should define child interfaces which set the option
+ * generic parameters.
  *
  * @author DaPorkchop_
  */
-public interface CompressionProvider extends BufferTyped {
+public interface CompressionProvider<I extends CompressionProvider<I, DO, DOB, IO, IOB>, DO extends DeflaterOptions<DO, DOB, I>, DOB extends DeflaterOptions.Builder<DOB, DO, I>, IO extends InflaterOptions<IO, IOB, I>, IOB extends InflaterOptions.Builder<IOB, IO, I>> extends BufferTyped {
     //
     //
     // info methods
@@ -71,6 +76,16 @@ public interface CompressionProvider extends BufferTyped {
      */
     long compressBoundLong(long srcSize);
 
+    /**
+     * @return the default {@link DeflaterOptions} (used by {@link #deflater()})
+     */
+    DO defaultDeflaterOptions();
+
+    /**
+     * @return the default {@link InflaterOptions} (used by {@link #inflater()})
+     */
+    IO defaultInflaterOptions();
+
     //
     //
     // context creation methods
@@ -78,25 +93,36 @@ public interface CompressionProvider extends BufferTyped {
     //
 
     /**
-     * Creates a new {@link PDeflater} with the default compression level.
+     * Creates a new {@link PDeflater} using the default options.
      *
-     * @see #deflater(int)
+     * @see #deflater(DeflaterOptions)
      */
     default PDeflater deflater() {
-        return this.deflater(this.levelDefault());
+        return this.deflater(this.defaultDeflaterOptions());
     }
 
     /**
-     * Creates a new {@link PDeflater} with the given compression level.
+     * Creates a new {@link PDeflater} with the given options.
      *
-     * @param level the compression level to use
-     * @return a new {@link PDeflater} with the given compression level
-     * @throws InvalidCompressionLevelException if the given compression level is invalid
+     * @param options the options to use
+     * @return a new {@link PDeflater} with the given options
      */
-    PDeflater deflater(int level) throws InvalidCompressionLevelException;
+    PDeflater deflater(@NonNull DO options);
 
     /**
-     * @return a new {@link PInflater}
+     * Creates a new {@link PInflater} using the default options.
+     *
+     * @see #inflater(InflaterOptions)
      */
-    PInflater inflater();
+    default PInflater inflater() {
+        return this.inflater(this.defaultInflaterOptions());
+    }
+
+    /**
+     * Creates a new {@link PInflater} with the given options.
+     *
+     * @param options the options to use
+     * @return a new {@link PInflater} with the given options
+     */
+    PInflater inflater(@NonNull IO options);
 }

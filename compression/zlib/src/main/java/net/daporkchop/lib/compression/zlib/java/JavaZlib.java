@@ -20,8 +20,6 @@
 
 package net.daporkchop.lib.compression.zlib.java;
 
-import net.daporkchop.lib.compression.zlib.ZlibCCtx;
-import net.daporkchop.lib.compression.zlib.ZlibDCtx;
 import net.daporkchop.lib.compression.zlib.ZlibDeflater;
 import net.daporkchop.lib.compression.zlib.ZlibInflater;
 import net.daporkchop.lib.compression.zlib.ZlibProvider;
@@ -50,16 +48,6 @@ public final class JavaZlib extends NativeFeature<ZlibProvider> implements ZlibP
 
     @Override
     public ZlibInflater inflater(int mode) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public ZlibCCtx compressionContext(int level, int strategy, int mode) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public ZlibDCtx decompressionContext(int mode) {
         throw new UnsupportedOperationException();
     }
 }

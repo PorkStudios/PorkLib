@@ -20,210 +20,28 @@
 
 package net.daporkchop.lib.compression.zlib.natives;
 
-import io.netty.buffer.ByteBuf;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.compression.context.PInflater;
-import net.daporkchop.lib.compression.util.exception.ContextFinishedException;
-import net.daporkchop.lib.compression.util.exception.ContextFinishingException;
+import net.daporkchop.lib.compression.util.StreamingWrapperDCtx;
 import net.daporkchop.lib.compression.zlib.ZlibInflater;
-import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
-import net.daporkchop.lib.unsafe.PCleaner;
-import net.daporkchop.lib.unsafe.util.AbstractReleasable;
 
 /**
  * @author DaPorkchop_
  */
+@Getter
 @Accessors(fluent = true)
-final class NativeZlibInflater extends AbstractReleasable implements ZlibInflater {
-    static native void load();
-
-    private static native long allocateCtx(int mode);
-
-    private static native void releaseCtx(long ctx);
-
-    private final long ctx;
-
-    @Getter
-    private final NativeZlib provider;
-    private final PCleaner   cleaner;
-
-    private ByteBuf src;
-    private ByteBuf dst;
-    private ByteBuf dict;
-
-    private int readBytes;
-    private int writtenBytes;
-
-    private boolean reset;
-    private boolean started;
-    private boolean finishing;
-    private boolean finished;
+final class NativeZlibInflater extends StreamingWrapperDCtx implements ZlibInflater {
+    private final int mode;
 
     NativeZlibInflater(@NonNull NativeZlib provider, int mode) {
-        this.provider = provider;
+        super(provider, provider.inflater(mode));
 
-        this.ctx = allocateCtx(mode);
-        this.cleaner = PCleaner.cleaner(this, new Releaser(this.ctx));
-        this.reset = true;
+        this.mode = mode;
     }
 
     @Override
-    public boolean fullInflate(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException {
-        if (!src.hasMemoryAddress() || !dst.hasMemoryAddress()) {
-            throw InvalidBufferTypeException.direct();
-        }
-
-        this.reset(); //this will do nothing if we're already reset
-        this.reset = false;
-
-        ByteBuf dict = this.dict;
-        if (this.doFullInflate(src.memoryAddress() + src.readerIndex(), src.readableBytes(),
-                dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
-                dict == null ? 0L : dict.memoryAddress(), dict == null ? 0 : dict.readableBytes())) {
-            //increase indices if successful
-            src.skipBytes(this.readBytes);
-            dst.writerIndex(dst.writerIndex() + this.writtenBytes);
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    private native boolean doFullInflate(long srcAddr, int srcSize, long dstAddr, int dstSize, long dictAddr, int dictSize);
-
-    @Override
-    public PInflater update(boolean flush) throws ContextFinishedException, ContextFinishingException {
-        this.update(this.src, this.dst, this.dict, flush);
-        return this;
-    }
-
-    private void update(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict, boolean flush) {
-        if (this.finished) {
-            throw new ContextFinishedException();
-        } else if (this.finishing) {
-            throw new ContextFinishingException();
-        }
-
-        this.reset = false;
-        this.started = true;
-
-        this.doUpdate(src.memoryAddress() + src.readerIndex(), src.readableBytes(),
-                dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
-                dict == null ? 0L : dict.memoryAddress(), dict == null ? 0 : dict.readableBytes(),
-                flush);
-
-        //increase indices
-        src.skipBytes(this.readBytes);
-        dst.writerIndex(dst.writerIndex() + this.writtenBytes);
-    }
-
-    private native void doUpdate(long srcAddr, int srcSize, long dstAddr, int dstSize, long dictAddr, int dictSize, boolean flush);
-
-    @Override
-    public boolean finish() throws ContextFinishedException {
-        return this.finish(this.src, this.dst, this.dict);
-    }
-
-    private boolean finish(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) {
-        if (this.finished) {
-            return true;
-        }
-
-        this.reset = false;
-        this.started = true;
-        this.finishing = true;
-
-        if (this.doFinish(src.memoryAddress() + src.readerIndex(), src.readableBytes(),
-                dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
-                dict == null ? 0L : dict.memoryAddress(), dict == null ? 0 : dict.readableBytes())) {
-            //increase indices if successful
-            src.skipBytes(this.readBytes);
-            dst.writerIndex(dst.writerIndex() + this.writtenBytes);
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    private native boolean doFinish(long srcAddr, int srcSize, long dstAddr, int dstSize, long dictAddr, int dictSize);
-
-    @Override
-    public PInflater reset() {
-        if (!this.reset) {
-            this.src = null;
-            this.dst = null;
-            if (this.dict != null) {
-                this.dict.release();
-                this.dict = null;
-            }
-
-            this.readBytes = 0;
-            this.writtenBytes = 0;
-
-            this.started = false;
-            this.finishing = false;
-            this.finished = false;
-
-            this.doReset();
-        }
-        return this;
-    }
-
-    private native void doReset();
-
-    @Override
-    public PInflater dict(@NonNull ByteBuf dict) throws InvalidBufferTypeException {
-        if (!dict.hasMemoryAddress()) {
-            throw InvalidBufferTypeException.direct();
-        } else if (this.started) {
-            throw new IllegalStateException("Cannot set dictionary after decompression has started!");
-        } else if (this.dict != null) {
-            throw new IllegalStateException("Dictionary has already been set!");
-        }
-
-        this.dict = dict.retainedSlice();
-
-        return this;
-    }
-
-    @Override
-    public PInflater src(@NonNull ByteBuf src) throws InvalidBufferTypeException {
-        if (!src.hasMemoryAddress()) {
-            throw InvalidBufferTypeException.direct();
-        }
-        this.src = src;
-        return this;
-    }
-
-    @Override
-    public PInflater dst(@NonNull ByteBuf dst) throws InvalidBufferTypeException {
-        if (!dst.hasMemoryAddress()) {
-            throw InvalidBufferTypeException.direct();
-        }
-        this.dst = dst;
-        return this;
-    }
-
-    @Override
-    public boolean directAccepted() {
+    public boolean hasDict() {
         return true;
-    }
-
-    @Override
-    protected void doRelease() {
-        this.cleaner.clean();
-    }
-
-    @RequiredArgsConstructor
-    private static final class Releaser implements Runnable {
-        private final long ctx;
-
-        @Override
-        public void run() {
-            releaseCtx(this.ctx);
-        }
     }
 }

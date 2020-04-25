@@ -20,22 +20,26 @@
 
 package net.daporkchop.lib.compression.zlib;
 
-import io.netty.buffer.ByteBuf;
-import lombok.NonNull;
 import net.daporkchop.lib.compression.context.PDeflater;
-import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
 
 /**
- * Extension of {@link PDeflater} for {@link Zlib}.
+ * An extension of {@link PDeflater} for {@link Zlib}.
  *
  * @author DaPorkchop_
  */
 public interface ZlibDeflater extends PDeflater {
+    /**
+     * @return the configured strategy
+     */
+    int strategy();
+
+    /**
+     * @return the configured wrapping mode
+     */
+    int mode();
+
     @Override
     default boolean hasDict() {
         return true;
     }
-
-    @Override
-    PDeflater dict(@NonNull ByteBuf dict) throws InvalidBufferTypeException;
 }

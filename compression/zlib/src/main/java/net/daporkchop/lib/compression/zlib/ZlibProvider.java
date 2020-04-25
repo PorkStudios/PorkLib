@@ -22,8 +22,7 @@ package net.daporkchop.lib.compression.zlib;
 
 
 import net.daporkchop.lib.common.util.PValidation;
-import net.daporkchop.lib.compression.provider.OneShotCompressionProvider;
-import net.daporkchop.lib.compression.provider.StreamingCompressionProvider;
+import net.daporkchop.lib.compression.CompressionProvider;
 import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelException;
 import net.daporkchop.lib.natives.impl.Feature;
 
@@ -32,7 +31,7 @@ import net.daporkchop.lib.natives.impl.Feature;
  *
  * @author DaPorkchop_
  */
-public interface ZlibProvider extends StreamingCompressionProvider, OneShotCompressionProvider, Feature<ZlibProvider> {
+public interface ZlibProvider extends CompressionProvider<>, Feature<ZlibProvider> {
     @Override
     default int levelFast() {
         return Zlib.LEVEL_FASTEST;
@@ -196,82 +195,4 @@ public interface ZlibProvider extends StreamingCompressionProvider, OneShotCompr
      * @return a new {@link ZlibInflater}
      */
     ZlibInflater inflater(int mode);
-
-    /**
-     * @return a new {@link ZlibCCtx}
-     */
-    @Override
-    default ZlibCCtx compressionContext() {
-        return this.compressionContext(Zlib.LEVEL_BEST, Zlib.STRATEGY_DEFAULT, Zlib.MODE_ZLIB);
-    }
-
-    /**
-     * @return a new {@link ZlibCCtx} with the given level
-     */
-    @Override
-    default ZlibCCtx compressionContext(int level) throws InvalidCompressionLevelException {
-        return this.compressionContext(level, Zlib.STRATEGY_DEFAULT, Zlib.MODE_ZLIB);
-    }
-
-    /**
-     * @return a new {@link ZlibCCtx} with the given level and strategy
-     */
-    default ZlibCCtx compressionContext(int level, int strategy) throws InvalidCompressionLevelException {
-        return this.compressionContext(level, strategy, Zlib.MODE_ZLIB);
-    }
-
-    /**
-     * @return a new {@link ZlibCCtx} using the Gzip format
-     */
-    default ZlibCCtx compressionContextGzip() {
-        return this.compressionContext(Zlib.LEVEL_BEST, Zlib.STRATEGY_DEFAULT, Zlib.MODE_GZIP);
-    }
-
-    /**
-     * @return a new {@link ZlibCCtx} using the Gzip format with the given level
-     */
-    default ZlibCCtx compressionContextGzip(int level) throws InvalidCompressionLevelException {
-        return this.compressionContext(level, Zlib.STRATEGY_DEFAULT, Zlib.MODE_GZIP);
-    }
-
-    /**
-     * @return a new {@link ZlibCCtx} using the Gzip format with the given level and strategy
-     */
-    default ZlibCCtx compressionContextGzip(int level, int strategy) throws InvalidCompressionLevelException {
-        return this.compressionContext(level, strategy, Zlib.MODE_GZIP);
-    }
-
-    /**
-     * @return a new {@link ZlibCCtx} with the given level, strategy and mode
-     * @see #deflater(int, int, int)
-     */
-    ZlibCCtx compressionContext(int level, int strategy, int mode);
-
-    /**
-     * @return a new {@link ZlibDCtx}
-     */
-    @Override
-    default ZlibDCtx decompressionContext() {
-        return this.decompressionContext(Zlib.MODE_ZLIB);
-    }
-
-    /**
-     * @return a new {@link ZlibDCtx} using the Gzip format
-     */
-    default ZlibDCtx decompressionContextGzip() {
-        return this.decompressionContext(Zlib.MODE_GZIP);
-    }
-
-    /**
-     * @return a new {@link ZlibDCtx} that will automatically detect whether the compressed data is in Zlib or Gzip format
-     */
-    default ZlibDCtx decompressionContextAuto() {
-        return this.decompressionContext(Zlib.MODE_AUTO);
-    }
-
-    /**
-     * @return a new {@link ZlibDCtx} with the given mode
-     * @see #inflater(int)
-     */
-    ZlibDCtx decompressionContext(int mode);
 }

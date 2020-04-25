@@ -18,32 +18,21 @@
  *
  */
 
-package net.daporkchop.lib.compression.zlib.natives;
+package net.daporkchop.lib.compression.option;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.compression.util.StreamingWrapperCCtx;
-import net.daporkchop.lib.compression.zlib.ZlibCCtx;
+import net.daporkchop.lib.compression.CompressionProvider;
 
 /**
+ * Options used by {@link net.daporkchop.lib.compression.CompressionProvider} for creating new {@link net.daporkchop.lib.compression.context.PInflater}s.
+ *
  * @author DaPorkchop_
  */
-@Getter
-@Accessors(fluent = true)
-final class NativeZlibCCtx extends StreamingWrapperCCtx implements ZlibCCtx {
-    private final int strategy;
-    private final int mode;
-
-    NativeZlibCCtx(@NonNull NativeZlib provider, int level, int strategy, int mode) {
-        super(provider, provider.deflater(level, strategy, mode), level);
-
-        this.strategy = strategy;
-        this.mode = mode;
-    }
-
-    @Override
-    public boolean hasDict() {
-        return true;
+public interface InflaterOptions<I extends InflaterOptions<I, B, P>, B extends InflaterOptions.Builder<B, I, P>, P extends CompressionProvider<P, ?, ?, I, B>> extends ContextOptions<I, B, P> {
+    /**
+     * Builder interface for constructing {@link InflaterOptions} instances.
+     *
+     * @author DaPorkchop_
+     */
+    interface Builder<I extends InflaterOptions.Builder<I, O, P>, O extends InflaterOptions<O, I, P>, P extends CompressionProvider<P, ?, ?, O, I>> extends ContextOptions.Builder<I, O, P> {
     }
 }

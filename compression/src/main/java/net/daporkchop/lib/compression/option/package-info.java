@@ -18,30 +18,9 @@
  *
  */
 
-package net.daporkchop.lib.compression.zlib.natives;
-
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.compression.util.StreamingWrapperDCtx;
-import net.daporkchop.lib.compression.zlib.ZlibDCtx;
-
 /**
+ * I apologize profusely for the generic mess that is this package.
+ *
  * @author DaPorkchop_
  */
-@Getter
-@Accessors(fluent = true)
-final class NativeZlibDCtx extends StreamingWrapperDCtx implements ZlibDCtx {
-    private final int mode;
-
-    NativeZlibDCtx(@NonNull NativeZlib provider, int mode) {
-        super(provider, provider.inflater(mode));
-
-        this.mode = mode;
-    }
-
-    @Override
-    public boolean hasDict() {
-        return true;
-    }
-}
+package net.daporkchop.lib.compression.option;

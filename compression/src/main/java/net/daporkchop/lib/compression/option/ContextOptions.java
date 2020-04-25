@@ -18,23 +18,41 @@
  *
  */
 
-package net.daporkchop.lib.compression.zlib;
+package net.daporkchop.lib.compression.option;
 
-import net.daporkchop.lib.compression.context.PInflater;
+import net.daporkchop.lib.compression.CompressionProvider;
 
 /**
- * An extension of {@link PInflater} for {@link Zlib}.
+ * Base interface for options used by deflaters and inflaters.
+ * <p>
+ * All implementations must be immutable.
  *
  * @author DaPorkchop_
  */
-public interface ZlibDCtx extends PInflater {
+public interface ContextOptions<I extends ContextOptions<I, B, P>, B extends ContextOptions.Builder<B, I, P>, P extends CompressionProvider<P, ?, ?, ?, ?>> {
     /**
-     * @return the configured wrapping mode
+     * @return the {@link CompressionProvider} that this options instance belongs to
      */
-    int mode();
+    P provider();
 
-    @Override
-    default boolean hasDict() {
-        return true;
+    /**
+     * Creates a new builder instance, pre-configured using these options.
+     *
+     * @return a new builder instance, pre-configured using these options
+     */
+    B builder();
+
+    /**
+     * Builder interface for constructing {@link ContextOptions} instances.
+     *
+     * @author DaPorkchop_
+     */
+    interface Builder<I extends Builder<I, O, P>, O extends ContextOptions<O, I, P>, P extends CompressionProvider<P, ?, ?, ?, ?>> {
+        /**
+         * Creates an instance of {@link ContextOptions} using this builder's currently configured options.
+         *
+         * @return an instance of {@link ContextOptions} containing the options currently configured in this builder
+         */
+        O build();
     }
 }

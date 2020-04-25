@@ -20,22 +20,21 @@
 
 package net.daporkchop.lib.compression.zlib;
 
-import io.netty.buffer.ByteBuf;
-import lombok.NonNull;
 import net.daporkchop.lib.compression.context.PInflater;
-import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
 
 /**
- * Extension of {@link PInflater} for {@link Zlib}.
+ * An extension of {@link PInflater} for {@link Zlib}.
  *
  * @author DaPorkchop_
  */
 public interface ZlibInflater extends PInflater {
+    /**
+     * @return the configured wrapping mode
+     */
+    int mode();
+
     @Override
     default boolean hasDict() {
         return true;
     }
-
-    @Override
-    PInflater dict(@NonNull ByteBuf dict) throws InvalidBufferTypeException;
 }

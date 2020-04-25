@@ -18,28 +18,21 @@
  *
  */
 
-package net.daporkchop.lib.compression.zlib;
+package net.daporkchop.lib.compression.option;
 
-import net.daporkchop.lib.compression.context.PDeflater;
+import net.daporkchop.lib.compression.CompressionProvider;
 
 /**
- * An extension of {@link PDeflater} for {@link Zlib}.
+ * Options used by {@link net.daporkchop.lib.compression.CompressionProvider} for creating new {@link net.daporkchop.lib.compression.context.PDeflater}s.
  *
  * @author DaPorkchop_
  */
-public interface ZlibCCtx extends PDeflater {
+public interface DeflaterOptions<I extends DeflaterOptions<I, B, P>, B extends DeflaterOptions.Builder<B, I, P>, P extends CompressionProvider<P, I, B, ?, ?>> extends ContextOptions<I, B, P> {
     /**
-     * @return the configured strategy
+     * Builder interface for constructing {@link DeflaterOptions} instances.
+     *
+     * @author DaPorkchop_
      */
-    int strategy();
-
-    /**
-     * @return the configured wrapping mode
-     */
-    int mode();
-
-    @Override
-    default boolean hasDict() {
-        return true;
+    interface Builder<I extends DeflaterOptions.Builder<I, O, P>, O extends DeflaterOptions<O, I, P>, P extends CompressionProvider<P, O, I, ?, ?>> extends ContextOptions.Builder<I, O, P> {
     }
 }

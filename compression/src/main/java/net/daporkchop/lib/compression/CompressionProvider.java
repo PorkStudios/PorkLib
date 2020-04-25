@@ -18,9 +18,12 @@
  *
  */
 
-package net.daporkchop.lib.compression.provider;
+package net.daporkchop.lib.compression;
 
 import net.daporkchop.lib.common.util.PValidation;
+import net.daporkchop.lib.compression.context.PDeflater;
+import net.daporkchop.lib.compression.context.PInflater;
+import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelException;
 import net.daporkchop.lib.natives.util.BufferTyped;
 
 /**
@@ -29,6 +32,12 @@ import net.daporkchop.lib.natives.util.BufferTyped;
  * @author DaPorkchop_
  */
 public interface CompressionProvider extends BufferTyped {
+    //
+    //
+    // info methods
+    //
+    //
+
     @Override
     boolean directAccepted();
 
@@ -61,4 +70,33 @@ public interface CompressionProvider extends BufferTyped {
      * @return the worst-case size of the compressed data
      */
     long compressBoundLong(long srcSize);
+
+    //
+    //
+    // context creation methods
+    //
+    //
+
+    /**
+     * Creates a new {@link PDeflater} with the default compression level.
+     *
+     * @see #deflater(int)
+     */
+    default PDeflater deflater() {
+        return this.deflater(this.levelDefault());
+    }
+
+    /**
+     * Creates a new {@link PDeflater} with the given compression level.
+     *
+     * @param level the compression level to use
+     * @return a new {@link PDeflater} with the given compression level
+     * @throws InvalidCompressionLevelException if the given compression level is invalid
+     */
+    PDeflater deflater(int level) throws InvalidCompressionLevelException;
+
+    /**
+     * @return a new {@link PInflater}
+     */
+    PInflater inflater();
 }

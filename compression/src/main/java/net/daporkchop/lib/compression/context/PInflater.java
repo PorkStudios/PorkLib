@@ -22,55 +22,36 @@ package net.daporkchop.lib.compression.context;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.compression.util.exception.ContextFinishedException;
-import net.daporkchop.lib.compression.util.exception.ContextFinishingException;
+import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
 import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
 
 /**
- * Inflates (decompresses) data.
+ * A context for doing repeated one-shot compression operations.
  *
  * @author DaPorkchop_
  */
-public interface PInflater extends StreamingContext<PInflater> {
+public interface PInflater extends Context {
     /**
-     * Inflates the given source data into the given destination buffer.
-     * <p>
-     * Rather than expanding the destination buffer if needed, this method will simply abort decompression if not enough space is available. In such a case the
-     * reader/writer indices of both buffers will remain unaffected, however the contents of the destination buffer may be modified.
-     * <p>
-     * This method will implicitly reset the context before the actual decompression. Any previous state will be ignored.
+     * Convenience method, equivalent to {@code decompress(src, dst, null);}.
      *
-     * @param src the {@link ByteBuf} to read data from
-     * @param dst the {@link ByteBuf} to write data to
-     * @return whether or not there was enough space in the destination buffer for the decompressed data
+     * @see #decompress(ByteBuf, ByteBuf, ByteBuf)
      */
-    boolean fullInflate(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException;
-
-    /**
-     * Inflates the given source data into the given destination buffer.
-     * <p>
-     * This will continually grow the destination buffer until there is enough space for inflation to be finished successfully.
-     * <p>
-     * This method will implicitly reset the context before the actual decompression. Any previous state will be ignored.
-     *
-     * @param src the {@link ByteBuf} to read data from
-     * @param dst the {@link ByteBuf} to write data to
-     */
-    default void fullInflateGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException {
-        this.reset().src(src).dst(dst);
-
-        do {
-            this.update(true);
-        } while (src.isReadable() && dst.ensureWritable(8192).isWritable());
-
-        if (!this.finish()) {
-            throw new IllegalStateException();
-        }
+    default boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException {
+        return this.decompress(src, dst, null);
     }
 
-    @Override
-    PInflater update(boolean flush) throws ContextFinishedException, ContextFinishingException;
-
-    @Override
-    boolean finish() throws ContextFinishedException;
+    /**
+     * Decompresses the given compressed data into the given destination buffer.
+     * <p>
+     * If the destination buffer does not have enough space writable for the decompressed data, the operation will fail and both buffer's indices will remain
+     * unchanged, however the destination buffer's contents may be modified.
+     * <p>
+     * In either case, the indices of the dictionary buffer remain unaffected.
+     *
+     * @param src the {@link ByteBuf} to read compressed data from
+     * @param dst the {@link ByteBuf} to write decompressed data to
+     * @param dict the (possibly {@code null}) {@link ByteBuf} containing the dictionary to be used for decompression
+     * @return whether or not decompression was successful. If {@code false}, the destination buffer was too small for the decompressed data
+     */
+    boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) throws InvalidBufferTypeException, DictionaryNotAllowedException;
 }

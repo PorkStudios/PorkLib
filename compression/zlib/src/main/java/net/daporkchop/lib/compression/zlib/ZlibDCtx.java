@@ -20,14 +20,14 @@
 
 package net.daporkchop.lib.compression.zlib;
 
-import net.daporkchop.lib.compression.context.DCtx;
+import net.daporkchop.lib.compression.context.PInflater;
 
 /**
- * An extension of {@link DCtx} for {@link Zlib}.
+ * An extension of {@link PInflater} for {@link Zlib}.
  *
  * @author DaPorkchop_
  */
-public interface ZlibDCtx extends DCtx {
+public interface ZlibDCtx extends PInflater {
     /**
      * @return the configured wrapping mode
      */

@@ -20,14 +20,14 @@
 
 package net.daporkchop.lib.compression.zlib;
 
-import net.daporkchop.lib.compression.context.CCtx;
+import net.daporkchop.lib.compression.context.PDeflater;
 
 /**
- * An extension of {@link CCtx} for {@link Zlib}.
+ * An extension of {@link PDeflater} for {@link Zlib}.
  *
  * @author DaPorkchop_
  */
-public interface ZlibCCtx extends CCtx {
+public interface ZlibCCtx extends PDeflater {
     /**
      * @return the configured strategy
      */

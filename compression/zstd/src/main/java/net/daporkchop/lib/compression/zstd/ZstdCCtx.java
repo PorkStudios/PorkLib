@@ -22,7 +22,7 @@ package net.daporkchop.lib.compression.zstd;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.compression.context.CCtx;
+import net.daporkchop.lib.compression.context.PDeflater;
 import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
 import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
 
@@ -33,14 +33,14 @@ import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
  *
  * @author DaPorkchop_
  */
-public interface ZstdCCtx extends CCtx {
+public interface ZstdCCtx extends PDeflater {
     @Override
     ZstdProvider provider();
 
     /**
      * Compresses the given source data into the given destination buffer at the configured Zstd level.
      *
-     * @see CCtx#compress(ByteBuf, ByteBuf)
+     * @see PDeflater#compress(ByteBuf, ByteBuf)
      */
     @Override
     default boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException {
@@ -59,7 +59,7 @@ public interface ZstdCCtx extends CCtx {
     /**
      * Compresses the given source data into the given destination buffer at the configured Zstd level using the given dictionary.
      *
-     * @see CCtx#compress(ByteBuf, ByteBuf, ByteBuf)
+     * @see PDeflater#compress(ByteBuf, ByteBuf, ByteBuf)
      */
     @Override
     default boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) throws InvalidBufferTypeException, DictionaryNotAllowedException {

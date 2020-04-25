@@ -21,7 +21,7 @@
 package net.daporkchop.lib.compression.zstd;
 
 import net.daporkchop.lib.common.misc.refcount.RefCounted;
-import net.daporkchop.lib.compression.provider.CompressionProvider;
+import net.daporkchop.lib.compression.CompressionProvider;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 /**

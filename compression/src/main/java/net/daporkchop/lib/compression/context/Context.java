@@ -20,7 +20,7 @@
 
 package net.daporkchop.lib.compression.context;
 
-import net.daporkchop.lib.compression.provider.CompressionProvider;
+import net.daporkchop.lib.compression.CompressionProvider;
 import net.daporkchop.lib.natives.util.BufferTyped;
 import net.daporkchop.lib.unsafe.capability.Releasable;
 

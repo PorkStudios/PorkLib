@@ -21,7 +21,7 @@
 package net.daporkchop.lib.compression.util.exception;
 
 import lombok.NonNull;
-import net.daporkchop.lib.compression.provider.CompressionProvider;
+import net.daporkchop.lib.compression.CompressionProvider;
 
 /**
  * Thrown when an invalid compression level is given.

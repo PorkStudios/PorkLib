@@ -22,7 +22,7 @@ package net.daporkchop.lib.compression.zstd;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.compression.context.DCtx;
+import net.daporkchop.lib.compression.context.PInflater;
 import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
 
 /**
@@ -32,7 +32,7 @@ import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
  *
  * @author DaPorkchop_
  */
-public interface ZstdDCtx extends DCtx {
+public interface ZstdDCtx extends PInflater {
     @Override
     ZstdProvider provider();
 

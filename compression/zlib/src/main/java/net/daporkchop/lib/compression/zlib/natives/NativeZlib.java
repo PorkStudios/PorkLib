@@ -20,9 +20,15 @@
 
 package net.daporkchop.lib.compression.zlib.natives;
 
+import lombok.NonNull;
+import net.daporkchop.lib.compression.context.PDeflater;
+import net.daporkchop.lib.compression.context.PInflater;
 import net.daporkchop.lib.compression.zlib.ZlibDeflater;
 import net.daporkchop.lib.compression.zlib.ZlibInflater;
+import net.daporkchop.lib.compression.zlib.ZlibMode;
 import net.daporkchop.lib.compression.zlib.ZlibProvider;
+import net.daporkchop.lib.compression.zlib.options.ZlibDeflaterOptions;
+import net.daporkchop.lib.compression.zlib.options.ZlibInflaterOptions;
 import net.daporkchop.lib.natives.impl.NativeFeature;
 
 /**
@@ -40,25 +46,27 @@ public final class NativeZlib extends NativeFeature<ZlibProvider> implements Zli
     }
 
     @Override
-    public native long compressBoundLong(long srcSize, int mode);
-
-    @Override
-    public ZlibDeflater compressionContext(int level, int strategy, int mode) {
-        return new NativeZlibDeflater(this, level, strategy, mode);
+    public long compressBoundLong(long srcSize, @NonNull ZlibMode mode) {
+        return 0;
     }
 
     @Override
-    public ZlibInflater decompressionContext(int mode) {
-        return new NativeZlibInflater(this, mode);
+    public ZlibDeflaterOptions defaultDeflaterOptions() {
+        return null;
     }
 
     @Override
-    public ZlibDeflater deflater(int level, int strategy, int mode) {
-        return new NativeZlibDeflater(this, level, strategy, mode);
+    public ZlibInflaterOptions defaultInflaterOptions() {
+        return null;
     }
 
     @Override
-    public ZlibInflater inflater(int mode) {
-        return new NativeZlibInflater(this, mode);
+    public PDeflater deflater(@NonNull ZlibDeflaterOptions options) {
+        return null;
+    }
+
+    @Override
+    public PInflater inflater(@NonNull ZlibInflaterOptions options) {
+        return null;
     }
 }

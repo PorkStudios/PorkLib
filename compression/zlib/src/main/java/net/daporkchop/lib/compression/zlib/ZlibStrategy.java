@@ -18,31 +18,23 @@
  *
  */
 
-package net.daporkchop.lib.compression.zlib.natives;
-
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.compression.zlib.ZlibDeflater;
+package net.daporkchop.lib.compression.zlib;
 
 /**
+ * The different Zlib encoding strategies.
+ *
  * @author DaPorkchop_
  */
-@Getter
-@Accessors(fluent = true)
-final class NativeZlibDeflater implements ZlibDeflater {
-    private final int strategy;
-    private final int mode;
+public enum ZlibStrategy {
+    DEFAULT,
+    FILTERED,
+    HUFFMAN,
+    RLE,
+    FIXED;
 
-    NativeZlibDeflater(@NonNull NativeZlib provider, int level, int strategy, int mode) {
-        super(provider, provider.deflater(level, strategy, mode), level);
+    private static final ZlibStrategy[] VALUES = values();
 
-        this.strategy = strategy;
-        this.mode = mode;
-    }
-
-    @Override
-    public boolean hasDict() {
-        return true;
+    public static ZlibStrategy fromOrdinal(int ordinal)   {
+        return VALUES[ordinal];
     }
 }

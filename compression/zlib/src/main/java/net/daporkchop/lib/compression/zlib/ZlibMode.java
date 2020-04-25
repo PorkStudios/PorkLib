@@ -18,45 +18,36 @@
  *
  */
 
-package net.daporkchop.lib.compression.option;
-
-import net.daporkchop.lib.compression.CompressionProvider;
+package net.daporkchop.lib.compression.zlib;
 
 /**
- * Base interface for options used by deflaters and inflaters.
- * <p>
- * All implementations must be immutable.
+ * The different Zlib wrapping modes.
  *
  * @author DaPorkchop_
- * @see DeflaterOptions
- * @see InflaterOptions
  */
-interface ContextOptions<I extends ContextOptions<I, B, P>, B extends ContextOptions.Builder<B, I, P>, P extends CompressionProvider<P, ?, ?, ?, ?>> {
+public enum ZlibMode {
     /**
-     * @return the {@link CompressionProvider} that this options instance belongs to
+     * DEFLATE with 6-byte Zlib header
      */
-    P provider();
+    ZLIB,
+    /**
+     * DEFLATE with 18-byte Gzip header
+     */
+    GZIP,
+    /**
+     * Raw DEFLATE output (no header)
+     */
+    RAW,
+    /**
+     * Automatically detects whether the input data has a Zlib or Gzip header.
+     * <p>
+     * May only be used for decompression.
+     */
+    AUTO;
 
-    /**
-     * Creates a new builder instance, pre-configured using these options.
-     *
-     * @return a new builder instance, pre-configured using these options
-     */
-    B builder();
+    private static final ZlibMode[] VALUES = values();
 
-    /**
-     * Builder interface for constructing {@link ContextOptions} instances.
-     *
-     * @author DaPorkchop_
-     * @see DeflaterOptions.Builder
-     * @see InflaterOptions.Builder
-     */
-    interface Builder<I extends Builder<I, O, P>, O extends ContextOptions<O, I, P>, P extends CompressionProvider<P, ?, ?, ?, ?>> {
-        /**
-         * Creates an instance of {@link ContextOptions} using this builder's currently configured options.
-         *
-         * @return an instance of {@link ContextOptions} containing the options currently configured in this builder
-         */
-        O build();
+    public static ZlibMode fromOrdinal(int ordinal)   {
+        return VALUES[ordinal];
     }
 }

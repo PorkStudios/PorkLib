@@ -18,49 +18,43 @@
  *
  */
 
-package net.daporkchop.lib.compression.zlib.java;
+package net.daporkchop.lib.compression.zlib.options;
 
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.compression.context.PDeflater;
-import net.daporkchop.lib.compression.context.PInflater;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.compression.zlib.Zlib;
 import net.daporkchop.lib.compression.zlib.ZlibMode;
 import net.daporkchop.lib.compression.zlib.ZlibProvider;
-import net.daporkchop.lib.compression.zlib.options.ZlibDeflaterOptions;
-import net.daporkchop.lib.compression.zlib.options.ZlibInflaterOptions;
-import net.daporkchop.lib.natives.impl.NativeFeature;
+import net.daporkchop.lib.compression.zlib.ZlibStrategy;
+
+import static net.daporkchop.lib.common.util.PValidation.*;
+import static net.daporkchop.lib.common.util.PorkUtil.*;
 
 /**
  * @author DaPorkchop_
  */
-//TODO: implement this
-public final class JavaZlib extends NativeFeature<ZlibProvider> implements ZlibProvider {
-    @Override
-    public boolean directAccepted() {
-        throw new UnsupportedOperationException();
-    }
+@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
+@Getter
+@Accessors(fluent = true)
+abstract class ZlibOptions {
+    protected final ZlibProvider provider;
 
-    @Override
-    public long compressBoundLong(long srcSize, @NonNull ZlibMode mode) {
-        throw new UnsupportedOperationException();
-    }
+    protected final ZlibMode mode;
 
-    @Override
-    public ZlibDeflaterOptions defaultDeflaterOptions() {
-        throw new UnsupportedOperationException();
-    }
+    @RequiredArgsConstructor
+    @Getter
+    static abstract class Builder<I extends Builder<I>> {
+        @NonNull
+        protected final ZlibProvider provider;
 
-    @Override
-    public ZlibInflaterOptions defaultInflaterOptions() {
-        throw new UnsupportedOperationException();
-    }
+        protected ZlibMode mode = ZlibMode.ZLIB;
 
-    @Override
-    public PDeflater deflater(@NonNull ZlibDeflaterOptions options) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public PInflater inflater(@NonNull ZlibInflaterOptions options) {
-        throw new UnsupportedOperationException();
+        public I mode(@NonNull ZlibMode mode) {
+            this.mode = mode;
+            return uncheckedCast(this);
+        }
     }
 }

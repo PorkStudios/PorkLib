@@ -23,7 +23,6 @@ package net.daporkchop.lib.compression.zlib.natives;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.compression.util.StreamingWrapperDCtx;
 import net.daporkchop.lib.compression.zlib.ZlibInflater;
 
 /**
@@ -31,7 +30,7 @@ import net.daporkchop.lib.compression.zlib.ZlibInflater;
  */
 @Getter
 @Accessors(fluent = true)
-final class NativeZlibInflater extends StreamingWrapperDCtx implements ZlibInflater {
+final class NativeZlibInflater implements ZlibInflater {
     private final int mode;
 
     NativeZlibInflater(@NonNull NativeZlib provider, int mode) {

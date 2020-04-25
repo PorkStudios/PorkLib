@@ -12,18 +12,10 @@ extern "C" {
 
 /*
  * Class:     net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater
- * Method:    load
- * Signature: ()V
- */
-JNIEXPORT void JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_load
-  (JNIEnv *, jclass);
-
-/*
- * Class:     net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater
  * Method:    allocateCtx
  * Signature: (III)J
  */
-JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_allocateCtx
+JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_allocate0
   (JNIEnv *, jclass, jint, jint, jint);
 
 /*
@@ -31,7 +23,7 @@ JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZ
  * Method:    releaseCtx
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_releaseCtx
+JNIEXPORT void JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_release0
   (JNIEnv *, jclass, jlong);
 
 /*

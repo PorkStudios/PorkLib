@@ -28,9 +28,13 @@ import net.daporkchop.lib.natives.impl.Feature;
 import net.daporkchop.lib.natives.impl.NativeFeature;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.function.Supplier;
+
+import static net.daporkchop.lib.common.util.PorkUtil.*;
 
 /**
  * A container around multiple implementations of a {@link Feature}.
@@ -52,42 +56,38 @@ public final class FeatureBuilder<F extends Feature<F>> {
     @NonNull
     private final Class<?> currentClass;
 
-    public FeatureBuilder<F> addNative(@NonNull String className, @NonNull String libName) {
+    public synchronized FeatureBuilder<F> addNative(@NonNull String className, @NonNull String libName) {
         return this.addNative(className, libName, this.currentClass.getClassLoader());
     }
 
-    public FeatureBuilder<F> addNative(@NonNull String className, @NonNull String libName, @NonNull Class<?> currentClass) {
+    public synchronized FeatureBuilder<F> addNative(@NonNull String className, @NonNull String libName, @NonNull Class<?> currentClass) {
         return this.addNative(className, libName, currentClass.getClassLoader());
     }
 
-    public FeatureBuilder<F> addNative(@NonNull String className, @NonNull String libName, @NonNull ClassLoader loader) {
+    public synchronized FeatureBuilder<F> addNative(@NonNull String className, @NonNull String libName, @NonNull ClassLoader loader) {
         if (NativeFeature.AVAILABLE) {
             this.implementations.add(() -> {
-                try {
-                    Class<F> clazz = PorkUtil.uninitializedClassForName(className, loader);
-                    return NativeFeature.loadNativeLibrary(libName, clazz) ? PUnsafe.allocateInstance(clazz) : null;
-                } catch (Exception e)    {
-                    return null;
-                }
+                NativeFeature.LoadResult result = NativeFeature.loadNativeLibrary(libName, className, loader);
+                return result == NativeFeature.LoadResult.SUCCESS ? newInstance(classForName(className, loader)) : null;
             });
         }
         return this;
     }
 
-    public FeatureBuilder<F> addJava(@NonNull String className) {
+    public synchronized FeatureBuilder<F> addJava(@NonNull String className) {
         return this.addJava(className, this.currentClass.getClassLoader());
     }
 
-    public FeatureBuilder<F> addJava(@NonNull String className, @NonNull Class<?> currentClass) {
+    public synchronized FeatureBuilder<F> addJava(@NonNull String className, @NonNull Class<?> currentClass) {
         return this.addJava(className, currentClass.getClassLoader());
     }
 
-    public FeatureBuilder<F> addJava(@NonNull String className, @NonNull ClassLoader loader) {
-        this.implementations.add(() -> PUnsafe.allocateInstance(PorkUtil.uninitializedClassForName(className, loader)));
+    public synchronized FeatureBuilder<F> addJava(@NonNull String className, @NonNull ClassLoader loader) {
+        this.implementations.add(() -> newInstance(classForName(className, loader)));
         return this;
     }
 
-    public F build() {
+    public synchronized F build() {
         for (Supplier<F> implementation : this.implementations) {
             F value = implementation.get();
             if (value != null) {

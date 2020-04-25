@@ -46,7 +46,6 @@ final class NativeZlibInflater extends AbstractRefCounted.Synchronized implement
 
     @Override
     protected void doRelease() {
-
     }
 
     @Override

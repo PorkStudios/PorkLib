@@ -23,11 +23,13 @@ package net.daporkchop.lib.compression.zlib.natives;
 import io.netty.buffer.ByteBuf;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
 import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
 import net.daporkchop.lib.compression.zlib.ZlibDeflater;
 import net.daporkchop.lib.compression.zlib.options.ZlibDeflaterOptions;
+import net.daporkchop.lib.unsafe.PCleaner;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 
@@ -36,20 +38,42 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  */
 @Accessors(fluent = true)
 final class NativeZlibDeflater extends AbstractRefCounted.Synchronized implements ZlibDeflater {
+    private static native long allocate0(int level, int mode, int strategy);
+    private static native void release0(long ctx);
+    private static native boolean compress0(long src, long srcLen, long dst, long dstLen, long dict, long dictLen);
+
+    protected final long ctx;
+
     @Getter
     protected final ZlibDeflaterOptions options;
+
+    protected final PCleaner cleaner;
 
     NativeZlibDeflater(@NonNull ZlibDeflaterOptions options) {
         checkArg(options.provider() instanceof NativeZlib, "provider must be %s!", NativeZlib.class);
         this.options = options;
+
+        this.ctx = allocate0(options.level(), options.mode().ordinal(), options.strategy().ordinal());
+        this.cleaner = PCleaner.cleaner(this, new Releaser(this.ctx));
     }
 
     @Override
     protected void doRelease() {
+        checkState(this.cleaner.clean(), "already cleaned?!?");
     }
 
     @Override
     public boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) throws DictionaryNotAllowedException {
         return false;
+    }
+
+    @RequiredArgsConstructor
+    private static final class Releaser implements Runnable {
+        private final long ctx;
+
+        @Override
+        public void run() {
+            release0(this.ctx);
+        }
     }
 }

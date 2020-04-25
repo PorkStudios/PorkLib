@@ -20,6 +20,7 @@
 
 package compression.zlib;
 
+import net.daporkchop.lib.compression.context.PDeflater;
 import net.daporkchop.lib.compression.zlib.Zlib;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,9 +34,13 @@ public class ZlibTest {
     @Before
     public void ensureNative() {
         checkState(Zlib.PROVIDER.isNative());
+        checkState(Zlib.PROVIDER.compressBound(10) > 5);
     }
 
     @Test
     public void testCompression() {
+        try (PDeflater deflater = Zlib.PROVIDER.deflater()) {
+            System.out.println(deflater.getClass());
+        }
     }
 }

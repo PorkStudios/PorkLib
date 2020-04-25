@@ -1,82 +1,48 @@
-#include <common.h>
+#include "pork-zlib.h"
 #include "NativeZlibDeflater.h"
 
-#include <lib-zlib/zlib-ng.h>
+struct Context {
+    jlong read;
+    jlong written;
+    zng_stream stream;
+};
 
-static jfieldID ctxID;
-static jfieldID readBytesID;
-static jfieldID writtenBytesID;
-static jfieldID resetID;
-static jfieldID finishedID;
-
-__attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_load
-        (JNIEnv* env, jclass cla)  {
-    ctxID          = env->GetFieldID(cla, "ctx", "J");
-    readBytesID    = env->GetFieldID(cla, "readBytes", "I");
-    writtenBytesID = env->GetFieldID(cla, "writtenBytes", "I");
-    resetID        = env->GetFieldID(cla, "reset", "Z");
-    finishedID     = env->GetFieldID(cla, "finished", "Z");
-}
-
-__attribute__((visibility("default"))) jlong JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_allocateCtx
+__attribute__((visibility("default"))) jlong JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_allocate0
         (JNIEnv* env, jclass cla, jint level, jint strategy, jint mode)   {
-    if (level < -1 || level > 9) {
-        throwException(env, "Invalid level!", level);
-        return 0;
-    } else if (strategy < 0 || strategy > 4)    {
-        throwException(env, "Invalid strategy!", strategy);
-        return 0;
-    }
+    Context* ctx = new Context();
 
-    int windowBits;
-    switch (mode)   {
-        case 0: //zlib
-            windowBits = 15;
-            break;
-        case 1: //gzip
-            windowBits = 15 + 16;
-            break;
-        case 2: //raw
-            windowBits = -15;
-            break;
-        default:
-            return throwException(env, "Invalid deflater mode!", mode);
-    }
-
-    zng_stream* stream = (zng_stream*) new char[sizeof(zng_stream)]();
-
-    int ret = zng_deflateInit2(stream, level, Z_DEFLATED, windowBits, 8, strategy);
+    int ret = zng_deflateInit2(&ctx->stream, level, Z_DEFLATED, windowBits(mode), 8, strategy);
 
     if (ret != Z_OK)    {
-        const char* msg = stream->msg;
-        delete stream;
+        const char* msg = ctx->stream.msg;
+        delete ctx;
         throwException(env, msg == nullptr ? "Couldn't init deflater!" : msg, ret);
         return 0;
     }
 
-    return (jlong) stream;
+    return (jlong) ctx;
 }
 
-__attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_releaseCtx
-        (JNIEnv* env, jclass cla, jlong ctx)   {
-    zng_stream* stream = (zng_stream*) ctx;
-    int ret = zng_deflateReset(stream);
+__attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_release0
+        (JNIEnv* env, jclass cla, jlong _ctx)   {
+    Context* ctx = (Context*) _ctx;
+    int ret = zng_deflateReset(&ctx->stream);
 
     if (ret != Z_OK)    {
-        throwException(env, stream->msg == nullptr ? "Couldn't reset deflater!" : stream->msg, ret);
+        throwException(env, ctx->stream.msg == nullptr ? "Couldn't reset deflater!" : ctx->stream.msg, ret);
         return;
     }
 
-    ret = zng_deflateEnd(stream);
-    const char* msg = stream->msg;
-    delete stream;
+    ret = zng_deflateEnd(&ctx->stream);
+    const char* msg = ctx->stream.msg;
+    delete ctx;
 
     if (ret != Z_OK)    {
         throwException(env, msg == nullptr ? "Couldn't end deflater!" : msg, ret);
     }
 }
 
-__attribute__((visibility("default"))) jboolean JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_doFullDeflate
+/*__attribute__((visibility("default"))) jboolean JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_doFullDeflate
         (JNIEnv* env, jobject obj, jlong srcAddr, jint srcSize, jlong dstAddr, jint dstSize)   {
     zng_stream* stream = (zng_stream*) env->GetLongField(obj, ctxID);
 
@@ -170,4 +136,4 @@ __attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_comp
         throwException(env, stream->msg == nullptr ? "Couldn't set deflater dictionary!" : stream->msg, ret);
         return;
     }
-}
+}*/

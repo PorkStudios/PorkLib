@@ -1,6 +1,20 @@
 #include "pork-zlib.h"
 #include "NativeZlib.h"
 
+int windowBits(jint mode)  {
+    switch (mode)   {
+        case Z_MODE_ZLIB:
+            return 15;
+        case Z_MODE_GZIP:
+            return 15 | 16;
+        case Z_MODE_RAW:
+            return -15;
+        case Z_MODE_AUTO:
+            return 15 | 32;
+    }
+    return 0;
+}
+
 __attribute__((visibility("default"))) jlong JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlib_compressBound0
         (JNIEnv* env, jclass cla, jlong srcSize, jint mode)   {
     long conservativeUpperBound = zng_deflateBound(nullptr, srcSize);

@@ -1,7 +1,5 @@
-#include <common.h>
+#include "pork-zlib.h"
 #include "NativeZlibInflater.h"
-
-#include <lib-zlib/zlib-ng.h>
 
 static jfieldID ctxID;
 static jfieldID readBytesID;
@@ -20,28 +18,9 @@ __attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_comp
 
 __attribute__((visibility("default"))) jlong JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibInflater_allocateCtx
         (JNIEnv* env, jclass cla, jint mode)   {
-    int windowBits;
-    switch (mode)   {
-        case 0: //zlib
-            windowBits = 15;
-            break;
-        case 1: //gzip
-            windowBits = 15 + 16;
-            break;
-        case 2: //raw
-            windowBits = -15;
-            break;
-        case 3: //auto
-            windowBits = 15 + 32;
-            break;
-        default:
-            throwException(env, "Invalid inflater mode!", mode);
-            return 0;
-    }
-
     zng_stream* stream = (zng_stream*) new char[sizeof(zng_stream)]();
 
-    int ret = zng_inflateInit2(stream, windowBits);
+    int ret = zng_inflateInit2(stream, windowBits(mode));
 
     if (ret != Z_OK)    {
         const char* msg = stream->msg;

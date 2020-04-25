@@ -12,11 +12,11 @@ extern "C" {
 
 /*
  * Class:     net_daporkchop_lib_compression_zlib_natives_NativeZlib
- * Method:    compressBoundLong
+ * Method:    compressBound0
  * Signature: (JI)J
  */
-JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlib_compressBoundLong
-  (JNIEnv *, jobject, jlong, jint);
+JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlib_compressBound0
+  (JNIEnv *, jclass, jlong, jint);
 
 #ifdef __cplusplus
 }

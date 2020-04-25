@@ -20,34 +20,44 @@
 
 package net.daporkchop.lib.compression.zlib;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+
 /**
  * The different Zlib wrapping modes.
  *
  * @author DaPorkchop_
  */
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
 public enum ZlibMode {
     /**
      * DEFLATE with 6-byte Zlib header
      */
-    ZLIB,
+    ZLIB(true, true),
     /**
      * DEFLATE with 18-byte Gzip header
      */
-    GZIP,
+    GZIP(true, true),
     /**
      * Raw DEFLATE output (no header)
      */
-    RAW,
+    RAW(true, true),
     /**
      * Automatically detects whether the input data has a Zlib or Gzip header.
      * <p>
      * May only be used for decompression.
      */
-    AUTO;
+    AUTO(false, true);
 
     private static final ZlibMode[] VALUES = values();
 
     public static ZlibMode fromOrdinal(int ordinal)   {
         return VALUES[ordinal];
     }
+
+    protected final boolean compression;
+    protected final boolean decompression;
 }

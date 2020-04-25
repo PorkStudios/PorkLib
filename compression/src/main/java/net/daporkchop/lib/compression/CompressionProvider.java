@@ -26,7 +26,6 @@ import net.daporkchop.lib.compression.context.PDeflater;
 import net.daporkchop.lib.compression.context.PInflater;
 import net.daporkchop.lib.compression.option.DeflaterOptions;
 import net.daporkchop.lib.compression.option.InflaterOptions;
-import net.daporkchop.lib.natives.util.BufferTyped;
 
 /**
  * An implementation of a compression algorithm.
@@ -36,15 +35,12 @@ import net.daporkchop.lib.natives.util.BufferTyped;
  *
  * @author DaPorkchop_
  */
-public interface CompressionProvider<I extends CompressionProvider<I, DO, DOB, IO, IOB>, DO extends DeflaterOptions<DO, DOB, I>, DOB extends DeflaterOptions.Builder<DOB, DO, I>, IO extends InflaterOptions<IO, IOB, I>, IOB extends InflaterOptions.Builder<IOB, IO, I>> extends BufferTyped {
+public interface CompressionProvider<I extends CompressionProvider<I, DO, DOB, IO, IOB>, DO extends DeflaterOptions<DO, DOB, I>, DOB extends DeflaterOptions.Builder<DOB, DO, I>, IO extends InflaterOptions<IO, IOB, I>, IOB extends InflaterOptions.Builder<IOB, IO, I>> {
     //
     //
     // info methods
     //
     //
-
-    @Override
-    boolean directAccepted();
 
     /**
      * @return the compression level with the worst compression ratio in exchange for the shortest compression times

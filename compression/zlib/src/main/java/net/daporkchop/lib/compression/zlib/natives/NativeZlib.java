@@ -20,53 +20,46 @@
 
 package net.daporkchop.lib.compression.zlib.natives;
 
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.compression.context.PDeflater;
 import net.daporkchop.lib.compression.context.PInflater;
-import net.daporkchop.lib.compression.zlib.ZlibDeflater;
-import net.daporkchop.lib.compression.zlib.ZlibInflater;
 import net.daporkchop.lib.compression.zlib.ZlibMode;
 import net.daporkchop.lib.compression.zlib.ZlibProvider;
 import net.daporkchop.lib.compression.zlib.options.ZlibDeflaterOptions;
 import net.daporkchop.lib.compression.zlib.options.ZlibInflaterOptions;
 import net.daporkchop.lib.natives.impl.NativeFeature;
 
+import static net.daporkchop.lib.common.util.PValidation.*;
+
 /**
+ * Native implementation of {@link ZlibProvider}.
+ *
  * @author DaPorkchop_
  */
+@Getter
+@Accessors(fluent = true)
 public final class NativeZlib extends NativeFeature<ZlibProvider> implements ZlibProvider {
-    static {
-        NativeZlibDeflater.load();
-        NativeZlibInflater.load();
-    }
+    protected static native long compressBound0(long srcSize, int mode);
 
-    @Override
-    public boolean directAccepted() {
-        return true;
-    }
+    protected final ZlibDeflaterOptions defaultDeflaterOptions = new ZlibDeflaterOptions.Builder(this).build();
+    protected final ZlibInflaterOptions defaultInflaterOptions = new ZlibInflaterOptions.Builder(this).build();
 
     @Override
     public long compressBoundLong(long srcSize, @NonNull ZlibMode mode) {
-        return 0;
-    }
+        checkArg(mode.compression(), "Zlib mode %s cannot be usd for compression!", mode);
 
-    @Override
-    public ZlibDeflaterOptions defaultDeflaterOptions() {
-        return null;
-    }
-
-    @Override
-    public ZlibInflaterOptions defaultInflaterOptions() {
-        return null;
+        return compressBound0(srcSize, mode.ordinal());
     }
 
     @Override
     public PDeflater deflater(@NonNull ZlibDeflaterOptions options) {
-        return null;
+        return new NativeZlibDeflater(options);
     }
 
     @Override
     public PInflater inflater(@NonNull ZlibInflaterOptions options) {
-        return null;
+        return new NativeZlibInflater(options);
     }
 }

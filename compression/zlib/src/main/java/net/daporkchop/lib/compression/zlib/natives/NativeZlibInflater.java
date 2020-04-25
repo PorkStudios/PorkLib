@@ -20,27 +20,37 @@
 
 package net.daporkchop.lib.compression.zlib.natives;
 
+import io.netty.buffer.ByteBuf;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
+import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
 import net.daporkchop.lib.compression.zlib.ZlibInflater;
+import net.daporkchop.lib.compression.zlib.options.ZlibInflaterOptions;
+
+import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
  * @author DaPorkchop_
  */
-@Getter
 @Accessors(fluent = true)
-final class NativeZlibInflater implements ZlibInflater {
-    private final int mode;
+final class NativeZlibInflater extends AbstractRefCounted.Synchronized implements ZlibInflater {
+    @Getter
+    protected final ZlibInflaterOptions options;
 
-    NativeZlibInflater(@NonNull NativeZlib provider, int mode) {
-        super(provider, provider.inflater(mode));
-
-        this.mode = mode;
+    NativeZlibInflater(@NonNull ZlibInflaterOptions options) {
+        checkArg(options.provider() instanceof NativeZlib, "provider must be %s!", NativeZlib.class);
+        this.options = options;
     }
 
     @Override
-    public boolean hasDict() {
-        return true;
+    protected void doRelease() {
+
+    }
+
+    @Override
+    public boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) throws DictionaryNotAllowedException {
+        return false;
     }
 }

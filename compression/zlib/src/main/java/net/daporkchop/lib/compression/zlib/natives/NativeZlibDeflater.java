@@ -20,29 +20,36 @@
 
 package net.daporkchop.lib.compression.zlib.natives;
 
+import io.netty.buffer.ByteBuf;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
+import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
 import net.daporkchop.lib.compression.zlib.ZlibDeflater;
+import net.daporkchop.lib.compression.zlib.options.ZlibDeflaterOptions;
+
+import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
  * @author DaPorkchop_
  */
-@Getter
 @Accessors(fluent = true)
-final class NativeZlibDeflater implements ZlibDeflater {
-    private final int strategy;
-    private final int mode;
+final class NativeZlibDeflater extends AbstractRefCounted.Synchronized implements ZlibDeflater {
+    @Getter
+    protected final ZlibDeflaterOptions options;
 
-    NativeZlibDeflater(@NonNull NativeZlib provider, int level, int strategy, int mode) {
-        super(provider, provider.deflater(level, strategy, mode), level);
-
-        this.strategy = strategy;
-        this.mode = mode;
+    NativeZlibDeflater(@NonNull ZlibDeflaterOptions options) {
+        checkArg(options.provider() instanceof NativeZlib, "provider must be %s!", NativeZlib.class);
+        this.options = options;
     }
 
     @Override
-    public boolean hasDict() {
-        return true;
+    protected void doRelease() {
+    }
+
+    @Override
+    public boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) throws DictionaryNotAllowedException {
+        return false;
     }
 }

@@ -21,6 +21,7 @@
 package net.daporkchop.lib.compression.zlib;
 
 import net.daporkchop.lib.compression.context.PInflater;
+import net.daporkchop.lib.compression.zlib.options.ZlibInflaterOptions;
 
 /**
  * An extension of {@link PInflater} for {@link Zlib}.
@@ -28,10 +29,8 @@ import net.daporkchop.lib.compression.context.PInflater;
  * @author DaPorkchop_
  */
 public interface ZlibInflater extends PInflater {
-    /**
-     * @return the configured wrapping mode
-     */
-    int mode();
+    @Override
+    ZlibInflaterOptions options();
 
     @Override
     default boolean hasDict() {

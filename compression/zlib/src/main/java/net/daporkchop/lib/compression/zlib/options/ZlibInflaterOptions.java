@@ -46,7 +46,7 @@ public final class ZlibInflaterOptions extends ZlibOptions implements InflaterOp
 
         @Override
         public ZlibInflaterOptions build() {
-            return null;
+            return new ZlibInflaterOptions(this.provider, this.mode);
         }
     }
 }

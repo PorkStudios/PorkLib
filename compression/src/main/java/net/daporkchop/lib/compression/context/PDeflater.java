@@ -22,8 +22,8 @@ package net.daporkchop.lib.compression.context;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
+import net.daporkchop.lib.compression.option.DeflaterOptions;
 import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
-import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
 
 /**
  * A context for doing repeated one-shot compression operations.
@@ -36,7 +36,7 @@ public interface PDeflater extends Context {
      *
      * @see #compress(ByteBuf, ByteBuf, ByteBuf)
      */
-    default boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException {
+    default boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst) {
         return this.compress(src, dst, null);
     }
 
@@ -54,10 +54,10 @@ public interface PDeflater extends Context {
      * @return whether or not compression was successful. If {@code false}, the destination buffer was too small for the compressed data
      * @throws DictionaryNotAllowedException if the dictionary buffer is not {@code null} and this context does not allow use of a dictionary
      */
-    boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) throws InvalidBufferTypeException, DictionaryNotAllowedException;
+    boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) throws DictionaryNotAllowedException;
 
     /**
-     * @return the configured compression level
+     * @return the options that this {@link PDeflater} is configured with
      */
-    int level();
+    DeflaterOptions options();
 }

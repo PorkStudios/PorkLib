@@ -78,7 +78,7 @@ public final class ZlibDeflaterOptions extends ZlibOptions implements DeflaterOp
 
         @Override
         public ZlibDeflaterOptions build() {
-            return null;
+            return new ZlibDeflaterOptions(this.provider, this.mode, this.strategy, this.level);
         }
     }
 }

@@ -21,6 +21,8 @@
 package net.daporkchop.lib.compression.zlib;
 
 import net.daporkchop.lib.compression.context.PDeflater;
+import net.daporkchop.lib.compression.option.DeflaterOptions;
+import net.daporkchop.lib.compression.zlib.options.ZlibDeflaterOptions;
 
 /**
  * An extension of {@link PDeflater} for {@link Zlib}.
@@ -28,15 +30,8 @@ import net.daporkchop.lib.compression.context.PDeflater;
  * @author DaPorkchop_
  */
 public interface ZlibDeflater extends PDeflater {
-    /**
-     * @return the configured strategy
-     */
-    int strategy();
-
-    /**
-     * @return the configured wrapping mode
-     */
-    int mode();
+    @Override
+    ZlibDeflaterOptions options();
 
     @Override
     default boolean hasDict() {

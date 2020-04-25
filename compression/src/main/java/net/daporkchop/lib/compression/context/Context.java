@@ -20,9 +20,7 @@
 
 package net.daporkchop.lib.compression.context;
 
-import net.daporkchop.lib.compression.CompressionProvider;
-import net.daporkchop.lib.natives.util.BufferTyped;
-import net.daporkchop.lib.unsafe.capability.Releasable;
+import net.daporkchop.lib.common.misc.refcount.RefCounted;
 
 /**
  * Base interface for {@link PDeflater} and {@link PDeflater}.
@@ -31,12 +29,7 @@ import net.daporkchop.lib.unsafe.capability.Releasable;
  *
  * @author DaPorkchop_
  */
-interface Context extends Releasable, BufferTyped {
-    /**
-     * @return the {@link CompressionProvider} that created this context
-     */
-    CompressionProvider provider();
-
+interface Context extends RefCounted {
     /**
      * @return whether or not this implementation allows use of a dictionary
      */

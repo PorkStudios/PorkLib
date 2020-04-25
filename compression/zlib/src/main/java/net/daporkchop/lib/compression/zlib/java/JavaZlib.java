@@ -35,11 +35,6 @@ import net.daporkchop.lib.natives.impl.NativeFeature;
 //TODO: implement this
 public final class JavaZlib extends NativeFeature<ZlibProvider> implements ZlibProvider {
     @Override
-    public boolean directAccepted() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public long compressBoundLong(long srcSize, @NonNull ZlibMode mode) {
         throw new UnsupportedOperationException();
     }

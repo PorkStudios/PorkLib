@@ -20,14 +20,22 @@
 
 package compression.zlib;
 
+import net.daporkchop.lib.compression.zlib.Zlib;
+import org.junit.Before;
 import org.junit.Test;
+
+import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
  * @author DaPorkchop_
  */
 public class ZlibTest {
-    @Test
-    public void testCompression()   {
+    @Before
+    public void ensureNative() {
+        checkState(Zlib.PROVIDER.isNative());
+    }
 
+    @Test
+    public void testCompression() {
     }
 }

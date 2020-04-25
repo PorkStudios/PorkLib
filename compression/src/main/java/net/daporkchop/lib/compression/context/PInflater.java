@@ -22,8 +22,8 @@ package net.daporkchop.lib.compression.context;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
+import net.daporkchop.lib.compression.option.InflaterOptions;
 import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
-import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
 
 /**
  * A context for doing repeated one-shot compression operations.
@@ -36,7 +36,7 @@ public interface PInflater extends Context {
      *
      * @see #decompress(ByteBuf, ByteBuf, ByteBuf)
      */
-    default boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException {
+    default boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst) {
         return this.decompress(src, dst, null);
     }
 
@@ -48,10 +48,15 @@ public interface PInflater extends Context {
      * <p>
      * In either case, the indices of the dictionary buffer remain unaffected.
      *
-     * @param src the {@link ByteBuf} to read compressed data from
-     * @param dst the {@link ByteBuf} to write decompressed data to
+     * @param src  the {@link ByteBuf} to read compressed data from
+     * @param dst  the {@link ByteBuf} to write decompressed data to
      * @param dict the (possibly {@code null}) {@link ByteBuf} containing the dictionary to be used for decompression
      * @return whether or not decompression was successful. If {@code false}, the destination buffer was too small for the decompressed data
      */
-    boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) throws InvalidBufferTypeException, DictionaryNotAllowedException;
+    boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) throws DictionaryNotAllowedException;
+
+    /**
+     * @return the options that this {@link PInflater} is configured with
+     */
+    InflaterOptions options();
 }

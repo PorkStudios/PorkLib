@@ -20,11 +20,7 @@
 
 package net.daporkchop.lib.compression.zlib;
 
-import io.netty.buffer.ByteBuf;
-import lombok.NonNull;
-import net.daporkchop.lib.compression.CCtx;
-import net.daporkchop.lib.compression.DCtx;
-import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
+import net.daporkchop.lib.compression.context.DCtx;
 
 /**
  * An extension of {@link DCtx} for {@link Zlib}.

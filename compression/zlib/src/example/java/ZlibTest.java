@@ -21,8 +21,8 @@
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import lombok.NonNull;
-import net.daporkchop.lib.compression.PDeflater;
-import net.daporkchop.lib.compression.PInflater;
+import net.daporkchop.lib.compression.context.PDeflater;
+import net.daporkchop.lib.compression.context.PInflater;
 import net.daporkchop.lib.compression.zlib.Zlib;
 
 import java.util.concurrent.ThreadLocalRandom;

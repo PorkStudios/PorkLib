@@ -23,7 +23,7 @@ package net.daporkchop.lib.compression.zstd;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.common.util.PValidation;
-import net.daporkchop.lib.compression.OneShotCompressionProvider;
+import net.daporkchop.lib.compression.provider.OneShotCompressionProvider;
 import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelException;
 import net.daporkchop.lib.compression.zstd.util.exception.ContentSizeUnknownException;
 import net.daporkchop.lib.natives.impl.Feature;

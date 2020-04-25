@@ -18,36 +18,38 @@
  *
  */
 
-package net.daporkchop.lib.compression;
+package net.daporkchop.lib.compression.provider;
 
+import net.daporkchop.lib.compression.context.PDeflater;
+import net.daporkchop.lib.compression.context.PInflater;
 import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelException;
 
 /**
- * An implementation of a compression algorithm that supports one-shot compression via {@link CCtx} and {@link DCtx}.
+ * An implementation of a compression algorithm that supports streaming compression via {@link PDeflater} and {@link PInflater}.
  *
  * @author DaPorkchop_
  */
-public interface OneShotCompressionProvider extends CompressionProvider {
+public interface StreamingCompressionProvider extends CompressionProvider {
     /**
-     * Creates a new {@link CCtx} with the default compression level.
+     * Creates a new {@link PDeflater} with the default compression level.
      *
-     * @see #compressionContext(int)
+     * @see #deflater(int)
      */
-    default CCtx compressionContext() {
-        return this.compressionContext(this.levelDefault());
+    default PDeflater deflater() {
+        return this.deflater(this.levelDefault());
     }
 
     /**
-     * Creates a new {@link CCtx} with the given compression level.
+     * Creates a new {@link PDeflater} with the given compression level.
      *
      * @param level the compression level to use
-     * @return a new {@link CCtx} with the given compression level
+     * @return a new {@link PDeflater} with the given compression level
      * @throws InvalidCompressionLevelException if the given compression level is invalid
      */
-    CCtx compressionContext(int level) throws InvalidCompressionLevelException;
+    PDeflater deflater(int level) throws InvalidCompressionLevelException;
 
     /**
-     * @return a new {@link DCtx}
+     * @return a new {@link PInflater}
      */
-    DCtx decompressionContext();
+    PInflater inflater();
 }

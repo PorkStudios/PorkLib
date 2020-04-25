@@ -18,7 +18,7 @@
  *
  */
 
-package net.daporkchop.lib.compression;
+package net.daporkchop.lib.compression.provider;
 
 import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.natives.util.BufferTyped;

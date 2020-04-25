@@ -18,36 +18,27 @@
  *
  */
 
-package net.daporkchop.lib.compression;
+package net.daporkchop.lib.compression.context;
 
-import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelException;
+import net.daporkchop.lib.compression.provider.CompressionProvider;
+import net.daporkchop.lib.natives.util.BufferTyped;
+import net.daporkchop.lib.unsafe.capability.Releasable;
 
 /**
- * An implementation of a compression algorithm that supports streaming compression via {@link PDeflater} and {@link PInflater}.
+ * Base interface for {@link PDeflater} and {@link PDeflater}.
+ * <p>
+ * Unless explicitly specified, implementations of this class are not safe for use on multiple threads.
  *
  * @author DaPorkchop_
  */
-public interface StreamingCompressionProvider extends CompressionProvider {
+interface Context extends Releasable, BufferTyped {
     /**
-     * Creates a new {@link PDeflater} with the default compression level.
-     *
-     * @see #deflater(int)
+     * @return the {@link CompressionProvider} that created this context
      */
-    default PDeflater deflater() {
-        return this.deflater(this.levelDefault());
-    }
+    CompressionProvider provider();
 
     /**
-     * Creates a new {@link PDeflater} with the given compression level.
-     *
-     * @param level the compression level to use
-     * @return a new {@link PDeflater} with the given compression level
-     * @throws InvalidCompressionLevelException if the given compression level is invalid
+     * @return whether or not this implementation allows use of a dictionary
      */
-    PDeflater deflater(int level) throws InvalidCompressionLevelException;
-
-    /**
-     * @return a new {@link PInflater}
-     */
-    PInflater inflater();
+    boolean hasDict();
 }

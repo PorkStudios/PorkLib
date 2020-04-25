@@ -18,29 +18,38 @@
  *
  */
 
-package net.daporkchop.lib.compression;
+package net.daporkchop.lib.compression.provider;
 
-import io.netty.buffer.ByteBuf;
-import lombok.NonNull;
-import net.daporkchop.lib.natives.util.BufferTyped;
-import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
-import net.daporkchop.lib.unsafe.capability.Releasable;
+import net.daporkchop.lib.compression.context.CCtx;
+import net.daporkchop.lib.compression.context.DCtx;
+import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelException;
 
 /**
- * Base interface for {@link PDeflater} and {@link PDeflater}.
- * <p>
- * Unless explicitly specified, implementations of this class are not safe for use on multiple threads.
+ * An implementation of a compression algorithm that supports one-shot compression via {@link CCtx} and {@link DCtx}.
  *
  * @author DaPorkchop_
  */
-interface Context extends Releasable, BufferTyped {
+public interface OneShotCompressionProvider extends CompressionProvider {
     /**
-     * @return the {@link CompressionProvider} that created this context
+     * Creates a new {@link CCtx} with the default compression level.
+     *
+     * @see #compressionContext(int)
      */
-    CompressionProvider provider();
+    default CCtx compressionContext() {
+        return this.compressionContext(this.levelDefault());
+    }
 
     /**
-     * @return whether or not this implementation allows use of a dictionary
+     * Creates a new {@link CCtx} with the given compression level.
+     *
+     * @param level the compression level to use
+     * @return a new {@link CCtx} with the given compression level
+     * @throws InvalidCompressionLevelException if the given compression level is invalid
      */
-    boolean hasDict();
+    CCtx compressionContext(int level) throws InvalidCompressionLevelException;
+
+    /**
+     * @return a new {@link DCtx}
+     */
+    DCtx decompressionContext();
 }

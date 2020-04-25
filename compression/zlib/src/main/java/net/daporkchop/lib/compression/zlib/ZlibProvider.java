@@ -22,8 +22,8 @@ package net.daporkchop.lib.compression.zlib;
 
 
 import net.daporkchop.lib.common.util.PValidation;
-import net.daporkchop.lib.compression.OneShotCompressionProvider;
-import net.daporkchop.lib.compression.StreamingCompressionProvider;
+import net.daporkchop.lib.compression.provider.OneShotCompressionProvider;
+import net.daporkchop.lib.compression.provider.StreamingCompressionProvider;
 import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelException;
 import net.daporkchop.lib.natives.impl.Feature;
 

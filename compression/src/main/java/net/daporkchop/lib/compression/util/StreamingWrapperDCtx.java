@@ -26,13 +26,10 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.compression.CCtx;
-import net.daporkchop.lib.compression.CompressionProvider;
-import net.daporkchop.lib.compression.DCtx;
-import net.daporkchop.lib.compression.PInflater;
-import net.daporkchop.lib.compression.StreamingCompressionProvider;
+import net.daporkchop.lib.compression.context.DCtx;
+import net.daporkchop.lib.compression.context.PInflater;
+import net.daporkchop.lib.compression.provider.StreamingCompressionProvider;
 import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
-import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelException;
 import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
 import net.daporkchop.lib.unsafe.util.AbstractReleasable;
 

@@ -18,7 +18,7 @@
  *
  */
 
-package net.daporkchop.lib.compression;
+package net.daporkchop.lib.compression.context;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;

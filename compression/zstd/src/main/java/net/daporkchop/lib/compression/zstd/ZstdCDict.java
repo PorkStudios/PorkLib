@@ -20,10 +20,8 @@
 
 package net.daporkchop.lib.compression.zstd;
 
-import io.netty.util.ReferenceCounted;
 import net.daporkchop.lib.common.misc.refcount.RefCounted;
-import net.daporkchop.lib.compression.CompressionProvider;
-import net.daporkchop.lib.unsafe.capability.Releasable;
+import net.daporkchop.lib.compression.provider.CompressionProvider;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 /**

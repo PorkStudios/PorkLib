@@ -20,15 +20,11 @@
 
 package net.daporkchop.lib.compression.zlib.natives;
 
-import io.netty.buffer.ByteBuf;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.compression.PDeflater;
-import net.daporkchop.lib.compression.util.StreamingWrapperCCtx;
 import net.daporkchop.lib.compression.util.StreamingWrapperDCtx;
 import net.daporkchop.lib.compression.zlib.ZlibDCtx;
-import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
 
 /**
  * @author DaPorkchop_

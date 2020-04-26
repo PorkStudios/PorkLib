@@ -4,8 +4,34 @@
 struct Context {
     jlong read;
     jlong written;
+    jlong session;
     zng_stream stream;
+    //jboolean reset;
 };
+
+/*bool maybeReset(JNIEnv* env, Context* ctx)   {
+    if (true || !ctx->reset)    {
+        int ret = zng_deflateReset(&ctx->stream);
+
+        if (ret != Z_OK)    {
+            throwException(env, ctx->stream.msg == nullptr ? "Couldn't reset deflater!" : ctx->stream.msg, ret);
+            return true;
+        }
+
+        ctx->reset = true;
+    }
+
+    return false;
+}*/
+
+bool tryReset(JNIEnv* env, Context* ctx)   {
+    ctx->session++;
+    int ret = zng_deflateReset(&ctx->stream);
+    if (ret != Z_OK)    {
+        throwException(env, ctx->stream.msg ? ctx->stream.msg : "Couldn't reset deflater!", ret);
+    }
+    return ret == Z_OK;
+}
 
 __attribute__((visibility("default"))) jlong JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_allocate0
         (JNIEnv* env, jclass cla, jint level, jint strategy, jint mode)   {
@@ -26,20 +52,53 @@ __attribute__((visibility("default"))) jlong JNICALL Java_net_daporkchop_lib_com
 __attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_release0
         (JNIEnv* env, jclass cla, jlong _ctx)   {
     Context* ctx = (Context*) _ctx;
-    int ret = zng_deflateReset(&ctx->stream);
 
-    if (ret != Z_OK)    {
-        throwException(env, ctx->stream.msg == nullptr ? "Couldn't reset deflater!" : ctx->stream.msg, ret);
+    if (!tryReset(env, ctx))    {
         return;
     }
 
-    ret = zng_deflateEnd(&ctx->stream);
+    int ret = zng_deflateEnd(&ctx->stream);
     const char* msg = ctx->stream.msg;
     delete ctx;
 
     if (ret != Z_OK)    {
         throwException(env, msg == nullptr ? "Couldn't end deflater!" : msg, ret);
     }
+}
+
+__attribute__((visibility("default"))) jboolean JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_compress0
+        (JNIEnv* env, jclass cla, jlong _ctx, jlong src, jint srcLen, jlong dst, jint dstLen, jlong dict, jint dictLen)  {
+    Context* ctx = (Context*) _ctx;
+
+    if (!tryReset(env, ctx))    {
+        return false;
+    }
+
+    if (dict)   {
+        //set dictionary
+        int ret = zng_deflateSetDictionary(&ctx->stream, (unsigned char*) dict, dictLen);
+        if (ret != Z_OK)    {
+            throwException(env, ctx->stream.msg ? ctx->stream.msg : "Couldn't set deflater dictionary!", ret);
+            return false;
+        }
+    }
+
+    ctx->stream.next_in = (unsigned char*) src;
+    ctx->stream.avail_in = srcLen;
+
+    ctx->stream.next_out = (unsigned char*) dst;
+    ctx->stream.avail_out = dstLen;
+
+    int ret = zng_deflate(&ctx->stream, Z_FINISH);
+    if (ret == Z_STREAM_END) {
+        ctx->read =    srcLen - ctx->stream.avail_in;
+        ctx->written = dstLen - ctx->stream.avail_out;
+        return true;
+    } else if (ret != Z_OK) {
+        throwException(env, ctx->stream.msg ? ctx->stream.msg : "Invalid return value from deflate()!", ret);
+    }
+
+    return false;
 }
 
 /*__attribute__((visibility("default"))) jboolean JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_doFullDeflate

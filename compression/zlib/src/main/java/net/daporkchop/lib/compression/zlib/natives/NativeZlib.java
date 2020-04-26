@@ -40,7 +40,7 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  */
 @Getter
 @Accessors(fluent = true)
-public final class NativeZlib extends NativeFeature<ZlibProvider> implements ZlibProvider {
+final class NativeZlib extends NativeFeature<ZlibProvider> implements ZlibProvider {
     protected static native long compressBound0(long srcSize, int mode);
 
     protected final ZlibDeflaterOptions defaultDeflaterOptions = new ZlibDeflaterOptions.Builder(this).build();

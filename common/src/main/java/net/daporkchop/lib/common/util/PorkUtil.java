@@ -62,7 +62,7 @@ public class PorkUtil {
     private final Function<Throwable, StackTraceElement[]> GET_STACK_TRACE_WRAPPER;
 
     public final int TINY_BUFFER_SIZE = 32;
-    public final int BUFFER_SIZE = PUnsafe.PAGE_SIZE << 2;
+    public final int BUFFER_SIZE = 65536;
 
     public final HandledPool<byte[]> TINY_BUFFER_POOL = new DefaultThreadHandledPool<>(() -> new byte[TINY_BUFFER_SIZE], 4);
     public final HandledPool<ByteBuffer> DIRECT_TINY_BUFFER_POOL = new DefaultThreadHandledPool<>(() -> ByteBuffer.allocateDirect(TINY_BUFFER_SIZE), 4);

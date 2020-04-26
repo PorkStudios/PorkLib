@@ -27,13 +27,19 @@ import net.daporkchop.lib.compression.zlib.ZlibMode;
 import net.daporkchop.lib.compression.zlib.ZlibProvider;
 import net.daporkchop.lib.compression.zlib.options.ZlibDeflaterOptions;
 import net.daporkchop.lib.compression.zlib.options.ZlibInflaterOptions;
+import net.daporkchop.lib.natives.impl.Feature;
 import net.daporkchop.lib.natives.impl.NativeFeature;
 
 /**
  * @author DaPorkchop_
  */
 //TODO: implement this
-public final class JavaZlib extends NativeFeature<ZlibProvider> implements ZlibProvider {
+final class JavaZlib implements ZlibProvider {
+    @Override
+    public boolean isNative() {
+        return false;
+    }
+
     @Override
     public long compressBoundLong(long srcSize, @NonNull ZlibMode mode) {
         throw new UnsupportedOperationException();

@@ -21,16 +21,26 @@
 package net.daporkchop.lib.compression.zlib.natives;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
+import net.daporkchop.lib.common.misc.refcount.RefCounted;
+import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
 import net.daporkchop.lib.compression.zlib.ZlibDeflater;
 import net.daporkchop.lib.compression.zlib.options.ZlibDeflaterOptions;
 import net.daporkchop.lib.unsafe.PCleaner;
+import net.daporkchop.lib.unsafe.PUnsafe;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
+import java.nio.ByteBuffer;
+
+import static java.lang.Math.*;
 import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
@@ -38,9 +48,11 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  */
 @Accessors(fluent = true)
 final class NativeZlibDeflater extends AbstractRefCounted.Synchronized implements ZlibDeflater {
-    private static native long allocate0(int level, int mode, int strategy);
-    private static native void release0(long ctx);
-    private static native boolean compress0(long src, long srcLen, long dst, long dstLen, long dict, long dictLen);
+    static native long allocate0(int level, int mode, int strategy);
+
+    static native void release0(long ctx);
+
+    static native boolean compress0(long ctx, long src, int srcLen, long dst, int dstLen, long dict, int dictLen);
 
     protected final long ctx;
 
@@ -63,8 +75,64 @@ final class NativeZlibDeflater extends AbstractRefCounted.Synchronized implement
     }
 
     @Override
-    public boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) throws DictionaryNotAllowedException {
+    public synchronized boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) throws DictionaryNotAllowedException {
+        this.ensureNotReleased();
+        if (src.hasMemoryAddress() && dst.hasMemoryAddress()) {
+            //if both buffers are direct we can do it in one shot
+            long srcAddr = src.memoryAddress() + src.readerIndex();
+            int srcLen = src.readableBytes();
+            long dstAddr = dst.memoryAddress() + dst.writerIndex();
+            int dstLen = dst.writableBytes();
+
+            boolean success;
+            if (dict == null) {
+                //no dictionary will be used
+                success = compress0(this.ctx, srcAddr, srcLen, dstAddr, dstLen, 0L, 0);
+            } else if (dict.hasMemoryAddress()) {
+                //dictionary is direct (fast)
+                success = compress0(this.ctx, srcAddr, srcLen, dstAddr, dstLen, dict.memoryAddress() + dict.readerIndex(), dict.readableBytes());
+            } else {
+                //dictionary is not direct, copy it to a direct buffer first
+                try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_BUFFER_POOL.get()) {
+                    ByteBuffer buffer = (ByteBuffer) handle.get().clear();
+                    buffer.limit(min(buffer.capacity(), dict.readableBytes()));
+                    dict.getBytes(dict.readerIndex(), buffer);
+                    buffer.position(0);
+                    success = compress0(this.ctx, srcAddr, srcLen, dstAddr, dstLen, PUnsafe.pork_directBufferAddress(buffer), buffer.limit());
+                }
+            }
+
+            if (success) {
+                src.skipBytes(toInt(this.getRead(), "read"));
+                dst.writerIndex(dst.writerIndex() + toInt(this.getWritten(), "written"));
+            }
+            return success;
+        }
         return false;
+    }
+
+    @Override
+    public synchronized DataOut compressionStream(@NonNull DataOut out, @NonNull ByteBufAllocator bufferAlloc, int bufferSize, ByteBuf dict) throws DictionaryNotAllowedException {
+        this.ensureNotReleased();
+        throw new UnsupportedOperationException(); //TODO
+    }
+
+    @Override
+    public NativeZlibDeflater retain() throws AlreadyReleasedException {
+        super.retain();
+        return this;
+    }
+
+    protected long getRead()    {
+        return PUnsafe.getLong(this.ctx);
+    }
+
+    protected long getWritten()    {
+        return PUnsafe.getLong(this.ctx + 8L);
+    }
+
+    protected long getSession()    {
+        return PUnsafe.getLong(this.ctx + 16L);
     }
 
     @RequiredArgsConstructor

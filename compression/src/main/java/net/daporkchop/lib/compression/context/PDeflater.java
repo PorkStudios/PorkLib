@@ -21,9 +21,13 @@
 package net.daporkchop.lib.compression.context;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.common.misc.refcount.RefCounted;
 import net.daporkchop.lib.compression.option.DeflaterOptions;
 import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 /**
  * A context for doing repeated one-shot compression operations.
@@ -31,6 +35,12 @@ import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedExcepti
  * @author DaPorkchop_
  */
 public interface PDeflater extends Context {
+    //
+    //
+    // compression methods
+    //
+    //
+
     /**
      * Convenience method, equivalent to {@code compress(src, dst, null);}.
      *
@@ -56,8 +66,70 @@ public interface PDeflater extends Context {
      */
     boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) throws DictionaryNotAllowedException;
 
+    //
+    //
+    // stream creator methods
+    //
+    //
+
+    /**
+     * Convenience method, equivalent to {@code compress(src, dst, null);}.
+     *
+     * @see #compressionStream(DataOut, ByteBuf)
+     */
+    default DataOut compressionStream(@NonNull DataOut out) {
+        return this.compressionStream(out, null);
+    }
+
+    /**
+     * Gets a {@link DataOut} which will compress data written to it using this {@link PDeflater} and write the compressed data to the given {@link DataOut}.
+     *
+     * @param bufferAlloc the {@link ByteBufAllocator} to be used for allocating the internal write buffer
+     * @param bufferSize  the size of the internal write buffer
+     * @see #compressionStream(DataOut, ByteBufAllocator, int, ByteBuf)
+     */
+    default DataOut compressionStream(@NonNull DataOut out, @NonNull ByteBufAllocator bufferAlloc, int bufferSize)  {
+        return this.compressionStream(out, bufferAlloc, bufferSize, null);
+    }
+
+    /**
+     * Gets a {@link DataOut} which will compress data written to it using this {@link PDeflater} and write the compressed data to the given {@link DataOut}.
+     * <p>
+     * This will cause the internal write buffer to be allocated using the default {@link ByteBufAllocator} and size.
+     *
+     * @see #compressionStream(DataOut, ByteBufAllocator, int, ByteBuf)
+     */
+    DataOut compressionStream(@NonNull DataOut out, ByteBuf dict) throws DictionaryNotAllowedException;
+
+    /**
+     * Gets a {@link DataOut} which will compress data written to it using this {@link PDeflater} and write the compressed data to the given {@link DataOut}.
+     *
+     * @param bufferAlloc the {@link ByteBufAllocator} to be used for allocating the internal write buffer
+     * @param bufferSize  the size of the internal write buffer
+     * @throws DictionaryNotAllowedException if the dictionary buffer is not {@code null} and this context does not allow use of a dictionary
+     */
+    DataOut compressionStream(@NonNull DataOut out, @NonNull ByteBufAllocator bufferAlloc, int bufferSize, ByteBuf dict) throws DictionaryNotAllowedException;
+
+    //
+    //
+    // misc. methods
+    //
+    //
+
     /**
      * @return the options that this {@link PDeflater} is configured with
      */
     DeflaterOptions options();
+
+    @Override
+    boolean hasDict();
+
+    @Override
+    int refCnt();
+
+    @Override
+    PDeflater retain() throws AlreadyReleasedException;
+
+    @Override
+    boolean release() throws AlreadyReleasedException;
 }

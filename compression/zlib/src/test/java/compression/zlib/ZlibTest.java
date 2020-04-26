@@ -20,10 +20,16 @@
 
 package compression.zlib;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import net.daporkchop.lib.binary.stream.misc.SlashDevSlashNull;
 import net.daporkchop.lib.compression.context.PDeflater;
 import net.daporkchop.lib.compression.zlib.Zlib;
+import net.daporkchop.lib.compression.zlib.ZlibStrategy;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.IOException;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 
@@ -38,9 +44,53 @@ public class ZlibTest {
     }
 
     @Test
-    public void testCompression() {
+    public void testOpenClose() {
         try (PDeflater deflater = Zlib.PROVIDER.deflater()) {
             System.out.println(deflater.getClass());
+        }
+    }
+
+    @Test
+    public void testCompression() throws IOException {
+        try (PDeflater deflater = Zlib.PROVIDER.deflater()) {
+            ByteBuf src = Unpooled.directBuffer(1024);
+            ByteBuf dst = Unpooled.directBuffer(500);
+            ByteBuf dict = Unpooled.directBuffer(1024);
+            ByteBuf dictHeap = Unpooled.buffer(1024);
+
+            dict.writeBytes(SlashDevSlashNull.INPUT_STREAM, 1024); //fill with zeroes
+            dictHeap.writeBytes(SlashDevSlashNull.INPUT_STREAM, 1024);
+
+            for (int i = 0; i < 32; i++) {
+                System.out.println(i);
+
+                src.readerIndex(0).writerIndex(1024);
+                dst.readerIndex(0).writerIndex(0);
+                //System.out.println("Attempting compression without dictionary");
+                //System.out.printf("initial state: readable=%d, writable=%d\n", src.readableBytes(), dst.writableBytes());
+                checkState(deflater.compress(src, dst), "compression failed");
+                //System.out.printf("final state: readable=%d, compressed=%d\n", src.readableBytes(), dst.readableBytes());
+                int withoutDictSize = dst.readableBytes();
+
+                src.readerIndex(0).writerIndex(1024);
+                dst.readerIndex(0).writerIndex(0);
+                //System.out.println("Attempting compression with dictionary");
+                //System.out.printf("initial state: readable=%d, writable=%d\n", src.readableBytes(), dst.writableBytes());
+                checkState(deflater.compress(src, dst, dict), "compression failed");
+                //System.out.printf("final state: readable=%d, compressed=%d\n", src.readableBytes(), dst.readableBytes());
+                int withDictSize = dst.readableBytes();
+
+                src.readerIndex(0).writerIndex(1024);
+                dst.readerIndex(0).writerIndex(0);
+                //System.out.println("Attempting compression with heap dictionary");
+                //System.out.printf("initial state: readable=%d, writable=%d\n", src.readableBytes(), dst.writableBytes());
+                checkState(deflater.compress(src, dst, dictHeap), "compression failed");
+                //System.out.printf("final state: readable=%d, compressed=%d\n", src.readableBytes(), dst.readableBytes());
+                int withHeapDictSize = dst.readableBytes();
+
+                //checkState(withDictSize < withoutDictSize, "withDictSize (%d) >= withoutDictSize (%d)", withDictSize, withoutDictSize);
+                checkState(withDictSize == withHeapDictSize, "withDictSize (%d) != withHeapDictSize (%d)", withDictSize, withHeapDictSize);
+            }
         }
     }
 }

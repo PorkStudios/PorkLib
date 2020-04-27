@@ -28,7 +28,6 @@ import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
-import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ConcurrentModificationException;
@@ -75,27 +74,18 @@ final class NativeZlibInflateStream extends AbstractDirectDataIn {
     protected int read0() throws IOException {
         try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_TINY_BUFFER_POOL.get()) {
             long addr = PUnsafe.pork_directBufferAddress(handle.get());
-            try {
-                this.readAll0(addr, 1L);
-            } catch (EOFException e) {
-                return -1;
-            }
-            return PUnsafe.getByte(addr) & 0xFF;
+            return this.read0(addr, 1L) == 1L ? PUnsafe.getByte(addr) & 0xFF : -1;
         }
     }
 
     @Override
-    protected long readSome0(long addr, long length, boolean blocking) throws IOException {
-        if (this.lastStatus == Z_STREAM_END)    {
+    protected long read0(long addr, long length) throws IOException {
+        if (this.lastStatus == Z_STREAM_END) {
             return RESULT_EOF;
         }
         long totalRead = 0L;
         do {
-            if (blocking)   {
-                this.fillAll();
-            } else {
-                this.fillSome();
-            }
+            this.fill();
             int blockSize = toInt(min(length - totalRead, Integer.MAX_VALUE));
             this.lastStatus = update0(this.ctx, this.buf.memoryAddress() + this.buf.readerIndex(), this.buf.readableBytes(), addr + totalRead, blockSize, Z_SYNC_FLUSH);
 
@@ -103,22 +93,6 @@ final class NativeZlibInflateStream extends AbstractDirectDataIn {
             totalRead += toInt(this.inflater.getWritten(), "written");
         } while (this.lastStatus != Z_STREAM_END && totalRead < length);
         return totalRead;
-    }
-
-    @Override
-    protected void readAll0(long addr, long length) throws EOFException, IOException {
-        long totalRead = 0L;
-        do {
-            this.fillAll();
-            if (this.lastStatus == Z_STREAM_END) {
-                throw new EOFException();
-            }
-            int blockSize = toInt(min(length - totalRead, Integer.MAX_VALUE));
-            this.lastStatus = update0(this.ctx, this.buf.memoryAddress() + this.buf.readerIndex(), this.buf.readableBytes(), addr + totalRead, blockSize, Z_SYNC_FLUSH);
-
-            this.buf.skipBytes(toInt(this.inflater.getRead(), "read"));
-            totalRead += toInt(this.inflater.getWritten(), "written");
-        } while (totalRead < length);
     }
 
     @Override
@@ -139,25 +113,11 @@ final class NativeZlibInflateStream extends AbstractDirectDataIn {
         this.buf.release();
     }
 
-    protected int fillSome() throws IOException {
+    protected int fill() throws IOException {
         if (!this.eof) {
             this.buf.discardSomeReadBytes();
             if (this.buf.isWritable()) {
                 int read = this.in.read(this.buf);
-                if (read < 0) {
-                    this.eof = true;
-                }
-                return read;
-            }
-        }
-        return -1;
-    }
-
-    protected int fillAll() throws IOException {
-        if (!this.eof) {
-            this.buf.discardSomeReadBytes();
-            if (this.buf.isWritable()) {
-                int read = this.in.readBlocking(this.buf);
                 if (read < 0) {
                     this.eof = true;
                 }

@@ -871,7 +871,7 @@ public class PValidation {
         return value;
     }
 
-    public static long notPositive(int value) {
+    public static int notPositive(int value) {
         checkArg(value <= 0, "argument must not be positive (given: %d)", value);
         return value;
     }
@@ -881,7 +881,7 @@ public class PValidation {
         return value;
     }
 
-    public static long notPositive(int value, Object name) {
+    public static int notPositive(int value, Object name) {
         checkArg(value <= 0, "%2$s must not be positive (given: %1$d)", value, name);
         return value;
     }
@@ -911,7 +911,7 @@ public class PValidation {
         return value;
     }
 
-    public static long notNegative(int value) {
+    public static int notNegative(int value) {
         checkArg(value >= 0, "argument must not be negative (given: %d)", value);
         return value;
     }
@@ -921,7 +921,7 @@ public class PValidation {
         return value;
     }
 
-    public static long notNegative(int value, Object name) {
+    public static int notNegative(int value, Object name) {
         checkArg(value >= 0, "%2$s must not be negative (given: %1$d)", value, name);
         return value;
     }

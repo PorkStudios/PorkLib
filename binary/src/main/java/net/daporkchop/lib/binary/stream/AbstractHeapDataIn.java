@@ -36,13 +36,13 @@ import static java.lang.Math.*;
  */
 public abstract class AbstractHeapDataIn extends AbstractDataIn {
     @Override
-    protected long readSome0(long addr, long length, boolean blocking) throws IOException {
+    protected long read0(long addr, long length) throws IOException {
         try (Handle<byte[]> handle = PorkUtil.BUFFER_POOL.get()) {
             byte[] buf = handle.get();
             long total = 0L;
             boolean first = true;
             do {
-                int read = this.readSome0(buf, 0, (int) min(length - total, PorkUtil.BUFFER_SIZE), blocking);
+                int read = this.read0(buf, 0, (int) min(length - total, PorkUtil.BUFFER_SIZE));
                 if (read <= 0) {
                     return read < 0 && first ? read : total;
                 }
@@ -54,23 +54,6 @@ public abstract class AbstractHeapDataIn extends AbstractDataIn {
                 first = false;
             } while (total < length);
             return total;
-        }
-    }
-
-    @Override
-    protected void readAll0(long addr, long length) throws EOFException, IOException {
-        try (Handle<byte[]> handle = PorkUtil.BUFFER_POOL.get()) {
-            byte[] buf = handle.get();
-            long total = 0L;
-            do {
-                int blockSize = (int) min(length - total, PorkUtil.BUFFER_SIZE);
-                this.readAll0(buf, 0, blockSize);
-
-                //copy to direct buffer
-                PUnsafe.copyMemory(buf, PUnsafe.ARRAY_BYTE_BASE_OFFSET, null, addr + total, blockSize);
-
-                total += blockSize;
-            } while (total < length);
         }
     }
 }

@@ -61,7 +61,7 @@ public class ByteBufIn extends AbstractDataIn {
     }
 
     @Override
-    protected int readSome0(@NonNull byte[] dst, int start, int length, boolean blocking) throws IOException {
+    protected int read0(@NonNull byte[] dst, int start, int length) throws IOException {
         int count = min(this.delegate.readableBytes(), length);
         if (count <= 0) {
             return RESULT_EOF;
@@ -72,7 +72,7 @@ public class ByteBufIn extends AbstractDataIn {
     }
 
     @Override
-    protected long readSome0(long addr, long length, boolean blocking) throws IOException {
+    protected long read0(long addr, long length) throws IOException {
         int count = toInt(min(this.delegate.readableBytes(), length));
         int readerIndex = this.delegate.readerIndex();
         if (count <= 0) {
@@ -86,38 +86,6 @@ public class ByteBufIn extends AbstractDataIn {
         }
         this.delegate.skipBytes(count);
         return count;
-    }
-
-    @Override
-    protected void readAll0(@NonNull byte[] dst, int start, int length) throws EOFException, IOException {
-        int readableBytes = this.delegate.readableBytes();
-        if (length <= readableBytes)    {
-            this.delegate.readBytes(dst, start, length);
-        } else {
-            //emulate having read all the data in the buffer
-            this.delegate.skipBytes(readableBytes);
-            throw new EOFException();
-        }
-    }
-
-    @Override
-    protected void readAll0(long addr, long length) throws EOFException, IOException {
-        int readableBytes = this.delegate.readableBytes();
-        if (length <= readableBytes)    {
-            int readerIndex = this.delegate.readerIndex();
-            if (this.delegate.hasMemoryAddress()) {
-                PUnsafe.copyMemory(this.delegate.memoryAddress() + readerIndex, addr, length);
-            } else if (this.delegate.hasArray()) {
-                PUnsafe.copyMemory(this.delegate.array(), PUnsafe.ARRAY_BYTE_BASE_OFFSET + this.delegate.arrayOffset() + readerIndex, null, addr, length);
-            } else {
-                this.delegate.getBytes(readerIndex, Unpooled.wrappedBuffer(addr, toInt(length), false));
-            }
-            this.delegate.skipBytes(toInt(length));
-        } else {
-            //emulate having read all the data in the buffer
-            this.delegate.skipBytes(readableBytes);
-            throw new EOFException();
-        }
     }
 
     @Override

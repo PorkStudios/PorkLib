@@ -39,13 +39,13 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  */
 public abstract class AbstractDirectDataIn extends AbstractDataIn {
     @Override
-    protected int readSome0(@NonNull byte[] dst, int start, int length, boolean blocking) throws IOException {
+    protected int read0(@NonNull byte[] dst, int start, int length) throws IOException {
         try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_BUFFER_POOL.get()) {
             long addr = PUnsafe.pork_directBufferAddress(handle.get());
             int total = 0;
             boolean first = true;
             do {
-                int read = toInt(this.readSome0(addr, min(length - total, PorkUtil.BUFFER_SIZE), blocking));
+                int read = toInt(this.read0(addr, min(length - total, PorkUtil.BUFFER_SIZE)));
                 if (read <= 0) {
                     return read < 0 && first ? read : total;
                 }
@@ -57,23 +57,6 @@ public abstract class AbstractDirectDataIn extends AbstractDataIn {
                 first = false;
             } while (total < length);
             return total;
-        }
-    }
-
-    @Override
-    protected void readAll0(@NonNull byte[] dst, int start, int length) throws EOFException, IOException {
-        try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_BUFFER_POOL.get()) {
-            long addr = PUnsafe.pork_directBufferAddress(handle.get());
-            int total = 0;
-            do {
-                int read = min(length - total, PorkUtil.BUFFER_SIZE);
-                this.readAll0(addr, min(length - total, PorkUtil.BUFFER_SIZE));
-
-                //copy to heap buffer
-                PUnsafe.copyMemory(null, addr, dst, PUnsafe.ARRAY_BYTE_BASE_OFFSET + start + total, read);
-
-                total += read;
-            } while (total < length);
         }
     }
 }

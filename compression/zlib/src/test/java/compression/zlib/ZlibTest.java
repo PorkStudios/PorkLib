@@ -156,8 +156,8 @@ public class ZlibTest {
 
             System.out.println("Gzipped size: " + src.readableBytes());
             try (DataIn in = inflater.decompressionStream(DataIn.wrap(src)))    {
-                System.out.println(in.readBlocking(dst));
-                System.out.println(in.readBlocking(dst));
+                System.out.println(in.read(dst));
+                System.out.println(in.read(dst));
             }
             System.out.println("Inflated size: " + dst.readableBytes());
         }

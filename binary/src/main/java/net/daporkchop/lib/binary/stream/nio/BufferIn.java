@@ -57,7 +57,7 @@ public class BufferIn extends AbstractDataIn {
     }
 
     @Override
-    protected int readSome0(@NonNull byte[] dst, int start, int length, boolean blocking) throws IOException {
+    protected int read0(@NonNull byte[] dst, int start, int length) throws IOException {
         int count = min(this.delegate.remaining(), length);
         if (count <= 0) {
             return RESULT_EOF;
@@ -68,7 +68,7 @@ public class BufferIn extends AbstractDataIn {
     }
 
     @Override
-    protected long readSome0(long addr, long length, boolean blocking) throws IOException {
+    protected long read0(long addr, long length) throws IOException {
         int count = toInt(min(this.delegate.remaining(), length));
         int position = this.delegate.position();
         if (count <= 0) {
@@ -80,36 +80,6 @@ public class BufferIn extends AbstractDataIn {
         }
         this.delegate.position(position + count);
         return count;
-    }
-
-    @Override
-    protected void readAll0(@NonNull byte[] dst, int start, int length) throws EOFException, IOException {
-        int remaining = this.delegate.remaining();
-        if (length <= remaining)    {
-            this.delegate.get(dst, start, length);
-        } else {
-            //emulate having read all the data in the buffer
-            this.delegate.position(this.delegate.limit());
-            throw new EOFException();
-        }
-    }
-
-    @Override
-    protected void readAll0(long addr, long length) throws EOFException, IOException {
-        int remaining = this.delegate.remaining();
-        if (length <= remaining)    {
-            int position = this.delegate.position();
-            if (this.delegate.isDirect()) {
-                PUnsafe.copyMemory(PUnsafe.pork_directBufferAddress(this.delegate) + position, addr, length);
-            } else {
-                PUnsafe.copyMemory(this.delegate.array(), PUnsafe.ARRAY_BYTE_BASE_OFFSET + this.delegate.arrayOffset() + position, null, addr, length);
-            }
-            this.delegate.position(position + toInt(length));
-        } else {
-            //emulate having read all the data in the buffer
-            this.delegate.position(this.delegate.limit());
-            throw new EOFException();
-        }
     }
 
     @Override

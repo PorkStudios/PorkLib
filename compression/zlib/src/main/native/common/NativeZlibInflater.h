@@ -12,59 +12,35 @@ extern "C" {
 
 /*
  * Class:     net_daporkchop_lib_compression_zlib_natives_NativeZlibInflater
- * Method:    load
- * Signature: ()V
- */
-JNIEXPORT void JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibInflater_load
-  (JNIEnv *, jclass);
-
-/*
- * Class:     net_daporkchop_lib_compression_zlib_natives_NativeZlibInflater
- * Method:    allocateCtx
+ * Method:    allocate0
  * Signature: (I)J
  */
-JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibInflater_allocateCtx
+JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibInflater_allocate0
   (JNIEnv *, jclass, jint);
 
 /*
  * Class:     net_daporkchop_lib_compression_zlib_natives_NativeZlibInflater
- * Method:    releaseCtx
+ * Method:    release0
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibInflater_releaseCtx
+JNIEXPORT void JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibInflater_release0
   (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     net_daporkchop_lib_compression_zlib_natives_NativeZlibInflater
- * Method:    doFullInflate
- * Signature: (JIJIJI)Z
+ * Method:    newSession0
+ * Signature: (JJI)J
  */
-JNIEXPORT jboolean JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibInflater_doFullInflate
-  (JNIEnv *, jobject, jlong, jint, jlong, jint, jlong, jint);
+JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibInflater_newSession0
+  (JNIEnv *, jclass, jlong, jlong, jint);
 
 /*
  * Class:     net_daporkchop_lib_compression_zlib_natives_NativeZlibInflater
- * Method:    doUpdate
- * Signature: (JIJIJIZ)V
+ * Method:    update0
+ * Signature: (JJIJII)I
  */
-JNIEXPORT void JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibInflater_doUpdate
-  (JNIEnv *, jobject, jlong, jint, jlong, jint, jlong, jint, jboolean);
-
-/*
- * Class:     net_daporkchop_lib_compression_zlib_natives_NativeZlibInflater
- * Method:    doFinish
- * Signature: (JIJIJI)Z
- */
-JNIEXPORT jboolean JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibInflater_doFinish
-  (JNIEnv *, jobject, jlong, jint, jlong, jint, jlong, jint);
-
-/*
- * Class:     net_daporkchop_lib_compression_zlib_natives_NativeZlibInflater
- * Method:    doReset
- * Signature: ()V
- */
-JNIEXPORT void JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibInflater_doReset
-  (JNIEnv *, jobject);
+JNIEXPORT jint JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibInflater_update0
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jint);
 
 #ifdef __cplusplus
 }

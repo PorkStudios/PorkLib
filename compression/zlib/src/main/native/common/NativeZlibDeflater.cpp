@@ -6,25 +6,9 @@ struct Context {
     jlong written;
     jlong session;
     zng_stream stream;
-    //jboolean reset;
 };
 
-/*bool maybeReset(JNIEnv* env, Context* ctx)   {
-    if (true || !ctx->reset)    {
-        int ret = zng_deflateReset(&ctx->stream);
-
-        if (ret != Z_OK)    {
-            throwException(env, ctx->stream.msg == nullptr ? "Couldn't reset deflater!" : ctx->stream.msg, ret);
-            return true;
-        }
-
-        ctx->reset = true;
-    }
-
-    return false;
-}*/
-
-bool tryReset(JNIEnv* env, Context* ctx)   {
+static bool tryReset(JNIEnv* env, Context* ctx)   {
     ctx->session++;
     int ret = zng_deflateReset(&ctx->stream);
     if (ret != Z_OK)    {

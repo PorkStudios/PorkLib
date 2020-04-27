@@ -98,9 +98,9 @@ public interface PDeflater extends Context {
     //
 
     /**
-     * Convenience method, equivalent to {@code compress(src, dst, null);}.
+     * Gets a {@link DataOut} which will compress data written to it using this {@link PDeflater} and write the compressed data to the given {@link DataOut}.
      *
-     * @see #compressionStream(DataOut, ByteBuf)
+     * @see #compressionStream(DataOut, ByteBufAllocator, int, ByteBuf)
      */
     default DataOut compressionStream(@NonNull DataOut out) {
         return this.compressionStream(out, null, -1, null);

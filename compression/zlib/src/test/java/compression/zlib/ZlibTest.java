@@ -23,10 +23,13 @@ package compression.zlib;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import net.daporkchop.lib.binary.oio.StreamUtil;
+import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.binary.stream.misc.SlashDevSlashNull;
 import net.daporkchop.lib.compression.context.PDeflater;
+import net.daporkchop.lib.compression.context.PInflater;
 import net.daporkchop.lib.compression.zlib.Zlib;
+import net.daporkchop.lib.compression.zlib.ZlibMode;
 import net.daporkchop.lib.compression.zlib.ZlibStrategy;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,12 +46,15 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  */
 public class ZlibTest {
     protected byte[] text;
+    protected byte[] gzipped;
 
     @Before
     public void loadText() throws IOException {
-        File file = new File("../../LICENSE");
-        try (InputStream in = new FileInputStream(file))    {
+        try (InputStream in = new FileInputStream(new File("../../LICENSE")))    {
             this.text = StreamUtil.toByteArray(in);
+        }
+        try (InputStream in = new FileInputStream(new File("../../encoding/nbt/src/test/resources/bigtest.nbt")))    {
+            this.gzipped = StreamUtil.toByteArray(in);
         }
     }
 
@@ -139,6 +145,21 @@ public class ZlibTest {
                 //System.out.printf("final state: readable=%d, compressed=%d\n", src.readableBytes(), dst.readableBytes());
             }
             System.out.println();
+        }
+    }
+
+    @Test
+    public void testStreamDecompression() throws IOException  {
+        try (PInflater inflater = Zlib.PROVIDER.inflater(Zlib.PROVIDER.defaultInflaterOptions().builder().mode(ZlibMode.AUTO).build())) {
+            ByteBuf src = Unpooled.directBuffer(this.gzipped.length).writeBytes(this.gzipped).markReaderIndex().markWriterIndex();
+            ByteBuf dst = Unpooled.directBuffer(1544);
+
+            System.out.println("Gzipped size: " + src.readableBytes());
+            try (DataIn in = inflater.decompressionStream(DataIn.wrap(src)))    {
+                System.out.println(in.readBlocking(dst));
+                System.out.println(in.readBlocking(dst));
+            }
+            System.out.println("Inflated size: " + dst.readableBytes());
         }
     }
 }

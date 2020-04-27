@@ -22,6 +22,7 @@ package net.daporkchop.lib.compression.zlib;
 
 import net.daporkchop.lib.compression.context.PInflater;
 import net.daporkchop.lib.compression.zlib.options.ZlibInflaterOptions;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 /**
  * An extension of {@link PInflater} for {@link Zlib}.
@@ -36,4 +37,13 @@ public interface ZlibInflater extends PInflater {
     default boolean hasDict() {
         return true;
     }
+
+    @Override
+    int refCnt();
+
+    @Override
+    ZlibInflater retain() throws AlreadyReleasedException;
+
+    @Override
+    boolean release() throws AlreadyReleasedException;
 }

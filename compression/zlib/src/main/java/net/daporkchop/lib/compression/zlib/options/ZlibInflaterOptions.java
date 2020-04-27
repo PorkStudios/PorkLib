@@ -48,7 +48,7 @@ public final class ZlibInflaterOptions extends ZlibOptions implements InflaterOp
 
         @Override
         public Builder mode(@NonNull ZlibMode mode) {
-            checkArg(mode.compression(), "Zlib mode %s can't be used for decompression!", mode);
+            checkArg(mode.decompression(), "Zlib mode %s can't be used for decompression!", mode);
             return super.mode(mode);
         }
 

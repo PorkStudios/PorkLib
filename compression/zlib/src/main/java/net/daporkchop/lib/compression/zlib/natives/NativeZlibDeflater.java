@@ -57,8 +57,6 @@ final class NativeZlibDeflater extends AbstractRefCounted.Synchronized implement
 
     static native long newSession0(long ctx, long dict, int dictLen);
 
-    //static native boolean compress0(long ctx, long src, int srcLen, long dst, int dstLen);
-
     static native int update0(long ctx, long src, int srcLen, long dst, int dstLen, int flush);
 
     final long ctx;
@@ -69,7 +67,7 @@ final class NativeZlibDeflater extends AbstractRefCounted.Synchronized implement
     final PCleaner cleaner;
 
     NativeZlibDeflater(@NonNull ZlibDeflaterOptions options) {
-        checkArg(options.provider() instanceof NativeZlib, "provider must be %s!", NativeZlib.class);
+        checkArg(options.provider() instanceof NativeZlib, "provider must be %s!", NativeZlib.class.getCanonicalName());
         this.options = options;
 
         this.ctx = allocate0(options.level(), options.mode().ordinal(), options.strategy().ordinal());
@@ -82,7 +80,7 @@ final class NativeZlibDeflater extends AbstractRefCounted.Synchronized implement
     }
 
     @Override
-    public synchronized boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) {
+    public boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) {
         return this.compress0(src, dst, dict, false);
     }
 
@@ -91,7 +89,7 @@ final class NativeZlibDeflater extends AbstractRefCounted.Synchronized implement
         this.compress0(src, dst, dict, true);
     }
 
-    protected boolean compress0(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict, boolean grow) {
+    protected synchronized boolean compress0(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict, boolean grow) {
         this.ensureNotReleased();
         if (src.hasMemoryAddress()) {
             long session;

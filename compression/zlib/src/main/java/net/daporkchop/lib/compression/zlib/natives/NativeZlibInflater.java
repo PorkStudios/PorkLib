@@ -21,14 +21,23 @@
 package net.daporkchop.lib.compression.zlib.natives;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.PooledByteBufAllocator;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
 import net.daporkchop.lib.compression.zlib.ZlibInflater;
 import net.daporkchop.lib.compression.zlib.options.ZlibInflaterOptions;
+import net.daporkchop.lib.unsafe.PCleaner;
+import net.daporkchop.lib.unsafe.PUnsafe;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
+import static java.lang.Math.min;
 import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
@@ -36,20 +45,86 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  */
 @Accessors(fluent = true)
 final class NativeZlibInflater extends AbstractRefCounted.Synchronized implements ZlibInflater {
+    static native long allocate0(int mode);
+
+    static native void release0(long ctx);
+
+    static native long newSession0(long ctx, long dict, int dictLen);
+
+    static native int update0(long ctx, long src, int srcLen, long dst, int dstLen, int flush);
+
+    final long ctx;
+
     @Getter
-    protected final ZlibInflaterOptions options;
+    final ZlibInflaterOptions options;
+
+    final PCleaner cleaner;
 
     NativeZlibInflater(@NonNull ZlibInflaterOptions options) {
-        checkArg(options.provider() instanceof NativeZlib, "provider must be %s!", NativeZlib.class);
+        checkArg(options.provider() instanceof NativeZlib, "provider must be %s!", NativeZlib.class.getCanonicalName());
         this.options = options;
+
+        this.ctx = allocate0(options.mode().ordinal());
+        this.cleaner = PCleaner.cleaner(this, new Releaser(this.ctx));
     }
 
     @Override
     protected void doRelease() {
+        checkState(this.cleaner.clean(), "already cleaned?!?");
     }
 
     @Override
     public boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) throws DictionaryNotAllowedException {
-        return false;
+        return this.decompress0(src, dst, dict, false);
+    }
+
+    @Override
+    public void decompressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) throws DictionaryNotAllowedException, IndexOutOfBoundsException {
+        this.decompress0(src, dst, dict, true);
+    }
+
+    protected synchronized boolean decompress0(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict, boolean grow) {
+        this.ensureNotReleased();
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public synchronized DataIn decompressionStream(@NonNull DataIn in, ByteBufAllocator bufferAlloc, int bufferSize, ByteBuf dict) throws DictionaryNotAllowedException {
+        this.ensureNotReleased();
+        if (bufferAlloc == null) {
+            bufferAlloc = PooledByteBufAllocator.DEFAULT;
+        }
+        if (bufferSize <= 0) {
+            bufferSize = PorkUtil.BUFFER_SIZE;
+        }
+        return new NativeZlibInflateStream(in, bufferAlloc.directBuffer(bufferSize, bufferSize), dict, this);
+    }
+
+    @Override
+    public NativeZlibInflater retain() throws AlreadyReleasedException {
+        super.retain();
+        return this;
+    }
+
+    protected long getRead() {
+        return PUnsafe.getLongVolatile(null, this.ctx);
+    }
+
+    protected long getWritten() {
+        return PUnsafe.getLongVolatile(null, this.ctx + 8L);
+    }
+
+    protected long getSession() {
+        return PUnsafe.getLongVolatile(null, this.ctx + 16L);
+    }
+
+    @RequiredArgsConstructor
+    private static final class Releaser implements Runnable {
+        private final long ctx;
+
+        @Override
+        public void run() {
+            release0(this.ctx);
+        }
     }
 }

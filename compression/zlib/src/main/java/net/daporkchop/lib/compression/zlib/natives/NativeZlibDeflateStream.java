@@ -142,7 +142,7 @@ final class NativeZlibDeflateStream extends AbstractDirectDataOut {
     protected int drainSome() throws IOException {
         if (this.buf.isReadable()) {
             int written = this.out.write(this.buf);
-            this.buf.discardReadBytes();
+            this.buf.discardSomeReadBytes();
             return written;
         } else {
             return -1;

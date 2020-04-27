@@ -54,37 +54,14 @@ public class ByteBufOut extends AbstractDataOut {
     }
 
     @Override
-    protected int writeSome0(@NonNull byte[] src, int start, int length) throws IOException {
-        int count = min(this.delegate.maxWritableBytes(), length);
-        this.delegate.writeBytes(src, start, count);
-        return count;
-    }
-
-    @Override
-    protected long writeSome0(long addr, long length) throws IOException {
-        int writerIndex = this.delegate.writerIndex();
-        int count = toInt(min(this.delegate.maxCapacity() - writerIndex, length));
-        this.delegate.ensureWritable(count);
-        if (this.delegate.hasMemoryAddress()) {
-            PUnsafe.copyMemory(addr, this.delegate.memoryAddress() + writerIndex, count);
-        } else if (this.delegate.hasArray()) {
-            PUnsafe.copyMemory(null, addr, this.delegate.array(), PUnsafe.ARRAY_BYTE_BASE_OFFSET + this.delegate.arrayOffset() + writerIndex, count);
-        } else {
-            this.delegate.setBytes(writerIndex, Unpooled.wrappedBuffer(addr, count, false));
-        }
-        this.delegate.writerIndex(writerIndex + count);
-        return count;
-    }
-
-    @Override
-    protected void writeAll0(@NonNull byte[] src, int start, int length) throws IOException {
+    protected void write0(@NonNull byte[] src, int start, int length) throws IOException {
         int count = min(this.delegate.maxWritableBytes(), length);
         checkIndex(count == length);
         this.delegate.writeBytes(src, start, length);
     }
 
     @Override
-    protected void writeAll0(long addr, long length) throws IOException {
+    protected void write0(long addr, long length) throws IOException {
         int writerIndex = this.delegate.writerIndex();
         int count = toInt(min(this.delegate.maxCapacity() - writerIndex, length));
         checkIndex(count == length);

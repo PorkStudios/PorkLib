@@ -706,7 +706,7 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * If EOF was already reached, this method will always return {@code -1}.
      *
      * @param dst the {@link ByteBuffer} to read data into
-     * @return the actual number of bytes read
+     * @return the number of bytes read
      * @throws ClosedChannelException if the channel was already closed
      * @throws IOException            if an IO exception occurs you dummy
      */
@@ -721,7 +721,7 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * If EOF was already reached, this method will always return {@code -1}.
      *
      * @param dsts the {@link ByteBuffer}s to read data into
-     * @return the actual number of bytes read
+     * @return the number of bytes read
      * @throws ClosedChannelException if the channel was already closed
      * @throws IOException            if an IO exception occurs you dummy
      */
@@ -740,7 +740,7 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @param dsts   the {@link ByteBuffer}s to read data into
      * @param offset the index of the first {@link ByteBuffer} to read data into
      * @param length the number of {@link ByteBuffer}s to read data into
-     * @return the actual number of bytes read
+     * @return the number of bytes read
      * @throws ClosedChannelException if the channel was already closed
      * @throws IOException            if an IO exception occurs you dummy
      */
@@ -753,14 +753,11 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
         long total = 0L;
         for (int i = 0; i < length; i++) {
             ByteBuffer dst = dsts[offset + i];
-            if (dst.hasRemaining()) {
-                int read = this.read(dst);
-                total += read;
-                if (dst.hasRemaining()) {
-                    //there wasn't enough data to fill the entire buffer, abort
-                    break;
-                }
+            int read = this.read(dst);
+            if (read < 0) {
+                break;
             }
+            total += read;
         }
         return total;
     }
@@ -775,7 +772,7 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * This method will also increase the buffer's {@link ByteBuf#writerIndex()}.
      *
      * @param dst the {@link ByteBuf} to read data into
-     * @return the actual number of bytes read
+     * @return the number of bytes read
      * @throws ClosedChannelException if the channel was already closed
      * @throws IOException            if an IO exception occurs you dummy
      */
@@ -794,7 +791,7 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      *
      * @param dst   the {@link ByteBuf} to read data into
      * @param count the number of bytes to read
-     * @return the actual number of bytes read
+     * @return the number of bytes read
      * @throws ClosedChannelException if the channel was already closed
      * @throws IOException            if an IO exception occurs you dummy
      */
@@ -819,7 +816,7 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @param dst    the {@link ByteBuf} to read data into
      * @param start  the first index in the {@link ByteBuf} to read into
      * @param length the number of bytes to read
-     * @return the actual number of bytes read
+     * @return the number of bytes read
      * @throws ClosedChannelException if the channel was already closed
      * @throws IOException            if an IO exception occurs you dummy
      */

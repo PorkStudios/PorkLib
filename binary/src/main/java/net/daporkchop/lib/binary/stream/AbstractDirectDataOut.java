@@ -38,31 +38,7 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  */
 public abstract class AbstractDirectDataOut extends AbstractDataOut {
     @Override
-    protected int writeSome0(@NonNull byte[] src, int start, int length) throws IOException {
-        try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_BUFFER_POOL.get()) {
-            long addr = PUnsafe.pork_directBufferAddress(handle.get());
-            int total = 0;
-            boolean first = true;
-            do {
-                int blockSize = min(length - total, PorkUtil.BUFFER_SIZE);
-
-                //copy to direct buffer
-                PUnsafe.copyMemory(src, PUnsafe.ARRAY_BYTE_BASE_OFFSET + start + total, null, addr, blockSize);
-
-                int written = toInt(this.writeSome0(addr, blockSize));
-                if (written <= 0) {
-                    return written < 0 && first ? written : total;
-                }
-
-                total += written;
-                first = false;
-            } while (total < length);
-            return total;
-        }
-    }
-
-    @Override
-    protected void writeAll0(@NonNull byte[] src, int start, int length) throws IOException {
+    protected void write0(@NonNull byte[] src, int start, int length) throws IOException {
         try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_BUFFER_POOL.get()) {
             long addr = PUnsafe.pork_directBufferAddress(handle.get());
             int total = 0;
@@ -72,7 +48,7 @@ public abstract class AbstractDirectDataOut extends AbstractDataOut {
                 //copy to direct buffer
                 PUnsafe.copyMemory(src, PUnsafe.ARRAY_BYTE_BASE_OFFSET + start + total, null, addr, blockSize);
 
-                this.writeAll0(addr, blockSize);
+                this.write0(addr, blockSize);
 
                 total += blockSize;
             } while (total < length);

@@ -35,31 +35,7 @@ import static java.lang.Math.min;
  */
 public abstract class AbstractHeapDataOut extends AbstractDataOut {
     @Override
-    protected long writeSome0(long addr, long length) throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.BUFFER_POOL.get()) {
-            byte[] buf = handle.get();
-            long total = 0L;
-            boolean first = true;
-            do {
-                int blockSize = (int) min(length - total, PorkUtil.BUFFER_SIZE);
-
-                //copy to heap buffer
-                PUnsafe.copyMemory(null, addr, buf, PUnsafe.ARRAY_BYTE_BASE_OFFSET, blockSize);
-
-                int written = this.writeSome0(buf, 0, blockSize);
-                if (written <= 0) {
-                    return written < 0 && first ? written : total;
-                }
-
-                total += written;
-                first = false;
-            } while (total < length);
-            return total;
-        }
-    }
-
-    @Override
-    protected void writeAll0(long addr, long length) throws IOException {
+    protected void write0(long addr, long length) throws IOException {
         try (Handle<byte[]> handle = PorkUtil.BUFFER_POOL.get()) {
             byte[] buf = handle.get();
             long total = 0L;
@@ -69,7 +45,7 @@ public abstract class AbstractHeapDataOut extends AbstractDataOut {
                 //copy to heap buffer
                 PUnsafe.copyMemory(null, addr, buf, PUnsafe.ARRAY_BYTE_BASE_OFFSET, blockSize);
 
-                this.writeAll0(buf, 0, blockSize);
+                this.write0(buf, 0, blockSize);
 
                 total += blockSize;
             } while (total < length);

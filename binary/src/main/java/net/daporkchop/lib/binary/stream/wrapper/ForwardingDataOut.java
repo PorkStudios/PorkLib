@@ -250,36 +250,6 @@ public abstract class ForwardingDataOut implements DataOut {
     }
 
     @Override
-    public int writeFully(@NonNull ByteBuffer src) throws IOException {
-        return this.delegate.writeFully(src);
-    }
-
-    @Override
-    public long writeFully(@NonNull ByteBuffer[] srcs) throws IOException {
-        return this.delegate.writeFully(srcs);
-    }
-
-    @Override
-    public long writeFully(@NonNull ByteBuffer[] srcs, int offset, int length) throws IOException {
-        return this.delegate.writeFully(srcs, offset, length);
-    }
-
-    @Override
-    public int writeFully(@NonNull ByteBuf src) throws IOException {
-        return this.delegate.writeFully(src);
-    }
-
-    @Override
-    public int writeFully(@NonNull ByteBuf src, int count) throws IOException {
-        return this.delegate.writeFully(src, count);
-    }
-
-    @Override
-    public int writeFully(@NonNull ByteBuf src, int start, int length) throws IOException {
-        return this.delegate.writeFully(src, start, length);
-    }
-
-    @Override
     public OutputStream asOutputStream() throws IOException {
         return this.delegate.asOutputStream();
     }

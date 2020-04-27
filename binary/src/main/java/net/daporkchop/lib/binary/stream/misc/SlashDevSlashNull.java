@@ -496,33 +496,6 @@ public final class SlashDevSlashNull implements DataIn, DataOut {
     }
 
     @Override
-    public int writeFully(@NonNull ByteBuffer src) throws IOException {
-        int remaining = src.remaining();
-        src.position(src.limit());
-        return remaining;
-    }
-
-    @Override
-    public int writeFully(@NonNull ByteBuf src) throws IOException {
-        int readableBytes = src.readableBytes();
-        src.skipBytes(readableBytes);
-        return readableBytes;
-    }
-
-    @Override
-    public int writeFully(@NonNull ByteBuf src, int count) throws IOException {
-        checkRangeLen(src.writerIndex(), src.readerIndex(), count);
-        src.skipBytes(count);
-        return count;
-    }
-
-    @Override
-    public int writeFully(@NonNull ByteBuf src, int start, int length) throws IOException {
-        checkRangeLen(src.writerIndex(), start, length);
-        return length;
-    }
-
-    @Override
     public java.io.OutputStream asOutputStream() throws IOException {
         return OUTPUT_STREAM;
     }

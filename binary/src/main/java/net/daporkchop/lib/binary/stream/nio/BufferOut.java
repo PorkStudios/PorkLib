@@ -53,27 +53,7 @@ public class BufferOut extends AbstractDataOut {
     }
 
     @Override
-    protected int writeSome0(@NonNull byte[] src, int start, int length) throws IOException {
-        int count = min(this.delegate.remaining(), length);
-        this.delegate.put(src, start, count);
-        return count;
-    }
-
-    @Override
-    protected long writeSome0(long addr, long length) throws IOException {
-        int count = toInt(min(this.delegate.remaining(), length));
-        int position = this.delegate.position();
-        if (this.delegate.isDirect())   {
-            PUnsafe.copyMemory(addr, PUnsafe.pork_directBufferAddress(this.delegate) + position, count);
-        } else {
-            PUnsafe.copyMemory(null, addr, this.delegate.array(), PUnsafe.ARRAY_BYTE_BASE_OFFSET + this.delegate.arrayOffset() + position, count);
-        }
-        this.delegate.position(position + count);
-        return count;
-    }
-
-    @Override
-    protected void writeAll0(@NonNull byte[] src, int start, int length) throws IOException {
+    protected void write0(@NonNull byte[] src, int start, int length) throws IOException {
         int count = min(this.delegate.remaining(), length);
         if (count < length) {
             throw new BufferOverflowException();
@@ -82,7 +62,7 @@ public class BufferOut extends AbstractDataOut {
     }
 
     @Override
-    protected void writeAll0(long addr, long length) throws IOException {
+    protected void write0(long addr, long length) throws IOException {
         int count = toInt(min(this.delegate.remaining(), length));
         if (count < length) {
             throw new BufferOverflowException();

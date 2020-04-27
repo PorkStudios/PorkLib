@@ -124,7 +124,7 @@ final class NativeZlibDeflater extends AbstractRefCounted.Synchronized implement
             int srcReaderIndex = src.readerIndex();
             int dstWriterIndex = dst.writerIndex();
             try (DataOut out = this.compressionStream(DataOut.wrap(dst, true, grow), dict)) {
-                out.writeFully(src);
+                out.write(src);
             } catch (IOException e) {
                 //shouldn't be possible
                 throw new RuntimeException(e);

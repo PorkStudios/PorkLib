@@ -52,6 +52,9 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  * <p>
  * Unless otherwise specified by an implementation, instances of this class are not thread-safe. Notably, many multithreading aspects of
  * {@link GatheringByteChannel} are unlikely to work correctly, if at all.
+ * <p>
+ * This does not implement {@link GatheringByteChannel} or {@link OutputStream} entirely correctly. As in: this is not intended to be used for socket
+ * I/O, and as such there is no concept of blocking/non-blocking, nothing can cause an ongoing write operation to be stopped prematurely
  *
  * @author DaPorkchop_
  * @see DataIn
@@ -681,18 +684,17 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
 
     //
     //
-    // bulk transfer methods - ByteBuffer and ByteBuf - non-blocking
+    // bulk transfer methods - ByteBuffer and ByteBuf
     //
     //
 
     /**
      * Writes data from the given {@link ByteBuffer}.
      * <p>
-     * This method will write data until the buffer has no bytes remaining or more data cannot be written without blocking. However, it is not guaranteed
-     * to write any bytes at all.
+     * This method will write data until the buffer has no bytes remaining.
      *
      * @param src the {@link ByteBuffer} to write data from
-     * @return the actual number of bytes written
+     * @return the number of bytes written
      * @throws ClosedChannelException if the channel was already closed
      * @throws IOException            if an IO exception occurs you dummy
      */
@@ -702,11 +704,10 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
     /**
      * Writes data from the given {@link ByteBuffer}s.
      * <p>
-     * This method will write data until the buffers have no bytes remaining or more data cannot be written without blocking. However, it is not guaranteed
-     * to write any bytes at all.
+     * This method will write data until the buffers have no bytes remaining.
      *
      * @param srcs the {@link ByteBuffer}s to write data from
-     * @return the actual number of bytes written
+     * @return the number of bytes written
      * @throws ClosedChannelException if the channel was already closed
      * @throws IOException            if an IO exception occurs you dummy
      */
@@ -718,13 +719,12 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
     /**
      * Writes data from the given {@link ByteBuffer}s.
      * <p>
-     * This method will write data until the buffers have no bytes remaining or more data cannot be written without blocking. However, it is not guaranteed
-     * to write any bytes at all.
+     * This method will write data until the buffers have no bytes remaining.
      *
      * @param srcs   the {@link ByteBuffer}s to write data from
      * @param offset the index of the first {@link ByteBuffer} to write data from
      * @param length the number of {@link ByteBuffer}s to read write from
-     * @return the actual number of bytes written
+     * @return the number of bytes written
      * @throws ClosedChannelException if the channel was already closed
      * @throws IOException            if an IO exception occurs you dummy
      */
@@ -736,12 +736,7 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
         checkRangeLen(srcs.length, offset, length);
         long l = 0L;
         for (int i = 0; i < length; i++) {
-            int written = 0;
-            if (srcs[i].hasRemaining() && (written = this.write(srcs[i])) == 0) {
-                //remaining space in buffer could not be read, there is no more data available
-                break;
-            }
-            l += written;
+            l += this.write(srcs[i]);
         }
         return l;
     }
@@ -749,13 +744,12 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
     /**
      * Writes all readable bytes from the given {@link ByteBuf}.
      * <p>
-     * This method will write data until the buffer has no bytes remaining or more data cannot be written without blocking. However, it is not guaranteed
-     * to write any bytes at all.
+     * This method will write data until the buffer has no bytes remaining.
      * <p>
      * This method will also increase the buffer's {@link ByteBuf#readerIndex()}.
      *
      * @param src the {@link ByteBuf} to write data from
-     * @return the actual number of bytes written
+     * @return the number of bytes written
      * @throws ClosedChannelException if the channel was already closed
      * @throws IOException            if an IO exception occurs you dummy
      */
@@ -766,134 +760,37 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
     /**
      * Writes the requested number of bytes from the given {@link ByteBuf}.
      * <p>
-     * This method will write data until requested number of bytes have been written or more data cannot be written without blocking. However, it is not
-     * guaranteed to write any bytes at all.
+     * This method will write data until requested number of bytes have been written.
      * <p>
      * This method will also increase the buffer's {@link ByteBuf#readerIndex()}.
      *
      * @param src   the {@link ByteBuf} to write data from
      * @param count the number of bytes to write
-     * @return the actual number of bytes written
+     * @return the number of bytes written
      * @throws ClosedChannelException if the channel was already closed
      * @throws IOException            if an IO exception occurs you dummy
      */
-    int write(@NonNull ByteBuf src, int count) throws IOException;
+    default int write(@NonNull ByteBuf src, int count) throws IOException   {
+        this.write(src, src.readerIndex(), count);
+        src.skipBytes(count);
+        return count;
+    }
 
     /**
      * Writes all bytes in the given range in the given {@link ByteBuf}.
      * <p>
-     * This method will write data until requested number of bytes have been written or more data cannot be written without blocking. However, it is not
-     * guaranteed to write any bytes at all.
+     * This method will write data until requested number of bytes have been written.
      * <p>
      * This method will not increase the buffer's {@link ByteBuf#readerIndex()}.
      *
      * @param src    the {@link ByteBuf} to write data from
      * @param start  the index of the first byte to write
      * @param length the number of bytes to write
-     * @return the actual number of bytes written
+     * @return the number of bytes written
      * @throws ClosedChannelException if the channel was already closed
      * @throws IOException            if an IO exception occurs you dummy
      */
     int write(@NonNull ByteBuf src, int start, int length) throws IOException;
-
-    //
-    //
-    // bulk transfer methods - ByteBuffer and ByteBuf - blocking
-    //
-    //
-
-    /**
-     * Writes all data from the given {@link ByteBuffer}.
-     *
-     * @param src the {@link ByteBuffer} to write data from
-     * @return the number of bytes written
-     * @throws ClosedChannelException if the channel was already closed
-     * @throws IOException            if an IO exception occurs you dummy
-     */
-    int writeFully(@NonNull ByteBuffer src) throws IOException;
-
-    /**
-     * Writes all data from the given {@link ByteBuffer}s.
-     *
-     * @param srcs the {@link ByteBuffer}s to write data from
-     * @return the number of bytes written
-     * @throws ClosedChannelException if the channel was already closed
-     * @throws IOException            if an IO exception occurs you dummy
-     */
-    default long writeFully(@NonNull ByteBuffer[] srcs) throws IOException {
-        return this.writeFully(srcs, 0, srcs.length);
-    }
-
-    /**
-     * Writes all data from the given {@link ByteBuffer}s.
-     * <p>
-     * This method will write data until the buffers have no bytes remaining or more data cannot be written without blocking. However, it is not guaranteed
-     * to write any bytes at all.
-     *
-     * @param srcs   the {@link ByteBuffer}s to write data from
-     * @param offset the index of the first {@link ByteBuffer} to write data from
-     * @param length the number of {@link ByteBuffer}s to read write from
-     * @return the number of bytes written
-     * @throws ClosedChannelException if the channel was already closed
-     * @throws IOException            if an IO exception occurs you dummy
-     */
-    default long writeFully(@NonNull ByteBuffer[] srcs, int offset, int length) throws IOException {
-        if (!this.isOpen()) {
-            throw new ClosedChannelException();
-        }
-        checkRangeLen(srcs.length, offset, length);
-        long l = 0L;
-        for (int i = 0; i < length; i++) {
-            int written = 0;
-            if (srcs[i].hasRemaining() && (written = this.writeFully(srcs[i])) == 0) {
-                //remaining space in buffer could not be read, there is no more data available
-                break;
-            }
-            l += written;
-        }
-        return l;
-    }
-
-    /**
-     * Writes all readable bytes from the given {@link ByteBuf}.
-     * <p>
-     * This method will also increase the buffer's {@link ByteBuf#readerIndex()}.
-     *
-     * @param src the {@link ByteBuf} to write data from
-     * @return the number of bytes written
-     * @throws ClosedChannelException if the channel was already closed
-     * @throws IOException            if an IO exception occurs you dummy
-     */
-    default int writeFully(@NonNull ByteBuf src) throws IOException {
-        return this.writeFully(src, src.readableBytes());
-    }
-
-    /**
-     * Writes the requested number of bytes from the given {@link ByteBuf}.
-     * <p>
-     * This method will also increase the buffer's {@link ByteBuf#readerIndex()}.
-     *
-     * @param src   the {@link ByteBuf} to write data from
-     * @param count the number of bytes to write
-     * @return the number of bytes written
-     * @throws ClosedChannelException if the channel was already closed
-     * @throws IOException            if an IO exception occurs you dummy
-     */
-    int writeFully(@NonNull ByteBuf src, int count) throws IOException;
-
-    /**
-     * Writes all bytes in the given range in the given {@link ByteBuf}.
-     * <p>
-     * This method will not increase the buffer's {@link ByteBuf#readerIndex()}.
-     *
-     * @param src    the {@link ByteBuf} to write data from
-     * @param start  the index of the first byte to write
-     * @param length the number of bytes to write
-     * @return the number of bytes written
-     * @throws ClosedChannelException if the channel was already closed
-     * @throws IOException            if an IO exception occurs you dummy
-     */
-    int writeFully(@NonNull ByteBuf src, int start, int length) throws IOException;
 
     //
     //

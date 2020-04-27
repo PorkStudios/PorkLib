@@ -107,7 +107,9 @@ public abstract class AbstractDataIn implements DataIn {
         synchronized (this.mutex()) {
             this.ensureOpen();
             PValidation.checkRangeLen(dst.length, start, length);
-            this.readAll0(dst, start, length);
+            if (length >= 1)    {
+                this.readAll0(dst, start, length);
+            }
         }
     }
 

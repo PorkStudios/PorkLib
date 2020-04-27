@@ -25,16 +25,16 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufInputStream;
-import io.netty.buffer.PooledByteBufAllocator;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.common.ref.Ref;
 import net.daporkchop.lib.common.ref.ThreadRef;
-import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.compression.context.PInflater;
 import net.daporkchop.lib.compression.zlib.Zlib;
+import net.daporkchop.lib.compression.zlib.ZlibMode;
 import net.daporkchop.lib.math.vector.i.Vec2i;
 import net.daporkchop.lib.minecraft.registry.ResourceLocation;
 import net.daporkchop.lib.minecraft.tileentity.TileEntity;
@@ -72,7 +72,7 @@ import java.util.stream.Collectors;
 public class AnvilWorldManager implements WorldManager {
     protected static final Ref<HeapSectionImpl> CHUNK_CACHE    = ThreadRef.soft(() -> new HeapSectionImpl(-1, null));
     protected static final Pattern              REGION_PATTERN = Pattern.compile("^r\\.(-?[0-9]+)\\.(-?[0-9]+)\\.mca$");
-    protected static final Ref<PInflater>       INFLATER_CACHE = ThreadRef.soft(() -> Zlib.PROVIDER.inflater(Zlib.MODE_AUTO));
+    protected static final Ref<PInflater>       INFLATER_CACHE = ThreadRef.soft(() -> Zlib.PROVIDER.inflater(Zlib.PROVIDER.defaultInflaterOptions().builder().mode(ZlibMode.AUTO).build()));
 
     protected final AnvilSaveFormat format;
     protected final File            root;
@@ -147,15 +147,8 @@ public class AnvilWorldManager implements WorldManager {
                         case RegionConstants.ID_GZIP: //i can use the same instance for both compression types since it's using ZLIB_MODE_AUTO
                         case RegionConstants.ID_ZLIB: {
                             PInflater inflater = INFLATER_CACHE.get();
-                            ByteBuf uncompressed = PooledByteBufAllocator.DEFAULT.directBuffer();
-                            try {
-                                inflater.fullInflateGrowing(compressed, uncompressed);
-                                try (NBTInputStream in = new NBTInputStream(new ByteBufInputStream(uncompressed), this.arrayAllocator)) { //TODO: use DataIn again
-                                    rootTag = in.readTag().getCompound("Level");
-                                }
-                            } finally {
-                                uncompressed.release();
-                                inflater.reset();
+                            try (NBTInputStream in = new NBTInputStream(inflater.decompressionStream(DataIn.wrap(compressed)).asInputStream(), this.arrayAllocator)) { //TODO: use DataIn again
+                                rootTag = in.readTag().getCompound("Level");
                             }
                         }
                         break;

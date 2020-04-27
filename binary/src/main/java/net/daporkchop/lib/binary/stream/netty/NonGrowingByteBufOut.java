@@ -31,31 +31,32 @@ import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
+import java.nio.BufferOverflowException;
 import java.nio.charset.Charset;
 
 import static java.lang.Math.*;
 import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
- * An implementation of {@link DataOut} that can write to a {@link ByteBuf}.
- *
+ * Variant of {@link ByteBufOut} which doesn't allow the destination buffer to be grown.
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public class ByteBufOut extends AbstractDataOut {
+public class NonGrowingByteBufOut extends AbstractDataOut {
     @NonNull
     protected ByteBuf delegate;
 
     @Override
     protected void write0(int b) throws IOException {
+        checkIndex(this.delegate.isWritable());
         this.delegate.writeByte(b);
     }
 
     @Override
     protected int writeSome0(@NonNull byte[] src, int start, int length) throws IOException {
-        int count = min(this.delegate.maxWritableBytes(), length);
+        int count = min(this.delegate.writableBytes(), length);
         this.delegate.writeBytes(src, start, count);
         return count;
     }
@@ -63,11 +64,10 @@ public class ByteBufOut extends AbstractDataOut {
     @Override
     protected long writeSome0(long addr, long length) throws IOException {
         int writerIndex = this.delegate.writerIndex();
-        int count = toInt(min(this.delegate.maxCapacity() - writerIndex, length));
-        this.delegate.ensureWritable(count);
-        if (this.delegate.hasMemoryAddress()) {
+        int count = toInt(min(this.delegate.capacity() - writerIndex, length));
+        if (this.delegate.hasMemoryAddress())   {
             PUnsafe.copyMemory(addr, this.delegate.memoryAddress() + writerIndex, count);
-        } else if (this.delegate.hasArray()) {
+        } else if (this.delegate.hasArray())    {
             PUnsafe.copyMemory(null, addr, this.delegate.array(), PUnsafe.ARRAY_BYTE_BASE_OFFSET + this.delegate.arrayOffset() + writerIndex, count);
         } else {
             this.delegate.setBytes(writerIndex, Unpooled.wrappedBuffer(addr, count, false));
@@ -78,7 +78,7 @@ public class ByteBufOut extends AbstractDataOut {
 
     @Override
     protected void writeAll0(@NonNull byte[] src, int start, int length) throws IOException {
-        int count = min(this.delegate.maxWritableBytes(), length);
+        int count = min(this.delegate.writableBytes(), length);
         checkIndex(count == length);
         this.delegate.writeBytes(src, start, length);
     }
@@ -86,12 +86,11 @@ public class ByteBufOut extends AbstractDataOut {
     @Override
     protected void writeAll0(long addr, long length) throws IOException {
         int writerIndex = this.delegate.writerIndex();
-        int count = toInt(min(this.delegate.maxCapacity() - writerIndex, length));
+        int count = toInt(min(this.delegate.capacity() - writerIndex, length));
         checkIndex(count == length);
-        this.delegate.ensureWritable(count);
-        if (this.delegate.hasMemoryAddress()) {
+        if (this.delegate.hasMemoryAddress())   {
             PUnsafe.copyMemory(addr, this.delegate.memoryAddress() + writerIndex, count);
-        } else if (this.delegate.hasArray()) {
+        } else if (this.delegate.hasArray())    {
             PUnsafe.copyMemory(null, addr, this.delegate.array(), PUnsafe.ARRAY_BYTE_BASE_OFFSET + this.delegate.arrayOffset() + writerIndex, count);
         } else {
             this.delegate.setBytes(writerIndex, Unpooled.wrappedBuffer(addr, count, false));
@@ -108,10 +107,5 @@ public class ByteBufOut extends AbstractDataOut {
     protected void close0() throws IOException {
         this.delegate.release();
         this.delegate = null;
-    }
-
-    @Override
-    public long writeText(@NonNull CharSequence text, @NonNull Charset charset) throws IOException {
-        return this.delegate.writeCharSequence(text, charset);
     }
 }

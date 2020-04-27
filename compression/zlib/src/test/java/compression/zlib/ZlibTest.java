@@ -137,7 +137,6 @@ public class ZlibTest {
                     //System.out.printf("intermediate (post-flush) state: readable=%d, compressed=%d\n", src.readableBytes(), dst.readableBytes());
                 }
                 //System.out.printf("final state: readable=%d, compressed=%d\n", src.readableBytes(), dst.readableBytes());
-                //break;
             }
             System.out.println();
         }

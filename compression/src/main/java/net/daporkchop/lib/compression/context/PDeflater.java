@@ -24,7 +24,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.common.misc.refcount.RefCounted;
 import net.daporkchop.lib.compression.option.DeflaterOptions;
 import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
@@ -66,6 +65,32 @@ public interface PDeflater extends Context {
      */
     boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) throws DictionaryNotAllowedException;
 
+    /**
+     * Convenience method, equivalent to {@code compressGrowing(src, dst, null);}.
+     *
+     * @see #compressGrowing(ByteBuf, ByteBuf, ByteBuf)
+     */
+    default void compressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws DictionaryNotAllowedException, IndexOutOfBoundsException {
+        this.compressGrowing(src, dst, null);
+    }
+
+    /**
+     * Compresses the given source data into the given destination buffer at the configured compression level.
+     * <p>
+     * This will continually grow the the destination buffer's capacity until enough space is available for compression to be completed. If at any point
+     * during the compression the destination buffer's capacity cannot be increased sufficiently, the operation will fail and both buffer's indices will
+     * remain unchanged, however the destination buffer's contents may be modified.
+     * <p>
+     * In either case, the indices of the dictionary buffer remain unaffected.
+     *
+     * @param src  the {@link ByteBuf} to read source data from
+     * @param dst  the {@link ByteBuf} to write compressed data to
+     * @param dict the (possibly {@code null}) {@link ByteBuf} containing the dictionary to be used for compression
+     * @throws DictionaryNotAllowedException if the dictionary buffer is not {@code null} and this context does not allow use of a dictionary
+     * @throws IndexOutOfBoundsException     if the destination buffer's capacity could not be increased sufficiently
+     */
+    void compressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) throws DictionaryNotAllowedException, IndexOutOfBoundsException;
+
     //
     //
     // stream creator methods
@@ -87,17 +112,17 @@ public interface PDeflater extends Context {
      * @param bufferAlloc the {@link ByteBufAllocator} to be used for allocating the internal write buffer. If {@code null}, the default allocator will be used
      * @see #compressionStream(DataOut, ByteBufAllocator, int, ByteBuf)
      */
-    default DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc)  {
+    default DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc) {
         return this.compressionStream(out, bufferAlloc, -1, null);
     }
 
     /**
      * Gets a {@link DataOut} which will compress data written to it using this {@link PDeflater} and write the compressed data to the given {@link DataOut}.
      *
-     * @param bufferSize  the size of the internal write buffer. If not positive, the default buffer size will be used
+     * @param bufferSize the size of the internal write buffer. If not positive, the default buffer size will be used
      * @see #compressionStream(DataOut, ByteBufAllocator, int, ByteBuf)
      */
-    default DataOut compressionStream(@NonNull DataOut out, int bufferSize)  {
+    default DataOut compressionStream(@NonNull DataOut out, int bufferSize) {
         return this.compressionStream(out, null, bufferSize, null);
     }
 
@@ -108,7 +133,7 @@ public interface PDeflater extends Context {
      *
      * @see #compressionStream(DataOut, ByteBufAllocator, int, ByteBuf)
      */
-    default DataOut compressionStream(@NonNull DataOut out, ByteBuf dict) throws DictionaryNotAllowedException  {
+    default DataOut compressionStream(@NonNull DataOut out, ByteBuf dict) throws DictionaryNotAllowedException {
         return this.compressionStream(out, null, -1, dict);
     }
 
@@ -120,7 +145,7 @@ public interface PDeflater extends Context {
      * @param bufferAlloc the {@link ByteBufAllocator} to be used for allocating the internal write buffer. If {@code null}, the default allocator will be used
      * @see #compressionStream(DataOut, ByteBufAllocator, int, ByteBuf)
      */
-    default DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, ByteBuf dict) throws DictionaryNotAllowedException    {
+    default DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, ByteBuf dict) throws DictionaryNotAllowedException {
         return this.compressionStream(out, bufferAlloc, -1, dict);
     }
 
@@ -129,10 +154,10 @@ public interface PDeflater extends Context {
      * <p>
      * This will cause the internal write buffer to be allocated using the default {@link ByteBufAllocator}.
      *
-     * @param bufferSize  the size of the internal write buffer. If not positive, the default buffer size will be used
+     * @param bufferSize the size of the internal write buffer. If not positive, the default buffer size will be used
      * @see #compressionStream(DataOut, ByteBufAllocator, int, ByteBuf)
      */
-    default DataOut compressionStream(@NonNull DataOut out, int bufferSize, ByteBuf dict) throws DictionaryNotAllowedException  {
+    default DataOut compressionStream(@NonNull DataOut out, int bufferSize, ByteBuf dict) throws DictionaryNotAllowedException {
         return this.compressionStream(out, null, bufferSize, dict);
     }
 

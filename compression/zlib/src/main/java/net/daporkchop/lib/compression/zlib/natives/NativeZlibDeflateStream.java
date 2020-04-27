@@ -92,7 +92,6 @@ final class NativeZlibDeflateStream extends AbstractDirectDataOut {
 
             total += this.deflater.getRead();
             this.buf.writerIndex(this.buf.writerIndex() + toInt(this.deflater.getWritten(), "written"));
-            //System.out.println("Z_NO_FLUSH: " + this.deflater.getWritten());
         } while (total < length);
         this.drainSome(); //final attempt to drain as much of the buffer as possible
         return total;
@@ -109,7 +108,6 @@ final class NativeZlibDeflateStream extends AbstractDirectDataOut {
 
             total += this.deflater.getRead();
             this.buf.writerIndex(this.buf.writerIndex() + toInt(this.deflater.getWritten(), "written"));
-            //System.out.println("Z_NO_FLUSH: " + this.deflater.getWritten());
             this.drainAll();
         } while (total < length);
     }
@@ -121,10 +119,8 @@ final class NativeZlibDeflateStream extends AbstractDirectDataOut {
         do {
             status = update0(this.ctx, 0L, 0, this.buf.memoryAddress() + this.buf.writerIndex(), this.buf.writableBytes(), Z_SYNC_FLUSH);
             this.buf.writerIndex(this.buf.writerIndex() + toInt(this.deflater.getWritten(), "written"));
-            //System.out.println("Z_SYNC_FLUSH: " + this.deflater.getWritten());
             this.drainAll();
         } while (status != Z_OK || !this.buf.isWritable());
-        //System.out.println("post-Z_SYNC_FLUSH: " + this.deflater.getWritten());
     }
 
     @Override
@@ -136,10 +132,8 @@ final class NativeZlibDeflateStream extends AbstractDirectDataOut {
         do {
             status = update0(this.ctx, 0L, 0, this.buf.memoryAddress() + this.buf.writerIndex(), this.buf.writableBytes(), Z_FINISH);
             this.buf.writerIndex(this.buf.writerIndex() + toInt(this.deflater.getWritten(), "written"));
-            //System.out.println("Z_FINISH: " + this.deflater.getWritten());
             this.drainAll();
         } while (status != Z_STREAM_END);
-        //System.out.println("post-Z_FINISH: " + this.buf.readableBytes());
 
         this.out.close();
         this.buf.release();
@@ -149,7 +143,6 @@ final class NativeZlibDeflateStream extends AbstractDirectDataOut {
         if (this.buf.isReadable()) {
             int written = this.out.write(this.buf);
             this.buf.discardReadBytes();
-            //System.out.println("Partial drain: " + written);
             return written;
         } else {
             return -1;
@@ -160,7 +153,6 @@ final class NativeZlibDeflateStream extends AbstractDirectDataOut {
         if (this.buf.isReadable()) {
             int written = this.out.writeFully(this.buf);
             this.buf.clear();
-            //System.out.println("Full drain: " + written);
             return written;
         } else {
             return -1;

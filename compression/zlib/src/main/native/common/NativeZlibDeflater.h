@@ -36,14 +36,6 @@ JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZ
 
 /*
  * Class:     net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater
- * Method:    compress0
- * Signature: (JJIJI)Z
- */
-/*JNIEXPORT jboolean JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_compress0
-  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint);*/
-
-/*
- * Class:     net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater
  * Method:    update0
  * Signature: (JJIJII)I
  */

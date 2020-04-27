@@ -23,6 +23,7 @@ package net.daporkchop.lib.binary.stream;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.netty.ByteBufOut;
+import net.daporkchop.lib.binary.stream.netty.NonGrowingByteBufOut;
 import net.daporkchop.lib.binary.stream.nio.BufferOut;
 import net.daporkchop.lib.binary.stream.stream.StreamOut;
 import net.daporkchop.lib.common.pool.handle.Handle;
@@ -175,6 +176,18 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      */
     static DataOut wrap(@NonNull ByteBuf buf, boolean retain) {
         return new ByteBufOut(retain ? buf.retain() : buf);
+    }
+
+    /**
+     * Wraps a {@link ByteBuf} into a {@link DataOut} for writing.
+     *
+     * @param buf    the {@link ByteBuf} to write to
+     * @param retain if {@code true}: when the {@link DataOut} is closed (using {@link DataOut#close()}), the {@link ByteBuf} will not be released
+     * @param grow   whether or not the buffer should be allowed to grow
+     * @return a {@link DataOut} that can write data to the {@link ByteBuf}
+     */
+    static DataOut wrap(@NonNull ByteBuf buf, boolean retain, boolean grow) {
+        return grow ? new ByteBufOut(retain ? buf.retain() : buf) : new NonGrowingByteBufOut(retain ? buf.retain() : buf);
     }
 
     //

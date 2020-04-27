@@ -48,7 +48,7 @@ pipeline {
         }
         stage("Build") {
             steps {
-                sh "./gradlew build -x test -x publishToMavenLocal --no-daemon"
+                sh "./gradlew build -x test -x publish --no-daemon"
             }
         }
         stage("Test") {
@@ -75,7 +75,7 @@ pipeline {
                 }
             }
             steps {
-                sh "./gradlew publishToMavenLocal --no-daemon"
+                sh "./gradlew publish -x test -x publishToMavenLocal --no-daemon"
             }
         }
     }

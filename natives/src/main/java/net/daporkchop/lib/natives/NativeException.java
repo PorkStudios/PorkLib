@@ -33,6 +33,12 @@ import lombok.experimental.Accessors;
 public class NativeException extends RuntimeException {
     protected final long code;
 
+    public NativeException(long code) {
+        super();
+
+        this.code = code;
+    }
+
     public NativeException(String message) {
         this(message, 0L);
     }

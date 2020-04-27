@@ -37,11 +37,6 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
  */
 public interface ZlibDeflater extends PDeflater {
     @Override
-    default DataOut compressionStream(@NonNull DataOut out, ByteBuf dict) {
-        return this.compressionStream(out, PooledByteBufAllocator.DEFAULT, Zlib.DEFAULT_STREAM_BUFFER_SIZE, dict);
-    }
-
-    @Override
     ZlibDeflaterOptions options();
 
     @Override

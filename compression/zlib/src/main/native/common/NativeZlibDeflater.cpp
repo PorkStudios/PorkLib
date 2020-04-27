@@ -65,23 +65,31 @@ __attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_comp
         throwException(env, msg == nullptr ? "Couldn't end deflater!" : msg, ret);
     }
 }
-
-__attribute__((visibility("default"))) jboolean JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_compress0
-        (JNIEnv* env, jclass cla, jlong _ctx, jlong src, jint srcLen, jlong dst, jint dstLen, jlong dict, jint dictLen)  {
+__attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_newSession0
+        (JNIEnv* env, jclass cla, jlong _ctx, jlong dict, jint dictLen)   {
     Context* ctx = (Context*) _ctx;
 
     if (!tryReset(env, ctx))    {
-        return false;
+        return 0;
     }
 
-    if (dict)   {
+    jlong session = ++ctx->session;
+
+    if (dict && dictLen)   {
         //set dictionary
         int ret = zng_deflateSetDictionary(&ctx->stream, (unsigned char*) dict, dictLen);
         if (ret != Z_OK)    {
             throwException(env, ctx->stream.msg ? ctx->stream.msg : "Couldn't set deflater dictionary!", ret);
-            return false;
+            return 0;
         }
     }
+
+    return session;
+}
+
+/*__attribute__((visibility("default"))) jboolean JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_compress0
+        (JNIEnv* env, jclass cla, jlong _ctx, jlong src, jint srcLen, jlong dst, jint dstLen)  {
+    Context* ctx = (Context*) _ctx;
 
     ctx->stream.next_in = (unsigned char*) src;
     ctx->stream.avail_in = srcLen;
@@ -99,6 +107,26 @@ __attribute__((visibility("default"))) jboolean JNICALL Java_net_daporkchop_lib_
     }
 
     return false;
+}*/
+
+__attribute__((visibility("default"))) jint JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_update0
+        (JNIEnv* env, jclass cla, jlong _ctx, jlong src, jint srcLen, jlong dst, jint dstLen, jint flush)  {
+    Context* ctx = (Context*) _ctx;
+
+    ctx->stream.next_in = (unsigned char*) src;
+    ctx->stream.avail_in = srcLen;
+
+    ctx->stream.next_out = (unsigned char*) dst;
+    ctx->stream.avail_out = dstLen;
+
+    int ret = zng_deflate(&ctx->stream, flush);
+    if (ret < 0)    {
+        throwException(env, ctx->stream.msg ? ctx->stream.msg : "Invalid return value from deflate()!", ret);
+        return 0;
+    }
+    ctx->read =    srcLen - ctx->stream.avail_in;
+    ctx->written = dstLen - ctx->stream.avail_out;
+    return ret;
 }
 
 /*__attribute__((visibility("default"))) jboolean JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_doFullDeflate

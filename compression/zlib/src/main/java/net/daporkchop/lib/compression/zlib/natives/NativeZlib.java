@@ -43,6 +43,24 @@ import static net.daporkchop.lib.common.util.PValidation.*;
 final class NativeZlib extends NativeFeature<ZlibProvider> implements ZlibProvider {
     protected static native long compressBound0(long srcSize, int mode);
 
+    static final int Z_NO_FLUSH = 0;
+    static final int Z_PARTIAL_FLUSH = 1;
+    static final int Z_SYNC_FLUSH = 2;
+    static final int Z_FULL_FLUSH = 3;
+    static final int Z_FINISH = 4;
+    static final int Z_BLOCK = 5;
+    static final int Z_TREES = 6;
+
+    static final int Z_OK = 0;
+    static final int Z_STREAM_END = 1;
+    static final int Z_NEED_DICT = 2;
+    static final int Z_ERRNO = -1;
+    static final int Z_STREAM_ERROR = -2;
+    static final int Z_DATA_ERROR = -3;
+    static final int Z_MEM_ERROR = -4;
+    static final int Z_BUF_ERROR = -5;
+    static final int Z_VERSION_ERROR = -6;
+
     protected final ZlibDeflaterOptions defaultDeflaterOptions = new ZlibDeflaterOptions.Builder(this).build();
     protected final ZlibInflaterOptions defaultInflaterOptions = new ZlibInflaterOptions.Builder(this).build();
 

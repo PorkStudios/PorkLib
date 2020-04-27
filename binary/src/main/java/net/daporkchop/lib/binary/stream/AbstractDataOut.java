@@ -48,8 +48,10 @@ public abstract class AbstractDataOut implements DataOut {
 
     @Override
     public void write(int b) throws IOException {
-        this.ensureOpen();
-        this.write0(b);
+        synchronized (this.mutex()) {
+            this.ensureOpen();
+            this.write0(b);
+        }
     }
 
     /**
@@ -59,107 +61,121 @@ public abstract class AbstractDataOut implements DataOut {
 
     @Override
     public void write(@NonNull byte[] src, int start, int length) throws IOException {
-        this.ensureOpen();
-        checkRangeLen(src.length, start, length);
-        if (length == 0) {
-            return;
-        } else if (length == 1) {
-            this.write0(src[start]);
-        } else {
-            this.writeAll0(src, start, length);
+        synchronized (this.mutex()) {
+            this.ensureOpen();
+            checkRangeLen(src.length, start, length);
+            if (length == 0) {
+                return;
+            } else if (length == 1) {
+                this.write0(src[start]);
+            } else {
+                this.writeAll0(src, start, length);
+            }
         }
     }
 
     @Override
     public int write(@NonNull ByteBuffer src) throws IOException {
-        this.ensureOpen();
-        int remaining = src.remaining();
-        if (remaining <= 0) {
-            return 0;
-        }
+        synchronized (this.mutex()) {
+            this.ensureOpen();
+            int remaining = src.remaining();
+            if (remaining <= 0) {
+                return 0;
+            }
 
-        int position = src.position();
-        int written = src.isDirect()
-                      ? toInt(this.writeSome0(PUnsafe.pork_directBufferAddress(src) + position, remaining))
-                      : this.writeSome0(src.array(), src.arrayOffset() + position, remaining);
+            int position = src.position();
+            int written = src.isDirect()
+                          ? toInt(this.writeSome0(PUnsafe.pork_directBufferAddress(src) + position, remaining))
+                          : this.writeSome0(src.array(), src.arrayOffset() + position, remaining);
 
-        if (written > 0) {
-            src.position(position + written);
+            if (written > 0) {
+                src.position(position + written);
+            }
+            return written == RESULT_BLOCKING ? 0 : written;
         }
-        return written == RESULT_BLOCKING ? 0 : written;
     }
 
     @Override
     public int write(@NonNull ByteBuf src, int count) throws IOException {
-        int readerIndex = src.readerIndex();
-        int written = this.write(src, readerIndex, count);
-        src.readerIndex(readerIndex + written);
-        return written;
+        synchronized (this.mutex()) {
+            int readerIndex = src.readerIndex();
+            int written = this.write(src, readerIndex, count);
+            src.readerIndex(readerIndex + written);
+            return written;
+        }
     }
 
     @Override
     public int write(@NonNull ByteBuf src, int start, int length) throws IOException {
-        this.ensureOpen();
-        checkRangeLen(src.capacity(), start, length);
-        if (length == 0) {
-            return 0;
-        }
+        synchronized (this.mutex()) {
+            this.ensureOpen();
+            checkRangeLen(src.capacity(), start, length);
+            if (length == 0) {
+                return 0;
+            }
 
-        int written;
-        if (src.hasMemoryAddress()) {
-            written = toInt(this.writeSome0(src.memoryAddress() + start, length));
-        } else if (src.hasArray()) {
-            written = this.writeSome0(src.array(), src.arrayOffset() + start, length);
-        } else {
-            written = src.getBytes(start, this, length);
+            int written;
+            if (src.hasMemoryAddress()) {
+                written = toInt(this.writeSome0(src.memoryAddress() + start, length));
+            } else if (src.hasArray()) {
+                written = this.writeSome0(src.array(), src.arrayOffset() + start, length);
+            } else {
+                written = src.getBytes(start, this, length);
+            }
+            return written == RESULT_BLOCKING ? 0 : written;
         }
-        return written == RESULT_BLOCKING ? 0 : written;
     }
 
     @Override
     public int writeFully(@NonNull ByteBuffer src) throws IOException {
-        this.ensureOpen();
-        int remaining = src.remaining();
-        if (remaining <= 0) {
-            return 0;
-        }
+        synchronized (this.mutex()) {
+            this.ensureOpen();
+            int remaining = src.remaining();
+            if (remaining <= 0) {
+                return 0;
+            }
 
-        int position = src.position();
-        if (src.isDirect()) {
-            this.writeAll0(PUnsafe.pork_directBufferAddress(src) + position, remaining);
-        } else {
-            this.writeAll0(src.array(), src.arrayOffset() + position, remaining);
+            int position = src.position();
+            if (src.isDirect()) {
+                this.writeAll0(PUnsafe.pork_directBufferAddress(src) + position, remaining);
+            } else {
+                this.writeAll0(src.array(), src.arrayOffset() + position, remaining);
+            }
+            src.position(position + remaining);
+            return remaining;
         }
-        src.position(position + remaining);
-        return remaining;
     }
 
     @Override
     public int writeFully(@NonNull ByteBuf src, int count) throws IOException {
-        int readerIndex = src.readerIndex();
-        int written = this.writeFully(src, readerIndex, count);
-        src.readerIndex(readerIndex + written);
-        return written;
+        synchronized (this.mutex()) {
+            int readerIndex = src.readerIndex();
+            int written = this.writeFully(src, readerIndex, count);
+            src.readerIndex(readerIndex + written);
+            return written;
+        }
     }
 
     @Override
     public int writeFully(@NonNull ByteBuf src, int start, int length) throws IOException {
-        this.ensureOpen();
-        checkRangeLen(src.capacity(), start, length);
-        if (length == 0) {
-            return 0;
-        }
-
-        if (src.hasMemoryAddress()) {
-            this.writeAll0(src.memoryAddress() + start, length);
-        } else if (src.hasArray()) {
-            this.writeAll0(src.array(), src.arrayOffset() + start, length);
-        } else {
-            for (ByteBuffer buffer : src.nioBuffers(start, length)) {
-                this.writeFully(buffer);
+        synchronized (this.mutex()) {
+            this.ensureOpen();
+            checkRangeLen(src.capacity(), start, length);
+            if (length == 0) {
+                return 0;
             }
+
+            if (src.hasMemoryAddress()) {
+                this.writeAll0(src.memoryAddress() + start, length);
+            } else if (src.hasArray()) {
+                this.writeAll0(src.array(), src.arrayOffset() + start, length);
+            } else {
+                for (ByteBuffer buffer : src.nioBuffers(start, length)) {
+                    this.writeFully(buffer);
+                }
+            }
+            return length;
         }
-        return length;
     }
 
     /**
@@ -228,7 +244,7 @@ public abstract class AbstractDataOut implements DataOut {
      */
     protected abstract void close0() throws IOException;
 
-    protected Object mutex()    {
+    protected Object mutex() {
         return this;
     }
 
@@ -251,8 +267,10 @@ public abstract class AbstractDataOut implements DataOut {
 
     @Override
     public final void flush() throws IOException {
-        this.ensureOpen();
-        this.flush0();
+        synchronized (this.mutex()) {
+            this.ensureOpen();
+            this.flush0();
+        }
     }
 
     @Override
@@ -262,12 +280,14 @@ public abstract class AbstractDataOut implements DataOut {
 
     @Override
     public final void close() throws IOException {
-        if (PUnsafe.compareAndSwapInt(this, CLOSED_OFFSET, 0, 1)) {
-            this.close0();
+        synchronized (this.mutex()) {
+            if (PUnsafe.compareAndSwapInt(this, CLOSED_OFFSET, 0, 1)) {
+                this.close0();
+            }
         }
     }
 
-    protected final void ensureOpen() throws IOException {
+    protected void ensureOpen() throws IOException {
         if (!this.isOpen()) {
             throw new ClosedChannelException();
         }

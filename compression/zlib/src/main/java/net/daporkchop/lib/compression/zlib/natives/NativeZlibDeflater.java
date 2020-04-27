@@ -22,26 +22,29 @@ package net.daporkchop.lib.compression.zlib.natives;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.PooledByteBufAllocator;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
-import net.daporkchop.lib.common.misc.refcount.RefCounted;
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
 import net.daporkchop.lib.compression.zlib.ZlibDeflater;
 import net.daporkchop.lib.compression.zlib.options.ZlibDeflaterOptions;
+import net.daporkchop.lib.natives.NativeException;
 import net.daporkchop.lib.unsafe.PCleaner;
 import net.daporkchop.lib.unsafe.PUnsafe;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.nio.ByteBuffer;
+import java.util.ConcurrentModificationException;
 
 import static java.lang.Math.*;
 import static net.daporkchop.lib.common.util.PValidation.*;
+import static net.daporkchop.lib.compression.zlib.natives.NativeZlib.*;
 
 /**
  * @author DaPorkchop_
@@ -52,14 +55,18 @@ final class NativeZlibDeflater extends AbstractRefCounted.Synchronized implement
 
     static native void release0(long ctx);
 
-    static native boolean compress0(long ctx, long src, int srcLen, long dst, int dstLen, long dict, int dictLen);
+    static native long newSession0(long ctx, long dict, int dictLen);
 
-    protected final long ctx;
+    //static native boolean compress0(long ctx, long src, int srcLen, long dst, int dstLen);
+
+    static native int update0(long ctx, long src, int srcLen, long dst, int dstLen, int flush);
+
+    final long ctx;
 
     @Getter
-    protected final ZlibDeflaterOptions options;
+    final ZlibDeflaterOptions options;
 
-    protected final PCleaner cleaner;
+    final PCleaner cleaner;
 
     NativeZlibDeflater(@NonNull ZlibDeflaterOptions options) {
         checkArg(options.provider() instanceof NativeZlib, "provider must be %s!", NativeZlib.class);
@@ -77,44 +84,63 @@ final class NativeZlibDeflater extends AbstractRefCounted.Synchronized implement
     @Override
     public synchronized boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) throws DictionaryNotAllowedException {
         this.ensureNotReleased();
-        if (src.hasMemoryAddress() && dst.hasMemoryAddress()) {
-            //if both buffers are direct we can do it in one shot
-            long srcAddr = src.memoryAddress() + src.readerIndex();
-            int srcLen = src.readableBytes();
-            long dstAddr = dst.memoryAddress() + dst.writerIndex();
-            int dstLen = dst.writableBytes();
-
-            boolean success;
-            if (dict == null) {
-                //no dictionary will be used
-                success = compress0(this.ctx, srcAddr, srcLen, dstAddr, dstLen, 0L, 0);
+        long session = -1L;
+        try {
+            if (dict == null || dict.readableBytes() == 0) {
+                //empty dictionary, no dictionary will be used
+                session = newSession0(this.ctx, 0L, 0);
             } else if (dict.hasMemoryAddress()) {
-                //dictionary is direct (fast)
-                success = compress0(this.ctx, srcAddr, srcLen, dstAddr, dstLen, dict.memoryAddress() + dict.readerIndex(), dict.readableBytes());
+                //dictionary is direct (this is fast)
+                session = newSession0(this.ctx, dict.memoryAddress() + dict.readerIndex(), dict.readableBytes());
             } else {
-                //dictionary is not direct, copy it to a direct buffer first
+                //dictionary isn't direct, we have to manually copy it into a new buffer
                 try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_BUFFER_POOL.get()) {
-                    ByteBuffer buffer = (ByteBuffer) handle.get().clear();
-                    buffer.limit(min(buffer.capacity(), dict.readableBytes()));
+                    //this buffer is more than large enough to handle the largest valid dictionary, if a dictionary is WAY too large it'll probably break but you shouldn't be trying to do that in the first place :P
+                    ByteBuffer buffer = handle.get();
+                    buffer.clear().limit(min(buffer.capacity(), dict.readableBytes()));
                     dict.getBytes(dict.readerIndex(), buffer);
-                    buffer.position(0);
-                    success = compress0(this.ctx, srcAddr, srcLen, dstAddr, dstLen, PUnsafe.pork_directBufferAddress(buffer), buffer.limit());
+                    session = newSession0(this.ctx, PUnsafe.pork_directBufferAddress(buffer.position(0)), buffer.limit());
                 }
             }
 
-            if (success) {
-                src.skipBytes(toInt(this.getRead(), "read"));
-                dst.writerIndex(dst.writerIndex() + toInt(this.getWritten(), "written"));
+            if (src.hasMemoryAddress() && dst.hasMemoryAddress()) {
+                //if both buffers are direct we can do it in one shot
+                long srcAddr = src.memoryAddress() + src.readerIndex();
+                int srcLen = src.readableBytes();
+                long dstAddr = dst.memoryAddress() + dst.writerIndex();
+                int dstLen = dst.writableBytes();
+
+                int status = update0(this.ctx, srcAddr, srcLen, dstAddr, dstLen, Z_FINISH);
+                if (status == Z_STREAM_END) {
+                    src.skipBytes(toInt(this.getRead(), "read"));
+                    dst.writerIndex(dst.writerIndex() + toInt(this.getWritten(), "written"));
+                    return true;
+                } else if (status == Z_OK) {
+                    return false;
+                } else {
+                    throw new NativeException(status);
+                }
+            } else {
+                //TODO: something
             }
-            return success;
+            return false;
+        } finally {
+            if (session != this.getSession()) {
+                throw new ConcurrentModificationException(); //probably impossible
+            }
         }
-        return false;
     }
 
     @Override
-    public synchronized DataOut compressionStream(@NonNull DataOut out, @NonNull ByteBufAllocator bufferAlloc, int bufferSize, ByteBuf dict) throws DictionaryNotAllowedException {
+    public synchronized DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, int bufferSize, ByteBuf dict) throws DictionaryNotAllowedException {
         this.ensureNotReleased();
-        throw new UnsupportedOperationException(); //TODO
+        if (bufferAlloc == null)    {
+            bufferAlloc = PooledByteBufAllocator.DEFAULT;
+        }
+        if (bufferSize <= 0)    {
+            bufferSize = PorkUtil.BUFFER_SIZE;
+        }
+        return new NativeZlibDeflateStream(out, bufferAlloc.directBuffer(bufferSize, bufferSize), dict, this);
     }
 
     @Override
@@ -123,16 +149,16 @@ final class NativeZlibDeflater extends AbstractRefCounted.Synchronized implement
         return this;
     }
 
-    protected long getRead()    {
-        return PUnsafe.getLong(this.ctx);
+    protected long getRead() {
+        return PUnsafe.getLongVolatile(null, this.ctx);
     }
 
-    protected long getWritten()    {
-        return PUnsafe.getLong(this.ctx + 8L);
+    protected long getWritten() {
+        return PUnsafe.getLongVolatile(null, this.ctx + 8L);
     }
 
-    protected long getSession()    {
-        return PUnsafe.getLong(this.ctx + 16L);
+    protected long getSession() {
+        return PUnsafe.getLongVolatile(null, this.ctx + 16L);
     }
 
     @RequiredArgsConstructor

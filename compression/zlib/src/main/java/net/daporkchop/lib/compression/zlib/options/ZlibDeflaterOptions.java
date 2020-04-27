@@ -65,6 +65,12 @@ public final class ZlibDeflaterOptions extends ZlibOptions implements DeflaterOp
             super(provider);
         }
 
+        @Override
+        public Builder mode(@NonNull ZlibMode mode) {
+            checkArg(mode.compression(), "Zlib mode %s can't be used for compression!", mode);
+            return super.mode(mode);
+        }
+
         public Builder strategy(@NonNull ZlibStrategy strategy) {
             this.strategy = strategy;
             return this;

@@ -20,10 +20,12 @@
 
 package net.daporkchop.lib.compression.zlib.options;
 
+import lombok.NonNull;
 import net.daporkchop.lib.compression.option.InflaterOptions;
-import net.daporkchop.lib.compression.zlib.Zlib;
 import net.daporkchop.lib.compression.zlib.ZlibMode;
 import net.daporkchop.lib.compression.zlib.ZlibProvider;
+
+import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
  * @author DaPorkchop_
@@ -42,6 +44,12 @@ public final class ZlibInflaterOptions extends ZlibOptions implements InflaterOp
     public static final class Builder extends ZlibOptions.Builder<Builder> implements InflaterOptions.Builder<Builder, ZlibInflaterOptions, ZlibProvider> {
         public Builder(ZlibProvider provider) {
             super(provider);
+        }
+
+        @Override
+        public Builder mode(@NonNull ZlibMode mode) {
+            checkArg(mode.compression(), "Zlib mode %s can't be used for decompression!", mode);
+            return super.mode(mode);
         }
 
         @Override

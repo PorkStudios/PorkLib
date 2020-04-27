@@ -12,7 +12,7 @@ extern "C" {
 
 /*
  * Class:     net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater
- * Method:    allocateCtx
+ * Method:    allocate0
  * Signature: (III)J
  */
 JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_allocate0
@@ -20,7 +20,7 @@ JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZ
 
 /*
  * Class:     net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater
- * Method:    releaseCtx
+ * Method:    release0
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_release0
@@ -28,11 +28,27 @@ JNIEXPORT void JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZl
 
 /*
  * Class:     net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater
- * Method:    compress0
- * Signature: (JJIJIJI)Z
+ * Method:    newSession0
+ * Signature: (JJI)J
  */
-JNIEXPORT jboolean JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_compress0
-  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jint);
+JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_newSession0
+  (JNIEnv *, jclass, jlong, jlong, jint);
+
+/*
+ * Class:     net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater
+ * Method:    compress0
+ * Signature: (JJIJI)Z
+ */
+/*JNIEXPORT jboolean JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_compress0
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint);*/
+
+/*
+ * Class:     net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater
+ * Method:    update0
+ * Signature: (JJIJII)I
+ */
+JNIEXPORT jint JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_update0
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jint);
 
 #ifdef __cplusplus
 }

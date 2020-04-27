@@ -22,6 +22,8 @@ package compression.zlib;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import net.daporkchop.lib.binary.oio.StreamUtil;
+import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.binary.stream.misc.SlashDevSlashNull;
 import net.daporkchop.lib.compression.context.PDeflater;
 import net.daporkchop.lib.compression.zlib.Zlib;
@@ -29,7 +31,10 @@ import net.daporkchop.lib.compression.zlib.ZlibStrategy;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 
@@ -37,7 +42,17 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  * @author DaPorkchop_
  */
 public class ZlibTest {
+    protected byte[] text;
+
     @Before
+    public void loadText() throws IOException {
+        File file = new File("../../LICENSE");
+        try (InputStream in = new FileInputStream(file))    {
+            this.text = StreamUtil.toByteArray(in);
+        }
+    }
+
+    @Test
     public void ensureNative() {
         checkState(Zlib.PROVIDER.isNative());
         checkState(Zlib.PROVIDER.compressBound(10) > 5);
@@ -53,8 +68,8 @@ public class ZlibTest {
     @Test
     public void testCompression() throws IOException {
         try (PDeflater deflater = Zlib.PROVIDER.deflater()) {
-            ByteBuf src = Unpooled.directBuffer(1024);
-            ByteBuf dst = Unpooled.directBuffer(500);
+            ByteBuf src = Unpooled.directBuffer(this.text.length).writeBytes(this.text).markReaderIndex().markWriterIndex();
+            ByteBuf dst = Unpooled.directBuffer(Zlib.PROVIDER.compressBound(src.readableBytes()));
             ByteBuf dict = Unpooled.directBuffer(1024);
             ByteBuf dictHeap = Unpooled.buffer(1024);
 
@@ -62,26 +77,27 @@ public class ZlibTest {
             dictHeap.writeBytes(SlashDevSlashNull.INPUT_STREAM, 1024);
 
             for (int i = 0; i < 32; i++) {
-                System.out.println(i);
+                System.out.printf(i + " ");
+                System.out.flush();
 
-                src.readerIndex(0).writerIndex(1024);
-                dst.readerIndex(0).writerIndex(0);
+                src.resetReaderIndex().resetWriterIndex();
+                dst.clear();
                 //System.out.println("Attempting compression without dictionary");
                 //System.out.printf("initial state: readable=%d, writable=%d\n", src.readableBytes(), dst.writableBytes());
                 checkState(deflater.compress(src, dst), "compression failed");
                 //System.out.printf("final state: readable=%d, compressed=%d\n", src.readableBytes(), dst.readableBytes());
                 int withoutDictSize = dst.readableBytes();
 
-                src.readerIndex(0).writerIndex(1024);
-                dst.readerIndex(0).writerIndex(0);
+                src.resetReaderIndex().resetWriterIndex();
+                dst.clear();
                 //System.out.println("Attempting compression with dictionary");
                 //System.out.printf("initial state: readable=%d, writable=%d\n", src.readableBytes(), dst.writableBytes());
                 checkState(deflater.compress(src, dst, dict), "compression failed");
                 //System.out.printf("final state: readable=%d, compressed=%d\n", src.readableBytes(), dst.readableBytes());
                 int withDictSize = dst.readableBytes();
 
-                src.readerIndex(0).writerIndex(1024);
-                dst.readerIndex(0).writerIndex(0);
+                src.resetReaderIndex().resetWriterIndex();
+                dst.clear();
                 //System.out.println("Attempting compression with heap dictionary");
                 //System.out.printf("initial state: readable=%d, writable=%d\n", src.readableBytes(), dst.writableBytes());
                 checkState(deflater.compress(src, dst, dictHeap), "compression failed");
@@ -91,6 +107,39 @@ public class ZlibTest {
                 //checkState(withDictSize < withoutDictSize, "withDictSize (%d) >= withoutDictSize (%d)", withDictSize, withoutDictSize);
                 checkState(withDictSize == withHeapDictSize, "withDictSize (%d) != withHeapDictSize (%d)", withDictSize, withHeapDictSize);
             }
+            System.out.println();
+        }
+    }
+
+    @Test
+    public void testStreamCompression() throws IOException  {
+        try (PDeflater deflater = Zlib.PROVIDER.deflater()) {
+            ByteBuf src = Unpooled.directBuffer(this.text.length).writeBytes(this.text).markReaderIndex().markWriterIndex();
+            ByteBuf dst = Unpooled.directBuffer(500);
+            ByteBuf dict = Unpooled.directBuffer(1024);
+            ByteBuf dictHeap = Unpooled.buffer(1024);
+
+            dict.writeBytes(SlashDevSlashNull.INPUT_STREAM, 1024); //fill with zeroes
+            dictHeap.writeBytes(SlashDevSlashNull.INPUT_STREAM, 1024);
+
+            for (int i = 0; i < 32; i++)    {
+                System.out.printf(i + " ");
+                System.out.flush();
+
+                src.resetReaderIndex().resetWriterIndex();
+                dst.clear();
+                //System.out.println("Attempting streaming compression without dictionary");
+                //System.out.printf("initial state: readable=%d, writable=%d\n", src.readableBytes(), dst.writableBytes());
+                try (DataOut out = deflater.compressionStream(DataOut.wrap(dst))) {
+                    out.write(src);
+                    //System.out.printf("intermediate (pre-flush) state: readable=%d, compressed=%d\n", src.readableBytes(), dst.readableBytes());
+                    out.flush();
+                    //System.out.printf("intermediate (post-flush) state: readable=%d, compressed=%d\n", src.readableBytes(), dst.readableBytes());
+                }
+                //System.out.printf("final state: readable=%d, compressed=%d\n", src.readableBytes(), dst.readableBytes());
+                //break;
+            }
+            System.out.println();
         }
     }
 }

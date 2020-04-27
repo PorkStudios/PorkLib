@@ -246,6 +246,11 @@ public abstract class ForwardingDataIn implements DataIn {
     }
 
     @Override
+    public int read(@NonNull ByteBuf dst) throws IOException {
+        return this.delegate.read(dst);
+    }
+
+    @Override
     public int read(@NonNull ByteBuf dst, int count) throws IOException {
         return this.delegate.read(dst, count);
     }
@@ -253,6 +258,36 @@ public abstract class ForwardingDataIn implements DataIn {
     @Override
     public int read(@NonNull ByteBuf dst, int start, int length) throws IOException {
         return this.delegate.read(dst, start, length);
+    }
+
+    @Override
+    public int readBlocking(@NonNull ByteBuffer dst) throws IOException {
+        return this.delegate.readBlocking(dst);
+    }
+
+    @Override
+    public long readBlocking(@NonNull ByteBuffer[] dsts) throws IOException {
+        return this.delegate.readBlocking(dsts);
+    }
+
+    @Override
+    public long readBlocking(@NonNull ByteBuffer[] dsts, int offset, int length) throws IOException {
+        return this.delegate.readBlocking(dsts, offset, length);
+    }
+
+    @Override
+    public int readBlocking(@NonNull ByteBuf dst) throws IOException {
+        return this.delegate.readBlocking(dst);
+    }
+
+    @Override
+    public int readBlocking(@NonNull ByteBuf dst, int count) throws IOException {
+        return this.delegate.readBlocking(dst, count);
+    }
+
+    @Override
+    public int readBlocking(@NonNull ByteBuf dst, int start, int length) throws IOException {
+        return this.delegate.readBlocking(dst, start, length);
     }
 
     @Override
@@ -268,6 +303,11 @@ public abstract class ForwardingDataIn implements DataIn {
     @Override
     public long readFully(@NonNull ByteBuffer[] dsts, int offset, int length) throws IOException {
         return this.delegate.readFully(dsts, offset, length);
+    }
+
+    @Override
+    public int readFully(@NonNull ByteBuf dst) throws IOException {
+        return this.delegate.readFully(dst);
     }
 
     @Override

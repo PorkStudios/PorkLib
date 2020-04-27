@@ -57,12 +57,12 @@ public class StreamIn extends AbstractHeapDataIn {
     }
 
     @Override
-    protected int readSome0(@NonNull byte[] dst, int start, int length) throws IOException {
+    protected int readSome0(@NonNull byte[] dst, int start, int length, boolean blocking) throws IOException {
         int totalRead = 0;
         int bytesRead = 0;
         while (totalRead < length) {
             int bytesToRead = min(length - totalRead, 8192);
-            if (totalRead > 0 && this.delegate.available() <= 0) {
+            if (!blocking && totalRead > 0 && this.delegate.available() <= 0) {
                 break; // block at most once
             }
 

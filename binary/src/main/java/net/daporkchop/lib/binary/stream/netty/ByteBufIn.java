@@ -61,7 +61,7 @@ public class ByteBufIn extends AbstractDataIn {
     }
 
     @Override
-    protected int readSome0(@NonNull byte[] dst, int start, int length) throws IOException {
+    protected int readSome0(@NonNull byte[] dst, int start, int length, boolean blocking) throws IOException {
         int count = min(this.delegate.readableBytes(), length);
         if (count <= 0) {
             return RESULT_EOF;
@@ -72,7 +72,7 @@ public class ByteBufIn extends AbstractDataIn {
     }
 
     @Override
-    protected long readSome0(long addr, long length) throws IOException {
+    protected long readSome0(long addr, long length, boolean blocking) throws IOException {
         int count = toInt(min(this.delegate.readableBytes(), length));
         int readerIndex = this.delegate.readerIndex();
         if (count <= 0) {

@@ -36,13 +36,13 @@ import static java.lang.Math.*;
  */
 public abstract class AbstractHeapDataIn extends AbstractDataIn {
     @Override
-    protected long readSome0(long addr, long length) throws IOException {
+    protected long readSome0(long addr, long length, boolean blocking) throws IOException {
         try (Handle<byte[]> handle = PorkUtil.BUFFER_POOL.get()) {
             byte[] buf = handle.get();
             long total = 0L;
             boolean first = true;
             do {
-                int read = this.readSome0(buf, 0, (int) min(length - total, PorkUtil.BUFFER_SIZE));
+                int read = this.readSome0(buf, 0, (int) min(length - total, PorkUtil.BUFFER_SIZE), blocking);
                 if (read <= 0) {
                     return read < 0 && first ? read : total;
                 }

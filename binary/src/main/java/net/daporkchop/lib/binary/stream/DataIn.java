@@ -769,13 +769,39 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * <p>
      * This method will also increase the buffer's {@link ByteBuf#writerIndex()}.
      *
+     * @param dst the {@link ByteBuf} to read data into
+     * @return the actual number of bytes read
+     * @throws ClosedChannelException if the channel was already closed
+     * @throws IOException            if an IO exception occurs you dummy
+     */
+    default int read(@NonNull ByteBuf dst) throws IOException {
+        return this.read(dst, dst.writableBytes());
+    }
+
+    /**
+     * Reads data into the given {@link ByteBuf}.
+     * <p>
+     * Like {@link #read(byte[], int, int)}, this will read until the requested number of bytes have been read, EOF is reached, or more data
+     * cannot be read without blocking. However, it is not guaranteed to read any bytes at all.
+     * <p>
+     * If EOF was already reached, this method will always return {@code -1}.
+     * <p>
+     * This method will also increase the buffer's {@link ByteBuf#writerIndex()}.
+     *
      * @param dst   the {@link ByteBuf} to read data into
      * @param count the number of bytes to read
      * @return the actual number of bytes read
      * @throws ClosedChannelException if the channel was already closed
      * @throws IOException            if an IO exception occurs you dummy
      */
-    int read(@NonNull ByteBuf dst, int count) throws IOException;
+    default int read(@NonNull ByteBuf dst, int count) throws IOException {
+        int writerIndex = dst.writerIndex();
+        int read = this.read(dst, writerIndex, count);
+        if (read > 0) {
+            dst.writerIndex(writerIndex + read);
+        }
+        return read;
+    }
 
     /**
      * Reads data into the given {@link ByteBuf}.
@@ -801,6 +827,123 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
     // bulk transfer methods - ByteBuffer and ByteBuf - blocking
     //
     //
+
+    /**
+     * Fills the given {@link ByteBuffer} with data.
+     * <p>
+     * Unlike {@link #readFully(ByteBuffer)}, this method will stop reading once EOF is reached.
+     * <p>
+     * If EOF was already reached, this method will always return {@code -1}.
+     *
+     * @param dst the {@link ByteBuffer} to read data into
+     * @return the number of bytes read
+     * @throws IOException if an IO exception occurs you dummy
+     */
+    int readBlocking(@NonNull ByteBuffer dst) throws IOException;
+
+    /**
+     * Fills the given {@link ByteBuffer}s with data.
+     * <p>
+     * Unlike {@link #readFully(ByteBuffer[])}, this method will stop reading once EOF is reached.
+     * <p>
+     * If EOF was already reached, this method will always return {@code -1}.
+     *
+     * @param dsts the {@link ByteBuffer}s to read data into
+     * @return the number of bytes read
+     * @throws IOException if an IO exception occurs you dummy
+     */
+    default long readBlocking(@NonNull ByteBuffer[] dsts) throws IOException {
+        return this.readBlocking(dsts, 0, dsts.length);
+    }
+
+    /**
+     * Fills the given {@link ByteBuffer}s with data.
+     * <p>
+     * Unlike {@link #readFully(ByteBuffer[], int, int)}, this method will stop reading once EOF is reached.
+     * <p>
+     * If EOF was already reached, this method will always return {@code -1}.
+     *
+     * @param dsts   the {@link ByteBuffer}s to read data into
+     * @param offset the index of the first {@link ByteBuffer} to read data into
+     * @param length the number of {@link ByteBuffer}s to read data into
+     * @return the number of bytes read
+     * @throws IOException if an IO exception occurs you dummy
+     */
+    default long readBlocking(@NonNull ByteBuffer[] dsts, int offset, int length) throws IOException {
+        if (!this.isOpen()) {
+            throw new ClosedChannelException();
+        }
+        checkRangeLen(dsts.length, offset, length);
+        long total = 0L;
+        for (int i = 0; i < length; i++) {
+            ByteBuffer dst = dsts[offset + i];
+            int remaining = dst.remaining();
+            if (remaining > 0) {
+                total += this.readBlocking(dst);
+                if (dst.hasRemaining()) {
+                    break;
+                }
+            }
+        }
+        return total;
+    }
+
+    /**
+     * Fills the given {@link ByteBuf} with data.
+     * <p>
+     * This method will also increase the buffer's {@link ByteBuf#writerIndex()}.
+     * <p>
+     * Unlike {@link #readFully(ByteBuf)}, this method will stop reading once EOF is reached.
+     * <p>
+     * If EOF was already reached, this method will always return {@code -1}.
+     *
+     * @param dst the {@link ByteBuf} to read data into
+     * @return the number of bytes read
+     * @throws IOException if an IO exception occurs you dummy
+     */
+    default int readBlocking(@NonNull ByteBuf dst) throws IOException {
+        return this.readBlocking(dst, dst.writableBytes());
+    }
+
+    /**
+     * Fills the given {@link ByteBuf} with data.
+     * <p>
+     * This method will also increase the buffer's {@link ByteBuf#writerIndex()}.
+     * <p>
+     * Unlike {@link #readFully(ByteBuf, int)}, this method will stop reading once EOF is reached.
+     * <p>
+     * If EOF was already reached, this method will always return {@code -1}.
+     *
+     * @param dst   the {@link ByteBuf} to read data into
+     * @param count the number of bytes to read
+     * @return the number of bytes read
+     * @throws IOException if an IO exception occurs you dummy
+     */
+    default int readBlocking(@NonNull ByteBuf dst, int count) throws IOException {
+        int writerIndex = dst.writerIndex();
+        int read = this.readBlocking(dst, writerIndex, count);
+        if (read > 0) {
+            dst.writerIndex(writerIndex + read);
+        }
+        return read;
+    }
+
+    /**
+     * Fills the given {@link ByteBuf} with data.
+     * <p>
+     * This method will not increase the buffer's {@link ByteBuf#writerIndex()}.
+     * <p>
+     * Unlike {@link #readFully(ByteBuf, int, int)}, this method will stop reading once EOF is reached.
+     * <p>
+     * If EOF was already reached, this method will always return {@code -1}.
+     *
+     * @param dst    the {@link ByteBuf} to read data into
+     * @param start  the first index in the {@link ByteBuf} to read into
+     * @param length the number of bytes to read
+     * @return the number of bytes read
+     * @throws IOException if an IO exception occurs you dummy
+     */
+    int readBlocking(@NonNull ByteBuf dst, int start, int length) throws IOException;
 
     /**
      * Fills the given {@link ByteBuffer} with data.
@@ -859,13 +1002,34 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * <p>
      * This method will also increase the buffer's {@link ByteBuf#writerIndex()}.
      *
+     * @param dst the {@link ByteBuf} to read data into
+     * @return the number of bytes read
+     * @throws EOFException if EOF is reached before the buffer can be filled
+     * @throws IOException  if an IO exception occurs you dummy
+     */
+    default int readFully(@NonNull ByteBuf dst) throws IOException {
+        return this.readFully(dst, dst.writableBytes());
+    }
+
+    /**
+     * Fills the given {@link ByteBuf} with data.
+     * <p>
+     * This method will also increase the buffer's {@link ByteBuf#writerIndex()}.
+     *
      * @param dst   the {@link ByteBuf} to read data into
      * @param count the number of bytes to read
      * @return the number of bytes read
      * @throws EOFException if EOF is reached before the buffer can be filled
      * @throws IOException  if an IO exception occurs you dummy
      */
-    int readFully(@NonNull ByteBuf dst, int count) throws IOException;
+    default int readFully(@NonNull ByteBuf dst, int count) throws IOException {
+        int writerIndex = dst.writerIndex();
+        int read = this.readFully(dst, writerIndex, count);
+        if (read > 0) {
+            dst.writerIndex(writerIndex + read);
+        }
+        return read;
+    }
 
     /**
      * Fills the given {@link ByteBuf} with data.

@@ -294,6 +294,21 @@ public final class SlashDevSlashNull implements DataIn, DataOut {
     }
 
     @Override
+    public int readBlocking(@NonNull ByteBuffer dst) throws IOException {
+        return this.read(dst);
+    }
+
+    @Override
+    public int readBlocking(@NonNull ByteBuf dst, int count) throws IOException {
+        return this.read(dst, count);
+    }
+
+    @Override
+    public int readBlocking(@NonNull ByteBuf dst, int start, int length) throws IOException {
+        return this.read(dst, start, length);
+    }
+
+    @Override
     public java.io.InputStream asInputStream() throws IOException {
         return INPUT_STREAM;
     }

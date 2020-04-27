@@ -39,13 +39,13 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  */
 public abstract class AbstractDirectDataIn extends AbstractDataIn {
     @Override
-    protected int readSome0(@NonNull byte[] dst, int start, int length) throws IOException {
+    protected int readSome0(@NonNull byte[] dst, int start, int length, boolean blocking) throws IOException {
         try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_BUFFER_POOL.get()) {
             long addr = PUnsafe.pork_directBufferAddress(handle.get());
             int total = 0;
             boolean first = true;
             do {
-                int read = toInt(this.readSome0(addr, min(length - total, PorkUtil.BUFFER_SIZE)));
+                int read = toInt(this.readSome0(addr, min(length - total, PorkUtil.BUFFER_SIZE), blocking));
                 if (read <= 0) {
                     return read < 0 && first ? read : total;
                 }

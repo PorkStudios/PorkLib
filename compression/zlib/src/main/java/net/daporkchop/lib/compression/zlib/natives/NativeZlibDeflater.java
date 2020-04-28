@@ -91,6 +91,8 @@ final class NativeZlibDeflater extends AbstractRefCounted.Synchronized implement
 
     protected synchronized boolean compress0(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict, boolean grow) {
         this.ensureNotReleased();
+        checkArg(src.isReadable(), "src is not readable!");
+        checkArg(dst.isWritable(), "dst is not writable!");
         if (src.hasMemoryAddress()) {
             long session;
             if (dict == null || dict.readableBytes() == 0) {
@@ -145,13 +147,12 @@ final class NativeZlibDeflater extends AbstractRefCounted.Synchronized implement
     protected boolean compressNativeToNative0(@NonNull ByteBuf src, @NonNull ByteBuf dst, boolean grow) {
         long srcAddr = src.memoryAddress() + src.readerIndex();
         int srcLen = src.readableBytes();
-        long dstAddr = dst.memoryAddress() + dst.writerIndex();
 
         int totalRead = 0;
         int totalWritten = 0;
         int status;
         do {
-            status = update0(this.ctx, srcAddr + totalRead, srcLen - totalRead, dstAddr + totalWritten, dst.writableBytes() - totalWritten, Z_FINISH);
+            status = update0(this.ctx, srcAddr + totalRead, srcLen - totalRead, dst.memoryAddress() + dst.writerIndex() + totalWritten, dst.writableBytes() - totalWritten, Z_FINISH);
 
             totalRead += toInt(this.getRead(), "read");
             totalWritten += toInt(this.getWritten(), "written");

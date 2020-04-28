@@ -30,7 +30,6 @@ import net.daporkchop.lib.compression.context.PDeflater;
 import net.daporkchop.lib.compression.context.PInflater;
 import net.daporkchop.lib.compression.zlib.Zlib;
 import net.daporkchop.lib.compression.zlib.ZlibMode;
-import net.daporkchop.lib.compression.zlib.ZlibStrategy;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -38,6 +37,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 
@@ -50,10 +50,10 @@ public class ZlibTest {
 
     @Before
     public void loadText() throws IOException {
-        try (InputStream in = new FileInputStream(new File("../../LICENSE")))    {
+        try (InputStream in = new FileInputStream(new File("../../LICENSE"))) {
             this.text = StreamUtil.toByteArray(in);
         }
-        try (InputStream in = new FileInputStream(new File("../../encoding/nbt/src/test/resources/bigtest.nbt")))    {
+        try (InputStream in = new FileInputStream(new File("../../encoding/nbt/src/test/resources/bigtest.nbt"))) {
             this.gzipped = StreamUtil.toByteArray(in);
         }
     }
@@ -72,7 +72,7 @@ public class ZlibTest {
     }
 
     @Test
-    public void testCompression() throws IOException {
+    public void testBlockCompression() throws IOException {
         try (PDeflater deflater = Zlib.PROVIDER.deflater()) {
             ByteBuf src = Unpooled.directBuffer(this.text.length).writeBytes(this.text).markReaderIndex().markWriterIndex();
             ByteBuf dst = Unpooled.directBuffer(Zlib.PROVIDER.compressBound(src.readableBytes()));
@@ -118,7 +118,22 @@ public class ZlibTest {
     }
 
     @Test
-    public void testStreamCompression() throws IOException  {
+    public void testStreamDecompression() throws IOException {
+        try (PInflater inflater = Zlib.PROVIDER.inflater(Zlib.PROVIDER.defaultInflaterOptions().builder().mode(ZlibMode.AUTO).build())) {
+            ByteBuf src = Unpooled.directBuffer(this.gzipped.length).writeBytes(this.gzipped).markReaderIndex().markWriterIndex();
+            ByteBuf dst = Unpooled.directBuffer(1544);
+
+            System.out.println("Gzipped size: " + src.readableBytes());
+            try (DataIn in = inflater.decompressionStream(DataIn.wrap(src))) {
+                System.out.println(in.read(dst, dst.writableBytes() - 4));
+                System.out.println(in.read(dst));
+            }
+            System.out.println("Inflated size: " + dst.readableBytes());
+        }
+    }
+
+    @Test
+    public void testStreamCompression() throws IOException {
         try (PDeflater deflater = Zlib.PROVIDER.deflater()) {
             ByteBuf src = Unpooled.directBuffer(this.text.length).writeBytes(this.text).markReaderIndex().markWriterIndex();
             ByteBuf dst = Unpooled.directBuffer(500);
@@ -128,7 +143,7 @@ public class ZlibTest {
             dict.writeBytes(SlashDevSlashNull.INPUT_STREAM, 1024); //fill with zeroes
             dictHeap.writeBytes(SlashDevSlashNull.INPUT_STREAM, 1024);
 
-            for (int i = 0; i < 32; i++)    {
+            for (int i = 0; i < 32; i++) {
                 System.out.printf(i + " ");
                 System.out.flush();
 
@@ -149,17 +164,27 @@ public class ZlibTest {
     }
 
     @Test
-    public void testStreamDecompression() throws IOException  {
-        try (PInflater inflater = Zlib.PROVIDER.inflater(Zlib.PROVIDER.defaultInflaterOptions().builder().mode(ZlibMode.AUTO).build())) {
-            ByteBuf src = Unpooled.directBuffer(this.gzipped.length).writeBytes(this.gzipped).markReaderIndex().markWriterIndex();
-            ByteBuf dst = Unpooled.directBuffer(1544);
-
-            System.out.println("Gzipped size: " + src.readableBytes());
-            try (DataIn in = inflater.decompressionStream(DataIn.wrap(src)))    {
-                System.out.println(in.read(dst));
-                System.out.println(in.read(dst));
+    public void test() throws IOException {
+        try (PDeflater deflater = Zlib.PROVIDER.deflater();
+             PInflater inflater = Zlib.PROVIDER.inflater()) {
+            ByteBuf origSrc = Unpooled.directBuffer().writeBytes(this.text);
+            ByteBuf compressed = Unpooled.directBuffer();
+            deflater.compressGrowing(origSrc, compressed);
+            ByteBuf uncompressed = Unpooled.directBuffer();
+            inflater.decompressGrowing(compressed, uncompressed);
+            for (int i = 0; i < this.text.length; i++)  {
+                checkState(this.text[i] == uncompressed.getByte(i));
             }
-            System.out.println("Inflated size: " + dst.readableBytes());
+            origSrc.release();
+            compressed.release();
+            uncompressed.release();
+        }
+    }
+
+    @Test
+    public void testStream() throws IOException {
+        try (PDeflater deflater = Zlib.PROVIDER.deflater();
+             PInflater inflater = Zlib.PROVIDER.inflater()) {
         }
     }
 }

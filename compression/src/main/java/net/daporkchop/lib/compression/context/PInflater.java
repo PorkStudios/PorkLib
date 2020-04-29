@@ -28,6 +28,8 @@ import net.daporkchop.lib.compression.option.InflaterOptions;
 import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
+import java.io.IOException;
+
 /**
  * A context for doing repeated one-shot decompression operations.
  *
@@ -102,7 +104,7 @@ public interface PInflater extends Context {
      *
      * @see #decompressionStream(DataIn, ByteBufAllocator, int, ByteBuf)
      */
-    default DataIn decompressionStream(@NonNull DataIn in) {
+    default DataIn decompressionStream(@NonNull DataIn in) throws IOException {
         return this.decompressionStream(in, null, -1, null);
     }
 
@@ -112,7 +114,7 @@ public interface PInflater extends Context {
      * @param bufferAlloc the {@link ByteBufAllocator} to be used for allocating the internal write buffer. If {@code null}, the default allocator will be used
      * @see #decompressionStream(DataIn, ByteBufAllocator, int, ByteBuf)
      */
-    default DataIn decompressionStream(@NonNull DataIn in, ByteBufAllocator bufferAlloc) {
+    default DataIn decompressionStream(@NonNull DataIn in, ByteBufAllocator bufferAlloc) throws IOException {
         return this.decompressionStream(in, bufferAlloc, -1, null);
     }
 
@@ -122,7 +124,7 @@ public interface PInflater extends Context {
      * @param bufferSize the size of the internal write buffer. If not positive, the default buffer size will be used
      * @see #decompressionStream(DataIn, ByteBufAllocator, int, ByteBuf)
      */
-    default DataIn decompressionStream(@NonNull DataIn in, int bufferSize) {
+    default DataIn decompressionStream(@NonNull DataIn in, int bufferSize) throws IOException {
         return this.decompressionStream(in, null, bufferSize, null);
     }
 
@@ -133,7 +135,7 @@ public interface PInflater extends Context {
      *
      * @see #decompressionStream(DataIn, ByteBufAllocator, int, ByteBuf)
      */
-    default DataIn decompressionStream(@NonNull DataIn in, ByteBuf dict) throws DictionaryNotAllowedException {
+    default DataIn decompressionStream(@NonNull DataIn in, ByteBuf dict) throws IOException, DictionaryNotAllowedException {
         return this.decompressionStream(in, null, -1, dict);
     }
 
@@ -145,7 +147,7 @@ public interface PInflater extends Context {
      * @param bufferAlloc the {@link ByteBufAllocator} to be used for allocating the internal write buffer. If {@code null}, the default allocator will be used
      * @see #decompressionStream(DataIn, ByteBufAllocator, int, ByteBuf)
      */
-    default DataIn decompressionStream(@NonNull DataIn in, ByteBufAllocator bufferAlloc, ByteBuf dict) throws DictionaryNotAllowedException {
+    default DataIn decompressionStream(@NonNull DataIn in, ByteBufAllocator bufferAlloc, ByteBuf dict) throws IOException, DictionaryNotAllowedException {
         return this.decompressionStream(in, bufferAlloc, -1, dict);
     }
 
@@ -157,7 +159,7 @@ public interface PInflater extends Context {
      * @param bufferSize the size of the internal write buffer. If not positive, the default buffer size will be used
      * @see #decompressionStream(DataIn, ByteBufAllocator, int, ByteBuf)
      */
-    default DataIn decompressionStream(@NonNull DataIn in, int bufferSize, ByteBuf dict) throws DictionaryNotAllowedException {
+    default DataIn decompressionStream(@NonNull DataIn in, int bufferSize, ByteBuf dict) throws IOException, DictionaryNotAllowedException {
         return this.decompressionStream(in, null, bufferSize, dict);
     }
 
@@ -168,7 +170,7 @@ public interface PInflater extends Context {
      * @param bufferSize  the size of the internal write buffer. If not positive, the default buffer size will be used
      * @throws DictionaryNotAllowedException if the dictionary buffer is not {@code null} and this context does not allow use of a dictionary
      */
-    DataIn decompressionStream(@NonNull DataIn in, ByteBufAllocator bufferAlloc, int bufferSize, ByteBuf dict) throws DictionaryNotAllowedException;
+    DataIn decompressionStream(@NonNull DataIn in, ByteBufAllocator bufferAlloc, int bufferSize, ByteBuf dict) throws IOException, DictionaryNotAllowedException;
 
     //
     //

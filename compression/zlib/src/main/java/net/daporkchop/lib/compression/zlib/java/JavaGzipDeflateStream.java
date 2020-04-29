@@ -80,10 +80,10 @@ class JavaGzipDeflateStream extends JavaZlibDeflateStream {
             }
         }
 
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get())   {
+        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
             byte[] trailer = handle.get();
-            this.writeInt((int) this.crc.getValue(), trailer, 0); // CRC-32 of uncompr. data
-            this.writeInt(this.def.getTotalIn(), trailer, 4); // Number of uncompr. bytes
+            this.writeInt((int) this.crc.getValue(), trailer, 0);
+            this.writeInt(this.def.getTotalIn(), trailer, 4);
             this.out.write(trailer, 0, 8);
         }
 
@@ -98,7 +98,7 @@ class JavaGzipDeflateStream extends JavaZlibDeflateStream {
     }
 
     private void writeShort(int s, @NonNull byte[] buf, int offset) throws IOException {
-        buf[offset] = (byte)(s & 0xff);
-        buf[offset + 1] = (byte)((s >> 8) & 0xff);
+        buf[offset] = (byte) (s & 0xFF);
+        buf[offset + 1] = (byte) ((s >> 8) & 0xFF);
     }
 }

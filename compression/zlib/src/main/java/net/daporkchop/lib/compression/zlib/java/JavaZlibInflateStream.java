@@ -22,97 +22,118 @@ package net.daporkchop.lib.compression.zlib.java;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.AbstractHeapDataOut;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.AbstractHeapDataIn;
+import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
+import java.io.EOFException;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ConcurrentModificationException;
-import java.util.zip.Deflater;
+import java.util.zip.DataFormatException;
+import java.util.zip.Inflater;
 
 import static java.lang.Math.*;
 
 /**
  * @author DaPorkchop_
  */
-class JavaZlibDeflateStream extends AbstractHeapDataOut {
+class JavaZlibInflateStream extends AbstractHeapDataIn {
     final long session;
-    protected final Deflater def;
-    protected final JavaZlibDeflater parent;
+    final Inflater inf;
+    final JavaZlibInflater parent;
     final ByteBuf buf;
-    final DataOut out;
+    final DataIn in;
 
-    JavaZlibDeflateStream(@NonNull DataOut out, @NonNull ByteBuf buf, ByteBuf dict, @NonNull JavaZlibDeflater parent) {
+    byte[] dict;
+    boolean eof = false;
+
+    JavaZlibInflateStream(@NonNull DataIn in, @NonNull ByteBuf buf, ByteBuf dict, @NonNull JavaZlibInflater parent) {
         this.session = ++parent.retain().sessionCounter;
-        this.def = parent.deflater;
+        this.inf = parent.inflater;
         this.parent = parent;
         this.buf = buf;
-        this.out = out;
+        this.in = in;
 
-        this.def.reset();
+        this.inf.reset();
 
         if (dict != null && dict.isReadable()) {
             if (dict.hasArray()) {
-                this.def.setDictionary(dict.array(), dict.arrayOffset(), dict.readableBytes());
+                this.inf.setDictionary(dict.array(), dict.arrayOffset(), dict.readableBytes());
             } else {
                 try (Handle<byte[]> handle = PorkUtil.BUFFER_POOL.get()) {
                     byte[] arr = handle.get();
                     int len = min(dict.readableBytes(), PorkUtil.BUFFER_SIZE);
                     dict.getBytes(dict.readerIndex(), arr, 0, len);
-                    this.def.setDictionary(arr, 0, len);
+                    this.inf.setDictionary(arr, 0, len);
                 }
             }
         }
     }
 
     @Override
-    protected void write0(int b) throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get())   {
-            byte[] arr = handle.get();
-            arr[0] = (byte) b;
-            this.write0(arr, 0, 1);
+    protected int read0() throws IOException {
+        try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_TINY_BUFFER_POOL.get()) {
+            long addr = PUnsafe.pork_directBufferAddress(handle.get());
+            return this.read0(addr, 1L) == 1L ? PUnsafe.getByte(addr) & 0xFF : -1;
         }
     }
 
     @Override
-    protected void write0(@NonNull byte[] src, int start, int length) throws IOException {
-        this.def.setInput(src, start, length);
-        while (!this.def.needsInput()) {
-            int len = this.def.deflate(this.buf.array(), this.buf.arrayOffset(), this.buf.capacity());
-            if (len > 0) {
-                this.out.write(this.buf.array(), this.buf.arrayOffset(), len);
-            }
+    protected int read0(@NonNull byte[] dst, int start, int length) throws IOException {
+        if (this.eof) {
+            return RESULT_EOF;
         }
+        int total = 0;
+        boolean first = true;
+        try {
+            do {
+                int read = this.inf.inflate(dst, start + total, length - total);
+                if (read == 0) {
+                    if (this.inf.finished()) {
+                        this.eof = true;
+                        return first ? RESULT_EOF : total;
+                    } else if (this.inf.needsDictionary()) {
+                        throw new UnsupportedOperationException();
+                    } else if (this.inf.needsInput() && (this.eof || this.fill() < 0)) {
+                        throw new EOFException("Unexpected end of ZLIB input stream");
+                    }
+                }
+                total += read;
+                first = false;
+            } while (total < length);
+        } catch (DataFormatException e) {
+            throw new IOException(e);
+        }
+        return total;
     }
 
     @Override
-    protected void flush0() throws IOException {
-        int len;
-        while ((len = this.def.deflate(this.buf.array(), this.buf.arrayOffset(), this.buf.capacity(), Deflater.SYNC_FLUSH)) > 0) {
-            this.out.write(this.buf.array(), this.buf.arrayOffset(), len);
-            if (len < this.buf.capacity()) {
-                break;
-            }
-        }
+    protected long remaining0() throws IOException {
+        return this.eof ? 0L : 1L;
     }
 
     @Override
     protected void close0() throws IOException {
         this.ensureValidSession();
 
-        this.def.finish();
-        while (!this.def.finished()) {
-            int len = this.def.deflate(this.buf.array(), this.buf.arrayOffset(), this.buf.capacity());
-            if (len > 0) {
-                this.out.write(this.buf.array(), this.buf.arrayOffset(), len);
-            }
-        }
-
-        this.out.close();
+        this.in.close();
         this.buf.release();
         this.parent.release();
-        this.def.reset();
+        this.inf.reset();
+    }
+
+    protected int fill() throws IOException {
+        int i = this.in.read(this.buf.clear());
+        if (i < 0) {
+            this.eof = true;
+        } else {
+            this.inf.setInput(this.buf.array(), this.buf.arrayOffset(), this.buf.readableBytes());
+        }
+        return i;
     }
 
     @Override

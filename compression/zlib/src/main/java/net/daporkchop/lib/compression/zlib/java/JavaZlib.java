@@ -26,23 +26,20 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.compression.context.PDeflater;
 import net.daporkchop.lib.compression.context.PInflater;
-import net.daporkchop.lib.compression.zlib.Zlib;
 import net.daporkchop.lib.compression.zlib.ZlibMode;
 import net.daporkchop.lib.compression.zlib.ZlibProvider;
 import net.daporkchop.lib.compression.zlib.ZlibStrategy;
 import net.daporkchop.lib.compression.zlib.options.ZlibDeflaterOptions;
 import net.daporkchop.lib.compression.zlib.options.ZlibInflaterOptions;
-import net.daporkchop.lib.natives.impl.Feature;
-import net.daporkchop.lib.natives.impl.NativeFeature;
 
-import static net.daporkchop.lib.common.util.PValidation.checkArg;
+import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
  * @author DaPorkchop_
  */
 @Getter
 @Accessors(fluent = true)
-final class JavaZlib implements ZlibProvider {
+public final class JavaZlib implements ZlibProvider {
     protected final ZlibDeflaterOptions defaultDeflaterOptions = new ZlibDeflaterOptions.Builder(this).build();
     protected final ZlibInflaterOptions defaultInflaterOptions = new ZlibInflaterOptions.Builder(this).build();
 
@@ -56,7 +53,7 @@ final class JavaZlib implements ZlibProvider {
         //extracted from deflate.c, i'm assuming that the java implementation has the same limits
         PValidation.notNegative(srcSize);
         long conservativeUpperBound = srcSize + ((srcSize + 7L) >> 3L) + ((srcSize + 63L) >> 6L) + 5L;
-        switch (mode)   {
+        switch (mode) {
             case ZLIB:
                 return conservativeUpperBound + 6L + 4L; //additional +4 in case `strstart`? whatever that means
             case GZIP:
@@ -78,6 +75,7 @@ final class JavaZlib implements ZlibProvider {
     @Override
     public PInflater inflater(@NonNull ZlibInflaterOptions options) {
         checkArg(options.provider() == this, "provider must be %s!", this);
-        throw new UnsupportedOperationException();
+        checkArg(options.mode() != ZlibMode.AUTO, "Java Zlib does not support Zlib mode %s!", options.mode());
+        return new JavaZlibInflater(options);
     }
 }

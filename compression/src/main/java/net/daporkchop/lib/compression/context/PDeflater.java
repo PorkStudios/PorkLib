@@ -28,6 +28,8 @@ import net.daporkchop.lib.compression.option.DeflaterOptions;
 import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
+import java.io.IOException;
+
 /**
  * A context for doing repeated one-shot compression operations.
  *
@@ -102,7 +104,7 @@ public interface PDeflater extends Context {
      *
      * @see #compressionStream(DataOut, ByteBufAllocator, int, ByteBuf)
      */
-    default DataOut compressionStream(@NonNull DataOut out) {
+    default DataOut compressionStream(@NonNull DataOut out) throws IOException {
         return this.compressionStream(out, null, -1, null);
     }
 
@@ -112,7 +114,7 @@ public interface PDeflater extends Context {
      * @param bufferAlloc the {@link ByteBufAllocator} to be used for allocating the internal write buffer. If {@code null}, the default allocator will be used
      * @see #compressionStream(DataOut, ByteBufAllocator, int, ByteBuf)
      */
-    default DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc) {
+    default DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc) throws IOException {
         return this.compressionStream(out, bufferAlloc, -1, null);
     }
 
@@ -122,7 +124,7 @@ public interface PDeflater extends Context {
      * @param bufferSize the size of the internal write buffer. If not positive, the default buffer size will be used
      * @see #compressionStream(DataOut, ByteBufAllocator, int, ByteBuf)
      */
-    default DataOut compressionStream(@NonNull DataOut out, int bufferSize) {
+    default DataOut compressionStream(@NonNull DataOut out, int bufferSize) throws IOException {
         return this.compressionStream(out, null, bufferSize, null);
     }
 
@@ -133,7 +135,7 @@ public interface PDeflater extends Context {
      *
      * @see #compressionStream(DataOut, ByteBufAllocator, int, ByteBuf)
      */
-    default DataOut compressionStream(@NonNull DataOut out, ByteBuf dict) throws DictionaryNotAllowedException {
+    default DataOut compressionStream(@NonNull DataOut out, ByteBuf dict) throws IOException, DictionaryNotAllowedException {
         return this.compressionStream(out, null, -1, dict);
     }
 
@@ -145,7 +147,7 @@ public interface PDeflater extends Context {
      * @param bufferAlloc the {@link ByteBufAllocator} to be used for allocating the internal write buffer. If {@code null}, the default allocator will be used
      * @see #compressionStream(DataOut, ByteBufAllocator, int, ByteBuf)
      */
-    default DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, ByteBuf dict) throws DictionaryNotAllowedException {
+    default DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, ByteBuf dict) throws IOException, DictionaryNotAllowedException {
         return this.compressionStream(out, bufferAlloc, -1, dict);
     }
 
@@ -157,7 +159,7 @@ public interface PDeflater extends Context {
      * @param bufferSize the size of the internal write buffer. If not positive, the default buffer size will be used
      * @see #compressionStream(DataOut, ByteBufAllocator, int, ByteBuf)
      */
-    default DataOut compressionStream(@NonNull DataOut out, int bufferSize, ByteBuf dict) throws DictionaryNotAllowedException {
+    default DataOut compressionStream(@NonNull DataOut out, int bufferSize, ByteBuf dict) throws IOException, DictionaryNotAllowedException {
         return this.compressionStream(out, null, bufferSize, dict);
     }
 
@@ -168,7 +170,7 @@ public interface PDeflater extends Context {
      * @param bufferSize  the size of the internal write buffer. If not positive, the default buffer size will be used
      * @throws DictionaryNotAllowedException if the dictionary buffer is not {@code null} and this context does not allow use of a dictionary
      */
-    DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, int bufferSize, ByteBuf dict) throws DictionaryNotAllowedException;
+    DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, int bufferSize, ByteBuf dict) throws IOException, DictionaryNotAllowedException;
 
     //
     //

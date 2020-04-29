@@ -28,6 +28,7 @@ import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ConcurrentModificationException;
@@ -86,6 +87,9 @@ final class NativeZlibInflateStream extends AbstractDirectDataIn {
         long totalRead = 0L;
         do {
             this.fill();
+            if (this.eof && !this.buf.isReadable()) {
+                throw new EOFException("Unexpected end of ZLIB input stream");
+            }
             int blockSize = toInt(min(length - totalRead, Integer.MAX_VALUE));
             this.lastStatus = update0(this.ctx, this.buf.memoryAddress() + this.buf.readerIndex(), this.buf.readableBytes(), addr + totalRead, blockSize, Z_NO_FLUSH);
 

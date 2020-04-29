@@ -73,11 +73,13 @@ final class NativeZlib extends NativeFeature<ZlibProvider> implements ZlibProvid
 
     @Override
     public PDeflater deflater(@NonNull ZlibDeflaterOptions options) {
+        checkArg(options.provider() == this, "provider must be %s!", this);
         return new NativeZlibDeflater(options);
     }
 
     @Override
     public PInflater inflater(@NonNull ZlibInflaterOptions options) {
+        checkArg(options.provider() == this, "provider must be %s!", this);
         return new NativeZlibInflater(options);
     }
 }

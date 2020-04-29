@@ -67,7 +67,6 @@ final class NativeZlibInflater extends AbstractRefCounted.Synchronized implement
     final PCleaner cleaner;
 
     NativeZlibInflater(@NonNull ZlibInflaterOptions options) {
-        checkArg(options.provider() instanceof NativeZlib, "provider must be %s!", NativeZlib.class.getCanonicalName());
         this.options = options;
 
         this.ctx = allocate0(options.mode().ordinal());

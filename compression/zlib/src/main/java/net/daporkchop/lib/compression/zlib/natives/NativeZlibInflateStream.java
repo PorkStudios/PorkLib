@@ -118,6 +118,7 @@ final class NativeZlibInflateStream extends AbstractDirectDataIn {
 
         this.in.close();
         this.buf.release();
+        this.inflater.release();
     }
 
     protected int fill() throws IOException {

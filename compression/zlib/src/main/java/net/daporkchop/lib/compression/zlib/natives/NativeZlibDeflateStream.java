@@ -117,6 +117,7 @@ final class NativeZlibDeflateStream extends AbstractDirectDataOut {
 
         this.out.close();
         this.buf.release();
+        this.deflater.release();
     }
 
     protected int drain() throws IOException {

@@ -20,21 +20,32 @@
 
 package net.daporkchop.lib.compression.zlib.java;
 
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.compression.context.PDeflater;
 import net.daporkchop.lib.compression.context.PInflater;
+import net.daporkchop.lib.compression.zlib.Zlib;
 import net.daporkchop.lib.compression.zlib.ZlibMode;
 import net.daporkchop.lib.compression.zlib.ZlibProvider;
+import net.daporkchop.lib.compression.zlib.ZlibStrategy;
 import net.daporkchop.lib.compression.zlib.options.ZlibDeflaterOptions;
 import net.daporkchop.lib.compression.zlib.options.ZlibInflaterOptions;
 import net.daporkchop.lib.natives.impl.Feature;
 import net.daporkchop.lib.natives.impl.NativeFeature;
 
+import static net.daporkchop.lib.common.util.PValidation.checkArg;
+
 /**
  * @author DaPorkchop_
  */
-//TODO: implement this
+@Getter
+@Accessors(fluent = true)
 final class JavaZlib implements ZlibProvider {
+    protected final ZlibDeflaterOptions defaultDeflaterOptions = new ZlibDeflaterOptions.Builder(this).build();
+    protected final ZlibInflaterOptions defaultInflaterOptions = new ZlibInflaterOptions.Builder(this).build();
+
     @Override
     public boolean isNative() {
         return false;
@@ -42,26 +53,39 @@ final class JavaZlib implements ZlibProvider {
 
     @Override
     public long compressBoundLong(long srcSize, @NonNull ZlibMode mode) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public ZlibDeflaterOptions defaultDeflaterOptions() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public ZlibInflaterOptions defaultInflaterOptions() {
-        throw new UnsupportedOperationException();
+        //extracted from deflate.c, i'm assuming that the java implementation has the same limits
+        PValidation.notNegative(srcSize);
+        long conservativeUpperBound = srcSize + ((srcSize + 7L) >> 3L) + ((srcSize + 63L) >> 6L) + 5L;
+        switch (mode)   {
+            case ZLIB:
+                return conservativeUpperBound + 6L + 4L; //additional +4 in case `strstart`? whatever that means
+            case GZIP:
+                return conservativeUpperBound + 18L; //assume there is no gzip message
+            case RAW:
+                return conservativeUpperBound;
+            default:
+                throw new IllegalArgumentException("Invalid Zlib compression mode: " + mode);
+        }
     }
 
     @Override
     public PDeflater deflater(@NonNull ZlibDeflaterOptions options) {
-        throw new UnsupportedOperationException();
+        checkArg(options.provider() == this, "provider must be %s!", this);
+        checkArg(options.strategy() == ZlibStrategy.DEFAULT || options.strategy() == ZlibStrategy.FILTERED || options.strategy() == ZlibStrategy.HUFFMAN, "Java Zlib does not support Zlib strategy %s!", options.strategy());
+        switch (options.mode()) {
+            case ZLIB:
+            case RAW:
+                return new JavaZlibDeflater(options);
+            case GZIP:
+                throw new UnsupportedOperationException("Gzip");
+            default:
+                throw new UnsupportedOperationException(options.mode().name());
+        }
     }
 
     @Override
     public PInflater inflater(@NonNull ZlibInflaterOptions options) {
+        checkArg(options.provider() == this, "provider must be %s!", this);
         throw new UnsupportedOperationException();
     }
 }

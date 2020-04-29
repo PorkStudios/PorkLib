@@ -67,7 +67,6 @@ final class NativeZlibDeflater extends AbstractRefCounted.Synchronized implement
     final PCleaner cleaner;
 
     NativeZlibDeflater(@NonNull ZlibDeflaterOptions options) {
-        checkArg(options.provider() instanceof NativeZlib, "provider must be %s!", NativeZlib.class.getCanonicalName());
         this.options = options;
 
         this.ctx = allocate0(options.level(), options.mode().ordinal(), options.strategy().ordinal());

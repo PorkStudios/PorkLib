@@ -79,6 +79,19 @@ public class ZlibTest {
     }
 
     @Test
+    public void testJavaBlockCompression() throws IOException {
+        try (PDeflater deflater = Zlib.PROVIDER.deflater()) {
+            //one-shot
+            this.forEachBufferType(2, buffers -> {
+                ByteBuf src = buffers[0].writeBytes(this.text);
+                ByteBuf dst = buffers[1].ensureWritable(deflater.options().provider().compressBound(src.readableBytes()));
+
+                checkState(deflater.compress(src, dst), "compression failed!");
+            });
+        }
+    }
+
+    @Test
     public void testBlockCompression() throws IOException {
         try (PDeflater deflater = Zlib.PROVIDER.deflater()) {
             //one-shot
@@ -117,7 +130,7 @@ public class ZlibTest {
 
     @Test
     public void testBlockDecompression() throws IOException {
-        try (PInflater inflater = Zlib.PROVIDER.inflater(Zlib.PROVIDER.defaultInflaterOptions().builder().mode(ZlibMode.AUTO).build())) {
+        try (PInflater inflater = Zlib.PROVIDER.inflater(Zlib.PROVIDER.defaultInflaterOptions().builder().mode(ZlibMode.GZIP).build())) {
             //one-shot
             this.forEachBufferType(2, buffers -> {
                 ByteBuf src = buffers[0].writeBytes(this.gzipped);
@@ -162,7 +175,7 @@ public class ZlibTest {
 
     @Test
     public void testStreamDecompression() throws IOException {
-        try (PInflater inflater = Zlib.PROVIDER.inflater(Zlib.PROVIDER.defaultInflaterOptions().builder().mode(ZlibMode.AUTO).build())) {
+        try (PInflater inflater = Zlib.PROVIDER.inflater(Zlib.PROVIDER.defaultInflaterOptions().builder().mode(ZlibMode.GZIP).build())) {
             this.forEachBufferType(2, buffers -> {
                 ByteBuf src = buffers[0].writeBytes(this.gzipped);
                 ByteBuf dst = buffers[1].ensureWritable(8192);

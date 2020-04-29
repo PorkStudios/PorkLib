@@ -86,7 +86,7 @@ final class NativeZlibInflater extends AbstractRefCounted.Synchronized implement
 
     @Override
     public void decompressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) throws DictionaryNotAllowedException, IndexOutOfBoundsException {
-        this.decompress0(src, dst, dict, true);
+        checkState(this.decompress0(src, dst, dict, true), "decompress0() returned false when it should have grown!");
     }
 
     protected synchronized boolean decompress0(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict, boolean grow) {
@@ -125,7 +125,33 @@ final class NativeZlibInflater extends AbstractRefCounted.Synchronized implement
             //the other two cases are too much of a pain to implement by hand
             int srcReaderIndex = src.readerIndex();
             int dstWriterIndex = dst.writerIndex();
-            throw new UnsupportedOperationException();
+            try (DataIn in = this.decompressionStream(DataIn.wrap(src), dict)) {
+                in.read(dst);
+                if (grow)   {
+                    while (in.remaining() > 0L) {
+                        dst.ensureWritable(dst.writableBytes() == dst.maxWritableBytes() ? 8192 : min(dst.maxWritableBytes(), 8192));
+                        in.read(dst);
+                    }
+                } else {
+                    if (in.remaining() > 0L)    {
+                        checkState(!dst.isWritable(), "dst is still writable...");
+                        //more data available
+                        return false;
+                    }
+                }
+            } catch (IOException e) {
+                //shouldn't be possible
+                throw new RuntimeException(e);
+            } catch (IndexOutOfBoundsException e) {
+                if (grow) {
+                    throw new IllegalStateException(e); //shouldn't be possible...
+                } else {
+                    src.readerIndex(srcReaderIndex);
+                    dst.writerIndex(dstWriterIndex);
+                    return false;
+                }
+            }
+            return true;
         }
     }
 
@@ -137,7 +163,12 @@ final class NativeZlibInflater extends AbstractRefCounted.Synchronized implement
         int totalWritten = 0;
         int status;
         do {
-            status = update0(this.ctx, srcAddr + totalRead, srcLen - totalRead, dst.memoryAddress() + dst.writerIndex() + totalWritten, dst.writableBytes() - totalWritten, Z_NO_FLUSH);
+            status = update0(this.ctx,
+                    srcAddr + totalRead,
+                    srcLen - totalRead,
+                    dst.memoryAddress() + dst.writerIndex() + totalWritten,
+                    dst.writableBytes() - totalWritten,
+                    Z_NO_FLUSH);
 
             totalRead += toInt(this.getRead(), "read");
             totalWritten += toInt(this.getWritten(), "written");
@@ -168,13 +199,13 @@ final class NativeZlibInflater extends AbstractRefCounted.Synchronized implement
             int totalRead = 0;
             int status;
             do {
-                status = update0(this.ctx, srcAddr + totalRead, srcLen - totalRead, dstAddr, PorkUtil.BUFFER_SIZE, Z_FINISH);
+                status = update0(this.ctx, srcAddr + totalRead, srcLen - totalRead, dstAddr, PorkUtil.BUFFER_SIZE, Z_NO_FLUSH);
 
                 totalRead += toInt(this.getRead(), "read");
                 int written = toInt(this.getWritten(), "written");
 
                 tempDst.position(0).limit(written);
-                if (!grow && written >= dst.writableBytes()) {
+                if (!grow && written > dst.writableBytes()) {
                     dst.writerIndex(dstWriterIndex);
                     return false;
                 }

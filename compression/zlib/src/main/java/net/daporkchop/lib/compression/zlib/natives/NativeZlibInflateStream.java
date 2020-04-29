@@ -87,7 +87,7 @@ final class NativeZlibInflateStream extends AbstractDirectDataIn {
         do {
             this.fill();
             int blockSize = toInt(min(length - totalRead, Integer.MAX_VALUE));
-            this.lastStatus = update0(this.ctx, this.buf.memoryAddress() + this.buf.readerIndex(), this.buf.readableBytes(), addr + totalRead, blockSize, Z_SYNC_FLUSH);
+            this.lastStatus = update0(this.ctx, this.buf.memoryAddress() + this.buf.readerIndex(), this.buf.readableBytes(), addr + totalRead, blockSize, Z_NO_FLUSH);
 
             this.buf.skipBytes(toInt(this.inflater.getRead(), "read"));
             totalRead += toInt(this.inflater.getWritten(), "written");
@@ -102,7 +102,14 @@ final class NativeZlibInflateStream extends AbstractDirectDataIn {
 
     @Override
     protected long remaining0() throws IOException {
-        return this.lastStatus == Z_STREAM_END ? 1L : 0L;
+        switch (this.lastStatus)     {
+            case Z_OK:
+                return 1L;
+            case Z_STREAM_END:
+                return 0L;
+            default:
+                throw new IllegalStateException(String.valueOf(this.lastStatus));
+        }
     }
 
     @Override

@@ -86,7 +86,7 @@ final class NativeZlibDeflater extends AbstractRefCounted.Synchronized implement
 
     @Override
     public void compressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) throws IndexOutOfBoundsException {
-        this.compress0(src, dst, dict, true);
+        checkState(this.compress0(src, dst, dict, true), "compress0() returned false when it should have grown!");
     }
 
     protected synchronized boolean compress0(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict, boolean grow) {
@@ -152,7 +152,10 @@ final class NativeZlibDeflater extends AbstractRefCounted.Synchronized implement
         int totalWritten = 0;
         int status;
         do {
-            status = update0(this.ctx, srcAddr + totalRead, srcLen - totalRead, dst.memoryAddress() + dst.writerIndex() + totalWritten, dst.writableBytes() - totalWritten, Z_FINISH);
+            status = update0(this.ctx,
+                    srcAddr + totalRead, srcLen - totalRead,
+                    dst.memoryAddress() + dst.writerIndex() + totalWritten, dst.writableBytes() - totalWritten,
+                    Z_FINISH);
 
             totalRead += toInt(this.getRead(), "read");
             totalWritten += toInt(this.getWritten(), "written");

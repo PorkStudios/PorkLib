@@ -21,11 +21,13 @@
 package compression.zlib;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
+import io.netty.buffer.PooledByteBufAllocator;
+import lombok.NonNull;
 import net.daporkchop.lib.binary.oio.StreamUtil;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.binary.stream.misc.SlashDevSlashNull;
+import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.compression.context.PDeflater;
 import net.daporkchop.lib.compression.context.PInflater;
 import net.daporkchop.lib.compression.zlib.Zlib;
@@ -37,7 +39,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
+import java.util.stream.Stream;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 
@@ -47,6 +49,7 @@ import static net.daporkchop.lib.common.util.PValidation.*;
 public class ZlibTest {
     protected byte[] text;
     protected byte[] gzipped;
+    protected byte[] zeroes;
 
     @Before
     public void loadText() throws IOException {
@@ -56,6 +59,7 @@ public class ZlibTest {
         try (InputStream in = new FileInputStream(new File("../../encoding/nbt/src/test/resources/bigtest.nbt"))) {
             this.gzipped = StreamUtil.toByteArray(in);
         }
+        this.zeroes = new byte[1 << 20];
     }
 
     @Test
@@ -69,122 +73,161 @@ public class ZlibTest {
         try (PDeflater deflater = Zlib.PROVIDER.deflater()) {
             System.out.println(deflater.getClass());
         }
+        try (PInflater inflater = Zlib.PROVIDER.inflater()) {
+            System.out.println(inflater.getClass());
+        }
     }
 
     @Test
     public void testBlockCompression() throws IOException {
         try (PDeflater deflater = Zlib.PROVIDER.deflater()) {
-            ByteBuf src = Unpooled.directBuffer(this.text.length).writeBytes(this.text).markReaderIndex().markWriterIndex();
-            ByteBuf dst = Unpooled.directBuffer(Zlib.PROVIDER.compressBound(src.readableBytes()));
-            ByteBuf dict = Unpooled.directBuffer(1024);
-            ByteBuf dictHeap = Unpooled.buffer(1024);
+            //one-shot
+            this.forEachBufferType(2, buffers -> {
+                ByteBuf src = buffers[0].writeBytes(this.text);
+                ByteBuf dst = buffers[1].ensureWritable(deflater.options().provider().compressBound(src.readableBytes()));
 
-            dict.writeBytes(SlashDevSlashNull.INPUT_STREAM, 1024); //fill with zeroes
-            dictHeap.writeBytes(SlashDevSlashNull.INPUT_STREAM, 1024);
+                checkState(deflater.compress(src, dst), "compression failed!");
+            });
+            this.forEachBufferType(3, buffers -> {
+                ByteBuf src = buffers[0].writeBytes(this.text);
+                ByteBuf dst = buffers[1].ensureWritable(deflater.options().provider().compressBound(src.readableBytes()));
+                ByteBuf dict = buffers[2];
+                SlashDevSlashNull.INSTANCE.read(dict, 1024);
 
-            for (int i = 0; i < 32; i++) {
-                System.out.printf(i + " ");
-                System.out.flush();
+                checkState(deflater.compress(src, dst, dict), "compression failed!");
+            });
 
-                src.resetReaderIndex().resetWriterIndex();
-                dst.clear();
-                //System.out.println("Attempting compression without dictionary");
-                //System.out.printf("initial state: readable=%d, writable=%d\n", src.readableBytes(), dst.writableBytes());
-                checkState(deflater.compress(src, dst), "compression failed");
-                //System.out.printf("final state: readable=%d, compressed=%d\n", src.readableBytes(), dst.readableBytes());
-                int withoutDictSize = dst.readableBytes();
+            //growing
+            this.forEachBufferType(2, buffers -> {
+                ByteBuf src = buffers[0].writeBytes(this.text);
+                ByteBuf dst = buffers[1];
 
-                src.resetReaderIndex().resetWriterIndex();
-                dst.clear();
-                //System.out.println("Attempting compression with dictionary");
-                //System.out.printf("initial state: readable=%d, writable=%d\n", src.readableBytes(), dst.writableBytes());
-                checkState(deflater.compress(src, dst, dict), "compression failed");
-                //System.out.printf("final state: readable=%d, compressed=%d\n", src.readableBytes(), dst.readableBytes());
-                int withDictSize = dst.readableBytes();
+                deflater.compressGrowing(src, dst);
+            });
+            this.forEachBufferType(3, buffers -> {
+                ByteBuf src = buffers[0].writeBytes(this.text);
+                ByteBuf dst = buffers[1];
+                ByteBuf dict = buffers[2];
+                SlashDevSlashNull.INSTANCE.read(dict, 1024);
 
-                src.resetReaderIndex().resetWriterIndex();
-                dst.clear();
-                //System.out.println("Attempting compression with heap dictionary");
-                //System.out.printf("initial state: readable=%d, writable=%d\n", src.readableBytes(), dst.writableBytes());
-                checkState(deflater.compress(src, dst, dictHeap), "compression failed");
-                //System.out.printf("final state: readable=%d, compressed=%d\n", src.readableBytes(), dst.readableBytes());
-                int withHeapDictSize = dst.readableBytes();
-
-                //checkState(withDictSize < withoutDictSize, "withDictSize (%d) >= withoutDictSize (%d)", withDictSize, withoutDictSize);
-                checkState(withDictSize == withHeapDictSize, "withDictSize (%d) != withHeapDictSize (%d)", withDictSize, withHeapDictSize);
-            }
-            System.out.println();
+                deflater.compressGrowing(src, dst, dict);
+            });
         }
     }
 
     @Test
-    public void testStreamDecompression() throws IOException {
+    public void testBlockDecompression() throws IOException {
         try (PInflater inflater = Zlib.PROVIDER.inflater(Zlib.PROVIDER.defaultInflaterOptions().builder().mode(ZlibMode.AUTO).build())) {
-            ByteBuf src = Unpooled.directBuffer(this.gzipped.length).writeBytes(this.gzipped).markReaderIndex().markWriterIndex();
-            ByteBuf dst = Unpooled.directBuffer(1544);
+            //one-shot
+            this.forEachBufferType(2, buffers -> {
+                ByteBuf src = buffers[0].writeBytes(this.gzipped);
+                ByteBuf dst = buffers[1].ensureWritable(8192);
 
-            System.out.println("Gzipped size: " + src.readableBytes());
-            try (DataIn in = inflater.decompressionStream(DataIn.wrap(src))) {
-                System.out.println(in.read(dst, dst.writableBytes() - 4));
-                System.out.println(in.read(dst));
-            }
-            System.out.println("Inflated size: " + dst.readableBytes());
+                checkState(inflater.decompress(src, dst));
+            });
+
+            //growing
+            this.forEachBufferType(2, buffers -> {
+                ByteBuf src = buffers[0].writeBytes(this.gzipped);
+                ByteBuf dst = buffers[1];
+
+                inflater.decompressGrowing(src, dst);
+            });
         }
     }
 
     @Test
     public void testStreamCompression() throws IOException {
         try (PDeflater deflater = Zlib.PROVIDER.deflater()) {
-            ByteBuf src = Unpooled.directBuffer(this.text.length).writeBytes(this.text).markReaderIndex().markWriterIndex();
-            ByteBuf dst = Unpooled.directBuffer(500);
-            ByteBuf dict = Unpooled.directBuffer(1024);
-            ByteBuf dictHeap = Unpooled.buffer(1024);
+            this.forEachBufferType(2, buffers -> {
+                ByteBuf src = buffers[0].writeBytes(this.text);
+                ByteBuf dst = buffers[1].ensureWritable(deflater.options().provider().compressBound(src.readableBytes()));
 
-            dict.writeBytes(SlashDevSlashNull.INPUT_STREAM, 1024); //fill with zeroes
-            dictHeap.writeBytes(SlashDevSlashNull.INPUT_STREAM, 1024);
-
-            for (int i = 0; i < 32; i++) {
-                System.out.printf(i + " ");
-                System.out.flush();
-
-                src.resetReaderIndex().resetWriterIndex();
-                dst.clear();
-                //System.out.println("Attempting streaming compression without dictionary");
-                //System.out.printf("initial state: readable=%d, writable=%d\n", src.readableBytes(), dst.writableBytes());
                 try (DataOut out = deflater.compressionStream(DataOut.wrap(dst))) {
                     out.write(src);
-                    //System.out.printf("intermediate (pre-flush) state: readable=%d, compressed=%d\n", src.readableBytes(), dst.readableBytes());
-                    out.flush();
-                    //System.out.printf("intermediate (post-flush) state: readable=%d, compressed=%d\n", src.readableBytes(), dst.readableBytes());
                 }
-                //System.out.printf("final state: readable=%d, compressed=%d\n", src.readableBytes(), dst.readableBytes());
-            }
-            System.out.println();
+            });
+            this.forEachBufferType(3, buffers -> {
+                ByteBuf src = buffers[0].writeBytes(this.text);
+                ByteBuf dst = buffers[1].ensureWritable(deflater.options().provider().compressBound(src.readableBytes()));
+                ByteBuf dict = buffers[2];
+                SlashDevSlashNull.INSTANCE.read(dict, 1024);
+
+                try (DataOut out = deflater.compressionStream(DataOut.wrap(dst), dict)) {
+                    out.write(src);
+                }
+            });
         }
     }
 
     @Test
-    public void test() throws IOException {
-        try (PDeflater deflater = Zlib.PROVIDER.deflater();
-             PInflater inflater = Zlib.PROVIDER.inflater()) {
-            ByteBuf origSrc = Unpooled.directBuffer().writeBytes(this.text);
-            ByteBuf compressed = Unpooled.directBuffer();
-            deflater.compressGrowing(origSrc, compressed);
-            ByteBuf uncompressed = Unpooled.directBuffer();
-            inflater.decompressGrowing(compressed, uncompressed);
-            for (int i = 0; i < this.text.length; i++)  {
-                checkState(this.text[i] == uncompressed.getByte(i));
-            }
-            origSrc.release();
-            compressed.release();
-            uncompressed.release();
+    public void testStreamDecompression() throws IOException {
+        try (PInflater inflater = Zlib.PROVIDER.inflater(Zlib.PROVIDER.defaultInflaterOptions().builder().mode(ZlibMode.AUTO).build())) {
+            this.forEachBufferType(2, buffers -> {
+                ByteBuf src = buffers[0].writeBytes(this.gzipped);
+                ByteBuf dst = buffers[1].ensureWritable(8192);
+
+                try (DataIn in = inflater.decompressionStream(DataIn.wrap(src))) {
+                    in.read(dst);
+                    checkState(in.remaining() == 0L, "there was more data remaining!");
+                }
+            });
         }
     }
 
     @Test
-    public void testStream() throws IOException {
+    public void testBlock() throws IOException {
         try (PDeflater deflater = Zlib.PROVIDER.deflater();
              PInflater inflater = Zlib.PROVIDER.inflater()) {
+            //one-shot
+            this.forEachBufferType(3, buffers -> {
+                ByteBuf src = buffers[0].writeBytes(this.zeroes);
+                ByteBuf compressed = buffers[1].ensureWritable(deflater.options().provider().compressBound(src.readableBytes()));
+                ByteBuf uncompressed = buffers[2].ensureWritable(src.readableBytes());
+                checkState(deflater.compress(src, compressed), "compression failed!");
+                checkState(inflater.decompress(compressed, uncompressed), "decompression failed!");
+
+                for (int i = 0; i < src.writerIndex(); i++) {
+                    checkState(src.getByte(i) == uncompressed.getByte(i), "Difference at index %s (src=%s, uncompressed=%s)", i, src, uncompressed);
+                }
+            });
+
+            //growing
+            this.forEachBufferType(3, buffers -> {
+                ByteBuf src = buffers[0].writeBytes(this.zeroes);
+                ByteBuf compressed = buffers[1];
+                ByteBuf uncompressed = buffers[2];
+                deflater.compressGrowing(src, compressed);
+                inflater.decompressGrowing(compressed, uncompressed);
+
+                for (int i = 0; i < src.writerIndex(); i++) {
+                    checkState(src.getByte(i) == uncompressed.getByte(i), "Difference at index %s (src=%s, uncompressed=%s)", i, src, uncompressed);
+                }
+            });
+        }
+    }
+
+    protected void forEachBufferType(int numBuffers, @NonNull IOConsumer<ByteBuf[]> callback) {
+        this.forEachBufferType0(numBuffers, callback);
+    }
+
+    private void forEachBufferType0(int depth, @NonNull IOConsumer<ByteBuf[]> callback, @NonNull ByteBuf... args) {
+        if (depth == 0) {
+            for (ByteBuf buf : args) {
+                buf.clear();
+            }
+            callback.accept(args);
+        } else {
+            Stream.of(true, false).forEach(direct -> {
+                ByteBuf[] param = new ByteBuf[args.length + 1];
+                System.arraycopy(args, 0, param, 0, args.length);
+                param[args.length] = direct ? PooledByteBufAllocator.DEFAULT.directBuffer() : PooledByteBufAllocator.DEFAULT.heapBuffer();
+                try {
+                    this.forEachBufferType0(depth - 1, callback, param);
+                } finally {
+                    checkState(param[args.length].release(), "buffer wasn't released... (reference count is still %s)", param[args.length].refCnt());
+                }
+            });
         }
     }
 }

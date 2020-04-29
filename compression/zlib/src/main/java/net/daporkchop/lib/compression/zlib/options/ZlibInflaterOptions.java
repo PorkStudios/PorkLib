@@ -30,31 +30,21 @@ import static net.daporkchop.lib.common.util.PValidation.*;
 /**
  * @author DaPorkchop_
  */
-public final class ZlibInflaterOptions extends ZlibOptions implements InflaterOptions<ZlibInflaterOptions, ZlibInflaterOptions.Builder, ZlibProvider> {
-    protected ZlibInflaterOptions(ZlibProvider provider, ZlibMode mode) {
+public final class ZlibInflaterOptions extends ZlibOptions<ZlibInflaterOptions> implements InflaterOptions<ZlibInflaterOptions, ZlibProvider> {
+    public ZlibInflaterOptions(@NonNull ZlibProvider provider) {
+        super(provider, ZlibMode.ZLIB);
+    }
+
+    private ZlibInflaterOptions(ZlibProvider provider, ZlibMode mode) {
         super(provider, mode);
     }
 
     @Override
-    public Builder builder() {
-        return new Builder(this.provider)
-                .mode(this.mode);
-    }
-
-    public static final class Builder extends ZlibOptions.Builder<Builder> implements InflaterOptions.Builder<Builder, ZlibInflaterOptions, ZlibProvider> {
-        public Builder(ZlibProvider provider) {
-            super(provider);
+    public ZlibInflaterOptions withMode(@NonNull ZlibMode mode) {
+        checkArg(mode.compression(), "Zlib mode %s can't be used for compression!", mode);
+        if (mode == this.mode) {
+            return this;
         }
-
-        @Override
-        public Builder mode(@NonNull ZlibMode mode) {
-            checkArg(mode.decompression(), "Zlib mode %s can't be used for decompression!", mode);
-            return super.mode(mode);
-        }
-
-        @Override
-        public ZlibInflaterOptions build() {
-            return new ZlibInflaterOptions(this.provider, this.mode);
-        }
+        return new ZlibInflaterOptions(this.provider, mode);
     }
 }

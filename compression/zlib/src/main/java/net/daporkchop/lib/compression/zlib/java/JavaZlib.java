@@ -39,9 +39,9 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  */
 @Getter
 @Accessors(fluent = true)
-public final class JavaZlib implements ZlibProvider {
-    protected final ZlibDeflaterOptions defaultDeflaterOptions = new ZlibDeflaterOptions.Builder(this).build();
-    protected final ZlibInflaterOptions defaultInflaterOptions = new ZlibInflaterOptions.Builder(this).build();
+final class JavaZlib implements ZlibProvider {
+    protected final ZlibDeflaterOptions defaultDeflaterOptions = new ZlibDeflaterOptions(this);
+    protected final ZlibInflaterOptions defaultInflaterOptions = new ZlibInflaterOptions(this);
 
     @Override
     public boolean isNative() {

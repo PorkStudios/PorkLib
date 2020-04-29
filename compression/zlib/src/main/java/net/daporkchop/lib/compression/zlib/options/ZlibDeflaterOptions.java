@@ -36,12 +36,19 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  */
 @Getter
 @Accessors(fluent = true)
-public final class ZlibDeflaterOptions extends ZlibOptions implements DeflaterOptions<ZlibDeflaterOptions, ZlibDeflaterOptions.Builder, ZlibProvider> {
+public final class ZlibDeflaterOptions extends ZlibOptions<ZlibDeflaterOptions> implements DeflaterOptions<ZlibDeflaterOptions, ZlibProvider> {
     protected final ZlibStrategy strategy;
 
     protected final int level;
 
-    protected ZlibDeflaterOptions(ZlibProvider provider, ZlibMode mode, ZlibStrategy strategy, int level) {
+    public ZlibDeflaterOptions(@NonNull ZlibProvider provider) {
+        super(provider, ZlibMode.ZLIB);
+
+        this.strategy = ZlibStrategy.DEFAULT;
+        this.level = Zlib.LEVEL_DEFAULT;
+    }
+
+    private ZlibDeflaterOptions(ZlibProvider provider, ZlibMode mode, ZlibStrategy strategy, int level) {
         super(provider, mode);
 
         this.strategy = strategy;
@@ -49,42 +56,26 @@ public final class ZlibDeflaterOptions extends ZlibOptions implements DeflaterOp
     }
 
     @Override
-    public Builder builder() {
-        return new Builder(this.provider)
-                .mode(this.mode)
-                .strategy(this.strategy)
-                .level(this.level);
+    public ZlibDeflaterOptions withMode(@NonNull ZlibMode mode) {
+        checkArg(mode.compression(), "Zlib mode %s can't be used for compression!", mode);
+        if (mode == this.mode) {
+            return this;
+        }
+        return new ZlibDeflaterOptions(this.provider, mode, this.strategy, this.level);
     }
 
-    public static final class Builder extends ZlibOptions.Builder<Builder> implements DeflaterOptions.Builder<Builder, ZlibDeflaterOptions, ZlibProvider> {
-        protected ZlibStrategy strategy = ZlibStrategy.DEFAULT;
-
-        protected int level = Zlib.LEVEL_DEFAULT;
-
-        public Builder(ZlibProvider provider) {
-            super(provider);
-        }
-
-        @Override
-        public Builder mode(@NonNull ZlibMode mode) {
-            checkArg(mode.compression(), "Zlib mode %s can't be used for compression!", mode);
-            return super.mode(mode);
-        }
-
-        public Builder strategy(@NonNull ZlibStrategy strategy) {
-            this.strategy = strategy;
+    public ZlibDeflaterOptions withStrategy(@NonNull ZlibStrategy strategy) {
+        if (strategy == this.strategy) {
             return this;
         }
+        return new ZlibDeflaterOptions(this.provider, this.mode, strategy, this.level);
+    }
 
-        public Builder level(int level) {
-            checkArg(level == Zlib.LEVEL_DEFAULT || (level >= Zlib.LEVEL_NONE && level <= Zlib.LEVEL_BEST), "Invalid Zlib level: %d (expected %d, or value in range %d-%d)", level, Zlib.LEVEL_DEFAULT, Zlib.LEVEL_NONE, Zlib.LEVEL_BEST);
-            this.level = level;
+    public ZlibDeflaterOptions withLevel(int level) {
+        checkArg(level == Zlib.LEVEL_DEFAULT || (level >= Zlib.LEVEL_NONE && level <= Zlib.LEVEL_BEST), "Invalid Zlib level: %d (expected %d, or value in range %d-%d)", level, Zlib.LEVEL_DEFAULT, Zlib.LEVEL_NONE, Zlib.LEVEL_BEST);
+        if (level == this.level) {
             return this;
         }
-
-        @Override
-        public ZlibDeflaterOptions build() {
-            return new ZlibDeflaterOptions(this.provider, this.mode, this.strategy, this.level);
-        }
+        return new ZlibDeflaterOptions(this.provider, this.mode, this.strategy, level);
     }
 }

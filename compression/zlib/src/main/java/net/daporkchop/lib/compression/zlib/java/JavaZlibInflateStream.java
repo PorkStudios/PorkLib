@@ -31,7 +31,6 @@ import net.daporkchop.lib.unsafe.PUnsafe;
 import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.ConcurrentModificationException;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;

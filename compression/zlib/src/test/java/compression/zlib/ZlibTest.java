@@ -63,12 +63,6 @@ public class ZlibTest {
     }
 
     @Test
-    public void ensureNative() {
-        checkState(Zlib.PROVIDER.isNative());
-        checkState(Zlib.PROVIDER.compressBound(10) > 5);
-    }
-
-    @Test
     public void testOpenClose() {
         try (PDeflater deflater = Zlib.PROVIDER.deflater()) {
             System.out.println(deflater.getClass());
@@ -130,7 +124,7 @@ public class ZlibTest {
 
     @Test
     public void testBlockDecompression() throws IOException {
-        try (PInflater inflater = Zlib.PROVIDER.inflater(Zlib.PROVIDER.defaultInflaterOptions().builder().mode(ZlibMode.GZIP).build())) {
+        try (PInflater inflater = Zlib.PROVIDER.inflater(Zlib.PROVIDER.inflateOptions().withMode(ZlibMode.GZIP))) {
             //one-shot
             this.forEachBufferType(2, buffers -> {
                 ByteBuf src = buffers[0].writeBytes(this.gzipped);
@@ -175,7 +169,7 @@ public class ZlibTest {
 
     @Test
     public void testStreamDecompression() throws IOException {
-        try (PInflater inflater = Zlib.PROVIDER.inflater(Zlib.PROVIDER.defaultInflaterOptions().builder().mode(ZlibMode.GZIP).build())) {
+        try (PInflater inflater = Zlib.PROVIDER.inflater(Zlib.PROVIDER.inflateOptions().withMode(ZlibMode.GZIP))) {
             this.forEachBufferType(2, buffers -> {
                 ByteBuf src = buffers[0].writeBytes(this.gzipped);
                 ByteBuf dst = buffers[1].ensureWritable(8192);

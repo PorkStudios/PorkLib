@@ -34,7 +34,7 @@ public enum ZlibStrategy {
 
     private static final ZlibStrategy[] VALUES = values();
 
-    public static ZlibStrategy fromOrdinal(int ordinal)   {
+    public static ZlibStrategy fromOrdinal(int ordinal) {
         return VALUES[ordinal];
     }
 }

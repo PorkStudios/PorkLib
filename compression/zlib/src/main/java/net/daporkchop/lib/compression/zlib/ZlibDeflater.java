@@ -20,13 +20,7 @@
 
 package net.daporkchop.lib.compression.zlib;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.PooledByteBufAllocator;
-import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.compression.context.PDeflater;
-import net.daporkchop.lib.compression.option.DeflaterOptions;
-import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
 import net.daporkchop.lib.compression.zlib.options.ZlibDeflaterOptions;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 

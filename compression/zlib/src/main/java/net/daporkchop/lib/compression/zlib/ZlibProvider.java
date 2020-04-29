@@ -33,7 +33,7 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  *
  * @author DaPorkchop_
  */
-public interface ZlibProvider extends CompressionProvider<ZlibProvider, ZlibDeflaterOptions, ZlibDeflaterOptions.Builder, ZlibInflaterOptions, ZlibInflaterOptions.Builder>, Feature<ZlibProvider> {
+public interface ZlibProvider extends CompressionProvider<ZlibProvider, ZlibDeflaterOptions, ZlibInflaterOptions>, Feature<ZlibProvider> {
     @Override
     default int levelFast() {
         return Zlib.LEVEL_FASTEST;

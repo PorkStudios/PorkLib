@@ -35,7 +35,7 @@ import net.daporkchop.lib.compression.option.InflaterOptions;
  *
  * @author DaPorkchop_
  */
-public interface CompressionProvider<I extends CompressionProvider<I, DO, DOB, IO, IOB>, DO extends DeflaterOptions<DO, DOB, I>, DOB extends DeflaterOptions.Builder<DOB, DO, I>, IO extends InflaterOptions<IO, IOB, I>, IOB extends InflaterOptions.Builder<IOB, IO, I>> {
+public interface CompressionProvider<I extends CompressionProvider<I, DO, IO>, DO extends DeflaterOptions<DO, I>, IO extends InflaterOptions<IO, I>> {
     //
     //
     // info methods
@@ -75,12 +75,12 @@ public interface CompressionProvider<I extends CompressionProvider<I, DO, DOB, I
     /**
      * @return the default {@link DeflaterOptions} (used by {@link #deflater()})
      */
-    DO defaultDeflaterOptions();
+    DO deflateOptions();
 
     /**
      * @return the default {@link InflaterOptions} (used by {@link #inflater()})
      */
-    IO defaultInflaterOptions();
+    IO inflateOptions();
 
     //
     //
@@ -94,7 +94,7 @@ public interface CompressionProvider<I extends CompressionProvider<I, DO, DOB, I
      * @see #deflater(DeflaterOptions)
      */
     default PDeflater deflater() {
-        return this.deflater(this.defaultDeflaterOptions());
+        return this.deflater(this.deflateOptions());
     }
 
     /**
@@ -111,7 +111,7 @@ public interface CompressionProvider<I extends CompressionProvider<I, DO, DOB, I
      * @see #inflater(InflaterOptions)
      */
     default PInflater inflater() {
-        return this.inflater(this.defaultInflaterOptions());
+        return this.inflater(this.inflateOptions());
     }
 
     /**

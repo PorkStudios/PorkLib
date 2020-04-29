@@ -27,12 +27,5 @@ import net.daporkchop.lib.compression.CompressionProvider;
  *
  * @author DaPorkchop_
  */
-public interface InflaterOptions<I extends InflaterOptions<I, B, P>, B extends InflaterOptions.Builder<B, I, P>, P extends CompressionProvider<P, ?, ?, I, B>> extends ContextOptions<I, B, P> {
-    /**
-     * Builder interface for constructing {@link InflaterOptions} instances.
-     *
-     * @author DaPorkchop_
-     */
-    interface Builder<I extends InflaterOptions.Builder<I, O, P>, O extends InflaterOptions<O, I, P>, P extends CompressionProvider<P, ?, ?, O, I>> extends ContextOptions.Builder<I, O, P> {
-    }
+public interface InflaterOptions<I extends InflaterOptions<I, P>, P extends CompressionProvider<P, ?, I>> extends ContextOptions<I, P> {
 }

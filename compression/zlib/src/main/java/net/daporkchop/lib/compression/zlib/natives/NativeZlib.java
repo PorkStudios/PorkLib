@@ -41,8 +41,7 @@ import static net.daporkchop.lib.common.util.PValidation.*;
 @Getter
 @Accessors(fluent = true)
 final class NativeZlib extends NativeFeature<ZlibProvider> implements ZlibProvider {
-    protected static native long compressBound0(long srcSize, int mode);
-
+    //flush parameters
     static final int Z_NO_FLUSH = 0;
     static final int Z_PARTIAL_FLUSH = 1;
     static final int Z_SYNC_FLUSH = 2;
@@ -51,6 +50,7 @@ final class NativeZlib extends NativeFeature<ZlibProvider> implements ZlibProvid
     static final int Z_BLOCK = 5;
     static final int Z_TREES = 6;
 
+    //status codes
     static final int Z_OK = 0;
     static final int Z_STREAM_END = 1;
     static final int Z_NEED_DICT = 2;
@@ -61,8 +61,10 @@ final class NativeZlib extends NativeFeature<ZlibProvider> implements ZlibProvid
     static final int Z_BUF_ERROR = -5;
     static final int Z_VERSION_ERROR = -6;
 
-    protected final ZlibDeflaterOptions defaultDeflaterOptions = new ZlibDeflaterOptions.Builder(this).build();
-    protected final ZlibInflaterOptions defaultInflaterOptions = new ZlibInflaterOptions.Builder(this).build();
+    protected static native long compressBound0(long srcSize, int mode);
+
+    protected final ZlibDeflaterOptions defaultDeflaterOptions = new ZlibDeflaterOptions(this);
+    protected final ZlibInflaterOptions defaultInflaterOptions = new ZlibInflaterOptions(this);
 
     @Override
     public long compressBoundLong(long srcSize, @NonNull ZlibMode mode) {

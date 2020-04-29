@@ -21,7 +21,6 @@
 package net.daporkchop.lib.compression.zlib;
 
 import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.natives.FeatureBuilder;
 
 /**
@@ -34,8 +33,8 @@ public class Zlib {
             .addJava("net.daporkchop.lib.compression.zlib.java.JavaZlib")
             .build();
 
-    public final int LEVEL_NONE    = 0; //no compression at all
+    public final int LEVEL_NONE = 0; //no compression at all
     public final int LEVEL_FASTEST = 1; //fastest compression, worst ratio
-    public final int LEVEL_BEST    = 9; //best ratio, slowest compression
+    public final int LEVEL_BEST = 9; //best ratio, slowest compression
     public final int LEVEL_DEFAULT = -1; //uses the library default level
 }

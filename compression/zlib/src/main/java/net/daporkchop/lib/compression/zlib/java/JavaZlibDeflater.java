@@ -38,7 +38,6 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 import java.io.IOException;
 import java.util.zip.Deflater;
 
-import static java.lang.Math.min;
 import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
@@ -53,7 +52,7 @@ final class JavaZlibDeflater extends AbstractRefCounted.Synchronized implements 
     @Getter
     final ZlibDeflaterOptions options;
 
-    JavaZlibDeflater(@NonNull ZlibDeflaterOptions options)  {
+    JavaZlibDeflater(@NonNull ZlibDeflaterOptions options) {
         this.options = options;
         this.deflater = new Deflater(options.level(), options.mode() != ZlibMode.ZLIB);
         this.deflater.setStrategy(options.strategy().ordinal());
@@ -79,7 +78,7 @@ final class JavaZlibDeflater extends AbstractRefCounted.Synchronized implements 
         checkArg(dst.isWritable(), "dst is not writable!");
         int srcReaderIndex = src.readerIndex();
         int dstWriterIndex = dst.writerIndex();
-        try (DataOut out = this.compressionStream(DataOut.wrap(dst, true, grow), dict))   {
+        try (DataOut out = this.compressionStream(DataOut.wrap(dst, true, grow), dict)) {
             out.write(src);
         } catch (IOException e) {
             //shouldn't be possible
@@ -100,14 +99,14 @@ final class JavaZlibDeflater extends AbstractRefCounted.Synchronized implements 
     @Override
     public synchronized DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, int bufferSize, ByteBuf dict) throws DictionaryNotAllowedException {
         this.ensureNotReleased();
-        if (bufferAlloc == null)    {
+        if (bufferAlloc == null) {
             bufferAlloc = PooledByteBufAllocator.DEFAULT;
         }
-        if (bufferSize <= 0)    {
+        if (bufferSize <= 0) {
             bufferSize = PorkUtil.BUFFER_SIZE;
         }
 
-        switch (this.options.mode())    {
+        switch (this.options.mode()) {
             case ZLIB:
             case RAW:
                 return new JavaZlibDeflateStream(out, bufferAlloc.heapBuffer(bufferSize, bufferSize), dict, this);

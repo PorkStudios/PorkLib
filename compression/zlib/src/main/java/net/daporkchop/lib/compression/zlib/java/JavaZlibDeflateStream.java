@@ -68,7 +68,7 @@ class JavaZlibDeflateStream extends AbstractHeapDataOut {
 
     @Override
     protected void write0(int b) throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get())   {
+        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
             byte[] arr = handle.get();
             arr[0] = (byte) b;
             this.write0(arr, 0, 1);

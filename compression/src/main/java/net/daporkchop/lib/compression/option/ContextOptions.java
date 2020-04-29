@@ -31,32 +31,9 @@ import net.daporkchop.lib.compression.CompressionProvider;
  * @see DeflaterOptions
  * @see InflaterOptions
  */
-interface ContextOptions<I extends ContextOptions<I, B, P>, B extends ContextOptions.Builder<B, I, P>, P extends CompressionProvider<P, ?, ?, ?, ?>> {
+interface ContextOptions<I extends ContextOptions<I, P>, P extends CompressionProvider<P, ?, ?>> {
     /**
      * @return the {@link CompressionProvider} that this options instance belongs to
      */
     P provider();
-
-    /**
-     * Creates a new builder instance, pre-configured using these options.
-     *
-     * @return a new builder instance, pre-configured using these options
-     */
-    B builder();
-
-    /**
-     * Builder interface for constructing {@link ContextOptions} instances.
-     *
-     * @author DaPorkchop_
-     * @see DeflaterOptions.Builder
-     * @see InflaterOptions.Builder
-     */
-    interface Builder<I extends Builder<I, O, P>, O extends ContextOptions<O, I, P>, P extends CompressionProvider<P, ?, ?, ?, ?>> {
-        /**
-         * Creates an instance of {@link ContextOptions} using this builder's currently configured options.
-         *
-         * @return an instance of {@link ContextOptions} containing the options currently configured in this builder
-         */
-        O build();
-    }
 }

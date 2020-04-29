@@ -43,7 +43,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ConcurrentModificationException;
 
-import static java.lang.Math.min;
+import static java.lang.Math.*;
 import static net.daporkchop.lib.common.util.PValidation.*;
 import static net.daporkchop.lib.compression.zlib.natives.NativeZlib.*;
 

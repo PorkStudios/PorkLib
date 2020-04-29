@@ -101,7 +101,7 @@ final class NativeZlibInflateStream extends AbstractDirectDataIn {
 
     @Override
     protected long remaining0() throws IOException {
-        switch (this.lastStatus)     {
+        switch (this.lastStatus) {
             case Z_OK:
                 return 1L;
             case Z_STREAM_END:

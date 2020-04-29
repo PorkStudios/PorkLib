@@ -54,7 +54,7 @@ public enum ZlibMode {
 
     private static final ZlibMode[] VALUES = values();
 
-    public static ZlibMode fromOrdinal(int ordinal)   {
+    public static ZlibMode fromOrdinal(int ordinal) {
         return VALUES[ordinal];
     }
 

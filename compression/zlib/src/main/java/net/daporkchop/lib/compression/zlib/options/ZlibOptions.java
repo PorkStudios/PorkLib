@@ -25,12 +25,9 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.compression.zlib.Zlib;
 import net.daporkchop.lib.compression.zlib.ZlibMode;
 import net.daporkchop.lib.compression.zlib.ZlibProvider;
-import net.daporkchop.lib.compression.zlib.ZlibStrategy;
 
-import static net.daporkchop.lib.common.util.PValidation.*;
 import static net.daporkchop.lib.common.util.PorkUtil.*;
 
 /**
@@ -39,22 +36,10 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Accessors(fluent = true)
-abstract class ZlibOptions {
+abstract class ZlibOptions<I extends ZlibOptions<I>> {
     protected final ZlibProvider provider;
 
     protected final ZlibMode mode;
 
-    @RequiredArgsConstructor
-    @Getter
-    static abstract class Builder<I extends Builder<I>> {
-        @NonNull
-        protected final ZlibProvider provider;
-
-        protected ZlibMode mode = ZlibMode.ZLIB;
-
-        public I mode(@NonNull ZlibMode mode) {
-            this.mode = mode;
-            return uncheckedCast(this);
-        }
-    }
+    public abstract I withMode(@NonNull ZlibMode mode);
 }

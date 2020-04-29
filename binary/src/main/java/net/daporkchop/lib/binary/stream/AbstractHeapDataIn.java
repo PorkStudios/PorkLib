@@ -20,6 +20,7 @@
 
 package net.daporkchop.lib.binary.stream;
 
+import lombok.NonNull;
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.system.PlatformInfo;
 import net.daporkchop.lib.common.util.PorkUtil;
@@ -29,6 +30,7 @@ import java.io.EOFException;
 import java.io.IOException;
 
 import static java.lang.Math.*;
+import static net.daporkchop.lib.common.util.PValidation.toInt;
 
 /**
  * Base implementation of {@link DataIn} for heap-only implementations.
@@ -170,6 +172,53 @@ public abstract class AbstractHeapDataIn extends AbstractDataIn {
             } else {
                 return Long.reverseBytes(PUnsafe.getLong(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET));
             }
+        }
+    }
+
+    //
+    //
+    // other stuff
+    //
+    //
+
+    @Override
+    protected long skip0(long count) throws IOException {
+        try (Handle<byte[]> handle = PorkUtil.BUFFER_POOL.get()) {
+            byte[] buf = handle.get();
+            long total = 0L;
+            boolean first = true;
+            do {
+                int read = this.read0(buf, 0, (int) min(count - total, PorkUtil.BUFFER_SIZE));
+                if (read <= 0) {
+                    return read < 0 && first ? read : total;
+                }
+
+                total += read;
+                first = false;
+            } while (total < count);
+            return total;
+        }
+    }
+
+    @Override
+    protected long transfer0(@NonNull DataOut dst, long count) throws IOException {
+        try (Handle<byte[]> handle = PorkUtil.BUFFER_POOL.get()) {
+            byte[] buf = handle.get();
+            long total = 0L;
+            boolean first = true;
+            do {
+                int read = this.read0(buf, 0, (int) min(count - total, PorkUtil.BUFFER_SIZE));
+                if (read <= 0) {
+                    return read < 0 && first ? read : total;
+                }
+
+                //write to dst
+                dst.write(buf, 0, read);
+
+                total += read;
+                first = false;
+            } while (count < 0L || total < count);
+            return total;
         }
     }
 }

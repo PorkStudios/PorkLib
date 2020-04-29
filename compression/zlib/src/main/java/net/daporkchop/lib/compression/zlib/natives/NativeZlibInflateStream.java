@@ -96,11 +96,6 @@ final class NativeZlibInflateStream extends AbstractDirectDataIn {
     }
 
     @Override
-    protected long skip0(long count) throws IOException {
-        throw new UnsupportedOperationException(); //TODO
-    }
-
-    @Override
     protected long remaining0() throws IOException {
         switch (this.lastStatus)     {
             case Z_OK:

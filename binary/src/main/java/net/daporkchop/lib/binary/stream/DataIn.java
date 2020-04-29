@@ -862,6 +862,45 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
     //
 
     /**
+     * Transfers the entire contents of this {@link DataIn} to the given {@link DataOut}.
+     * <p>
+     * This will read until EOF is reached. If EOF was already reached, this method will always return {@code -1}.
+     *
+     * @param dst the {@link DataOut} to transfer data to
+     * @return the number of bytes transferred, or {@code -1} if EOF was already reached
+     */
+    long transferTo(@NonNull DataOut dst) throws IOException;
+
+    /**
+     * Transfers data from this {@link DataIn} to the given {@link DataOut}.
+     * <p>
+     * This will read until the requested number of bytes is transferred or EOF is reached. If EOF was already reached, this method will always
+     * return {@code -1}.
+     *
+     * @param dst   the {@link DataOut} to transfer data to
+     * @param count the number of bytes to transfer
+     * @return the number of bytes transferred, or {@code -1} if EOF was already reached
+     */
+    long transferTo(@NonNull DataOut dst, long count) throws IOException;
+
+    /**
+     * Transfers data from this {@link DataIn} to the given {@link DataOut}.
+     * <p>
+     * This will read until the requested number of bytes is transferred.
+     *
+     * @param dst   the {@link DataOut} to transfer data to
+     * @param count the number of bytes to transfer
+     * @return the number of bytes transferred
+     * @throws EOFException if EOF is reached before the requested number of bytes can be transferred
+     */
+    default long transferToFully(@NonNull DataOut dst, long count) throws IOException   {
+        if (this.transferTo(dst, count) != count)   {
+            throw new EOFException();
+        }
+        return count;
+    }
+
+    /**
      * Gets an {@link InputStream} that may be used in place of this {@link DataIn} instance.
      * <p>
      * Some implementations may choose to return itself.

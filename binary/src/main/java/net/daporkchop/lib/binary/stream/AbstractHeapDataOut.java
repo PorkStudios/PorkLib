@@ -27,7 +27,7 @@ import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
 
-import static java.lang.Math.min;
+import static java.lang.Math.*;
 
 /**
  * Base implementation of {@link DataOut} for heap-only implementations.

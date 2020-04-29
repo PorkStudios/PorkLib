@@ -27,6 +27,7 @@ import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.AbstractHeapDataIn;
 import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -84,6 +85,16 @@ public class ByteBufIn extends AbstractHeapDataIn {
         int countI = (int) min(this.delegate.readableBytes(), count);
         this.delegate.skipBytes(countI);
         return countI;
+    }
+
+    @Override
+    protected long transfer0(@NonNull DataOut dst, long count) throws IOException {
+        if (count < 0L || count > this.delegate.readableBytes()) {
+            count = this.delegate.readableBytes();
+        }
+        int read = this.delegate.readBytes(dst, (int) count);
+        checkState(read == count, "only transferred %s/%s bytes?!?", read, count);
+        return count;
     }
 
     @Override

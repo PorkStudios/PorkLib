@@ -164,17 +164,30 @@ public abstract class AbstractDataIn implements DataIn {
      * <p>
      * If EOF was already reached, this method will return {@code 0}.
      *
-     * @param count the number of bytes to skip
+     * @param count the number of bytes to skip. Will always be at least {@code 1L}
      * @return the number of bytes actually skipped, possibly {@code 0}
      */
     protected abstract long skip0(long count) throws IOException;
 
     /**
-     * Gets an estimate of the number of bytes that may be read without blocking.
+     * Transfers between {@code 0} and {@code count} bytes to the given {@link DataOut}.
+     * <p>
+     * This will continue to read until the requested number of bytes have been transferred or EOF is reached.
+     * <p>
+     * If EOF was already reached, this method will always return {@link #RESULT_EOF}.
+     *
+     * @param dst   the {@link DataOut} to write data to
+     * @param count the maximum number of bytes to transfer. If negative, data should be transferred until EOF is reached. Will never be {@code 0}
+     * @return the actual number of bytes transferred or {@link #RESULT_EOF}
+     */
+    protected abstract long transfer0(@NonNull DataOut dst, long count) throws IOException;
+
+    /**
+     * Gets an estimate of the number of bytes that may be read.
      * <p>
      * If EOF has been reached, this method may return either {@code 0} or {@code -1}.
      *
-     * @return an estimate of the number of bytes that may be read without blocking
+     * @return an estimate of the number of bytes that may be read
      */
     protected abstract long remaining0() throws IOException;
 
@@ -193,6 +206,25 @@ public abstract class AbstractDataIn implements DataIn {
 
     protected InputStream asStream0() {
         return new DataInAsInputStream(this);
+    }
+
+    @Override
+    public long transferTo(@NonNull DataOut dst) throws IOException {
+        synchronized (this.mutex()) {
+            this.ensureOpen();
+            return this.transfer0(dst, -1L);
+        }
+    }
+
+    @Override
+    public long transferTo(@NonNull DataOut dst, long count) throws IOException {
+        synchronized (this.mutex()) {
+            this.ensureOpen();
+            if (positive(count, "count") == 0L)    {
+                return 0L;
+            }
+            return this.transfer0(dst, count);
+        }
     }
 
     @Override
@@ -220,7 +252,10 @@ public abstract class AbstractDataIn implements DataIn {
     public int skipBytes(int n) throws IOException {
         synchronized (this.mutex()) {
             this.ensureOpen();
-            return n != 0 ? toInt(this.skip0((long) positive(n))) : 0;
+            if (positive(n, "n") == 0)  {
+                return 0;
+            }
+            return toInt(this.skip0(n));
         }
     }
 
@@ -228,7 +263,10 @@ public abstract class AbstractDataIn implements DataIn {
     public long skipBytes(long n) throws IOException {
         synchronized (this.mutex()) {
             this.ensureOpen();
-            return n != 0L ? this.skip0(positive(n)) : 0L;
+            if (positive(n, "n") == 0L)  {
+                return 0L;
+            }
+            return toInt(this.skip0(n));
         }
     }
 

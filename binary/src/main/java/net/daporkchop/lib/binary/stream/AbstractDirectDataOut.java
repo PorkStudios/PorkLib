@@ -20,7 +20,6 @@
 
 package net.daporkchop.lib.binary.stream;
 
-import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.system.PlatformInfo;
@@ -31,7 +30,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import static java.lang.Math.*;
-import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
  * Base implementation of {@link DataOut} for direct-only implementations.

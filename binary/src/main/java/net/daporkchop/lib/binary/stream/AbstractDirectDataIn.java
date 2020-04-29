@@ -175,4 +175,53 @@ public abstract class AbstractDirectDataIn extends AbstractDataIn {
             }
         }
     }
+
+    //
+    //
+    // other stuff
+    //
+    //
+
+    @Override
+    protected long skip0(long count) throws IOException {
+        try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_BUFFER_POOL.get()) {
+            long addr = PUnsafe.pork_directBufferAddress(handle.get());
+            long total = 0L;
+            boolean first = true;
+            do {
+                long read = this.read0(addr, min(count - total, PorkUtil.BUFFER_SIZE));
+                if (read <= 0L) {
+                    return read < 0L && first ? read : total;
+                }
+
+                total += read;
+                first = false;
+            } while (total < count);
+            return total;
+        }
+    }
+
+    @Override
+    protected long transfer0(@NonNull DataOut dst, long count) throws IOException {
+        try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_BUFFER_POOL.get()) {
+            ByteBuffer buffer = handle.get();
+            long addr = PUnsafe.pork_directBufferAddress(buffer);
+            long total = 0L;
+            boolean first = true;
+            do {
+                int read = toInt(this.read0(addr, min(count - total, PorkUtil.BUFFER_SIZE)));
+                if (read <= 0) {
+                    return read < 0 && first ? read : total;
+                }
+
+                //write to dst
+                buffer.position(0).limit(read);
+                dst.write(buffer);
+
+                total += read;
+                first = false;
+            } while (count < 0L || total < count);
+            return total;
+        }
+    }
 }

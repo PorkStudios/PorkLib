@@ -37,6 +37,7 @@ import net.daporkchop.lib.unsafe.PUnsafe;
 import java.io.BufferedOutputStream;
 import java.io.Closeable;
 import java.io.DataOutput;
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -742,6 +743,45 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
     // control methods
     //
     //
+
+    /**
+     * Transfers the entire contents of the given {@link DataIn} to this {@link DataOut}.
+     * <p>
+     * This will read until the given {@link DataIn} reaches EOF. If EOF was already reached, this method will always return {@code -1}.
+     *
+     * @param src the {@link DataIn} to transfer data from
+     * @return the number of bytes transferred, or {@code -1} if the given {@link DataIn} had already reached EOF
+     */
+    long transferFrom(@NonNull DataIn src) throws IOException;
+
+    /**
+     * Transfers data from the given {@link DataIn} to this {@link DataOut}.
+     * <p>
+     * This will read until the requested number of bytes is transferred or given {@link DataIn} reaches EOF. If EOF was already reached, this
+     * method will always return {@code -1}.
+     *
+     * @param src   the {@link DataIn} to transfer data from
+     * @param count the number of bytes to transfer
+     * @return the number of bytes transferred, or {@code -1} if the given {@link DataIn} had already reached EOF
+     */
+    long transferFrom(@NonNull DataIn src, long count) throws IOException;
+
+    /**
+     * Transfers data from the given {@link DataIn} to this {@link DataOut}.
+     * <p>
+     * This will read until the requested number of bytes is transferred.
+     *
+     * @param src   the {@link DataIn} to transfer data from
+     * @param count the number of bytes to transfer
+     * @return the number of bytes transferred
+     * @throws EOFException if EOF is reached before the requested number of bytes can be transferred
+     */
+    default long transferFromFully(@NonNull DataIn src, long count) throws IOException   {
+        if (this.transferFrom(src, count) != count)   {
+            throw new EOFException();
+        }
+        return count;
+    }
 
     /**
      * Gets an {@link OutputStream} that may be used in place of this {@link DataOut} instance.

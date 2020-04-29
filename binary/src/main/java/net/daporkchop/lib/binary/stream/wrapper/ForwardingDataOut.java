@@ -25,6 +25,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 
 import java.io.IOException;
@@ -247,6 +248,21 @@ public abstract class ForwardingDataOut implements DataOut {
     @Override
     public int write(@NonNull ByteBuf src, int start, int length) throws IOException {
         return this.delegate.write(src, start, length);
+    }
+
+    @Override
+    public long transferFrom(@NonNull DataIn src) throws IOException {
+        return this.delegate.transferFrom(src);
+    }
+
+    @Override
+    public long transferFrom(@NonNull DataIn src, long count) throws IOException {
+        return this.delegate.transferFrom(src, count);
+    }
+
+    @Override
+    public long transferFromFully(@NonNull DataIn src, long count) throws IOException {
+        return this.delegate.transferFromFully(src, count);
     }
 
     @Override

@@ -158,6 +158,22 @@ public abstract class AbstractDataOut implements DataOut {
     }
 
     @Override
+    public long transferFrom(@NonNull DataIn src) throws IOException {
+        synchronized (this.mutex()) {
+            this.ensureOpen();
+            return src.transferTo(this);
+        }
+    }
+
+    @Override
+    public long transferFrom(@NonNull DataIn src, long count) throws IOException {
+        synchronized (this.mutex()) {
+            this.ensureOpen();
+            return src.transferTo(this, count);
+        }
+    }
+
+    @Override
     public final OutputStream asOutputStream() {
         OutputStream outputStream = this.outputStream;
         if (outputStream == null) {

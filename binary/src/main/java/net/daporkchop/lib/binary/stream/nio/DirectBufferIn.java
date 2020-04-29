@@ -25,6 +25,7 @@ import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.AbstractDirectDataIn;
 import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
@@ -85,6 +86,19 @@ public class DirectBufferIn extends AbstractDirectDataIn {
         int countI = (int) min(count, this.delegate.remaining());
         this.delegate.position(this.delegate.position() + countI);
         return countI;
+    }
+
+    @Override
+    protected long transfer0(@NonNull DataOut dst, long count) throws IOException {
+        if (count < 0L || count > this.delegate.remaining()) {
+            count = this.delegate.remaining();
+        }
+        int oldLimit = this.delegate.limit();
+        this.delegate.limit(this.delegate.position() + (int) count);
+        int read = dst.write(this.delegate);
+        checkState(read == count, "only transferred %s/%s bytes?!?", read, count);
+        this.delegate.limit(oldLimit);
+        return count;
     }
 
     @Override

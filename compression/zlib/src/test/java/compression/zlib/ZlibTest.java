@@ -235,11 +235,8 @@ public class ZlibTest {
                 ByteBuf[] param = new ByteBuf[args.length + 1];
                 System.arraycopy(args, 0, param, 0, args.length);
                 param[args.length] = direct ? PooledByteBufAllocator.DEFAULT.directBuffer() : PooledByteBufAllocator.DEFAULT.heapBuffer();
-                try {
-                    this.forEachBufferType0(depth - 1, callback, param);
-                } finally {
-                    checkState(param[args.length].release(), "buffer wasn't released... (reference count is still %s)", param[args.length].refCnt());
-                }
+                this.forEachBufferType0(depth - 1, callback, param);
+                checkState(param[args.length].release(), "buffer #%s wasn't released... (reference count is still %s)", args.length, param[args.length].refCnt());
             });
         }
     }

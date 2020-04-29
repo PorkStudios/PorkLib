@@ -21,6 +21,7 @@
 package net.daporkchop.lib.binary.stream;
 
 import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.system.PlatformInfo;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
@@ -54,6 +55,121 @@ public abstract class AbstractHeapDataIn extends AbstractDataIn {
                 first = false;
             } while (total < length);
             return total;
+        }
+    }
+
+    @Override
+    public boolean isHeap() {
+        return true;
+    }
+
+    //
+    //
+    // primitives
+    //
+    //
+
+    @Override
+    public short readShort() throws IOException {
+        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
+            byte[] arr = handle.get();
+            this.readFully(arr, 0, Short.BYTES);
+            if (PlatformInfo.IS_BIG_ENDIAN) {
+                return PUnsafe.getShort(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET);
+            } else {
+                return Short.reverseBytes(PUnsafe.getShort(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET));
+            }
+        }
+    }
+
+    @Override
+    public short readShortLE() throws IOException {
+        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
+            byte[] arr = handle.get();
+            this.readFully(arr, 0, Short.BYTES);
+            if (PlatformInfo.IS_LITTLE_ENDIAN) {
+                return PUnsafe.getShort(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET);
+            } else {
+                return Short.reverseBytes(PUnsafe.getShort(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET));
+            }
+        }
+    }
+
+    @Override
+    public char readChar() throws IOException {
+        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
+            byte[] arr = handle.get();
+            this.readFully(arr, 0, Character.BYTES);
+            if (PlatformInfo.IS_BIG_ENDIAN) {
+                return PUnsafe.getChar(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET);
+            } else {
+                return Character.reverseBytes(PUnsafe.getChar(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET));
+            }
+        }
+    }
+
+    @Override
+    public char readCharLE() throws IOException {
+        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
+            byte[] arr = handle.get();
+            this.readFully(arr, 0, Character.BYTES);
+            if (PlatformInfo.IS_LITTLE_ENDIAN) {
+                return PUnsafe.getChar(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET);
+            } else {
+                return Character.reverseBytes(PUnsafe.getChar(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET));
+            }
+        }
+    }
+
+    @Override
+    public int readInt() throws IOException {
+        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
+            byte[] arr = handle.get();
+            this.readFully(arr, 0, Integer.BYTES);
+            if (PlatformInfo.IS_BIG_ENDIAN) {
+                return PUnsafe.getInt(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET);
+            } else {
+                return Integer.reverseBytes(PUnsafe.getInt(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET));
+            }
+        }
+    }
+
+    @Override
+    public int readIntLE() throws IOException {
+        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
+            byte[] arr = handle.get();
+            this.readFully(arr, 0, Integer.BYTES);
+            if (PlatformInfo.IS_LITTLE_ENDIAN) {
+                return PUnsafe.getInt(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET);
+            } else {
+                return Integer.reverseBytes(PUnsafe.getInt(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET));
+            }
+        }
+    }
+
+    @Override
+    public long readLong() throws IOException {
+        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
+            byte[] arr = handle.get();
+            this.readFully(arr, 0, Long.BYTES);
+            if (PlatformInfo.IS_BIG_ENDIAN) {
+                return PUnsafe.getLong(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET);
+            } else {
+                return Long.reverseBytes(PUnsafe.getLong(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET));
+            }
+        }
+    }
+
+    @Override
+    public long readLongLE() throws IOException {
+        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
+            byte[] arr = handle.get();
+            this.readFully(arr, 0, Long.BYTES);
+            if (PlatformInfo.IS_LITTLE_ENDIAN) {
+                return PUnsafe.getLong(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET);
+            } else {
+                return Long.reverseBytes(PUnsafe.getLong(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET));
+            }
         }
     }
 }

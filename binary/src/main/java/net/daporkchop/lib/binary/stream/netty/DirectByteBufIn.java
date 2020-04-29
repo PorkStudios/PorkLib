@@ -21,12 +21,12 @@
 package net.daporkchop.lib.binary.stream.netty;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.util.internal.PlatformDependent;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.binary.stream.AbstractHeapDataOut;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.AbstractDirectDataIn;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -35,43 +35,62 @@ import static java.lang.Math.*;
 import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
- * An implementation of {@link DataOut} that can write to a generic {@link ByteBuf}.
+ * An implementation of {@link DataIn} that can read from a direct {@link ByteBuf}.
  *
  * @author DaPorkchop_
  */
 @Getter
 @Accessors(fluent = true)
-public class ByteBufOut extends AbstractHeapDataOut {
+public class DirectByteBufIn extends AbstractDirectDataIn {
     protected ByteBuf delegate;
 
-    public ByteBufOut(@NonNull ByteBuf delegate) {
-        checkArg(!delegate.hasMemoryAddress(), "delegate may not be direct!");
+    public DirectByteBufIn(@NonNull ByteBuf delegate) {
+        checkArg(delegate.hasMemoryAddress(), "delegate must be direct!");
         this.delegate = delegate;
     }
 
     @Override
-    protected void write0(int b) throws IOException {
-        this.delegate.writeByte(b);
+    protected int read0() throws IOException {
+        if (this.delegate.isReadable()) {
+            return this.delegate.readByte() & 0xFF;
+        } else {
+            return -1;
+        }
     }
 
     @Override
-    protected void write0(@NonNull byte[] src, int start, int length) throws IOException {
-        int count = min(this.delegate.maxWritableBytes(), length);
-        checkIndex(count == length);
-        this.delegate.writeBytes(src, start, length);
+    protected int read0(@NonNull byte[] dst, int start, int length) throws IOException {
+        int count = min(this.delegate.readableBytes(), length);
+        if (count <= 0) {
+            return RESULT_EOF;
+        } else {
+            this.delegate.readBytes(dst, start, count);
+            return count;
+        }
     }
 
     @Override
-    protected void write0(long addr, long length) throws IOException {
-        int writerIndex = this.delegate.writerIndex();
-        int count = toInt(min(this.delegate.maxCapacity() - writerIndex, length));
-        checkIndex(count == length);
-        this.delegate.writeBytes(PlatformDependent.directBuffer(addr, count));
+    protected long read0(long addr, long length) throws IOException {
+        int count = toInt(min(this.delegate.readableBytes(), length));
+        int readerIndex = this.delegate.readerIndex();
+        if (count <= 0) {
+            return RESULT_EOF;
+        }
+        PUnsafe.copyMemory(this.delegate.memoryAddress() + readerIndex, addr, count);
+        this.delegate.skipBytes(count);
+        return count;
     }
 
     @Override
-    protected void flush0() throws IOException {
-        //no-op
+    protected long skip0(long count) throws IOException {
+        int countI = (int) min(this.delegate.readableBytes(), count);
+        this.delegate.skipBytes(countI);
+        return countI;
+    }
+
+    @Override
+    protected long remaining0() throws IOException {
+        return this.delegate.readableBytes();
     }
 
     @Override
@@ -81,7 +100,7 @@ public class ByteBufOut extends AbstractHeapDataOut {
     }
 
     @Override
-    public long writeText(@NonNull CharSequence text, @NonNull Charset charset) throws IOException {
-        return this.delegate.writeCharSequence(text, charset);
+    public CharSequence readText(long size, @NonNull Charset charset) throws IOException {
+        return this.delegate.readCharSequence(toInt(size, "size"), charset);
     }
 }

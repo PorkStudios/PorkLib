@@ -22,6 +22,7 @@ package net.daporkchop.lib.binary.stream;
 
 import lombok.NonNull;
 import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.system.PlatformInfo;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
@@ -57,6 +58,121 @@ public abstract class AbstractDirectDataIn extends AbstractDataIn {
                 first = false;
             } while (total < length);
             return total;
+        }
+    }
+
+    @Override
+    public boolean isDirect() {
+        return true;
+    }
+
+    //
+    //
+    // primitives
+    //
+    //
+
+    @Override
+    public short readShort() throws IOException {
+        try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_TINY_BUFFER_POOL.get()) {
+            ByteBuffer buf = (ByteBuffer) handle.get().position(0).limit(Short.BYTES);
+            this.readFully(buf);
+            if (PlatformInfo.IS_BIG_ENDIAN) {
+                return PUnsafe.getShort(PUnsafe.pork_directBufferAddress(buf));
+            } else {
+                return Short.reverseBytes(PUnsafe.getShort(PUnsafe.pork_directBufferAddress(buf)));
+            }
+        }
+    }
+
+    @Override
+    public short readShortLE() throws IOException {
+        try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_TINY_BUFFER_POOL.get()) {
+            ByteBuffer buf = (ByteBuffer) handle.get().position(0).limit(Short.BYTES);
+            this.readFully(buf);
+            if (PlatformInfo.IS_LITTLE_ENDIAN) {
+                return PUnsafe.getShort(PUnsafe.pork_directBufferAddress(buf));
+            } else {
+                return Short.reverseBytes(PUnsafe.getShort(PUnsafe.pork_directBufferAddress(buf)));
+            }
+        }
+    }
+
+    @Override
+    public char readChar() throws IOException {
+        try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_TINY_BUFFER_POOL.get()) {
+            ByteBuffer buf = (ByteBuffer) handle.get().position(0).limit(Character.BYTES);
+            this.readFully(buf);
+            if (PlatformInfo.IS_BIG_ENDIAN) {
+                return PUnsafe.getChar(PUnsafe.pork_directBufferAddress(buf));
+            } else {
+                return Character.reverseBytes(PUnsafe.getChar(PUnsafe.pork_directBufferAddress(buf)));
+            }
+        }
+    }
+
+    @Override
+    public char readCharLE() throws IOException {
+        try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_TINY_BUFFER_POOL.get()) {
+            ByteBuffer buf = (ByteBuffer) handle.get().position(0).limit(Character.BYTES);
+            this.readFully(buf);
+            if (PlatformInfo.IS_LITTLE_ENDIAN) {
+                return PUnsafe.getChar(PUnsafe.pork_directBufferAddress(buf));
+            } else {
+                return Character.reverseBytes(PUnsafe.getChar(PUnsafe.pork_directBufferAddress(buf)));
+            }
+        }
+    }
+
+    @Override
+    public int readInt() throws IOException {
+        try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_TINY_BUFFER_POOL.get()) {
+            ByteBuffer buf = (ByteBuffer) handle.get().position(0).limit(Integer.BYTES);
+            this.readFully(buf);
+            if (PlatformInfo.IS_BIG_ENDIAN) {
+                return PUnsafe.getInt(PUnsafe.pork_directBufferAddress(buf));
+            } else {
+                return Integer.reverseBytes(PUnsafe.getInt(PUnsafe.pork_directBufferAddress(buf)));
+            }
+        }
+    }
+
+    @Override
+    public int readIntLE() throws IOException {
+        try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_TINY_BUFFER_POOL.get()) {
+            ByteBuffer buf = (ByteBuffer) handle.get().position(0).limit(Integer.BYTES);
+            this.readFully(buf);
+            if (PlatformInfo.IS_LITTLE_ENDIAN) {
+                return PUnsafe.getInt(PUnsafe.pork_directBufferAddress(buf));
+            } else {
+                return Integer.reverseBytes(PUnsafe.getInt(PUnsafe.pork_directBufferAddress(buf)));
+            }
+        }
+    }
+
+    @Override
+    public long readLong() throws IOException {
+        try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_TINY_BUFFER_POOL.get()) {
+            ByteBuffer buf = (ByteBuffer) handle.get().position(0).limit(Long.BYTES);
+            this.readFully(buf);
+            if (PlatformInfo.IS_BIG_ENDIAN) {
+                return PUnsafe.getLong(PUnsafe.pork_directBufferAddress(buf));
+            } else {
+                return Long.reverseBytes(PUnsafe.getLong(PUnsafe.pork_directBufferAddress(buf)));
+            }
+        }
+    }
+
+    @Override
+    public long readLongLE() throws IOException {
+        try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_TINY_BUFFER_POOL.get()) {
+            ByteBuffer buf = (ByteBuffer) handle.get().position(0).limit(Long.BYTES);
+            this.readFully(buf);
+            if (PlatformInfo.IS_LITTLE_ENDIAN) {
+                return PUnsafe.getLong(PUnsafe.pork_directBufferAddress(buf));
+            } else {
+                return Long.reverseBytes(PUnsafe.getLong(PUnsafe.pork_directBufferAddress(buf)));
+            }
         }
     }
 }

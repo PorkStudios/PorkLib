@@ -311,6 +311,16 @@ public abstract class ForwardingDataIn implements DataIn {
     }
 
     @Override
+    public boolean isDirect() {
+        return this.delegate.isDirect();
+    }
+
+    @Override
+    public boolean isHeap() {
+        return this.delegate.isHeap();
+    }
+
+    @Override
     public boolean isOpen() {
         return this.delegate.isOpen();
     }

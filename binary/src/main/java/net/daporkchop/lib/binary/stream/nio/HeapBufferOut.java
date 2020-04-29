@@ -18,40 +18,69 @@
  *
  */
 
-package net.daporkchop.lib.binary.stream.netty;
+package net.daporkchop.lib.binary.stream.nio;
 
-import io.netty.buffer.ByteBuf;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.binary.stream.AbstractHeapDataOut;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
+import java.nio.BufferOverflowException;
+import java.nio.ByteBuffer;
 
+import static java.lang.Math.*;
 import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
- * Variant of {@link DirectByteBufOut} which doesn't allow the destination buffer to be grown.
+ * An implementation of {@link DataOut} that can write to a heap {@link ByteBuffer}.
  *
  * @author DaPorkchop_
  */
-public class NonGrowingByteBufOut extends ByteBufOut {
-    public NonGrowingByteBufOut(@NonNull ByteBuf delegate) {
-        super(delegate);
+@Getter
+@Accessors(fluent = true)
+public class HeapBufferOut extends AbstractHeapDataOut {
+    protected ByteBuffer delegate;
+
+    public HeapBufferOut(@NonNull ByteBuffer delegate) {
+        checkArg(!delegate.isDirect(), "delegate may not be direct!");
+        this.delegate = delegate;
     }
 
     @Override
     protected void write0(int b) throws IOException {
-        checkIndex(this.delegate.isWritable());
-        super.write0(b);
+        this.delegate.put((byte) b);
     }
 
     @Override
     protected void write0(@NonNull byte[] src, int start, int length) throws IOException {
-        checkIndex(this.delegate.isWritable(length));
-        super.write0(src, start, length);
+        int count = min(this.delegate.remaining(), length);
+        if (count < length) {
+            throw new BufferOverflowException();
+        }
+        this.delegate.put(src, start, count);
     }
 
     @Override
     protected void write0(long addr, long length) throws IOException {
-        checkIndex(this.delegate.isWritable(toInt(length, "length")));
-        super.write0(addr, length);
+        int count = toInt(min(this.delegate.remaining(), length));
+        if (count < length) {
+            throw new BufferOverflowException();
+        }
+        int position = this.delegate.position();
+        PUnsafe.copyMemory(null, addr, this.delegate.array(), PUnsafe.ARRAY_BYTE_BASE_OFFSET + this.delegate.arrayOffset() + position, count);
+        this.delegate.position(position + count);
+    }
+
+    @Override
+    protected void flush0() throws IOException {
+        //no-op
+    }
+
+    @Override
+    protected void close0() throws IOException {
+        this.delegate = null;
     }
 }

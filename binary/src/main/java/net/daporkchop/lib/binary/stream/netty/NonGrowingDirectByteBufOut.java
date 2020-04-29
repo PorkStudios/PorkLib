@@ -32,8 +32,8 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  *
  * @author DaPorkchop_
  */
-public class NonGrowingByteBufOut extends ByteBufOut {
-    public NonGrowingByteBufOut(@NonNull ByteBuf delegate) {
+public class NonGrowingDirectByteBufOut extends DirectByteBufOut {
+    public NonGrowingDirectByteBufOut(@NonNull ByteBuf delegate) {
         super(delegate);
     }
 

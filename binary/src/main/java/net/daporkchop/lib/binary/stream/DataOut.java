@@ -23,8 +23,11 @@ package net.daporkchop.lib.binary.stream;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.netty.ByteBufOut;
+import net.daporkchop.lib.binary.stream.netty.DirectByteBufOut;
 import net.daporkchop.lib.binary.stream.netty.NonGrowingByteBufOut;
-import net.daporkchop.lib.binary.stream.nio.BufferOut;
+import net.daporkchop.lib.binary.stream.netty.NonGrowingDirectByteBufOut;
+import net.daporkchop.lib.binary.stream.nio.DirectBufferOut;
+import net.daporkchop.lib.binary.stream.nio.HeapBufferOut;
 import net.daporkchop.lib.binary.stream.stream.StreamOut;
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.system.PlatformInfo;
@@ -102,16 +105,6 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
     }
 
     /**
-     * Wraps a {@link ByteBuffer} to make it a {@link DataOut}.
-     *
-     * @param buffer the buffer to wrap
-     * @return the wrapped buffer
-     */
-    static DataOut wrap(@NonNull ByteBuffer buffer) {
-        return new BufferOut(buffer);
-    }
-
-    /**
      * @see #wrapBuffered(File)
      */
     static DataOut wrap(@NonNull File file) throws IOException {
@@ -159,6 +152,16 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
     }
 
     /**
+     * Wraps a {@link ByteBuffer} to make it a {@link DataOut}.
+     *
+     * @param buffer the buffer to wrap
+     * @return the wrapped buffer
+     */
+    static DataOut wrap(@NonNull ByteBuffer buffer) {
+        return buffer.isDirect() ? new DirectBufferOut(buffer) : new HeapBufferOut(buffer);
+    }
+
+    /**
      * Wraps a {@link ByteBuf} into a {@link DataOut} for writing.
      * <p>
      * When the {@link DataOut} is closed (using {@link DataOut#close()}), the {@link ByteBuf} will not be released.
@@ -167,7 +170,7 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @return a {@link DataOut} that can write data to the {@link ByteBuf}
      */
     static DataOut wrap(@NonNull ByteBuf buf) {
-        return new ByteBufOut(buf.retain());
+        return wrap(buf, true, true);
     }
 
     /**
@@ -178,7 +181,7 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @return a {@link DataOut} that can write data to the {@link ByteBuf}
      */
     static DataOut wrap(@NonNull ByteBuf buf, boolean retain) {
-        return new ByteBufOut(retain ? buf.retain() : buf);
+        return wrap(buf, retain, true);
     }
 
     /**
@@ -190,7 +193,14 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @return a {@link DataOut} that can write data to the {@link ByteBuf}
      */
     static DataOut wrap(@NonNull ByteBuf buf, boolean retain, boolean grow) {
-        return grow ? new ByteBufOut(retain ? buf.retain() : buf) : new NonGrowingByteBufOut(retain ? buf.retain() : buf);
+        if (retain) {
+            buf.retain();
+        }
+        if (buf.hasMemoryAddress()) {
+            return grow ? new DirectByteBufOut(buf) : new NonGrowingDirectByteBufOut(buf);
+        } else {
+            return grow ? new ByteBufOut(buf) : new NonGrowingByteBufOut(buf);
+        }
     }
 
     //
@@ -230,34 +240,14 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @see DataOutput#writeShort(int)
      */
     @Override
-    default void writeShort(int v) throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            if (PlatformInfo.IS_BIG_ENDIAN) {
-                PUnsafe.putShort(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, (short) v);
-            } else {
-                PUnsafe.putShort(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, Short.reverseBytes((short) v));
-            }
-            this.write(arr, 0, Short.BYTES);
-        }
-    }
+    void writeShort(int v) throws IOException;
 
     /**
      * Writes a little-endian {@code short}.
      *
      * @see #writeShort(int)
      */
-    default void writeShortLE(int v) throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            if (PlatformInfo.IS_LITTLE_ENDIAN) {
-                PUnsafe.putShort(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, (short) v);
-            } else {
-                PUnsafe.putShort(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, Short.reverseBytes((short) v));
-            }
-            this.write(arr, 0, Short.BYTES);
-        }
-    }
+    void writeShortLE(int v) throws IOException;
 
     /**
      * Writes a big-endian {@code char}.
@@ -265,89 +255,44 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @see DataOutput#writeChar(int)
      */
     @Override
-    default void writeChar(int v) throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            if (PlatformInfo.IS_BIG_ENDIAN) {
-                PUnsafe.putChar(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, (char) v);
-            } else {
-                PUnsafe.putChar(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, Character.reverseBytes((char) v));
-            }
-            this.write(arr, 0, Character.BYTES);
-        }
-    }
+    void writeChar(int v) throws IOException;
 
     /**
      * Writes a little-endian {@code char}.
      *
      * @see #writeChar(int)
      */
-    default void writeCharLE(int v) throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            if (PlatformInfo.IS_LITTLE_ENDIAN) {
-                PUnsafe.putChar(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, (char) v);
-            } else {
-                PUnsafe.putChar(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, Character.reverseBytes((char) v));
-            }
-            this.write(arr, 0, Character.BYTES);
-        }
-    }
+    void writeCharLE(int v) throws IOException;
 
     /**
-     * Writes a big-endian {@code char}.
+     * Writes a big-endian {@code int}.
      *
-     * @see DataOutput#writeChar(int)
+     * @see DataOutput#writeInt(int)
      */
     @Override
-    default void writeInt(int v) throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            if (PlatformInfo.IS_BIG_ENDIAN) {
-                PUnsafe.putInt(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, v);
-            } else {
-                PUnsafe.putInt(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, Integer.reverseBytes(v));
-            }
-            this.write(arr, 0, Integer.BYTES);
-        }
-    }
+    void writeInt(int v) throws IOException;
 
-    default void writeIntLE(int v) throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            if (PlatformInfo.IS_LITTLE_ENDIAN) {
-                PUnsafe.putInt(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, v);
-            } else {
-                PUnsafe.putInt(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, Integer.reverseBytes(v));
-            }
-            this.write(arr, 0, Integer.BYTES);
-        }
-    }
+    /**
+     * Writes a little-endian {@code int}.
+     *
+     * @see DataOutput#writeInt(int)
+     */
+    void writeIntLE(int v) throws IOException;
 
+    /**
+     * Writes a big-endian {@code long}.
+     *
+     * @see DataOutput#writeLong(long)
+     */
     @Override
-    default void writeLong(long v) throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            if (PlatformInfo.IS_BIG_ENDIAN) {
-                PUnsafe.putLong(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, v);
-            } else {
-                PUnsafe.putLong(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, Long.reverseBytes(v));
-            }
-            this.write(arr, 0, Long.BYTES);
-        }
-    }
+    void writeLong(long v) throws IOException;
 
-    default void writeLongLE(long v) throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            if (PlatformInfo.IS_LITTLE_ENDIAN) {
-                PUnsafe.putLong(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, v);
-            } else {
-                PUnsafe.putLong(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, Long.reverseBytes(v));
-            }
-            this.write(arr, 0, Long.BYTES);
-        }
-    }
+    /**
+     * Writes a little-endian {@code long}.
+     *
+     * @see DataOutput#writeLong(long)
+     */
+    void writeLongLE(long v) throws IOException;
 
     /**
      * Writes a big-endian float (32-bit floating point) value.
@@ -770,7 +715,7 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @throws ClosedChannelException if the channel was already closed
      * @throws IOException            if an IO exception occurs you dummy
      */
-    default int write(@NonNull ByteBuf src, int count) throws IOException   {
+    default int write(@NonNull ByteBuf src, int count) throws IOException {
         this.write(src, src.readerIndex(), count);
         src.skipBytes(count);
         return count;
@@ -815,6 +760,30 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @see OutputStream#flush()
      */
     void flush() throws IOException;
+
+    /**
+     * Checks whether or not this {@link DataOut} uses direct memory internally.
+     * <p>
+     * If {@code true}, then using native buffers when writing to this {@link DataOut} is likely to provide a performance boost.
+     * <p>
+     * Note that it is possible for both {@link #isDirect()} and {@link #isHeap()} to return {@code false}.
+     *
+     * @return whether or not this {@link DataOut} uses direct memory internally
+     * @see #isHeap()
+     */
+    boolean isDirect();
+
+    /**
+     * Checks whether or not this {@link DataOut} uses heap memory internally.
+     * <p>
+     * If {@code true}, then using heap buffers when writing to this {@link DataOut} is likely to provide a performance boost.
+     * <p>
+     * Note that it is possible for both {@link #isDirect()} and {@link #isHeap()} to return {@code false}.
+     *
+     * @return whether or not this {@link DataOut} uses heap memory internally
+     * @see #isDirect()
+     */
+    boolean isHeap();
 
     @Override
     boolean isOpen();

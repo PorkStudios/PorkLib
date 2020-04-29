@@ -233,6 +233,16 @@ public abstract class AbstractDataIn implements DataIn {
     }
 
     @Override
+    public boolean isDirect() {
+        return false;
+    }
+
+    @Override
+    public boolean isHeap() {
+        return false;
+    }
+
+    @Override
     public boolean isOpen() {
         return this.closed == 0;
     }

@@ -23,11 +23,12 @@ package net.daporkchop.lib.binary.stream;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.netty.ByteBufIn;
-import net.daporkchop.lib.binary.stream.nio.BufferIn;
+import net.daporkchop.lib.binary.stream.netty.DirectByteBufIn;
+import net.daporkchop.lib.binary.stream.nio.DirectBufferIn;
+import net.daporkchop.lib.binary.stream.nio.HeapBufferIn;
 import net.daporkchop.lib.binary.stream.stream.StreamIn;
 import net.daporkchop.lib.binary.stream.wrapper.DataInAsInputStream;
 import net.daporkchop.lib.common.pool.handle.Handle;
-import net.daporkchop.lib.common.system.PlatformInfo;
 import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
@@ -87,16 +88,6 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
     }
 
     /**
-     * Wraps a {@link ByteBuffer} to make it into a {@link DataIn}.
-     *
-     * @param buffer the buffer to wrap
-     * @return the wrapped buffer as a {@link DataIn}
-     */
-    static DataIn wrap(@NonNull ByteBuffer buffer) {
-        return new BufferIn(buffer);
-    }
-
-    /**
      * @see #wrapBuffered(File)
      */
     static DataIn wrap(@NonNull File file) throws IOException {
@@ -146,6 +137,16 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
     }
 
     /**
+     * Wraps a {@link ByteBuffer} to make it into a {@link DataIn}.
+     *
+     * @param buffer the buffer to wrap
+     * @return the wrapped buffer as a {@link DataIn}
+     */
+    static DataIn wrap(@NonNull ByteBuffer buffer) {
+        return buffer.isDirect() ? new DirectBufferIn(buffer) : new HeapBufferIn(buffer);
+    }
+
+    /**
      * Wraps a {@link ByteBuf} into a {@link DataIn} for reading.
      * <p>
      * When the {@link DataIn} is closed (using {@link DataIn#close()}), the {@link ByteBuf} will not be released.
@@ -165,7 +166,10 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @return a {@link DataIn} that can read data from the {@link ByteBuf}
      */
     static DataIn wrap(@NonNull ByteBuf buf, boolean retain) {
-        return new ByteBufIn(retain ? buf.retain() : buf);
+        if (retain) {
+            buf.retain();
+        }
+        return buf.hasMemoryAddress() ? new DirectByteBufIn(buf) : new ByteBufIn(buf);
     }
 
     //
@@ -209,17 +213,7 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @see DataInput#readShort()
      */
     @Override
-    default short readShort() throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            this.readFully(arr, 0, Short.BYTES);
-            if (PlatformInfo.IS_BIG_ENDIAN) {
-                return PUnsafe.getShort(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET);
-            } else {
-                return Short.reverseBytes(PUnsafe.getShort(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET));
-            }
-        }
-    }
+    short readShort() throws IOException;
 
     /**
      * Reads an unsigned big-endian {@code short}.
@@ -236,17 +230,7 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      *
      * @see #readShort()
      */
-    default short readShortLE() throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            this.readFully(arr, 0, Short.BYTES);
-            if (PlatformInfo.IS_LITTLE_ENDIAN) {
-                return PUnsafe.getShort(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET);
-            } else {
-                return Short.reverseBytes(PUnsafe.getShort(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET));
-            }
-        }
-    }
+    short readShortLE() throws IOException;
 
     /**
      * Reads an unsigned little-endian {@code short}.
@@ -263,34 +247,14 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @see DataInput#readChar()
      */
     @Override
-    default char readChar() throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            this.readFully(arr, 0, Character.BYTES);
-            if (PlatformInfo.IS_BIG_ENDIAN) {
-                return PUnsafe.getChar(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET);
-            } else {
-                return Character.reverseBytes(PUnsafe.getChar(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET));
-            }
-        }
-    }
+    char readChar() throws IOException;
 
     /**
      * Reads a little-endian {@code char}.
      *
      * @see #readChar()
      */
-    default char readCharLE() throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            this.readFully(arr, 0, Character.BYTES);
-            if (PlatformInfo.IS_LITTLE_ENDIAN) {
-                return PUnsafe.getChar(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET);
-            } else {
-                return Character.reverseBytes(PUnsafe.getChar(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET));
-            }
-        }
-    }
+    char readCharLE() throws IOException;
 
     /**
      * Reads a big-endian {@code int}.
@@ -298,34 +262,14 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @see DataInput#readInt()
      */
     @Override
-    default int readInt() throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            this.readFully(arr, 0, Integer.BYTES);
-            if (PlatformInfo.IS_BIG_ENDIAN) {
-                return PUnsafe.getInt(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET);
-            } else {
-                return Integer.reverseBytes(PUnsafe.getInt(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET));
-            }
-        }
-    }
+    int readInt() throws IOException;
 
     /**
      * Reads a little-endian {@code int}.
      *
      * @see #readInt()
      */
-    default int readIntLE() throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            this.readFully(arr, 0, Integer.BYTES);
-            if (PlatformInfo.IS_LITTLE_ENDIAN) {
-                return PUnsafe.getInt(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET);
-            } else {
-                return Integer.reverseBytes(PUnsafe.getInt(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET));
-            }
-        }
-    }
+    int readIntLE() throws IOException;
 
     /**
      * Reads a big-endian {@code long}.
@@ -333,34 +277,14 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @see DataInput#readLong()
      */
     @Override
-    default long readLong() throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            this.readFully(arr, 0, Long.BYTES);
-            if (PlatformInfo.IS_BIG_ENDIAN) {
-                return PUnsafe.getLong(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET);
-            } else {
-                return Long.reverseBytes(PUnsafe.getLong(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET));
-            }
-        }
-    }
+    long readLong() throws IOException;
 
     /**
      * Reads a little-endian {@code long}.
      *
      * @see #readLong()
      */
-    default long readLongLE() throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            this.readFully(arr, 0, Long.BYTES);
-            if (PlatformInfo.IS_LITTLE_ENDIAN) {
-                return PUnsafe.getLong(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET);
-            } else {
-                return Long.reverseBytes(PUnsafe.getLong(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET));
-            }
-        }
-    }
+    long readLongLE() throws IOException;
 
     /**
      * Reads a big-endian {@code float}.
@@ -970,6 +894,30 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @see DataInput#skipBytes(int)
      */
     long skipBytes(long n) throws IOException;
+
+    /**
+     * Checks whether or not this {@link DataIn} uses direct memory internally.
+     * <p>
+     * If {@code true}, then using native buffers when reading from this {@link DataIn} is likely to provide a performance boost.
+     * <p>
+     * Note that it is possible for both {@link #isDirect()} and {@link #isHeap()} to return {@code false}.
+     *
+     * @return whether or not this {@link DataIn} uses direct memory internally
+     * @see #isHeap()
+     */
+    boolean isDirect();
+
+    /**
+     * Checks whether or not this {@link DataIn} uses heap memory internally.
+     * <p>
+     * If {@code true}, then using heap buffers when reading from this {@link DataIn} is likely to provide a performance boost.
+     * <p>
+     * Note that it is possible for both {@link #isDirect()} and {@link #isHeap()} to return {@code false}.
+     *
+     * @return whether or not this {@link DataIn} uses heap memory internally
+     * @see #isDirect()
+     */
+    boolean isHeap();
 
     @Override
     boolean isOpen();

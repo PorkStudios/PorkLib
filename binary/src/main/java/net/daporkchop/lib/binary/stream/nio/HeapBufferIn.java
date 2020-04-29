@@ -18,41 +18,40 @@
  *
  */
 
-package net.daporkchop.lib.binary.stream.netty;
+package net.daporkchop.lib.binary.stream.nio;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.util.internal.PlatformDependent;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.AbstractHeapDataIn;
 import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.nio.ByteBuffer;
 
 import static java.lang.Math.*;
 import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
- * An implementation of {@link DataIn} that can read from a generic {@link ByteBuf}.
+ * An implementation of {@link DataIn} that can read from a heap {@link ByteBuffer}.
  *
  * @author DaPorkchop_
  */
 @Getter
 @Accessors(fluent = true)
-public class ByteBufIn extends AbstractHeapDataIn {
-    protected ByteBuf delegate;
+public class HeapBufferIn extends AbstractHeapDataIn {
+    protected ByteBuffer delegate;
 
-    public ByteBufIn(@NonNull ByteBuf delegate) {
-        checkArg(!delegate.hasMemoryAddress(), "delegate may not be direct!");
+    public HeapBufferIn(@NonNull ByteBuffer delegate) {
+        checkArg(!delegate.isDirect(), "delegate may not be direct!");
         this.delegate = delegate;
     }
 
     @Override
     protected int read0() throws IOException {
-        if (this.delegate.isReadable()) {
-            return this.delegate.readByte() & 0xFF;
+        if (this.delegate.hasRemaining()) {
+            return this.delegate.get() & 0xFF;
         } else {
             return -1;
         }
@@ -60,45 +59,41 @@ public class ByteBufIn extends AbstractHeapDataIn {
 
     @Override
     protected int read0(@NonNull byte[] dst, int start, int length) throws IOException {
-        int count = min(this.delegate.readableBytes(), length);
+        int count = min(this.delegate.remaining(), length);
         if (count <= 0) {
             return RESULT_EOF;
         } else {
-            this.delegate.readBytes(dst, start, count);
+            this.delegate.get(dst, start, count);
             return count;
         }
     }
 
     @Override
     protected long read0(long addr, long length) throws IOException {
-        int count = toInt(min(this.delegate.readableBytes(), length));
+        int count = toInt(min(this.delegate.remaining(), length));
+        int position = this.delegate.position();
         if (count <= 0) {
             return RESULT_EOF;
         }
-        this.delegate.readBytes(PlatformDependent.directBuffer(addr, count));
+        PUnsafe.copyMemory(this.delegate.array(), PUnsafe.ARRAY_BYTE_BASE_OFFSET + this.delegate.arrayOffset() + position, null, addr, count);
+        this.delegate.position(position + count);
         return count;
     }
 
     @Override
     protected long skip0(long count) throws IOException {
-        int countI = (int) min(this.delegate.readableBytes(), count);
-        this.delegate.skipBytes(countI);
+        int countI = (int) min(count, this.delegate.remaining());
+        this.delegate.position(this.delegate.position() + countI);
         return countI;
     }
 
     @Override
     protected long remaining0() throws IOException {
-        return this.delegate.readableBytes();
+        return this.delegate.remaining();
     }
 
     @Override
     protected void close0() throws IOException {
-        this.delegate.release();
         this.delegate = null;
-    }
-
-    @Override
-    public CharSequence readText(long size, @NonNull Charset charset) throws IOException {
-        return this.delegate.readCharSequence(toInt(size, "size"), charset);
     }
 }

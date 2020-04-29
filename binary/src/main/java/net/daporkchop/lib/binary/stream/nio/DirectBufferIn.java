@@ -20,65 +20,76 @@
 
 package net.daporkchop.lib.binary.stream.nio;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.binary.stream.AbstractDataOut;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.stream.AbstractDirectDataIn;
+import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
-import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 
 import static java.lang.Math.*;
 import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
- * An implementation of {@link DataOut} that can write to a {@link ByteBuffer}.
+ * An implementation of {@link DataIn} that can read from a direct {@link ByteBuffer}.
  *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public class BufferOut extends AbstractDataOut {
-    @NonNull
+public class DirectBufferIn extends AbstractDirectDataIn {
     protected ByteBuffer delegate;
 
-    @Override
-    protected void write0(int b) throws IOException {
-        this.delegate.put((byte) b);
+    public DirectBufferIn(@NonNull ByteBuffer delegate) {
+        checkArg(delegate.isDirect(), "delegate must be direct!");
+        this.delegate = delegate;
     }
 
     @Override
-    protected void write0(@NonNull byte[] src, int start, int length) throws IOException {
-        int count = min(this.delegate.remaining(), length);
-        if (count < length) {
-            throw new BufferOverflowException();
-        }
-        this.delegate.put(src, start, count);
-    }
-
-    @Override
-    protected void write0(long addr, long length) throws IOException {
-        int count = toInt(min(this.delegate.remaining(), length));
-        if (count < length) {
-            throw new BufferOverflowException();
-        }
-        int position = this.delegate.position();
-        if (this.delegate.isDirect())   {
-            PUnsafe.copyMemory(addr, PUnsafe.pork_directBufferAddress(this.delegate) + position, count);
+    protected int read0() throws IOException {
+        if (this.delegate.hasRemaining()) {
+            return this.delegate.get() & 0xFF;
         } else {
-            PUnsafe.copyMemory(null, addr, this.delegate.array(), PUnsafe.ARRAY_BYTE_BASE_OFFSET + this.delegate.arrayOffset() + position, count);
+            return -1;
         }
-        this.delegate.position(position + count);
     }
 
     @Override
-    protected void flush0() throws IOException {
-        //no-op
+    protected int read0(@NonNull byte[] dst, int start, int length) throws IOException {
+        int count = min(this.delegate.remaining(), length);
+        if (count <= 0) {
+            return RESULT_EOF;
+        } else {
+            this.delegate.get(dst, start, count);
+            return count;
+        }
+    }
+
+    @Override
+    protected long read0(long addr, long length) throws IOException {
+        int count = toInt(min(this.delegate.remaining(), length));
+        int position = this.delegate.position();
+        if (count <= 0) {
+            return RESULT_EOF;
+        }
+        PUnsafe.copyMemory(PUnsafe.pork_directBufferAddress(this.delegate) + position, addr, count);
+        this.delegate.position(position + count);
+        return count;
+    }
+
+    @Override
+    protected long skip0(long count) throws IOException {
+        int countI = (int) min(count, this.delegate.remaining());
+        this.delegate.position(this.delegate.position() + countI);
+        return countI;
+    }
+
+    @Override
+    protected long remaining0() throws IOException {
+        return this.delegate.remaining();
     }
 
     @Override

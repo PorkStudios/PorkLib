@@ -21,37 +21,69 @@
 package net.daporkchop.lib.binary.stream.netty;
 
 import io.netty.buffer.ByteBuf;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.binary.stream.AbstractHeapDataOut;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 
+import static java.lang.Math.*;
 import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
- * Variant of {@link DirectByteBufOut} which doesn't allow the destination buffer to be grown.
+ * An implementation of {@link DataOut} that can write to a direct {@link ByteBuf}.
  *
  * @author DaPorkchop_
  */
-public class NonGrowingByteBufOut extends ByteBufOut {
-    public NonGrowingByteBufOut(@NonNull ByteBuf delegate) {
-        super(delegate);
+@Getter
+@Accessors(fluent = true)
+public class DirectByteBufOut extends AbstractHeapDataOut {
+    protected ByteBuf delegate;
+
+    public DirectByteBufOut(@NonNull ByteBuf delegate) {
+        checkArg(delegate.hasMemoryAddress(), "delegate must be direct!");
+        this.delegate = delegate;
     }
 
     @Override
     protected void write0(int b) throws IOException {
-        checkIndex(this.delegate.isWritable());
-        super.write0(b);
+        this.delegate.writeByte(b);
     }
 
     @Override
     protected void write0(@NonNull byte[] src, int start, int length) throws IOException {
-        checkIndex(this.delegate.isWritable(length));
-        super.write0(src, start, length);
+        int count = min(this.delegate.maxWritableBytes(), length);
+        checkIndex(count == length);
+        this.delegate.writeBytes(src, start, length);
     }
 
     @Override
     protected void write0(long addr, long length) throws IOException {
-        checkIndex(this.delegate.isWritable(toInt(length, "length")));
-        super.write0(addr, length);
+        int writerIndex = this.delegate.writerIndex();
+        int count = toInt(min(this.delegate.maxCapacity() - writerIndex, length));
+        checkIndex(count == length);
+        this.delegate.ensureWritable(count);
+        PUnsafe.copyMemory(addr, this.delegate.memoryAddress() + writerIndex, count);
+        this.delegate.writerIndex(writerIndex + count);
+    }
+
+    @Override
+    protected void flush0() throws IOException {
+        //no-op
+    }
+
+    @Override
+    protected void close0() throws IOException {
+        this.delegate.release();
+        this.delegate = null;
+    }
+
+    @Override
+    public long writeText(@NonNull CharSequence text, @NonNull Charset charset) throws IOException {
+        return this.delegate.writeCharSequence(text, charset);
     }
 }

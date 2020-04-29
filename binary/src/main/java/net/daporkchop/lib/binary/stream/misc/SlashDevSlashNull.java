@@ -51,6 +51,16 @@ public final class SlashDevSlashNull implements DataIn, DataOut {
     public static final java.io.OutputStream OUTPUT_STREAM = new OutputStream();
 
     @Override
+    public boolean isDirect() {
+        return false;
+    }
+
+    @Override
+    public boolean isHeap() {
+        return false;
+    }
+
+    @Override
     public boolean isOpen() {
         return true;
     }

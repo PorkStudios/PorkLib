@@ -47,13 +47,13 @@ public abstract class NativeFeature<F extends Feature<F>> implements Feature<F> 
             case Linux:
                 switch (PlatformInfo.ARCHITECTURE) {
                     case ARM:
-                        LIB_FMT = "arm-linux-gnueabihf/lib"; //TODO: something about hard float detection
+                        LIB_FMT = "arm-linux-gnueabihf/"; //TODO: something about hard float detection
                         break;
                     case AARCH64:
-                        LIB_FMT = "aarch64-linux-gnu/lib";
+                        LIB_FMT = "aarch64-linux-gnu/";
                         break;
                     case x86_64:
-                        LIB_FMT = "x86_64-linux-gnu/lib";
+                        LIB_FMT = "x86_64-linux-gnu/";
                         break;
                     default:
                         LIB_FMT = null;
@@ -63,7 +63,7 @@ public abstract class NativeFeature<F extends Feature<F>> implements Feature<F> 
             case Windows:
                 switch (PlatformInfo.ARCHITECTURE) {
                     case x86_64:
-                        LIB_FMT = "x86_64-w64-mingw32/lib";
+                        LIB_FMT = "x86_64-w64-mingw32/";
                         break;
                     default:
                         LIB_FMT = null;

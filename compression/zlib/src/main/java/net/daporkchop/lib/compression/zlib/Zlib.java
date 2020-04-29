@@ -30,7 +30,7 @@ import net.daporkchop.lib.natives.FeatureBuilder;
 @UtilityClass
 public class Zlib {
     public final ZlibProvider PROVIDER = FeatureBuilder.<ZlibProvider>create(Zlib.class)
-            .addNative("net.daporkchop.lib.compression.zlib.natives.NativeZlib", "zlib")
+            .addNative("net.daporkchop.lib.compression.zlib.natives.NativeZlib")
             .addJava("net.daporkchop.lib.compression.zlib.java.JavaZlib")
             .build();
 

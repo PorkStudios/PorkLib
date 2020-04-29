@@ -56,6 +56,10 @@ public final class FeatureBuilder<F extends Feature<F>> {
     @NonNull
     private final Class<?> currentClass;
 
+    public synchronized FeatureBuilder<F> addNative(@NonNull String className) {
+        return this.addNative(className, className.replace('.', '_'), this.currentClass.getClassLoader());
+    }
+
     public synchronized FeatureBuilder<F> addNative(@NonNull String className, @NonNull String libName) {
         return this.addNative(className, libName, this.currentClass.getClassLoader());
     }

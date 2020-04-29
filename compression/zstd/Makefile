@@ -29,7 +29,7 @@ INCLUDE			:=	$(addprefix -I,$(INCLUDES) $(CURDIR))
 build: libzstd.$(EXT)
 	@echo "Copying libzstd.$(EXT) to $(OUTDIR)/$(BUILD)/..."
 	@[ -d $(OUTDIR)/$(BUILD) ] || mkdir -p $(OUTDIR)/$(BUILD)
-	@cp libzstd.$(EXT) $(OUTDIR)/$(BUILD)/libzstd.$(EXT)
+	@cp libzstd.$(EXT) $(OUTDIR)/$(BUILD)/net_daporkchop_lib_compression_zstd_natives_NativeZstd.$(EXT)
 
 libzstd.$(EXT): $(CFILES) $(CPPFILES) $(OFILES) $(CURDIR)/lib-zstd/lib/libzstd.a
 	@echo "Linking $@..."

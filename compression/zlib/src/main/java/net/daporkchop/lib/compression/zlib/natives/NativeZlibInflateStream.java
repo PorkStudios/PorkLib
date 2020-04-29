@@ -121,7 +121,7 @@ final class NativeZlibInflateStream extends AbstractDirectDataIn {
             this.buf.discardSomeReadBytes();
             if (this.buf.isWritable()) {
                 int read = this.in.read(this.buf);
-                if (read < 0) {
+                if (read < 0 || this.buf.isWritable()) {
                     this.eof = true;
                 }
                 return read;

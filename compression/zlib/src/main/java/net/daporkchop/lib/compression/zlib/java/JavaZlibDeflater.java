@@ -22,17 +22,20 @@ package net.daporkchop.lib.compression.zlib.java;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.PooledByteBufAllocator;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
 import net.daporkchop.lib.compression.zlib.ZlibDeflater;
 import net.daporkchop.lib.compression.zlib.ZlibMode;
 import net.daporkchop.lib.compression.zlib.options.ZlibDeflaterOptions;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
+import java.io.IOException;
 import java.util.zip.Deflater;
 
 import static java.lang.Math.min;
@@ -42,7 +45,9 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  * @author DaPorkchop_
  */
 @Accessors(fluent = true)
-class JavaZlibDeflater extends AbstractRefCounted.Synchronized implements ZlibDeflater {
+final class JavaZlibDeflater extends AbstractRefCounted.Synchronized implements ZlibDeflater {
+    long sessionCounter = 0L;
+
     final Deflater deflater;
 
     @Getter
@@ -50,7 +55,7 @@ class JavaZlibDeflater extends AbstractRefCounted.Synchronized implements ZlibDe
 
     JavaZlibDeflater(@NonNull ZlibDeflaterOptions options)  {
         this.options = options;
-        this.deflater = new Deflater(options.level(), options.mode() == ZlibMode.RAW);
+        this.deflater = new Deflater(options.level(), options.mode() != ZlibMode.ZLIB);
     }
 
     @Override
@@ -69,15 +74,47 @@ class JavaZlibDeflater extends AbstractRefCounted.Synchronized implements ZlibDe
     }
 
     protected synchronized boolean compress0(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict, boolean grow) {
-        this.ensureNotReleased();
         checkArg(src.isReadable(), "src is not readable!");
         checkArg(dst.isWritable(), "dst is not writable!");
-        throw new UnsupportedOperationException();
+        int srcReaderIndex = src.readerIndex();
+        int dstWriterIndex = dst.writerIndex();
+        try (DataOut out = DataOut.wrap(dst, true, grow))   {
+            out.write(src);
+        } catch (IOException e) {
+            //shouldn't be possible
+            throw new RuntimeException(e);
+        } catch (IndexOutOfBoundsException e) {
+            if (grow) {
+                //this means that the buffer got way too big, should be re-thrown
+                throw e;
+            } else {
+                src.readerIndex(srcReaderIndex);
+                dst.writerIndex(dstWriterIndex);
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
-    public DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, int bufferSize, ByteBuf dict) throws DictionaryNotAllowedException {
-        return null;
+    public synchronized DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, int bufferSize, ByteBuf dict) throws DictionaryNotAllowedException {
+        this.ensureNotReleased();
+        if (bufferAlloc == null)    {
+            bufferAlloc = PooledByteBufAllocator.DEFAULT;
+        }
+        if (bufferSize <= 0)    {
+            bufferSize = PorkUtil.BUFFER_SIZE;
+        }
+
+        switch (this.options.mode())    {
+            case ZLIB:
+            case RAW:
+                return new JavaZlibDeflateStream(out, bufferAlloc.heapBuffer(bufferSize, bufferSize), dict, this);
+            case GZIP:
+                return new JavaGzipDeflateStream(out, bufferAlloc.heapBuffer(bufferSize, bufferSize), dict, this);
+            default:
+                throw new IllegalArgumentException(this.options.mode().name());
+        }
     }
 
     @Override

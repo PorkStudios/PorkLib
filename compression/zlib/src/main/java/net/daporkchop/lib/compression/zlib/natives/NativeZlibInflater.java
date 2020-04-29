@@ -28,6 +28,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.util.PorkUtil;
@@ -124,20 +125,9 @@ final class NativeZlibInflater extends AbstractRefCounted.Synchronized implement
             //the other two cases are too much of a pain to implement by hand
             int srcReaderIndex = src.readerIndex();
             int dstWriterIndex = dst.writerIndex();
-            try (DataIn in = this.decompressionStream(DataIn.wrap(src), dict)) {
-                in.read(dst);
-                if (grow)   {
-                    while (in.remaining() > 0L) {
-                        dst.ensureWritable(dst.writableBytes() == dst.maxWritableBytes() ? 8192 : min(dst.maxWritableBytes(), 8192));
-                        in.read(dst);
-                    }
-                } else {
-                    if (in.remaining() > 0L)    {
-                        checkState(!dst.isWritable(), "dst is still writable...");
-                        //more data available
-                        return false;
-                    }
-                }
+            try (DataIn in = this.decompressionStream(DataIn.wrap(src), dict);
+                 DataOut out = DataOut.wrap(dst, true, grow)) {
+                in.transferTo(out);
             } catch (IOException e) {
                 //shouldn't be possible
                 throw new RuntimeException(e);

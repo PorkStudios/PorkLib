@@ -207,7 +207,7 @@ public abstract class AbstractHeapDataIn extends AbstractDataIn {
             long total = 0L;
             boolean first = true;
             do {
-                int read = this.read0(buf, 0, (int) min(count - total, PorkUtil.BUFFER_SIZE));
+                int read = this.read0(buf, 0, count < 0L ? PorkUtil.BUFFER_SIZE : (int) min(count - total, PorkUtil.BUFFER_SIZE));
                 if (read <= 0) {
                     return read < 0 && first ? read : total;
                 }

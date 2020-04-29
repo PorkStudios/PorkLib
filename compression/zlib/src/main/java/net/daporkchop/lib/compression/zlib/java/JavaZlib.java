@@ -72,15 +72,7 @@ final class JavaZlib implements ZlibProvider {
     public PDeflater deflater(@NonNull ZlibDeflaterOptions options) {
         checkArg(options.provider() == this, "provider must be %s!", this);
         checkArg(options.strategy() == ZlibStrategy.DEFAULT || options.strategy() == ZlibStrategy.FILTERED || options.strategy() == ZlibStrategy.HUFFMAN, "Java Zlib does not support Zlib strategy %s!", options.strategy());
-        switch (options.mode()) {
-            case ZLIB:
-            case RAW:
-                return new JavaZlibDeflater(options);
-            case GZIP:
-                throw new UnsupportedOperationException("Gzip");
-            default:
-                throw new UnsupportedOperationException(options.mode().name());
-        }
+        return new JavaZlibDeflater(options);
     }
 
     @Override

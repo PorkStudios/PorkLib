@@ -209,7 +209,7 @@ public abstract class AbstractDirectDataIn extends AbstractDataIn {
             long total = 0L;
             boolean first = true;
             do {
-                int read = toInt(this.read0(addr, min(count - total, PorkUtil.BUFFER_SIZE)));
+                int read = toInt(this.read0(addr, count < 0L ? PorkUtil.BUFFER_SIZE : min(count - total, PorkUtil.BUFFER_SIZE)));
                 if (read <= 0) {
                     return read < 0 && first ? read : total;
                 }

@@ -1,14 +1,20 @@
 String getDiscordMessage() {
-    def msg = "**Status:** " + currentBuild.currentResult.toLowerCase() + "\n**Branch:** ${BRANCH_NAME}\n**Changes:**\n"
+    def msg = "**Status:** " + currentBuild.currentResult.toLowerCase() + "\n**Branch:** ${BRANCH_NAME}\n**Changes:**"
     if (!currentBuild.changeSets.isEmpty()) {
-        currentBuild.changeSets.first().getLogs().each {
-            msg += "- `" + it.getCommitId().substring(0, 8) + "` *" + it.getComment().substring(0, Math.min(64, it.getComment().length() - 1)) + (it.getComment().length() - 1 > 64 ? "..." : "") + "*\n"
+        currentBuild.changeSets.first().getLogs().any {
+            def line = "\n- `" + it.getCommitId().substring(0, 8) + "` *" + it.getComment().split("\n").first.replaceAll('(?<!\\\\)([_*~])', '\\\\$1') + "*"
+            if (msg.length() + line.length() <= 2000)   {
+                msg += line
+                return
+            } else {
+                return true
+            }
         }
     } else {
-        msg += "- no changes\n"
+        msg += "\n- no changes"
     }
 
-    return msg.length() > 2048 ? msg.substring(0, 2045) + "..." : msg
+    return msg
 }
 
 /*

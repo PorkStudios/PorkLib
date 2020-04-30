@@ -82,7 +82,7 @@ public class ZlibTest {
 
                 checkState(deflater.compress(src, dst), "compression failed!");
             });
-            this.forEachBufferType(3, buffers -> {
+            /*this.forEachBufferType(3, buffers -> {
                 ByteBuf src = buffers[0].writeBytes(this.text);
                 ByteBuf dst = buffers[1].ensureWritable(deflater.options().provider().compressBound(src.readableBytes()));
                 ByteBuf dict = buffers[2];
@@ -105,7 +105,7 @@ public class ZlibTest {
                 SlashDevSlashNull.INSTANCE.read(dict, 1024);
 
                 deflater.compressGrowing(src, dst, dict);
-            });
+            });*/
         }
     }
 
@@ -187,7 +187,7 @@ public class ZlibTest {
             });
 
             //growing
-            this.forEachBufferType(3, buffers -> {
+            /*this.forEachBufferType(3, buffers -> {
                 ByteBuf src = buffers[0].writeBytes(this.zeroes);
                 ByteBuf compressed = buffers[1];
                 ByteBuf uncompressed = buffers[2];
@@ -197,7 +197,7 @@ public class ZlibTest {
                 for (int i = 0; i < src.writerIndex(); i++) {
                     checkState(src.getByte(i) == uncompressed.getByte(i), "Difference at index %s (src=%s, uncompressed=%s)", i, src, uncompressed);
                 }
-            });
+            });*/
         }
     }
 

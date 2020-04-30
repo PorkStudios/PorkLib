@@ -57,13 +57,13 @@ final class NativeZlibDeflater extends AbstractRefCounted.Synchronized implement
 
     static native long newSession0(long ctx, long dict, int dictLen);
 
-    static native int update0(long ctx, long src, int srcLen, long dst, int dstLen, int flush);
+    static native int updateD2D0(long ctx, long src, int srcLen, long dst, int dstLen, int flush);
 
-    static native int update0(long ctx, byte[] src, int srcOff, int srcLen, long dst, int dstLen, int flush);
+    static native int updateD2H0(long ctx, long src, int srcLen, byte[] dst, int dstOff, int dstLen, int flush);
 
-    static native int update0(long ctx, long src, int srcLen, byte[] dst, int dstOff, int dstLen, int flush);
+    static native int updateH2D0(long ctx, byte[] src, int srcOff, int srcLen, long dst, int dstLen, int flush);
 
-    static native int update0(long ctx, byte[] src, int srcOff, int srcLen, byte[] dst, int dstOff, int dstLen, int flush);
+    static native int updateH2H0(long ctx, byte[] src, int srcOff, int srcLen, byte[] dst, int dstOff, int dstLen, int flush);
 
     final long ctx;
 
@@ -86,127 +86,139 @@ final class NativeZlibDeflater extends AbstractRefCounted.Synchronized implement
 
     @Override
     public boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) {
-        return this.compress0(src, dst, dict, false);
-    }
-
-    @Override
-    public void compressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) throws IndexOutOfBoundsException {
-        checkState(this.compress0(src, dst, dict, true), "compress0() returned false when it should have grown!");
-    }
-
-    protected synchronized boolean compress0(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict, boolean grow) {
         this.ensureNotReleased();
         checkArg(src.isReadable(), "src is not readable!");
         checkArg(dst.isWritable(), "dst is not writable!");
-        if (src.hasMemoryAddress()) {
-            long session;
-            if (dict == null || dict.readableBytes() == 0) {
-                //empty dictionary, no dictionary will be used
-                session = newSession0(this.ctx, 0L, 0);
-            } else if (dict.hasMemoryAddress()) {
-                //dictionary is direct (this is fast)
-                session = newSession0(this.ctx, dict.memoryAddress() + dict.readerIndex(), dict.readableBytes());
-            } else {
-                //dictionary isn't direct, we have to manually copy it into a new buffer
-                try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_BUFFER_POOL.get()) {
-                    //this buffer is more than large enough to handle the largest valid dictionary, if a dictionary is WAY too large it'll probably break but you shouldn't be trying to do that in the first place :P
-                    ByteBuffer buffer = handle.get();
-                    buffer.clear().limit(min(buffer.capacity(), dict.readableBytes()));
-                    dict.getBytes(dict.readerIndex(), buffer);
-                    session = newSession0(this.ctx, PUnsafe.pork_directBufferAddress(buffer.position(0)), buffer.limit());
-                }
-            }
 
-            try {
-                return dst.hasMemoryAddress()
-                       ? this.compressNativeToNative0(src, dst, grow) //both source and destination are direct
-                       : this.compressNativeToOther0(src, dst, grow); //source is direct, destination is not
-            } finally {
-                if (session != this.getSession()) {
-                    throw new ConcurrentModificationException(); //probably impossible
-                }
-            }
-        } else {
-            //the other two cases are too much of a pain to implement by hand
+        if (!(src.hasMemoryAddress() || src.hasArray()) || !(dst.hasMemoryAddress() || dst.hasArray())) {
+            //the other cases are too much of a pain to implement by hand
             int srcReaderIndex = src.readerIndex();
             int dstWriterIndex = dst.writerIndex();
-            try (DataOut out = this.compressionStream(DataOut.wrap(dst, true, grow), dict)) {
+            try (DataOut out = this.compressionStream(DataOut.wrap(dst, true, false), dict)) {
                 out.write(src);
+                return true;
             } catch (IOException e) {
                 //shouldn't be possible
                 throw new RuntimeException(e);
             } catch (IndexOutOfBoundsException e) {
-                if (grow) {
-                    //this means that the buffer got way too big, should be re-thrown
-                    throw e;
-                } else {
-                    src.readerIndex(srcReaderIndex);
-                    dst.writerIndex(dstWriterIndex);
-                    return false;
-                }
+                src.readerIndex(srcReaderIndex);
+                dst.writerIndex(dstWriterIndex);
+                return false;
             }
-            return true;
         }
-    }
 
-    protected boolean compressNativeToNative0(@NonNull ByteBuf src, @NonNull ByteBuf dst, boolean grow) {
-        long srcAddr = src.memoryAddress() + src.readerIndex();
-        int srcLen = src.readableBytes();
+        long session = this.createSessionAndSetDict(dict);
+        try {
+            int status = this.update(src, dst, Z_FINISH);
 
-        int totalRead = 0;
-        int totalWritten = 0;
-        int status;
-        do {
-            status = update0(this.ctx,
-                    srcAddr + totalRead, srcLen - totalRead,
-                    dst.memoryAddress() + dst.writerIndex() + totalWritten, dst.writableBytes() - totalWritten,
-                    Z_FINISH);
-
-            totalRead += toInt(this.getRead(), "read");
-            totalWritten += toInt(this.getWritten(), "written");
-
-            if (status == Z_OK) {
-                if (grow) {
-                    dst.ensureWritable(dst.writableBytes() == dst.maxWritableBytes() ? 8192 : min(dst.maxWritableBytes(), totalWritten + 8192));
-                } else {
+            if (status != -1) {
+                //increase indices
+                if (status != Z_STREAM_END) {
                     return false;
                 }
-            }
-        } while (status != Z_STREAM_END);
 
-        src.skipBytes(totalRead);
-        dst.writerIndex(dst.writerIndex() + totalWritten);
-        return true;
+                src.skipBytes(toInt(this.getRead(), "read"));
+                dst.writerIndex(dst.writerIndex() + toInt(this.getWritten(), "written"));
+                return true;
+            }
+        } finally {
+            if (session != this.getSession()) {
+                throw new ConcurrentModificationException(); //probably impossible
+            }
+        }
+
+        throw new IllegalStateException();
     }
 
-    protected boolean compressNativeToOther0(@NonNull ByteBuf src, @NonNull ByteBuf dst, boolean grow) {
-        int dstWriterIndex = dst.writerIndex();
-        try (Handle<ByteBuffer> dstHandle = PorkUtil.DIRECT_BUFFER_POOL.get()) {
-            ByteBuffer tempDst = dstHandle.get();
+    @Override
+    public void compressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) throws IndexOutOfBoundsException {
+        this.ensureNotReleased();
+        checkArg(src.isReadable(), "src is not readable!");
+        checkArg(dst.isWritable(), "dst is not writable!");
 
-            long srcAddr = src.memoryAddress() + src.readerIndex();
-            int srcLen = src.readableBytes();
-            long dstAddr = PUnsafe.pork_directBufferAddress(tempDst);
+        if (!(src.hasMemoryAddress() || src.hasArray()) || !(dst.hasMemoryAddress() || dst.hasArray())) {
+            //the other cases are too much of a pain to implement by hand
+            try (DataOut out = this.compressionStream(DataOut.wrap(dst, true), dict)) {
+                out.write(src);
+                return;
+            } catch (IOException e) {
+                //shouldn't be possible
+                throw new RuntimeException(e);
+            }
+        }
 
-            int totalRead = 0;
-            int status;
+        long session = this.createSessionAndSetDict(dict);
+        try {
             do {
-                status = update0(this.ctx, srcAddr + totalRead, srcLen - totalRead, dstAddr, PorkUtil.BUFFER_SIZE, Z_FINISH);
+                int status = this.update(src, dst, Z_FINISH);
 
-                totalRead += toInt(this.getRead(), "read");
-                int written = toInt(this.getWritten(), "written");
+                //increase indices
+                src.skipBytes(toInt(this.getRead(), "read"));
+                dst.writerIndex(dst.writerIndex() + toInt(this.getWritten(), "written"));
 
-                tempDst.position(0).limit(written);
-                if (!grow && written >= dst.writableBytes()) {
-                    dst.writerIndex(dstWriterIndex);
-                    return false;
+                if (status == Z_STREAM_END) {
+                    break;
+                } else if (status == Z_OK) {
+                    checkIndex(dst.writerIndex() == dst.maxCapacity());
+                    dst.ensureWritable(min(dst.maxWritableBytes(), 8192));
+                } else {
+                    throw new IllegalStateException(String.valueOf(status));
                 }
-                dst.writeBytes(tempDst);
-            } while (status != Z_STREAM_END);
-
-            src.skipBytes(totalRead);
-            return true;
+            } while (src.isReadable());
+            checkState(!src.isReadable());
+        } finally {
+            if (session != this.getSession()) {
+                throw new ConcurrentModificationException(); //probably impossible
+            }
         }
+    }
+
+    long createSessionAndSetDict(ByteBuf dict) {
+        if (dict == null || dict.readableBytes() == 0) {
+            //empty dictionary, no dictionary will be used
+            return newSession0(this.ctx, 0L, 0);
+        } else if (dict.hasMemoryAddress()) {
+            //dictionary is direct (this is fast)
+            return newSession0(this.ctx, dict.memoryAddress() + dict.readerIndex(), dict.readableBytes());
+        } else {
+            //dictionary isn't direct, we have to manually copy it into a new buffer
+            try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_BUFFER_POOL.get()) {
+                //this buffer is more than large enough to handle the largest valid dictionary, if a dictionary is WAY too large it'll probably break but you shouldn't be trying to do that in the first place :P
+                ByteBuffer buffer = handle.get();
+                buffer.clear().limit(min(buffer.capacity(), dict.readableBytes()));
+                dict.getBytes(dict.readerIndex(), buffer);
+                return newSession0(this.ctx, PUnsafe.pork_directBufferAddress(buffer.position(0)), buffer.limit());
+            }
+        }
+    }
+
+    int update(@NonNull ByteBuf src, @NonNull ByteBuf dst, int flush) {
+        if (src.hasMemoryAddress()) {
+            if (dst.hasMemoryAddress()) {
+                return updateD2D0(this.ctx,
+                        src.memoryAddress() + src.readerIndex(), src.readableBytes(),
+                        dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
+                        flush);
+            } else if (dst.hasArray()) {
+                return updateD2H0(this.ctx,
+                        src.memoryAddress() + src.readerIndex(), src.readableBytes(),
+                        dst.array(), dst.arrayOffset() + dst.writerIndex(), dst.writableBytes(),
+                        flush);
+            }
+        } else if (src.hasArray()) {
+            if (dst.hasMemoryAddress()) {
+                return updateH2D0(this.ctx,
+                        src.array(), src.arrayOffset() + src.readerIndex(), src.readableBytes(),
+                        dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
+                        flush);
+            } else if (dst.hasArray()) {
+                return updateH2H0(this.ctx,
+                        src.array(), src.arrayOffset() + src.readerIndex(), src.readableBytes(),
+                        dst.array(), dst.arrayOffset() + dst.writerIndex(), dst.writableBytes(),
+                        flush);
+            }
+        }
+        throw new IllegalStateException(src + " " + dst);
     }
 
     @Override
@@ -218,7 +230,7 @@ final class NativeZlibDeflater extends AbstractRefCounted.Synchronized implement
         if (bufferSize <= 0) {
             bufferSize = PorkUtil.BUFFER_SIZE;
         }
-        return new NativeZlibDeflateStream(out, bufferAlloc.directBuffer(bufferSize, bufferSize), dict, this);
+        return new NativeZlibDeflateStream(out, bufferAlloc.buffer(bufferSize, bufferSize), dict, this);
     }
 
     @Override

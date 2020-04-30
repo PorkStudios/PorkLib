@@ -48,23 +48,13 @@ final class NativeZlibDeflateStream extends AbstractDirectDataOut {
     final DataOut out;
 
     NativeZlibDeflateStream(@NonNull DataOut out, @NonNull ByteBuf buf, ByteBuf dict, @NonNull NativeZlibDeflater deflater) {
+        checkArg(buf.hasMemoryAddress() || buf.hasArray(), "buffer (%s) does not have address or array!", buf);
+
         this.ctx = deflater.retain().ctx;
         this.deflater = deflater;
         this.buf = buf;
         this.out = out;
-
-        if (dict == null || dict.readableBytes() == 0) {
-            this.session = newSession0(this.ctx, 0L, 0);
-        } else if (dict.hasMemoryAddress()) {
-            this.session = newSession0(this.ctx, dict.memoryAddress() + dict.readerIndex(), dict.readableBytes());
-        } else {
-            try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_BUFFER_POOL.get()) {
-                ByteBuffer dictBuffer = handle.get();
-                dictBuffer.clear().limit(min(dictBuffer.capacity(), dict.readableBytes()));
-                dict.getBytes(dict.readerIndex(), dictBuffer);
-                this.session = newSession0(this.ctx, PUnsafe.pork_directBufferAddress(dictBuffer.position(0)), dictBuffer.limit());
-            }
-        }
+        this.session = deflater.createSessionAndSetDict(dict);
     }
 
     @Override
@@ -78,13 +68,40 @@ final class NativeZlibDeflateStream extends AbstractDirectDataOut {
     }
 
     @Override
+    protected void write0(@NonNull byte[] src, int start, int length) throws IOException {
+        this.drain(); //drain buffer completely
+        int total = 0;
+        do {
+            int blockSize = min(length - total, Integer.MAX_VALUE);
+            int status = this.buf.hasMemoryAddress() ?
+                         updateH2D0(this.ctx, src, start + total, blockSize,
+                                 this.buf.memoryAddress() + this.buf.writerIndex(), this.buf.writableBytes(),
+                                 Z_NO_FLUSH) :
+                         updateH2H0(this.ctx, src, start + total, blockSize,
+                                 this.buf.array(), this.buf.arrayOffset() + this.buf.writerIndex(), this.buf.writableBytes(),
+                                 Z_NO_FLUSH);
+            checkState(status == Z_OK, "deflate() returned invalid status: %d", status);
+
+            total += this.deflater.getRead();
+            this.buf.writerIndex(this.buf.writerIndex() + toInt(this.deflater.getWritten(), "written"));
+            this.drain();
+        } while (total < length);
+    }
+
+    @Override
     protected void write0(long addr, long length) throws IOException {
         this.drain(); //drain buffer completely
         long total = 0L;
         do {
             int blockSize = toInt(min(length - total, Integer.MAX_VALUE));
-            int status = update0(this.ctx, addr + total, blockSize, this.buf.memoryAddress() + this.buf.writerIndex(), this.buf.writableBytes(), Z_NO_FLUSH);
-            checkState(status == Z_OK, "deflate() returned invalid status: %s", status);
+            int status = this.buf.hasMemoryAddress() ?
+                         updateD2D0(this.ctx, addr + total, blockSize,
+                                 this.buf.memoryAddress() + this.buf.writerIndex(), this.buf.writableBytes(),
+                                 Z_NO_FLUSH) :
+                         updateD2H0(this.ctx, addr + total, blockSize,
+                                 this.buf.array(), this.buf.arrayOffset() + this.buf.writerIndex(), this.buf.writableBytes(),
+                                 Z_NO_FLUSH);
+            checkState(status == Z_OK, "deflate() returned invalid status: %d", status);
 
             total += this.deflater.getRead();
             this.buf.writerIndex(this.buf.writerIndex() + toInt(this.deflater.getWritten(), "written"));
@@ -97,7 +114,13 @@ final class NativeZlibDeflateStream extends AbstractDirectDataOut {
         this.drain();
         int status;
         do {
-            status = update0(this.ctx, 0L, 0, this.buf.memoryAddress() + this.buf.writerIndex(), this.buf.writableBytes(), Z_SYNC_FLUSH);
+            status = this.buf.hasMemoryAddress() ?
+                     updateD2D0(this.ctx, 0L, 0,
+                             this.buf.memoryAddress() + this.buf.writerIndex(), this.buf.writableBytes(),
+                             Z_SYNC_FLUSH) :
+                     updateD2H0(this.ctx, 0L, 0,
+                             this.buf.array(), this.buf.arrayOffset() + this.buf.writerIndex(), this.buf.writableBytes(),
+                             Z_SYNC_FLUSH);
             this.buf.writerIndex(this.buf.writerIndex() + toInt(this.deflater.getWritten(), "written"));
             this.drain();
         } while (status != Z_OK || !this.buf.isWritable());
@@ -110,7 +133,14 @@ final class NativeZlibDeflateStream extends AbstractDirectDataOut {
         this.drain();
         int status;
         do {
-            status = update0(this.ctx, 0L, 0, this.buf.memoryAddress() + this.buf.writerIndex(), this.buf.writableBytes(), Z_FINISH);
+
+            status = this.buf.hasMemoryAddress() ?
+                     updateD2D0(this.ctx, 0L, 0,
+                             this.buf.memoryAddress() + this.buf.writerIndex(), this.buf.writableBytes(),
+                             Z_FINISH) :
+                     updateD2H0(this.ctx, 0L, 0,
+                             this.buf.array(), this.buf.arrayOffset() + this.buf.writerIndex(), this.buf.writableBytes(),
+                             Z_FINISH);
             this.buf.writerIndex(this.buf.writerIndex() + toInt(this.deflater.getWritten(), "written"));
             this.drain();
         } while (status != Z_STREAM_END);

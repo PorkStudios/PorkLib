@@ -23,7 +23,7 @@ __attribute__((visibility("default"))) jint JNICALL Java_net_daporkchop_lib_comp
         (JNIEnv* env, jclass cla, jlong _ctx, jlong src, jint srcLen, jlong dst, jint dstLen, jlong dict, jint level)   {
     ZSTD_CCtx* ctx = (ZSTD_CCtx*) _ctx;
 
-    auto ret;
+    /*auto ret;
     if (dict)   {
         //pre-digested dictionary
         ret = ZSTD_compress_usingCDict(ctx, (void*) dst, dstLen, (void*) src, srcLen, (ZSTD_CDict*) dict);
@@ -41,5 +41,6 @@ __attribute__((visibility("default"))) jint JNICALL Java_net_daporkchop_lib_comp
         }
     }
 
-    return (jint) ret;
+    return (jint) ret;*/
+    return 0;
 }

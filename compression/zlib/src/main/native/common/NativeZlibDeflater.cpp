@@ -1,5 +1,4 @@
 #include "pork-zlib.h"
-#include "NativeZlibDeflater.h"
 
 struct Context {
     jlong read;
@@ -17,7 +16,14 @@ static bool tryReset(JNIEnv* env, Context* ctx)   {
     return ret == Z_OK;
 }
 
-__attribute__((visibility("default"))) jlong JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_allocate0
+extern "C" {
+
+/*
+ * Class:     net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater
+ * Method:    allocate0
+ * Signature: (III)J
+ */
+__attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_allocate0
         (JNIEnv* env, jclass cla, jint level, jint strategy, jint mode)   {
     Context* ctx = new Context();
 
@@ -33,7 +39,12 @@ __attribute__((visibility("default"))) jlong JNICALL Java_net_daporkchop_lib_com
     return (jlong) ctx;
 }
 
-__attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_release0
+/*
+ * Class:     net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater
+ * Method:    release0
+ * Signature: (J)V
+ */
+__attribute__((visibility("default"))) JNIEXPORT void JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_release0
         (JNIEnv* env, jclass cla, jlong _ctx)   {
     Context* ctx = (Context*) _ctx;
 
@@ -49,6 +60,12 @@ __attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_comp
         throwException(env, msg == nullptr ? "Couldn't end deflater!" : msg, ret);
     }
 }
+
+/*
+ * Class:     net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater
+ * Method:    newSession0
+ * Signature: (JJI)J
+ */
 __attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_newSession0
         (JNIEnv* env, jclass cla, jlong _ctx, jlong dict, jint dictLen)   {
     Context* ctx = (Context*) _ctx;
@@ -71,7 +88,12 @@ __attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkch
     return session;
 }
 
-__attribute__((visibility("default"))) jint JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_update0
+/*
+ * Class:     net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater
+ * Method:    update0
+ * Signature: (JJIJII)I
+ */
+__attribute__((visibility("default"))) JNIEXPORT jint JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlibDeflater_update0
         (JNIEnv* env, jclass cla, jlong _ctx, jlong src, jint srcLen, jlong dst, jint dstLen, jint flush)  {
     Context* ctx = (Context*) _ctx;
 
@@ -89,4 +111,6 @@ __attribute__((visibility("default"))) jint JNICALL Java_net_daporkchop_lib_comp
     ctx->read =    srcLen - ctx->stream.avail_in;
     ctx->written = dstLen - ctx->stream.avail_out;
     return ret;
+}
+
 }

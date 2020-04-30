@@ -59,6 +59,12 @@ final class NativeZlibDeflater extends AbstractRefCounted.Synchronized implement
 
     static native int update0(long ctx, long src, int srcLen, long dst, int dstLen, int flush);
 
+    static native int update0(long ctx, byte[] src, int srcOff, int srcLen, long dst, int dstLen, int flush);
+
+    static native int update0(long ctx, long src, int srcLen, byte[] dst, int dstOff, int dstLen, int flush);
+
+    static native int update0(long ctx, byte[] src, int srcOff, int srcLen, byte[] dst, int dstOff, int dstLen, int flush);
+
     final long ctx;
 
     @Getter

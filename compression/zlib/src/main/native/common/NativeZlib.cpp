@@ -1,5 +1,4 @@
 #include "pork-zlib.h"
-#include "NativeZlib.h"
 
 int windowBits(jint mode)  {
     switch (mode)   {
@@ -15,7 +14,14 @@ int windowBits(jint mode)  {
     return 0;
 }
 
-__attribute__((visibility("default"))) jlong JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlib_compressBound0
+extern "C" {
+
+/*
+ * Class:     net_daporkchop_lib_compression_zlib_natives_NativeZlib
+ * Method:    compressBound0
+ * Signature: (JI)J
+ */
+__attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zlib_natives_NativeZlib_compressBound0
         (JNIEnv* env, jclass cla, jlong srcSize, jint mode)   {
     long conservativeUpperBound = zng_deflateBound(nullptr, srcSize);
     switch (mode)   {
@@ -27,4 +33,6 @@ __attribute__((visibility("default"))) jlong JNICALL Java_net_daporkchop_lib_com
         default:
             return conservativeUpperBound;
     }
+}
+
 }

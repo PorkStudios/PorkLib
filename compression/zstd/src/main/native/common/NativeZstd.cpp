@@ -36,19 +36,12 @@ __attribute__((visibility("default"))) jint JNICALL Java_net_daporkchop_lib_comp
     return (jint) ret;
 }
 
-__attribute__((visibility("default"))) jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstd_doFrameContentSizeLong
-        (JNIEnv* env, jobject obj, jlong srcAddr, jint srcSize)   {
-    auto contentSize = ZSTD_getFrameContentSize((void*) srcAddr, srcSize);
-
-    if (contentSize == ZSTD_CONTENTSIZE_ERROR)  {
-        throwException(env, "ZSTD_CONTENTSIZE_ERROR", (jlong) ZSTD_CONTENTSIZE_ERROR);
-        return 0;
-    }
-
-    return contentSize;
+__attribute__((visibility("default"))) jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstd_frameContentSize0
+        (JNIEnv* env, jobject obj, jlong src, jint srcLen)   {
+    return ZSTD_getFrameContentSize((void*) src, srcLen);
 }
 
-__attribute__((visibility("default"))) jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstd_doCompressBoundLong
-        (JNIEnv* env, jobject obj, jlong srcSize)   {
-    return ZSTD_compressBound(srcSize);
+__attribute__((visibility("default"))) jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstd_compressBound0
+        (JNIEnv* env, jobject obj, jlong srcLen)   {
+    return ZSTD_compressBound(srcLen);
 }

@@ -24,6 +24,8 @@ import io.netty.buffer.ByteBuf;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.compression.zstd.Zstd;
 import net.daporkchop.lib.compression.zstd.ZstdCDict;
 import net.daporkchop.lib.compression.zstd.ZstdDDict;
@@ -33,8 +35,13 @@ import net.daporkchop.lib.compression.zstd.ZstdProvider;
 import net.daporkchop.lib.compression.zstd.options.ZstdDeflaterOptions;
 import net.daporkchop.lib.compression.zstd.options.ZstdInflaterOptions;
 import net.daporkchop.lib.compression.zstd.util.exception.ContentSizeUnknownException;
+import net.daporkchop.lib.natives.NativeException;
 import net.daporkchop.lib.natives.impl.NativeFeature;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
+import java.nio.ByteBuffer;
+
+import static java.lang.Math.*;
 import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
@@ -43,22 +50,48 @@ import static net.daporkchop.lib.common.util.PValidation.*;
 @Getter
 @Accessors(fluent = true)
 final class NativeZstd extends NativeFeature<ZstdProvider> implements ZstdProvider {
+    private static native long frameContentSize0(long src, int srcLen);
+
+    private static native long compressBound0(long srcLen);
+
+    static final long ZSTD_CONTENTSIZE_UNKNOWN = -1L;
+static final long ZSTD_CONTENTSIZE_ERROR = -2L;
+
+    static final int FRAME_HEADER_SIZE_MAX = 18;
+
     protected final ZstdDeflaterOptions deflateOptions = new ZstdDeflaterOptions(this);
     protected final ZstdInflaterOptions inflateOptions = new ZstdInflaterOptions(this);
 
     @Override
     public long frameContentSizeLong(@NonNull ByteBuf src) throws ContentSizeUnknownException {
-        throw new UnsupportedOperationException();
-    }
+        checkArg(src.isReadable(), "src is not readable!");
+        long contentSize;
+        if (src.hasMemoryAddress()) {
+            contentSize = frameContentSize0(src.memoryAddress() + src.readerIndex(), src.readableBytes());
+        } else {
+            try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_TINY_BUFFER_POOL.get()) {
+                ByteBuffer buffer = handle.get();
+                buffer.position(0).limit(min(src.readableBytes(), FRAME_HEADER_SIZE_MAX));
+                src.getBytes(src.readerIndex(), buffer);
+                contentSize = frameContentSize0(PUnsafe.pork_directBufferAddress(buffer), buffer.limit());
+            }
+        }
 
-    private native long doFrameContentSizeLong(long srcAddr, int srcSize);
+        if (contentSize >= 0L)   {
+            return contentSize;
+        } else if (contentSize == ZSTD_CONTENTSIZE_UNKNOWN) {
+            throw new ContentSizeUnknownException();
+        } else if (contentSize == ZSTD_CONTENTSIZE_ERROR) {
+            throw new NativeException("ZSTD_CONTENTSIZE_ERROR", contentSize);
+        } else {
+            throw new NativeException(contentSize);
+        }
+    }
 
     @Override
     public long compressBoundLong(long srcSize) {
-        return this.doCompressBoundLong(notNegative(srcSize, "srcSize"));
+        return compressBound0(notNegative(srcSize, "srcSize"));
     }
-
-    private native long doCompressBoundLong(long srcSize);
 
     @Override
     public ZstdDeflater deflater(@NonNull ZstdDeflaterOptions options) {

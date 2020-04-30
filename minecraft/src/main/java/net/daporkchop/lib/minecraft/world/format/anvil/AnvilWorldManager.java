@@ -72,7 +72,8 @@ import java.util.stream.Collectors;
 public class AnvilWorldManager implements WorldManager {
     protected static final Ref<HeapSectionImpl> CHUNK_CACHE    = ThreadRef.soft(() -> new HeapSectionImpl(-1, null));
     protected static final Pattern              REGION_PATTERN = Pattern.compile("^r\\.(-?[0-9]+)\\.(-?[0-9]+)\\.mca$");
-    protected static final Ref<PInflater>       INFLATER_CACHE = ThreadRef.soft(() -> Zlib.PROVIDER.inflater(Zlib.PROVIDER.inflateOptions().builder().mode(ZlibMode.AUTO).build()));
+    protected static final Ref<PInflater>       ZLIB_INFLATER_CACHE = ThreadRef.soft(() -> Zlib.PROVIDER.inflater(Zlib.PROVIDER.inflateOptions().withMode(ZlibMode.ZLIB)));
+    protected static final Ref<PInflater>       GZIP_INFLATER_CACHE = ThreadRef.soft(() -> Zlib.PROVIDER.inflater(Zlib.PROVIDER.inflateOptions().withMode(ZlibMode.GZIP)));
 
     protected final AnvilSaveFormat format;
     protected final File            root;
@@ -144,9 +145,9 @@ public class AnvilWorldManager implements WorldManager {
                 try {
                     byte compressionId = compressed.readByte();
                     switch (compressionId) {
-                        case RegionConstants.ID_GZIP: //i can use the same instance for both compression types since it's using ZLIB_MODE_AUTO
-                        case RegionConstants.ID_ZLIB: {
-                            PInflater inflater = INFLATER_CACHE.get();
+                        case RegionConstants.ID_ZLIB:
+                        case RegionConstants.ID_GZIP: {
+                            PInflater inflater = (compressionId == RegionConstants.ID_ZLIB ? ZLIB_INFLATER_CACHE : GZIP_INFLATER_CACHE).get();
                             try (NBTInputStream in = new NBTInputStream(inflater.decompressionStream(DataIn.wrap(compressed)).asInputStream(), this.arrayAllocator)) { //TODO: use DataIn again
                                 rootTag = in.readTag().getCompound("Level");
                             }

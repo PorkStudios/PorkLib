@@ -47,6 +47,7 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  */
 public class ZstdTest {
     protected byte[] text;
+    protected byte[] zstd;
     protected byte[] zeroes;
 
     @Before
@@ -54,7 +55,19 @@ public class ZstdTest {
         try (InputStream in = new FileInputStream(new File("../../LICENSE"))) {
             this.text = StreamUtil.toByteArray(in);
         }
+        try (InputStream in = ZstdTest.class.getResourceAsStream("/LICENSE.zst")) {
+            this.zstd = StreamUtil.toByteArray(in);
+        }
         this.zeroes = new byte[1 << 20];
+    }
+
+    @Test
+    public void testFrameContentSize()  {
+        this.forEachBufferType(1, buffers -> {
+            ByteBuf buf = buffers[0].writeBytes(this.zstd);
+            long size = Zstd.PROVIDER.frameContentSizeLong(buf);
+            checkState(size == 1232, "size (%d) != 1232", size);
+        });
     }
 
     @Test

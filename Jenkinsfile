@@ -2,7 +2,7 @@ String getDiscordMessage() {
     def msg = "**Status:** " + currentBuild.currentResult.toLowerCase() + "\n**Branch:** ${BRANCH_NAME}\n**Changes:**"
     if (!currentBuild.changeSets.isEmpty()) {
         currentBuild.changeSets.first().getLogs().any {
-            def line = "\n- `" + it.getCommitId().substring(0, 8) + "` *" + it.getComment().split("\n").first.replaceAll('(?<!\\\\)([_*~])', '\\\\$1') + "*"
+            def line = "\n- `" + it.getCommitId().substring(0, 8) + "` *" + it.getComment().split("\n")[0].replaceAll('(?<!\\\\)([_*~])', '\\\\$1') + "*"
             if (msg.length() + line.length() <= 2000)   {
                 msg += line
                 return

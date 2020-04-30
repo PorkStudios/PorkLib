@@ -149,7 +149,7 @@ final class NativeZlibDeflater extends AbstractRefCounted.Synchronized implement
 
         long session = this.createSessionAndSetDict(dict);
         try {
-            do {
+            while (true){
                 int status = this.update(src, dst, Z_FINISH);
 
                 //increase indices
@@ -159,12 +159,12 @@ final class NativeZlibDeflater extends AbstractRefCounted.Synchronized implement
                 if (status == Z_STREAM_END) {
                     break;
                 } else if (status == Z_OK) {
-                    checkIndex(dst.writerIndex() == dst.maxCapacity());
+                    checkIndex(dst.writerIndex() < dst.maxCapacity());
                     dst.ensureWritable(min(dst.maxWritableBytes(), 8192));
                 } else {
                     throw new IllegalStateException(String.valueOf(status));
                 }
-            } while (src.isReadable());
+            }
             checkState(!src.isReadable());
         } finally {
             if (session != this.getSession()) {
@@ -230,7 +230,15 @@ final class NativeZlibDeflater extends AbstractRefCounted.Synchronized implement
         if (bufferSize <= 0) {
             bufferSize = PorkUtil.BUFFER_SIZE;
         }
-        return new NativeZlibDeflateStream(out, bufferAlloc.buffer(bufferSize, bufferSize), dict, this);
+        ByteBuf buf;
+        if (out.isDirect()) {
+            buf = bufferAlloc.directBuffer(bufferSize, bufferSize);
+        } else if (out.isHeap()) {
+            buf = bufferAlloc.heapBuffer(bufferSize, bufferSize);
+        } else {
+            buf = bufferAlloc.buffer(bufferSize, bufferSize);
+        }
+        return new NativeZlibDeflateStream(out, buf, dict, this);
     }
 
     @Override

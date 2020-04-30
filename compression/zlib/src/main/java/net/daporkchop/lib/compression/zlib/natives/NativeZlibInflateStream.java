@@ -52,23 +52,13 @@ final class NativeZlibInflateStream extends AbstractDirectDataIn {
     boolean eof = false;
 
     NativeZlibInflateStream(@NonNull DataIn in, @NonNull ByteBuf buf, ByteBuf dict, @NonNull NativeZlibInflater inflater) {
+        checkArg(buf.hasMemoryAddress() || buf.hasArray(), "buffer (%s) does not have address or array!", buf);
+
         this.ctx = inflater.retain().ctx;
         this.inflater = inflater;
         this.buf = buf;
         this.in = in;
-
-        if (dict == null || dict.readableBytes() == 0) {
-            this.session = newSession0(this.ctx, 0L, 0);
-        } else if (dict.hasMemoryAddress()) {
-            this.session = newSession0(this.ctx, dict.memoryAddress() + dict.readerIndex(), dict.readableBytes());
-        } else {
-            try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_BUFFER_POOL.get()) {
-                ByteBuffer dictBuffer = handle.get();
-                dictBuffer.clear().limit(min(dictBuffer.capacity(), dict.readableBytes()));
-                dict.getBytes(dict.readerIndex(), dictBuffer);
-                this.session = newSession0(this.ctx, PUnsafe.pork_directBufferAddress(dictBuffer.position(0)), dictBuffer.limit());
-            }
-        }
+        this.session = inflater.createSessionAndSetDict(dict);
     }
 
     @Override
@@ -77,6 +67,34 @@ final class NativeZlibInflateStream extends AbstractDirectDataIn {
             long addr = PUnsafe.pork_directBufferAddress(handle.get());
             return this.read0(addr, 1L) == 1L ? PUnsafe.getByte(addr) & 0xFF : -1;
         }
+    }
+
+    @Override
+    protected int read0(@NonNull byte[] dst, int start, int length) throws IOException {
+        if (this.lastStatus == Z_STREAM_END) {
+            return RESULT_EOF;
+        }
+        int totalRead = 0;
+        do {
+            this.fill();
+            if (this.eof && !this.buf.isReadable()) {
+                throw new EOFException("Unexpected end of ZLIB input stream");
+            }
+            int blockSize = min(length - totalRead, Integer.MAX_VALUE);
+            this.lastStatus = this.buf.hasMemoryAddress() ?
+                              updateD2H0(this.ctx,
+                                      this.buf.memoryAddress() + this.buf.readerIndex(), this.buf.readableBytes(),
+                                      dst, start + totalRead, blockSize,
+                                      Z_NO_FLUSH) :
+                              updateH2H0(this.ctx,
+                                      this.buf.array(), this.buf.arrayOffset() + this.buf.readerIndex(), this.buf.readableBytes(),
+                                      dst, start + totalRead, blockSize,
+                                      Z_NO_FLUSH);
+
+            this.buf.skipBytes(toInt(this.inflater.getRead(), "read"));
+            totalRead += toInt(this.inflater.getWritten(), "written");
+        } while (this.lastStatus != Z_STREAM_END && totalRead < length);
+        return totalRead;
     }
 
     @Override
@@ -91,7 +109,15 @@ final class NativeZlibInflateStream extends AbstractDirectDataIn {
                 throw new EOFException("Unexpected end of ZLIB input stream");
             }
             int blockSize = toInt(min(length - totalRead, Integer.MAX_VALUE));
-            this.lastStatus = update0(this.ctx, this.buf.memoryAddress() + this.buf.readerIndex(), this.buf.readableBytes(), addr + totalRead, blockSize, Z_NO_FLUSH);
+            this.lastStatus = this.buf.hasMemoryAddress() ?
+                              updateD2D0(this.ctx,
+                                      this.buf.memoryAddress() + this.buf.readerIndex(), this.buf.readableBytes(),
+                                      addr + totalRead, blockSize,
+                                      Z_NO_FLUSH) :
+                              updateH2D0(this.ctx,
+                                      this.buf.array(), this.buf.arrayOffset() + this.buf.readerIndex(), this.buf.readableBytes(),
+                                      addr + totalRead, blockSize,
+                                      Z_NO_FLUSH);
 
             this.buf.skipBytes(toInt(this.inflater.getRead(), "read"));
             totalRead += toInt(this.inflater.getWritten(), "written");

@@ -1,15 +1,23 @@
-#include <common.h>
-#include "NativeZstdInflater.h"
+#include "pork-zstd.h"
 
-#include <lib-zstd/lib/zstd.h>
-#include <lib-zstd/lib/common/zstd_errors.h>
+extern "C" {
 
-__attribute__((visibility("default"))) jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdInflater_allocateCtx
+/*
+ * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdInflater
+ * Method:    allocateCtx
+ * Signature: ()J
+ */
+__attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdInflater_allocateCtx
         (JNIEnv* env, jclass cla)   {
     return (jlong) ZSTD_createDCtx();
 }
 
-__attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdInflater_releaseCtx
+/*
+ * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdInflater
+ * Method:    releaseCtx
+ * Signature: (J)V
+ */
+__attribute__((visibility("default"))) JNIEXPORT void JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdInflater_releaseCtx
         (JNIEnv* env, jclass cla, jlong ctx)   {
     auto ret = ZSTD_freeDCtx((ZSTD_DCtx*) ctx);
 
@@ -19,7 +27,12 @@ __attribute__((visibility("default"))) void JNICALL Java_net_daporkchop_lib_comp
     }
 }
 
-__attribute__((visibility("default"))) jint JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdInflater_doDecompressNoDict
+/*
+ * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdInflater
+ * Method:    doDecompressNoDict
+ * Signature: (JJIJI)I
+ */
+__attribute__((visibility("default"))) JNIEXPORT jint JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdInflater_doDecompressNoDict
         (JNIEnv* env, jobject obj, jlong ctx, jlong srcAddr, jint srcSize, jlong dstAddr, jint dstSize)   {
     auto ret = ZSTD_decompressDCtx((ZSTD_DCtx*) ctx, (void*) dstAddr, dstSize, (void*) srcAddr, srcSize);
 
@@ -35,7 +48,12 @@ __attribute__((visibility("default"))) jint JNICALL Java_net_daporkchop_lib_comp
     return (jint) ret;
 }
 
-__attribute__((visibility("default"))) jint JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdInflater_doDecompressRawDict
+/*
+ * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdInflater
+ * Method:    doDecompressRawDict
+ * Signature: (JJIJIJI)I
+ */
+__attribute__((visibility("default"))) JNIEXPORT jint JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdInflater_doDecompressRawDict
         (JNIEnv* env, jobject obj, jlong ctx, jlong srcAddr, jint srcSize, jlong dstAddr, jint dstSize, jlong dictAddr, jint dictSize)   {
     auto ret = ZSTD_decompress_usingDict((ZSTD_DCtx*) ctx, (void*) dstAddr, dstSize, (void*) srcAddr, srcSize, (void*) dictAddr, dictSize);
 
@@ -51,7 +69,12 @@ __attribute__((visibility("default"))) jint JNICALL Java_net_daporkchop_lib_comp
     return (jint) ret;
 }
 
-__attribute__((visibility("default"))) jint JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdInflater_doDecompressCDict
+/*
+ * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdInflater
+ * Method:    doDecompressCDict
+ * Signature: (JJIJIJ)I
+ */
+__attribute__((visibility("default"))) JNIEXPORT jint JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdInflater_doDecompressCDict
         (JNIEnv* env, jobject obj, jlong ctx, jlong srcAddr, jint srcSize, jlong dstAddr, jint dstSize, jlong dictAddr)   {
     auto ret = ZSTD_decompress_usingDDict((ZSTD_DCtx*) ctx, (void*) dstAddr, dstSize, (void*) srcAddr, srcSize, (ZSTD_DDict*) dictAddr);
 
@@ -65,4 +88,6 @@ __attribute__((visibility("default"))) jint JNICALL Java_net_daporkchop_lib_comp
     }
 
     return (jint) ret;
+}
+
 }

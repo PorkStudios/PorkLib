@@ -96,9 +96,9 @@ public class ZstdTest {
         try (PDeflater deflater = Zstd.PROVIDER.deflater()) {
             System.out.println(deflater.getClass());
         }
-        try (PInflater inflater = Zstd.PROVIDER.inflater()) {
+        /*try (PInflater inflater = Zstd.PROVIDER.inflater()) {
             System.out.println(inflater.getClass());
-        }
+        }*/
     }
 
     @Test
@@ -121,7 +121,7 @@ public class ZstdTest {
             });
 
             //growing
-            this.forEachBufferType(2, buffers -> {
+            /*this.forEachBufferType(2, buffers -> {
                 ByteBuf src = buffers[0].writeBytes(this.text);
                 ByteBuf dst = buffers[1];
 
@@ -134,7 +134,7 @@ public class ZstdTest {
                 SlashDevSlashNull.INSTANCE.read(dict, 1024);
 
                 deflater.compressGrowing(src, dst, dict);
-            });
+            });*/
         }
     }
 
@@ -198,7 +198,7 @@ public class ZstdTest {
         }
     }*/
 
-    @Test
+    /*@Test
     public void testBlock() throws IOException {
         try (PDeflater deflater = Zstd.PROVIDER.deflater();
              PInflater inflater = Zstd.PROVIDER.inflater()) {
@@ -228,7 +228,7 @@ public class ZstdTest {
                 }
             });
         }
-    }
+    }*/
 
     protected void forEachBufferType(int numBuffers, @NonNull IOConsumer<ByteBuf[]> callback) {
         this.forEachBufferType0(numBuffers, callback);

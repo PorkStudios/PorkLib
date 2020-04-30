@@ -33,7 +33,7 @@ import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
  *
  * @author DaPorkchop_
  */
-public interface ZstdCCtx extends PDeflater {
+public interface ZstdDeflater extends PDeflater {
     @Override
     ZstdProvider provider();
 

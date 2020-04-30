@@ -18,38 +18,23 @@
  *
  */
 
-package net.daporkchop.lib.compression.zlib;
+package net.daporkchop.lib.compression.zstd.options;
 
-import net.daporkchop.lib.compression.CompressionProvider;
-import net.daporkchop.lib.compression.context.PDeflater;
-import net.daporkchop.lib.compression.zlib.options.ZlibDeflaterOptions;
-import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.compression.option.InflaterOptions;
+import net.daporkchop.lib.compression.zstd.ZstdProvider;
 
 /**
- * An extension of {@link PDeflater} for {@link Zlib}.
- *
  * @author DaPorkchop_
  */
-public interface ZlibDeflater extends PDeflater {
-    @Override
-    ZlibDeflaterOptions options();
+@Getter
+@Accessors(fluent = true)
+public final class ZstdInflaterOptions implements InflaterOptions<ZstdInflaterOptions, ZstdProvider> {
+    protected final ZstdProvider provider;
 
-    @Override
-    default ZlibProvider provider() {
-        return this.options().provider();
+    public ZstdInflaterOptions(@NonNull ZstdProvider provider) {
+        this.provider = provider;
     }
-
-    @Override
-    default boolean hasDict() {
-        return true;
-    }
-
-    @Override
-    int refCnt();
-
-    @Override
-    ZlibDeflater retain() throws AlreadyReleasedException;
-
-    @Override
-    boolean release() throws AlreadyReleasedException;
 }

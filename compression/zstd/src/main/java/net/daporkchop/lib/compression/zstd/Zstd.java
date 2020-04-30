@@ -33,7 +33,7 @@ public class Zstd {
             .addNative("net.daporkchop.lib.compression.zstd.natives.NativeZstd", "zstd")
             .build();
 
-    public final int LEVEL_DEFAULT = 3;
-    public final int LEVEL_MIN     = -999;
+    public final int LEVEL_DEFAULT = 0;
+    public final int LEVEL_MIN     = 1;
     public final int LEVEL_MAX     = 22;
 }

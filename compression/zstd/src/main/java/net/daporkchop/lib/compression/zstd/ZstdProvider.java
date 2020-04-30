@@ -23,8 +23,13 @@ package net.daporkchop.lib.compression.zstd;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.common.util.PValidation;
+import net.daporkchop.lib.compression.CompressionProvider;
+import net.daporkchop.lib.compression.context.PDeflater;
+import net.daporkchop.lib.compression.context.PInflater;
 import net.daporkchop.lib.compression.provider.OneShotCompressionProvider;
 import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelException;
+import net.daporkchop.lib.compression.zstd.options.ZstdDeflaterOptions;
+import net.daporkchop.lib.compression.zstd.options.ZstdInflaterOptions;
 import net.daporkchop.lib.compression.zstd.util.exception.ContentSizeUnknownException;
 import net.daporkchop.lib.natives.impl.Feature;
 import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
@@ -34,41 +39,7 @@ import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
  *
  * @author DaPorkchop_
  */
-public interface ZstdProvider extends OneShotCompressionProvider, Feature<ZstdProvider> {
-    /**
-     * Compresses the given source data into a single Zstd frame into the given destination buffer at the default compression level.
-     *
-     * @see #compress(ByteBuf, ByteBuf, int)
-     */
-    default boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException {
-        return this.compress(src, dst, Zstd.LEVEL_DEFAULT);
-    }
-
-    /**
-     * Compresses the given source data into a single Zstd frame into the given destination buffer.
-     * <p>
-     * If the destination buffer does not have enough space writable for the compressed data, the operation will fail and both buffer's indices will remain
-     * unchanged, however the destination buffer's contents may be modified.
-     *
-     * @param src              the {@link ByteBuf} to read source data from
-     * @param dst              the {@link ByteBuf} to write compressed data to
-     * @param compressionLevel the Zstd level to compress at
-     * @return whether or not compression was successful. If {@code false}, the destination buffer was too small for the compressed data
-     */
-    boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, int compressionLevel) throws InvalidBufferTypeException;
-
-    /**
-     * Decompresses the given Zstd-compressed into the given destination buffer.
-     * <p>
-     * If the destination buffer does not have enough space writable for the decompressed data, the operation will fail and both buffer's indices will remain
-     * unchanged, however the destination buffer's contents may be modified.
-     *
-     * @param src the {@link ByteBuf} to read compressed data from
-     * @param dst the {@link ByteBuf} to write decompressed data to
-     * @return whether or not decompression was successful. If {@code false}, the destination buffer was too small for the decompressed data
-     */
-    boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException;
-
+public interface ZstdProvider extends CompressionProvider<ZstdProvider, ZstdDeflaterOptions, ZstdInflaterOptions>, Feature<ZstdProvider> {
     /**
      * @see #frameContentSizeLong(ByteBuf)
      */
@@ -86,15 +57,25 @@ public interface ZstdProvider extends OneShotCompressionProvider, Feature<ZstdPr
     long frameContentSizeLong(@NonNull ByteBuf src) throws InvalidBufferTypeException, ContentSizeUnknownException;
 
     @Override
-    default ZstdCCtx compressionContext() {
-        return this.compressionContext(Zstd.LEVEL_DEFAULT);
+    default int levelFast() {
+        return Zstd.LEVEL_MIN;
     }
 
     @Override
-    ZstdCCtx compressionContext(int level) throws InvalidCompressionLevelException;
+    default int levelDefault() {
+        return Zstd.LEVEL_DEFAULT;
+    }
 
     @Override
-    ZstdDCtx decompressionContext();
+    default int levelBest() {
+        return Zstd.LEVEL_MAX;
+    }
+
+    @Override
+    ZstdDeflater deflater(@NonNull ZstdDeflaterOptions options);
+
+    @Override
+    ZstdInflater inflater(@NonNull ZstdInflaterOptions options);
 
     /**
      * Digests a Zstd dictionary for compression at the default level.

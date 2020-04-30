@@ -21,6 +21,7 @@
 package net.daporkchop.lib.compression.context;
 
 import net.daporkchop.lib.common.misc.refcount.RefCounted;
+import net.daporkchop.lib.compression.CompressionProvider;
 
 /**
  * Base interface for {@link PDeflater} and {@link PDeflater}.
@@ -34,4 +35,9 @@ interface Context extends RefCounted {
      * @return whether or not this implementation allows use of a dictionary
      */
     boolean hasDict();
+
+    /**
+     * @return the {@link CompressionProvider} that created this context
+     */
+    CompressionProvider provider();
 }

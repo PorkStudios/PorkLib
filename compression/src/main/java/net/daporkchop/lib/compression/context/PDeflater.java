@@ -24,6 +24,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.compression.CompressionProvider;
 import net.daporkchop.lib.compression.option.DeflaterOptions;
 import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
@@ -182,6 +183,9 @@ public interface PDeflater extends Context {
      * @return the options that this {@link PDeflater} is configured with
      */
     DeflaterOptions options();
+
+    @Override
+    CompressionProvider provider();
 
     @Override
     boolean hasDict();

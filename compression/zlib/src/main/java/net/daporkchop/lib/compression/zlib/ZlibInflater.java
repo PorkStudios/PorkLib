@@ -34,6 +34,11 @@ public interface ZlibInflater extends PInflater {
     ZlibInflaterOptions options();
 
     @Override
+    default ZlibProvider provider() {
+        return this.options().provider();
+    }
+
+    @Override
     default boolean hasDict() {
         return true;
     }

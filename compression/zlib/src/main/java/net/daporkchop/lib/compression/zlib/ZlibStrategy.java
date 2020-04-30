@@ -21,7 +21,7 @@
 package net.daporkchop.lib.compression.zlib;
 
 /**
- * The different Zlib encoding strategies.
+ * The different Zlib compression strategies.
  *
  * @author DaPorkchop_
  */

@@ -18,38 +18,36 @@
  *
  */
 
-package net.daporkchop.lib.compression.zlib;
+package net.daporkchop.lib.compression.zstd;
 
-import net.daporkchop.lib.compression.CompressionProvider;
-import net.daporkchop.lib.compression.context.PDeflater;
-import net.daporkchop.lib.compression.zlib.options.ZlibDeflaterOptions;
-import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
+import io.netty.buffer.ByteBuf;
+import lombok.NonNull;
+import net.daporkchop.lib.compression.context.PInflater;
+import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
 
 /**
- * An extension of {@link PDeflater} for {@link Zlib}.
+ * Deompression context for {@link Zstd}.
+ * <p>
+ * Not thread-safe.
  *
  * @author DaPorkchop_
  */
-public interface ZlibDeflater extends PDeflater {
+public interface ZstdInflater extends PInflater {
     @Override
-    ZlibDeflaterOptions options();
+    ZstdProvider provider();
 
-    @Override
-    default ZlibProvider provider() {
-        return this.options().provider();
-    }
+    /**
+     * Decompresses the given compressed data into the given destination buffer using the given dictionary.
+     * <p>
+     * As the dictionary has already been digested, this is far faster than {@link #decompress(ByteBuf, ByteBuf, ByteBuf)}.
+     *
+     * @param dictionary the dictionary to use
+     * @see #decompress(ByteBuf, ByteBuf)
+     */
+    boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst, @NonNull ZstdDDict dictionary) throws InvalidBufferTypeException;
 
     @Override
     default boolean hasDict() {
         return true;
     }
-
-    @Override
-    int refCnt();
-
-    @Override
-    ZlibDeflater retain() throws AlreadyReleasedException;
-
-    @Override
-    boolean release() throws AlreadyReleasedException;
 }

@@ -25,9 +25,9 @@ import lombok.NonNull;
 import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelException;
 import net.daporkchop.lib.compression.zstd.Zstd;
-import net.daporkchop.lib.compression.zstd.ZstdCCtx;
+import net.daporkchop.lib.compression.zstd.ZstdDeflater;
 import net.daporkchop.lib.compression.zstd.ZstdCDict;
-import net.daporkchop.lib.compression.zstd.ZstdDCtx;
+import net.daporkchop.lib.compression.zstd.ZstdInflater;
 import net.daporkchop.lib.compression.zstd.ZstdDDict;
 import net.daporkchop.lib.compression.zstd.ZstdProvider;
 import net.daporkchop.lib.compression.zstd.util.exception.ContentSizeUnknownException;
@@ -99,12 +99,12 @@ public final class NativeZstd extends NativeFeature<ZstdProvider> implements Zst
     private native long doCompressBoundLong(long srcSize);
 
     @Override
-    public ZstdCCtx compressionContext(int level) throws InvalidCompressionLevelException {
+    public ZstdDeflater compressionContext(int level) throws InvalidCompressionLevelException {
         return new NativeZstdCCtx(this, level);
     }
 
     @Override
-    public ZstdDCtx decompressionContext() {
+    public ZstdInflater decompressionContext() {
         return new NativeZstdDCtx(this);
     }
 

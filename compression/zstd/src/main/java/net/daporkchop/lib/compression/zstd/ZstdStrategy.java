@@ -20,34 +20,26 @@
 
 package net.daporkchop.lib.compression.zstd;
 
-import io.netty.buffer.ByteBuf;
-import lombok.NonNull;
-import net.daporkchop.lib.compression.context.PInflater;
-import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
-
 /**
- * Deompression context for {@link Zstd}.
- * <p>
- * Not thread-safe.
+ * The different Zstd compression strategies.
  *
  * @author DaPorkchop_
  */
-public interface ZstdDCtx extends PInflater {
-    @Override
-    ZstdProvider provider();
+public enum ZstdStrategy {
+    DEFAULT,
+    FAST,
+    DFAST,
+    GREEDY,
+    LAZY,
+    LAZY2,
+    BTLAZY2,
+    BTOPT,
+    BTULTRA,
+    BTULTRA2;
 
-    /**
-     * Decompresses the given compressed data into the given destination buffer using the given dictionary.
-     * <p>
-     * As the dictionary has already been digested, this is far faster than {@link #decompress(ByteBuf, ByteBuf, ByteBuf)}.
-     *
-     * @param dictionary the dictionary to use
-     * @see #decompress(ByteBuf, ByteBuf)
-     */
-    boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst, @NonNull ZstdDDict dictionary) throws InvalidBufferTypeException;
+    private static final ZstdStrategy[] VALUES = values();
 
-    @Override
-    default boolean hasDict() {
-        return true;
+    public static ZstdStrategy fromOrdinal(int ordinal) {
+        return VALUES[ordinal - 1];
     }
 }

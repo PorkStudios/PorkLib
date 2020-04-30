@@ -96,7 +96,7 @@ static final long ZSTD_CONTENTSIZE_ERROR = -2L;
     @Override
     public ZstdDeflater deflater(@NonNull ZstdDeflaterOptions options) {
         checkArg(options.provider() == this, "provider must be %s!", this);
-        throw new UnsupportedOperationException();
+        return new NativeZstdDeflater(options);
     }
 
     @Override

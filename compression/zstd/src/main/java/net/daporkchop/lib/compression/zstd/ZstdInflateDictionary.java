@@ -35,6 +35,11 @@ public interface ZstdInflateDictionary extends RefCounted {
      */
     ZstdProvider provider();
 
+    /**
+     * @return this dictionary's ID
+     */
+    int id();
+
     @Override
     ZstdInflateDictionary retain() throws AlreadyReleasedException;
 }

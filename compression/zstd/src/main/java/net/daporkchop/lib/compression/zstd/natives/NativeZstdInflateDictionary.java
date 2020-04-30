@@ -41,8 +41,13 @@ final class NativeZstdInflateDictionary extends AbstractRefCounted implements Zs
 
     private static native void release0(long dict);
 
+    private static native int id0(long dict);
+
     @Getter(AccessLevel.PACKAGE)
     private final long dict;
+
+    @Getter
+    private final int id;
 
     private final PCleaner cleaner;
 
@@ -65,6 +70,8 @@ final class NativeZstdInflateDictionary extends AbstractRefCounted implements Zs
         }
 
         this.cleaner = PCleaner.cleaner(this, new Releaser(this.dict));
+
+        this.id = id0(this.dict);
     }
 
     @Override

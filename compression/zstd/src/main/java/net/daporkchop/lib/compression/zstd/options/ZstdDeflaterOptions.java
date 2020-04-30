@@ -55,7 +55,8 @@ public final class ZstdDeflaterOptions implements DeflaterOptions<ZstdDeflaterOp
         if (strategy == this.strategy) {
             return this;
         }
-        return new ZstdDeflaterOptions(this.provider, strategy, this.level, this.workers);
+        //return new ZstdDeflaterOptions(this.provider, strategy, this.level, this.workers);
+        throw new UnsupportedOperationException("strategy");
     }
 
     public ZstdDeflaterOptions withLevel(int level) {
@@ -70,6 +71,7 @@ public final class ZstdDeflaterOptions implements DeflaterOptions<ZstdDeflaterOp
         if (workers == this.workers) {
             return this;
         }
-        return new ZstdDeflaterOptions(this.provider, this.strategy, this.level, workers);
+        //return new ZstdDeflaterOptions(this.provider, this.strategy, this.level, workers);
+        throw new UnsupportedOperationException("workers");
     }
 }

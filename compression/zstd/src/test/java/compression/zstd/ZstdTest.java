@@ -85,6 +85,8 @@ public class ZstdTest {
         this.forEachBufferType(1, buffers -> {
             ByteBuf buf = buffers[0].writeBytes(this.dictionary);
             try (ZstdInflateDictionary dict = Zstd.PROVIDER.loadInflateDictionary(buf)) {
+                int id = dict.id();
+                checkState(id == 1885204170, "id (%d) != 1885204170", id);
             }
         });
     }

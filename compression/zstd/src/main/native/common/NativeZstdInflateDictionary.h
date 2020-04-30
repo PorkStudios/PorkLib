@@ -25,6 +25,13 @@ JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZ
  */
 JNIEXPORT void JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdInflateDictionary_release0
   (JNIEnv *, jclass, jlong);
+  /*
+ * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdInflateDictionary
+ * Method:    id0
+ * Signature: (J)V
+ */
+JNIEXPORT jint JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdInflateDictionary_id0
+  (JNIEnv *, jclass, jlong);
 
 #ifdef __cplusplus
 }

@@ -24,13 +24,14 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.oio.StreamUtil;
-import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.binary.stream.misc.SlashDevSlashNull;
 import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.compression.context.PDeflater;
 import net.daporkchop.lib.compression.context.PInflater;
 import net.daporkchop.lib.compression.zstd.Zstd;
+import net.daporkchop.lib.compression.zstd.ZstdDeflateDictionary;
+import net.daporkchop.lib.compression.zstd.ZstdInflateDictionary;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -48,6 +49,7 @@ import static net.daporkchop.lib.common.util.PValidation.*;
 public class ZstdTest {
     protected byte[] text;
     protected byte[] zstd;
+    protected byte[] dictionary;
     protected byte[] zeroes;
 
     @Before
@@ -58,15 +60,32 @@ public class ZstdTest {
         try (InputStream in = ZstdTest.class.getResourceAsStream("/LICENSE.zst")) {
             this.zstd = StreamUtil.toByteArray(in);
         }
+        try (InputStream in = ZstdTest.class.getResourceAsStream("/dictionary")) {
+            this.dictionary = StreamUtil.toByteArray(in);
+        }
         this.zeroes = new byte[1 << 20];
     }
 
     @Test
-    public void testFrameContentSize()  {
+    public void testFrameContentSize() {
         this.forEachBufferType(1, buffers -> {
             ByteBuf buf = buffers[0].writeBytes(this.zstd);
             long size = Zstd.PROVIDER.frameContentSizeLong(buf);
             checkState(size == 1232, "size (%d) != 1232", size);
+        });
+    }
+
+    @Test
+    public void testDigestDeflateDictionary() {
+        this.forEachBufferType(1, buffers -> {
+            ByteBuf buf = buffers[0].writeBytes(this.dictionary);
+            try (ZstdDeflateDictionary dict = Zstd.PROVIDER.loadDeflateDictionary(buf)) {
+            }
+        });
+        this.forEachBufferType(1, buffers -> {
+            ByteBuf buf = buffers[0].writeBytes(this.dictionary);
+            try (ZstdInflateDictionary dict = Zstd.PROVIDER.loadInflateDictionary(buf)) {
+            }
         });
     }
 

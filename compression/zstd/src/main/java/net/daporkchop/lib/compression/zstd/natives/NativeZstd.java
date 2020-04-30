@@ -27,8 +27,8 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.compression.zstd.Zstd;
-import net.daporkchop.lib.compression.zstd.ZstdCDict;
-import net.daporkchop.lib.compression.zstd.ZstdDDict;
+import net.daporkchop.lib.compression.zstd.ZstdDeflateDictionary;
+import net.daporkchop.lib.compression.zstd.ZstdInflateDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdDeflater;
 import net.daporkchop.lib.compression.zstd.ZstdInflater;
 import net.daporkchop.lib.compression.zstd.ZstdProvider;
@@ -106,12 +106,12 @@ static final long ZSTD_CONTENTSIZE_ERROR = -2L;
     }
 
     @Override
-    public ZstdCDict loadDeflateDictionary(@NonNull ByteBuf dict, int level) {
-        return new NativeZstdCDict(this, dict, Zstd.checkLevel(level));
+    public ZstdDeflateDictionary loadDeflateDictionary(@NonNull ByteBuf dict, int level) {
+        return new NativeZstdDeflateDictionary(this, dict, Zstd.checkLevel(level));
     }
 
     @Override
-    public ZstdDDict loadInflateDictionary(@NonNull ByteBuf dict) {
-        return new NativeZstdDDict(this, dict);
+    public ZstdInflateDictionary loadInflateDictionary(@NonNull ByteBuf dict) {
+        return new NativeZstdInflateDictionary(this, dict);
     }
 }

@@ -28,7 +28,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
-import net.daporkchop.lib.compression.zstd.ZstdDDict;
+import net.daporkchop.lib.compression.zstd.ZstdInflateDictionary;
 import net.daporkchop.lib.unsafe.PCleaner;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
@@ -36,7 +36,7 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
  * @author DaPorkchop_
  */
 @Accessors(fluent = true)
-final class NativeZstdDDict extends AbstractRefCounted implements ZstdDDict {
+final class NativeZstdInflateDictionary extends AbstractRefCounted implements ZstdInflateDictionary {
     private static native long digest0(long dictAddr, int dictSize);
 
     private static native void release0(long dict);
@@ -49,7 +49,7 @@ final class NativeZstdDDict extends AbstractRefCounted implements ZstdDDict {
     @Getter
     private final NativeZstd provider;
 
-    NativeZstdDDict(@NonNull NativeZstd provider, @NonNull ByteBuf dict) {
+    NativeZstdInflateDictionary(@NonNull NativeZstd provider, @NonNull ByteBuf dict) {
         this.provider = provider;
 
         if (dict.hasMemoryAddress())    {
@@ -68,7 +68,7 @@ final class NativeZstdDDict extends AbstractRefCounted implements ZstdDDict {
     }
 
     @Override
-    public ZstdDDict retain() throws AlreadyReleasedException {
+    public ZstdInflateDictionary retain() throws AlreadyReleasedException {
         super.retain();
         return this;
     }

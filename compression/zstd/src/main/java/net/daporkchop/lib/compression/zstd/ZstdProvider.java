@@ -78,7 +78,7 @@ public interface ZstdProvider extends CompressionProvider<ZstdProvider, ZstdDefl
      * @param dict the {@link ByteBuf} containing the dictionary
      * @return the digested dictionary
      */
-    default ZstdCDict loadDeflateDictionary(@NonNull ByteBuf dict) {
+    default ZstdDeflateDictionary loadDeflateDictionary(@NonNull ByteBuf dict) {
         return this.loadDeflateDictionary(dict, Zstd.LEVEL_DEFAULT);
     }
 
@@ -89,7 +89,7 @@ public interface ZstdProvider extends CompressionProvider<ZstdProvider, ZstdDefl
      * @param level the compression level to use
      * @return the digested dictionary
      */
-    ZstdCDict loadDeflateDictionary(@NonNull ByteBuf dict, int level);
+    ZstdDeflateDictionary loadDeflateDictionary(@NonNull ByteBuf dict, int level);
 
     /**
      * Digests a Zstd dictionary for decompression.
@@ -97,5 +97,5 @@ public interface ZstdProvider extends CompressionProvider<ZstdProvider, ZstdDefl
      * @param dict the {@link ByteBuf} containing the dictionary
      * @return the digested dictionary
      */
-    ZstdDDict loadInflateDictionary(@NonNull ByteBuf dict);
+    ZstdInflateDictionary loadInflateDictionary(@NonNull ByteBuf dict);
 }

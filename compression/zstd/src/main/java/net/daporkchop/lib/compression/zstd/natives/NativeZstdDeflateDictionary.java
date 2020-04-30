@@ -21,7 +21,6 @@
 package net.daporkchop.lib.compression.zstd.natives;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -29,7 +28,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
-import net.daporkchop.lib.compression.zstd.ZstdCDict;
+import net.daporkchop.lib.compression.zstd.ZstdDeflateDictionary;
 import net.daporkchop.lib.unsafe.PCleaner;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
@@ -38,7 +37,7 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
  */
 @Getter
 @Accessors(fluent = true)
-final class NativeZstdCDict extends AbstractRefCounted implements ZstdCDict {
+final class NativeZstdDeflateDictionary extends AbstractRefCounted implements ZstdDeflateDictionary {
     private static native long digest0(long dictAddr, int dictSize, int level);
 
     private static native void release0(long dict);
@@ -52,7 +51,7 @@ final class NativeZstdCDict extends AbstractRefCounted implements ZstdCDict {
     private final NativeZstd provider;
     private final int        level;
 
-    NativeZstdCDict(@NonNull NativeZstd provider, @NonNull ByteBuf dict, int level) {
+    NativeZstdDeflateDictionary(@NonNull NativeZstd provider, @NonNull ByteBuf dict, int level) {
         this.provider = provider;
         this.level = level;
 
@@ -77,7 +76,7 @@ final class NativeZstdCDict extends AbstractRefCounted implements ZstdCDict {
     }
 
     @Override
-    public ZstdCDict retain() throws AlreadyReleasedException {
+    public ZstdDeflateDictionary retain() throws AlreadyReleasedException {
         super.retain();
         return this;
     }

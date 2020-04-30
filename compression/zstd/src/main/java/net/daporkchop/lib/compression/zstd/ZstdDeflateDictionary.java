@@ -25,16 +25,21 @@ import net.daporkchop.lib.compression.CompressionProvider;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 /**
- * A digested dictionary used by {@link Zstd} decompression.
+ * A digested dictionary used by {@link Zstd} compression.
  *
  * @author DaPorkchop_
  */
-public interface ZstdDDict extends RefCounted {
+public interface ZstdDeflateDictionary extends RefCounted {
     /**
      * @return the {@link CompressionProvider} that created this context
      */
     ZstdProvider provider();
 
+    /**
+     * @return the compression level that the dictionary uses
+     */
+    int level();
+
     @Override
-    ZstdDDict retain() throws AlreadyReleasedException;
+    ZstdDeflateDictionary retain() throws AlreadyReleasedException;
 }

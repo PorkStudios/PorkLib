@@ -47,21 +47,21 @@ public interface ZstdInflater extends PInflater {
      * <p>
      * As the dictionary has already been digested, this is far faster than {@link #decompress(ByteBuf, ByteBuf, ByteBuf)}.
      *
-     * @param dictionary the dictionary to use
+     * @param dict the dictionary to use
      * @see #decompress(ByteBuf, ByteBuf, ByteBuf)
      */
-    boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst, @NonNull ZstdDDict dictionary);
+    boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdInflateDictionary dict);
 
     /**
      * Decompresses the given compressed data into the given destination buffer using the given dictionary.
      * <p>
      * As the dictionary has already been digested, this is far faster than {@link #decompress(ByteBuf, ByteBuf, ByteBuf)}.
      *
-     * @param dictionary the dictionary to use
+     * @param dict the dictionary to use
      * @throws IndexOutOfBoundsException if the destination buffer's capacity could not be increased sufficiently
      * @see #decompressGrowing(ByteBuf, ByteBuf, ByteBuf)
      */
-    void decompressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, @NonNull ZstdDDict dictionary) throws IndexOutOfBoundsException;
+    void decompressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdInflateDictionary dict) throws IndexOutOfBoundsException;
 
     @Override
     default boolean hasDict() {

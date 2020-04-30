@@ -80,14 +80,14 @@ public interface ZstdDeflater extends PDeflater {
      * In either case, the indices of the dictionary buffer remain unaffected.
      * <p>
      * This will digest the dictionary before compressing, which is an expensive operation. If the same dictionary is going to be used multiple times,
-     * it is strongly advised to use {@link #compress(ByteBuf, ByteBuf, ZstdCDict)}.
+     * it is strongly advised to use {@link #compress(ByteBuf, ByteBuf, ZstdDeflateDictionary)}.
      *
      * @param src   the {@link ByteBuf} to read source data from
      * @param dst   the {@link ByteBuf} to write compressed data to
      * @param dict  the (possibly {@code null}) {@link ByteBuf} containing the dictionary to be used for compression
      * @param level the compression level to use
      * @return whether or not compression was successful. If {@code false}, the destination buffer was too small for the compressed data
-     * @see #compress(ByteBuf, ByteBuf, ZstdCDict)
+     * @see #compress(ByteBuf, ByteBuf, ZstdDeflateDictionary)
      */
     boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict, int level);
 
@@ -96,10 +96,10 @@ public interface ZstdDeflater extends PDeflater {
      * <p>
      * As the dictionary has already been digested, this is far faster than the other dictionary compression methods.
      *
-     * @param dictionary the dictionary to use
+     * @param dict the dictionary to use
      * @see #compress(ByteBuf, ByteBuf, ByteBuf, int)
      */
-    boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, @NonNull ZstdCDict dictionary);
+    boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdDeflateDictionary dict);
 
     /**
      * Convenience method equivalent to {@code compressGrowing(src, dst, null, this.options().level());}
@@ -140,13 +140,13 @@ public interface ZstdDeflater extends PDeflater {
      * In either case, the indices of the dictionary buffer remain unaffected.
      * <p>
      * This will digest the dictionary before compressing, which is an expensive operation. If the same dictionary is going to be used multiple times,
-     * it is strongly advised to use {@link #compressGrowing(ByteBuf, ByteBuf, ZstdCDict)}.
+     * it is strongly advised to use {@link #compressGrowing(ByteBuf, ByteBuf, ZstdDeflateDictionary)}.
      *
      * @param src  the {@link ByteBuf} to read source data from
      * @param dst  the {@link ByteBuf} to write compressed data to
      * @param dict the (possibly {@code null}) {@link ByteBuf} containing the dictionary to be used for compression
      * @throws IndexOutOfBoundsException if the destination buffer's capacity could not be increased sufficiently
-     * @see #compressGrowing(ByteBuf, ByteBuf, ZstdCDict)
+     * @see #compressGrowing(ByteBuf, ByteBuf, ZstdDeflateDictionary)
      */
     void compressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict, int level) throws IndexOutOfBoundsException;
 
@@ -155,11 +155,11 @@ public interface ZstdDeflater extends PDeflater {
      * <p>
      * As the dictionary has already been digested, this is far faster than the other dictionary compression methods.
      *
-     * @param dictionary the dictionary to use
+     * @param dict the dictionary to use
      * @throws IndexOutOfBoundsException if the destination buffer's capacity could not be increased sufficiently
      * @see #compressGrowing(ByteBuf, ByteBuf, ByteBuf, int)
      */
-    void compressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, @NonNull ZstdCDict dictionary) throws IndexOutOfBoundsException;
+    void compressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdDeflateDictionary dict) throws IndexOutOfBoundsException;
 
     @Override
     default boolean hasDict() {

@@ -32,6 +32,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static net.daporkchop.lib.common.util.PorkUtil.*;
@@ -51,7 +53,7 @@ public final class FeatureBuilder<F extends Feature<F>> {
         return new FeatureBuilder<>(currentClass);
     }
 
-    private final Collection<Supplier<F>> implementations = new ArrayList<>();
+    private final Collection<Function<Consumer<String>, F>> implementations = new ArrayList<>();
 
     @NonNull
     private final Class<?> currentClass;
@@ -70,9 +72,18 @@ public final class FeatureBuilder<F extends Feature<F>> {
 
     public synchronized FeatureBuilder<F> addNative(@NonNull String className, @NonNull String libName, @NonNull ClassLoader loader) {
         if (NativeFeature.AVAILABLE) {
-            this.implementations.add(() -> {
+            this.implementations.add(errors -> {
                 NativeFeature.LoadResult result = NativeFeature.loadNativeLibrary(libName, className, loader);
-                return result == NativeFeature.LoadResult.SUCCESS ? newInstance(classForName(className, loader)) : null;
+                if (result == NativeFeature.LoadResult.SUCCESS) {
+                    try {
+                        return newInstance(classForName(className, loader));
+                    } catch (Exception e)   {
+                        errors.accept(e.toString());
+                    }
+                } else {
+                    errors.accept(result.name());
+                }
+                return null;
             });
         }
         return this;
@@ -87,18 +98,26 @@ public final class FeatureBuilder<F extends Feature<F>> {
     }
 
     public synchronized FeatureBuilder<F> addJava(@NonNull String className, @NonNull ClassLoader loader) {
-        this.implementations.add(() -> newInstance(classForName(className, loader)));
+        this.implementations.add(errors -> {
+            try {
+                return newInstance(classForName(className, loader));
+            } catch (Exception e)   {
+                errors.accept(e.toString());
+            }
+            return null;
+        });
         return this;
     }
 
     public synchronized F build() {
-        for (Supplier<F> implementation : this.implementations) {
-            F value = implementation.get();
+        Collection<String> errors = new ArrayList<>();
+        for (Function<Consumer<String>, F> implementation : this.implementations) {
+            F value = implementation.apply(errors::add);
             if (value != null) {
                 return value;
             }
         }
 
-        throw new IllegalStateException("No implementations could be loaded!");
+        throw new IllegalStateException("No implementations could be loaded! " + errors);
     }
 }

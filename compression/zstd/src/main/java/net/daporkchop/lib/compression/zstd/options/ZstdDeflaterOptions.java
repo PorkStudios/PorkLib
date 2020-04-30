@@ -59,8 +59,7 @@ public final class ZstdDeflaterOptions implements DeflaterOptions<ZstdDeflaterOp
     }
 
     public ZstdDeflaterOptions withLevel(int level) {
-        checkArg(level >= Zstd.LEVEL_MIN && level <= Zstd.LEVEL_MAX, "Invalid Zstd level: %d (expected value in range %d-%d)", level, Zstd.LEVEL_MIN, Zstd.LEVEL_MAX);
-        if (level == this.level) {
+        if (Zstd.checkLevel(level) == this.level) {
             return this;
         }
         return new ZstdDeflaterOptions(this.provider, this.strategy, level, this.workers);

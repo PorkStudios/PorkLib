@@ -21,6 +21,7 @@
 package net.daporkchop.lib.compression.zstd.natives;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -36,9 +37,9 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
  */
 @Accessors(fluent = true)
 final class NativeZstdDDict extends AbstractRefCounted implements ZstdDDict {
-    private static native long createDDict(long dictAddr, int dictSize, boolean copy);
+    private static native long digest0(long dictAddr, int dictSize);
 
-    private static native void releaseDDict(long dict);
+    private static native void release0(long dict);
 
     @Getter(AccessLevel.PACKAGE)
     private final long dict;
@@ -48,12 +49,22 @@ final class NativeZstdDDict extends AbstractRefCounted implements ZstdDDict {
     @Getter
     private final NativeZstd provider;
 
-    NativeZstdDDict(@NonNull NativeZstd provider, @NonNull ByteBuf dict, boolean copy) {
+    NativeZstdDDict(@NonNull NativeZstd provider, @NonNull ByteBuf dict) {
         this.provider = provider;
 
-        this.dict = createDDict(dict.memoryAddress() + dict.readerIndex(), dict.readableBytes(), copy);
+        if (dict.hasMemoryAddress())    {
+            this.dict = digest0(dict.memoryAddress() + dict.readerIndex(), dict.readableBytes());
+        } else {
+            ByteBuf buf = Unpooled.directBuffer(dict.readableBytes(), dict.readableBytes());
+            try {
+                dict.getBytes(dict.readerIndex(), buf);
+                this.dict = digest0(buf.memoryAddress() + buf.readerIndex(), buf.readableBytes());
+            } finally {
+                buf.release();
+            }
+        }
 
-        this.cleaner = PCleaner.cleaner(this, new Releaser(this.dict, copy ? dict : null));
+        this.cleaner = PCleaner.cleaner(this, new Releaser(this.dict));
     }
 
     @Override
@@ -70,14 +81,10 @@ final class NativeZstdDDict extends AbstractRefCounted implements ZstdDDict {
     @RequiredArgsConstructor
     private static final class Releaser implements Runnable {
         private final long    dict;
-        private final ByteBuf data;
 
         @Override
         public void run() {
-            releaseDDict(this.dict);
-            if (this.data != null) {
-                this.data.release();
-            }
+            release0(this.dict);
         }
     }
 }

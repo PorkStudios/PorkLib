@@ -18,7 +18,7 @@
  *
  */
 
-package compression.zlib;
+package compression.zstd;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -30,8 +30,7 @@ import net.daporkchop.lib.binary.stream.misc.SlashDevSlashNull;
 import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.compression.context.PDeflater;
 import net.daporkchop.lib.compression.context.PInflater;
-import net.daporkchop.lib.compression.zlib.Zlib;
-import net.daporkchop.lib.compression.zlib.ZlibMode;
+import net.daporkchop.lib.compression.zstd.Zstd;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -46,9 +45,8 @@ import static net.daporkchop.lib.common.util.PValidation.*;
 /**
  * @author DaPorkchop_
  */
-public class ZlibTest {
+public class ZstdTest {
     protected byte[] text;
-    protected byte[] gzipped;
     protected byte[] zeroes;
 
     @Before
@@ -56,25 +54,22 @@ public class ZlibTest {
         try (InputStream in = new FileInputStream(new File("../../LICENSE"))) {
             this.text = StreamUtil.toByteArray(in);
         }
-        try (InputStream in = new FileInputStream(new File("../../encoding/nbt/src/test/resources/bigtest.nbt"))) {
-            this.gzipped = StreamUtil.toByteArray(in);
-        }
         this.zeroes = new byte[1 << 20];
     }
 
     @Test
     public void testOpenClose() {
-        try (PDeflater deflater = Zlib.PROVIDER.deflater()) {
+        try (PDeflater deflater = Zstd.PROVIDER.deflater()) {
             System.out.println(deflater.getClass());
         }
-        try (PInflater inflater = Zlib.PROVIDER.inflater()) {
+        try (PInflater inflater = Zstd.PROVIDER.inflater()) {
             System.out.println(inflater.getClass());
         }
     }
 
     @Test
     public void testBlockCompression() throws IOException {
-        try (PDeflater deflater = Zlib.PROVIDER.deflater()) {
+        try (PDeflater deflater = Zstd.PROVIDER.deflater()) {
             //one-shot
             this.forEachBufferType(2, buffers -> {
                 ByteBuf src = buffers[0].writeBytes(this.text);
@@ -109,9 +104,9 @@ public class ZlibTest {
         }
     }
 
-    @Test
+    /*@Test
     public void testBlockDecompression() throws IOException {
-        try (PInflater inflater = Zlib.PROVIDER.inflater(Zlib.PROVIDER.inflateOptions().withMode(ZlibMode.GZIP))) {
+        try (PInflater inflater = Zstd.PROVIDER.inflater()) {
             //one-shot
             this.forEachBufferType(2, buffers -> {
                 ByteBuf src = buffers[0].writeBytes(this.gzipped);
@@ -128,11 +123,11 @@ public class ZlibTest {
                 inflater.decompressGrowing(src, dst);
             });
         }
-    }
+    }*/
 
     @Test
     public void testStreamCompression() throws IOException {
-        try (PDeflater deflater = Zlib.PROVIDER.deflater()) {
+        try (PDeflater deflater = Zstd.PROVIDER.deflater()) {
             this.forEachBufferType(2, buffers -> {
                 ByteBuf src = buffers[0].writeBytes(this.text);
                 ByteBuf dst = buffers[1].ensureWritable(deflater.options().provider().compressBound(src.readableBytes()));
@@ -154,9 +149,9 @@ public class ZlibTest {
         }
     }
 
-    @Test
+    /*@Test
     public void testStreamDecompression() throws IOException {
-        try (PInflater inflater = Zlib.PROVIDER.inflater(Zlib.PROVIDER.inflateOptions().withMode(ZlibMode.GZIP))) {
+        try (PInflater inflater = Zstd.PROVIDER.inflater()) {
             this.forEachBufferType(2, buffers -> {
                 ByteBuf src = buffers[0].writeBytes(this.gzipped);
                 ByteBuf dst = buffers[1].ensureWritable(8192);
@@ -167,12 +162,12 @@ public class ZlibTest {
                 }
             });
         }
-    }
+    }*/
 
     @Test
     public void testBlock() throws IOException {
-        try (PDeflater deflater = Zlib.PROVIDER.deflater();
-             PInflater inflater = Zlib.PROVIDER.inflater()) {
+        try (PDeflater deflater = Zstd.PROVIDER.deflater();
+             PInflater inflater = Zstd.PROVIDER.inflater()) {
             //one-shot
             this.forEachBufferType(3, buffers -> {
                 ByteBuf src = buffers[0].writeBytes(this.zeroes);

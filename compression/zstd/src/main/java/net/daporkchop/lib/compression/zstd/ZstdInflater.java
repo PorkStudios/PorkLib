@@ -23,10 +23,11 @@ package net.daporkchop.lib.compression.zstd;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.compression.context.PInflater;
-import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
+import net.daporkchop.lib.compression.zstd.options.ZstdInflaterOptions;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 /**
- * Deompression context for {@link Zstd}.
+ * Decompression context for {@link Zstd}.
  * <p>
  * Not thread-safe.
  *
@@ -34,7 +35,12 @@ import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
  */
 public interface ZstdInflater extends PInflater {
     @Override
-    ZstdProvider provider();
+    ZstdInflaterOptions options();
+
+    @Override
+    default ZstdProvider provider() {
+        return this.options().provider();
+    }
 
     /**
      * Decompresses the given compressed data into the given destination buffer using the given dictionary.
@@ -42,12 +48,32 @@ public interface ZstdInflater extends PInflater {
      * As the dictionary has already been digested, this is far faster than {@link #decompress(ByteBuf, ByteBuf, ByteBuf)}.
      *
      * @param dictionary the dictionary to use
-     * @see #decompress(ByteBuf, ByteBuf)
+     * @see #decompress(ByteBuf, ByteBuf, ByteBuf)
      */
-    boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst, @NonNull ZstdDDict dictionary) throws InvalidBufferTypeException;
+    boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst, @NonNull ZstdDDict dictionary);
+
+    /**
+     * Decompresses the given compressed data into the given destination buffer using the given dictionary.
+     * <p>
+     * As the dictionary has already been digested, this is far faster than {@link #decompress(ByteBuf, ByteBuf, ByteBuf)}.
+     *
+     * @param dictionary the dictionary to use
+     * @throws IndexOutOfBoundsException if the destination buffer's capacity could not be increased sufficiently
+     * @see #decompressGrowing(ByteBuf, ByteBuf, ByteBuf)
+     */
+    void decompressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, @NonNull ZstdDDict dictionary) throws IndexOutOfBoundsException;
 
     @Override
     default boolean hasDict() {
         return true;
     }
+
+    @Override
+    int refCnt();
+
+    @Override
+    ZstdInflater retain() throws AlreadyReleasedException;
+
+    @Override
+    boolean release() throws AlreadyReleasedException;
 }

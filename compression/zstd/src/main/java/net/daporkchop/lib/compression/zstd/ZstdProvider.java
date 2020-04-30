@@ -24,15 +24,10 @@ import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.compression.CompressionProvider;
-import net.daporkchop.lib.compression.context.PDeflater;
-import net.daporkchop.lib.compression.context.PInflater;
-import net.daporkchop.lib.compression.provider.OneShotCompressionProvider;
-import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelException;
 import net.daporkchop.lib.compression.zstd.options.ZstdDeflaterOptions;
 import net.daporkchop.lib.compression.zstd.options.ZstdInflaterOptions;
 import net.daporkchop.lib.compression.zstd.util.exception.ContentSizeUnknownException;
 import net.daporkchop.lib.natives.impl.Feature;
-import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
 
 /**
  * Representation of a Zstd implementation.
@@ -43,7 +38,7 @@ public interface ZstdProvider extends CompressionProvider<ZstdProvider, ZstdDefl
     /**
      * @see #frameContentSizeLong(ByteBuf)
      */
-    default int frameContentSize(@NonNull ByteBuf src) throws InvalidBufferTypeException, ContentSizeUnknownException {
+    default int frameContentSize(@NonNull ByteBuf src) throws ContentSizeUnknownException {
         return PValidation.toInt(this.frameContentSizeLong(src));
     }
 
@@ -54,7 +49,7 @@ public interface ZstdProvider extends CompressionProvider<ZstdProvider, ZstdDefl
      * @return the size (in bytes) of the decompressed data
      * @throws ContentSizeUnknownException if the decompressed size cannot be determined
      */
-    long frameContentSizeLong(@NonNull ByteBuf src) throws InvalidBufferTypeException, ContentSizeUnknownException;
+    long frameContentSizeLong(@NonNull ByteBuf src) throws ContentSizeUnknownException;
 
     @Override
     default int levelFast() {
@@ -83,8 +78,8 @@ public interface ZstdProvider extends CompressionProvider<ZstdProvider, ZstdDefl
      * @param dict the {@link ByteBuf} containing the dictionary
      * @return the digested dictionary
      */
-    default ZstdCDict compressionDictionary(@NonNull ByteBuf dict) throws InvalidBufferTypeException {
-        return this.compressionDictionary(dict, Zstd.LEVEL_DEFAULT);
+    default ZstdCDict loadDeflateDictionary(@NonNull ByteBuf dict) {
+        return this.loadDeflateDictionary(dict, Zstd.LEVEL_DEFAULT);
     }
 
     /**
@@ -94,7 +89,7 @@ public interface ZstdProvider extends CompressionProvider<ZstdProvider, ZstdDefl
      * @param level the compression level to use
      * @return the digested dictionary
      */
-    ZstdCDict compressionDictionary(@NonNull ByteBuf dict, int level) throws InvalidBufferTypeException;
+    ZstdCDict loadDeflateDictionary(@NonNull ByteBuf dict, int level);
 
     /**
      * Digests a Zstd dictionary for decompression.
@@ -102,6 +97,5 @@ public interface ZstdProvider extends CompressionProvider<ZstdProvider, ZstdDefl
      * @param dict the {@link ByteBuf} containing the dictionary
      * @return the digested dictionary
      */
-    ZstdDDict decompressionDictionary(@NonNull ByteBuf dict) throws InvalidBufferTypeException;
-
+    ZstdDDict loadInflateDictionary(@NonNull ByteBuf dict);
 }

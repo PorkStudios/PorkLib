@@ -40,8 +40,8 @@ import static net.daporkchop.lib.common.util.PValidation.*;
 @Getter
 @Accessors(fluent = true)
 final class JavaZlib implements ZlibProvider {
-    protected final ZlibDeflaterOptions defaultDeflaterOptions = new ZlibDeflaterOptions(this);
-    protected final ZlibInflaterOptions defaultInflaterOptions = new ZlibInflaterOptions(this);
+    protected final ZlibDeflaterOptions deflateOptions = new ZlibDeflaterOptions(this);
+    protected final ZlibInflaterOptions inflateOptions = new ZlibInflaterOptions(this);
 
     @Override
     public boolean isNative() {

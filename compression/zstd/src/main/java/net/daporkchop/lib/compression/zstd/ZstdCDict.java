@@ -36,7 +36,7 @@ public interface ZstdCDict extends RefCounted {
     ZstdProvider provider();
 
     /**
-     * @return the compression level that the dictionary will use
+     * @return the compression level that the dictionary uses
      */
     int level();
 

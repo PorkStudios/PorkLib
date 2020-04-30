@@ -21,100 +21,64 @@
 package net.daporkchop.lib.compression.zstd.natives;
 
 import io.netty.buffer.ByteBuf;
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.common.util.PValidation;
-import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelException;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.compression.zstd.Zstd;
-import net.daporkchop.lib.compression.zstd.ZstdDeflater;
 import net.daporkchop.lib.compression.zstd.ZstdCDict;
-import net.daporkchop.lib.compression.zstd.ZstdInflater;
 import net.daporkchop.lib.compression.zstd.ZstdDDict;
+import net.daporkchop.lib.compression.zstd.ZstdDeflater;
+import net.daporkchop.lib.compression.zstd.ZstdInflater;
 import net.daporkchop.lib.compression.zstd.ZstdProvider;
+import net.daporkchop.lib.compression.zstd.options.ZstdDeflaterOptions;
+import net.daporkchop.lib.compression.zstd.options.ZstdInflaterOptions;
 import net.daporkchop.lib.compression.zstd.util.exception.ContentSizeUnknownException;
 import net.daporkchop.lib.natives.impl.NativeFeature;
-import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
+
+import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
  * @author DaPorkchop_
  */
-public final class NativeZstd extends NativeFeature<ZstdProvider> implements ZstdProvider {
-    @Override
-    public boolean directAccepted() {
-        return true;
-    }
+@Getter
+@Accessors(fluent = true)
+final class NativeZstd extends NativeFeature<ZstdProvider> implements ZstdProvider {
+    protected final ZstdDeflaterOptions deflateOptions = new ZstdDeflaterOptions(this);
+    protected final ZstdInflaterOptions inflateOptions = new ZstdInflaterOptions(this);
 
     @Override
-    public int levelFast() {
-        return Zstd.LEVEL_MIN;
-    }
-
-    @Override
-    public int levelDefault() {
-        return Zstd.LEVEL_DEFAULT;
-    }
-
-    @Override
-    public int levelBest() {
-        return Zstd.LEVEL_MAX;
-    }
-
-    @Override
-    public boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, int compressionLevel) throws InvalidBufferTypeException {
-        int val = this.doCompress(this.assertAcceptable(src).memoryAddress() + src.readerIndex(), src.readableBytes(),
-                this.assertAcceptable(dst).memoryAddress() + dst.writerIndex(), dst.writableBytes(),
-                compressionLevel);
-
-        return NativeZstdHelper.finalizeOneShot(src, dst, val);
-    }
-
-    private native int doCompress(long srcAddr, int srcSize, long dstAddr, int dstSize, int compressionLevel);
-
-    @Override
-    public boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException {
-        int val = this.doDecompress(this.assertAcceptable(src).memoryAddress() + src.readerIndex(), src.readableBytes(),
-                this.assertAcceptable(dst).memoryAddress() + dst.writerIndex(), dst.writableBytes());
-
-        return NativeZstdHelper.finalizeOneShot(src, dst, val);
-    }
-
-    private native int doDecompress(long srcAddr, int srcSize, long dstAddr, int dstSize);
-
-    @Override
-    public long frameContentSizeLong(@NonNull ByteBuf src) throws InvalidBufferTypeException, ContentSizeUnknownException {
-        long size = this.doFrameContentSizeLong(this.assertAcceptable(src).memoryAddress() + src.readerIndex(), src.readableBytes());
-        if (size >= 0L) {
-            return size;
-        } else {
-            throw new ContentSizeUnknownException();
-        }
+    public long frameContentSizeLong(@NonNull ByteBuf src) throws ContentSizeUnknownException {
+        throw new UnsupportedOperationException();
     }
 
     private native long doFrameContentSizeLong(long srcAddr, int srcSize);
 
     @Override
     public long compressBoundLong(long srcSize) {
-        return this.doCompressBoundLong(PValidation.notNegative(srcSize));
+        return this.doCompressBoundLong(notNegative(srcSize, "srcSize"));
     }
 
     private native long doCompressBoundLong(long srcSize);
 
     @Override
-    public ZstdDeflater compressionContext(int level) throws InvalidCompressionLevelException {
-        return new NativeZstdCCtx(this, level);
+    public ZstdDeflater deflater(@NonNull ZstdDeflaterOptions options) {
+        checkArg(options.provider() == this, "provider must be %s!", this);
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public ZstdInflater decompressionContext() {
-        return new NativeZstdDCtx(this);
+    public ZstdInflater inflater(@NonNull ZstdInflaterOptions options) {
+        checkArg(options.provider() == this, "provider must be %s!", this);
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public ZstdCDict compressionDictionary(@NonNull ByteBuf dict, int level) throws InvalidBufferTypeException {
-        return new NativeZstdCDict(this, dict, level, true);
+    public ZstdCDict loadDeflateDictionary(@NonNull ByteBuf dict, int level) {
+        return new NativeZstdCDict(this, dict, Zstd.checkLevel(level));
     }
 
     @Override
-    public ZstdDDict decompressionDictionary(@NonNull ByteBuf dict) throws InvalidBufferTypeException {
-        return new NativeZstdDDict(this, dict, true);
+    public ZstdDDict loadInflateDictionary(@NonNull ByteBuf dict) {
+        return new NativeZstdDDict(this, dict);
     }
 }

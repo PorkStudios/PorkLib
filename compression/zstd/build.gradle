@@ -21,6 +21,4 @@
 dependencies {
     compile project(":compression")
     compile project(":natives")
-
-    exampleCompile project(":binary")
 }

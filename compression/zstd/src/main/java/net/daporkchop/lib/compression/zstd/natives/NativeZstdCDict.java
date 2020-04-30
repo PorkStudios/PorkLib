@@ -21,6 +21,8 @@
 package net.daporkchop.lib.compression.zstd.natives;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.Unpooled;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -37,9 +39,9 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 @Getter
 @Accessors(fluent = true)
 final class NativeZstdCDict extends AbstractRefCounted implements ZstdCDict {
-    private static native long createCDict(long dictAddr, int dictSize, int compressionLevel, boolean copy);
+    private static native long digest0(long dictAddr, int dictSize, int level);
 
-    private static native void releaseCDict(long dict);
+    private static native void release0(long dict);
 
     @Getter(AccessLevel.PACKAGE)
     private final long dict;
@@ -50,13 +52,28 @@ final class NativeZstdCDict extends AbstractRefCounted implements ZstdCDict {
     private final NativeZstd provider;
     private final int        level;
 
-    NativeZstdCDict(@NonNull NativeZstd provider, @NonNull ByteBuf dict, int level, boolean copy) {
+    NativeZstdCDict(@NonNull NativeZstd provider, @NonNull ByteBuf dict, int level) {
         this.provider = provider;
         this.level = level;
 
-        this.dict = createCDict(dict.memoryAddress() + dict.readerIndex(), dict.readableBytes(), level, copy);
+        if (dict.hasMemoryAddress())    {
+            this.dict = digest0(dict.memoryAddress() + dict.readerIndex(), dict.readableBytes(), level);
+        } else {
+            ByteBuf buf = Unpooled.directBuffer(dict.readableBytes(), dict.readableBytes());
+            try {
+                dict.getBytes(dict.readerIndex(), buf);
+                this.dict = digest0(buf.memoryAddress() + buf.readerIndex(), buf.readableBytes(), level);
+            } finally {
+                buf.release();
+            }
+        }
 
-        this.cleaner = PCleaner.cleaner(this, new Releaser(this.dict, copy ? dict : null));
+        this.cleaner = PCleaner.cleaner(this, new Releaser(this.dict));
+    }
+
+    @Override
+    protected void doRelease() {
+        this.cleaner.clean();
     }
 
     @Override
@@ -65,22 +82,13 @@ final class NativeZstdCDict extends AbstractRefCounted implements ZstdCDict {
         return this;
     }
 
-    @Override
-    protected void doRelease() {
-        this.cleaner.clean();
-    }
-
     @RequiredArgsConstructor
     private static final class Releaser implements Runnable {
         private final long    dict;
-        private final ByteBuf data;
 
         @Override
         public void run() {
-            releaseCDict(this.dict);
-            if (this.data != null) {
-                this.data.release();
-            }
+            release0(this.dict);
         }
     }
 }

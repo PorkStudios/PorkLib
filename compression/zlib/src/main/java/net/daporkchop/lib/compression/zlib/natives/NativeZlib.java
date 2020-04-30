@@ -63,8 +63,8 @@ final class NativeZlib extends NativeFeature<ZlibProvider> implements ZlibProvid
 
     protected static native long compressBound0(long srcSize, int mode);
 
-    protected final ZlibDeflaterOptions defaultDeflaterOptions = new ZlibDeflaterOptions(this);
-    protected final ZlibInflaterOptions defaultInflaterOptions = new ZlibInflaterOptions(this);
+    protected final ZlibDeflaterOptions deflateOptions = new ZlibDeflaterOptions(this);
+    protected final ZlibInflaterOptions inflateOptions = new ZlibInflaterOptions(this);
 
     @Override
     public long compressBoundLong(long srcSize, @NonNull ZlibMode mode) {

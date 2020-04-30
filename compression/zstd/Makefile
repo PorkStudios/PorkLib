@@ -10,7 +10,7 @@ clean:
 
 $(BUILD):
 	@[ -d $(BUILDDIR) ] || mkdir -p $(BUILDDIR)
-#	@$(MAKE) --no-print-directory -C $(BUILDDIR) -f $(CURDIR)/Makefile BUILD=$(BUILD) build
+	@$(MAKE) --no-print-directory -C $(BUILDDIR) -f $(CURDIR)/Makefile BUILD=$(BUILD) build
 
 else
 .PHONY: build

@@ -161,6 +161,8 @@ public interface ZstdDeflater extends PDeflater {
      */
     void compressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdDeflateDictionary dict) throws IndexOutOfBoundsException;
 
+    //TODO: set level/dictionary for deflate stream
+
     @Override
     default boolean hasDict() {
         return true;

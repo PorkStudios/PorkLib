@@ -141,13 +141,15 @@ __attribute__((visibility("default"))) JNIEXPORT jint JNICALL Java_net_daporkcho
     ctx->stream.avail_out = dstLen;
 
     int ret = zng_inflate(&ctx->stream, flush);
+
+    env->ReleasePrimitiveArrayCritical(dst, dstPtr, 0);
+
     if (ret < 0)    {
         throwException(env, ctx->stream.msg ? ctx->stream.msg : "Invalid return value from inflate()!", ret);
     } else {
         ctx->read = srcLen - ctx->stream.avail_in;
         ctx->written = dstLen - ctx->stream.avail_out;
     }
-    env->ReleasePrimitiveArrayCritical(dst, dstPtr, 0);
     return ret;
 }
 
@@ -176,13 +178,15 @@ __attribute__((visibility("default"))) JNIEXPORT jint JNICALL Java_net_daporkcho
     ctx->stream.avail_out = dstLen;
 
     int ret = zng_inflate(&ctx->stream, flush);
+
+    env->ReleasePrimitiveArrayCritical(src, srcPtr, 0);
+
     if (ret < 0)    {
         throwException(env, ctx->stream.msg ? ctx->stream.msg : "Invalid return value from inflate()!", ret);
     } else {
         ctx->read = srcLen - ctx->stream.avail_in;
         ctx->written = dstLen - ctx->stream.avail_out;
     }
-    env->ReleasePrimitiveArrayCritical(src, srcPtr, 0);
     return ret;
 }
 
@@ -218,14 +222,16 @@ __attribute__((visibility("default"))) JNIEXPORT jint JNICALL Java_net_daporkcho
     ctx->stream.avail_out = dstLen;
 
     int ret = zng_inflate(&ctx->stream, flush);
+
+    env->ReleasePrimitiveArrayCritical(dst, dstPtr, 0);
+    env->ReleasePrimitiveArrayCritical(src, srcPtr, 0);
+
     if (ret < 0)    {
         throwException(env, ctx->stream.msg ? ctx->stream.msg : "Invalid return value from inflate()!", ret);
     } else {
         ctx->read = srcLen - ctx->stream.avail_in;
         ctx->written = dstLen - ctx->stream.avail_out;
     }
-    env->ReleasePrimitiveArrayCritical(dst, dstPtr, 0);
-    env->ReleasePrimitiveArrayCritical(src, srcPtr, 0);
     return ret;
 }
 

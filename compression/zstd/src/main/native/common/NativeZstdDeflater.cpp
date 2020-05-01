@@ -1,5 +1,12 @@
 #include "pork-zstd.h"
 
+struct Context {
+    jlong read;
+    jlong written;
+    jlong session;
+    ZSTD_CStream* stream;
+};
+
 extern "C" {
 
 /*
@@ -9,7 +16,9 @@ extern "C" {
  */
 __attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater_allocate0
         (JNIEnv* env, jclass cla)   {
-    return (jlong) ZSTD_createCCtx();
+    Context* ctx = new Context();
+    ctx->stream = ZSTD_createCStream();
+    return (jlong) ctx;
 }
 
 /*
@@ -19,31 +28,37 @@ __attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkch
  */
 __attribute__((visibility("default"))) JNIEXPORT void JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater_release0
         (JNIEnv* env, jclass cla, jlong _ctx)   {
-    ZSTD_CCtx* ctx = (ZSTD_CCtx*) _ctx;
-    auto ret = ZSTD_freeCCtx(ctx);
+    Context* ctx = (Context*) _ctx;
+    auto ret = ZSTD_freeCStream(ctx->stream);
 
     if (ZSTD_isError(ret))  {
         throwException(env, ZSTD_getErrorName(ret), (jlong) ret);
     }
+
+    delete ctx;
 }
 
 /*
  * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater
- * Method:    compress0
- * Signature: (JJIJIJI)I
+ * Method:    newSession0
+ * Signature: (J)J
  */
-__attribute__((visibility("default"))) JNIEXPORT jint JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater_compress0
-        (JNIEnv* env, jclass cla, jlong _ctx, jlong src, jint srcLen, jlong dst, jint dstLen, jlong dict, jint level)   {
-    ZSTD_CCtx* ctx = (ZSTD_CCtx*) _ctx;
+__attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater_newSession0
+        (JNIEnv* env, jclass cla, jlong _ctx)   {
+    Context* ctx = (Context*) _ctx;
+    return ++ctx->session;
+}
 
-    /*auto ret;
-    if (dict)   {
-        //pre-digested dictionary
-        ret = ZSTD_compress_usingCDict(ctx, (void*) dst, dstLen, (void*) src, srcLen, (ZSTD_CDict*) dict);
-    } else {
-        //no dictionary
-        ret = ZSTD_compressCCtx(ctx, (void*) dst, dstLen, (void*) src, srcLen, level);
-    }
+/*
+ * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater
+ * Method:    compressD2D0
+ * Signature: (JJIJII)J
+ */
+__attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater_compressD2D0
+        (JNIEnv* env, jclass cla, jlong _ctx, jlong src, jint srcLen, jlong dst, jint dstLen, jint level)   {
+    Context* ctx = (Context*) _ctx;
+
+    auto ret = ZSTD_compressCCtx(ctx->stream, (void*) dst, dstLen, (void*) src, srcLen, level);
 
     if (ZSTD_isError(ret))  {
         if (ZSTD_getErrorCode(ret) == ZSTD_error_dstSize_tooSmall) {
@@ -54,8 +69,232 @@ __attribute__((visibility("default"))) JNIEXPORT jint JNICALL Java_net_daporkcho
         }
     }
 
-    return (jint) ret;*/
-    return 0;
+    return (jlong) ret;
+}
+
+/*
+ * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater
+ * Method:    compressD2H0
+ * Signature: (JJI[BIII)J
+ */
+__attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater_compressD2H0
+        (JNIEnv* env, jclass cla, jlong _ctx, jlong src, jint srcLen, jbyteArray dst, jint dstOff, jint dstLen, jint level)   {
+    Context* ctx = (Context*) _ctx;
+
+    auto dstPtr = (unsigned char*) env->GetPrimitiveArrayCritical(dst, nullptr);
+    if (!dstPtr)    {
+        throwException(env, "Unable to pin dst array");
+        return 0;
+    }
+
+    auto ret = ZSTD_compressCCtx(ctx->stream, &dstPtr[dstOff], dstLen, (void*) src, srcLen, level);
+
+    env->ReleasePrimitiveArrayCritical(dst, dstPtr, 0);
+
+    if (ZSTD_isError(ret))  {
+        if (ZSTD_getErrorCode(ret) == ZSTD_error_dstSize_tooSmall) {
+            return -1;
+        } else {
+            throwException(env, ZSTD_getErrorName(ret), (jlong) ret);
+            return 0;
+        }
+    }
+
+    return (jlong) ret;
+}
+
+/*
+ * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater
+ * Method:    compressH2D0
+ * Signature: (JJIJII)J
+ */
+__attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater_compressH2D0
+        (JNIEnv* env, jclass cla, jlong _ctx, jbyteArray src, jint srcOff, jint srcLen, jlong dst, jint dstLen, jint level)   {
+    Context* ctx = (Context*) _ctx;
+
+    auto srcPtr = (unsigned char*) env->GetPrimitiveArrayCritical(src, nullptr);
+    if (!srcPtr)    {
+        throwException(env, "Unable to pin src array");
+        return 0;
+    }
+
+    auto ret = ZSTD_compressCCtx(ctx->stream, (void*) dst, dstLen, &srcPtr[srcOff], srcLen, level);
+
+    env->ReleasePrimitiveArrayCritical(src, srcPtr, 0);
+
+    if (ZSTD_isError(ret))  {
+        if (ZSTD_getErrorCode(ret) == ZSTD_error_dstSize_tooSmall) {
+            return -1;
+        } else {
+            throwException(env, ZSTD_getErrorName(ret), (jlong) ret);
+            return 0;
+        }
+    }
+
+    return (jlong) ret;
+}
+
+/*
+ * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater
+ * Method:    compressH2H0
+ * Signature: (JJIJII)J
+ */
+__attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater_compressH2H0
+        (JNIEnv* env, jclass cla, jlong _ctx, jbyteArray src, jint srcOff, jint srcLen, jbyteArray dst, jint dstOff, jint dstLen, jint level)   {
+    Context* ctx = (Context*) _ctx;
+
+    auto srcPtr = (unsigned char*) env->GetPrimitiveArrayCritical(src, nullptr);
+    if (!srcPtr)    {
+        throwException(env, "Unable to pin src array");
+        return 0;
+    }
+
+    auto dstPtr = (unsigned char*) env->GetPrimitiveArrayCritical(dst, nullptr);
+    if (!dstPtr)    {
+        env->ReleasePrimitiveArrayCritical(src, srcPtr, 0);
+        throwException(env, "Unable to pin dst array");
+        return 0;
+    }
+
+    auto ret = ZSTD_compressCCtx(ctx->stream, &dstPtr[dstOff], dstLen, &srcPtr[srcOff], srcLen, level);
+
+    env->ReleasePrimitiveArrayCritical(dst, dstPtr, 0);
+    env->ReleasePrimitiveArrayCritical(src, srcPtr, 0);
+
+    if (ZSTD_isError(ret))  {
+        if (ZSTD_getErrorCode(ret) == ZSTD_error_dstSize_tooSmall) {
+            return -1;
+        } else {
+            throwException(env, ZSTD_getErrorName(ret), (jlong) ret);
+            return 0;
+        }
+    }
+
+    return (jlong) ret;
+}
+
+/*
+ * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater
+ * Method:    compressD2DD0
+ * Signature: (JJIJIJ)J
+ */
+__attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater_compressD2DD0
+        (JNIEnv* env, jclass cla, jlong _ctx, jlong src, jint srcLen, jlong dst, jint dstLen, jlong dict)   {
+    Context* ctx = (Context*) _ctx;
+
+    auto ret = ZSTD_compress_usingCDict(ctx->stream, (void*) dst, dstLen, (void*) src, srcLen, (ZSTD_CDict*) dict);
+
+    if (ZSTD_isError(ret))  {
+        if (ZSTD_getErrorCode(ret) == ZSTD_error_dstSize_tooSmall) {
+            return -1;
+        } else {
+            throwException(env, ZSTD_getErrorName(ret), (jlong) ret);
+            return 0;
+        }
+    }
+
+    return (jlong) ret;
+}
+
+/*
+ * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater
+ * Method:    compressD2HD0
+ * Signature: (JJI[BIIJ)J
+ */
+__attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater_compressD2HD0
+        (JNIEnv* env, jclass cla, jlong _ctx, jlong src, jint srcLen, jbyteArray dst, jint dstOff, jint dstLen, jlong dict)   {
+    Context* ctx = (Context*) _ctx;
+
+    auto dstPtr = (unsigned char*) env->GetPrimitiveArrayCritical(dst, nullptr);
+    if (!dstPtr)    {
+        throwException(env, "Unable to pin dst array");
+        return 0;
+    }
+
+    auto ret = ZSTD_compress_usingCDict(ctx->stream, &dstPtr[dstOff], dstLen, (void*) src, srcLen, (ZSTD_CDict*) dict);
+
+    env->ReleasePrimitiveArrayCritical(dst, dstPtr, 0);
+
+    if (ZSTD_isError(ret))  {
+        if (ZSTD_getErrorCode(ret) == ZSTD_error_dstSize_tooSmall) {
+            return -1;
+        } else {
+            throwException(env, ZSTD_getErrorName(ret), (jlong) ret);
+            return 0;
+        }
+    }
+
+    return (jlong) ret;
+}
+
+/*
+ * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater
+ * Method:    compressH2DD0
+ * Signature: (J[BIIJIJ)J
+ */
+__attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater_compressH2DD0
+        (JNIEnv* env, jclass cla, jlong _ctx, jbyteArray src, jint srcOff, jint srcLen, jlong dst, jint dstLen, jlong dict)   {
+    Context* ctx = (Context*) _ctx;
+
+    auto srcPtr = (unsigned char*) env->GetPrimitiveArrayCritical(src, nullptr);
+    if (!srcPtr)    {
+        throwException(env, "Unable to pin src array");
+        return 0;
+    }
+
+    auto ret = ZSTD_compress_usingCDict(ctx->stream, (void*) dst, dstLen, &srcPtr[srcOff], srcLen, (ZSTD_CDict*) dict);
+
+    env->ReleasePrimitiveArrayCritical(src, srcPtr, 0);
+
+    if (ZSTD_isError(ret))  {
+        if (ZSTD_getErrorCode(ret) == ZSTD_error_dstSize_tooSmall) {
+            return -1;
+        } else {
+            throwException(env, ZSTD_getErrorName(ret), (jlong) ret);
+            return 0;
+        }
+    }
+
+    return (jlong) ret;
+}
+
+/*
+ * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater
+ * Method:    compressH2HD0
+ * Signature: (J[BII[BIIJ)J
+ */
+__attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater_compressH2HD0
+        (JNIEnv* env, jclass cla, jlong _ctx, jbyteArray src, jint srcOff, jint srcLen, jbyteArray dst, jint dstOff, jint dstLen, jlong dict)   {
+    Context* ctx = (Context*) _ctx;
+
+    auto srcPtr = (unsigned char*) env->GetPrimitiveArrayCritical(src, nullptr);
+    if (!srcPtr)    {
+        throwException(env, "Unable to pin src array");
+        return 0;
+    }
+
+    auto dstPtr = (unsigned char*) env->GetPrimitiveArrayCritical(dst, nullptr);
+    if (!dstPtr)    {
+        env->ReleasePrimitiveArrayCritical(src, srcPtr, 0);
+        throwException(env, "Unable to pin dst array");
+        return 0;
+    }
+
+    auto ret = ZSTD_compress_usingCDict(ctx->stream, &dstPtr[dstOff], dstLen, &srcPtr[srcOff], srcLen, (ZSTD_CDict*) dict);
+
+    env->ReleasePrimitiveArrayCritical(dst, dstPtr, 0);
+    env->ReleasePrimitiveArrayCritical(src, srcPtr, 0);
+
+    if (ZSTD_isError(ret))  {
+        if (ZSTD_getErrorCode(ret) == ZSTD_error_dstSize_tooSmall) {
+            return -1;
+        } else {
+            throwException(env, ZSTD_getErrorName(ret), (jlong) ret);
+            return 0;
+        }
+    }
+
+    return (jlong) ret;
 }
 
 }

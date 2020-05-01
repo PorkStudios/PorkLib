@@ -50,6 +50,7 @@ import static net.daporkchop.lib.compression.zlib.natives.NativeZlib.*;
  * @author DaPorkchop_
  */
 @Accessors(fluent = true)
+@SuppressWarnings("Duplicates")
 final class NativeZlibDeflater extends AbstractRefCounted.Synchronized implements ZlibDeflater {
     static native long allocate0(int level, int mode, int strategy);
 

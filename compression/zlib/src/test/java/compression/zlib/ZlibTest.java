@@ -78,13 +78,13 @@ public class ZlibTest {
             //one-shot
             this.forEachBufferType(2, buffers -> {
                 ByteBuf src = buffers[0].writeBytes(this.text);
-                ByteBuf dst = buffers[1].ensureWritable(deflater.options().provider().compressBound(src.readableBytes()));
+                ByteBuf dst = buffers[1].ensureWritable(deflater.provider().compressBound(src.readableBytes()));
 
                 checkState(deflater.compress(src, dst), "compression failed!");
             });
             /*this.forEachBufferType(3, buffers -> {
                 ByteBuf src = buffers[0].writeBytes(this.text);
-                ByteBuf dst = buffers[1].ensureWritable(deflater.options().provider().compressBound(src.readableBytes()));
+                ByteBuf dst = buffers[1].ensureWritable(deflater.provider().compressBound(src.readableBytes()));
                 ByteBuf dict = buffers[2];
                 SlashDevSlashNull.INSTANCE.read(dict, 1024);
 
@@ -135,7 +135,7 @@ public class ZlibTest {
         try (PDeflater deflater = Zlib.PROVIDER.deflater()) {
             this.forEachBufferType(2, buffers -> {
                 ByteBuf src = buffers[0].writeBytes(this.text);
-                ByteBuf dst = buffers[1].ensureWritable(deflater.options().provider().compressBound(src.readableBytes()));
+                ByteBuf dst = buffers[1].ensureWritable(deflater.provider().compressBound(src.readableBytes()));
 
                 try (DataOut out = deflater.compressionStream(DataOut.wrap(dst))) {
                     out.write(src);
@@ -143,7 +143,7 @@ public class ZlibTest {
             });
             this.forEachBufferType(3, buffers -> {
                 ByteBuf src = buffers[0].writeBytes(this.text);
-                ByteBuf dst = buffers[1].ensureWritable(deflater.options().provider().compressBound(src.readableBytes()));
+                ByteBuf dst = buffers[1].ensureWritable(deflater.provider().compressBound(src.readableBytes()));
                 ByteBuf dict = buffers[2];
                 SlashDevSlashNull.INSTANCE.read(dict, 1024);
 
@@ -176,7 +176,7 @@ public class ZlibTest {
             //one-shot
             this.forEachBufferType(3, buffers -> {
                 ByteBuf src = buffers[0].writeBytes(this.zeroes);
-                ByteBuf compressed = buffers[1].ensureWritable(deflater.options().provider().compressBound(src.readableBytes()));
+                ByteBuf compressed = buffers[1].ensureWritable(deflater.provider().compressBound(src.readableBytes()));
                 ByteBuf uncompressed = buffers[2].ensureWritable(src.readableBytes());
                 checkState(deflater.compress(src, compressed), "compression failed!");
                 checkState(inflater.decompress(compressed, uncompressed), "decompression failed!");

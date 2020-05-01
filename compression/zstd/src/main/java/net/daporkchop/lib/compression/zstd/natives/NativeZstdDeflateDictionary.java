@@ -45,33 +45,33 @@ final class NativeZstdDeflateDictionary extends AbstractRefCounted implements Zs
     private static native void release0(long dict);
 
     @Getter(AccessLevel.PACKAGE)
-    private final long dict;
+    private final long addr;
 
     @Getter(AccessLevel.NONE)
     private final PCleaner cleaner;
 
     private final NativeZstd provider;
-    private final int        level;
+    private final int level;
 
     NativeZstdDeflateDictionary(@NonNull NativeZstd provider, @NonNull ByteBuf dict, int level) {
         this.provider = provider;
         this.level = level;
 
-        if (dict.hasMemoryAddress())    {
-            this.dict = digestD0(dict.memoryAddress() + dict.readerIndex(), dict.readableBytes(), level);
+        if (dict.hasMemoryAddress()) {
+            this.addr = digestD0(dict.memoryAddress() + dict.readerIndex(), dict.readableBytes(), level);
         } else if (dict.hasArray()) {
-            this.dict = digestH0(dict.array(), dict.arrayOffset() + dict.readerIndex(), dict.readableBytes(), level);
+            this.addr = digestH0(dict.array(), dict.arrayOffset() + dict.readerIndex(), dict.readableBytes(), level);
         } else {
             ByteBuf buf = Unpooled.directBuffer(dict.readableBytes(), dict.readableBytes());
             try {
                 dict.getBytes(dict.readerIndex(), buf);
-                this.dict = digestD0(buf.memoryAddress() + buf.readerIndex(), buf.readableBytes(), level);
+                this.addr = digestD0(buf.memoryAddress() + buf.readerIndex(), buf.readableBytes(), level);
             } finally {
                 buf.release();
             }
         }
 
-        this.cleaner = PCleaner.cleaner(this, new Releaser(this.dict));
+        this.cleaner = PCleaner.cleaner(this, new Releaser(this.addr));
     }
 
     @Override
@@ -87,11 +87,11 @@ final class NativeZstdDeflateDictionary extends AbstractRefCounted implements Zs
 
     @RequiredArgsConstructor
     private static final class Releaser implements Runnable {
-        private final long    dict;
+        private final long addr;
 
         @Override
         public void run() {
-            release0(this.dict);
+            release0(this.addr);
         }
     }
 }

@@ -46,7 +46,7 @@ final class NativeZstdInflateDictionary extends AbstractRefCounted implements Zs
     private static native int id0(long dict);
 
     @Getter(AccessLevel.PACKAGE)
-    private final long dict;
+    private final long addr;
 
     @Getter
     private final int id;
@@ -59,23 +59,23 @@ final class NativeZstdInflateDictionary extends AbstractRefCounted implements Zs
     NativeZstdInflateDictionary(@NonNull NativeZstd provider, @NonNull ByteBuf dict) {
         this.provider = provider;
 
-        if (dict.hasMemoryAddress())    {
-            this.dict = digestD0(dict.memoryAddress() + dict.readerIndex(), dict.readableBytes());
+        if (dict.hasMemoryAddress()) {
+            this.addr = digestD0(dict.memoryAddress() + dict.readerIndex(), dict.readableBytes());
         } else if (dict.hasArray()) {
-            this.dict = digestH0(dict.array(), dict.arrayOffset() + dict.readerIndex(), dict.readableBytes());
+            this.addr = digestH0(dict.array(), dict.arrayOffset() + dict.readerIndex(), dict.readableBytes());
         } else {
             ByteBuf buf = Unpooled.directBuffer(dict.readableBytes(), dict.readableBytes());
             try {
                 dict.getBytes(dict.readerIndex(), buf);
-                this.dict = digestD0(buf.memoryAddress() + buf.readerIndex(), buf.readableBytes());
+                this.addr = digestD0(buf.memoryAddress() + buf.readerIndex(), buf.readableBytes());
             } finally {
                 buf.release();
             }
         }
 
-        this.cleaner = PCleaner.cleaner(this, new Releaser(this.dict));
+        this.cleaner = PCleaner.cleaner(this, new Releaser(this.addr));
 
-        this.id = id0(this.dict);
+        this.id = id0(this.addr);
     }
 
     @Override
@@ -91,11 +91,11 @@ final class NativeZstdInflateDictionary extends AbstractRefCounted implements Zs
 
     @RequiredArgsConstructor
     private static final class Releaser implements Runnable {
-        private final long    dict;
+        private final long addr;
 
         @Override
         public void run() {
-            release0(this.dict);
+            release0(this.addr);
         }
     }
 }

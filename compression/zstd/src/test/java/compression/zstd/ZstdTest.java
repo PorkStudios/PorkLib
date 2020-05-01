@@ -39,6 +39,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
@@ -107,13 +109,13 @@ public class ZstdTest {
             //one-shot
             this.forEachBufferType(2, buffers -> {
                 ByteBuf src = buffers[0].writeBytes(this.text);
-                ByteBuf dst = buffers[1].ensureWritable(deflater.options().provider().compressBound(src.readableBytes()));
+                ByteBuf dst = buffers[1].ensureWritable(deflater.provider().compressBound(src.readableBytes()));
 
                 checkState(deflater.compress(src, dst), "compression failed!");
             });
             this.forEachBufferType(3, buffers -> {
                 ByteBuf src = buffers[0].writeBytes(this.text);
-                ByteBuf dst = buffers[1].ensureWritable(deflater.options().provider().compressBound(src.readableBytes()));
+                ByteBuf dst = buffers[1].ensureWritable(deflater.provider().compressBound(src.readableBytes()));
                 ByteBuf dict = buffers[2];
                 SlashDevSlashNull.INSTANCE.read(dict, 1024);
 
@@ -159,12 +161,12 @@ public class ZstdTest {
         }
     }*/
 
-    @Test
+    /*@Test
     public void testStreamCompression() throws IOException {
         try (PDeflater deflater = Zstd.PROVIDER.deflater()) {
             this.forEachBufferType(2, buffers -> {
                 ByteBuf src = buffers[0].writeBytes(this.text);
-                ByteBuf dst = buffers[1].ensureWritable(deflater.options().provider().compressBound(src.readableBytes()));
+                ByteBuf dst = buffers[1].ensureWritable(deflater.provider().compressBound(src.readableBytes()));
 
                 try (DataOut out = deflater.compressionStream(DataOut.wrap(dst))) {
                     out.write(src);
@@ -172,7 +174,7 @@ public class ZstdTest {
             });
             this.forEachBufferType(3, buffers -> {
                 ByteBuf src = buffers[0].writeBytes(this.text);
-                ByteBuf dst = buffers[1].ensureWritable(deflater.options().provider().compressBound(src.readableBytes()));
+                ByteBuf dst = buffers[1].ensureWritable(deflater.provider().compressBound(src.readableBytes()));
                 ByteBuf dict = buffers[2];
                 SlashDevSlashNull.INSTANCE.read(dict, 1024);
 
@@ -181,7 +183,7 @@ public class ZstdTest {
                 }
             });
         }
-    }
+    }*/
 
     /*@Test
     public void testStreamDecompression() throws IOException {
@@ -205,7 +207,7 @@ public class ZstdTest {
             //one-shot
             this.forEachBufferType(3, buffers -> {
                 ByteBuf src = buffers[0].writeBytes(this.zeroes);
-                ByteBuf compressed = buffers[1].ensureWritable(deflater.options().provider().compressBound(src.readableBytes()));
+                ByteBuf compressed = buffers[1].ensureWritable(deflater.provider().compressBound(src.readableBytes()));
                 ByteBuf uncompressed = buffers[2].ensureWritable(src.readableBytes());
                 checkState(deflater.compress(src, compressed), "compression failed!");
                 checkState(inflater.decompress(compressed, uncompressed), "decompression failed!");

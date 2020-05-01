@@ -63,6 +63,8 @@ public interface ZstdInflater extends PInflater {
      */
     void decompressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdInflateDictionary dict) throws IndexOutOfBoundsException;
 
+    //TODO: set dictionary for inflate stream
+
     @Override
     default boolean hasDict() {
         return true;

@@ -4,12 +4,30 @@ extern "C" {
 
 /*
  * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdInflateDictionary
- * Method:    digest0
+ * Method:    digestD0
  * Signature: (JI)J
  */
-__attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdInflateDictionary_digest0
-        (JNIEnv* env, jclass cla, jlong dictAddr, jint dictSize)   {
-    return (jlong) ZSTD_createDDict((void*) dictAddr, dictSize);
+__attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdInflateDictionary_digestD0
+        (JNIEnv* env, jclass cla, jlong dict, jint dictLen)   {
+    return (jlong) ZSTD_createDDict((void*) dict, dictLen);
+}
+
+/*
+ * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdInflateDictionary
+ * Method:    digestH0
+ * Signature: ([BII)J
+ */
+__attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdInflateDictionary_digestH0
+        (JNIEnv* env, jclass cla, jbyteArray dict, jint dictOff, jint dictLen)   {
+    auto dictPtr = (unsigned char*) env->GetPrimitiveArrayCritical(dict, nullptr);
+    if (!dictPtr)    {
+        throwException(env, "Unable to pin dict array");
+        return 0;
+    }
+
+    jlong ret = (jlong) ZSTD_createDDict(&dictPtr[dictOff], dictLen);
+    env->ReleasePrimitiveArrayCritical(dict, dictPtr, 0);
+    return ret;
 }
 
 /*

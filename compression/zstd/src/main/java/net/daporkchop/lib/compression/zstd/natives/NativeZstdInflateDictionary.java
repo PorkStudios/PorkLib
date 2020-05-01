@@ -37,7 +37,9 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
  */
 @Accessors(fluent = true)
 final class NativeZstdInflateDictionary extends AbstractRefCounted implements ZstdInflateDictionary {
-    private static native long digest0(long dictAddr, int dictSize);
+    private static native long digestD0(long dict, int dictLen);
+
+    private static native long digestH0(byte[] dict, int dictOff, int dictLen);
 
     private static native void release0(long dict);
 
@@ -58,12 +60,14 @@ final class NativeZstdInflateDictionary extends AbstractRefCounted implements Zs
         this.provider = provider;
 
         if (dict.hasMemoryAddress())    {
-            this.dict = digest0(dict.memoryAddress() + dict.readerIndex(), dict.readableBytes());
+            this.dict = digestD0(dict.memoryAddress() + dict.readerIndex(), dict.readableBytes());
+        } else if (dict.hasArray()) {
+            this.dict = digestH0(dict.array(), dict.arrayOffset() + dict.readerIndex(), dict.readableBytes());
         } else {
             ByteBuf buf = Unpooled.directBuffer(dict.readableBytes(), dict.readableBytes());
             try {
                 dict.getBytes(dict.readerIndex(), buf);
-                this.dict = digest0(buf.memoryAddress() + buf.readerIndex(), buf.readableBytes());
+                this.dict = digestD0(buf.memoryAddress() + buf.readerIndex(), buf.readableBytes());
             } finally {
                 buf.release();
             }

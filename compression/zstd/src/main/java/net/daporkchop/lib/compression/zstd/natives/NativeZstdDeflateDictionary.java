@@ -38,7 +38,9 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 @Getter
 @Accessors(fluent = true)
 final class NativeZstdDeflateDictionary extends AbstractRefCounted implements ZstdDeflateDictionary {
-    private static native long digest0(long dictAddr, int dictSize, int level);
+    private static native long digestD0(long dict, int dictLen, int level);
+
+    private static native long digestH0(byte[] dict, int dictOff, int dictLen, int level);
 
     private static native void release0(long dict);
 
@@ -56,12 +58,14 @@ final class NativeZstdDeflateDictionary extends AbstractRefCounted implements Zs
         this.level = level;
 
         if (dict.hasMemoryAddress())    {
-            this.dict = digest0(dict.memoryAddress() + dict.readerIndex(), dict.readableBytes(), level);
+            this.dict = digestD0(dict.memoryAddress() + dict.readerIndex(), dict.readableBytes(), level);
+        } else if (dict.hasArray()) {
+            this.dict = digestH0(dict.array(), dict.arrayOffset() + dict.readerIndex(), dict.readableBytes(), level);
         } else {
             ByteBuf buf = Unpooled.directBuffer(dict.readableBytes(), dict.readableBytes());
             try {
                 dict.getBytes(dict.readerIndex(), buf);
-                this.dict = digest0(buf.memoryAddress() + buf.readerIndex(), buf.readableBytes(), level);
+                this.dict = digestD0(buf.memoryAddress() + buf.readerIndex(), buf.readableBytes(), level);
             } finally {
                 buf.release();
             }

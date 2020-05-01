@@ -22,13 +22,16 @@ package net.daporkchop.lib.compression.zstd.natives;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.Unpooled;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
-import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
+import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.compression.zstd.Zstd;
 import net.daporkchop.lib.compression.zstd.ZstdDeflateDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdDeflater;
@@ -38,8 +41,10 @@ import net.daporkchop.lib.unsafe.PUnsafe;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ConcurrentModificationException;
 
+import static java.lang.Math.min;
 import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
@@ -54,6 +59,10 @@ final class NativeZstdDeflater extends AbstractRefCounted.Synchronized implement
 
     static native long newSession0(long ctx);
 
+    static native long newSessionWithLevel0(long ctx, int level);
+
+    static native long newSessionWithDict0(long ctx, long dict);
+
     static native long compressD2D0(long ctx, long src, int srcLen, long dst, int dstLen, int level);
 
     static native long compressD2H0(long ctx, long src, int srcLen, byte[] dst, int dstOff, int dstLen, int level);
@@ -62,13 +71,13 @@ final class NativeZstdDeflater extends AbstractRefCounted.Synchronized implement
 
     static native long compressH2H0(long ctx, byte[] src, int srcOff, int srcLen, byte[] dst, int dstOff, int dstLen, int level);
 
-    static native long compressD2DD0(long ctx, long src, int srcLen, long dst, int dstLen, long dict);
+    static native long compressD2DWithDict0(long ctx, long src, int srcLen, long dst, int dstLen, long dict);
 
-    static native long compressD2HD0(long ctx, long src, int srcLen, byte[] dst, int dstOff, int dstLen, long dict);
+    static native long compressD2HWithDict0(long ctx, long src, int srcLen, byte[] dst, int dstOff, int dstLen, long dict);
 
-    static native long compressH2DD0(long ctx, byte[] src, int srcOff, int srcLen, long dst, int dstLen, long dict);
+    static native long compressH2DWithDict0(long ctx, byte[] src, int srcOff, int srcLen, long dst, int dstLen, long dict);
 
-    static native long compressH2HD0(long ctx, byte[] src, int srcOff, int srcLen, byte[] dst, int dstOff, int dstLen, long dict);
+    static native long compressH2HWithDict0(long ctx, byte[] src, int srcOff, int srcLen, byte[] dst, int dstOff, int dstLen, long dict);
 
     final long ctx;
 
@@ -111,10 +120,10 @@ final class NativeZstdDeflater extends AbstractRefCounted.Synchronized implement
             }
         }
 
-        if (dict != null)   {
+        if (dict != null && dict.isReadable()) {
             //dictionary is set, digest it first and then do compression
             //TODO: implement the un-digested dictionary compression methods
-            try (ZstdDeflateDictionary digested = this.options.provider().loadDeflateDictionary(dict, level))   {
+            try (ZstdDeflateDictionary digested = this.options.provider().loadDeflateDictionary(dict, level)) {
                 return this.compress(src, dst, digested);
             }
         }
@@ -128,19 +137,19 @@ final class NativeZstdDeflater extends AbstractRefCounted.Synchronized implement
                             src.memoryAddress() + src.readerIndex(), src.readableBytes(),
                             dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
                             level);
-                } else if (dst.hasArray())  {
+                } else if (dst.hasArray()) {
                     ret = compressD2H0(this.ctx,
                             src.memoryAddress() + src.readerIndex(), src.readableBytes(),
                             dst.array(), dst.arrayOffset() + dst.writerIndex(), dst.writableBytes(),
                             level);
                 }
-            } else if (src.hasArray())  {
+            } else if (src.hasArray()) {
                 if (dst.hasMemoryAddress()) {
                     ret = compressH2D0(this.ctx,
                             src.array(), src.arrayOffset() + src.readerIndex(), src.readableBytes(),
                             dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
                             level);
-                } else if (dst.hasArray())  {
+                } else if (dst.hasArray()) {
                     ret = compressH2H0(this.ctx,
                             src.array(), src.arrayOffset() + src.readerIndex(), src.readableBytes(),
                             dst.array(), dst.arrayOffset() + dst.writerIndex(), dst.writableBytes(),
@@ -148,7 +157,7 @@ final class NativeZstdDeflater extends AbstractRefCounted.Synchronized implement
                 }
             }
 
-            if (ret >= 0L)   {
+            if (ret >= 0L) {
                 src.skipBytes(src.readableBytes());
                 dst.writerIndex(dst.writerIndex() + toInt(ret));
                 return true;
@@ -165,7 +174,7 @@ final class NativeZstdDeflater extends AbstractRefCounted.Synchronized implement
     @Override
     public synchronized boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdDeflateDictionary dict) {
         this.ensureNotReleased();
-        if (dict == null)   {
+        if (dict == null) {
             return this.compress(src, dst, null, this.options.level());
         }
 
@@ -194,31 +203,31 @@ final class NativeZstdDeflater extends AbstractRefCounted.Synchronized implement
             long ret = -1L;
             if (src.hasMemoryAddress()) {
                 if (dst.hasMemoryAddress()) {
-                    ret = compressD2DD0(this.ctx,
+                    ret = compressD2DWithDict0(this.ctx,
                             src.memoryAddress() + src.readerIndex(), src.readableBytes(),
                             dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
                             dictAddr);
-                } else if (dst.hasArray())  {
-                    ret = compressD2HD0(this.ctx,
+                } else if (dst.hasArray()) {
+                    ret = compressD2HWithDict0(this.ctx,
                             src.memoryAddress() + src.readerIndex(), src.readableBytes(),
                             dst.array(), dst.arrayOffset() + dst.writerIndex(), dst.writableBytes(),
                             dictAddr);
                 }
-            } else if (src.hasArray())  {
+            } else if (src.hasArray()) {
                 if (dst.hasMemoryAddress()) {
-                    ret = compressH2DD0(this.ctx,
+                    ret = compressH2DWithDict0(this.ctx,
                             src.array(), src.arrayOffset() + src.readerIndex(), src.readableBytes(),
                             dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
                             dictAddr);
-                } else if (dst.hasArray())  {
-                    ret = compressH2HD0(this.ctx,
+                } else if (dst.hasArray()) {
+                    ret = compressH2HWithDict0(this.ctx,
                             src.array(), src.arrayOffset() + src.readerIndex(), src.readableBytes(),
                             dst.array(), dst.arrayOffset() + dst.writerIndex(), dst.writableBytes(),
                             dictAddr);
                 }
             }
 
-            if (ret >= 0L)   {
+            if (ret >= 0L) {
                 src.skipBytes(src.readableBytes());
                 dst.writerIndex(dst.writerIndex() + toInt(ret));
                 return true;
@@ -245,9 +254,53 @@ final class NativeZstdDeflater extends AbstractRefCounted.Synchronized implement
     }
 
     @Override
-    public synchronized DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, int bufferSize, ByteBuf dict) throws IOException, DictionaryNotAllowedException {
+    public synchronized DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, int bufferSize, ByteBuf dict, int level) throws IOException {
         this.ensureNotReleased();
-        throw new UnsupportedOperationException();
+        Zstd.checkLevel(level);
+        if (dict != null && dict.isReadable())  {
+            try (ZstdDeflateDictionary digested = this.options.provider().loadDeflateDictionary(dict, level))   {
+                return this.compressionStream0(out, bufferAlloc, bufferSize, digested, level);
+            }
+        } else {
+            return this.compressionStream0(out, bufferAlloc, bufferSize, null, level);
+        }
+    }
+
+    @Override
+    public synchronized DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, int bufferSize, ZstdDeflateDictionary dict) throws IOException {
+        this.ensureNotReleased();
+        return this.compressionStream0(out, bufferAlloc, bufferSize, dict, dict != null ? dict.level() : this.options.level());
+    }
+
+    synchronized DataOut compressionStream0(@NonNull DataOut out, ByteBufAllocator bufferAlloc, int bufferSize, ZstdDeflateDictionary dict, int level) throws IOException {
+        this.ensureNotReleased();
+        checkArg(dict == null || dict instanceof NativeZstdDeflateDictionary, "invalid dictionary: %s", dict);
+
+        if (bufferAlloc == null) {
+            bufferAlloc = PooledByteBufAllocator.DEFAULT;
+        }
+        if (bufferSize <= 0) {
+            bufferSize = PorkUtil.BUFFER_SIZE;
+        }
+        ByteBuf buf;
+        if (out.isDirect()) {
+            buf = bufferAlloc.directBuffer(bufferSize, bufferSize);
+        } else if (out.isHeap()) {
+            buf = bufferAlloc.heapBuffer(bufferSize, bufferSize);
+        } else {
+            buf = bufferAlloc.buffer(bufferSize, bufferSize);
+        }
+        return new NativeZstdDeflateStream(out, buf, (NativeZstdDeflateDictionary) dict, level, this);
+    }
+
+    long createSessionAndSetDict(NativeZstdDeflateDictionary dict, int level) {
+        if (dict == null) {
+            //no dictionary will be used
+            return newSessionWithLevel0(this.ctx, level);
+        } else {
+            dict.retain();
+            return newSessionWithDict0(this.ctx, dict.addr());
+        }
     }
 
     @Override

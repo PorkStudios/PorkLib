@@ -21,10 +21,15 @@
 package net.daporkchop.lib.compression.zstd;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.compression.context.PDeflater;
+import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
 import net.daporkchop.lib.compression.zstd.options.ZstdDeflaterOptions;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
+
+import java.io.IOException;
 
 /**
  * Compression context for {@link Zstd}.
@@ -161,7 +166,129 @@ public interface ZstdDeflater extends PDeflater {
      */
     void compressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdDeflateDictionary dict) throws IndexOutOfBoundsException;
 
-    //TODO: set level/dictionary for deflate stream
+    /**
+     * Convenience method equivalent to {@code compressionStream(out, null, -1, null, this.options().level());}
+     *
+     * @see #compressionStream(DataOut, ByteBufAllocator, int, ByteBuf, int)
+     */
+    @Override
+    default DataOut compressionStream(@NonNull DataOut out) throws IOException {
+        return this.compressionStream(out, null, -1, null, this.options().level());
+    }
+
+    /**
+     * Convenience method equivalent to {@code compressionStream(out, bufferAlloc, -1, null, this.options().level());}
+     *
+     * @see #compressionStream(DataOut, ByteBufAllocator, int, ByteBuf, int)
+     */
+    @Override
+    default DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc) throws IOException {
+        return this.compressionStream(out, bufferAlloc, -1, null, this.options().level());
+    }
+
+    /**
+     * Convenience method equivalent to {@code compressionStream(out, null, bufferSize, null, this.options().level());}
+     *
+     * @see #compressionStream(DataOut, ByteBufAllocator, int, ByteBuf, int)
+     */
+    @Override
+    default DataOut compressionStream(@NonNull DataOut out, int bufferSize) throws IOException {
+        return this.compressionStream(out, null, bufferSize, null, this.options().level());
+    }
+
+    /**
+     * Convenience method equivalent to {@code compressionStream(out, null, -1, dict, this.options().level());}
+     *
+     * @see #compressionStream(DataOut, ByteBufAllocator, int, ByteBuf, int)
+     */
+    @Override
+    default DataOut compressionStream(@NonNull DataOut out, ByteBuf dict) throws IOException {
+        return this.compressionStream(out, null, -1, dict, this.options().level());
+    }
+
+    /**
+     * Convenience method equivalent to {@code compressionStream(out, bufferAlloc, -1, dict, this.options().level());}
+     *
+     * @see #compressionStream(DataOut, ByteBufAllocator, int, ByteBuf, int)
+     */
+    @Override
+    default DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, ByteBuf dict) throws IOException {
+        return this.compressionStream(out, bufferAlloc, -1, dict, this.options().level());
+    }
+
+    /**
+     * Convenience method equivalent to {@code compressionStream(out, null, bufferSize, dict, this.options().level());}
+     *
+     * @see #compressionStream(DataOut, ByteBufAllocator, int, ByteBuf, int)
+     */
+    @Override
+    default DataOut compressionStream(@NonNull DataOut out, int bufferSize, ByteBuf dict) throws IOException {
+        return this.compressionStream(out, null, bufferSize, dict, this.options().level());
+    }
+
+    /**
+     * Convenience method equivalent to {@code compressionStream(out, bufferAlloc, bufferSize, dict, this.options().level());}
+     *
+     * @see #compressionStream(DataOut, ByteBufAllocator, int, ByteBuf, int)
+     */
+    @Override
+    default DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, int bufferSize, ByteBuf dict) throws IOException {
+        return this.compressionStream(out, bufferAlloc, bufferSize, dict, this.options().level());
+    }
+
+    /**
+     * Gets a {@link DataOut} which will compress data written to it using this {@link PDeflater} and write the compressed data to the given {@link DataOut}.
+     *
+     * @param bufferAlloc the {@link ByteBufAllocator} to be used for allocating the internal write buffer. If {@code null}, the default allocator will be used
+     * @param bufferSize  the size of the internal write buffer. If not positive, the default buffer size will be used
+     * @param level       the Zstd compression level to use
+     * @throws DictionaryNotAllowedException if the dictionary buffer is not {@code null} and this context does not allow use of a dictionary
+     */
+    DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, int bufferSize, ByteBuf dict, int level) throws IOException;
+
+    /**
+     * Gets a {@link DataOut} which will compress data written to it using this {@link PDeflater} and write the compressed data to the given {@link DataOut}.
+     * <p>
+     * This will cause the internal write buffer to be allocated using the default {@link ByteBufAllocator} and size.
+     *
+     * @see #compressionStream(DataOut, ByteBufAllocator, int, ZstdDeflateDictionary)
+     */
+    default DataOut compressionStream(@NonNull DataOut out, ZstdDeflateDictionary dict) throws IOException {
+        return this.compressionStream(out, null, -1, dict);
+    }
+
+    /**
+     * Gets a {@link DataOut} which will compress data written to it using this {@link PDeflater} and write the compressed data to the given {@link DataOut}.
+     * <p>
+     * This will cause the internal write buffer to be allocated using the default size.
+     *
+     * @param bufferAlloc the {@link ByteBufAllocator} to be used for allocating the internal write buffer. If {@code null}, the default allocator will be used
+     * @see #compressionStream(DataOut, ByteBufAllocator, int, ZstdDeflateDictionary)
+     */
+    default DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, ZstdDeflateDictionary dict) throws IOException {
+        return this.compressionStream(out, bufferAlloc, -1, dict);
+    }
+
+    /**
+     * Gets a {@link DataOut} which will compress data written to it using this {@link PDeflater} and write the compressed data to the given {@link DataOut}.
+     * <p>
+     * This will cause the internal write buffer to be allocated using the default {@link ByteBufAllocator}.
+     *
+     * @param bufferSize the size of the internal write buffer. If not positive, the default buffer size will be used
+     * @see #compressionStream(DataOut, ByteBufAllocator, int, ZstdDeflateDictionary)
+     */
+    default DataOut compressionStream(@NonNull DataOut out, int bufferSize, ZstdDeflateDictionary dict) throws IOException {
+        return this.compressionStream(out, null, bufferSize, dict);
+    }
+
+    /**
+     * Gets a {@link DataOut} which will compress data written to it using this {@link PDeflater} and write the compressed data to the given {@link DataOut}.
+     *
+     * @param bufferAlloc the {@link ByteBufAllocator} to be used for allocating the internal write buffer. If {@code null}, the default allocator will be used
+     * @param bufferSize  the size of the internal write buffer. If not positive, the default buffer size will be used
+     * @throws DictionaryNotAllowedException if the dictionary buffer is not {@code null} and this context does not allow use of a dictionary
+     */
+    DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, int bufferSize, ZstdDeflateDictionary dict) throws IOException;
 
     @Override
     default boolean hasDict() {

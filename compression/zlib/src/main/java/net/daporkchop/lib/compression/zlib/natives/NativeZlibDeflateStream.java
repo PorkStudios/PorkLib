@@ -40,6 +40,7 @@ import static net.daporkchop.lib.compression.zlib.natives.NativeZlibDeflater.*;
 /**
  * @author DaPorkchop_
  */
+@SuppressWarnings("Duplicates")
 final class NativeZlibDeflateStream extends AbstractDirectDataOut {
     final long ctx;
     final long session;

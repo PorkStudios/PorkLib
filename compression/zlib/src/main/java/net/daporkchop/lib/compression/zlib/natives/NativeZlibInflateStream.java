@@ -41,6 +41,7 @@ import static net.daporkchop.lib.compression.zlib.natives.NativeZlibInflater.*;
 /**
  * @author DaPorkchop_
  */
+@SuppressWarnings("Duplicates")
 final class NativeZlibInflateStream extends AbstractDirectDataIn {
     final long ctx;
     final long session;

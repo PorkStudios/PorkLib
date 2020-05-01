@@ -29,6 +29,7 @@ __attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkch
 __attribute__((visibility("default"))) JNIEXPORT void JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater_release0
         (JNIEnv* env, jclass cla, jlong _ctx)   {
     Context* ctx = (Context*) _ctx;
+
     auto ret = ZSTD_freeCStream(ctx->stream);
 
     if (ZSTD_isError(ret))  {
@@ -46,6 +47,48 @@ __attribute__((visibility("default"))) JNIEXPORT void JNICALL Java_net_daporkcho
 __attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater_newSession0
         (JNIEnv* env, jclass cla, jlong _ctx)   {
     Context* ctx = (Context*) _ctx;
+    ZSTD_CCtx_reset(ctx->stream, ZSTD_reset_session_only);
+
+    return ++ctx->session;
+}
+
+/*
+ * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater
+ * Method:    newSessionWithLevel0
+ * Signature: (JI)J
+ */
+__attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater_newSessionWithLevel0
+        (JNIEnv* env, jclass cla, jlong _ctx, jint level)   {
+    Context* ctx = (Context*) _ctx;
+    ZSTD_CCtx_reset(ctx->stream, ZSTD_reset_session_only);
+
+    auto ret = ZSTD_CCtx_setParameter(ctx->stream, ZSTD_c_compressionLevel, level);
+
+    if (ZSTD_isError(ret))  {
+        throwException(env, ZSTD_getErrorName(ret), (jlong) ret);
+        return 0;
+    }
+
+    return ++ctx->session;
+}
+
+/*
+ * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater
+ * Method:    newSessionWithDict0
+ * Signature: (JJ)J
+ */
+__attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater_newSessionWithDict0
+        (JNIEnv* env, jclass cla, jlong _ctx, jlong dict)   {
+    Context* ctx = (Context*) _ctx;
+    ZSTD_CCtx_reset(ctx->stream, ZSTD_reset_session_only);
+
+    auto ret = ZSTD_CCtx_refCDict(ctx->stream, (ZSTD_CDict*) dict);
+
+    if (ZSTD_isError(ret))  {
+        throwException(env, ZSTD_getErrorName(ret), (jlong) ret);
+        return 0;
+    }
+
     return ++ctx->session;
 }
 
@@ -57,6 +100,7 @@ __attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkch
 __attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater_compressD2D0
         (JNIEnv* env, jclass cla, jlong _ctx, jlong src, jint srcLen, jlong dst, jint dstLen, jint level)   {
     Context* ctx = (Context*) _ctx;
+    ZSTD_CCtx_reset(ctx->stream, ZSTD_reset_session_only);
 
     auto ret = ZSTD_compressCCtx(ctx->stream, (void*) dst, dstLen, (void*) src, srcLen, level);
 
@@ -80,6 +124,7 @@ __attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkch
 __attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater_compressD2H0
         (JNIEnv* env, jclass cla, jlong _ctx, jlong src, jint srcLen, jbyteArray dst, jint dstOff, jint dstLen, jint level)   {
     Context* ctx = (Context*) _ctx;
+    ZSTD_CCtx_reset(ctx->stream, ZSTD_reset_session_only);
 
     auto dstPtr = (unsigned char*) env->GetPrimitiveArrayCritical(dst, nullptr);
     if (!dstPtr)    {
@@ -111,6 +156,7 @@ __attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkch
 __attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater_compressH2D0
         (JNIEnv* env, jclass cla, jlong _ctx, jbyteArray src, jint srcOff, jint srcLen, jlong dst, jint dstLen, jint level)   {
     Context* ctx = (Context*) _ctx;
+    ZSTD_CCtx_reset(ctx->stream, ZSTD_reset_session_only);
 
     auto srcPtr = (unsigned char*) env->GetPrimitiveArrayCritical(src, nullptr);
     if (!srcPtr)    {
@@ -142,6 +188,7 @@ __attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkch
 __attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater_compressH2H0
         (JNIEnv* env, jclass cla, jlong _ctx, jbyteArray src, jint srcOff, jint srcLen, jbyteArray dst, jint dstOff, jint dstLen, jint level)   {
     Context* ctx = (Context*) _ctx;
+    ZSTD_CCtx_reset(ctx->stream, ZSTD_reset_session_only);
 
     auto srcPtr = (unsigned char*) env->GetPrimitiveArrayCritical(src, nullptr);
     if (!srcPtr)    {
@@ -175,12 +222,13 @@ __attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkch
 
 /*
  * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater
- * Method:    compressD2DD0
+ * Method:    compressD2DWithDict0
  * Signature: (JJIJIJ)J
  */
-__attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater_compressD2DD0
+__attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater_compressD2DWithDict0
         (JNIEnv* env, jclass cla, jlong _ctx, jlong src, jint srcLen, jlong dst, jint dstLen, jlong dict)   {
     Context* ctx = (Context*) _ctx;
+    ZSTD_CCtx_reset(ctx->stream, ZSTD_reset_session_only);
 
     auto ret = ZSTD_compress_usingCDict(ctx->stream, (void*) dst, dstLen, (void*) src, srcLen, (ZSTD_CDict*) dict);
 
@@ -198,12 +246,13 @@ __attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkch
 
 /*
  * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater
- * Method:    compressD2HD0
+ * Method:    compressD2HWithDict0
  * Signature: (JJI[BIIJ)J
  */
-__attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater_compressD2HD0
+__attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater_compressD2HWithDict0
         (JNIEnv* env, jclass cla, jlong _ctx, jlong src, jint srcLen, jbyteArray dst, jint dstOff, jint dstLen, jlong dict)   {
     Context* ctx = (Context*) _ctx;
+    ZSTD_CCtx_reset(ctx->stream, ZSTD_reset_session_only);
 
     auto dstPtr = (unsigned char*) env->GetPrimitiveArrayCritical(dst, nullptr);
     if (!dstPtr)    {
@@ -229,12 +278,13 @@ __attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkch
 
 /*
  * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater
- * Method:    compressH2DD0
+ * Method:    compressH2DWithDict0
  * Signature: (J[BIIJIJ)J
  */
-__attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater_compressH2DD0
+__attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater_compressH2DWithDict0
         (JNIEnv* env, jclass cla, jlong _ctx, jbyteArray src, jint srcOff, jint srcLen, jlong dst, jint dstLen, jlong dict)   {
     Context* ctx = (Context*) _ctx;
+    ZSTD_CCtx_reset(ctx->stream, ZSTD_reset_session_only);
 
     auto srcPtr = (unsigned char*) env->GetPrimitiveArrayCritical(src, nullptr);
     if (!srcPtr)    {
@@ -260,12 +310,13 @@ __attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkch
 
 /*
  * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater
- * Method:    compressH2HD0
+ * Method:    compressH2HWithDict0
  * Signature: (J[BII[BIIJ)J
  */
-__attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater_compressH2HD0
+__attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater_compressH2HWithDict0
         (JNIEnv* env, jclass cla, jlong _ctx, jbyteArray src, jint srcOff, jint srcLen, jbyteArray dst, jint dstOff, jint dstLen, jlong dict)   {
     Context* ctx = (Context*) _ctx;
+    ZSTD_CCtx_reset(ctx->stream, ZSTD_reset_session_only);
 
     auto srcPtr = (unsigned char*) env->GetPrimitiveArrayCritical(src, nullptr);
     if (!srcPtr)    {

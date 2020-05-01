@@ -161,7 +161,7 @@ public class ZstdTest {
         }
     }*/
 
-    /*@Test
+    @Test
     public void testStreamCompression() throws IOException {
         try (PDeflater deflater = Zstd.PROVIDER.deflater()) {
             this.forEachBufferType(2, buffers -> {
@@ -183,7 +183,7 @@ public class ZstdTest {
                 }
             });
         }
-    }*/
+    }
 
     /*@Test
     public void testStreamDecompression() throws IOException {

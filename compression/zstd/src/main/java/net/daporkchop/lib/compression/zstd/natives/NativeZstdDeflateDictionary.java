@@ -21,6 +21,7 @@
 package net.daporkchop.lib.compression.zstd.natives;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -62,7 +63,7 @@ final class NativeZstdDeflateDictionary extends AbstractRefCounted implements Zs
         } else if (dict.hasArray()) {
             this.addr = digestH0(dict.array(), dict.arrayOffset() + dict.readerIndex(), dict.readableBytes(), level);
         } else {
-            ByteBuf buf = Unpooled.directBuffer(dict.readableBytes(), dict.readableBytes());
+            ByteBuf buf = PooledByteBufAllocator.DEFAULT.directBuffer(dict.readableBytes(), dict.readableBytes());
             try {
                 dict.getBytes(dict.readerIndex(), buf);
                 this.addr = digestD0(buf.memoryAddress() + buf.readerIndex(), buf.readableBytes(), level);

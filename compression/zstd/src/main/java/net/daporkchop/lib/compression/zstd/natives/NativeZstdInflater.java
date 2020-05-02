@@ -154,7 +154,7 @@ final class NativeZstdInflater extends AbstractRefCounted.Synchronized implement
         try {
             if (!dict.hasMemoryAddress() && !dict.hasArray()) {
                 //dict is composite
-                ByteBuf buf = Unpooled.directBuffer(dict.readableBytes(), dict.readableBytes());
+                ByteBuf buf = PooledByteBufAllocator.DEFAULT.directBuffer(dict.readableBytes(), dict.readableBytes());
                 dict.getBytes(dict.readerIndex(), buf);
                 dict = buf;
                 releaseDict = true;
@@ -491,7 +491,7 @@ final class NativeZstdInflater extends AbstractRefCounted.Synchronized implement
         } else if (dict.hasArray()) {
             return newSessionWithDictH0(this.ctx, dict.array(), dict.arrayOffset() + dict.readerIndex(), dict.readableBytes());
         } else {
-            ByteBuf buf = Unpooled.directBuffer(dict.readableBytes(), dict.readableBytes());
+            ByteBuf buf = PooledByteBufAllocator.DEFAULT.directBuffer(dict.readableBytes(), dict.readableBytes());
             try {
                 dict.getBytes(dict.readerIndex(), buf);
                 return newSessionWithDictD0(this.ctx, buf.memoryAddress() + buf.readerIndex(), buf.readableBytes());

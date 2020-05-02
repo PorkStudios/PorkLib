@@ -59,10 +59,6 @@ final class NativeZstdDeflater extends AbstractRefCounted.Synchronized implement
 
     static native long newSession0(long ctx);
 
-    static native long newSessionWithLevel0(long ctx, int level);
-
-    static native long newSessionWithDict0(long ctx, long dict);
-
     static native long compressD2D0(long ctx, long src, int srcLen, long dst, int dstLen, int level);
 
     static native long compressD2H0(long ctx, long src, int srcLen, byte[] dst, int dstOff, int dstLen, int level);
@@ -78,6 +74,20 @@ final class NativeZstdDeflater extends AbstractRefCounted.Synchronized implement
     static native long compressH2DWithDict0(long ctx, byte[] src, int srcOff, int srcLen, long dst, int dstLen, long dict);
 
     static native long compressH2HWithDict0(long ctx, byte[] src, int srcOff, int srcLen, byte[] dst, int dstOff, int dstLen, long dict);
+
+    //streaming
+
+    static native long newSessionWithLevel0(long ctx, int level);
+
+    static native long newSessionWithDict0(long ctx, long dict);
+
+    static native long updateD2D0(long ctx, long src, int srcLen, long dst, int dstLen, int flush);
+
+    static native long updateD2H0(long ctx, long src, int srcLen, byte[] dst, int dstOff, int dstLen, int flush);
+
+    static native long updateH2D0(long ctx, byte[] src, int srcOff, int srcLen, long dst, int dstLen, int flush);
+
+    static native long updateH2H0(long ctx, byte[] src, int srcOff, int srcLen, byte[] dst, int dstOff, int dstLen, int flush);
 
     final long ctx;
 

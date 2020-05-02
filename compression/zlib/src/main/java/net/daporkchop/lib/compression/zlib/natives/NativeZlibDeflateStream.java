@@ -124,31 +124,33 @@ final class NativeZlibDeflateStream extends AbstractDirectDataOut {
                              Z_SYNC_FLUSH);
             this.buf.writerIndex(this.buf.writerIndex() + toInt(this.deflater.getWritten(), "written"));
             this.drain();
-        } while (status != Z_OK || !this.buf.isWritable());
+        } while (status != Z_OK);
     }
 
     @Override
     protected void close0() throws IOException {
-        this.ensureValidSession();
+        try {
+            this.ensureValidSession();
 
-        this.drain();
-        int status;
-        do {
-
-            status = this.buf.hasMemoryAddress() ?
-                     updateD2D0(this.ctx, 0L, 0,
-                             this.buf.memoryAddress() + this.buf.writerIndex(), this.buf.writableBytes(),
-                             Z_FINISH) :
-                     updateD2H0(this.ctx, 0L, 0,
-                             this.buf.array(), this.buf.arrayOffset() + this.buf.writerIndex(), this.buf.writableBytes(),
-                             Z_FINISH);
-            this.buf.writerIndex(this.buf.writerIndex() + toInt(this.deflater.getWritten(), "written"));
             this.drain();
-        } while (status != Z_STREAM_END);
+            int status;
+            do {
+                status = this.buf.hasMemoryAddress() ?
+                         updateD2D0(this.ctx, 0L, 0,
+                                 this.buf.memoryAddress() + this.buf.writerIndex(), this.buf.writableBytes(),
+                                 Z_FINISH) :
+                         updateD2H0(this.ctx, 0L, 0,
+                                 this.buf.array(), this.buf.arrayOffset() + this.buf.writerIndex(), this.buf.writableBytes(),
+                                 Z_FINISH);
+                this.buf.writerIndex(this.buf.writerIndex() + toInt(this.deflater.getWritten(), "written"));
+                this.drain();
+            } while (status != Z_STREAM_END);
 
-        this.out.close();
-        this.buf.release();
-        this.deflater.release();
+            this.out.close();
+        } finally {
+            this.buf.release();
+            this.deflater.release();
+        }
     }
 
     protected int drain() throws IOException {

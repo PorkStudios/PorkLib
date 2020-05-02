@@ -28,8 +28,8 @@ import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.compression.zstd.Zstd;
 import net.daporkchop.lib.compression.zstd.ZstdDeflateDictionary;
-import net.daporkchop.lib.compression.zstd.ZstdInflateDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdDeflater;
+import net.daporkchop.lib.compression.zstd.ZstdInflateDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdInflater;
 import net.daporkchop.lib.compression.zstd.ZstdProvider;
 import net.daporkchop.lib.compression.zstd.options.ZstdDeflaterOptions;
@@ -54,8 +54,12 @@ final class NativeZstd extends NativeFeature<ZstdProvider> implements ZstdProvid
 
     private static native long compressBound0(long srcLen);
 
+    static final int ZSTD_e_continue = 0;
+    static final int ZSTD_e_flush = 1;
+    static final int ZSTD_e_end = 2;
+
     static final long ZSTD_CONTENTSIZE_UNKNOWN = -1L;
-static final long ZSTD_CONTENTSIZE_ERROR = -2L;
+    static final long ZSTD_CONTENTSIZE_ERROR = -2L;
 
     static final int FRAME_HEADER_SIZE_MAX = 18;
 
@@ -77,7 +81,7 @@ static final long ZSTD_CONTENTSIZE_ERROR = -2L;
             }
         }
 
-        if (contentSize >= 0L)   {
+        if (contentSize >= 0L) {
             return contentSize;
         } else if (contentSize == ZSTD_CONTENTSIZE_UNKNOWN) {
             throw new ContentSizeUnknownException();

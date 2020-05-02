@@ -32,7 +32,10 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ConcurrentModificationException;
 
-import static net.daporkchop.lib.common.util.PValidation.checkArg;
+import static java.lang.Math.*;
+import static net.daporkchop.lib.common.util.PValidation.*;
+import static net.daporkchop.lib.compression.zstd.natives.NativeZstd.*;
+import static net.daporkchop.lib.compression.zstd.natives.NativeZstdDeflater.*;
 
 /**
  * @author DaPorkchop_
@@ -68,19 +71,103 @@ final class NativeZstdDeflateStream extends AbstractDirectDataOut {
     }
 
     @Override
+    protected void write0(@NonNull byte[] src, int start, int length) throws IOException {
+        this.drain(); //drain buffer completely
+        int total = 0;
+        do {
+            int blockSize = min(length - total, Integer.MAX_VALUE);
+            if (this.buf.hasMemoryAddress()) {
+                updateH2D0(this.ctx, src, start + total, blockSize,
+                        this.buf.memoryAddress() + this.buf.writerIndex(), this.buf.writableBytes(),
+                        ZSTD_e_continue);
+            } else {
+                updateH2H0(this.ctx, src, start + total, blockSize,
+                        this.buf.array(), this.buf.arrayOffset() + this.buf.writerIndex(), this.buf.writableBytes(),
+                        ZSTD_e_continue);
+            }
+
+            total += this.deflater.getRead();
+            this.buf.writerIndex(this.buf.writerIndex() + toInt(this.deflater.getWritten(), "written"));
+            this.drain();
+        } while (total < length);
+    }
+
+    @Override
     protected void write0(long addr, long length) throws IOException {
+        this.drain(); //drain buffer completely
+        long total = 0L;
+        do {
+            int blockSize = toInt(min(length - total, Integer.MAX_VALUE));
+            if (this.buf.hasMemoryAddress()) {
+                updateD2D0(this.ctx, addr + total, blockSize,
+                        this.buf.memoryAddress() + this.buf.writerIndex(), this.buf.writableBytes(),
+                        ZSTD_e_continue);
+            } else {
+                updateD2H0(this.ctx, addr + total, blockSize,
+                        this.buf.array(), this.buf.arrayOffset() + this.buf.writerIndex(), this.buf.writableBytes(),
+                        ZSTD_e_continue);
+            }
+
+            total += this.deflater.getRead();
+            this.buf.writerIndex(this.buf.writerIndex() + toInt(this.deflater.getWritten(), "written"));
+            this.drain();
+        } while (total < length);
     }
 
     @Override
     protected void flush0() throws IOException {
+        this.drain();
+        long remaining;
+        do {
+            remaining = this.buf.hasMemoryAddress() ?
+                        updateD2D0(this.ctx, 0L, 0,
+                                this.buf.memoryAddress() + this.buf.writerIndex(), this.buf.writableBytes(),
+                                ZSTD_e_flush) :
+                        updateD2H0(this.ctx, 0L, 0,
+                                this.buf.array(), this.buf.arrayOffset() + this.buf.writerIndex(), this.buf.writableBytes(),
+                                ZSTD_e_flush);
+            this.buf.writerIndex(this.buf.writerIndex() + toInt(this.deflater.getWritten(), "written"));
+            this.drain();
+        } while (remaining != 0L);
     }
 
     @Override
     protected void close0() throws IOException {
-        if (this.dict != null)  {
-            this.dict.release();
+        try {
+            this.ensureValidSession();
+
+            this.drain();
+            long remaining;
+            do {
+                remaining = this.buf.hasMemoryAddress() ?
+                            updateD2D0(this.ctx, 0L, 0,
+                                    this.buf.memoryAddress() + this.buf.writerIndex(), this.buf.writableBytes(),
+                                    ZSTD_e_end) :
+                            updateD2H0(this.ctx, 0L, 0,
+                                    this.buf.array(), this.buf.arrayOffset() + this.buf.writerIndex(), this.buf.writableBytes(),
+                                    ZSTD_e_end);
+                this.buf.writerIndex(this.buf.writerIndex() + toInt(this.deflater.getWritten(), "written"));
+                this.drain();
+            } while (remaining != 0L);
+
+            this.out.close();
+        } finally {
+            if (this.dict != null) {
+                this.dict.release();
+            }
+            this.buf.release();
+            this.deflater.release();
         }
-        this.out.close();
+    }
+
+    protected int drain() throws IOException {
+        if (this.buf.isReadable()) {
+            int written = this.out.write(this.buf);
+            this.buf.clear();
+            return written;
+        } else {
+            return -1;
+        }
     }
 
     @Override

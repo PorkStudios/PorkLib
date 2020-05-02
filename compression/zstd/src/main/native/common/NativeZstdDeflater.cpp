@@ -348,4 +348,168 @@ __attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkch
     return (jlong) ret;
 }
 
+/*
+ * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater
+ * Method:    updateD2D0
+ * Signature: (JJIJII)J
+ */
+__attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater_updateD2D0
+        (JNIEnv* env, jclass cla, jlong _ctx, jlong src, jint srcLen, jlong dst, jint dstLen, jint endop)   {
+    Context* ctx = (Context*) _ctx;
+    ZSTD_CCtx_reset(ctx->stream, ZSTD_reset_session_only);
+
+    ZSTD_outBuffer out;
+    out.dst = (void*) dst;
+    out.size = dstLen;
+    out.pos = 0;
+
+    ZSTD_inBuffer in;
+    in.src = (void*) src;
+    in.size = srcLen;
+    in.pos = 0;
+
+    auto ret = ZSTD_compressStream2(ctx->stream, &out, &in, (ZSTD_EndDirective) endop);
+
+    if (ZSTD_isError(ret))  {
+        throwException(env, ZSTD_getErrorName(ret), (jlong) ret);
+        return 0;
+    }
+
+    ctx->read = in.pos;
+    ctx->written = out.pos;
+
+    return (jlong) ret;
+}
+
+/*
+ * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater
+ * Method:    updateD2H0
+ * Signature: (JJI[BIII)J
+ */
+__attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater_updateD2H0
+        (JNIEnv* env, jclass cla, jlong _ctx, jlong src, jint srcLen, jbyteArray dst, jint dstOff, jint dstLen, jint endop)   {
+    Context* ctx = (Context*) _ctx;
+    ZSTD_CCtx_reset(ctx->stream, ZSTD_reset_session_only);
+
+    auto dstPtr = (unsigned char*) env->GetPrimitiveArrayCritical(dst, nullptr);
+    if (!dstPtr)    {
+        throwException(env, "Unable to pin dst array");
+        return 0;
+    }
+
+    ZSTD_outBuffer out;
+    out.dst = &dstPtr[dstOff];
+    out.size = dstLen;
+    out.pos = 0;
+
+    ZSTD_inBuffer in;
+    in.src = (void*) src;
+    in.size = srcLen;
+    in.pos = 0;
+
+    auto ret = ZSTD_compressStream2(ctx->stream, &out, &in, (ZSTD_EndDirective) endop);
+
+    env->ReleasePrimitiveArrayCritical(dst, dstPtr, 0);
+
+    if (ZSTD_isError(ret))  {
+        throwException(env, ZSTD_getErrorName(ret), (jlong) ret);
+        return 0;
+    }
+
+    ctx->read = in.pos;
+    ctx->written = out.pos;
+
+    return (jlong) ret;
+}
+
+/*
+ * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater
+ * Method:    updateH2D0
+ * Signature: (J[BIIJII)J
+ */
+__attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater_updateH2D0
+        (JNIEnv* env, jclass cla, jlong _ctx, jbyteArray src, jint srcOff, jint srcLen, jlong dst, jint dstLen, jint endop)   {
+    Context* ctx = (Context*) _ctx;
+    ZSTD_CCtx_reset(ctx->stream, ZSTD_reset_session_only);
+
+    auto srcPtr = (unsigned char*) env->GetPrimitiveArrayCritical(src, nullptr);
+    if (!srcPtr)    {
+        throwException(env, "Unable to pin src array");
+        return 0;
+    }
+
+    ZSTD_outBuffer out;
+    out.dst = (void*) dst;
+    out.size = dstLen;
+    out.pos = 0;
+
+    ZSTD_inBuffer in;
+    in.src = &srcPtr[srcOff];
+    in.size = srcLen;
+    in.pos = 0;
+
+    auto ret = ZSTD_compressStream2(ctx->stream, &out, &in, (ZSTD_EndDirective) endop);
+
+    env->ReleasePrimitiveArrayCritical(src, srcPtr, 0);
+
+    if (ZSTD_isError(ret))  {
+        throwException(env, ZSTD_getErrorName(ret), (jlong) ret);
+        return 0;
+    }
+
+    ctx->read = in.pos;
+    ctx->written = out.pos;
+
+    return (jlong) ret;
+}
+
+/*
+ * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater
+ * Method:    updateH2D0
+ * Signature: (J[BII[BIII)J
+ */
+__attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater_updateH2H0
+        (JNIEnv* env, jclass cla, jlong _ctx, jbyteArray src, jint srcOff, jint srcLen, jbyteArray dst, jint dstOff, jint dstLen, jint endop)   {
+    Context* ctx = (Context*) _ctx;
+    ZSTD_CCtx_reset(ctx->stream, ZSTD_reset_session_only);
+
+    auto srcPtr = (unsigned char*) env->GetPrimitiveArrayCritical(src, nullptr);
+    if (!srcPtr)    {
+        throwException(env, "Unable to pin src array");
+        return 0;
+    }
+
+    auto dstPtr = (unsigned char*) env->GetPrimitiveArrayCritical(dst, nullptr);
+    if (!dstPtr)    {
+        env->ReleasePrimitiveArrayCritical(src, srcPtr, 0);
+        throwException(env, "Unable to pin dst array");
+        return 0;
+    }
+
+    ZSTD_outBuffer out;
+    out.dst = &dstPtr[dstOff];
+    out.size = dstLen;
+    out.pos = 0;
+
+    ZSTD_inBuffer in;
+    in.src = &srcPtr[srcOff];
+    in.size = srcLen;
+    in.pos = 0;
+
+    auto ret = ZSTD_compressStream2(ctx->stream, &out, &in, (ZSTD_EndDirective) endop);
+
+    env->ReleasePrimitiveArrayCritical(dst, dstPtr, 0);
+    env->ReleasePrimitiveArrayCritical(src, srcPtr, 0);
+
+    if (ZSTD_isError(ret))  {
+        throwException(env, ZSTD_getErrorName(ret), (jlong) ret);
+        return 0;
+    }
+
+    ctx->read = in.pos;
+    ctx->written = out.pos;
+
+    return (jlong) ret;
+}
+
 }

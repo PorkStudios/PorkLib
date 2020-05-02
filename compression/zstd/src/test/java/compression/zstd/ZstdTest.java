@@ -24,6 +24,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.oio.StreamUtil;
+import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.binary.stream.misc.SlashDevSlashNull;
 import net.daporkchop.lib.common.function.io.IOConsumer;
@@ -152,12 +153,12 @@ public class ZstdTest {
             });
 
             //growing
-            /*this.forEachBufferType(2, buffers -> {
-                ByteBuf src = buffers[0].writeBytes(this.gzipped);
+            this.forEachBufferType(2, buffers -> {
+                ByteBuf src = buffers[0].writeBytes(this.zstd);
                 ByteBuf dst = buffers[1];
 
                 inflater.decompressGrowing(src, dst);
-            });*/
+            });
         }
     }
 
@@ -185,20 +186,24 @@ public class ZstdTest {
         }
     }
 
-    /*@Test
+    @Test
     public void testStreamDecompression() throws IOException {
         try (PInflater inflater = Zstd.PROVIDER.inflater()) {
             this.forEachBufferType(2, buffers -> {
-                ByteBuf src = buffers[0].writeBytes(this.gzipped);
+                ByteBuf src = buffers[0].writeBytes(this.zstd);
                 ByteBuf dst = buffers[1].ensureWritable(8192);
 
                 try (DataIn in = inflater.decompressionStream(DataIn.wrap(src))) {
                     in.read(dst);
                     checkState(in.remaining() == 0L, "there was more data remaining!");
                 }
+
+                for (int i = 0; i < this.text.length; i++) {
+                    checkState(dst.getByte(i) == this.text[i], "Difference at index %s (src=%s)", i, src);
+                }
             });
         }
-    }*/
+    }
 
     @Test
     public void testBlock() throws IOException {
@@ -218,7 +223,7 @@ public class ZstdTest {
             });
 
             //growing
-            /*this.forEachBufferType(3, buffers -> {
+            this.forEachBufferType(3, buffers -> {
                 ByteBuf src = buffers[0].writeBytes(this.zeroes);
                 ByteBuf compressed = buffers[1];
                 ByteBuf uncompressed = buffers[2];
@@ -228,7 +233,41 @@ public class ZstdTest {
                 for (int i = 0; i < src.writerIndex(); i++) {
                     checkState(src.getByte(i) == uncompressed.getByte(i), "Difference at index %s (src=%s, uncompressed=%s)", i, src, uncompressed);
                 }
-            });*/
+            });
+        }
+    }
+
+    @Test
+    public void testBlockWithDictionary() throws IOException {
+        try (PDeflater deflater = Zstd.PROVIDER.deflater();
+             PInflater inflater = Zstd.PROVIDER.inflater()) {
+            //one-shot
+            this.forEachBufferType(4, buffers -> {
+                ByteBuf src = buffers[0].writeBytes(this.text);
+                ByteBuf compressed = buffers[1].ensureWritable(deflater.provider().compressBound(src.readableBytes()));
+                ByteBuf uncompressed = buffers[2].ensureWritable(src.readableBytes());
+                ByteBuf dict = buffers[3].writeBytes(this.dictionary);
+                checkState(deflater.compress(src, compressed, dict), "compression failed!");
+                checkState(inflater.decompress(compressed, uncompressed, dict), "decompression failed!");
+
+                for (int i = 0; i < src.writerIndex(); i++) {
+                    checkState(src.getByte(i) == uncompressed.getByte(i), "Difference at index %s (src=%s, uncompressed=%s)", i, src, uncompressed);
+                }
+            });
+
+            //growing
+            this.forEachBufferType(4, buffers -> {
+                ByteBuf src = buffers[0].writeBytes(this.text);
+                ByteBuf compressed = buffers[1];
+                ByteBuf uncompressed = buffers[2];
+                ByteBuf dict = buffers[3].writeBytes(this.dictionary);
+                deflater.compressGrowing(src, compressed, dict);
+                inflater.decompressGrowing(compressed, uncompressed, dict);
+
+                for (int i = 0; i < src.writerIndex(); i++) {
+                    checkState(src.getByte(i) == uncompressed.getByte(i), "Difference at index %s (src=%s, uncompressed=%s)", i, src, uncompressed);
+                }
+            });
         }
     }
 

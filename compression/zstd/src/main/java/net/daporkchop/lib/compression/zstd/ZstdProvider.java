@@ -43,9 +43,11 @@ public interface ZstdProvider extends CompressionProvider<ZstdProvider, ZstdDefl
     }
 
     /**
-     * Gets the decompressed size of the given Zstd-compressed data.
+     * Gets the decompressed size of the given Zstd-compressed frame.
+     * <p>
+     * Note that this only operates on single frames, not the entire compressed data segment.
      *
-     * @param src the {@link ByteBuf} containing the compressed data. This {@link ByteBuf}'s indices will not be modified by this method
+     * @param src the {@link ByteBuf} containing the compressed frame. This {@link ByteBuf}'s indices will not be modified by this method
      * @return the size (in bytes) of the decompressed data
      * @throws ContentSizeUnknownException if the decompressed size cannot be determined
      */

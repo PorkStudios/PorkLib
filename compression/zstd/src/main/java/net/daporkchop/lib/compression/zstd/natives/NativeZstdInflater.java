@@ -22,6 +22,7 @@ package net.daporkchop.lib.compression.zstd.natives;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -30,6 +31,7 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.compression.zstd.ZstdInflateDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdInflater;
 import net.daporkchop.lib.compression.zstd.options.ZstdInflaterOptions;
@@ -40,6 +42,7 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 import java.io.IOException;
 import java.util.ConcurrentModificationException;
 
+import static java.lang.Math.*;
 import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
@@ -342,23 +345,170 @@ final class NativeZstdInflater extends AbstractRefCounted.Synchronized implement
     @Override
     public synchronized void decompressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) throws IndexOutOfBoundsException {
         this.ensureNotReleased();
+
+        if (!(src.hasMemoryAddress() || src.hasArray()) || !(dst.hasMemoryAddress() || dst.hasArray())) {
+            //the other cases are too much of a pain to implement by hand
+            try (DataIn in = this.decompressionStream(DataIn.wrap(src), null, -1, dict);
+                 DataOut out = DataOut.wrap(dst, true)) {
+                out.transferFrom(in);
+                return;
+            } catch (IOException e) {
+                //shouldn't be possible
+                throw new RuntimeException(e);
+            }
+        }
+
+        this.decompressGrowing0(src, dst, this.createSessionAndSetDict(dict));
     }
 
     @Override
     public synchronized void decompressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdInflateDictionary dict) throws IndexOutOfBoundsException {
         this.ensureNotReleased();
+        checkArg(dict == null || dict instanceof NativeZstdInflateDictionary, "invalid dictionary: %s", dict);
+
+        if (!(src.hasMemoryAddress() || src.hasArray()) || !(dst.hasMemoryAddress() || dst.hasArray())) {
+            //the other cases are too much of a pain to implement by hand
+            try (DataIn in = this.decompressionStream(DataIn.wrap(src), null, -1, dict);
+                 DataOut out = DataOut.wrap(dst, true)) {
+                out.transferFrom(in);
+                return;
+            } catch (IOException e) {
+                //shouldn't be possible
+                throw new RuntimeException(e);
+            }
+        }
+
+        long session = this.createSessionAndSetDict((NativeZstdInflateDictionary) dict);
+        try {
+            this.decompressGrowing0(src, dst, session);
+        } finally {
+            if (dict != null) {
+                dict.release();
+            }
+        }
+    }
+
+    void decompressGrowing0(@NonNull ByteBuf src, @NonNull ByteBuf dst, long session) throws IndexOutOfBoundsException {
+        try {
+            while (true) {
+                long remaining;
+                if (src.hasMemoryAddress()) {
+                    if (dst.hasMemoryAddress()) {
+                        remaining = updateD2D0(this.ctx,
+                                src.memoryAddress() + src.readerIndex(), src.readableBytes(),
+                                dst.memoryAddress() + dst.writerIndex(), dst.writableBytes());
+                    } else if (dst.hasArray()) {
+                        remaining = updateD2H0(this.ctx,
+                                src.memoryAddress() + src.readerIndex(), src.readableBytes(),
+                                dst.array(), dst.arrayOffset() + dst.writerIndex(), dst.writableBytes());
+                    } else {
+                        throw new IllegalStateException(src + " " + dst);
+                    }
+                } else if (src.hasArray()) {
+                    if (dst.hasMemoryAddress()) {
+                        remaining = updateH2D0(this.ctx,
+                                src.array(), src.arrayOffset() + src.readerIndex(), src.readableBytes(),
+                                dst.memoryAddress() + dst.writerIndex(), dst.writableBytes());
+                    } else if (dst.hasArray()) {
+                        remaining = updateH2H0(this.ctx,
+                                src.array(), src.arrayOffset() + src.readerIndex(), src.readableBytes(),
+                                dst.array(), dst.arrayOffset() + dst.writerIndex(), dst.writableBytes());
+                    } else {
+                        throw new IllegalStateException(src + " " + dst);
+                    }
+                } else {
+                    throw new IllegalStateException(src + " " + dst);
+                }
+
+                //increase indices
+                src.skipBytes(toInt(this.getRead(), "read"));
+                dst.writerIndex(dst.writerIndex() + toInt(this.getWritten(), "written"));
+
+                if (remaining == 0L && !src.isReadable()) {
+                    break;
+                } else if (!dst.isWritable()) {
+                    checkIndex(dst.writerIndex() < dst.maxCapacity());
+                    dst.ensureWritable(min(dst.maxWritableBytes(), 8192));
+                } else {
+                    throw new IllegalStateException(String.valueOf(remaining));
+                }
+            }
+            checkState(!src.isReadable());
+        } finally {
+            if (session != this.getSession()) {
+                throw new ConcurrentModificationException(); //probably impossible
+            }
+        }
     }
 
     @Override
     public synchronized DataIn decompressionStream(@NonNull DataIn in, ByteBufAllocator bufferAlloc, int bufferSize, ByteBuf dict) throws IOException {
         this.ensureNotReleased();
-        return null;
+        if (bufferAlloc == null) {
+            bufferAlloc = PooledByteBufAllocator.DEFAULT;
+        }
+        if (bufferSize <= 0) {
+            bufferSize = PorkUtil.BUFFER_SIZE;
+        }
+        ByteBuf buf;
+        if (in.isDirect()) {
+            buf = bufferAlloc.directBuffer(bufferSize, bufferSize);
+        } else if (in.isHeap()) {
+            buf = bufferAlloc.heapBuffer(bufferSize, bufferSize);
+        } else {
+            buf = bufferAlloc.buffer(bufferSize, bufferSize);
+        }
+        return new NativeZstdInflateStream(in, buf, dict, this);
     }
 
     @Override
     public synchronized DataIn decompressionStream(@NonNull DataIn in, ByteBufAllocator bufferAlloc, int bufferSize, ZstdInflateDictionary dict) throws IOException {
         this.ensureNotReleased();
-        return null;
+        checkArg(dict == null || dict instanceof NativeZstdInflateDictionary, "invalid dictionary: %s", dict);
+        if (bufferAlloc == null) {
+            bufferAlloc = PooledByteBufAllocator.DEFAULT;
+        }
+        if (bufferSize <= 0) {
+            bufferSize = PorkUtil.BUFFER_SIZE;
+        }
+        ByteBuf buf;
+        if (in.isDirect()) {
+            buf = bufferAlloc.directBuffer(bufferSize, bufferSize);
+        } else if (in.isHeap()) {
+            buf = bufferAlloc.heapBuffer(bufferSize, bufferSize);
+        } else {
+            buf = bufferAlloc.buffer(bufferSize, bufferSize);
+        }
+        return new NativeZstdInflateStream(in, buf, (NativeZstdInflateDictionary) dict, this);
+    }
+
+    long createSessionAndSetDict(ByteBuf dict) {
+        if (dict == null || !dict.isReadable()) {
+            //no dictionary will be used
+            return newSession0(this.ctx);
+        } else if (dict.hasMemoryAddress()) {
+            return newSessionWithDictD0(this.ctx, dict.memoryAddress() + dict.readerIndex(), dict.readableBytes());
+        } else if (dict.hasArray()) {
+            return newSessionWithDictH0(this.ctx, dict.array(), dict.arrayOffset() + dict.readerIndex(), dict.readableBytes());
+        } else {
+            ByteBuf buf = Unpooled.directBuffer(dict.readableBytes(), dict.readableBytes());
+            try {
+                dict.getBytes(dict.readerIndex(), buf);
+                return newSessionWithDictD0(this.ctx, buf.memoryAddress() + buf.readerIndex(), buf.readableBytes());
+            } finally {
+                buf.release();
+            }
+        }
+    }
+
+    long createSessionAndSetDict(NativeZstdInflateDictionary dict) {
+        if (dict == null) {
+            //no dictionary will be used
+            return newSession0(this.ctx);
+        } else {
+            dict.retain();
+            return newSessionWithDict0(this.ctx, dict.addr());
+        }
     }
 
     @Override

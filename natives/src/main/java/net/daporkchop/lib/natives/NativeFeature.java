@@ -18,13 +18,14 @@
  *
  */
 
-package net.daporkchop.lib.natives.impl;
+package net.daporkchop.lib.natives;
 
 import lombok.NonNull;
 import net.daporkchop.lib.common.system.PlatformInfo;
+import net.daporkchop.lib.natives.util.exception.NativeFeaturesUnavailableException;
 
 import java.io.File;
-import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
@@ -83,90 +84,42 @@ public abstract class NativeFeature<F extends Feature<F>> implements Feature<F> 
      * @param libName     the base name of the library
      * @param className   the canonical name of the class that the library will be loaded from
      * @param classLoader the {@link ClassLoader} that provides the library and the class
-     * @return whether or not the library could be successfully loaded
+     * @return the class that the library was loaded from
+     * @throws Throwable if an exception occurs while loading the library
      */
-    public static LoadResult loadNativeLibrary(@NonNull String libName, @NonNull String className, @NonNull ClassLoader classLoader) {
+    public static Class<?> loadNativeLibrary(@NonNull String libName, @NonNull String className, @NonNull ClassLoader classLoader) throws Throwable {
         if (!NativeFeature.AVAILABLE) {
-            return LoadResult.UNAVAILABLE;
+            throw new NativeFeaturesUnavailableException(libName);
         }
 
         String libPath = LIB_FMT + libName + LIB_EXT;
         if (classLoader.getResource(libPath) == null) {
             //library file couldn't be found
-            return LoadResult.MISSING_RESOURCE;
+            throw new FileNotFoundException("resource: " + libPath + ", classLoader: " + classLoader);
         }
 
-        Class<?> clazz;
-        try {
-            //attempt to find the class before making any files
-            clazz = Class.forName(className, false, classLoader);
-        } catch (ClassNotFoundException e) {
-            return LoadResult.MISSING_CLASS;
-        }
+        //attempt to find the class before making any files
+        Class<?> clazz = Class.forName(className, false, classLoader);
 
-        File tempFile;
+        //create new library file
+        File tempFile = File.createTempFile(libName, LIB_EXT);
+        tempFile.deleteOnExit();
+
         try (InputStream in = classLoader.getResourceAsStream(libPath)) {
-            //create new library file
-            tempFile = File.createTempFile(libName, LIB_EXT);
-            tempFile.deleteOnExit();
-
             //copy library from resource to temp directory
             Files.copy(in, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return LoadResult.EXCEPTION;
         }
 
-        try {
-            //pretend to load the library from the other class rather than NativeFeature
-            Method method = Runtime.class.getDeclaredMethod("load0", Class.class, String.class);
-            method.setAccessible(true);
-            method.invoke(Runtime.getRuntime(), clazz, tempFile.getAbsolutePath());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return LoadResult.EXCEPTION;
-        } catch (UnsatisfiedLinkError e)    {
-            e.printStackTrace();
-            return LoadResult.UNSATISFIED_LINK;
-        }
+        //pretend to load the library from the other class rather than NativeFeature
+        Method method = Runtime.class.getDeclaredMethod("load0", Class.class, String.class);
+        method.setAccessible(true);
+        method.invoke(Runtime.getRuntime(), clazz, tempFile.getAbsolutePath());
 
-        return LoadResult.SUCCESS;
+        return clazz;
     }
 
     @Override
     public boolean isNative() {
         return true;
-    }
-
-    /**
-     * Possible results of {@link #loadNativeLibrary(String, String, ClassLoader)}.
-     *
-     * @author DaPorkchop_
-     */
-    public enum LoadResult {
-        /**
-         * The native library was loaded successfully.
-         */
-        SUCCESS,
-        /**
-         * Native libraries are (currently) unavailable on this platform.
-         */
-        UNAVAILABLE,
-        /**
-         * The native library file could not be loaded as a resource from the provided {@link ClassLoader}.
-         */
-        MISSING_RESOURCE,
-        /**
-         * No class with the given name could be found by the provided {@link ClassLoader}.
-         */
-        MISSING_CLASS,
-        /**
-         * An exception occurred while attempting to load the native library.
-         */
-        EXCEPTION,
-        /**
-         * The requested library could not be loaded due to the absence of a required dependency.
-         */
-        UNSATISFIED_LINK;
     }
 }

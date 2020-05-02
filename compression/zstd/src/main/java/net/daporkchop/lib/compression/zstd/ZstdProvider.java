@@ -27,7 +27,7 @@ import net.daporkchop.lib.compression.CompressionProvider;
 import net.daporkchop.lib.compression.zstd.options.ZstdDeflaterOptions;
 import net.daporkchop.lib.compression.zstd.options.ZstdInflaterOptions;
 import net.daporkchop.lib.compression.zstd.util.exception.ContentSizeUnknownException;
-import net.daporkchop.lib.natives.impl.Feature;
+import net.daporkchop.lib.natives.Feature;
 
 /**
  * Representation of a Zstd implementation.

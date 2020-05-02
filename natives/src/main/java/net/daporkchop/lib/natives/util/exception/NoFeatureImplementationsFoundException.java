@@ -18,44 +18,23 @@
  *
  */
 
-package net.daporkchop.lib.natives;
+package net.daporkchop.lib.natives.util.exception;
 
-import lombok.Getter;
-import lombok.experimental.Accessors;
+import net.daporkchop.lib.natives.FeatureBuilder;
+
+import java.util.Collection;
 
 /**
- * Thrown when an exception occurs in native code.
+ * Thrown by {@link FeatureBuilder#build()} when no implementations were able to be loaded successfully.
  *
  * @author DaPorkchop_
  */
-@Getter
-@Accessors(fluent = true)
-public final class NativeException extends RuntimeException {
-    protected final long code;
-
-    public NativeException(long code) {
-        super();
-
-        this.code = code;
-    }
-
-    public NativeException(String message) {
-        this(message, 0L);
-    }
-
-    public NativeException(String message, int code) {
-        this(message, (long) code);
-    }
-
-    public NativeException(String message, long code) {
+public final class NoFeatureImplementationsFoundException extends Exception {
+    public NoFeatureImplementationsFoundException(String message, Collection<FeatureImplementationLoadException> causes) {
         super(message);
 
-        this.code = code;
-    }
-
-    @Override
-    public String getMessage() {
-        String message = super.getMessage();
-        return message == null ? String.valueOf(this.code) : this.code + ": " + message;
+        for (FeatureImplementationLoadException ex : causes)  {
+            this.addSuppressed(ex);
+        }
     }
 }

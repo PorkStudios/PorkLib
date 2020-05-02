@@ -18,44 +18,42 @@
  *
  */
 
-package net.daporkchop.lib.natives;
+package net.daporkchop.lib.natives.impl;
 
-import lombok.Getter;
-import lombok.experimental.Accessors;
+import lombok.NonNull;
+import net.daporkchop.lib.natives.Feature;
+import net.daporkchop.lib.natives.NativeFeature;
+
+import java.lang.reflect.Constructor;
+
+import static net.daporkchop.lib.common.util.PorkUtil.*;
 
 /**
- * Thrown when an exception occurs in native code.
+ * A native implementation of a {@link Feature}.
  *
  * @author DaPorkchop_
  */
-@Getter
-@Accessors(fluent = true)
-public final class NativeException extends RuntimeException {
-    protected final long code;
+public class NativeFeatureImplementation<F extends Feature<F>> extends FeatureImplementation<F> {
+    protected final String libName;
+    protected final ClassLoader loader;
 
-    public NativeException(long code) {
-        super();
+    public NativeFeatureImplementation(String className, @NonNull String libName, @NonNull ClassLoader loader) {
+        super(className);
 
-        this.code = code;
-    }
-
-    public NativeException(String message) {
-        this(message, 0L);
-    }
-
-    public NativeException(String message, int code) {
-        this(message, (long) code);
-    }
-
-    public NativeException(String message, long code) {
-        super(message);
-
-        this.code = code;
+        this.libName = libName;
+        this.loader = loader;
     }
 
     @Override
-    public String getMessage() {
-        String message = super.getMessage();
-        return message == null ? String.valueOf(this.code) : this.code + ": " + message;
+    public F create() throws Throwable {
+        Class<F> clazz = uncheckedCast(NativeFeature.loadNativeLibrary(this.libName, this.className, this.loader));
+        Constructor<F> constructor = clazz.getDeclaredConstructor();
+        constructor.setAccessible(true);
+        return constructor.newInstance();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("NativeFeatureImplementation(class=%s, lib=%s, loader=%s)", this.className, this.libName, this.loader);
     }
 }

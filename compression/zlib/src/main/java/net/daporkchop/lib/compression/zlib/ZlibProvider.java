@@ -24,7 +24,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.compression.CompressionProvider;
 import net.daporkchop.lib.compression.zlib.options.ZlibDeflaterOptions;
 import net.daporkchop.lib.compression.zlib.options.ZlibInflaterOptions;
-import net.daporkchop.lib.natives.impl.Feature;
+import net.daporkchop.lib.natives.Feature;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 

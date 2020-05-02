@@ -36,7 +36,7 @@ import net.daporkchop.lib.compression.zstd.options.ZstdDeflaterOptions;
 import net.daporkchop.lib.compression.zstd.options.ZstdInflaterOptions;
 import net.daporkchop.lib.compression.zstd.util.exception.ContentSizeUnknownException;
 import net.daporkchop.lib.natives.NativeException;
-import net.daporkchop.lib.natives.impl.NativeFeature;
+import net.daporkchop.lib.natives.NativeFeature;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.nio.ByteBuffer;

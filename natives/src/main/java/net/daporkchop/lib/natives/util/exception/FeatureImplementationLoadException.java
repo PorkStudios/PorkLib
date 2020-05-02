@@ -18,44 +18,15 @@
  *
  */
 
-package net.daporkchop.lib.natives;
-
-import lombok.Getter;
-import lombok.experimental.Accessors;
+package net.daporkchop.lib.natives.util.exception;
 
 /**
- * Thrown when an exception occurs in native code.
+ * Thrown when an implementation of a feature failed to load.
  *
  * @author DaPorkchop_
  */
-@Getter
-@Accessors(fluent = true)
-public final class NativeException extends RuntimeException {
-    protected final long code;
-
-    public NativeException(long code) {
-        super();
-
-        this.code = code;
-    }
-
-    public NativeException(String message) {
-        this(message, 0L);
-    }
-
-    public NativeException(String message, int code) {
-        this(message, (long) code);
-    }
-
-    public NativeException(String message, long code) {
-        super(message);
-
-        this.code = code;
-    }
-
-    @Override
-    public String getMessage() {
-        String message = super.getMessage();
-        return message == null ? String.valueOf(this.code) : this.code + ": " + message;
+public final class FeatureImplementationLoadException extends Exception {
+    public FeatureImplementationLoadException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

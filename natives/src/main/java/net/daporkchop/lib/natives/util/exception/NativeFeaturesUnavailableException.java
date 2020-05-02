@@ -18,14 +18,38 @@
  *
  */
 
-package net.daporkchop.lib.natives.impl;
+package net.daporkchop.lib.natives.util.exception;
+
+import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.system.PlatformInfo;
+import net.daporkchop.lib.common.util.PorkUtil;
 
 /**
+ * Thrown when the current platform does not support native libraries.
+ *
  * @author DaPorkchop_
  */
-public interface Feature<F extends Feature<F>> {
-    /**
-     * @return whether or not this feature implementation is native
-     */
-    boolean isNative();
+public final class NativeFeaturesUnavailableException extends RuntimeException {
+    public NativeFeaturesUnavailableException() {
+        super();
+    }
+
+    public NativeFeaturesUnavailableException(String message) {
+        super(message);
+    }
+
+    @Override
+    public String getMessage() {
+        try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get()) {
+            StringBuilder builder = handle.get();
+            builder.setLength(0);
+            builder.append("Arch: ").append(PlatformInfo.ARCHITECTURE.name())
+                    .append(", OS: ").append(PlatformInfo.OPERATING_SYSTEM.name());
+            String msg = super.getMessage();
+            if (msg != null) {
+                builder.append(", ").append(msg);
+            }
+            return builder.toString();
+        }
+    }
 }

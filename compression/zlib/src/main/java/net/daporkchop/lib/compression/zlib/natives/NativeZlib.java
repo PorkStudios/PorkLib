@@ -29,7 +29,7 @@ import net.daporkchop.lib.compression.zlib.ZlibMode;
 import net.daporkchop.lib.compression.zlib.ZlibProvider;
 import net.daporkchop.lib.compression.zlib.options.ZlibDeflaterOptions;
 import net.daporkchop.lib.compression.zlib.options.ZlibInflaterOptions;
-import net.daporkchop.lib.natives.impl.NativeFeature;
+import net.daporkchop.lib.natives.NativeFeature;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 

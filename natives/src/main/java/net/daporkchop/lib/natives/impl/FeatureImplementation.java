@@ -18,44 +18,30 @@
  *
  */
 
-package net.daporkchop.lib.natives;
+package net.daporkchop.lib.natives.impl;
 
-import lombok.Getter;
-import lombok.experimental.Accessors;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.natives.Feature;
 
 /**
- * Thrown when an exception occurs in native code.
+ * Factory for a single implementation of a {@link Feature}.
  *
  * @author DaPorkchop_
  */
-@Getter
-@Accessors(fluent = true)
-public final class NativeException extends RuntimeException {
-    protected final long code;
+@RequiredArgsConstructor
+public abstract class FeatureImplementation<F extends Feature<F>> {
+    @NonNull
+    protected final String className;
 
-    public NativeException(long code) {
-        super();
-
-        this.code = code;
-    }
-
-    public NativeException(String message) {
-        this(message, 0L);
-    }
-
-    public NativeException(String message, int code) {
-        this(message, (long) code);
-    }
-
-    public NativeException(String message, long code) {
-        super(message);
-
-        this.code = code;
-    }
+    /**
+     * Attempts to create a new instance of the feature.
+     *
+     * @return a new instance of the feature
+     * @throws Throwable if the feature failed to load
+     */
+    public abstract F create() throws Throwable;
 
     @Override
-    public String getMessage() {
-        String message = super.getMessage();
-        return message == null ? String.valueOf(this.code) : this.code + ": " + message;
-    }
+    public abstract String toString();
 }

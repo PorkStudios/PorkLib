@@ -23,20 +23,19 @@ package net.daporkchop.lib.natives;
 import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.natives.impl.Feature;
-import net.daporkchop.lib.natives.impl.NativeFeature;
+import net.daporkchop.lib.natives.impl.FeatureImplementation;
+import net.daporkchop.lib.natives.impl.JavaFeatureImplementation;
+import net.daporkchop.lib.natives.impl.NativeFeatureImplementation;
+import net.daporkchop.lib.natives.util.exception.FeatureImplementationLoadException;
+import net.daporkchop.lib.natives.util.exception.NoFeatureImplementationsFoundException;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.LinkedHashSet;
+import java.util.Objects;
 
-import static net.daporkchop.lib.common.util.PorkUtil.*;
+import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
  * A container around multiple implementations of a {@link Feature}.
@@ -53,71 +52,57 @@ public final class FeatureBuilder<F extends Feature<F>> {
         return new FeatureBuilder<>(currentClass);
     }
 
-    private final Collection<Function<Consumer<String>, F>> implementations = new ArrayList<>();
+    private final Collection<FeatureImplementation<F>> implementations = new LinkedHashSet<>();
 
     @NonNull
     private final Class<?> currentClass;
 
-    public synchronized FeatureBuilder<F> addNative(@NonNull String className) {
-        return this.addNative(className, className.replace('.', '_'), this.currentClass.getClassLoader());
+    public FeatureBuilder<F> addNative(@NonNull String className) {
+        return this.add(new NativeFeatureImplementation<>(className, className.replace('.', '_'), this.currentClass.getClassLoader()));
     }
 
-    public synchronized FeatureBuilder<F> addNative(@NonNull String className, @NonNull String libName) {
-        return this.addNative(className, libName, this.currentClass.getClassLoader());
+    public FeatureBuilder<F> addNative(@NonNull String className, @NonNull String libName) {
+        return this.add(new NativeFeatureImplementation<>(className, libName, this.currentClass.getClassLoader()));
     }
 
-    public synchronized FeatureBuilder<F> addNative(@NonNull String className, @NonNull String libName, @NonNull Class<?> currentClass) {
-        return this.addNative(className, libName, currentClass.getClassLoader());
+    public FeatureBuilder<F> addNative(@NonNull String className, @NonNull String libName, @NonNull Class<?> currentClass) {
+        return this.add(new NativeFeatureImplementation<>(className, libName, currentClass.getClassLoader()));
     }
 
-    public synchronized FeatureBuilder<F> addNative(@NonNull String className, @NonNull String libName, @NonNull ClassLoader loader) {
-        if (NativeFeature.AVAILABLE) {
-            this.implementations.add(errors -> {
-                NativeFeature.LoadResult result = NativeFeature.loadNativeLibrary(libName, className, loader);
-                if (result == NativeFeature.LoadResult.SUCCESS) {
-                    try {
-                        return newInstance(classForName(className, loader));
-                    } catch (Exception e)   {
-                        errors.accept(e.toString());
-                    }
-                } else {
-                    errors.accept(result.name());
-                }
-                return null;
-            });
-        }
-        return this;
+    public FeatureBuilder<F> addNative(@NonNull String className, @NonNull String libName, @NonNull ClassLoader loader) {
+        return this.add(new NativeFeatureImplementation<>(className, libName, loader));
     }
 
-    public synchronized FeatureBuilder<F> addJava(@NonNull String className) {
-        return this.addJava(className, this.currentClass.getClassLoader());
+    public FeatureBuilder<F> addJava(@NonNull String className) {
+        return this.add(new JavaFeatureImplementation<>(className, this.currentClass.getClassLoader()));
     }
 
-    public synchronized FeatureBuilder<F> addJava(@NonNull String className, @NonNull Class<?> currentClass) {
-        return this.addJava(className, currentClass.getClassLoader());
+    public FeatureBuilder<F> addJava(@NonNull String className, @NonNull Class<?> currentClass) {
+        return this.add(new JavaFeatureImplementation<>(className, currentClass.getClassLoader()));
     }
 
-    public synchronized FeatureBuilder<F> addJava(@NonNull String className, @NonNull ClassLoader loader) {
-        this.implementations.add(errors -> {
-            try {
-                return newInstance(classForName(className, loader));
-            } catch (Exception e)   {
-                errors.accept(e.toString());
-            }
-            return null;
-        });
+    public FeatureBuilder<F> addJava(@NonNull String className, @NonNull ClassLoader loader) {
+        return this.add(new JavaFeatureImplementation<>(className, loader));
+    }
+
+    public synchronized FeatureBuilder<F> add(@NonNull FeatureImplementation<F> implementation) {
+        checkState(this.implementations.add(implementation), "implementation (%s) was already added!", implementation);
         return this;
     }
 
     public synchronized F build() {
-        Collection<String> errors = new ArrayList<>();
-        for (Function<Consumer<String>, F> implementation : this.implementations) {
-            F value = implementation.apply(errors::add);
-            if (value != null) {
-                return value;
+        Collection<FeatureImplementationLoadException> errors = new ArrayList<>();
+        for (FeatureImplementation<F> implementation : this.implementations) {
+            try {
+                return Objects.requireNonNull(implementation.create(), "instance was null!");
+            } catch (OutOfMemoryError ignored) {
+            } catch (Throwable t) {
+                errors.add(new FeatureImplementationLoadException(implementation.toString(), t));
             }
         }
 
-        throw new IllegalStateException("No implementations could be loaded! " + errors);
+        NoFeatureImplementationsFoundException e = new NoFeatureImplementationsFoundException(this.currentClass.getCanonicalName(), errors);
+        PUnsafe.throwException(e);
+        throw new IllegalStateException(e); //probably impossible
     }
 }

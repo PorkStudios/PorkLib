@@ -98,9 +98,9 @@ public class ZstdTest {
         try (PDeflater deflater = Zstd.PROVIDER.deflater()) {
             System.out.println(deflater.getClass());
         }
-        /*try (PInflater inflater = Zstd.PROVIDER.inflater()) {
+        try (PInflater inflater = Zstd.PROVIDER.inflater()) {
             System.out.println(inflater.getClass());
-        }*/
+        }
     }
 
     @Test
@@ -140,26 +140,26 @@ public class ZstdTest {
         }
     }
 
-    /*@Test
+    @Test
     public void testBlockDecompression() throws IOException {
         try (PInflater inflater = Zstd.PROVIDER.inflater()) {
             //one-shot
             this.forEachBufferType(2, buffers -> {
-                ByteBuf src = buffers[0].writeBytes(this.gzipped);
+                ByteBuf src = buffers[0].writeBytes(this.zstd);
                 ByteBuf dst = buffers[1].ensureWritable(8192);
 
                 checkState(inflater.decompress(src, dst));
             });
 
             //growing
-            this.forEachBufferType(2, buffers -> {
+            /*this.forEachBufferType(2, buffers -> {
                 ByteBuf src = buffers[0].writeBytes(this.gzipped);
                 ByteBuf dst = buffers[1];
 
                 inflater.decompressGrowing(src, dst);
-            });
+            });*/
         }
-    }*/
+    }
 
     @Test
     public void testStreamCompression() throws IOException {
@@ -200,7 +200,7 @@ public class ZstdTest {
         }
     }*/
 
-    /*@Test
+    @Test
     public void testBlock() throws IOException {
         try (PDeflater deflater = Zstd.PROVIDER.deflater();
              PInflater inflater = Zstd.PROVIDER.inflater()) {
@@ -218,7 +218,7 @@ public class ZstdTest {
             });
 
             //growing
-            this.forEachBufferType(3, buffers -> {
+            /*this.forEachBufferType(3, buffers -> {
                 ByteBuf src = buffers[0].writeBytes(this.zeroes);
                 ByteBuf compressed = buffers[1];
                 ByteBuf uncompressed = buffers[2];
@@ -228,9 +228,9 @@ public class ZstdTest {
                 for (int i = 0; i < src.writerIndex(); i++) {
                     checkState(src.getByte(i) == uncompressed.getByte(i), "Difference at index %s (src=%s, uncompressed=%s)", i, src, uncompressed);
                 }
-            });
+            });*/
         }
-    }*/
+    }
 
     protected void forEachBufferType(int numBuffers, @NonNull IOConsumer<ByteBuf[]> callback) {
         this.forEachBufferType0(numBuffers, callback);

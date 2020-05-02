@@ -106,7 +106,7 @@ final class NativeZstd extends NativeFeature<ZstdProvider> implements ZstdProvid
     @Override
     public ZstdInflater inflater(@NonNull ZstdInflaterOptions options) {
         checkArg(options.provider() == this, "provider must be %s!", this);
-        throw new UnsupportedOperationException();
+        return new NativeZstdInflater(options);
     }
 
     @Override

@@ -101,7 +101,7 @@ public interface PDeflater extends Context {
     //
 
     /**
-     * Gets a {@link DataOut} which will compress data written to it using this {@link PDeflater} and write the compressed data to the given {@link DataOut}.
+     * Convenience method equivalent to {@code compressionStream(out, null, -1, null);}
      *
      * @see #compressionStream(DataOut, ByteBufAllocator, int, ByteBuf)
      */
@@ -110,9 +110,8 @@ public interface PDeflater extends Context {
     }
 
     /**
-     * Gets a {@link DataOut} which will compress data written to it using this {@link PDeflater} and write the compressed data to the given {@link DataOut}.
+     * Convenience method equivalent to {@code compressionStream(out, bufferAlloc, -1, null);}
      *
-     * @param bufferAlloc the {@link ByteBufAllocator} to be used for allocating the internal write buffer. If {@code null}, the default allocator will be used
      * @see #compressionStream(DataOut, ByteBufAllocator, int, ByteBuf)
      */
     default DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc) throws IOException {
@@ -120,9 +119,8 @@ public interface PDeflater extends Context {
     }
 
     /**
-     * Gets a {@link DataOut} which will compress data written to it using this {@link PDeflater} and write the compressed data to the given {@link DataOut}.
+     * Convenience method equivalent to {@code compressionStream(out, null, bufferSize, null);}
      *
-     * @param bufferSize the size of the internal write buffer. If not positive, the default buffer size will be used
      * @see #compressionStream(DataOut, ByteBufAllocator, int, ByteBuf)
      */
     default DataOut compressionStream(@NonNull DataOut out, int bufferSize) throws IOException {
@@ -130,9 +128,16 @@ public interface PDeflater extends Context {
     }
 
     /**
-     * Gets a {@link DataOut} which will compress data written to it using this {@link PDeflater} and write the compressed data to the given {@link DataOut}.
-     * <p>
-     * This will cause the internal write buffer to be allocated using the default {@link ByteBufAllocator} and size.
+     * Convenience method equivalent to {@code compressionStream(out, bufferAlloc, bufferSize, null);}
+     *
+     * @see #compressionStream(DataOut, ByteBufAllocator, int, ByteBuf)
+     */
+    default DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, int bufferSize) throws IOException {
+        return this.compressionStream(out, bufferAlloc, bufferSize, null);
+    }
+
+    /**
+     * Convenience method equivalent to {@code compressionStream(out, null, -1, dict);}
      *
      * @see #compressionStream(DataOut, ByteBufAllocator, int, ByteBuf)
      */
@@ -141,11 +146,8 @@ public interface PDeflater extends Context {
     }
 
     /**
-     * Gets a {@link DataOut} which will compress data written to it using this {@link PDeflater} and write the compressed data to the given {@link DataOut}.
-     * <p>
-     * This will cause the internal write buffer to be allocated using the default size.
+     * Convenience method equivalent to {@code compressionStream(out, bufferAlloc, -1, dict);}
      *
-     * @param bufferAlloc the {@link ByteBufAllocator} to be used for allocating the internal write buffer. If {@code null}, the default allocator will be used
      * @see #compressionStream(DataOut, ByteBufAllocator, int, ByteBuf)
      */
     default DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, ByteBuf dict) throws IOException, DictionaryNotAllowedException {
@@ -153,11 +155,8 @@ public interface PDeflater extends Context {
     }
 
     /**
-     * Gets a {@link DataOut} which will compress data written to it using this {@link PDeflater} and write the compressed data to the given {@link DataOut}.
-     * <p>
-     * This will cause the internal write buffer to be allocated using the default {@link ByteBufAllocator}.
+     * Convenience method equivalent to {@code compressionStream(out, null, bufferSize, dict);}
      *
-     * @param bufferSize the size of the internal write buffer. If not positive, the default buffer size will be used
      * @see #compressionStream(DataOut, ByteBufAllocator, int, ByteBuf)
      */
     default DataOut compressionStream(@NonNull DataOut out, int bufferSize, ByteBuf dict) throws IOException, DictionaryNotAllowedException {

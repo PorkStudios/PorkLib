@@ -7,15 +7,7 @@ struct Context {
     ZSTD_CStream* stream;
 };
 
-/*
-typedef enum {
-    ZSTD_reset_session_only = 1,
-    ZSTD_reset_parameters = 2,
-    ZSTD_reset_session_and_parameters = 3
-} ZSTD_ResetDirective;
-*/
-
-bool reset(JNIEnv* env, Context* ctx)   {
+static bool reset(JNIEnv* env, Context* ctx)   {
     auto ret = ZSTD_CCtx_reset(ctx->stream, ZSTD_reset_session_and_parameters);
     
     if (ZSTD_isError(ret))  {
@@ -240,7 +232,7 @@ __attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkch
 /*
  * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater
  * Method:    compressH2D0
- * Signature: (JJIJII)J
+ * Signature: (J[BIIJII)J
  */
 __attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater_compressH2D0
         (JNIEnv* env, jclass cla, jlong _ctx, jbyteArray src, jint srcOff, jint srcLen, jlong dst, jint dstLen, jint level)   {
@@ -271,7 +263,7 @@ __attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkch
 /*
  * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater
  * Method:    compressH2H0
- * Signature: (JJIJII)J
+ * Signature: (J[BII[BIII)J
  */
 __attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdDeflater_compressH2H0
         (JNIEnv* env, jclass cla, jlong _ctx, jbyteArray src, jint srcOff, jint srcLen, jbyteArray dst, jint dstOff, jint dstLen, jint level)   {

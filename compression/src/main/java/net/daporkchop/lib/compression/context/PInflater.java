@@ -53,7 +53,7 @@ public interface PInflater extends Context {
     }
 
     /**
-     * Dedecompresses the given source data into the given destination buffer at the configured decompression level.
+     * Decompresses the given source data into the given destination buffer at the configured decompression level.
      * <p>
      * If the destination buffer does not have enough space writable for the decompressed data, the operation will fail and both buffer's indices will remain
      * unchanged, however the destination buffer's contents may be modified.
@@ -78,7 +78,7 @@ public interface PInflater extends Context {
     }
 
     /**
-     * Dedecompresses the given source data into the given destination buffer at the configured decompression level.
+     * Decompresses the given source data into the given destination buffer at the configured decompression level.
      * <p>
      * This will continually grow the the destination buffer's capacity until enough space is available for decompression to be completed. If at any point
      * during the decompression the destination buffer's capacity cannot be increased sufficiently, the operation will fail and both buffer's indices will
@@ -101,7 +101,7 @@ public interface PInflater extends Context {
     //
 
     /**
-     * Gets a {@link DataIn} which will decompress data written to it using this {@link PDeflater} and write the decompressed data to the given {@link DataIn}.
+     * Convenience method equivalent to {@code decompressionStream(out, null, -1, null);}
      *
      * @see #decompressionStream(DataIn, ByteBufAllocator, int, ByteBuf)
      */
@@ -110,9 +110,8 @@ public interface PInflater extends Context {
     }
 
     /**
-     * Gets a {@link DataIn} which will decompress data written to it using this {@link PDeflater} and write the decompressed data to the given {@link DataIn}.
+     * Convenience method equivalent to {@code decompressionStream(out, bufferAlloc, -1, null);}
      *
-     * @param bufferAlloc the {@link ByteBufAllocator} to be used for allocating the internal write buffer. If {@code null}, the default allocator will be used
      * @see #decompressionStream(DataIn, ByteBufAllocator, int, ByteBuf)
      */
     default DataIn decompressionStream(@NonNull DataIn in, ByteBufAllocator bufferAlloc) throws IOException {
@@ -120,9 +119,8 @@ public interface PInflater extends Context {
     }
 
     /**
-     * Gets a {@link DataIn} which will decompress data written to it using this {@link PDeflater} and write the decompressed data to the given {@link DataIn}.
+     * Convenience method equivalent to {@code decompressionStream(out, null, bufferSize, null);}
      *
-     * @param bufferSize the size of the internal write buffer. If not positive, the default buffer size will be used
      * @see #decompressionStream(DataIn, ByteBufAllocator, int, ByteBuf)
      */
     default DataIn decompressionStream(@NonNull DataIn in, int bufferSize) throws IOException {
@@ -130,9 +128,16 @@ public interface PInflater extends Context {
     }
 
     /**
-     * Gets a {@link DataIn} which will decompress data written to it using this {@link PDeflater} and write the decompressed data to the given {@link DataIn}.
-     * <p>
-     * This will cause the internal write buffer to be allocated using the default {@link ByteBufAllocator} and size.
+     * Convenience method equivalent to {@code decompressionStream(out, bufferAlloc, bufferSize, null);}
+     *
+     * @see #decompressionStream(DataIn, ByteBufAllocator, int, ByteBuf)
+     */
+    default DataIn decompressionStream(@NonNull DataIn in, ByteBufAllocator bufferAlloc, int bufferSize) throws IOException {
+        return this.decompressionStream(in, bufferAlloc, bufferSize, null);
+    }
+
+    /**
+     * Convenience method equivalent to {@code decompressionStream(out, null, -1, dict);}
      *
      * @see #decompressionStream(DataIn, ByteBufAllocator, int, ByteBuf)
      */
@@ -141,11 +146,8 @@ public interface PInflater extends Context {
     }
 
     /**
-     * Gets a {@link DataIn} which will decompress data written to it using this {@link PDeflater} and write the decompressed data to the given {@link DataIn}.
-     * <p>
-     * This will cause the internal write buffer to be allocated using the default size.
+     * Convenience method equivalent to {@code decompressionStream(out, bufferAlloc, -1, dict);}
      *
-     * @param bufferAlloc the {@link ByteBufAllocator} to be used for allocating the internal write buffer. If {@code null}, the default allocator will be used
      * @see #decompressionStream(DataIn, ByteBufAllocator, int, ByteBuf)
      */
     default DataIn decompressionStream(@NonNull DataIn in, ByteBufAllocator bufferAlloc, ByteBuf dict) throws IOException, DictionaryNotAllowedException {
@@ -153,11 +155,8 @@ public interface PInflater extends Context {
     }
 
     /**
-     * Gets a {@link DataIn} which will decompress data written to it using this {@link PDeflater} and write the decompressed data to the given {@link DataIn}.
-     * <p>
-     * This will cause the internal write buffer to be allocated using the default {@link ByteBufAllocator}.
+     * Convenience method equivalent to {@code decompressionStream(out, null, bufferSize, dict);}
      *
-     * @param bufferSize the size of the internal write buffer. If not positive, the default buffer size will be used
      * @see #decompressionStream(DataIn, ByteBufAllocator, int, ByteBuf)
      */
     default DataIn decompressionStream(@NonNull DataIn in, int bufferSize, ByteBuf dict) throws IOException, DictionaryNotAllowedException {

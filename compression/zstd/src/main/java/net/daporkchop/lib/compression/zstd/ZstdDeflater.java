@@ -25,7 +25,6 @@ import io.netty.buffer.ByteBufAllocator;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.compression.context.PDeflater;
-import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
 import net.daporkchop.lib.compression.zstd.options.ZstdDeflaterOptions;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
@@ -197,6 +196,16 @@ public interface ZstdDeflater extends PDeflater {
     }
 
     /**
+     * Convenience method equivalent to {@code compressionStream(out, bufferAlloc, bufferSize, null, this.options().level());}
+     *
+     * @see #compressionStream(DataOut, ByteBufAllocator, int, ByteBuf, int)
+     */
+    @Override
+    default DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, int bufferSize) throws IOException {
+        return this.compressionStream(out, bufferAlloc, bufferSize, null, this.options().level());
+    }
+
+    /**
      * Convenience method equivalent to {@code compressionStream(out, null, -1, dict, this.options().level());}
      *
      * @see #compressionStream(DataOut, ByteBufAllocator, int, ByteBuf, int)
@@ -238,18 +247,18 @@ public interface ZstdDeflater extends PDeflater {
 
     /**
      * Gets a {@link DataOut} which will compress data written to it using this {@link PDeflater} and write the compressed data to the given {@link DataOut}.
+     * <p>
+     * This will digest the dictionary before decompressing, which is an expensive operation. If the same dictionary is going to be used multiple times,
+     * it is strongly advised to use {@link #compressionStream(DataOut, ByteBufAllocator, int, ZstdDeflateDictionary)}.
      *
      * @param bufferAlloc the {@link ByteBufAllocator} to be used for allocating the internal write buffer. If {@code null}, the default allocator will be used
      * @param bufferSize  the size of the internal write buffer. If not positive, the default buffer size will be used
      * @param level       the Zstd compression level to use
-     * @throws DictionaryNotAllowedException if the dictionary buffer is not {@code null} and this context does not allow use of a dictionary
      */
     DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, int bufferSize, ByteBuf dict, int level) throws IOException;
 
     /**
-     * Gets a {@link DataOut} which will compress data written to it using this {@link PDeflater} and write the compressed data to the given {@link DataOut}.
-     * <p>
-     * This will cause the internal write buffer to be allocated using the default {@link ByteBufAllocator} and size.
+     * Convenience method equivalent to {@code compressionStream(out, null, -1, dict);}
      *
      * @see #compressionStream(DataOut, ByteBufAllocator, int, ZstdDeflateDictionary)
      */
@@ -258,11 +267,8 @@ public interface ZstdDeflater extends PDeflater {
     }
 
     /**
-     * Gets a {@link DataOut} which will compress data written to it using this {@link PDeflater} and write the compressed data to the given {@link DataOut}.
-     * <p>
-     * This will cause the internal write buffer to be allocated using the default size.
+     * Convenience method equivalent to {@code compressionStream(out, bufferAlloc, -1, dict);}
      *
-     * @param bufferAlloc the {@link ByteBufAllocator} to be used for allocating the internal write buffer. If {@code null}, the default allocator will be used
      * @see #compressionStream(DataOut, ByteBufAllocator, int, ZstdDeflateDictionary)
      */
     default DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, ZstdDeflateDictionary dict) throws IOException {
@@ -270,11 +276,8 @@ public interface ZstdDeflater extends PDeflater {
     }
 
     /**
-     * Gets a {@link DataOut} which will compress data written to it using this {@link PDeflater} and write the compressed data to the given {@link DataOut}.
-     * <p>
-     * This will cause the internal write buffer to be allocated using the default {@link ByteBufAllocator}.
+     * Convenience method equivalent to {@code compressionStream(out, null, bufferSize, dict);}
      *
-     * @param bufferSize the size of the internal write buffer. If not positive, the default buffer size will be used
      * @see #compressionStream(DataOut, ByteBufAllocator, int, ZstdDeflateDictionary)
      */
     default DataOut compressionStream(@NonNull DataOut out, int bufferSize, ZstdDeflateDictionary dict) throws IOException {
@@ -286,7 +289,6 @@ public interface ZstdDeflater extends PDeflater {
      *
      * @param bufferAlloc the {@link ByteBufAllocator} to be used for allocating the internal write buffer. If {@code null}, the default allocator will be used
      * @param bufferSize  the size of the internal write buffer. If not positive, the default buffer size will be used
-     * @throws DictionaryNotAllowedException if the dictionary buffer is not {@code null} and this context does not allow use of a dictionary
      */
     DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, int bufferSize, ZstdDeflateDictionary dict) throws IOException;
 

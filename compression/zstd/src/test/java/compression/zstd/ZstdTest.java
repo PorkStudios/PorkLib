@@ -123,7 +123,7 @@ public class ZstdTest {
             });
 
             //growing
-            /*this.forEachBufferType(2, buffers -> {
+            this.forEachBufferType(2, buffers -> {
                 ByteBuf src = buffers[0].writeBytes(this.text);
                 ByteBuf dst = buffers[1];
 
@@ -136,7 +136,7 @@ public class ZstdTest {
                 SlashDevSlashNull.INSTANCE.read(dict, 1024);
 
                 deflater.compressGrowing(src, dst, dict);
-            });*/
+            });
         }
     }
 

@@ -49,14 +49,25 @@ final class NativeZstdDeflateStream extends AbstractDirectDataOut {
     final DataOut out;
     final NativeZstdDeflateDictionary dict;
 
-    NativeZstdDeflateStream(@NonNull DataOut out, @NonNull ByteBuf buf, NativeZstdDeflateDictionary dict, int level, @NonNull NativeZstdDeflater deflater) {
+    NativeZstdDeflateStream(@NonNull DataOut out, @NonNull ByteBuf buf, ByteBuf dict, int level, @NonNull NativeZstdDeflater deflater) {
         checkArg(buf.hasMemoryAddress() || buf.hasArray(), "buffer (%s) does not have address or array!", buf);
 
         this.ctx = deflater.retain().ctx;
         this.deflater = deflater;
         this.buf = buf;
         this.out = out;
-        this.session = deflater.createSessionAndSetDict(dict, level); //this also retains the dictionary
+        this.session = deflater.createSessionAndSetDict(dict, level);
+        this.dict = null;
+    }
+
+    NativeZstdDeflateStream(@NonNull DataOut out, @NonNull ByteBuf buf, NativeZstdDeflateDictionary dict, @NonNull NativeZstdDeflater deflater) {
+        checkArg(buf.hasMemoryAddress() || buf.hasArray(), "buffer (%s) does not have address or array!", buf);
+
+        this.ctx = deflater.retain().ctx;
+        this.deflater = deflater;
+        this.buf = buf;
+        this.out = out;
+        this.session = deflater.createSessionAndSetDict(dict); //this also retains the dictionary
         this.dict = dict;
     }
 

@@ -30,7 +30,6 @@ import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
-import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.compression.zstd.Zstd;
 import net.daporkchop.lib.compression.zstd.ZstdDeflateDictionary;
@@ -41,11 +40,11 @@ import net.daporkchop.lib.unsafe.PUnsafe;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.ConcurrentModificationException;
 
-import static java.lang.Math.min;
+import static java.lang.Math.*;
 import static net.daporkchop.lib.common.util.PValidation.*;
+import static net.daporkchop.lib.compression.zstd.natives.NativeZstd.*;
 
 /**
  * @author DaPorkchop_
@@ -75,11 +74,31 @@ final class NativeZstdDeflater extends AbstractRefCounted.Synchronized implement
 
     static native long compressH2HWithDict0(long ctx, byte[] src, int srcOff, int srcLen, byte[] dst, int dstOff, int dstLen, long dict);
 
+    static native long compressD2DWithDictD0(long ctx, long src, int srcLen, long dst, int dstLen, long dict, int dictLen, int level);
+
+    static native long compressD2HWithDictD0(long ctx, long src, int srcLen, byte[] dst, int dstOff, int dstLen, long dict, int dictLen, int level);
+
+    static native long compressH2DWithDictD0(long ctx, byte[] src, int srcOff, int srcLen, long dst, int dstLen, long dict, int dictLen, int level);
+
+    static native long compressH2HWithDictD0(long ctx, byte[] src, int srcOff, int srcLen, byte[] dst, int dstOff, int dstLen, long dict, int dictLen, int level);
+
+    static native long compressD2DWithDictH0(long ctx, long src, int srcLen, long dst, int dstLen, byte[] dict, int dictOff, int dictLen, int level);
+
+    static native long compressD2HWithDictH0(long ctx, long src, int srcLen, byte[] dst, int dstOff, int dstLen, byte[] dict, int dictOff, int dictLen, int level);
+
+    static native long compressH2DWithDictH0(long ctx, byte[] src, int srcOff, int srcLen, long dst, int dstLen, byte[] dict, int dictOff, int dictLen, int level);
+
+    static native long compressH2HWithDictH0(long ctx, byte[] src, int srcOff, int srcLen, byte[] dst, int dstOff, int dstLen, byte[] dict, int dictOff, int dictLen, int level);
+
     //streaming
 
     static native long newSessionWithLevel0(long ctx, int level);
 
     static native long newSessionWithDict0(long ctx, long dict);
+
+    static native long newSessionWithDictD0(long ctx, long dict, int dictLen, int level);
+
+    static native long newSessionWithDictH0(long ctx, byte[] dict, int dictOff, int dictLen, int level);
 
     static native long updateD2D0(long ctx, long src, int srcLen, long dst, int dstLen, int flush);
 
@@ -117,7 +136,7 @@ final class NativeZstdDeflater extends AbstractRefCounted.Synchronized implement
             //the other cases are too much of a pain to implement by hand
             int srcReaderIndex = src.readerIndex();
             int dstWriterIndex = dst.writerIndex();
-            try (DataOut out = this.compressionStream(DataOut.wrap(dst, true, false), dict/*, level*/)) { //TODO: allow setting stream level
+            try (DataOut out = this.compressionStream(DataOut.wrap(dst, true, false), null, -1, dict, level)) {
                 out.write(src);
                 return true;
             } catch (IOException e) {
@@ -130,53 +149,123 @@ final class NativeZstdDeflater extends AbstractRefCounted.Synchronized implement
             }
         }
 
-        if (dict != null && dict.isReadable()) {
-            //dictionary is set, digest it first and then do compression
-            //TODO: implement the un-digested dictionary compression methods
-            try (ZstdDeflateDictionary digested = this.options.provider().loadDeflateDictionary(dict, level)) {
-                return this.compress(src, dst, digested);
-            }
-        }
-
-        long session = newSession0(this.ctx);
+        boolean hasDict = dict != null && dict.isReadable();
+        boolean releaseDict = false;
         try {
-            long ret = -1L;
-            if (src.hasMemoryAddress()) {
-                if (dst.hasMemoryAddress()) {
-                    ret = compressD2D0(this.ctx,
-                            src.memoryAddress() + src.readerIndex(), src.readableBytes(),
-                            dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
-                            level);
-                } else if (dst.hasArray()) {
-                    ret = compressD2H0(this.ctx,
-                            src.memoryAddress() + src.readerIndex(), src.readableBytes(),
-                            dst.array(), dst.arrayOffset() + dst.writerIndex(), dst.writableBytes(),
-                            level);
-                }
-            } else if (src.hasArray()) {
-                if (dst.hasMemoryAddress()) {
-                    ret = compressH2D0(this.ctx,
-                            src.array(), src.arrayOffset() + src.readerIndex(), src.readableBytes(),
-                            dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
-                            level);
-                } else if (dst.hasArray()) {
-                    ret = compressH2H0(this.ctx,
-                            src.array(), src.arrayOffset() + src.readerIndex(), src.readableBytes(),
-                            dst.array(), dst.arrayOffset() + dst.writerIndex(), dst.writableBytes(),
-                            level);
-                }
+            if (hasDict && !dict.hasMemoryAddress() && !dict.hasArray()) {
+                //dict is composite
+                ByteBuf buf = Unpooled.directBuffer(dict.readableBytes(), dict.readableBytes());
+                dict.getBytes(dict.readerIndex(), buf);
+                dict = buf;
+                releaseDict = true;
             }
 
-            if (ret >= 0L) {
-                src.skipBytes(src.readableBytes());
-                dst.writerIndex(dst.writerIndex() + toInt(ret));
-                return true;
-            } else {
-                return false;
+            long session = newSession0(this.ctx);
+            try {
+                long ret = -1L;
+                if (hasDict && dict.hasMemoryAddress()) {
+                    if (src.hasMemoryAddress()) {
+                        if (dst.hasMemoryAddress()) {
+                            ret = compressD2DWithDictD0(this.ctx,
+                                    src.memoryAddress() + src.readerIndex(), src.readableBytes(),
+                                    dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
+                                    dict.memoryAddress() + dict.readerIndex(), dict.readableBytes(),
+                                    level);
+                        } else if (dst.hasArray()) {
+                            ret = compressD2HWithDictD0(this.ctx,
+                                    src.memoryAddress() + src.readerIndex(), src.readableBytes(),
+                                    dst.array(), dst.arrayOffset() + dst.writerIndex(), dst.writableBytes(),
+                                    dict.memoryAddress() + dict.readerIndex(), dict.readableBytes(),
+                                    level);
+                        }
+                    } else if (src.hasArray()) {
+                        if (dst.hasMemoryAddress()) {
+                            ret = compressH2DWithDictD0(this.ctx,
+                                    src.array(), src.arrayOffset() + src.readerIndex(), src.readableBytes(),
+                                    dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
+                                    dict.memoryAddress() + dict.readerIndex(), dict.readableBytes(),
+                                    level);
+                        } else if (dst.hasArray()) {
+                            ret = compressH2HWithDictD0(this.ctx,
+                                    src.array(), src.arrayOffset() + src.readerIndex(), src.readableBytes(),
+                                    dst.array(), dst.arrayOffset() + dst.writerIndex(), dst.writableBytes(),
+                                    dict.memoryAddress() + dict.readerIndex(), dict.readableBytes(),
+                                    level);
+                        }
+                    }
+                } else if (hasDict && dict.hasArray()) {
+                    if (src.hasMemoryAddress()) {
+                        if (dst.hasMemoryAddress()) {
+                            ret = compressD2DWithDictH0(this.ctx,
+                                    src.memoryAddress() + src.readerIndex(), src.readableBytes(),
+                                    dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
+                                    dict.array(), dict.arrayOffset() + dict.readerIndex(), dict.readableBytes(),
+                                    level);
+                        } else if (dst.hasArray()) {
+                            ret = compressD2HWithDictH0(this.ctx,
+                                    src.memoryAddress() + src.readerIndex(), src.readableBytes(),
+                                    dst.array(), dst.arrayOffset() + dst.writerIndex(), dst.writableBytes(),
+                                    dict.array(), dict.arrayOffset() + dict.readerIndex(), dict.readableBytes(),
+                                    level);
+                        }
+                    } else if (src.hasArray()) {
+                        if (dst.hasMemoryAddress()) {
+                            ret = compressH2DWithDictH0(this.ctx,
+                                    src.array(), src.arrayOffset() + src.readerIndex(), src.readableBytes(),
+                                    dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
+                                    dict.array(), dict.arrayOffset() + dict.readerIndex(), dict.readableBytes(),
+                                    level);
+                        } else if (dst.hasArray()) {
+                            ret = compressH2HWithDictH0(this.ctx,
+                                    src.array(), src.arrayOffset() + src.readerIndex(), src.readableBytes(),
+                                    dst.array(), dst.arrayOffset() + dst.writerIndex(), dst.writableBytes(),
+                                    dict.array(), dict.arrayOffset() + dict.readerIndex(), dict.readableBytes(),
+                                    level);
+                        }
+                    }
+                } else {
+                    if (src.hasMemoryAddress()) {
+                        if (dst.hasMemoryAddress()) {
+                            ret = compressD2D0(this.ctx,
+                                    src.memoryAddress() + src.readerIndex(), src.readableBytes(),
+                                    dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
+                                    level);
+                        } else if (dst.hasArray()) {
+                            ret = compressD2H0(this.ctx,
+                                    src.memoryAddress() + src.readerIndex(), src.readableBytes(),
+                                    dst.array(), dst.arrayOffset() + dst.writerIndex(), dst.writableBytes(),
+                                    level);
+                        }
+                    } else if (src.hasArray()) {
+                        if (dst.hasMemoryAddress()) {
+                            ret = compressH2D0(this.ctx,
+                                    src.array(), src.arrayOffset() + src.readerIndex(), src.readableBytes(),
+                                    dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
+                                    level);
+                        } else if (dst.hasArray()) {
+                            ret = compressH2H0(this.ctx,
+                                    src.array(), src.arrayOffset() + src.readerIndex(), src.readableBytes(),
+                                    dst.array(), dst.arrayOffset() + dst.writerIndex(), dst.writableBytes(),
+                                    level);
+                        }
+                    }
+                }
+
+                if (ret >= 0L) {
+                    src.skipBytes(src.readableBytes());
+                    dst.writerIndex(dst.writerIndex() + toInt(ret));
+                    return true;
+                } else {
+                    return false;
+                }
+            } finally {
+                if (session != this.getSession()) {
+                    throw new ConcurrentModificationException(); //probably impossible
+                }
             }
         } finally {
-            if (session != this.getSession()) {
-                throw new ConcurrentModificationException(); //probably impossible
+            if (releaseDict) {
+                dict.release();
             }
         }
     }
@@ -192,7 +281,7 @@ final class NativeZstdDeflater extends AbstractRefCounted.Synchronized implement
             //the other cases are too much of a pain to implement by hand
             int srcReaderIndex = src.readerIndex();
             int dstWriterIndex = dst.writerIndex();
-            try (DataOut out = this.compressionStream(DataOut.wrap(dst, true, false)/*, dict*/)) { //TODO allow setting stream dictionary
+            try (DataOut out = this.compressionStream(DataOut.wrap(dst, true, false), null, -1, dict)) {
                 out.write(src);
                 return true;
             } catch (IOException e) {
@@ -256,33 +345,128 @@ final class NativeZstdDeflater extends AbstractRefCounted.Synchronized implement
     public synchronized void compressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict, int level) throws IndexOutOfBoundsException {
         this.ensureNotReleased();
         Zstd.checkLevel(level);
+
+        if (!(src.hasMemoryAddress() || src.hasArray()) || !(dst.hasMemoryAddress() || dst.hasArray())) {
+            //the other cases are too much of a pain to implement by hand
+            try (DataOut out = this.compressionStream(DataOut.wrap(dst, true, true), null, -1, dict, level)) {
+                out.write(src);
+                return;
+            } catch (IOException e) {
+                //shouldn't be possible
+                throw new RuntimeException(e);
+            }
+        }
+
+        this.compressGrowing0(src, dst, this.createSessionAndSetDict(dict, level));
     }
 
     @Override
     public synchronized void compressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdDeflateDictionary dict) throws IndexOutOfBoundsException {
         this.ensureNotReleased();
+        checkArg(dict == null || dict instanceof NativeZstdDeflateDictionary, "invalid dictionary: %s", dict);
+
+        if (!(src.hasMemoryAddress() || src.hasArray()) || !(dst.hasMemoryAddress() || dst.hasArray())) {
+            //the other cases are too much of a pain to implement by hand
+            try (DataOut out = this.compressionStream(DataOut.wrap(dst, true, true), null, -1, dict)) {
+                out.write(src);
+                return;
+            } catch (IOException e) {
+                //shouldn't be possible
+                throw new RuntimeException(e);
+            }
+        }
+
+        long session = this.createSessionAndSetDict((NativeZstdDeflateDictionary) dict);
+        try {
+            this.compressGrowing0(src, dst, session);
+        } finally {
+            if (dict != null)   {
+                dict.release();
+            }
+        }
+    }
+
+    void compressGrowing0(@NonNull ByteBuf src, @NonNull ByteBuf dst, long session) throws IndexOutOfBoundsException {
+        try {
+            while (true) {
+                long remaining;
+                if (src.hasMemoryAddress()) {
+                    if (dst.hasMemoryAddress()) {
+                        remaining = updateD2D0(this.ctx,
+                                src.memoryAddress() + src.readerIndex(), src.readableBytes(),
+                                dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
+                                ZSTD_e_end);
+                    } else if (dst.hasArray()) {
+                        remaining = updateD2H0(this.ctx,
+                                src.memoryAddress() + src.readerIndex(), src.readableBytes(),
+                                dst.array(), dst.arrayOffset() + dst.writerIndex(), dst.writableBytes(),
+                                ZSTD_e_end);
+                    } else {
+                        throw new IllegalStateException(src + " " + dst);
+                    }
+                } else if (src.hasArray()) {
+                    if (dst.hasMemoryAddress()) {
+                        remaining = updateH2D0(this.ctx,
+                                src.array(), src.arrayOffset() + src.readerIndex(), src.readableBytes(),
+                                dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
+                                ZSTD_e_end);
+                    } else if (dst.hasArray()) {
+                        remaining = updateH2H0(this.ctx,
+                                src.array(), src.arrayOffset() + src.readerIndex(), src.readableBytes(),
+                                dst.array(), dst.arrayOffset() + dst.writerIndex(), dst.writableBytes(),
+                                ZSTD_e_end);
+                    } else {
+                        throw new IllegalStateException(src + " " + dst);
+                    }
+                } else {
+                    throw new IllegalStateException(src + " " + dst);
+                }
+
+                //increase indices
+                src.skipBytes(toInt(this.getRead(), "read"));
+                dst.writerIndex(dst.writerIndex() + toInt(this.getWritten(), "written"));
+
+                if (remaining == 0L && !src.isReadable()) {
+                    break;
+                } else if (!dst.isWritable()) {
+                    checkIndex(dst.writerIndex() < dst.maxCapacity());
+                    dst.ensureWritable(min(dst.maxWritableBytes(), 8192));
+                } else {
+                    throw new IllegalStateException(String.valueOf(remaining));
+                }
+            }
+            checkState(!src.isReadable());
+        } finally {
+            if (session != this.getSession()) {
+                throw new ConcurrentModificationException(); //probably impossible
+            }
+        }
     }
 
     @Override
     public synchronized DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, int bufferSize, ByteBuf dict, int level) throws IOException {
         this.ensureNotReleased();
         Zstd.checkLevel(level);
-        if (dict != null && dict.isReadable())  {
-            try (ZstdDeflateDictionary digested = this.options.provider().loadDeflateDictionary(dict, level))   {
-                return this.compressionStream0(out, bufferAlloc, bufferSize, digested, level);
-            }
-        } else {
-            return this.compressionStream0(out, bufferAlloc, bufferSize, null, level);
+
+        if (bufferAlloc == null) {
+            bufferAlloc = PooledByteBufAllocator.DEFAULT;
         }
+        if (bufferSize <= 0) {
+            bufferSize = PorkUtil.BUFFER_SIZE;
+        }
+        ByteBuf buf;
+        if (out.isDirect()) {
+            buf = bufferAlloc.directBuffer(bufferSize, bufferSize);
+        } else if (out.isHeap()) {
+            buf = bufferAlloc.heapBuffer(bufferSize, bufferSize);
+        } else {
+            buf = bufferAlloc.buffer(bufferSize, bufferSize);
+        }
+        return new NativeZstdDeflateStream(out, buf, dict, level, this);
     }
 
     @Override
     public synchronized DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, int bufferSize, ZstdDeflateDictionary dict) throws IOException {
-        this.ensureNotReleased();
-        return this.compressionStream0(out, bufferAlloc, bufferSize, dict, dict != null ? dict.level() : this.options.level());
-    }
-
-    synchronized DataOut compressionStream0(@NonNull DataOut out, ByteBufAllocator bufferAlloc, int bufferSize, ZstdDeflateDictionary dict, int level) throws IOException {
         this.ensureNotReleased();
         checkArg(dict == null || dict instanceof NativeZstdDeflateDictionary, "invalid dictionary: %s", dict);
 
@@ -300,13 +484,32 @@ final class NativeZstdDeflater extends AbstractRefCounted.Synchronized implement
         } else {
             buf = bufferAlloc.buffer(bufferSize, bufferSize);
         }
-        return new NativeZstdDeflateStream(out, buf, (NativeZstdDeflateDictionary) dict, level, this);
+        return new NativeZstdDeflateStream(out, buf, (NativeZstdDeflateDictionary) dict, this);
     }
 
-    long createSessionAndSetDict(NativeZstdDeflateDictionary dict, int level) {
-        if (dict == null) {
+    long createSessionAndSetDict(ByteBuf dict, int level) {
+        if (dict == null || !dict.isReadable()) {
             //no dictionary will be used
             return newSessionWithLevel0(this.ctx, level);
+        } else if (dict.hasMemoryAddress()) {
+            return newSessionWithDictD0(this.ctx, dict.memoryAddress() + dict.readerIndex(), dict.readableBytes(), level);
+        } else if (dict.hasArray()) {
+            return newSessionWithDictH0(this.ctx, dict.array(), dict.arrayOffset() + dict.readerIndex(), dict.readableBytes(), level);
+        } else {
+            ByteBuf buf = Unpooled.directBuffer(dict.readableBytes(), dict.readableBytes());
+            try {
+                dict.getBytes(dict.readerIndex(), buf);
+                return newSessionWithDictD0(this.ctx, buf.memoryAddress() + buf.readerIndex(), buf.readableBytes(), level);
+            } finally {
+                buf.release();
+            }
+        }
+    }
+
+    long createSessionAndSetDict(NativeZstdDeflateDictionary dict) {
+        if (dict == null) {
+            //no dictionary will be used
+            return newSessionWithLevel0(this.ctx, this.options.level());
         } else {
             dict.retain();
             return newSessionWithDict0(this.ctx, dict.addr());

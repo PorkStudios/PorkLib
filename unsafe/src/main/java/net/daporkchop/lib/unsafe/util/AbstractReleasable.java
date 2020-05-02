@@ -20,6 +20,7 @@
 
 package net.daporkchop.lib.unsafe.util;
 
+import lombok.NonNull;
 import net.daporkchop.lib.unsafe.PUnsafe;
 import net.daporkchop.lib.unsafe.capability.Releasable;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
@@ -58,6 +59,32 @@ public abstract class AbstractReleasable implements Releasable {
     protected final void assertNotReleased() throws AlreadyReleasedException {
         if (this.released != 0) {
             throw new AlreadyReleasedException();
+        }
+    }
+
+    /**
+     * Variant of {@link AbstractReleasable} that is synchronized on a given mutex.
+     * <p>
+     * Implementations of this class are expected to synchronize access to all methods that could fail if the instance is released on {@code this.mutex}.
+     *
+     * @author DaPorkchop_
+     */
+    public abstract static class Synchronized extends AbstractReleasable {
+        protected final Object mutex;
+
+        public Synchronized() {
+            this.mutex = this;
+        }
+
+        public Synchronized(@NonNull Object mutex) {
+            this.mutex = mutex;
+        }
+
+        @Override
+        public void release() throws AlreadyReleasedException {
+            synchronized (this.mutex)   {
+                super.release();
+            }
         }
     }
 }

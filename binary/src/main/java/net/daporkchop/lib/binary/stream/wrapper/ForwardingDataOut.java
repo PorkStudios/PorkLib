@@ -25,6 +25,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 
 import java.io.IOException;
@@ -250,33 +251,18 @@ public abstract class ForwardingDataOut implements DataOut {
     }
 
     @Override
-    public int writeFully(@NonNull ByteBuffer src) throws IOException {
-        return this.delegate.writeFully(src);
+    public long transferFrom(@NonNull DataIn src) throws IOException {
+        return this.delegate.transferFrom(src);
     }
 
     @Override
-    public long writeFully(@NonNull ByteBuffer[] srcs) throws IOException {
-        return this.delegate.writeFully(srcs);
+    public long transferFrom(@NonNull DataIn src, long count) throws IOException {
+        return this.delegate.transferFrom(src, count);
     }
 
     @Override
-    public long writeFully(@NonNull ByteBuffer[] srcs, int offset, int length) throws IOException {
-        return this.delegate.writeFully(srcs, offset, length);
-    }
-
-    @Override
-    public int writeFully(@NonNull ByteBuf src) throws IOException {
-        return this.delegate.writeFully(src);
-    }
-
-    @Override
-    public int writeFully(@NonNull ByteBuf src, int count) throws IOException {
-        return this.delegate.writeFully(src, count);
-    }
-
-    @Override
-    public int writeFully(@NonNull ByteBuf src, int start, int length) throws IOException {
-        return this.delegate.writeFully(src, start, length);
+    public long transferFromFully(@NonNull DataIn src, long count) throws IOException {
+        return this.delegate.transferFromFully(src, count);
     }
 
     @Override
@@ -287,6 +273,16 @@ public abstract class ForwardingDataOut implements DataOut {
     @Override
     public void flush() throws IOException {
         this.delegate.flush();
+    }
+
+    @Override
+    public boolean isDirect() {
+        return this.delegate.isDirect();
+    }
+
+    @Override
+    public boolean isHeap() {
+        return this.delegate.isHeap();
     }
 
     @Override

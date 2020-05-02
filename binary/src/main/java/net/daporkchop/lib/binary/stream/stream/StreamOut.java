@@ -48,18 +48,7 @@ public class StreamOut extends AbstractHeapDataOut {
     }
 
     @Override
-    public void write(@NonNull byte[] src, int start, int length) throws IOException {
-        this.delegate.write(src, start, length);
-    }
-
-    @Override
-    protected int writeSome0(@NonNull byte[] src, int start, int length) throws IOException {
-        this.delegate.write(src, start, length);
-        return length;
-    }
-
-    @Override
-    protected void writeAll0(@NonNull byte[] src, int start, int length) throws IOException {
+    protected void write0(@NonNull byte[] src, int start, int length) throws IOException {
         this.delegate.write(src, start, length);
     }
 

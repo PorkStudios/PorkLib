@@ -43,7 +43,6 @@ public abstract class AbstractDataIn implements DataIn {
     protected static final long CLOSED_OFFSET = PUnsafe.pork_getOffset(AbstractDataIn.class, "closed");
 
     protected static final int RESULT_EOF = -1;
-    protected static final int RESULT_BLOCKING = -2;
 
     protected InputStream inputStream;
 
@@ -51,18 +50,22 @@ public abstract class AbstractDataIn implements DataIn {
 
     @Override
     public int read() throws IOException {
-        this.ensureOpen();
-        return this.read0();
+        synchronized (this.mutex()) {
+            this.ensureOpen();
+            return this.read0();
+        }
     }
 
     @Override
     public int readUnsignedByte() throws IOException {
-        this.ensureOpen();
-        int b = this.read0();
-        if (b >= 0) {
-            return b;
-        } else {
-            throw new EOFException();
+        synchronized (this.mutex()) {
+            this.ensureOpen();
+            int b = this.read0();
+            if (b >= 0) {
+                return b;
+            } else {
+                throw new EOFException();
+            }
         }
     }
 
@@ -75,202 +78,116 @@ public abstract class AbstractDataIn implements DataIn {
 
     @Override
     public int read(@NonNull byte[] dst, int start, int length) throws IOException {
-        PValidation.checkRangeLen(dst.length, start, length);
-        if (length == 0) {
-            return 0;
-        }
-        int b = this.read0();
-        if (b >= 0) {
-            dst[start++] = (byte) b;
-
-            if (length == 1) {
-                //special case for single byte
-                return 1;
+        synchronized (this.mutex()) {
+            this.ensureOpen();
+            PValidation.checkRangeLen(dst.length, start, length);
+            if (length == 0) {
+                return 0;
             }
-        } else {
-            return -1;
+            return this.read0(dst, start, length);
         }
-
-        int read = this.readSome0(dst, start, length - 1);
-        return read < 0 ? 1 : read + 1;
-    }
-
-    @Override
-    public void readFully(@NonNull byte[] dst, int start, int length) throws IOException {
-        PValidation.checkRangeLen(dst.length, start, length);
-        this.readAll0(dst, start, length);
     }
 
     @Override
     public int read(@NonNull ByteBuffer dst) throws IOException {
-        this.ensureOpen();
-        int remaining = dst.remaining();
-        if (remaining <= 0) {
-            return 0;
-        }
+        synchronized (this.mutex()) {
+            this.ensureOpen();
+            int remaining = dst.remaining();
+            if (remaining <= 0) {
+                return 0;
+            }
 
-        int position = dst.position();
-        int read = dst.isDirect()
-                   ? toInt(this.readSome0(PUnsafe.pork_directBufferAddress(dst) + position, remaining))
-                   : this.readSome0(dst.array(), dst.arrayOffset() + position, remaining);
-        if (read > 0) {
-            dst.position(position + read);
+            int position = dst.position();
+            int read = dst.isDirect()
+                       ? toInt(this.read0(PUnsafe.pork_directBufferAddress(dst) + position, remaining))
+                       : this.read0(dst.array(), dst.arrayOffset() + position, remaining);
+            if (read > 0) {
+                dst.position(position + read);
+            }
+            return read;
         }
-        return read == RESULT_BLOCKING ? 0 : read;
-    }
-
-    @Override
-    public int read(@NonNull ByteBuf dst, int count) throws IOException {
-        int writerIndex = dst.writerIndex();
-        int read = this.read(dst, writerIndex, count);
-        dst.writerIndex(writerIndex + count);
-        return read;
     }
 
     @Override
     public int read(@NonNull ByteBuf dst, int start, int length) throws IOException {
-        this.ensureOpen();
-        checkRangeLen(dst.maxCapacity(), start, length);
-        if (length == 0) {
-            return 0;
-        }
-        dst.ensureWritable(start + length - dst.writerIndex());
-
-        int read;
-        if (dst.hasMemoryAddress()) {
-            read = toInt(this.readSome0(dst.memoryAddress() + start, length));
-        } else if (dst.hasArray()) {
-            read = this.readSome0(dst.array(), dst.arrayOffset() + start, length);
-        } else {
-            read = dst.setBytes(start, this, length);
-        }
-        return read == RESULT_BLOCKING ? 0 : read;
-    }
-
-    @Override
-    public int readFully(@NonNull ByteBuffer dst) throws IOException {
-        this.ensureOpen();
-        int remaining = dst.remaining();
-        if (remaining <= 0) {
-            return 0;
-        }
-
-        int position = dst.position();
-        if (dst.isDirect()) {
-            this.readAll0(PUnsafe.pork_directBufferAddress(dst) + position, remaining);
-        } else {
-            this.readAll0(dst.array(), dst.arrayOffset() + position, remaining);
-        }
-        dst.position(position + remaining);
-        return remaining;
-    }
-
-    @Override
-    public int readFully(@NonNull ByteBuf dst, int count) throws IOException {
-        int writerIndex = dst.writerIndex();
-        int read = this.readFully(dst, writerIndex, count);
-        dst.writerIndex(writerIndex + count);
-        return read;
-    }
-
-    @Override
-    public int readFully(@NonNull ByteBuf dst, int start, int length) throws IOException {
-        this.ensureOpen();
-        checkRangeLen(dst.maxCapacity(), start, length);
-        if (length == 0) {
-            return 0;
-        }
-        int writerIndex = dst.writerIndex();
-        dst.ensureWritable(start + length - writerIndex);
-
-        if (dst.hasMemoryAddress()) {
-            this.readAll0(dst.memoryAddress() + start, length);
-        } else if (dst.hasArray()) {
-            this.readAll0(dst.array(), dst.arrayOffset() + start, length);
-        } else {
-            for (ByteBuffer buffer : dst.nioBuffers(start, length))   {
-                this.readFully(buffer);
+        synchronized (this.mutex()) {
+            this.ensureOpen();
+            checkRangeLen(dst.maxCapacity(), start, length);
+            if (length == 0) {
+                return 0;
             }
+            dst.ensureWritable(start + length - dst.writerIndex());
+
+            int read;
+            if (dst.hasMemoryAddress()) {
+                read = toInt(this.read0(dst.memoryAddress() + start, length));
+            } else if (dst.hasArray()) {
+                read = this.read0(dst.array(), dst.arrayOffset() + start, length);
+            } else {
+                read = dst.setBytes(start, this, length);
+            }
+            return read;
         }
-        return length;
     }
 
     /**
      * Reads between {@code 0} and {@code length} bytes into the given {@code byte[]}.
      * <p>
-     * This will continue to read until the requested number of bytes have been read, EOF is reached, or no further data can be read without blocking.
+     * This will continue to read until the requested number of bytes have been read or EOF is reached.
      * <p>
-     * If at least 1 byte could be read, this method will return the number of bytes read.
-     * <p>
-     * If no bytes could be read due to EOF being reached, this method will return {@link #RESULT_EOF}.
-     * <p>
-     * If no bytes could be read because it would have blocked, this method will return {@link #RESULT_BLOCKING}.
+     * If EOF was already reached, this method will always return {@link #RESULT_EOF}.
      *
      * @param dst    the {@code byte[]} to read data into
      * @param start  the first index to start reading data into
      * @param length the number of bytes to read. Will always be at least {@code 1}
-     * @return the actual number of bytes read, or one of {@link #RESULT_EOF} or {@link #RESULT_BLOCKING}
+     * @return the actual number of bytes read or {@link #RESULT_EOF}
      */
-    protected abstract int readSome0(@NonNull byte[] dst, int start, int length) throws IOException;
+    protected abstract int read0(@NonNull byte[] dst, int start, int length) throws IOException;
 
     /**
      * Reads between {@code 0L} and {@code length} bytes into the given memory address.
      * <p>
-     * This will continue to read until the requested number of bytes have been read, EOF is reached, or no further data can be read without blocking.
+     * This will continue to read until the requested number of bytes have been read or EOF is reached.
      * <p>
-     * If at least 1 byte could be read, this method will return the number of bytes read.
-     * <p>
-     * If no bytes could be read due to EOF being reached, this method will return {@link #RESULT_EOF}.
-     * <p>
-     * If no bytes could be read because it would have blocked, this method will return {@link #RESULT_BLOCKING}.
+     * If EOF was already reached, this method will always return {@link #RESULT_EOF}.
      *
      * @param addr   the base memory address to read data into
      * @param length the number of bytes to read. Will always be at least {@code 1L}
-     * @return the actual number of bytes read, or one of {@link #RESULT_EOF} or {@link #RESULT_BLOCKING}
+     * @return the actual number of bytes read or {@link #RESULT_EOF}
      */
-    protected abstract long readSome0(long addr, long length) throws IOException;
-
-    /**
-     * Reads exactly {@code length} bytes into the given {@code byte[]}.
-     * <p>
-     * This will continue to read, possibly blocking, until the requested number of bytes have been read.
-     *
-     * @param dst    the {@code byte[]} to read data into
-     * @param start  the first index to start reading data into
-     * @param length the number of bytes to read. Will always be at least {@code 1}
-     * @throws EOFException if EOF is reached at any point while reading
-     */
-    protected abstract void readAll0(@NonNull byte[] dst, int start, int length) throws EOFException, IOException;
-
-    /**
-     * Reads exactly {@code length} bytes into the given memory address.
-     * <p>
-     * This will continue to read, possibly blocking, until the requested number of bytes have been read.
-     *
-     * @param addr   the base memory address to read data into
-     * @param length the number of bytes to read. Will always be at least {@code 1L}
-     * @throws EOFException if EOF is reached at any point while reading
-     */
-    protected abstract void readAll0(long addr, long length) throws EOFException, IOException;
+    protected abstract long read0(long addr, long length) throws IOException;
 
     /**
      * Makes a best-effort attempt to skip the requested number of bytes.
      * <p>
-     * This will continue to read, possibly blocking, until the requested number of bytes have been skipped or EOF is reached.
+     * This will continue to read until the requested number of bytes have been skipped or EOF is reached.
      * <p>
      * If EOF was already reached, this method will return {@code 0}.
      *
-     * @param count the number of bytes to skip
+     * @param count the number of bytes to skip. Will always be at least {@code 1L}
      * @return the number of bytes actually skipped, possibly {@code 0}
      */
     protected abstract long skip0(long count) throws IOException;
 
     /**
-     * Gets an estimate of the number of bytes that may be read without blocking.
+     * Transfers between {@code 0} and {@code count} bytes to the given {@link DataOut}.
+     * <p>
+     * This will continue to read until the requested number of bytes have been transferred or EOF is reached.
+     * <p>
+     * If EOF was already reached, this method will always return {@link #RESULT_EOF}.
+     *
+     * @param dst   the {@link DataOut} to write data to
+     * @param count the maximum number of bytes to transfer. If negative, data should be transferred until EOF is reached. Will never be {@code 0}
+     * @return the actual number of bytes transferred or {@link #RESULT_EOF}
+     */
+    protected abstract long transfer0(@NonNull DataOut dst, long count) throws IOException;
+
+    /**
+     * Gets an estimate of the number of bytes that may be read.
      * <p>
      * If EOF has been reached, this method may return either {@code 0} or {@code -1}.
      *
-     * @return an estimate of the number of bytes that may be read without blocking
+     * @return an estimate of the number of bytes that may be read
      */
     protected abstract long remaining0() throws IOException;
 
@@ -283,15 +200,38 @@ public abstract class AbstractDataIn implements DataIn {
      */
     protected abstract void close0() throws IOException;
 
-    protected InputStream asStream0()   {
+    protected Object mutex() {
+        return this;
+    }
+
+    protected InputStream asStream0() {
         return new DataInAsInputStream(this);
+    }
+
+    @Override
+    public long transferTo(@NonNull DataOut dst) throws IOException {
+        synchronized (this.mutex()) {
+            this.ensureOpen();
+            return this.transfer0(dst, -1L);
+        }
+    }
+
+    @Override
+    public long transferTo(@NonNull DataOut dst, long count) throws IOException {
+        synchronized (this.mutex()) {
+            this.ensureOpen();
+            if (positive(count, "count") == 0L)    {
+                return 0L;
+            }
+            return this.transfer0(dst, count);
+        }
     }
 
     @Override
     public InputStream asInputStream() {
         InputStream inputStream = this.inputStream;
         if (inputStream == null) {
-            synchronized (this) {
+            synchronized (this.mutex()) {
                 if ((inputStream = this.inputStream) == null) {
                     this.inputStream = inputStream = this.asStream0();
                 }
@@ -302,20 +242,42 @@ public abstract class AbstractDataIn implements DataIn {
 
     @Override
     public long remaining() throws IOException {
-        this.ensureOpen();
-        return this.remaining0();
+        synchronized (this.mutex()) {
+            this.ensureOpen();
+            return this.remaining0();
+        }
     }
 
     @Override
     public int skipBytes(int n) throws IOException {
-        this.ensureOpen();
-        return n != 0 ? toInt(this.skip0((long) positive(n))) : 0;
+        synchronized (this.mutex()) {
+            this.ensureOpen();
+            if (positive(n, "n") == 0)  {
+                return 0;
+            }
+            return toInt(this.skip0(n));
+        }
     }
 
     @Override
     public long skipBytes(long n) throws IOException {
-        this.ensureOpen();
-        return n != 0L ? this.skip0(positive(n)) : 0L;
+        synchronized (this.mutex()) {
+            this.ensureOpen();
+            if (positive(n, "n") == 0L)  {
+                return 0L;
+            }
+            return toInt(this.skip0(n));
+        }
+    }
+
+    @Override
+    public boolean isDirect() {
+        return false;
+    }
+
+    @Override
+    public boolean isHeap() {
+        return false;
     }
 
     @Override
@@ -325,12 +287,14 @@ public abstract class AbstractDataIn implements DataIn {
 
     @Override
     public void close() throws IOException {
-        if (PUnsafe.compareAndSwapInt(this, CLOSED_OFFSET, 0, 1)) {
-            this.close0();
+        synchronized (this.mutex()) {
+            if (PUnsafe.compareAndSwapInt(this, CLOSED_OFFSET, 0, 1)) {
+                this.close0();
+            }
         }
     }
 
-    protected final void ensureOpen() throws IOException {
+    protected void ensureOpen() throws IOException {
         if (!this.isOpen()) {
             throw new ClosedChannelException();
         }

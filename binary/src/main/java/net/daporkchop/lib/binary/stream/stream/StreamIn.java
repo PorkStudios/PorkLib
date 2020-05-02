@@ -52,38 +52,19 @@ public class StreamIn extends AbstractHeapDataIn {
     }
 
     @Override
-    public int read(@NonNull byte[] dst, int start, int length) throws IOException {
-        return this.delegate.read(dst, start, length);
-    }
-
-    @Override
-    protected int readSome0(@NonNull byte[] dst, int start, int length) throws IOException {
-        int totalRead = 0;
-        int bytesRead = 0;
+    protected int read0(@NonNull byte[] dst, int start, int length) throws IOException {
+        int totalRead = this.delegate.read(dst, start, length);
+        if (totalRead < 0)  {
+            return RESULT_EOF;
+        }
         while (totalRead < length) {
-            int bytesToRead = min(length - totalRead, 8192);
-            if (totalRead > 0 && this.delegate.available() <= 0) {
-                break; // block at most once
-            }
-
-            bytesRead = this.delegate.read(dst, start + totalRead, bytesToRead);
-
-            if (bytesRead < 0) {
+            int read = this.delegate.read(dst, start + totalRead, length - totalRead);
+            if (read < 0)   {
                 break;
-            } else {
-                totalRead += bytesRead;
             }
+            totalRead += read;
         }
-        if (bytesRead < 0 && totalRead == 0) {
-            return -1;
-        }
-
         return totalRead;
-    }
-
-    @Override
-    protected void readAll0(@NonNull byte[] dst, int start, int length) throws EOFException, IOException {
-        StreamUtil.readFully(this.delegate, dst, start, length);
     }
 
     @Override

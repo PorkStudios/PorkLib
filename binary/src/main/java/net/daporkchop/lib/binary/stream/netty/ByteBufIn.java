@@ -21,35 +21,34 @@
 package net.daporkchop.lib.binary.stream.netty;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufInputStream;
-import io.netty.buffer.Unpooled;
+import io.netty.util.internal.PlatformDependent;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.binary.stream.AbstractDataIn;
+import net.daporkchop.lib.binary.stream.AbstractHeapDataIn;
 import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.unsafe.PUnsafe;
+import net.daporkchop.lib.binary.stream.DataOut;
 
-import java.io.EOFException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.Charset;
 
 import static java.lang.Math.*;
 import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
- * An implementation of {@link DataIn} that can read from a {@link ByteBuf}.
+ * An implementation of {@link DataIn} that can read from a generic {@link ByteBuf}.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public class ByteBufIn extends AbstractDataIn {
-    @NonNull
+public class ByteBufIn extends AbstractHeapDataIn {
     protected ByteBuf delegate;
+
+    public ByteBufIn(@NonNull ByteBuf delegate) {
+        checkArg(!delegate.hasMemoryAddress(), "delegate may not be direct!");
+        this.delegate = delegate;
+    }
 
     @Override
     protected int read0() throws IOException {
@@ -61,7 +60,7 @@ public class ByteBufIn extends AbstractDataIn {
     }
 
     @Override
-    protected int readSome0(@NonNull byte[] dst, int start, int length) throws IOException {
+    protected int read0(@NonNull byte[] dst, int start, int length) throws IOException {
         int count = min(this.delegate.readableBytes(), length);
         if (count <= 0) {
             return RESULT_EOF;
@@ -72,52 +71,13 @@ public class ByteBufIn extends AbstractDataIn {
     }
 
     @Override
-    protected long readSome0(long addr, long length) throws IOException {
+    protected long read0(long addr, long length) throws IOException {
         int count = toInt(min(this.delegate.readableBytes(), length));
-        int readerIndex = this.delegate.readerIndex();
         if (count <= 0) {
             return RESULT_EOF;
-        } else if (this.delegate.hasMemoryAddress()) {
-            PUnsafe.copyMemory(this.delegate.memoryAddress() + readerIndex, addr, count);
-        } else if (this.delegate.hasArray()) {
-            PUnsafe.copyMemory(this.delegate.array(), PUnsafe.ARRAY_BYTE_BASE_OFFSET + this.delegate.arrayOffset() + readerIndex, null, addr, count);
-        } else {
-            this.delegate.getBytes(readerIndex, Unpooled.wrappedBuffer(addr, count, false));
         }
-        this.delegate.skipBytes(count);
+        this.delegate.readBytes(PlatformDependent.directBuffer(addr, count));
         return count;
-    }
-
-    @Override
-    protected void readAll0(@NonNull byte[] dst, int start, int length) throws EOFException, IOException {
-        int readableBytes = this.delegate.readableBytes();
-        if (length <= readableBytes)    {
-            this.delegate.readBytes(dst, start, length);
-        } else {
-            //emulate having read all the data in the buffer
-            this.delegate.skipBytes(readableBytes);
-            throw new EOFException();
-        }
-    }
-
-    @Override
-    protected void readAll0(long addr, long length) throws EOFException, IOException {
-        int readableBytes = this.delegate.readableBytes();
-        if (length <= readableBytes)    {
-            int readerIndex = this.delegate.readerIndex();
-            if (this.delegate.hasMemoryAddress()) {
-                PUnsafe.copyMemory(this.delegate.memoryAddress() + readerIndex, addr, length);
-            } else if (this.delegate.hasArray()) {
-                PUnsafe.copyMemory(this.delegate.array(), PUnsafe.ARRAY_BYTE_BASE_OFFSET + this.delegate.arrayOffset() + readerIndex, null, addr, length);
-            } else {
-                this.delegate.getBytes(readerIndex, Unpooled.wrappedBuffer(addr, toInt(length), false));
-            }
-            this.delegate.skipBytes(toInt(length));
-        } else {
-            //emulate having read all the data in the buffer
-            this.delegate.skipBytes(readableBytes);
-            throw new EOFException();
-        }
     }
 
     @Override
@@ -125,6 +85,16 @@ public class ByteBufIn extends AbstractDataIn {
         int countI = (int) min(this.delegate.readableBytes(), count);
         this.delegate.skipBytes(countI);
         return countI;
+    }
+
+    @Override
+    protected long transfer0(@NonNull DataOut dst, long count) throws IOException {
+        if (count < 0L || count > this.delegate.readableBytes()) {
+            count = this.delegate.readableBytes();
+        }
+        int read = this.delegate.readBytes(dst, (int) count);
+        checkState(read == count, "only transferred %s/%s bytes?!?", read, count);
+        return count;
     }
 
     @Override
@@ -136,11 +106,6 @@ public class ByteBufIn extends AbstractDataIn {
     protected void close0() throws IOException {
         this.delegate.release();
         this.delegate = null;
-    }
-
-    @Override
-    protected InputStream asStream0() {
-        return new ByteBufInputStream(this.delegate);
     }
 
     @Override

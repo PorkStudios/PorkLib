@@ -20,17 +20,27 @@
 
 package net.daporkchop.lib.compression;
 
+import lombok.NonNull;
 import net.daporkchop.lib.common.util.PValidation;
-import net.daporkchop.lib.natives.util.BufferTyped;
+import net.daporkchop.lib.compression.context.PDeflater;
+import net.daporkchop.lib.compression.context.PInflater;
+import net.daporkchop.lib.compression.option.DeflaterOptions;
+import net.daporkchop.lib.compression.option.InflaterOptions;
 
 /**
  * An implementation of a compression algorithm.
+ * <p>
+ * This interface is not intended to be referenced directly by user code, rather, implementations should define child interfaces which set the option
+ * generic parameters.
  *
  * @author DaPorkchop_
  */
-public interface CompressionProvider extends BufferTyped {
-    @Override
-    boolean directAccepted();
+public interface CompressionProvider<I extends CompressionProvider<I, DO, IO>, DO extends DeflaterOptions<DO, I>, IO extends InflaterOptions<IO, I>> {
+    //
+    //
+    // info methods
+    //
+    //
 
     /**
      * @return the compression level with the worst compression ratio in exchange for the shortest compression times
@@ -61,4 +71,54 @@ public interface CompressionProvider extends BufferTyped {
      * @return the worst-case size of the compressed data
      */
     long compressBoundLong(long srcSize);
+
+    /**
+     * @return the default {@link DeflaterOptions} (used by {@link #deflater()})
+     */
+    DO deflateOptions();
+
+    /**
+     * @return the default {@link InflaterOptions} (used by {@link #inflater()})
+     */
+    IO inflateOptions();
+
+    //
+    //
+    // context creation methods
+    //
+    //
+
+    /**
+     * Creates a new {@link PDeflater} using the default options.
+     *
+     * @see #deflater(DeflaterOptions)
+     */
+    default PDeflater deflater() {
+        return this.deflater(this.deflateOptions());
+    }
+
+    /**
+     * Creates a new {@link PDeflater} with the given options.
+     *
+     * @param options the options to use
+     * @return a new {@link PDeflater} with the given options
+     */
+    PDeflater deflater(@NonNull DO options);
+
+    /**
+     * Creates a new {@link PInflater} using the default options.
+     *
+     * @see #inflater(InflaterOptions)
+     */
+    default PInflater inflater() {
+        return this.inflater(this.inflateOptions());
+    }
+
+    /**
+     * Creates a new {@link PInflater} with the given options.
+     *
+     * @param options the options to use
+     * @return a new {@link PInflater} with the given options
+     */
+    PInflater inflater(@NonNull IO options);
 }

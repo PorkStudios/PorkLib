@@ -33,11 +33,14 @@ import java.awt.FlowLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -58,7 +61,7 @@ public class PorkUtil {
     private final Function<Throwable, StackTraceElement[]> GET_STACK_TRACE_WRAPPER;
 
     public final int TINY_BUFFER_SIZE = 32;
-    public final int BUFFER_SIZE = PUnsafe.PAGE_SIZE << 2;
+    public final int BUFFER_SIZE = 65536;
 
     public final HandledPool<byte[]> TINY_BUFFER_POOL = HandledPool.threadLocal(() -> new byte[TINY_BUFFER_SIZE], 4);
     public final HandledPool<ByteBuffer> DIRECT_TINY_BUFFER_POOL =  HandledPool.threadLocal(() -> ByteBuffer.allocateDirect(TINY_BUFFER_SIZE), 4);
@@ -131,6 +134,15 @@ public class PorkUtil {
     public static <T> Class<T> classForName(@NonNull String name) {
         try {
             return (Class<T>) Class.forName(name);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> Class<T> classForName(@NonNull String name, ClassLoader loader) {
+        try {
+            return (Class<T>) Class.forName(name, true, loader);
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
@@ -272,5 +284,18 @@ public class PorkUtil {
     @SuppressWarnings("unchecked")
     public static <T> T uncheckedCast(Object value) {
         return (T) value;
+    }
+
+    public static <T> T newInstance(@NonNull Class<T> clazz)    {
+        try {
+            Constructor<T> constructor = clazz.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            return constructor.newInstance();
+        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException e)   {
+            PUnsafe.throwException(e);
+        } catch (InvocationTargetException e)   {
+            PUnsafe.throwException(e.getCause() != null ? e.getCause() : e);
+        }
+        throw new IllegalStateException();
     }
 }

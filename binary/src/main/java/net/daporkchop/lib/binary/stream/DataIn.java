@@ -23,11 +23,12 @@ package net.daporkchop.lib.binary.stream;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.netty.ByteBufIn;
-import net.daporkchop.lib.binary.stream.nio.BufferIn;
+import net.daporkchop.lib.binary.stream.netty.DirectByteBufIn;
+import net.daporkchop.lib.binary.stream.nio.DirectBufferIn;
+import net.daporkchop.lib.binary.stream.nio.HeapBufferIn;
 import net.daporkchop.lib.binary.stream.stream.StreamIn;
 import net.daporkchop.lib.binary.stream.wrapper.DataInAsInputStream;
 import net.daporkchop.lib.common.pool.handle.Handle;
-import net.daporkchop.lib.common.system.PlatformInfo;
 import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
@@ -55,6 +56,10 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  * <p>
  * Unless otherwise specified by an implementation, instances of this class are not thread-safe. Notably, many multithreading aspects of
  * {@link ScatteringByteChannel} are unlikely to work correctly, if at all.
+ * <p>
+ * This does not implement {@link ScatteringByteChannel} or {@link InputStream} entirely correctly. As in: this is not intended to be used for socket
+ * I/O, and as such there is no concept of blocking/non-blocking, the only thing that can cause an ongoing read operation to be stopped prematurely
+ * is EOF being reached.
  *
  * @author DaPorkchop_
  * @see DataOut
@@ -80,16 +85,6 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
         } else {
             return new StreamIn(in);
         }
-    }
-
-    /**
-     * Wraps a {@link ByteBuffer} to make it into a {@link DataIn}.
-     *
-     * @param buffer the buffer to wrap
-     * @return the wrapped buffer as a {@link DataIn}
-     */
-    static DataIn wrap(@NonNull ByteBuffer buffer) {
-        return new BufferIn(buffer);
     }
 
     /**
@@ -142,6 +137,16 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
     }
 
     /**
+     * Wraps a {@link ByteBuffer} to make it into a {@link DataIn}.
+     *
+     * @param buffer the buffer to wrap
+     * @return the wrapped buffer as a {@link DataIn}
+     */
+    static DataIn wrap(@NonNull ByteBuffer buffer) {
+        return buffer.isDirect() ? new DirectBufferIn(buffer) : new HeapBufferIn(buffer);
+    }
+
+    /**
      * Wraps a {@link ByteBuf} into a {@link DataIn} for reading.
      * <p>
      * When the {@link DataIn} is closed (using {@link DataIn#close()}), the {@link ByteBuf} will not be released.
@@ -161,7 +166,10 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @return a {@link DataIn} that can read data from the {@link ByteBuf}
      */
     static DataIn wrap(@NonNull ByteBuf buf, boolean retain) {
-        return new ByteBufIn(retain ? buf.retain() : buf);
+        if (retain) {
+            buf.retain();
+        }
+        return buf.hasMemoryAddress() ? new DirectByteBufIn(buf) : new ByteBufIn(buf);
     }
 
     //
@@ -205,17 +213,7 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @see DataInput#readShort()
      */
     @Override
-    default short readShort() throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            this.readFully(arr, 0, Short.BYTES);
-            if (PlatformInfo.IS_BIG_ENDIAN) {
-                return PUnsafe.getShort(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET);
-            } else {
-                return Short.reverseBytes(PUnsafe.getShort(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET));
-            }
-        }
-    }
+    short readShort() throws IOException;
 
     /**
      * Reads an unsigned big-endian {@code short}.
@@ -232,17 +230,7 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      *
      * @see #readShort()
      */
-    default short readShortLE() throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            this.readFully(arr, 0, Short.BYTES);
-            if (PlatformInfo.IS_LITTLE_ENDIAN) {
-                return PUnsafe.getShort(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET);
-            } else {
-                return Short.reverseBytes(PUnsafe.getShort(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET));
-            }
-        }
-    }
+    short readShortLE() throws IOException;
 
     /**
      * Reads an unsigned little-endian {@code short}.
@@ -259,34 +247,14 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @see DataInput#readChar()
      */
     @Override
-    default char readChar() throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            this.readFully(arr, 0, Character.BYTES);
-            if (PlatformInfo.IS_BIG_ENDIAN) {
-                return PUnsafe.getChar(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET);
-            } else {
-                return Character.reverseBytes(PUnsafe.getChar(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET));
-            }
-        }
-    }
+    char readChar() throws IOException;
 
     /**
      * Reads a little-endian {@code char}.
      *
      * @see #readChar()
      */
-    default char readCharLE() throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            this.readFully(arr, 0, Character.BYTES);
-            if (PlatformInfo.IS_LITTLE_ENDIAN) {
-                return PUnsafe.getChar(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET);
-            } else {
-                return Character.reverseBytes(PUnsafe.getChar(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET));
-            }
-        }
-    }
+    char readCharLE() throws IOException;
 
     /**
      * Reads a big-endian {@code int}.
@@ -294,34 +262,14 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @see DataInput#readInt()
      */
     @Override
-    default int readInt() throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            this.readFully(arr, 0, Integer.BYTES);
-            if (PlatformInfo.IS_BIG_ENDIAN) {
-                return PUnsafe.getInt(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET);
-            } else {
-                return Integer.reverseBytes(PUnsafe.getInt(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET));
-            }
-        }
-    }
+    int readInt() throws IOException;
 
     /**
      * Reads a little-endian {@code int}.
      *
      * @see #readInt()
      */
-    default int readIntLE() throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            this.readFully(arr, 0, Integer.BYTES);
-            if (PlatformInfo.IS_LITTLE_ENDIAN) {
-                return PUnsafe.getInt(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET);
-            } else {
-                return Integer.reverseBytes(PUnsafe.getInt(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET));
-            }
-        }
-    }
+    int readIntLE() throws IOException;
 
     /**
      * Reads a big-endian {@code long}.
@@ -329,34 +277,14 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @see DataInput#readLong()
      */
     @Override
-    default long readLong() throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            this.readFully(arr, 0, Long.BYTES);
-            if (PlatformInfo.IS_BIG_ENDIAN) {
-                return PUnsafe.getLong(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET);
-            } else {
-                return Long.reverseBytes(PUnsafe.getLong(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET));
-            }
-        }
-    }
+    long readLong() throws IOException;
 
     /**
      * Reads a little-endian {@code long}.
      *
      * @see #readLong()
      */
-    default long readLongLE() throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            this.readFully(arr, 0, Long.BYTES);
-            if (PlatformInfo.IS_LITTLE_ENDIAN) {
-                return PUnsafe.getLong(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET);
-            } else {
-                return Long.reverseBytes(PUnsafe.getLong(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET));
-            }
-        }
-    }
+    long readLongLE() throws IOException;
 
     /**
      * Reads a big-endian {@code float}.
@@ -585,16 +513,12 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
     /**
      * Fills the given {@code byte[]} with as much data as possible.
      * <p>
-     * <p>
-     * Like {@link InputStream#read(byte[])}, this method will read data until the byte array is filled, EOF is reached, or further data cannot
-     * be read without blocking.
+     * This method will read data until the byte array is filled or EOF is reached.
      * <p>
      * If EOF was already reached, this method will always return {@code -1}.
      *
      * @param dst the {@code byte[]} to read to
      * @return the number of bytes actually read
-     * @throws IOException if an IO exception occurs you dummy
-     * @see InputStream#read(byte[])
      */
     default int read(@NonNull byte[] dst) throws IOException {
         return this.read(dst, 0, dst.length);
@@ -603,8 +527,7 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
     /**
      * Fills the given region of the given {@code byte[]} with as much data as possible.
      * <p>
-     * Like {@link InputStream#read(byte[], int, int)}, this method will read data until the given number of bytes have been read, EOF is reached,
-     * or further data cannot be read without blocking.
+     * This method will read data until the byte array is filled or EOF is reached.
      * <p>
      * If EOF was already reached, this method will always return {@code -1}.
      *
@@ -612,13 +535,13 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @param start  the first index (inclusive) in the {@code byte[]} to start writing to
      * @param length the number of bytes to read into the {@code byte[]}
      * @return the number of bytes actually read
-     * @throws IOException if an IO exception occurs you dummy
-     * @see InputStream#read(byte[], int, int)
      */
     int read(@NonNull byte[] dst, int start, int length) throws IOException;
 
     /**
      * Fills the given {@code byte[]} with data.
+     * <p>
+     * Functionally equivalent to {@link #read(byte[])} except that it throws {@link EOFException} on EOF.
      *
      * @param dst the {@code byte[]} to read to
      * @throws EOFException if EOF is reached before the given {@code byte[]} could be filled
@@ -631,6 +554,8 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
 
     /**
      * Fills the given region of the given {@code byte[]} with data.
+     * <p>
+     * Functionally equivalent to {@link #read(byte[], int, int)} except that it throws {@link EOFException} on EOF.
      *
      * @param dst    the {@code byte[]} to read to
      * @param start  the first index (inclusive) in the {@code byte[]} to start writing to
@@ -639,7 +564,11 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @throws IOException  if an IO exception occurs you dummy
      */
     @Override
-    void readFully(@NonNull byte[] dst, int start, int length) throws IOException;
+    default void readFully(@NonNull byte[] dst, int start, int length) throws IOException {
+        if (this.read(dst, start, length) != length) {
+            throw new EOFException();
+        }
+    }
 
     /**
      * Fills the given {@code byte[]} with data.
@@ -689,20 +618,19 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
 
     //
     //
-    // bulk transfer methods - ByteBuffer and ByteBuf - non-blocking
+    // bulk transfer methods - ByteBuffer and ByteBuf
     //
     //
 
     /**
      * Reads data into the given {@link ByteBuffer}.
      * <p>
-     * Like {@link #read(byte[], int, int)}, this will read until the buffer has no bytes available, EOF is reached, or more data cannot be read without
-     * blocking. However, it is not guaranteed to read any bytes at all.
+     * Like {@link #read(byte[], int, int)}, this will read until the buffer has no bytes available or EOF is reached.
      * <p>
      * If EOF was already reached, this method will always return {@code -1}.
      *
      * @param dst the {@link ByteBuffer} to read data into
-     * @return the actual number of bytes read
+     * @return the number of bytes read
      * @throws ClosedChannelException if the channel was already closed
      * @throws IOException            if an IO exception occurs you dummy
      */
@@ -712,11 +640,12 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
     /**
      * Reads data into the given {@link ByteBuffer}s.
      * <p>
-     * Like {@link #read(byte[], int, int)}, this will read until the buffer has no bytes available, EOF is reached, or more data cannot be read without
-     * blocking. However, it is not guaranteed to read any bytes at all.
+     * Like {@link #read(byte[], int, int)}, this will read until the buffer has no bytes available or EOF is reached.
+     * <p>
+     * If EOF was already reached, this method will always return {@code -1}.
      *
      * @param dsts the {@link ByteBuffer}s to read data into
-     * @return the actual number of bytes read
+     * @return the number of bytes read
      * @throws ClosedChannelException if the channel was already closed
      * @throws IOException            if an IO exception occurs you dummy
      */
@@ -728,13 +657,14 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
     /**
      * Reads data into the given {@link ByteBuffer}s.
      * <p>
-     * Like {@link #read(byte[], int, int)}, this will read until the buffer has no bytes available, EOF is reached, or more data cannot be read without
-     * blocking. However, it is not guaranteed to read any bytes at all.
+     * Like {@link #read(byte[], int, int)}, this will read until the buffer has no bytes available or EOF is reached.
+     * <p>
+     * If EOF was already reached, this method will always return {@code -1}.
      *
      * @param dsts   the {@link ByteBuffer}s to read data into
      * @param offset the index of the first {@link ByteBuffer} to read data into
      * @param length the number of {@link ByteBuffer}s to read data into
-     * @return the actual number of bytes read
+     * @return the number of bytes read
      * @throws ClosedChannelException if the channel was already closed
      * @throws IOException            if an IO exception occurs you dummy
      */
@@ -747,14 +677,11 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
         long total = 0L;
         for (int i = 0; i < length; i++) {
             ByteBuffer dst = dsts[offset + i];
-            if (dst.hasRemaining()) {
-                int read = this.read(dst);
-                total += read;
-                if (dst.hasRemaining()) {
-                    //there wasn't enough data to fill the entire buffer, abort
-                    break;
-                }
+            int read = this.read(dst);
+            if (read < 0) {
+                break;
             }
+            total += read;
         }
         return total;
     }
@@ -762,8 +689,25 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
     /**
      * Reads data into the given {@link ByteBuf}.
      * <p>
-     * Like {@link #read(byte[], int, int)}, this will read until the requested number of bytes have been read, EOF is reached, or more data
-     * cannot be read without blocking. However, it is not guaranteed to read any bytes at all.
+     * Like {@link #read(byte[], int, int)}, this will read until the buffer has no bytes available or EOF is reached.
+     * <p>
+     * If EOF was already reached, this method will always return {@code -1}.
+     * <p>
+     * This method will also increase the buffer's {@link ByteBuf#writerIndex()}.
+     *
+     * @param dst the {@link ByteBuf} to read data into
+     * @return the number of bytes read
+     * @throws ClosedChannelException if the channel was already closed
+     * @throws IOException            if an IO exception occurs you dummy
+     */
+    default int read(@NonNull ByteBuf dst) throws IOException {
+        return this.read(dst, dst.writableBytes());
+    }
+
+    /**
+     * Reads data into the given {@link ByteBuf}.
+     * <p>
+     * Like {@link #read(byte[], int, int)}, this will read until the buffer has no bytes available or EOF is reached.
      * <p>
      * If EOF was already reached, this method will always return {@code -1}.
      * <p>
@@ -771,17 +715,23 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      *
      * @param dst   the {@link ByteBuf} to read data into
      * @param count the number of bytes to read
-     * @return the actual number of bytes read
+     * @return the number of bytes read
      * @throws ClosedChannelException if the channel was already closed
      * @throws IOException            if an IO exception occurs you dummy
      */
-    int read(@NonNull ByteBuf dst, int count) throws IOException;
+    default int read(@NonNull ByteBuf dst, int count) throws IOException {
+        int writerIndex = dst.writerIndex();
+        int read = this.read(dst, writerIndex, count);
+        if (read > 0) {
+            dst.writerIndex(writerIndex + read);
+        }
+        return read;
+    }
 
     /**
      * Reads data into the given {@link ByteBuf}.
      * <p>
-     * Like {@link #read(byte[], int, int)}, this will read until the requested number of bytes have been read, EOF is reached, or more data
-     * cannot be read without blocking. However, it is not guaranteed to read any bytes at all.
+     * Like {@link #read(byte[], int, int)}, this will read until the buffer has no bytes available or EOF is reached.
      * <p>
      * If EOF was already reached, this method will always return {@code -1}.
      * <p>
@@ -790,17 +740,11 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @param dst    the {@link ByteBuf} to read data into
      * @param start  the first index in the {@link ByteBuf} to read into
      * @param length the number of bytes to read
-     * @return the actual number of bytes read
+     * @return the number of bytes read
      * @throws ClosedChannelException if the channel was already closed
      * @throws IOException            if an IO exception occurs you dummy
      */
     int read(@NonNull ByteBuf dst, int start, int length) throws IOException;
-
-    //
-    //
-    // bulk transfer methods - ByteBuffer and ByteBuf - blocking
-    //
-    //
 
     /**
      * Fills the given {@link ByteBuffer} with data.
@@ -810,7 +754,13 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @throws EOFException if EOF is reached before the buffer can be filled
      * @throws IOException  if an IO exception occurs you dummy
      */
-    int readFully(@NonNull ByteBuffer dst) throws IOException;
+    default int readFully(@NonNull ByteBuffer dst) throws IOException {
+        int read = this.read(dst);
+        if (read < 0 || dst.hasRemaining()) {
+            throw new EOFException();
+        }
+        return read;
+    }
 
     /**
      * Fills the given {@link ByteBuffer}s with data.
@@ -835,23 +785,35 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @throws IOException  if an IO exception occurs you dummy
      */
     default long readFully(@NonNull ByteBuffer[] dsts, int offset, int length) throws IOException {
-        if (!this.isOpen()) {
-            throw new ClosedChannelException();
-        }
         checkRangeLen(dsts.length, offset, length);
         long total = 0L;
         for (int i = 0; i < length; i++) {
             ByteBuffer dst = dsts[offset + i];
-            int remaining = dst.remaining();
-            if (remaining > 0) {
-                int read = this.readFully(dst);
-                if (read != remaining || dst.hasRemaining()) {
-                    throw new EOFException("readFully somehow didn't fill the entire buffer...");
-                }
-                total += read;
+            int read = this.read(dst);
+            if (read < 0 || dst.hasRemaining()) {
+                throw new EOFException();
             }
+            total += read;
         }
         return total;
+    }
+
+    /**
+     * Fills the given {@link ByteBuf} with data.
+     * <p>
+     * This method will also increase the buffer's {@link ByteBuf#writerIndex()}.
+     *
+     * @param dst the {@link ByteBuf} to read data into
+     * @return the number of bytes read
+     * @throws EOFException if EOF is reached before the buffer can be filled
+     * @throws IOException  if an IO exception occurs you dummy
+     */
+    default int readFully(@NonNull ByteBuf dst) throws IOException {
+        int read = this.read(dst, dst.writableBytes());
+        if (read < 0 || !dst.isWritable()) {
+            throw new EOFException();
+        }
+        return read;
     }
 
     /**
@@ -865,7 +827,13 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @throws EOFException if EOF is reached before the buffer can be filled
      * @throws IOException  if an IO exception occurs you dummy
      */
-    int readFully(@NonNull ByteBuf dst, int count) throws IOException;
+    default int readFully(@NonNull ByteBuf dst, int count) throws IOException {
+        int read = this.read(dst, count);
+        if (read != count) {
+            throw new EOFException();
+        }
+        return read;
+    }
 
     /**
      * Fills the given {@link ByteBuf} with data.
@@ -879,13 +847,58 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @throws EOFException if EOF is reached before the buffer can be filled
      * @throws IOException  if an IO exception occurs you dummy
      */
-    int readFully(@NonNull ByteBuf dst, int start, int length) throws IOException;
+    default int readFully(@NonNull ByteBuf dst, int start, int length) throws IOException {
+        int read = this.read(dst, start, length);
+        if (read != length) {
+            throw new EOFException();
+        }
+        return read;
+    }
 
     //
     //
     // control methods
     //
     //
+
+    /**
+     * Transfers the entire contents of this {@link DataIn} to the given {@link DataOut}.
+     * <p>
+     * This will read until EOF is reached. If EOF was already reached, this method will always return {@code -1}.
+     *
+     * @param dst the {@link DataOut} to transfer data to
+     * @return the number of bytes transferred, or {@code -1} if EOF was already reached
+     */
+    long transferTo(@NonNull DataOut dst) throws IOException;
+
+    /**
+     * Transfers data from this {@link DataIn} to the given {@link DataOut}.
+     * <p>
+     * This will read until the requested number of bytes is transferred or EOF is reached. If EOF was already reached, this method will always
+     * return {@code -1}.
+     *
+     * @param dst   the {@link DataOut} to transfer data to
+     * @param count the number of bytes to transfer
+     * @return the number of bytes transferred, or {@code -1} if EOF was already reached
+     */
+    long transferTo(@NonNull DataOut dst, long count) throws IOException;
+
+    /**
+     * Transfers data from this {@link DataIn} to the given {@link DataOut}.
+     * <p>
+     * This will read until the requested number of bytes is transferred.
+     *
+     * @param dst   the {@link DataOut} to transfer data to
+     * @param count the number of bytes to transfer
+     * @return the number of bytes transferred
+     * @throws EOFException if EOF is reached before the requested number of bytes can be transferred
+     */
+    default long transferToFully(@NonNull DataOut dst, long count) throws IOException   {
+        if (this.transferTo(dst, count) != count)   {
+            throw new EOFException();
+        }
+        return count;
+    }
 
     /**
      * Gets an {@link InputStream} that may be used in place of this {@link DataIn} instance.
@@ -920,6 +933,30 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @see DataInput#skipBytes(int)
      */
     long skipBytes(long n) throws IOException;
+
+    /**
+     * Checks whether or not this {@link DataIn} uses direct memory internally.
+     * <p>
+     * If {@code true}, then using native buffers when reading from this {@link DataIn} is likely to provide a performance boost.
+     * <p>
+     * Note that it is possible for both {@link #isDirect()} and {@link #isHeap()} to return {@code false}.
+     *
+     * @return whether or not this {@link DataIn} uses direct memory internally
+     * @see #isHeap()
+     */
+    boolean isDirect();
+
+    /**
+     * Checks whether or not this {@link DataIn} uses heap memory internally.
+     * <p>
+     * If {@code true}, then using heap buffers when reading from this {@link DataIn} is likely to provide a performance boost.
+     * <p>
+     * Note that it is possible for both {@link #isDirect()} and {@link #isHeap()} to return {@code false}.
+     *
+     * @return whether or not this {@link DataIn} uses heap memory internally
+     * @see #isDirect()
+     */
+    boolean isHeap();
 
     @Override
     boolean isOpen();

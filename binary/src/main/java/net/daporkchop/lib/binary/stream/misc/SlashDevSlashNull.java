@@ -28,6 +28,8 @@ import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.binary.stream.wrapper.DataInAsInputStream;
 import net.daporkchop.lib.binary.stream.wrapper.DataOutAsOutputStream;
+import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
@@ -37,6 +39,7 @@ import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.function.Function;
 
+import static java.lang.Math.min;
 import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
@@ -49,6 +52,16 @@ public final class SlashDevSlashNull implements DataIn, DataOut {
     public static final SlashDevSlashNull INSTANCE = new SlashDevSlashNull();
     public static final java.io.InputStream INPUT_STREAM = new InputStream();
     public static final java.io.OutputStream OUTPUT_STREAM = new OutputStream();
+
+    @Override
+    public boolean isDirect() {
+        return false;
+    }
+
+    @Override
+    public boolean isHeap() {
+        return false;
+    }
 
     @Override
     public boolean isOpen() {
@@ -294,6 +307,43 @@ public final class SlashDevSlashNull implements DataIn, DataOut {
     }
 
     @Override
+    public long transferTo(@NonNull DataOut dst) throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public long transferTo(@NonNull DataOut dst, long count) throws IOException {
+        if (positive(count, "count") == 0L)  {
+            return 0L;
+        }
+
+        long total = 0L;
+        if (dst.isDirect()) {
+            try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_BUFFER_POOL.get())    {
+                ByteBuffer buffer = handle.get();
+                PUnsafe.setMemory(PUnsafe.pork_directBufferAddress(buffer.clear()), PorkUtil.BUFFER_SIZE, (byte) 0);
+                do {
+                    int blockSize = (int) min(count - total, PorkUtil.BUFFER_SIZE);
+                    buffer.position(0).limit(blockSize);
+                    dst.write(buffer);
+                    total += blockSize;
+                } while (total < count);
+            }
+        } else {
+            try (Handle<byte[]> handle = PorkUtil.BUFFER_POOL.get())    {
+                byte[] arr = handle.get();
+                Arrays.fill(arr, (byte) 0);
+                do {
+                    int blockSize = (int) min(count - total, PorkUtil.BUFFER_SIZE);
+                    dst.write(arr, 0, blockSize);
+                    total += blockSize;
+                } while (total < count);
+            }
+        }
+        return total;
+    }
+
+    @Override
     public java.io.InputStream asInputStream() throws IOException {
         return INPUT_STREAM;
     }
@@ -496,30 +546,25 @@ public final class SlashDevSlashNull implements DataIn, DataOut {
     }
 
     @Override
-    public int writeFully(@NonNull ByteBuffer src) throws IOException {
-        int remaining = src.remaining();
-        src.position(src.limit());
-        return remaining;
+    public long transferFrom(@NonNull DataIn src) throws IOException {
+        long total = 0L;
+        long skipped;
+        do {
+            skipped = src.skipBytes(Long.MAX_VALUE);
+            total += skipped;
+        } while (skipped > 0L);
+        return total;
     }
 
     @Override
-    public int writeFully(@NonNull ByteBuf src) throws IOException {
-        int readableBytes = src.readableBytes();
-        src.skipBytes(readableBytes);
-        return readableBytes;
-    }
-
-    @Override
-    public int writeFully(@NonNull ByteBuf src, int count) throws IOException {
-        checkRangeLen(src.writerIndex(), src.readerIndex(), count);
-        src.skipBytes(count);
-        return count;
-    }
-
-    @Override
-    public int writeFully(@NonNull ByteBuf src, int start, int length) throws IOException {
-        checkRangeLen(src.writerIndex(), start, length);
-        return length;
+    public long transferFrom(@NonNull DataIn src, long count) throws IOException {
+        long total = 0L;
+        long skipped;
+        do {
+            skipped = src.skipBytes(count - total);
+            total += skipped;
+        } while (skipped > 0L && total < count);
+        return total;
     }
 
     @Override

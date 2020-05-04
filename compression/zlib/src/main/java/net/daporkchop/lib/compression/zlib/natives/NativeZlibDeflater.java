@@ -21,199 +21,243 @@
 package net.daporkchop.lib.compression.zlib.natives;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.PooledByteBufAllocator;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.compression.PDeflater;
-import net.daporkchop.lib.compression.util.exception.ContextFinishedException;
-import net.daporkchop.lib.compression.util.exception.ContextFinishingException;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
+import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
 import net.daporkchop.lib.compression.zlib.ZlibDeflater;
-import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
+import net.daporkchop.lib.compression.zlib.options.ZlibDeflaterOptions;
 import net.daporkchop.lib.unsafe.PCleaner;
-import net.daporkchop.lib.unsafe.util.AbstractReleasable;
+import net.daporkchop.lib.unsafe.PUnsafe;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.ConcurrentModificationException;
+
+import static java.lang.Math.*;
+import static net.daporkchop.lib.common.util.PValidation.*;
+import static net.daporkchop.lib.compression.zlib.natives.NativeZlib.*;
 
 /**
  * @author DaPorkchop_
  */
 @Accessors(fluent = true)
-final class NativeZlibDeflater extends AbstractReleasable implements ZlibDeflater {
-    static native void load();
+@SuppressWarnings("Duplicates")
+final class NativeZlibDeflater extends AbstractRefCounted.Synchronized implements ZlibDeflater {
+    static native long allocate0(int level, int mode, int strategy);
 
-    private static native long allocateCtx(int level, int strategy, int mode);
+    static native void release0(long ctx);
 
-    private static native void releaseCtx(long ctx);
+    static native long newSession0(long ctx, long dict, int dictLen);
 
-    private final long ctx;
+    static native int updateD2D0(long ctx, long src, int srcLen, long dst, int dstLen, int flush);
+
+    static native int updateD2H0(long ctx, long src, int srcLen, byte[] dst, int dstOff, int dstLen, int flush);
+
+    static native int updateH2D0(long ctx, byte[] src, int srcOff, int srcLen, long dst, int dstLen, int flush);
+
+    static native int updateH2H0(long ctx, byte[] src, int srcOff, int srcLen, byte[] dst, int dstOff, int dstLen, int flush);
+
+    final long ctx;
 
     @Getter
-    private final NativeZlib provider;
-    private final PCleaner   cleaner;
+    final ZlibDeflaterOptions options;
 
-    private ByteBuf src;
-    private ByteBuf dst;
-    private ByteBuf dict;
+    final PCleaner cleaner;
 
-    private int readBytes;
-    private int writtenBytes;
+    NativeZlibDeflater(@NonNull ZlibDeflaterOptions options) {
+        this.options = options;
 
-    private boolean reset;
-    private boolean started;
-    private boolean finishing;
-    private boolean finished;
-
-    NativeZlibDeflater(@NonNull NativeZlib provider, int level, int strategy, int mode) {
-        this.provider = provider;
-
-        this.ctx = allocateCtx(level, strategy, mode);
+        this.ctx = allocate0(options.level(), options.mode().ordinal(), options.strategy().ordinal());
         this.cleaner = PCleaner.cleaner(this, new Releaser(this.ctx));
-        this.reset = true;
-    }
-
-    @Override
-    public boolean fullDeflate(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws InvalidBufferTypeException {
-        if (!src.hasMemoryAddress() || !dst.hasMemoryAddress()) {
-            throw InvalidBufferTypeException.direct();
-        }
-
-        this.reset(); //this will do nothing if we're already reset
-        this.reset = false;
-
-        if (this.doFullDeflate(src.memoryAddress() + src.readerIndex(), src.readableBytes(),
-                dst.memoryAddress() + dst.writerIndex(), dst.writableBytes())) {
-            //increase indices if successful
-            src.skipBytes(this.readBytes);
-            dst.writerIndex(dst.writerIndex() + this.writtenBytes);
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    private native boolean doFullDeflate(long srcAddr, int srcSize, long dstAddr, int dstSize);
-
-    @Override
-    public PDeflater update(boolean flush) throws ContextFinishedException, ContextFinishingException {
-        this.update(this.src, this.dst, flush);
-        return this;
-    }
-
-    private void update(@NonNull ByteBuf src, @NonNull ByteBuf dst, boolean flush) {
-        if (this.finished) {
-            throw new ContextFinishedException();
-        } else if (this.finishing) {
-            throw new ContextFinishingException();
-        }
-
-        this.reset = false;
-        this.started = true;
-
-        this.doUpdate(src.memoryAddress() + src.readerIndex(), src.readableBytes(),
-                dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
-                flush);
-
-        //increase indices
-        src.skipBytes(this.readBytes);
-        dst.writerIndex(dst.writerIndex() + this.writtenBytes);
-    }
-
-    private native void doUpdate(long srcAddr, int srcSize, long dstAddr, int dstSize, boolean flush);
-
-    @Override
-    public boolean finish() throws ContextFinishedException {
-        return this.finish(this.src, this.dst);
-    }
-
-    private boolean finish(@NonNull ByteBuf src, @NonNull ByteBuf dst) {
-        if (this.finished) {
-            throw new ContextFinishedException();
-        }
-
-        this.reset = false;
-        this.started = true;
-        this.finishing = true;
-
-        if (this.doFinish(src.memoryAddress() + src.readerIndex(), src.readableBytes(),
-                dst.memoryAddress() + dst.writerIndex(), dst.writableBytes())) {
-            //increase indices if successful
-            src.skipBytes(this.readBytes);
-            dst.writerIndex(dst.writerIndex() + this.writtenBytes);
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    private native boolean doFinish(long srcAddr, int srcSize, long dstAddr, int dstSize);
-
-    @Override
-    public PDeflater reset() {
-        if (!this.reset) {
-            this.src = null;
-            this.dst = null;
-            if (this.dict != null) {
-                this.dict.release();
-                this.dict = null;
-            }
-
-            this.readBytes = 0;
-            this.writtenBytes = 0;
-
-            this.started = false;
-            this.finishing = false;
-            this.finished = false;
-
-            this.doReset();
-        }
-        return this;
-    }
-
-    private native void doReset();
-
-    @Override
-    public PDeflater dict(@NonNull ByteBuf dict) throws InvalidBufferTypeException {
-        if (!dict.hasMemoryAddress()) {
-            throw InvalidBufferTypeException.direct();
-        } else if (this.started) {
-            throw new IllegalStateException("Cannot set dictionary after compression has started!");
-        } else if (this.dict != null) {
-            throw new IllegalStateException("Dictionary has already been set!");
-        }
-
-        this.dict = dict = dict.retainedSlice();
-        this.doDict(dict.memoryAddress(), dict.readableBytes());
-
-        return this;
-    }
-
-    private native void doDict(long dictAddr, int dictSize);
-
-    @Override
-    public PDeflater src(@NonNull ByteBuf src) throws InvalidBufferTypeException {
-        if (!src.hasMemoryAddress()) {
-            throw InvalidBufferTypeException.direct();
-        }
-        this.src = src;
-        return this;
-    }
-
-    @Override
-    public PDeflater dst(@NonNull ByteBuf dst) throws InvalidBufferTypeException {
-        if (!dst.hasMemoryAddress()) {
-            throw InvalidBufferTypeException.direct();
-        }
-        this.dst = dst;
-        return this;
-    }
-
-    @Override
-    public boolean directAccepted() {
-        return true;
     }
 
     @Override
     protected void doRelease() {
-        this.cleaner.clean();
+        checkState(this.cleaner.clean(), "already cleaned?!?");
+    }
+
+    @Override
+    public boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) {
+        this.ensureNotReleased();
+        checkArg(src.isReadable(), "src is not readable!");
+        checkArg(dst.isWritable(), "dst is not writable!");
+
+        if (!(src.hasMemoryAddress() || src.hasArray()) || !(dst.hasMemoryAddress() || dst.hasArray())) {
+            //the other cases are too much of a pain to implement by hand
+            int srcReaderIndex = src.readerIndex();
+            int dstWriterIndex = dst.writerIndex();
+            try (DataOut out = this.compressionStream(DataOut.wrap(dst, true, false), dict)) {
+                out.write(src);
+                return true;
+            } catch (IOException e) {
+                //shouldn't be possible
+                throw new RuntimeException(e);
+            } catch (IndexOutOfBoundsException e) {
+                src.readerIndex(srcReaderIndex);
+                dst.writerIndex(dstWriterIndex);
+                return false;
+            }
+        }
+
+        long session = this.createSessionAndSetDict(dict);
+        try {
+            int status = this.update(src, dst, Z_FINISH);
+
+            if (status != -1) {
+                //increase indices
+                if (status != Z_STREAM_END) {
+                    return false;
+                }
+
+                src.skipBytes(toInt(this.getRead(), "read"));
+                dst.writerIndex(dst.writerIndex() + toInt(this.getWritten(), "written"));
+                return true;
+            }
+        } finally {
+            if (session != this.getSession()) {
+                throw new ConcurrentModificationException(); //probably impossible
+            }
+        }
+
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public void compressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) throws IndexOutOfBoundsException {
+        this.ensureNotReleased();
+        checkArg(src.isReadable(), "src is not readable!");
+        checkArg(dst.isWritable(), "dst is not writable!");
+
+        if (!(src.hasMemoryAddress() || src.hasArray()) || !(dst.hasMemoryAddress() || dst.hasArray())) {
+            //the other cases are too much of a pain to implement by hand
+            try (DataOut out = this.compressionStream(DataOut.wrap(dst, true), dict)) {
+                out.write(src);
+                return;
+            } catch (IOException e) {
+                //shouldn't be possible
+                throw new RuntimeException(e);
+            }
+        }
+
+        long session = this.createSessionAndSetDict(dict);
+        try {
+            while (true){
+                int status = this.update(src, dst, Z_FINISH);
+
+                //increase indices
+                src.skipBytes(toInt(this.getRead(), "read"));
+                dst.writerIndex(dst.writerIndex() + toInt(this.getWritten(), "written"));
+
+                if (status == Z_STREAM_END) {
+                    break;
+                } else if (status == Z_OK) {
+                    checkIndex(dst.writerIndex() < dst.maxCapacity());
+                    dst.ensureWritable(min(dst.maxWritableBytes(), 8192));
+                } else {
+                    throw new IllegalStateException(String.valueOf(status));
+                }
+            }
+            checkState(!src.isReadable());
+        } finally {
+            if (session != this.getSession()) {
+                throw new ConcurrentModificationException(); //probably impossible
+            }
+        }
+    }
+
+    long createSessionAndSetDict(ByteBuf dict) {
+        if (dict == null || dict.readableBytes() == 0) {
+            //empty dictionary, no dictionary will be used
+            return newSession0(this.ctx, 0L, 0);
+        } else if (dict.hasMemoryAddress()) {
+            //dictionary is direct (this is fast)
+            return newSession0(this.ctx, dict.memoryAddress() + dict.readerIndex(), dict.readableBytes());
+        } else {
+            //dictionary isn't direct, we have to manually copy it into a new buffer
+            try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_BUFFER_POOL.get()) {
+                //this buffer is more than large enough to handle the largest valid dictionary, if a dictionary is WAY too large it'll probably break but you shouldn't be trying to do that in the first place :P
+                ByteBuffer buffer = handle.get();
+                buffer.clear().limit(min(buffer.capacity(), dict.readableBytes()));
+                dict.getBytes(dict.readerIndex(), buffer);
+                return newSession0(this.ctx, PUnsafe.pork_directBufferAddress(buffer.position(0)), buffer.limit());
+            }
+        }
+    }
+
+    int update(@NonNull ByteBuf src, @NonNull ByteBuf dst, int flush) {
+        if (src.hasMemoryAddress()) {
+            if (dst.hasMemoryAddress()) {
+                return updateD2D0(this.ctx,
+                        src.memoryAddress() + src.readerIndex(), src.readableBytes(),
+                        dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
+                        flush);
+            } else if (dst.hasArray()) {
+                return updateD2H0(this.ctx,
+                        src.memoryAddress() + src.readerIndex(), src.readableBytes(),
+                        dst.array(), dst.arrayOffset() + dst.writerIndex(), dst.writableBytes(),
+                        flush);
+            }
+        } else if (src.hasArray()) {
+            if (dst.hasMemoryAddress()) {
+                return updateH2D0(this.ctx,
+                        src.array(), src.arrayOffset() + src.readerIndex(), src.readableBytes(),
+                        dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
+                        flush);
+            } else if (dst.hasArray()) {
+                return updateH2H0(this.ctx,
+                        src.array(), src.arrayOffset() + src.readerIndex(), src.readableBytes(),
+                        dst.array(), dst.arrayOffset() + dst.writerIndex(), dst.writableBytes(),
+                        flush);
+            }
+        }
+        throw new IllegalStateException(src + " " + dst);
+    }
+
+    @Override
+    public synchronized DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, int bufferSize, ByteBuf dict) throws DictionaryNotAllowedException {
+        this.ensureNotReleased();
+        if (bufferAlloc == null) {
+            bufferAlloc = PooledByteBufAllocator.DEFAULT;
+        }
+        if (bufferSize <= 0) {
+            bufferSize = PorkUtil.BUFFER_SIZE;
+        }
+        ByteBuf buf;
+        if (out.isDirect()) {
+            buf = bufferAlloc.directBuffer(bufferSize, bufferSize);
+        } else if (out.isHeap()) {
+            buf = bufferAlloc.heapBuffer(bufferSize, bufferSize);
+        } else {
+            buf = bufferAlloc.buffer(bufferSize, bufferSize);
+        }
+        return new NativeZlibDeflateStream(out, buf, dict, this);
+    }
+
+    @Override
+    public NativeZlibDeflater retain() throws AlreadyReleasedException {
+        super.retain();
+        return this;
+    }
+
+    protected long getRead() {
+        return PUnsafe.getLongVolatile(null, this.ctx);
+    }
+
+    protected long getWritten() {
+        return PUnsafe.getLongVolatile(null, this.ctx + 8L);
+    }
+
+    protected long getSession() {
+        return PUnsafe.getLongVolatile(null, this.ctx + 16L);
     }
 
     @RequiredArgsConstructor
@@ -222,7 +266,7 @@ final class NativeZlibDeflater extends AbstractReleasable implements ZlibDeflate
 
         @Override
         public void run() {
-            releaseCtx(this.ctx);
+            release0(this.ctx);
         }
     }
 }

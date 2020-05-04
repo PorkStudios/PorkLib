@@ -21,6 +21,7 @@
 package net.daporkchop.lib.common.misc.refcount;
 
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.unsafe.PUnsafe;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
@@ -77,6 +78,39 @@ public abstract class AbstractRefCounted implements RefCounted {
     protected void ensureNotReleased()  {
         if (PUnsafe.getIntVolatile(this, REFCNT_OFFSET) == 0)    {
             throw new AlreadyReleasedException();
+        }
+    }
+
+    /**
+     * Variant of {@link AbstractRefCounted} that is synchronized on a given mutex.
+     * <p>
+     * Implementations of this class are expected to synchronize access to all methods that could fail if the instance is released on {@code this.mutex}.
+     *
+     * @author DaPorkchop_
+     */
+    public abstract static class Synchronized extends AbstractRefCounted {
+        protected final Object mutex;
+
+        public Synchronized() {
+            this.mutex = this;
+        }
+
+        public Synchronized(@NonNull Object mutex) {
+            this.mutex = mutex;
+        }
+
+        @Override
+        public RefCounted retain() throws AlreadyReleasedException {
+            synchronized (this.mutex)   {
+                return super.retain();
+            }
+        }
+
+        @Override
+        public boolean release() throws AlreadyReleasedException {
+            synchronized (this.mutex)   {
+                return super.release();
+            }
         }
     }
 }

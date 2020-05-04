@@ -21,12 +21,13 @@
 package net.daporkchop.lib.binary.stream;
 
 import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.system.PlatformInfo;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
 
-import static java.lang.Math.min;
+import static java.lang.Math.*;
 
 /**
  * Base implementation of {@link DataOut} for heap-only implementations.
@@ -35,44 +36,135 @@ import static java.lang.Math.min;
  */
 public abstract class AbstractHeapDataOut extends AbstractDataOut {
     @Override
-    protected long writeSome0(long addr, long length) throws IOException {
+    protected void write0(long addr, long length) throws IOException {
         try (Handle<byte[]> handle = PorkUtil.BUFFER_POOL.get()) {
             byte[] buf = handle.get();
             long total = 0L;
-            boolean first = true;
             do {
                 int blockSize = (int) min(length - total, PorkUtil.BUFFER_SIZE);
 
                 //copy to heap buffer
                 PUnsafe.copyMemory(null, addr, buf, PUnsafe.ARRAY_BYTE_BASE_OFFSET, blockSize);
 
-                int written = this.writeSome0(buf, 0, blockSize);
-                if (written <= 0) {
-                    return written < 0 && first ? written : total;
-                }
+                this.write0(buf, 0, blockSize);
 
-                total += written;
-                first = false;
+                total += blockSize;
             } while (total < length);
-            return total;
         }
     }
 
     @Override
-    protected void writeAll0(long addr, long length) throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.BUFFER_POOL.get()) {
-            byte[] buf = handle.get();
-            long total = 0L;
-            do {
-                int blockSize = (int) min(length - total, PorkUtil.BUFFER_SIZE);
+    public boolean isHeap() {
+        return true;
+    }
 
-                //copy to heap buffer
-                PUnsafe.copyMemory(null, addr, buf, PUnsafe.ARRAY_BYTE_BASE_OFFSET, blockSize);
+    //
+    //
+    // primitives
+    //
+    //
 
-                this.writeAll0(buf, 0, blockSize);
+    @Override
+    public void writeShort(int v) throws IOException {
+        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
+            byte[] arr = handle.get();
+            if (PlatformInfo.IS_BIG_ENDIAN) {
+                PUnsafe.putShort(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, (short) v);
+            } else {
+                PUnsafe.putShort(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, Short.reverseBytes((short) v));
+            }
+            this.write(arr, 0, Short.BYTES);
+        }
+    }
 
-                total += blockSize;
-            } while (total < length);
+    @Override
+    public void writeShortLE(int v) throws IOException {
+        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
+            byte[] arr = handle.get();
+            if (PlatformInfo.IS_LITTLE_ENDIAN) {
+                PUnsafe.putShort(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, (short) v);
+            } else {
+                PUnsafe.putShort(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, Short.reverseBytes((short) v));
+            }
+            this.write(arr, 0, Short.BYTES);
+        }
+    }
+
+    @Override
+    public void writeChar(int v) throws IOException {
+        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
+            byte[] arr = handle.get();
+            if (PlatformInfo.IS_BIG_ENDIAN) {
+                PUnsafe.putChar(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, (char) v);
+            } else {
+                PUnsafe.putChar(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, Character.reverseBytes((char) v));
+            }
+            this.write(arr, 0, Character.BYTES);
+        }
+    }
+
+    @Override
+    public void writeCharLE(int v) throws IOException {
+        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
+            byte[] arr = handle.get();
+            if (PlatformInfo.IS_LITTLE_ENDIAN) {
+                PUnsafe.putChar(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, (char) v);
+            } else {
+                PUnsafe.putChar(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, Character.reverseBytes((char) v));
+            }
+            this.write(arr, 0, Character.BYTES);
+        }
+    }
+
+    @Override
+    public void writeInt(int v) throws IOException {
+        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
+            byte[] arr = handle.get();
+            if (PlatformInfo.IS_BIG_ENDIAN) {
+                PUnsafe.putInt(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, v);
+            } else {
+                PUnsafe.putInt(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, Integer.reverseBytes(v));
+            }
+            this.write(arr, 0, Integer.BYTES);
+        }
+    }
+
+    @Override
+    public void writeIntLE(int v) throws IOException {
+        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
+            byte[] arr = handle.get();
+            if (PlatformInfo.IS_LITTLE_ENDIAN) {
+                PUnsafe.putInt(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, v);
+            } else {
+                PUnsafe.putInt(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, Integer.reverseBytes(v));
+            }
+            this.write(arr, 0, Integer.BYTES);
+        }
+    }
+
+    @Override
+    public void writeLong(long v) throws IOException {
+        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
+            byte[] arr = handle.get();
+            if (PlatformInfo.IS_BIG_ENDIAN) {
+                PUnsafe.putLong(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, v);
+            } else {
+                PUnsafe.putLong(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, Long.reverseBytes(v));
+            }
+            this.write(arr, 0, Long.BYTES);
+        }
+    }
+
+    @Override
+    public void writeLongLE(long v) throws IOException {
+        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
+            byte[] arr = handle.get();
+            if (PlatformInfo.IS_LITTLE_ENDIAN) {
+                PUnsafe.putLong(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, v);
+            } else {
+                PUnsafe.putLong(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, Long.reverseBytes(v));
+            }
+            this.write(arr, 0, Long.BYTES);
         }
     }
 }

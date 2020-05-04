@@ -118,7 +118,11 @@ public class JsonTextParser {
         }
         MCTextFormat format = MCTextFormat.lookupColor(name);
         if (format == null) {
-            throw new IllegalArgumentException("Unknown color code: \"" + name + '"');
+            if ("reset".equalsIgnoreCase(name)) {
+                format = MCTextFormat.RESET;
+            } else {
+                throw new IllegalArgumentException("Unknown color code: \"" + name + '"');
+            }
         } else if (!format.hasColor())  {
             throw new IllegalStateException();
         }

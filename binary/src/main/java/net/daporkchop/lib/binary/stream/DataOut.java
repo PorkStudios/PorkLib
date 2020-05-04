@@ -23,7 +23,11 @@ package net.daporkchop.lib.binary.stream;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.netty.ByteBufOut;
-import net.daporkchop.lib.binary.stream.nio.BufferOut;
+import net.daporkchop.lib.binary.stream.netty.DirectByteBufOut;
+import net.daporkchop.lib.binary.stream.netty.NonGrowingByteBufOut;
+import net.daporkchop.lib.binary.stream.netty.NonGrowingDirectByteBufOut;
+import net.daporkchop.lib.binary.stream.nio.DirectBufferOut;
+import net.daporkchop.lib.binary.stream.nio.HeapBufferOut;
 import net.daporkchop.lib.binary.stream.stream.StreamOut;
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.system.PlatformInfo;
@@ -33,6 +37,7 @@ import net.daporkchop.lib.unsafe.PUnsafe;
 import java.io.BufferedOutputStream;
 import java.io.Closeable;
 import java.io.DataOutput;
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -51,6 +56,9 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  * <p>
  * Unless otherwise specified by an implementation, instances of this class are not thread-safe. Notably, many multithreading aspects of
  * {@link GatheringByteChannel} are unlikely to work correctly, if at all.
+ * <p>
+ * This does not implement {@link GatheringByteChannel} or {@link OutputStream} entirely correctly. As in: this is not intended to be used for socket
+ * I/O, and as such there is no concept of blocking/non-blocking, nothing can cause an ongoing write operation to be stopped prematurely
  *
  * @author DaPorkchop_
  * @see DataIn
@@ -95,16 +103,6 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
             }
         }*/
         return new StreamOut.NonClosing(out);
-    }
-
-    /**
-     * Wraps a {@link ByteBuffer} to make it a {@link DataOut}.
-     *
-     * @param buffer the buffer to wrap
-     * @return the wrapped buffer
-     */
-    static DataOut wrap(@NonNull ByteBuffer buffer) {
-        return new BufferOut(buffer);
     }
 
     /**
@@ -155,6 +153,16 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
     }
 
     /**
+     * Wraps a {@link ByteBuffer} to make it a {@link DataOut}.
+     *
+     * @param buffer the buffer to wrap
+     * @return the wrapped buffer
+     */
+    static DataOut wrap(@NonNull ByteBuffer buffer) {
+        return buffer.isDirect() ? new DirectBufferOut(buffer) : new HeapBufferOut(buffer);
+    }
+
+    /**
      * Wraps a {@link ByteBuf} into a {@link DataOut} for writing.
      * <p>
      * When the {@link DataOut} is closed (using {@link DataOut#close()}), the {@link ByteBuf} will not be released.
@@ -163,7 +171,7 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @return a {@link DataOut} that can write data to the {@link ByteBuf}
      */
     static DataOut wrap(@NonNull ByteBuf buf) {
-        return new ByteBufOut(buf.retain());
+        return wrap(buf, true, true);
     }
 
     /**
@@ -174,7 +182,26 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @return a {@link DataOut} that can write data to the {@link ByteBuf}
      */
     static DataOut wrap(@NonNull ByteBuf buf, boolean retain) {
-        return new ByteBufOut(retain ? buf.retain() : buf);
+        return wrap(buf, retain, true);
+    }
+
+    /**
+     * Wraps a {@link ByteBuf} into a {@link DataOut} for writing.
+     *
+     * @param buf    the {@link ByteBuf} to write to
+     * @param retain if {@code true}: when the {@link DataOut} is closed (using {@link DataOut#close()}), the {@link ByteBuf} will not be released
+     * @param grow   whether or not the buffer should be allowed to grow
+     * @return a {@link DataOut} that can write data to the {@link ByteBuf}
+     */
+    static DataOut wrap(@NonNull ByteBuf buf, boolean retain, boolean grow) {
+        if (retain) {
+            buf.retain();
+        }
+        if (buf.hasMemoryAddress()) {
+            return grow ? new DirectByteBufOut(buf) : new NonGrowingDirectByteBufOut(buf);
+        } else {
+            return grow ? new ByteBufOut(buf) : new NonGrowingByteBufOut(buf);
+        }
     }
 
     //
@@ -214,34 +241,14 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @see DataOutput#writeShort(int)
      */
     @Override
-    default void writeShort(int v) throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            if (PlatformInfo.IS_BIG_ENDIAN) {
-                PUnsafe.putShort(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, (short) v);
-            } else {
-                PUnsafe.putShort(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, Short.reverseBytes((short) v));
-            }
-            this.write(arr, 0, Short.BYTES);
-        }
-    }
+    void writeShort(int v) throws IOException;
 
     /**
      * Writes a little-endian {@code short}.
      *
      * @see #writeShort(int)
      */
-    default void writeShortLE(int v) throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            if (PlatformInfo.IS_LITTLE_ENDIAN) {
-                PUnsafe.putShort(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, (short) v);
-            } else {
-                PUnsafe.putShort(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, Short.reverseBytes((short) v));
-            }
-            this.write(arr, 0, Short.BYTES);
-        }
-    }
+    void writeShortLE(int v) throws IOException;
 
     /**
      * Writes a big-endian {@code char}.
@@ -249,89 +256,44 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @see DataOutput#writeChar(int)
      */
     @Override
-    default void writeChar(int v) throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            if (PlatformInfo.IS_BIG_ENDIAN) {
-                PUnsafe.putChar(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, (char) v);
-            } else {
-                PUnsafe.putChar(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, Character.reverseBytes((char) v));
-            }
-            this.write(arr, 0, Character.BYTES);
-        }
-    }
+    void writeChar(int v) throws IOException;
 
     /**
      * Writes a little-endian {@code char}.
      *
      * @see #writeChar(int)
      */
-    default void writeCharLE(int v) throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            if (PlatformInfo.IS_LITTLE_ENDIAN) {
-                PUnsafe.putChar(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, (char) v);
-            } else {
-                PUnsafe.putChar(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, Character.reverseBytes((char) v));
-            }
-            this.write(arr, 0, Character.BYTES);
-        }
-    }
+    void writeCharLE(int v) throws IOException;
 
     /**
-     * Writes a big-endian {@code char}.
+     * Writes a big-endian {@code int}.
      *
-     * @see DataOutput#writeChar(int)
+     * @see DataOutput#writeInt(int)
      */
     @Override
-    default void writeInt(int v) throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            if (PlatformInfo.IS_BIG_ENDIAN) {
-                PUnsafe.putInt(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, v);
-            } else {
-                PUnsafe.putInt(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, Integer.reverseBytes(v));
-            }
-            this.write(arr, 0, Integer.BYTES);
-        }
-    }
+    void writeInt(int v) throws IOException;
 
-    default void writeIntLE(int v) throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            if (PlatformInfo.IS_LITTLE_ENDIAN) {
-                PUnsafe.putInt(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, v);
-            } else {
-                PUnsafe.putInt(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, Integer.reverseBytes(v));
-            }
-            this.write(arr, 0, Integer.BYTES);
-        }
-    }
+    /**
+     * Writes a little-endian {@code int}.
+     *
+     * @see DataOutput#writeInt(int)
+     */
+    void writeIntLE(int v) throws IOException;
 
+    /**
+     * Writes a big-endian {@code long}.
+     *
+     * @see DataOutput#writeLong(long)
+     */
     @Override
-    default void writeLong(long v) throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            if (PlatformInfo.IS_BIG_ENDIAN) {
-                PUnsafe.putLong(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, v);
-            } else {
-                PUnsafe.putLong(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, Long.reverseBytes(v));
-            }
-            this.write(arr, 0, Long.BYTES);
-        }
-    }
+    void writeLong(long v) throws IOException;
 
-    default void writeLongLE(long v) throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            if (PlatformInfo.IS_LITTLE_ENDIAN) {
-                PUnsafe.putLong(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, v);
-            } else {
-                PUnsafe.putLong(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET, Long.reverseBytes(v));
-            }
-            this.write(arr, 0, Long.BYTES);
-        }
-    }
+    /**
+     * Writes a little-endian {@code long}.
+     *
+     * @see DataOutput#writeLong(long)
+     */
+    void writeLongLE(long v) throws IOException;
 
     /**
      * Writes a big-endian float (32-bit floating point) value.
@@ -678,18 +640,17 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
 
     //
     //
-    // bulk transfer methods - ByteBuffer and ByteBuf - non-blocking
+    // bulk transfer methods - ByteBuffer and ByteBuf
     //
     //
 
     /**
      * Writes data from the given {@link ByteBuffer}.
      * <p>
-     * This method will write data until the buffer has no bytes remaining or more data cannot be written without blocking. However, it is not guaranteed
-     * to write any bytes at all.
+     * This method will write data until the buffer has no bytes remaining.
      *
      * @param src the {@link ByteBuffer} to write data from
-     * @return the actual number of bytes written
+     * @return the number of bytes written
      * @throws ClosedChannelException if the channel was already closed
      * @throws IOException            if an IO exception occurs you dummy
      */
@@ -699,11 +660,10 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
     /**
      * Writes data from the given {@link ByteBuffer}s.
      * <p>
-     * This method will write data until the buffers have no bytes remaining or more data cannot be written without blocking. However, it is not guaranteed
-     * to write any bytes at all.
+     * This method will write data until the buffers have no bytes remaining.
      *
      * @param srcs the {@link ByteBuffer}s to write data from
-     * @return the actual number of bytes written
+     * @return the number of bytes written
      * @throws ClosedChannelException if the channel was already closed
      * @throws IOException            if an IO exception occurs you dummy
      */
@@ -715,13 +675,12 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
     /**
      * Writes data from the given {@link ByteBuffer}s.
      * <p>
-     * This method will write data until the buffers have no bytes remaining or more data cannot be written without blocking. However, it is not guaranteed
-     * to write any bytes at all.
+     * This method will write data until the buffers have no bytes remaining.
      *
      * @param srcs   the {@link ByteBuffer}s to write data from
      * @param offset the index of the first {@link ByteBuffer} to write data from
      * @param length the number of {@link ByteBuffer}s to read write from
-     * @return the actual number of bytes written
+     * @return the number of bytes written
      * @throws ClosedChannelException if the channel was already closed
      * @throws IOException            if an IO exception occurs you dummy
      */
@@ -733,12 +692,7 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
         checkRangeLen(srcs.length, offset, length);
         long l = 0L;
         for (int i = 0; i < length; i++) {
-            int written = 0;
-            if (srcs[i].hasRemaining() && (written = this.write(srcs[i])) == 0) {
-                //remaining space in buffer could not be read, there is no more data available
-                break;
-            }
-            l += written;
+            l += this.write(srcs[i]);
         }
         return l;
     }
@@ -746,13 +700,12 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
     /**
      * Writes all readable bytes from the given {@link ByteBuf}.
      * <p>
-     * This method will write data until the buffer has no bytes remaining or more data cannot be written without blocking. However, it is not guaranteed
-     * to write any bytes at all.
+     * This method will write data until the buffer has no bytes remaining.
      * <p>
      * This method will also increase the buffer's {@link ByteBuf#readerIndex()}.
      *
      * @param src the {@link ByteBuf} to write data from
-     * @return the actual number of bytes written
+     * @return the number of bytes written
      * @throws ClosedChannelException if the channel was already closed
      * @throws IOException            if an IO exception occurs you dummy
      */
@@ -763,31 +716,33 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
     /**
      * Writes the requested number of bytes from the given {@link ByteBuf}.
      * <p>
-     * This method will write data until requested number of bytes have been written or more data cannot be written without blocking. However, it is not
-     * guaranteed to write any bytes at all.
+     * This method will write data until requested number of bytes have been written.
      * <p>
      * This method will also increase the buffer's {@link ByteBuf#readerIndex()}.
      *
      * @param src   the {@link ByteBuf} to write data from
      * @param count the number of bytes to write
-     * @return the actual number of bytes written
+     * @return the number of bytes written
      * @throws ClosedChannelException if the channel was already closed
      * @throws IOException            if an IO exception occurs you dummy
      */
-    int write(@NonNull ByteBuf src, int count) throws IOException;
+    default int write(@NonNull ByteBuf src, int count) throws IOException {
+        this.write(src, src.readerIndex(), count);
+        src.skipBytes(count);
+        return count;
+    }
 
     /**
      * Writes all bytes in the given range in the given {@link ByteBuf}.
      * <p>
-     * This method will write data until requested number of bytes have been written or more data cannot be written without blocking. However, it is not
-     * guaranteed to write any bytes at all.
+     * This method will write data until requested number of bytes have been written.
      * <p>
      * This method will not increase the buffer's {@link ByteBuf#readerIndex()}.
      *
      * @param src    the {@link ByteBuf} to write data from
      * @param start  the index of the first byte to write
      * @param length the number of bytes to write
-     * @return the actual number of bytes written
+     * @return the number of bytes written
      * @throws ClosedChannelException if the channel was already closed
      * @throws IOException            if an IO exception occurs you dummy
      */
@@ -795,108 +750,48 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
 
     //
     //
-    // bulk transfer methods - ByteBuffer and ByteBuf - blocking
-    //
-    //
-
-    /**
-     * Writes all data from the given {@link ByteBuffer}.
-     *
-     * @param src the {@link ByteBuffer} to write data from
-     * @return the number of bytes written
-     * @throws ClosedChannelException if the channel was already closed
-     * @throws IOException            if an IO exception occurs you dummy
-     */
-    int writeFully(@NonNull ByteBuffer src) throws IOException;
-
-    /**
-     * Writes all data from the given {@link ByteBuffer}s.
-     *
-     * @param srcs the {@link ByteBuffer}s to write data from
-     * @return the number of bytes written
-     * @throws ClosedChannelException if the channel was already closed
-     * @throws IOException            if an IO exception occurs you dummy
-     */
-    default long writeFully(@NonNull ByteBuffer[] srcs) throws IOException {
-        return this.writeFully(srcs, 0, srcs.length);
-    }
-
-    /**
-     * Writes all data from the given {@link ByteBuffer}s.
-     * <p>
-     * This method will write data until the buffers have no bytes remaining or more data cannot be written without blocking. However, it is not guaranteed
-     * to write any bytes at all.
-     *
-     * @param srcs   the {@link ByteBuffer}s to write data from
-     * @param offset the index of the first {@link ByteBuffer} to write data from
-     * @param length the number of {@link ByteBuffer}s to read write from
-     * @return the number of bytes written
-     * @throws ClosedChannelException if the channel was already closed
-     * @throws IOException            if an IO exception occurs you dummy
-     */
-    default long writeFully(@NonNull ByteBuffer[] srcs, int offset, int length) throws IOException {
-        if (!this.isOpen()) {
-            throw new ClosedChannelException();
-        }
-        checkRangeLen(srcs.length, offset, length);
-        long l = 0L;
-        for (int i = 0; i < length; i++) {
-            int written = 0;
-            if (srcs[i].hasRemaining() && (written = this.writeFully(srcs[i])) == 0) {
-                //remaining space in buffer could not be read, there is no more data available
-                break;
-            }
-            l += written;
-        }
-        return l;
-    }
-
-    /**
-     * Writes all readable bytes from the given {@link ByteBuf}.
-     * <p>
-     * This method will also increase the buffer's {@link ByteBuf#readerIndex()}.
-     *
-     * @param src the {@link ByteBuf} to write data from
-     * @return the number of bytes written
-     * @throws ClosedChannelException if the channel was already closed
-     * @throws IOException            if an IO exception occurs you dummy
-     */
-    default int writeFully(@NonNull ByteBuf src) throws IOException {
-        return this.writeFully(src, src.readableBytes());
-    }
-
-    /**
-     * Writes the requested number of bytes from the given {@link ByteBuf}.
-     * <p>
-     * This method will also increase the buffer's {@link ByteBuf#readerIndex()}.
-     *
-     * @param src   the {@link ByteBuf} to write data from
-     * @param count the number of bytes to write
-     * @return the number of bytes written
-     * @throws ClosedChannelException if the channel was already closed
-     * @throws IOException            if an IO exception occurs you dummy
-     */
-    int writeFully(@NonNull ByteBuf src, int count) throws IOException;
-
-    /**
-     * Writes all bytes in the given range in the given {@link ByteBuf}.
-     * <p>
-     * This method will not increase the buffer's {@link ByteBuf#readerIndex()}.
-     *
-     * @param src    the {@link ByteBuf} to write data from
-     * @param start  the index of the first byte to write
-     * @param length the number of bytes to write
-     * @return the number of bytes written
-     * @throws ClosedChannelException if the channel was already closed
-     * @throws IOException            if an IO exception occurs you dummy
-     */
-    int writeFully(@NonNull ByteBuf src, int start, int length) throws IOException;
-
-    //
-    //
     // control methods
     //
     //
+
+    /**
+     * Transfers the entire contents of the given {@link DataIn} to this {@link DataOut}.
+     * <p>
+     * This will read until the given {@link DataIn} reaches EOF. If EOF was already reached, this method will always return {@code -1}.
+     *
+     * @param src the {@link DataIn} to transfer data from
+     * @return the number of bytes transferred, or {@code -1} if the given {@link DataIn} had already reached EOF
+     */
+    long transferFrom(@NonNull DataIn src) throws IOException;
+
+    /**
+     * Transfers data from the given {@link DataIn} to this {@link DataOut}.
+     * <p>
+     * This will read until the requested number of bytes is transferred or given {@link DataIn} reaches EOF. If EOF was already reached, this
+     * method will always return {@code -1}.
+     *
+     * @param src   the {@link DataIn} to transfer data from
+     * @param count the number of bytes to transfer
+     * @return the number of bytes transferred, or {@code -1} if the given {@link DataIn} had already reached EOF
+     */
+    long transferFrom(@NonNull DataIn src, long count) throws IOException;
+
+    /**
+     * Transfers data from the given {@link DataIn} to this {@link DataOut}.
+     * <p>
+     * This will read until the requested number of bytes is transferred.
+     *
+     * @param src   the {@link DataIn} to transfer data from
+     * @param count the number of bytes to transfer
+     * @return the number of bytes transferred
+     * @throws EOFException if EOF is reached before the requested number of bytes can be transferred
+     */
+    default long transferFromFully(@NonNull DataIn src, long count) throws IOException   {
+        if (this.transferFrom(src, count) != count)   {
+            throw new EOFException();
+        }
+        return count;
+    }
 
     /**
      * Gets an {@link OutputStream} that may be used in place of this {@link DataOut} instance.
@@ -915,6 +810,30 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @see OutputStream#flush()
      */
     void flush() throws IOException;
+
+    /**
+     * Checks whether or not this {@link DataOut} uses direct memory internally.
+     * <p>
+     * If {@code true}, then using native buffers when writing to this {@link DataOut} is likely to provide a performance boost.
+     * <p>
+     * Note that it is possible for both {@link #isDirect()} and {@link #isHeap()} to return {@code false}.
+     *
+     * @return whether or not this {@link DataOut} uses direct memory internally
+     * @see #isHeap()
+     */
+    boolean isDirect();
+
+    /**
+     * Checks whether or not this {@link DataOut} uses heap memory internally.
+     * <p>
+     * If {@code true}, then using heap buffers when writing to this {@link DataOut} is likely to provide a performance boost.
+     * <p>
+     * Note that it is possible for both {@link #isDirect()} and {@link #isHeap()} to return {@code false}.
+     *
+     * @return whether or not this {@link DataOut} uses heap memory internally
+     * @see #isDirect()
+     */
+    boolean isHeap();
 
     @Override
     boolean isOpen();

@@ -21,33 +21,33 @@
 package net.daporkchop.lib.binary.stream.netty;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
+import io.netty.util.internal.PlatformDependent;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.binary.stream.AbstractDataOut;
+import net.daporkchop.lib.binary.stream.AbstractHeapDataOut;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
-import java.nio.BufferOverflowException;
 import java.nio.charset.Charset;
 
 import static java.lang.Math.*;
-import static net.daporkchop.lib.common.util.PValidation.toInt;
+import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
- * An implementation of {@link DataOut} that can write to a {@link ByteBuf}.
+ * An implementation of {@link DataOut} that can write to a generic {@link ByteBuf}.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public class ByteBufOut extends AbstractDataOut {
-    @NonNull
+public class ByteBufOut extends AbstractHeapDataOut {
     protected ByteBuf delegate;
+
+    public ByteBufOut(@NonNull ByteBuf delegate) {
+        checkArg(!delegate.hasMemoryAddress(), "delegate may not be direct!");
+        this.delegate = delegate;
+    }
 
     @Override
     protected void write0(int b) throws IOException {
@@ -55,53 +55,18 @@ public class ByteBufOut extends AbstractDataOut {
     }
 
     @Override
-    protected int writeSome0(@NonNull byte[] src, int start, int length) throws IOException {
-        int count = min(this.delegate.maxCapacity() - this.delegate.writerIndex(), length);
-        this.delegate.writeBytes(src, start, count);
-        return count;
-    }
-
-    @Override
-    protected long writeSome0(long addr, long length) throws IOException {
-        int writerIndex = this.delegate.writerIndex();
-        int count = toInt(min(this.delegate.maxCapacity() - writerIndex, length));
-        this.delegate.ensureWritable(count);
-        if (this.delegate.hasMemoryAddress())   {
-            PUnsafe.copyMemory(addr, this.delegate.memoryAddress() + writerIndex, count);
-        } else if (this.delegate.hasArray())    {
-            PUnsafe.copyMemory(null, addr, this.delegate.array(), PUnsafe.ARRAY_BYTE_BASE_OFFSET + this.delegate.arrayOffset() + writerIndex, count);
-        } else {
-            this.delegate.setBytes(writerIndex, Unpooled.wrappedBuffer(addr, count, false));
-        }
-        this.delegate.writerIndex(writerIndex + count);
-        return count;
-    }
-
-    @Override
-    protected void writeAll0(@NonNull byte[] src, int start, int length) throws IOException {
-        int count = min(this.delegate.maxCapacity() - this.delegate.writerIndex(), length);
-        if (count < length) {
-            throw new BufferOverflowException();
-        }
+    protected void write0(@NonNull byte[] src, int start, int length) throws IOException {
+        int count = min(this.delegate.maxWritableBytes(), length);
+        checkIndex(count == length);
         this.delegate.writeBytes(src, start, length);
     }
 
     @Override
-    protected void writeAll0(long addr, long length) throws IOException {
+    protected void write0(long addr, long length) throws IOException {
         int writerIndex = this.delegate.writerIndex();
         int count = toInt(min(this.delegate.maxCapacity() - writerIndex, length));
-        if (count < length) {
-            throw new BufferOverflowException();
-        }
-        this.delegate.ensureWritable(count);
-        if (this.delegate.hasMemoryAddress())   {
-            PUnsafe.copyMemory(addr, this.delegate.memoryAddress() + writerIndex, count);
-        } else if (this.delegate.hasArray())    {
-            PUnsafe.copyMemory(null, addr, this.delegate.array(), PUnsafe.ARRAY_BYTE_BASE_OFFSET + this.delegate.arrayOffset() + writerIndex, count);
-        } else {
-            this.delegate.setBytes(writerIndex, Unpooled.wrappedBuffer(addr, count, false));
-        }
-        this.delegate.writerIndex(writerIndex + count);
+        checkIndex(count == length);
+        this.delegate.writeBytes(PlatformDependent.directBuffer(addr, count));
     }
 
     @Override

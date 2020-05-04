@@ -21,8 +21,9 @@
 package net.daporkchop.lib.compression.zstd;
 
 import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.compression.zstd.natives.NativeZstd;
 import net.daporkchop.lib.natives.FeatureBuilder;
+
+import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
  * @author DaPorkchop_
@@ -30,10 +31,15 @@ import net.daporkchop.lib.natives.FeatureBuilder;
 @UtilityClass
 public class Zstd {
     public final ZstdProvider PROVIDER = FeatureBuilder.<ZstdProvider>create(Zstd.class)
-            .addNative("net.daporkchop.lib.compression.zstd.natives.NativeZstd", "zstd")
+            .addNative("net.daporkchop.lib.compression.zstd.natives.NativeZstd")
             .build();
 
-    public final int LEVEL_DEFAULT = 3;
-    public final int LEVEL_MIN     = -999;
-    public final int LEVEL_MAX     = 22;
+    public final int LEVEL_DEFAULT = 0;
+    public final int LEVEL_MIN = 1;
+    public final int LEVEL_MAX = 22;
+
+    public int checkLevel(int level) {
+        checkArg(level == LEVEL_DEFAULT || (level >= LEVEL_MAX && level <= LEVEL_MAX), "Invalid Zstd level: %d (expected %d, or value in range %d-%d)", level, LEVEL_DEFAULT, LEVEL_MIN, LEVEL_MAX);
+        return level;
+    }
 }

@@ -109,7 +109,7 @@ public final class SunCleaner extends PCleaner {
                 PUnsafe.putObject(this.delegate, CLEANER_THUNK_OFFSET, null);
             } catch (Throwable t)   {
                 if (System.err != null) {
-                    new Error("Cleaner terminated abnormally").printStackTrace();
+                    new Error("Cleaner terminated abnormally", t).printStackTrace();
                 }
                 System.exit(1);
             }

@@ -48,8 +48,10 @@ public abstract class AbstractDataOut implements DataOut {
 
     @Override
     public void write(int b) throws IOException {
-        this.ensureOpen();
-        this.write0(b);
+        synchronized (this.mutex()) {
+            this.ensureOpen();
+            this.write0(b);
+        }
     }
 
     /**
@@ -59,139 +61,58 @@ public abstract class AbstractDataOut implements DataOut {
 
     @Override
     public void write(@NonNull byte[] src, int start, int length) throws IOException {
-        this.ensureOpen();
-        checkRangeLen(src.length, start, length);
-        if (length == 0) {
-            return;
-        } else if (length == 1) {
-            this.write0(src[start]);
-        } else {
-            this.writeAll0(src, start, length);
+        synchronized (this.mutex()) {
+            this.ensureOpen();
+            checkRangeLen(src.length, start, length);
+            if (length == 0) {
+                return;
+            } else if (length == 1) {
+                this.write0(src[start]);
+            } else {
+                this.write0(src, start, length);
+            }
         }
     }
 
     @Override
     public int write(@NonNull ByteBuffer src) throws IOException {
-        this.ensureOpen();
-        int remaining = src.remaining();
-        if (remaining <= 0) {
-            return 0;
+        synchronized (this.mutex()) {
+            this.ensureOpen();
+            int remaining = src.remaining();
+            if (remaining <= 0) {
+                return 0;
+            }
+
+            int position = src.position();
+            if (src.isDirect()) {
+                this.write0(PUnsafe.pork_directBufferAddress(src) + position, remaining);
+            } else {
+                this.write0(src.array(), src.arrayOffset() + position, remaining);
+            }
+            src.position(position + remaining);
+            return remaining;
         }
-
-        int position = src.position();
-        int written = src.isDirect()
-                      ? toInt(this.writeSome0(PUnsafe.pork_directBufferAddress(src) + position, remaining))
-                      : this.writeSome0(src.array(), src.arrayOffset() + position, remaining);
-
-        if (written > 0) {
-            src.position(position + written);
-        }
-        return written == RESULT_BLOCKING ? 0 : written;
-    }
-
-    @Override
-    public int write(@NonNull ByteBuf src, int count) throws IOException {
-        int readerIndex = src.readerIndex();
-        int written = this.write(src, readerIndex, count);
-        src.readerIndex(readerIndex + written);
-        return written;
     }
 
     @Override
     public int write(@NonNull ByteBuf src, int start, int length) throws IOException {
-        this.ensureOpen();
-        checkRangeLen(src.capacity(), start, length);
-        if (length == 0) {
-            return 0;
-        }
-
-        int written;
-        if (src.hasMemoryAddress()) {
-            written = toInt(this.writeSome0(src.memoryAddress() + start, length));
-        } else if (src.hasArray()) {
-            written = this.writeSome0(src.array(), src.arrayOffset() + start, length);
-        } else {
-            written = src.getBytes(start, this, length);
-        }
-        return written == RESULT_BLOCKING ? 0 : written;
-    }
-
-    @Override
-    public int writeFully(@NonNull ByteBuffer src) throws IOException {
-        this.ensureOpen();
-        int remaining = src.remaining();
-        if (remaining <= 0) {
-            return 0;
-        }
-
-        int position = src.position();
-        if (src.isDirect()) {
-            this.writeAll0(PUnsafe.pork_directBufferAddress(src) + position, remaining);
-        } else {
-            this.writeAll0(src.array(), src.arrayOffset() + position, remaining);
-        }
-        src.position(position + remaining);
-        return remaining;
-    }
-
-    @Override
-    public int writeFully(@NonNull ByteBuf src, int count) throws IOException {
-        int readerIndex = src.readerIndex();
-        int written = this.writeFully(src, readerIndex, count);
-        src.readerIndex(readerIndex + written);
-        return written;
-    }
-
-    @Override
-    public int writeFully(@NonNull ByteBuf src, int start, int length) throws IOException {
-        this.ensureOpen();
-        checkRangeLen(src.capacity(), start, length);
-        if (length == 0) {
-            return 0;
-        }
-
-        if (src.hasMemoryAddress()) {
-            this.writeAll0(src.memoryAddress() + start, length);
-        } else if (src.hasArray()) {
-            this.writeAll0(src.array(), src.arrayOffset() + start, length);
-        } else {
-            for (ByteBuffer buffer : src.nioBuffers(start, length)) {
-                this.writeFully(buffer);
+        synchronized (this.mutex()) {
+            this.ensureOpen();
+            checkRangeLen(src.capacity(), start, length);
+            if (length == 0) {
+                return 0;
             }
+
+            if (src.hasMemoryAddress()) {
+                this.write0(src.memoryAddress() + start, length);
+            } else if (src.hasArray()) {
+                this.write0(src.array(), src.arrayOffset() + start, length);
+            } else {
+                src.getBytes(start, this, length);
+            }
+            return length;
         }
-        return length;
     }
-
-    /**
-     * Writes between {@code 0} and {@code length} bytes from the given {@code byte[]}.
-     * <p>
-     * This will continue to write until the requested number of bytes have been written or no further data can be written without blocking.
-     * <p>
-     * If at least 1 byte could be written, this method will return the number of bytes written.
-     * <p>
-     * If no bytes could be written because it would have blocked, this method will return {@link #RESULT_BLOCKING}.
-     *
-     * @param src    the {@code byte[]} to write data from
-     * @param start  the first index to start writing data from
-     * @param length the number of bytes to write. Will always be at least {@code 1}
-     * @return the actual number of bytes read, or {@link #RESULT_BLOCKING}
-     */
-    protected abstract int writeSome0(@NonNull byte[] src, int start, int length) throws IOException;
-
-    /**
-     * Writes between {@code 0} and {@code length} bytes from the given memory address.
-     * <p>
-     * This will continue to write until the requested number of bytes have been written or no further data can be written without blocking.
-     * <p>
-     * If at least 1 byte could be written, this method will return the number of bytes written.
-     * <p>
-     * If no bytes could be written because it would have blocked, this method will return {@link #RESULT_BLOCKING}.
-     *
-     * @param addr   the base memory address to write data from
-     * @param length the number of bytes to write. Will always be at least {@code 1L}
-     * @return the actual number of bytes read, or {@link #RESULT_BLOCKING}
-     */
-    protected abstract long writeSome0(long addr, long length) throws IOException;
 
     /**
      * Writes exactly {@code length} bytes from the given {@code byte[]}.
@@ -202,7 +123,7 @@ public abstract class AbstractDataOut implements DataOut {
      * @param start  the first index to start writing data from
      * @param length the number of bytes to write. Will always be at least {@code 1}
      */
-    protected abstract void writeAll0(@NonNull byte[] src, int start, int length) throws IOException;
+    protected abstract void write0(@NonNull byte[] src, int start, int length) throws IOException;
 
     /**
      * Writes exactly {@code length} bytes from the given memory address.
@@ -212,7 +133,7 @@ public abstract class AbstractDataOut implements DataOut {
      * @param addr   the base memory address to write data from
      * @param length the number of bytes to write. Will always be at least {@code 1L}
      */
-    protected abstract void writeAll0(long addr, long length) throws IOException;
+    protected abstract void write0(long addr, long length) throws IOException;
 
     /**
      * Flushes any data buffered by this {@link DataOut}.
@@ -228,12 +149,28 @@ public abstract class AbstractDataOut implements DataOut {
      */
     protected abstract void close0() throws IOException;
 
-    protected Object mutex()    {
+    protected Object mutex() {
         return this;
     }
 
     protected OutputStream asStream0() {
         return new DataOutAsOutputStream(this);
+    }
+
+    @Override
+    public long transferFrom(@NonNull DataIn src) throws IOException {
+        synchronized (this.mutex()) {
+            this.ensureOpen();
+            return src.transferTo(this);
+        }
+    }
+
+    @Override
+    public long transferFrom(@NonNull DataIn src, long count) throws IOException {
+        synchronized (this.mutex()) {
+            this.ensureOpen();
+            return src.transferTo(this, count);
+        }
     }
 
     @Override
@@ -251,8 +188,20 @@ public abstract class AbstractDataOut implements DataOut {
 
     @Override
     public final void flush() throws IOException {
-        this.ensureOpen();
-        this.flush0();
+        synchronized (this.mutex()) {
+            this.ensureOpen();
+            this.flush0();
+        }
+    }
+
+    @Override
+    public boolean isDirect() {
+        return false;
+    }
+
+    @Override
+    public boolean isHeap() {
+        return false;
     }
 
     @Override
@@ -262,12 +211,14 @@ public abstract class AbstractDataOut implements DataOut {
 
     @Override
     public final void close() throws IOException {
-        if (PUnsafe.compareAndSwapInt(this, CLOSED_OFFSET, 0, 1)) {
-            this.close0();
+        synchronized (this.mutex()) {
+            if (PUnsafe.compareAndSwapInt(this, CLOSED_OFFSET, 0, 1)) {
+                this.close0();
+            }
         }
     }
 
-    protected final void ensureOpen() throws IOException {
+    protected void ensureOpen() throws IOException {
         if (!this.isOpen()) {
             throw new ClosedChannelException();
         }

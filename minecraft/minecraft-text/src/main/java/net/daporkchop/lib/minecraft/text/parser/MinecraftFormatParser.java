@@ -23,6 +23,7 @@ package net.daporkchop.lib.minecraft.text.parser;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -33,29 +34,25 @@ import net.daporkchop.lib.logging.format.FormatParser;
 import net.daporkchop.lib.minecraft.text.MCTextType;
 import net.daporkchop.lib.minecraft.text.component.MCTextRoot;
 
+import static net.daporkchop.lib.common.util.PValidation.checkState;
+
 /**
  * Parses Minecraft text into formatted components.
  *
  * @author DaPorkchop_
  */
 @AllArgsConstructor
-@NoArgsConstructor
 @Getter
 @ToString
 public final class MinecraftFormatParser implements FormatParser {
-    /**
-     * @return a default instance of {@link MinecraftFormatParser} which can parse both legacy and json-formatted text and automatically choose the best
-     */
-    public static MinecraftFormatParser getDefaultInstance()    {
-        return InstancePool.getInstance(MinecraftFormatParser.class);
-    }
+    public static final MinecraftFormatParser DEFAULT = new MinecraftFormatParser(null);
 
     /**
      * The type of text that will be parsed by this instance.
      * <p>
      * If {@code null}, this will automatically detect the type based on input data and parse it accordingly.
      */
-    protected MCTextType type;
+    protected final MCTextType type;
 
     @Override
     public MCTextRoot parse(@NonNull String text) {

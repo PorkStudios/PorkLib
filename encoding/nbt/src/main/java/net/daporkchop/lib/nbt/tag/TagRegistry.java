@@ -53,7 +53,7 @@ import java.util.function.Function;
  */
 public class TagRegistry {
     /**
-     * All of the different NBT tag types, as defined in Notch's nbt.txt paper
+     * The original NBT tag types, used from Minecraft beta 1.3 up to 1.11.2
      */
     public static final TagRegistry NOTCHIAN = new TagRegistry()
             .register(1, ByteTag.class, ByteTag::new)
@@ -71,16 +71,24 @@ public class TagRegistry {
             .finish();
 
     /**
-     * DaPorkchop_'s custom additions to the NBT spec
+     * The notchian NBT tags, plus the {@code long[]} tag added in 1.12.2
+     */
+    public static final TagRegistry VANILLA = new TagRegistry()
+            .registerAll(NOTCHIAN)
+            .register(12, LongArrayTag.class, LongArrayTag::new)
+            .finish();
+
+    /**
+     * DaPorkchop_'s custom tag types
      */
     public static final TagRegistry PORKIAN = new TagRegistry()
             .registerAll(NOTCHIAN)
-            .register(64, ShortArrayTag.class, ShortArrayTag::new)
-            .register(65, FloatArrayTag.class, FloatArrayTag::new)
-            .register(66, DoubleArrayTag.class, DoubleArrayTag::new)
-            .register(67, BooleanTag.class, BooleanTag::new)
-            .register(68, CharTag.class, CharTag::new)
-            .register(69, CharArrayTag.class, CharArrayTag::new)
+            .register(64 | 0, ShortArrayTag.class, ShortArrayTag::new)
+            .register(64 | 1, FloatArrayTag.class, FloatArrayTag::new)
+            .register(64 | 2, DoubleArrayTag.class, DoubleArrayTag::new)
+            .register(64 | 3, BooleanTag.class, BooleanTag::new)
+            .register(64 | 4, CharTag.class, CharTag::new)
+            .register(64 | 5, CharArrayTag.class, CharArrayTag::new)
             .finish();
 
     private final ByteObjMap<Function<String, ? extends Tag>> tagCreators = new ByteObjOpenHashMap<>();

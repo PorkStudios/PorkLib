@@ -42,6 +42,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.ScatteringByteChannel;
 import java.nio.charset.Charset;
@@ -242,6 +243,26 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
     }
 
     /**
+     * Reads a {@code short} in the given {@link ByteOrder}.
+     *
+     * @see #readShort()
+     * @see #readShortLE()
+     */
+    default short readShort(@NonNull ByteOrder order) throws IOException    {
+        return order == ByteOrder.BIG_ENDIAN ? this.readShort() : this.readShortLE();
+    }
+
+    /**
+     * Reads an unsigned {@code short} in the given {@link ByteOrder}.
+     *
+     * @see #readUnsignedShort()
+     * @see #readUnsignedShortLE()
+     */
+    default int readUnsignedShort(@NonNull ByteOrder order) throws IOException    {
+        return order == ByteOrder.BIG_ENDIAN ? this.readUnsignedShort() : this.readUnsignedShortLE();
+    }
+
+    /**
      * Reads a big-endian {@code char}.
      *
      * @see DataInput#readChar()
@@ -255,6 +276,16 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @see #readChar()
      */
     char readCharLE() throws IOException;
+
+    /**
+     * Reads a {@code char} in the given {@link ByteOrder}.
+     *
+     * @see #readChar()
+     * @see #readCharLE()
+     */
+    default char readChar(@NonNull ByteOrder order) throws IOException    {
+        return order == ByteOrder.BIG_ENDIAN ? this.readChar() : this.readCharLE();
+    }
 
     /**
      * Reads a big-endian {@code int}.
@@ -272,6 +303,16 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
     int readIntLE() throws IOException;
 
     /**
+     * Reads an {@code int} in the given {@link ByteOrder}.
+     *
+     * @see #readInt()
+     * @see #readIntLE()
+     */
+    default int readInt(@NonNull ByteOrder order) throws IOException    {
+        return order == ByteOrder.BIG_ENDIAN ? this.readInt() : this.readIntLE();
+    }
+
+    /**
      * Reads a big-endian {@code long}.
      *
      * @see DataInput#readLong()
@@ -285,6 +326,16 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @see #readLong()
      */
     long readLongLE() throws IOException;
+
+    /**
+     * Reads a {@code long} in the given {@link ByteOrder}.
+     *
+     * @see #readLong()
+     * @see #readLongLE()
+     */
+    default long readLong(@NonNull ByteOrder order) throws IOException    {
+        return order == ByteOrder.BIG_ENDIAN ? this.readLong() : this.readLongLE();
+    }
 
     /**
      * Reads a big-endian {@code float}.
@@ -306,6 +357,16 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
     }
 
     /**
+     * Reads a {@code float} in the given {@link ByteOrder}.
+     *
+     * @see #readFloat()
+     * @see #readFloatLE()
+     */
+    default float readFloat(@NonNull ByteOrder order) throws IOException    {
+        return order == ByteOrder.BIG_ENDIAN ? this.readFloat() : this.readFloatLE();
+    }
+
+    /**
      * Reads a big-endian {@code double}.
      *
      * @see DataInput#readDouble()
@@ -322,6 +383,16 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      */
     default double readDoubleLE() throws IOException {
         return Double.longBitsToDouble(this.readLongLE());
+    }
+
+    /**
+     * Reads a {@code double} in the given {@link ByteOrder}.
+     *
+     * @see #readDouble()
+     * @see #readDoubleLE()
+     */
+    default double readDouble(@NonNull ByteOrder order) throws IOException    {
+        return order == ByteOrder.BIG_ENDIAN ? this.readDouble() : this.readDoubleLE();
     }
 
     //

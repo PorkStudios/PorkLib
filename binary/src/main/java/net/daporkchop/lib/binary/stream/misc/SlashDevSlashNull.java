@@ -35,6 +35,7 @@ import net.daporkchop.lib.unsafe.PUnsafe;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.function.Function;
@@ -119,12 +120,27 @@ public final class SlashDevSlashNull implements DataIn, DataOut {
     }
 
     @Override
+    public short readShort(@NonNull ByteOrder order) throws IOException {
+        return 0;
+    }
+
+    @Override
+    public int readUnsignedShort(@NonNull ByteOrder order) throws IOException {
+        return 0;
+    }
+
+    @Override
     public char readChar() throws IOException {
         return 0;
     }
 
     @Override
     public char readCharLE() throws IOException {
+        return 0;
+    }
+
+    @Override
+    public char readChar(@NonNull ByteOrder order) throws IOException {
         return 0;
     }
 
@@ -139,12 +155,22 @@ public final class SlashDevSlashNull implements DataIn, DataOut {
     }
 
     @Override
+    public int readInt(@NonNull ByteOrder order) throws IOException {
+        return 0;
+    }
+
+    @Override
     public long readLong() throws IOException {
         return 0;
     }
 
     @Override
     public long readLongLE() throws IOException {
+        return 0;
+    }
+
+    @Override
+    public long readLong(@NonNull ByteOrder order) throws IOException {
         return 0;
     }
 
@@ -159,12 +185,22 @@ public final class SlashDevSlashNull implements DataIn, DataOut {
     }
 
     @Override
+    public float readFloat(@NonNull ByteOrder order) throws IOException {
+        return 0;
+    }
+
+    @Override
     public double readDouble() throws IOException {
         return 0;
     }
 
     @Override
     public double readDoubleLE() throws IOException {
+        return 0;
+    }
+
+    @Override
+    public double readDouble(@NonNull ByteOrder order) throws IOException {
         return 0;
     }
 
@@ -390,11 +426,19 @@ public final class SlashDevSlashNull implements DataIn, DataOut {
     }
 
     @Override
+    public void writeShort(int v, @NonNull ByteOrder order) throws IOException {
+    }
+
+    @Override
     public void writeChar(int v) throws IOException {
     }
 
     @Override
     public void writeCharLE(int v) throws IOException {
+    }
+
+    @Override
+    public void writeChar(int v, @NonNull ByteOrder order) throws IOException {
     }
 
     @Override
@@ -406,11 +450,19 @@ public final class SlashDevSlashNull implements DataIn, DataOut {
     }
 
     @Override
+    public void writeInt(int v, @NonNull ByteOrder order) throws IOException {
+    }
+
+    @Override
     public void writeLong(long v) throws IOException {
     }
 
     @Override
     public void writeLongLE(long v) throws IOException {
+    }
+
+    @Override
+    public void writeLong(long v, @NonNull ByteOrder order) throws IOException {
     }
 
     @Override
@@ -422,11 +474,19 @@ public final class SlashDevSlashNull implements DataIn, DataOut {
     }
 
     @Override
+    public void writeFloat(float f, @NonNull ByteOrder order) throws IOException {
+    }
+
+    @Override
     public void writeDouble(double d) throws IOException {
     }
 
     @Override
     public void writeDoubleLE(double d) throws IOException {
+    }
+
+    @Override
+    public void writeDouble(double d, @NonNull ByteOrder order) throws IOException {
     }
 
     @Override

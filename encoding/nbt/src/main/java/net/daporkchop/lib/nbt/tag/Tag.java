@@ -20,94 +20,78 @@
 
 package net.daporkchop.lib.nbt.tag;
 
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.nbt.NBTInputStream;
-import net.daporkchop.lib.nbt.NBTOutputStream;
-import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
-import net.daporkchop.lib.nbt.tag.notch.ListTag;
-import net.daporkchop.lib.unsafe.capability.Releasable;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.common.misc.refcount.RefCounted;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
 
 /**
- * Represents an NBT tag.
+ * Base interface for an NBT tag.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-public abstract class Tag implements Releasable {
-    /**
-     * The name of this tag.
-     * <p>
-     * This will never be {@code null} unless this is an element of a {@link ListTag} or the root {@link CompoundTag}.
-     */
-    private final String name;
+public interface Tag<T extends Tag<T>> {
+    int TAG_END = 0;
+    int TAG_BYTE = 1;
+    int TAG_SHORT = 2;
+    int TAG_INT = 3;
+    int TAG_LONG = 4;
+    int TAG_FLOAT = 5;
+    int TAG_DOUBLE = 6;
+    int TAG_ARRAY_BYTE = 7;
+    int TAG_STRING = 8;
+    int TAG_LIST = 9;
+    int TAG_COMPOUND = 10;
+    int TAG_ARRAY_INT = 11;
+    int TAG_ARRAY_LONG = 12;
 
-    /**
-     * Gets and casts this tag to a specific tag type
-     *
-     * @param <T> the type to cast to
-     * @return this tag casted to the given type
-     */
-    @SuppressWarnings("unchecked")
-    public <T extends Tag> T getAs() {
-        return (T) this;
+    static Object readValue(@NonNull DataIn in, int id) throws IOException {
+        switch (id) {
+            case TAG_BYTE:
+                return in.readByte();
+            case TAG_SHORT:
+                return in.readShort();
+            case TAG_INT:
+                return in.readInt();
+            case TAG_LONG:
+                return in.readLong();
+            case TAG_FLOAT:
+                return in.readFloat();
+            case TAG_DOUBLE:
+                return in.readDouble();
+            case TAG_ARRAY_BYTE:
+                return in.fill(new byte[in.readInt()]);
+            case TAG_STRING:
+                return in.readUTF();
+            case TAG_LIST:
+                return new ListTag<>(in);
+            case TAG_COMPOUND:
+                return new CompoundTag(in);
+            case TAG_ARRAY_INT: {
+                int length = in.readInt();
+                int[] arr = new int[length];
+                for (int i = 0; i < length; i++) {
+                    arr[i] = in.readInt();
+                }
+                return arr;
+            }
+            case TAG_ARRAY_LONG: {
+                int length = in.readInt();
+                long[] arr = new long[length];
+                for (int i = 0; i < length; i++) {
+                    arr[i] = in.readLong();
+                }
+                return arr;
+            }
+            default:
+                throw new IllegalArgumentException("Invalid tag ID: " + id);
+        }
     }
 
     /**
-     * Gets this tag as a {@link CompoundTag}
-     *
-     * @return this tag as a {@link CompoundTag}
+     * @return this tag's numeric ID
      */
-    public CompoundTag getAsCompoundTag() {
-        return this.getAs();
-    }
-
-    /**
-     * Gets this tag as a {@link ListTag}
-     *
-     * @param <T> the type of tag contained in the list
-     * @return this tag as a {@link ListTag}
-     */
-    public <T extends Tag> ListTag<T> getAsList() {
-        return this.getAs();
-    }
-
-    /**
-     * Reads this tag from a stream
-     *
-     * @param in       the input stream to read from
-     * @param registry the registry of NBT tag ids
-     * @throws IOException if an IO exception occurs you dummy
-     */
-    public abstract void read(@NonNull NBTInputStream in, @NonNull TagRegistry registry) throws IOException;
-
-    /**
-     * Writes this tag to a stream
-     *
-     * @param out      the output stream to write to
-     * @param registry the registry of NBT tag ids
-     * @throws IOException if an IO exception occurs you dummy
-     */
-    public abstract void write(@NonNull NBTOutputStream out, @NonNull TagRegistry registry) throws IOException;
-
-    @Override
-    public abstract String toString();
-
-    /**
-     * Releases this {@link Tag}, along with any children it may have.
-     * <p>
-     * This method is not required to be called, and tags should be able to be left for the garbage collector without any concern, however releasing
-     * them manually may be beneficial for performance.
-     *
-     * @throws AlreadyReleasedException if this {@link Tag} was already released and the implementation of {@link #release()} is not no-op
-     */
-    @Override
-    public void release() throws AlreadyReleasedException {
-        //no-op
-    }
+    int id();
 }

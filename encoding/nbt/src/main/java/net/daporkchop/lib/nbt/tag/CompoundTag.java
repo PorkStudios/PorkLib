@@ -18,49 +18,60 @@
  *
  */
 
-package net.daporkchop.lib.nbt.tag.notch;
+package net.daporkchop.lib.nbt.tag;
 
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
-import net.daporkchop.lib.nbt.NBTInputStream;
-import net.daporkchop.lib.nbt.NBTOutputStream;
-import net.daporkchop.lib.nbt.tag.Tag;
-import net.daporkchop.lib.nbt.tag.TagRegistry;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
+import net.daporkchop.lib.common.misc.refcount.RefCounted;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import static net.daporkchop.lib.common.util.PValidation.*;
+import static net.daporkchop.lib.nbt.tag.Tag.*;
 
 /**
- * A tag that contains a single int
+ * Representation of an NBT compound tag.
  *
  * @author DaPorkchop_
  */
-@Getter
-@Setter
-public class IntTag extends Tag {
-    protected int value;
+public final class CompoundTag extends AbstractRefCounted implements Tag<CompoundTag> {
+    protected final Map<String, Object> map;
 
-    public IntTag(String name) {
-        super(name);
-    }
+    public CompoundTag(@NonNull DataIn in) throws IOException {
+        this.map = new HashMap<>(); //TODO: pool these?
 
-    public IntTag(String name, int value) {
-        super(name);
-        this.value = value;
-    }
-
-    @Override
-    public void read(@NonNull NBTInputStream in, @NonNull TagRegistry registry) throws IOException {
-        this.value = in.readInt();
+        while (true) {
+            int id = in.readUnsignedByte();
+            if (id == TAG_END) {
+                break;
+            }
+            String name = in.readUTF();
+            checkState(this.map.putIfAbsent(name, readValue(in, id)) == null, "Duplicate key: \"%s\"", name);
+        }
     }
 
     @Override
-    public void write(@NonNull NBTOutputStream out, @NonNull TagRegistry registry) throws IOException {
-        out.writeInt(this.value);
+    protected void doRelease() {
+        this.map.forEach((key, value) -> {
+            if (value instanceof RefCounted) {
+                ((RefCounted) value).release();
+            }
+        });
+        this.map.clear();
     }
 
     @Override
-    public String toString() {
-        return String.format("IntTag(\"%s\"): %d", this.getName(), Integer.toUnsignedLong(this.value));
+    public CompoundTag retain() throws AlreadyReleasedException {
+        super.retain();
+        return this;
+    }
+
+    @Override
+    public int id() {
+        return TAG_COMPOUND;
     }
 }

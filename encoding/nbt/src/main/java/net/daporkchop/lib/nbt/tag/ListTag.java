@@ -18,49 +18,57 @@
  *
  */
 
-package net.daporkchop.lib.nbt.tag.notch;
+package net.daporkchop.lib.nbt.tag;
 
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
-import net.daporkchop.lib.nbt.NBTInputStream;
-import net.daporkchop.lib.nbt.NBTOutputStream;
-import net.daporkchop.lib.nbt.tag.Tag;
-import net.daporkchop.lib.nbt.tag.TagRegistry;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
+import net.daporkchop.lib.common.misc.refcount.RefCounted;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.lang.Math.max;
+import static net.daporkchop.lib.nbt.tag.Tag.*;
 
 /**
- * A tag that contains a single short
+ * Representation of an NBT list tag.
  *
  * @author DaPorkchop_
  */
-@Getter
-@Setter
-public class ShortTag extends Tag {
-    protected short value;
+public final class ListTag<T> extends AbstractRefCounted implements Tag<ListTag<T>> {
+    protected final List<Object> list;
 
-    public ShortTag(String name) {
-        super(name);
-    }
+    public ListTag(@NonNull DataIn in) throws IOException {
+        int id = in.readUnsignedByte();
+        int length = max(in.readInt(), 0);
 
-    public ShortTag(String name, short value) {
-        super(name);
-        this.value = value;
-    }
-
-    @Override
-    public void read(@NonNull NBTInputStream in, @NonNull TagRegistry registry) throws IOException {
-        this.value = in.readShort();
+        this.list = new ArrayList<>(length); //TODO: pool these?
+        for (int i = 0; i < length; i++) {
+            this.list.add(readValue(in, id));
+        }
     }
 
     @Override
-    public void write(@NonNull NBTOutputStream out, @NonNull TagRegistry registry) throws IOException {
-        out.writeShort(this.value);
+    protected void doRelease() {
+        this.list.forEach(value -> {
+            if (value instanceof RefCounted)    {
+                ((RefCounted) value).release();
+            }
+        });
+        this.list.clear();
     }
 
     @Override
-    public String toString() {
-        return String.format("ShortTag(\"%s\"): %d", this.getName(), this.value & 0xFFFF);
+    public ListTag<T> retain() throws AlreadyReleasedException {
+        super.retain();
+        return this;
+    }
+
+    @Override
+    public int id() {
+        return TAG_LIST;
     }
 }

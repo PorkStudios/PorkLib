@@ -22,4 +22,6 @@ dependencies {
     compile project(":binary")
     compile project(":encoding")
     compile project(":primitive")
+
+    testCompile project(":compression:compression-zlib")
 }

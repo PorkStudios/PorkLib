@@ -20,10 +20,13 @@
 
 package net.daporkchop.lib.nbt.util;
 
+import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.order.ReverseOrderedDataIn;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Extension of {@link ReverseOrderedDataIn} which uses VarInts for ints and longs.
@@ -37,16 +40,21 @@ public class VarIntReverseOrderedDataIn extends ReverseOrderedDataIn {
 
     @Override
     public int readInt() throws IOException {
-        return this.readVarInt();
+        return this.readVarIntZigZag();
     }
 
     @Override
     public long readLong() throws IOException {
-        return this.readVarLong();
+        return this.readVarLongZigZag();
     }
 
     @Override
     public String readUTF() throws IOException {
         return this.readVarUTF();
+    }
+
+    @Override
+    public String readString(@NonNull Charset charset) throws IOException {
+        return this.readVarString(charset);
     }
 }

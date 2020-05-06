@@ -24,6 +24,9 @@ import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
 import net.daporkchop.lib.common.misc.refcount.RefCounted;
+import net.daporkchop.lib.common.misc.string.PStrings;
+import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
@@ -38,11 +41,24 @@ import static net.daporkchop.lib.nbt.tag.Tag.*;
  *
  * @author DaPorkchop_
  */
-public final class CompoundTag extends AbstractRefCounted implements Tag<CompoundTag> {
+public final class CompoundTag extends AbstractRefCounted {
     protected final Map<String, Object> map;
+    protected final String name;
 
-    public CompoundTag(@NonNull DataIn in) throws IOException {
+    public CompoundTag(String name) {
+        this.map = new HashMap<>();
+        this.name = name;
+    }
+
+    public CompoundTag(@NonNull DataIn in, boolean root) throws IOException {
         this.map = new HashMap<>(); //TODO: pool these?
+
+        if (root) {
+            checkState(in.readUnsignedByte() == TAG_COMPOUND, "Root tag is not a compound tag!");
+            this.name = in.readUTF();
+        } else {
+            this.name = null;
+        }
 
         while (true) {
             int id = in.readUnsignedByte();
@@ -50,7 +66,7 @@ public final class CompoundTag extends AbstractRefCounted implements Tag<Compoun
                 break;
             }
             String name = in.readUTF();
-            checkState(this.map.putIfAbsent(name, readValue(in, id)) == null, "Duplicate key: \"%s\"", name);
+            checkState(this.map.putIfAbsent(name, parse(in, id)) == null, "Duplicate key: \"%s\"", name);
         }
     }
 
@@ -71,7 +87,33 @@ public final class CompoundTag extends AbstractRefCounted implements Tag<Compoun
     }
 
     @Override
-    public int id() {
-        return TAG_COMPOUND;
+    public int hashCode() {
+        return this.map.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof CompoundTag && this.map.equals(((CompoundTag) obj).map);
+    }
+
+    @Override
+    public String toString() {
+        try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get()) {
+            StringBuilder builder = handle.get();
+            builder.setLength(0);
+            Tag.toString(this.name, this, builder, 0, -1);
+            return builder.toString();
+        }
+    }
+
+    void toString(@NonNull StringBuilder builder, int depth) {
+        builder.append(this.map.size()).append(" entries\n");
+        PStrings.appendMany(builder, ' ', (depth - 1) << 1);
+        builder.append("{\n");
+        for (Map.Entry<String, Object> entry : this.map.entrySet()) {
+            Tag.toString(entry.getKey(), entry.getValue(), builder, depth, -1);
+        }
+        PStrings.appendMany(builder, ' ', (depth - 1) << 1);
+        builder.append('}');
     }
 }

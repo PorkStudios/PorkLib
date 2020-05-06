@@ -20,10 +20,13 @@
 
 package net.daporkchop.lib.binary.stream.order;
 
+import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.wrapper.ForwardingDataIn;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
  * A wrapper around another {@link DataIn} which reverses the byte order used.
@@ -105,6 +108,16 @@ public class ReverseOrderedDataIn extends ForwardingDataIn {
     @Override
     public double readDoubleLE() throws IOException {
         return this.delegate.readDouble();
+    }
+
+    @Override
+    public String readUTF() throws IOException {
+        return this.readString(this.readUnsignedShort(), StandardCharsets.UTF_8);
+    }
+
+    @Override
+    public String readString(@NonNull Charset charset) throws IOException {
+        return this.readString(this.readUnsignedShort(), charset);
     }
 
     @Override

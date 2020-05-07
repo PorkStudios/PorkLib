@@ -35,25 +35,25 @@ public class ArrayAllocatorTest {
     public void testAlloc() {
         ArrayAllocator<byte[]> alloc = ArrayAllocator.pow2(byte[]::new, ReferenceType.STRONG, 2);
         byte[] arr; //this is totally unsafe, never do this in real code
-        try (Handle<byte[]> handle = alloc.atLeastExclusive(31)) {
+        try (Handle<byte[]> handle = alloc.atLeast(31)) {
             arr = handle.get();
             checkState(arr.length == 32, "array length was %d, expected 32", arr.length);
         }
 
-        try (Handle<byte[]> handle = alloc.atLeastExclusive(31)) {
+        try (Handle<byte[]> handle = alloc.atLeast(31)) {
             checkState(handle.get() == arr, "31");
         }
-        try (Handle<byte[]> handle = alloc.atLeastExclusive(32)) {
+        try (Handle<byte[]> handle = alloc.atLeast(32)) {
             checkState(handle.get() == arr, "32");
         }
-        try (Handle<byte[]> handle = alloc.atLeastExclusive(17)) {
+        try (Handle<byte[]> handle = alloc.atLeast(17)) {
             checkState(handle.get() == arr, "17");
         }
-        try (Handle<byte[]> handle = alloc.atLeastExclusive(33)) {
+        try (Handle<byte[]> handle = alloc.atLeast(33)) {
             checkState(handle.get() != arr, "33");
             checkState(handle.get().length == 64, "array length was %d, expected 64", handle.get().length);
         }
-        try (Handle<byte[]> handle = alloc.atLeastExclusive(16)) {
+        try (Handle<byte[]> handle = alloc.atLeast(16)) {
             checkState(handle.get() != arr, "16");
             checkState(handle.get().length == 16, "array length was %d, expected 16", handle.get().length);
         }

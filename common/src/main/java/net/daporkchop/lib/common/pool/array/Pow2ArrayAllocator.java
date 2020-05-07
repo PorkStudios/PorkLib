@@ -63,22 +63,17 @@ final class Pow2ArrayAllocator<T> extends AbstractArrayAllocator<T> {
     }
 
     @Override
+    public HandleImpl<T> slice(int size) {
+        return this.atLeast(size);
+    }
+
+    @Override
     public HandleImpl<T> atLeast(int minSize) {
-        return this.atLeastExclusive(minSize);
-    }
-
-    @Override
-    public HandleImpl<T> exactly(int size) {
-        return this.exactlyExclusive(size);
-    }
-
-    @Override
-    public HandleImpl<T> atLeastExclusive(int minSize) {
         return this.getPooled(notNegative(minSize, "minSize"));
     }
 
     @Override
-    public HandleImpl<T> exactlyExclusive(int size) {
+    public HandleImpl<T> exactly(int size) {
         notNegative(size, "size");
         if (size != 0 && !BinMath.isPow2(size))  {
             //requested size is not a power of 2, we can't return a pooled array
@@ -100,7 +95,7 @@ final class Pow2ArrayAllocator<T> extends AbstractArrayAllocator<T> {
             value = this.createArray(2 << bits);
             ref = this.referenceType.create(value);
         }
-        return new HandleImpl<>(value, ref, arena, this.maxCapacity, 2 << bits);
+        return new HandleImpl<>(value, ref, arena, this.maxCapacity, size);
     }
 
     @RequiredArgsConstructor

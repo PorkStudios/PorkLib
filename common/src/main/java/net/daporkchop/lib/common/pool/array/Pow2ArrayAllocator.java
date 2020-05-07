@@ -63,16 +63,26 @@ final class Pow2ArrayAllocator<T> extends AbstractArrayAllocator<T> {
     }
 
     @Override
-    public Handle<T> atLeast(int minSize) {
+    public HandleImpl<T> atLeast(int minSize) {
+        return this.atLeastExclusive(minSize);
+    }
+
+    @Override
+    public HandleImpl<T> exactly(int size) {
+        return this.exactlyExclusive(size);
+    }
+
+    @Override
+    public HandleImpl<T> atLeastExclusive(int minSize) {
         return this.getPooled(notNegative(minSize, "minSize"));
     }
 
     @Override
-    public Handle<T> exactly(int size) {
+    public HandleImpl<T> exactlyExclusive(int size) {
         notNegative(size, "size");
         if (size != 0 && !BinMath.isPow2(size))  {
             //requested size is not a power of 2, we can't return a pooled array
-            return new HandleImpl<>(this.createArray(size), null, null, this.maxCapacity);
+            return new HandleImpl<>(this.createArray(size), null, null, this.maxCapacity, size);
         }
         return this.getPooled(size);
     }
@@ -87,19 +97,20 @@ final class Pow2ArrayAllocator<T> extends AbstractArrayAllocator<T> {
             }
         }
         if (value == null)  {
-            value = this.createArray(size);
+            value = this.createArray(2 << bits);
             ref = this.referenceType.create(value);
         }
-        return new HandleImpl<>(value, ref, arena, this.maxCapacity);
+        return new HandleImpl<>(value, ref, arena, this.maxCapacity, 2 << bits);
     }
 
     @RequiredArgsConstructor
-    private static final class HandleImpl<T> extends AbstractRefCounted implements Handle<T>    {
+    private static final class HandleImpl<T> extends AbstractRefCounted implements Handle<T>, ArrayHandle<T>    {
         @NonNull
         protected final T value;
         protected final Ref<T> ref;
         protected final Deque<Ref<T>> arena;
         protected final int maxCapacity; //store copy of field here to avoid holding a reference to main allocator instance
+        protected final int length;
 
         @Override
         protected void doRelease() {
@@ -119,7 +130,17 @@ final class Pow2ArrayAllocator<T> extends AbstractArrayAllocator<T> {
         }
 
         @Override
-        public Handle<T> retain() throws AlreadyReleasedException {
+        public int offset() {
+            return 0;
+        }
+
+        @Override
+        public int length() {
+            return this.length;
+        }
+
+        @Override
+        public HandleImpl<T> retain() throws AlreadyReleasedException {
             super.retain();
             return this;
         }

@@ -54,7 +54,13 @@ public interface HandledPool<V> {
      * @return a new thread-local {@link HandledPool}
      */
     static <V> HandledPool<V> threadLocal(@NonNull Supplier<V> factory, int maxCapacityPerThread) {
-        return new RecyclingHandledPool<>(factory, maxCapacityPerThread);
+        try {
+            Class.forName("io.netty.util.Recycler"); //make sure class exists
+
+            return new RecyclingHandledPool<>(factory, maxCapacityPerThread);
+        } catch (ClassNotFoundException e) {
+            return new JavaRecyclingHandledPool<>(factory, maxCapacityPerThread);
+        }
     }
 
     /**

@@ -62,22 +62,48 @@ public interface ArrayAllocator<T> {
     }
 
     /**
+     * Gets a slice of an array of at least the requested size.
+     * <p>
+     * The exact behavior of this method is entirely up to the implementation.
+     *
+     * @param minSize the minimum size of the requested array slice
+     * @return a slice of an array of at least the requested size
+     */
+    ArrayHandle<T> atLeast(int minSize);
+
+    /**
+     * Gets a slice of an array of exactly the requested size.
+     * <p>
+     * The exact behavior of this method is entirely up to the implementation.
+     *
+     * @param size the size of the requested array slice
+     * @return a slice of an array of exactly the requested size
+     */
+    ArrayHandle<T> exactly(int size);
+
+    /**
      * Gets an array of at least the requested size.
      * <p>
      * The exact behavior of this method is entirely up to the implementation.
+     * <p>
+     * Note that this acquires exclusive access of the array, and thus may incur additional compared to a slice. If possible, {@link #atLeast(int)}
+     * should be favored over this method.
      *
      * @param minSize the minimum size of the requested array
      * @return an array of at least the requested size
      */
-    Handle<T> atLeast(int minSize);
+    Handle<T> atLeastExclusive(int minSize);
 
     /**
      * Gets an array of exactly the requested size.
      * <p>
      * The exact behavior of this method is entirely up to the implementation.
+     * <p>
+     * Note that this acquires exclusive access of the array, and thus may incur additional compared to a slice. If possible, {@link #exactly(int)}
+     * should be favored over this method.
      *
      * @param size the size of the requested array
      * @return an array of exactly the requested size
      */
-    Handle<T> exactly(int size);
+    Handle<T> exactlyExclusive(int size);
 }

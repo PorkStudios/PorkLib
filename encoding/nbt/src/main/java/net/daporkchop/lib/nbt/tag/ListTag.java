@@ -22,6 +22,7 @@ package net.daporkchop.lib.nbt.tag;
 
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
 import net.daporkchop.lib.common.misc.refcount.RefCounted;
 import net.daporkchop.lib.common.misc.string.PStrings;
@@ -32,10 +33,11 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static java.lang.Math.*;
 import static net.daporkchop.lib.common.util.PValidation.*;
-import static net.daporkchop.lib.nbt.tag.Tag.*;
+import static net.daporkchop.lib.nbt.tag.TagUtil.*;
 
 /**
  * Representation of an NBT list tag.
@@ -51,6 +53,12 @@ public final class ListTag<T> extends AbstractRefCounted {
         this.name = name;
     }
 
+    /**
+     * Internal constructor, don't use this.
+     *
+     * @see TagUtil#readList(DataIn) (DataIn)
+     */
+    @Deprecated
     public ListTag(@NonNull DataIn in, boolean root) throws IOException {
         if (root) {
             checkState(in.readUnsignedByte() == TAG_LIST, "Root tag is not a list tag!");
@@ -66,6 +74,32 @@ public final class ListTag<T> extends AbstractRefCounted {
         for (int i = 0; i < length; i++) {
             this.list.add(parse(in, id));
         }
+    }
+
+    public void write(@NonNull DataOut out) throws IOException  {
+        if (this.list.isEmpty())    {
+            out.writeByte(TAG_END);
+            out.writeInt(0);
+            return;
+        }
+
+        int id = IDS.get(this.list.get(0).getClass());
+        out.writeByte(id);
+        out.writeInt(this.list.size());
+        for (Object value : this.list) {
+            encode(out, value, id);
+        }
+    }
+
+    /**
+     * Gets this list tag's name.
+     * <p>
+     * This will only be non-null if this tag was read from disk, and is the root tag.
+     *
+     * @return this list tag's name
+     */
+    public String getName() {
+        return this.name;
     }
 
     @Override
@@ -91,7 +125,12 @@ public final class ListTag<T> extends AbstractRefCounted {
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof ListTag && this.list.equals(((ListTag) obj).list);
+        if (obj instanceof ListTag) {
+            ListTag other = (ListTag) obj;
+            return (this.name != null ? this.name.equals(other.name) : other.name == null) && this.list.equals(other.list);
+        } else {
+            return false;
+        }
     }
 
     @Override
@@ -99,7 +138,7 @@ public final class ListTag<T> extends AbstractRefCounted {
         try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get()) {
             StringBuilder builder = handle.get();
             builder.setLength(0);
-            Tag.toString(null, this, builder, 0, -1);
+            TagUtil.toString(null, this, builder, 0, -1);
             return builder.toString();
         }
     }
@@ -109,7 +148,7 @@ public final class ListTag<T> extends AbstractRefCounted {
         PStrings.appendMany(builder, ' ', (depth - 1) << 1);
         builder.append("[\n");
         for (int i = 0, size = this.list.size(); i < size; i++) {
-            Tag.toString(null, this.list.get(i), builder, depth, i);
+            TagUtil.toString(null, this.list.get(i), builder, depth, i);
         }
         PStrings.appendMany(builder, ' ', (depth - 1) << 1);
         builder.append(']');

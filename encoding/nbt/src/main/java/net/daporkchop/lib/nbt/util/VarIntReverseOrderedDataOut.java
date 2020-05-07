@@ -36,21 +36,16 @@ public class VarIntReverseOrderedDataOut extends ReverseOrderedDataOut {
 
     @Override
     public void writeInt(int v) throws IOException {
-        this.writeVarInt(v);
+        this.writeVarIntZigZag(v);
     }
 
     @Override
     public void writeLong(long v) throws IOException {
-        this.writeVarLong(v);
+        this.writeVarLongZigZag(v);
     }
 
     @Override
     public void writeUTF(@NonNull String text) throws IOException {
-        this.writeVarUTF(text);
-    }
-
-    @Override
-    public void writeUTF(@NonNull CharSequence text) throws IOException {
         this.writeVarUTF(text);
     }
 }

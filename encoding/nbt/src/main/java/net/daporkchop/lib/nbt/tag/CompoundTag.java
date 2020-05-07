@@ -22,6 +22,7 @@ package net.daporkchop.lib.nbt.tag;
 
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
 import net.daporkchop.lib.common.misc.refcount.RefCounted;
 import net.daporkchop.lib.common.misc.string.PStrings;
@@ -34,7 +35,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
-import static net.daporkchop.lib.nbt.tag.Tag.*;
+import static net.daporkchop.lib.nbt.tag.TagUtil.*;
 
 /**
  * Representation of an NBT compound tag.
@@ -45,11 +46,17 @@ public final class CompoundTag extends AbstractRefCounted {
     protected final Map<String, Object> map;
     protected final String name;
 
-    public CompoundTag(String name) {
+    public CompoundTag() {
         this.map = new HashMap<>();
-        this.name = name;
+        this.name = null;
     }
 
+    /**
+     * Internal constructor, don't use this.
+     *
+     * @see TagUtil#readCompound(DataIn)
+     */
+    @Deprecated
     public CompoundTag(@NonNull DataIn in, boolean root) throws IOException {
         this.map = new HashMap<>(); //TODO: pool these?
 
@@ -68,6 +75,27 @@ public final class CompoundTag extends AbstractRefCounted {
             String name = in.readUTF();
             checkState(this.map.putIfAbsent(name, parse(in, id)) == null, "Duplicate key: \"%s\"", name);
         }
+    }
+
+    public void write(@NonNull DataOut out) throws IOException  {
+        for (Map.Entry<String, Object> entry : this.map.entrySet()) {
+            int id = IDS.get(entry.getValue().getClass());
+            out.writeByte(id);
+            out.writeUTF(entry.getKey());
+            encode(out, entry.getValue(), id);
+        }
+        out.writeByte(TAG_END);
+    }
+
+    /**
+     * Gets this compound tag's name.
+     * <p>
+     * This will only be non-null if this tag was read from disk, and is the root tag.
+     *
+     * @return this compound tag's name
+     */
+    public String getName() {
+        return this.name;
     }
 
     @Override
@@ -93,7 +121,12 @@ public final class CompoundTag extends AbstractRefCounted {
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof CompoundTag && this.map.equals(((CompoundTag) obj).map);
+        if (obj instanceof CompoundTag) {
+            CompoundTag other = (CompoundTag) obj;
+            return (this.name != null ? this.name.equals(other.name) : other.name == null) && this.map.equals(other.map);
+        } else {
+            return false;
+        }
     }
 
     @Override
@@ -101,7 +134,7 @@ public final class CompoundTag extends AbstractRefCounted {
         try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get()) {
             StringBuilder builder = handle.get();
             builder.setLength(0);
-            Tag.toString(this.name, this, builder, 0, -1);
+            TagUtil.toString(this.name, this, builder, 0, -1);
             return builder.toString();
         }
     }
@@ -111,7 +144,7 @@ public final class CompoundTag extends AbstractRefCounted {
         PStrings.appendMany(builder, ' ', (depth - 1) << 1);
         builder.append("{\n");
         for (Map.Entry<String, Object> entry : this.map.entrySet()) {
-            Tag.toString(entry.getKey(), entry.getValue(), builder, depth, -1);
+            TagUtil.toString(entry.getKey(), entry.getValue(), builder, depth, -1);
         }
         PStrings.appendMany(builder, ' ', (depth - 1) << 1);
         builder.append('}');

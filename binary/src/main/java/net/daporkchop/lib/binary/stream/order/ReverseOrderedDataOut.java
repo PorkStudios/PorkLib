@@ -20,10 +20,14 @@
 
 package net.daporkchop.lib.binary.stream.order;
 
+import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.binary.stream.wrapper.ForwardingDataOut;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
+
+import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
  * A wrapper around another {@link DataOut} which reverses the byte order used.
@@ -95,6 +99,14 @@ public class ReverseOrderedDataOut extends ForwardingDataOut {
     @Override
     public void writeDoubleLE(double d) throws IOException {
         this.delegate.writeDouble(d);
+    }
+
+    @Override
+    public void writeString(@NonNull CharSequence text, @NonNull Charset charset) throws IOException {
+        byte[] arr = text.toString().getBytes(charset);
+        checkArg(arr.length <= Character.MAX_VALUE, "encoded value is too large (%d > %d)", arr.length, Character.MAX_VALUE);
+        this.writeShort(arr.length);
+        this.write(arr);
     }
 
     @Override

@@ -18,15 +18,26 @@
  *
  */
 
-package nbt;import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.compression.context.PInflater;
-import net.daporkchop.lib.compression.zlib.Zlib;
-import net.daporkchop.lib.compression.zlib.ZlibMode;
+package nbt;
+
+import io.netty.buffer.Unpooled;
+import net.daporkchop.lib.binary.oio.StreamUtil;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.encoding.Hexadecimal;
 import net.daporkchop.lib.nbt.NBTFormat;
-import net.daporkchop.lib.nbt.tag.Tag;
+import net.daporkchop.lib.nbt.tag.CompoundTag;
+import net.daporkchop.lib.nbt.tag.TagUtil;
 import org.junit.Test;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.zip.GZIPInputStream;
+
+import static net.daporkchop.lib.common.util.PValidation.checkState;
 
 /**
  * @author DaPorkchop_
@@ -34,30 +45,45 @@ import java.io.IOException;
 public class ObjectTreeTest {
     @Test
     public void testHelloWorld() throws IOException {
-        try (DataIn in = NBTFormat.BIG_ENDIAN.wrapIn(DataIn.wrap(ObjectTreeTest.class.getResourceAsStream("hello_world.nbt")))) {
-            System.out.println(Tag.readCompound(in));
+        byte[] arr;
+        try (InputStream in = ObjectTreeTest.class.getResourceAsStream("/hello_world.nbt")){
+            arr = StreamUtil.toByteArray(in);
         }
+        CompoundTag tag = TagUtil.readCompound(DataIn.wrap(Unpooled.wrappedBuffer(arr)));
+        System.out.println(tag);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        TagUtil.writeCompound(tag.getName(), tag, DataOut.wrap(baos));
+        byte[] encoded = baos.toByteArray();
+        checkState(Arrays.equals(arr, encoded));
     }
 
     @Test
     public void testBigEndian() throws IOException {
-        try (PInflater inflater = Zlib.PROVIDER.inflater(Zlib.PROVIDER.inflateOptions().withMode(ZlibMode.GZIP));
-             DataIn in = NBTFormat.BIG_ENDIAN.wrapIn(inflater.decompressionStream(DataIn.wrap(ObjectTreeTest.class.getResourceAsStream("bigtest.nbt"))))) {
-            System.out.println(Tag.readCompound(in));
+        byte[] arr;
+        try (InputStream in = new GZIPInputStream(ObjectTreeTest.class.getResourceAsStream("/bigtest.nbt"))){
+            arr = StreamUtil.toByteArray(in);
         }
+        CompoundTag tag = TagUtil.readCompound(DataIn.wrap(Unpooled.wrappedBuffer(arr)));
+        System.out.println(tag);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        TagUtil.writeCompound(tag.getName(), tag, DataOut.wrap(baos));
+        CompoundTag tag2 = TagUtil.readCompound(DataIn.wrap(Unpooled.wrappedBuffer(baos.toByteArray())));
+        checkState(tag.equals(tag2));
     }
 
     @Test
     public void testVarInt() throws IOException {
         try (DataIn in = NBTFormat.VARINT.wrapIn(DataIn.wrap(ObjectTreeTest.class.getResourceAsStream("biome_definitions.dat")))) {
-            Tag.readCompound(in);
+            TagUtil.readCompound(in);
         }
     }
 
     @Test
     public void testLittleEndian() throws IOException {
         try (DataIn in = NBTFormat.LITTLE_ENDIAN.wrapIn(DataIn.wrap(ObjectTreeTest.class.getResourceAsStream("runtime_block_states.dat")))) {
-            Tag.readList(in);
+            TagUtil.readList(in);
         }
     }
 }

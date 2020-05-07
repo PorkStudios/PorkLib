@@ -116,11 +116,6 @@ public class ReverseOrderedDataIn extends ForwardingDataIn {
     }
 
     @Override
-    public String readString(@NonNull Charset charset) throws IOException {
-        return this.readString(this.readUnsignedShort(), charset);
-    }
-
-    @Override
     public void close() throws IOException {
         this.delegate.close();
     }

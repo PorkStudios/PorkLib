@@ -52,9 +52,4 @@ public class VarIntReverseOrderedDataIn extends ReverseOrderedDataIn {
     public String readUTF() throws IOException {
         return this.readVarUTF();
     }
-
-    @Override
-    public String readString(@NonNull Charset charset) throws IOException {
-        return this.readVarString(charset);
-    }
 }

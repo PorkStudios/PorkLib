@@ -23,5 +23,6 @@ dependencies {
     compile project(":encoding")
     compile project(":primitive")
 
-    testCompile project(":compression:compression-zlib")
+    //testCompile project(":compression:compression-zlib")
+    testCompile project(":encoding")
 }

@@ -129,14 +129,25 @@ public enum NBTFormat {
      * @param in the {@link DataIn} to read the NBT data from
      * @return the parsed NBT data
      */
-    @SuppressWarnings("deprecation")
     public CompoundTag readCompound(@NonNull DataIn in) throws IOException {
-        in = this.wrapIn(in);
-        checkState(in.readUnsignedByte() == TAG_COMPOUND, "Root tag was not a compound tag!");
-        return new CompoundTag(in, in.readUTF());
+        return this.readCompound(in, NBTOptions.DEFAULT);
     }
 
-    public void writeCompound(@NonNull DataOut out, @NonNull CompoundTag tag) throws IOException  {
+    /**
+     * Reads a full NBT object tree where the root tag is a compound tag.
+     *
+     * @param in      the {@link DataIn} to read the NBT data from
+     * @param options the {@link NBTOptions} to use for reading
+     * @return the parsed NBT data
+     */
+    @SuppressWarnings("deprecation")
+    public CompoundTag readCompound(@NonNull DataIn in, @NonNull NBTOptions options) throws IOException {
+        in = this.wrapIn(in);
+        checkState(in.readUnsignedByte() == TAG_COMPOUND, "Root tag was not a compound tag!");
+        return new CompoundTag(in, options, in.readUTF());
+    }
+
+    public void writeCompound(@NonNull DataOut out, @NonNull CompoundTag tag) throws IOException {
         checkArg(tag.name() != null, "root tag must have a name!");
         out = this.wrapOut(out);
         out.writeByte(TAG_COMPOUND);
@@ -150,14 +161,25 @@ public enum NBTFormat {
      * @param in the {@link DataIn} to read the NBT data from
      * @return the parsed NBT data
      */
-    @SuppressWarnings("deprecation")
     public <T extends Tag<T>> ListTag<T> readList(@NonNull DataIn in) throws IOException {
-        in = this.wrapIn(in);
-        checkState(in.readUnsignedByte() == TAG_LIST, "Root tag was not a list tag!");
-        return new ListTag<>(in, in.readUTF());
+        return this.readList(in, NBTOptions.DEFAULT);
     }
 
-    public void writeList(@NonNull DataOut out, @NonNull ListTag tag) throws IOException  {
+    /**
+     * Reads a full NBT object tree where the root tag is a list tag.
+     *
+     * @param in      the {@link DataIn} to read the NBT data from
+     * @param options the {@link NBTOptions} to use for reading
+     * @return the parsed NBT data
+     */
+    @SuppressWarnings("deprecation")
+    public <T extends Tag<T>> ListTag<T> readList(@NonNull DataIn in, @NonNull NBTOptions options) throws IOException {
+        in = this.wrapIn(in);
+        checkState(in.readUnsignedByte() == TAG_LIST, "Root tag was not a list tag!");
+        return new ListTag<>(in, options, in.readUTF());
+    }
+
+    public void writeList(@NonNull DataOut out, @NonNull ListTag tag) throws IOException {
         checkArg(tag.name() != null, "root tag must have a name!");
         out = this.wrapOut(out);
         out.writeByte(TAG_LIST);

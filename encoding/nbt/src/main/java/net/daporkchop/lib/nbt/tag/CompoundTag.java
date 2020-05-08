@@ -27,6 +27,7 @@ import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.misc.string.PStrings;
 import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.nbt.NBTOptions;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -57,7 +58,7 @@ public final class CompoundTag extends Tag<CompoundTag> {
      * @deprecated Internal API, do not touch!
      */
     @Deprecated
-    public CompoundTag(@NonNull DataIn in, String selfName) throws IOException {
+    public CompoundTag(@NonNull DataIn in, @NonNull NBTOptions options, String selfName) throws IOException {
         this.name = selfName;
 
         while (true) {
@@ -66,7 +67,7 @@ public final class CompoundTag extends Tag<CompoundTag> {
                 break;
             }
             String name = in.readUTF();
-            checkState(this.map.putIfAbsent(name, Tag.read(in, id)) == null, "Duplicate tag name: \"%s\"", name);
+            checkState(this.map.putIfAbsent(name, Tag.read(in, options, id)) == null, "Duplicate tag name: \"%s\"", name);
         }
     }
 

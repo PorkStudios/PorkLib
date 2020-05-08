@@ -25,6 +25,9 @@ import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.common.pool.array.ArrayHandle;
+import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.nbt.NBTOptions;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -36,23 +39,41 @@ import java.util.Arrays;
 @Accessors(fluent = true)
 public final class ByteArrayTag extends Tag {
     protected final byte[] value;
+    protected final ArrayHandle<byte[]> handle;
+    protected final int length;
 
     public ByteArrayTag(@NonNull byte[] value)  {
         this.value = value;
+        this.handle = null;
+        this.length = value.length;
+    }
+
+    public ByteArrayTag(@NonNull ArrayHandle<byte[]> handle)  {
+        this.value = handle.get();
+        this.handle = handle;
+        this.length = handle.length();
     }
 
     /**
      * @deprecated Internal API, do not touch!
      */
     @Deprecated
-    public ByteArrayTag(@NonNull DataIn in) throws IOException {
-        this.value = in.fill(new byte[in.readInt()]);
+    public ByteArrayTag(@NonNull DataIn in, @NonNull NBTOptions options) throws IOException {
+        int length = this.length = in.readInt();
+        if (options.byteAlloc() != null)    {
+            this.handle = options.exactArraySize() ? options.byteAlloc().exactly(length) : options.byteAlloc().atLeast(length);
+            this.value = this.handle.get();
+        } else {
+            this.handle = null;
+            this.value = new byte[length];
+        }
+        in.readFully(this.value, 0, length);
     }
 
     @Override
     public void write(@NonNull DataOut out) throws IOException {
-        out.writeInt(this.value.length);
-        out.write(this.value);
+        out.writeInt(this.length);
+        out.write(this.value, 0, this.length);
     }
 
     @Override
@@ -67,17 +88,40 @@ public final class ByteArrayTag extends Tag {
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(this.value);
+        int hash = 0;
+        for (int i = 0, length = this.length; i < length; i++)  {
+            hash = hash * 31 + (this.value[i] & 0xFF);
+        }
+        return  hash;
     }
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof ByteArrayTag && Arrays.equals(this.value, ((ByteArrayTag) obj).value);
+        if (obj instanceof ByteArrayTag)    {
+            ByteArrayTag other = (ByteArrayTag) obj;
+            if (this.length != other.length)    {
+                return false;
+            }
+            for (int i = 0, length = this.length; i < length; i++)  {
+                if (this.value[i] != other.value[i])    {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
     }
 
     @Override
     protected void toString(StringBuilder builder, int depth, String name, int index) {
         super.toString(builder, depth, name, index);
         builder.append('[').append(this.value.length).append(" bytes]\n");
+    }
+
+    @Override
+    protected void doRelease() {
+        if (this.handle != null)    {
+            this.handle.release();
+        }
     }
 }

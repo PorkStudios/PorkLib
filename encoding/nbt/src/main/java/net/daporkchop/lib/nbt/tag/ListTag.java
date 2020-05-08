@@ -27,6 +27,7 @@ import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.misc.string.PStrings;
 import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.nbt.NBTOptions;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -61,14 +62,14 @@ public final class ListTag<T extends Tag<T>> extends Tag<ListTag<T>> {
      * @deprecated Internal API, do not touch!
      */
     @Deprecated
-    public ListTag(@NonNull DataIn in, String selfName) throws IOException {
+    public ListTag(@NonNull DataIn in, @NonNull NBTOptions options, String selfName) throws IOException {
         this.name = selfName;
 
         this.component = in.readUnsignedByte();
         int size = in.readInt();
         this.list = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {
-            this.list.add(uncheckedCast(Tag.read(in, this.component)));
+            this.list.add(uncheckedCast(Tag.read(in, options, this.component)));
         }
     }
 

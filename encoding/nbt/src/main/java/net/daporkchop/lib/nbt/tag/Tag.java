@@ -27,6 +27,7 @@ import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
 import net.daporkchop.lib.common.misc.string.PStrings;
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.nbt.NBTOptions;
 import net.daporkchop.lib.primitive.map.ObjByteMap;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
@@ -78,7 +79,7 @@ public abstract class Tag<T extends Tag<T>> extends AbstractRefCounted {
     }
 
     @SuppressWarnings("deprecation")
-    static Tag read(DataIn in, int id) throws IOException {
+    static Tag read(DataIn in, NBTOptions options, int id) throws IOException {
         switch (id) {
             case TAG_BYTE:
                 return new ByteTag(in);
@@ -93,17 +94,17 @@ public abstract class Tag<T extends Tag<T>> extends AbstractRefCounted {
             case TAG_DOUBLE:
                 return new DoubleTag(in);
             case TAG_ARRAY_BYTE:
-                return new ByteArrayTag(in);
+                return new ByteArrayTag(in, options);
             case TAG_STRING:
                 return new StringTag(in);
             case TAG_LIST:
-                return new ListTag(in, null);
+                return new ListTag(in, options, null);
             case TAG_COMPOUND:
-                return new CompoundTag(in, null);
+                return new CompoundTag(in, options, null);
             case TAG_ARRAY_INT:
-                return new IntArrayTag(in);
+                return new IntArrayTag(in, options);
             case TAG_ARRAY_LONG:
-                return new LongArrayTag(in);
+                return new LongArrayTag(in, options);
             default:
                 throw new IllegalArgumentException("Unknown tag id: " + id);
         }

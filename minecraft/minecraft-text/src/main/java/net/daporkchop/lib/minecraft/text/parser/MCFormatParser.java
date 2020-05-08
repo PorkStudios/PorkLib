@@ -23,10 +23,8 @@ package net.daporkchop.lib.minecraft.text.parser;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.ToString;
 import net.daporkchop.lib.common.misc.InstancePool;
@@ -44,8 +42,8 @@ import static net.daporkchop.lib.common.util.PValidation.checkState;
 @AllArgsConstructor
 @Getter
 @ToString
-public final class MinecraftFormatParser implements FormatParser {
-    public static final MinecraftFormatParser DEFAULT = new MinecraftFormatParser(null);
+public final class MCFormatParser implements FormatParser {
+    public static final MCFormatParser DEFAULT = new MCFormatParser(null);
 
     /**
      * The type of text that will be parsed by this instance.

@@ -28,10 +28,10 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.pool.array.ArrayAllocator;
 import net.daporkchop.lib.common.pool.array.ArrayHandle;
-import net.daporkchop.lib.common.ref.ReferenceType;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
-import static net.daporkchop.lib.common.util.PValidation.checkState;
+import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
  * A simple {@link ArrayAllocator} which operates using a Netty {@link ByteBufAllocator}.
@@ -40,9 +40,7 @@ import static net.daporkchop.lib.common.util.PValidation.checkState;
  */
 @RequiredArgsConstructor
 public final class PooledByteArrayAllocator implements ArrayAllocator<byte[]> {
-    public static final PooledByteArrayAllocator DEFAULT = new PooledByteArrayAllocator(
-            PooledByteBufAllocator.DEFAULT,
-            ArrayAllocator.pow2(byte[]::new, ReferenceType.SOFT, 8));
+    public static final PooledByteArrayAllocator DEFAULT = new PooledByteArrayAllocator(PooledByteBufAllocator.DEFAULT, PorkUtil.BYTE_ALLOC);
 
     @NonNull
     protected final ByteBufAllocator delegate;
@@ -98,7 +96,7 @@ public final class PooledByteArrayAllocator implements ArrayAllocator<byte[]> {
         public ArrayHandle<byte[]> retain() throws AlreadyReleasedException {
             try {
                 this.buf.retain();
-            } catch (IllegalReferenceCountException e)  {
+            } catch (IllegalReferenceCountException e) {
                 throw new AlreadyReleasedException(e);
             }
             return this;
@@ -113,7 +111,7 @@ public final class PooledByteArrayAllocator implements ArrayAllocator<byte[]> {
         public boolean release() throws AlreadyReleasedException {
             try {
                 return this.buf.release();
-            } catch (IllegalReferenceCountException e)  {
+            } catch (IllegalReferenceCountException e) {
                 throw new AlreadyReleasedException(e);
             }
         }

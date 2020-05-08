@@ -28,11 +28,15 @@ import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.binary.stream.order.ReverseOrderedDataIn;
 import net.daporkchop.lib.binary.stream.order.ReverseOrderedDataOut;
+import net.daporkchop.lib.nbt.tag.CompoundTag;
 import net.daporkchop.lib.nbt.util.VarIntReverseOrderedDataIn;
 import net.daporkchop.lib.nbt.util.VarIntReverseOrderedDataOut;
 
 import java.io.IOException;
 import java.nio.ByteOrder;
+
+import static net.daporkchop.lib.common.util.PValidation.*;
+import static net.daporkchop.lib.nbt.tag.Tag.*;
 
 /**
  * The different NBT encoding formats.
@@ -116,4 +120,25 @@ public enum NBTFormat {
      * @return the wrapped {@link DataOut}
      */
     public abstract DataOut wrapOut(@NonNull DataOut out) throws IOException;
+
+    /**
+     * Reads a full NBT object tree where the root tag is a compound tag.
+     *
+     * @param in the {@link DataIn} to read the NBT data from
+     * @return the parsed NBT data
+     */
+    @SuppressWarnings("deprecation")
+    public CompoundTag readCompound(@NonNull DataIn in) throws IOException {
+        in = this.wrapIn(in);
+        checkState(in.readUnsignedByte() == TAG_COMPOUND, "Root tag was not a compound tag!");
+        return new CompoundTag(in, in.readUTF());
+    }
+
+    public void writeCompound(@NonNull DataOut out, @NonNull CompoundTag tag) throws IOException  {
+        checkArg(tag.name() != null, "root tag must have a name!");
+        out = this.wrapOut(out);
+        out.writeByte(TAG_COMPOUND);
+        out.writeUTF(tag.name());
+        tag.write(out);
+    }
 }

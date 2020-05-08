@@ -21,14 +21,10 @@
 package net.daporkchop.lib.common.pool.array;
 
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.math.BinMath;
-import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
-import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.ref.Ref;
 import net.daporkchop.lib.common.ref.ReferenceType;
 import net.daporkchop.lib.common.util.PArrays;
-import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -43,12 +39,12 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
  *
  * @author DaPorkchop_
  */
-final class Pow2ArrayAllocator<T> extends AbstractArrayAllocator<T> {
-    protected final Deque<Ref<T>>[] arenas = uncheckedCast(PArrays.filled(32, Deque[]::new, (Supplier<Deque>) ArrayDeque::new));
+final class Pow2ArrayAllocator<V> extends AbstractArrayAllocator<V> {
+    protected final Deque<Ref<V>>[] arenas = uncheckedCast(PArrays.filled(32, Deque[]::new, (Supplier<Deque>) ArrayDeque::new));
     protected final ReferenceType referenceType;
     protected final int maxCapacity;
 
-    public Pow2ArrayAllocator(@NonNull IntFunction<T> lambda, @NonNull ReferenceType referenceType, int maxCapacity) {
+    public Pow2ArrayAllocator(@NonNull IntFunction<V> lambda, @NonNull ReferenceType referenceType, int maxCapacity) {
         super(lambda);
 
         this.referenceType = referenceType;
@@ -63,49 +59,48 @@ final class Pow2ArrayAllocator<T> extends AbstractArrayAllocator<T> {
     }
 
     @Override
-    public HandleImpl<T> slice(int size) {
-        return this.atLeast(size);
+    public HandleImpl<V> atLeast(int length) {
+        return this.getPooled(notNegative(length, "size"));
     }
 
     @Override
-    public HandleImpl<T> atLeast(int minSize) {
-        return this.getPooled(notNegative(minSize, "minSize"));
-    }
-
-    @Override
-    public HandleImpl<T> exactly(int size) {
-        notNegative(size, "size");
-        if (size != 0 && !BinMath.isPow2(size))  {
+    public HandleImpl<V> exactly(int length) {
+        notNegative(length, "size");
+        if (length != 0 && !BinMath.isPow2(length)) {
             //requested size is not a power of 2, we can't return a pooled array
-            return new HandleImpl<>(this.createArray(size), null, null, this.maxCapacity, size);
+            return new HandleImpl<>(this.createArray(length), length, null, null, this.maxCapacity);
         }
-        return this.getPooled(size);
+        return this.getPooled(length);
     }
 
-    protected HandleImpl<T> getPooled(int size)  {
-        int bits = size == 0 ? 0 : 31 - Integer.numberOfLeadingZeros(size - 1);
-        Deque<Ref<T>> arena = this.arenas[bits];
-        T value = null;
-        Ref<T> ref;
+    protected HandleImpl<V> getPooled(int length) {
+        int bits = length == 0 ? 0 : 31 - Integer.numberOfLeadingZeros(length - 1);
+        Deque<Ref<V>> arena = this.arenas[bits];
+        V value = null;
+        Ref<V> ref;
         synchronized (arena) {
             while ((ref = arena.poll()) != null && (value = ref.get()) == null) {
             }
         }
-        if (value == null)  {
+        if (value == null) {
             value = this.createArray(2 << bits);
             ref = this.referenceType.create(value);
         }
-        return new HandleImpl<>(value, ref, arena, this.maxCapacity, size);
+        return new HandleImpl<>(value, length, ref, arena, this.maxCapacity);
     }
 
-    @RequiredArgsConstructor
-    private static final class HandleImpl<T> extends AbstractRefCounted implements Handle<T>, ArrayHandle<T>    {
-        @NonNull
-        protected final T value;
-        protected final Ref<T> ref;
-        protected final Deque<Ref<T>> arena;
+    private static final class HandleImpl<V> extends AbstractArrayHandle<V> {
+        protected final Ref<V> ref;
+        protected final Deque<Ref<V>> arena;
         protected final int maxCapacity; //store copy of field here to avoid holding a reference to main allocator instance
-        protected final int length;
+
+        public HandleImpl(@NonNull V value, int length, Ref<V> ref, Deque<Ref<V>> arena, int maxCapacity) {
+            super(value, length);
+
+            this.ref = ref;
+            this.arena = arena;
+            this.maxCapacity = maxCapacity;
+        }
 
         @Override
         protected void doRelease() {
@@ -116,28 +111,6 @@ final class Pow2ArrayAllocator<T> extends AbstractArrayAllocator<T> {
                     }
                 }
             }
-        }
-
-        @Override
-        public T get() {
-            this.ensureNotReleased();
-            return this.value;
-        }
-
-        @Override
-        public int offset() {
-            return 0;
-        }
-
-        @Override
-        public int length() {
-            return this.length;
-        }
-
-        @Override
-        public HandleImpl<T> retain() throws AlreadyReleasedException {
-            super.retain();
-            return this;
         }
     }
 }

@@ -21,7 +21,6 @@
 package net.daporkchop.lib.common.pool.array;
 
 import lombok.NonNull;
-import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.pool.handle.HandledPool;
 import net.daporkchop.lib.common.ref.ReferenceType;
 
@@ -57,43 +56,49 @@ public interface ArrayAllocator<T> {
      * @param <T>           the array type
      * @return a new global {@link ArrayAllocator}
      */
-    static <T> ArrayAllocator<T[]> pow2(@NonNull Class<T> componentType, @NonNull ReferenceType referenceType, int maxCapacity) {
+    static <T> ArrayAllocator<T> pow2(@NonNull Class<?> componentType, @NonNull ReferenceType referenceType, int maxCapacity) {
         return new Pow2ArrayAllocator<>(componentType, referenceType, maxCapacity);
     }
 
     /**
-     * Gets a slice of an array of exactly the requested size.
-     * <p>
-     * The exact behavior of this method is entirely up to the implementation.
+     * Creates a new {@link ArrayAllocator} which simply allocates a new array for each request.
      *
-     * @param size the size of the requested array slice
-     * @return a slice of an array of exactly the requested size
+     * @param lambda        a lambda function (e.g. {@code Object[]::new}) to use for creating new array instances
+     * @param <T>           the array type
+     * @return a new unpooled {@link ArrayAllocator}
      */
-    ArrayHandle<T> slice(int size);
+    static <T> ArrayAllocator<T> unpooled(@NonNull IntFunction<T> lambda) {
+        return new UnpooledArrayAllocator<>(lambda);
+    }
 
     /**
-     * Gets an array of at least the requested size.
-     * <p>
-     * The exact behavior of this method is entirely up to the implementation.
-     * <p>
-     * Note that this acquires exclusive access of the array, and thus may incur additional compared to a slice. If possible, {@link #slice(int)}
-     * should be favored over this method.
+     * Creates a new {@link ArrayAllocator} which simply allocates a new array for each request.
      *
-     * @param minSize the minimum size of the requested array
+     * @param componentType the array component type
+     * @param <T>           the array type
+     * @return a new unpooled {@link ArrayAllocator}
+     */
+    static <T> ArrayAllocator<T> pow2(@NonNull Class<?> componentType) {
+        return new UnpooledArrayAllocator<>(componentType);
+    }
+
+    /**
+     * Gets an array of at least the requested length.
+     * <p>
+     * The returned {@link ArrayHandle}'s {@link ArrayHandle#length()} will be the same as the given value for the {@code length} parameter.
+     *
+     * @param length the minimum length of the requested array
      * @return an array of at least the requested size
      */
-    Handle<T> atLeast(int minSize);
+    ArrayHandle<T> atLeast(int length);
 
     /**
-     * Gets an array of exactly the requested size.
+     * Gets an array of exactly the requested length.
      * <p>
-     * The exact behavior of this method is entirely up to the implementation.
-     * <p>
-     * Note that this acquires exclusive access of the array, and thus may incur additional compared to a slice. If possible, {@link #exactly(int)}
-     * should be favored over this method.
+     * The returned {@link ArrayHandle}'s {@link ArrayHandle#length()} will be the same as the given value for the {@code length} parameter.
      *
-     * @param size the size of the requested array
-     * @return an array of exactly the requested size
+     * @param length the length of the requested array
+     * @return an array of exactly the requested length
      */
-    Handle<T> exactly(int size);
+    ArrayHandle<T> exactly(int length);
 }

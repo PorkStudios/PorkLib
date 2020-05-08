@@ -20,31 +20,24 @@
 
 package net.daporkchop.lib.common.pool.array;
 
-import net.daporkchop.lib.common.misc.refcount.RefCounted;
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 /**
- * Similar to a {@link Handle}, but intended for use in such a way as to allow returning a slice of an array rather than the whole thing.
+ * Extension of {@link Handle} intended for arrays returned by an {@link ArrayAllocator}, which additionally describes the size that was requested.
  * <p>
- * Note that attempting to access the array outside of the given range is completely unsafe and almost guaranteed to break things in unpredictable
- * ways. Don't do that. Ever.
+ * This is meant for use with {@link ArrayAllocator#atLeast(int)}, where it would be impossible to know what array size was initially requested.
  *
  * @author DaPorkchop_
  */
-public interface ArrayHandle<V> extends RefCounted {
+public interface ArrayHandle<V> extends Handle<V> {
     /**
      * @return the array owned by this handle
      */
     V get();
 
     /**
-     * @return the first index in the array
-     */
-    int offset();
-
-    /**
-     * @return the number of elements in the array which may be safely accessed, starting at {@link #offset()}
+     * @return the array size that was requested when this handle was allocated
      */
     int length();
 

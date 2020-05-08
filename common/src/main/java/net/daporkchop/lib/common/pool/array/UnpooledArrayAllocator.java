@@ -20,41 +20,36 @@
 
 package net.daporkchop.lib.common.pool.array;
 
-import lombok.AccessLevel;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 
-import java.lang.reflect.Array;
 import java.util.function.IntFunction;
 
-import static net.daporkchop.lib.common.util.PValidation.*;
-import static net.daporkchop.lib.common.util.PorkUtil.*;
-
 /**
- * Base implementation of {@link ArrayAllocator}.
+ * A simple {@link ArrayAllocator} which doesn't do any pooling at all, but simply allocates the arrays as they're requested.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public abstract class AbstractArrayAllocator<V> implements ArrayAllocator<V> {
-    protected final IntFunction<V> lambda;
-    protected final Class<?> componentClass;
-
-    public AbstractArrayAllocator(@NonNull IntFunction<V> lambda) {
-        this(lambda, null);
-
-        checkArg(lambda.apply(0).getClass().isArray(), "Provided array creator is not an array type!");
+final class UnpooledArrayAllocator<V> extends AbstractArrayAllocator<V> {
+    public UnpooledArrayAllocator(@NonNull IntFunction<V> lambda) {
+        super(lambda);
     }
 
-    public AbstractArrayAllocator(@NonNull Class<?> componentClass) {
-        this(null, componentClass);
+    public UnpooledArrayAllocator(@NonNull Class<?> componentClass) {
+        super(componentClass);
     }
 
-    protected V createArray(int length) {
-        if (this.lambda != null) {
-            return this.lambda.apply(length);
-        } else {
-            return uncheckedCast(Array.newInstance(this.componentClass, length));
-        }
+    @Override
+    public ArrayHandle<V> atLeast(int length) {
+        return this.exactly(length);
+    }
+
+    @Override
+    public ArrayHandle<V> exactly(int length) {
+        return new AbstractArrayHandle<V>(this.createArray(length), length) {
+            @Override
+            protected void doRelease() {
+                //no-op
+            }
+        };
     }
 }

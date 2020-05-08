@@ -20,41 +20,41 @@
 
 package net.daporkchop.lib.common.pool.array;
 
-import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-
-import java.lang.reflect.Array;
-import java.util.function.IntFunction;
-
-import static net.daporkchop.lib.common.util.PValidation.*;
-import static net.daporkchop.lib.common.util.PorkUtil.*;
+import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
+import net.daporkchop.lib.common.misc.refcount.RefCounted;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 /**
- * Base implementation of {@link ArrayAllocator}.
+ * Base implementation of {@link ArrayHandle}.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public abstract class AbstractArrayAllocator<V> implements ArrayAllocator<V> {
-    protected final IntFunction<V> lambda;
-    protected final Class<?> componentClass;
+public abstract class AbstractArrayHandle<V> extends AbstractRefCounted implements ArrayHandle<V> {
+    protected final V value;
+    protected final int length;
 
-    public AbstractArrayAllocator(@NonNull IntFunction<V> lambda) {
-        this(lambda, null);
-
-        checkArg(lambda.apply(0).getClass().isArray(), "Provided array creator is not an array type!");
+    public AbstractArrayHandle(@NonNull V value, int length)    {
+        this.value = value;
+        this.length = length;
     }
 
-    public AbstractArrayAllocator(@NonNull Class<?> componentClass) {
-        this(null, componentClass);
+    @Override
+    public V get() {
+        this.ensureNotReleased();
+        return this.value;
     }
 
-    protected V createArray(int length) {
-        if (this.lambda != null) {
-            return this.lambda.apply(length);
-        } else {
-            return uncheckedCast(Array.newInstance(this.componentClass, length));
-        }
+    @Override
+    public int length() {
+        this.ensureNotReleased();
+        return this.length;
+    }
+
+    @Override
+    public ArrayHandle<V> retain() throws AlreadyReleasedException {
+        super.retain();
+        return this;
     }
 }

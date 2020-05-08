@@ -23,9 +23,7 @@ package net.daporkchop.lib.common.util;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
-import net.daporkchop.lib.common.pool.array.ArrayAllocator;
 import net.daporkchop.lib.common.pool.handle.HandledPool;
-import net.daporkchop.lib.common.ref.ReferenceType;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import javax.swing.ImageIcon;
@@ -42,7 +40,6 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -71,8 +68,6 @@ public class PorkUtil {
     public final HandledPool<ByteBuffer> DIRECT_BUFFER_POOL =  HandledPool.threadLocal(() -> ByteBuffer.allocateDirect(BUFFER_SIZE), 4);
 
     public final HandledPool<StringBuilder> STRINGBUILDER_POOL =  HandledPool.threadLocal(StringBuilder::new, 4); //TODO: make this soft
-
-    public final ArrayAllocator<byte[]> BYTE_ALLOC = ArrayAllocator.pow2(byte[]::new, ReferenceType.SOFT, 8);
 
     public final DateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
     public final String PORKLIB_VERSION = "0.5.4-SNAPSHOT"; //TODO: set this dynamically

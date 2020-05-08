@@ -22,6 +22,7 @@ package net.daporkchop.lib.nbt.tag;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.misc.string.PStrings;
@@ -37,6 +38,7 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
 /**
  * @author DaPorkchop_
  */
+@Accessors(fluent = true)
 public final class ListTag<T extends Tag<T>> extends Tag<ListTag<T>> {
     protected final List<T> list;
     @Getter

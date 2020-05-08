@@ -27,16 +27,17 @@ import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * @author DaPorkchop_
  */
 @Getter
 @Accessors(fluent = true)
-public final class ByteTag extends Tag<ByteTag> {
-    protected final byte value;
+public final class IntArrayTag extends Tag {
+    protected final int[] value;
 
-    public ByteTag(byte value)  {
+    public IntArrayTag(@NonNull int[] value)  {
         this.value = value;
     }
 
@@ -44,38 +45,44 @@ public final class ByteTag extends Tag<ByteTag> {
      * @deprecated Internal API, do not touch!
      */
     @Deprecated
-    public ByteTag(@NonNull DataIn in) throws IOException {
-        this.value = in.readByte();
+    public IntArrayTag(@NonNull DataIn in) throws IOException {
+        this.value = new int[in.readInt()];
+        for (int i = 0; i < this.value.length; i++) {
+            this.value[i] = in.readInt();
+        }
     }
 
     @Override
     public void write(@NonNull DataOut out) throws IOException {
-        out.writeByte(this.value);
+        out.writeInt(this.value.length);
+        for (int i = 0; i < this.value.length; i++) {
+            out.writeInt(this.value[i]);
+        }
     }
 
     @Override
     public int id() {
-        return TAG_BYTE;
+        return TAG_ARRAY_INT;
     }
 
     @Override
     public String typeName() {
-        return "Byte";
+        return "Int_Array";
     }
 
     @Override
     public int hashCode() {
-        return this.value & 0xFF;
+        return Arrays.hashCode(this.value);
     }
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof ByteTag && this.value == ((ByteTag) obj).value;
+        return obj instanceof IntArrayTag && Arrays.equals(this.value, ((IntArrayTag) obj).value);
     }
 
     @Override
     protected void toString(StringBuilder builder, int depth, String name, int index) {
         super.toString(builder, depth, name, index);
-        builder.append(this.value).append('\n');
+        builder.append('[').append(this.value.length).append(" ints]\n");
     }
 }

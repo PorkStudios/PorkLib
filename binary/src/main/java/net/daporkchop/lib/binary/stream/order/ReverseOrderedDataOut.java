@@ -26,6 +26,7 @@ import net.daporkchop.lib.binary.stream.wrapper.ForwardingDataOut;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 
@@ -102,8 +103,8 @@ public class ReverseOrderedDataOut extends ForwardingDataOut {
     }
 
     @Override
-    public void writeString(@NonNull CharSequence text, @NonNull Charset charset) throws IOException {
-        byte[] arr = text.toString().getBytes(charset);
+    public void writeUTF(@NonNull String text) throws IOException {
+        byte[] arr = text.getBytes(StandardCharsets.UTF_8);
         checkArg(arr.length <= Character.MAX_VALUE, "encoded value is too large (%d > %d)", arr.length, Character.MAX_VALUE);
         this.writeShort(arr.length);
         this.write(arr);

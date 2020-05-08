@@ -20,7 +20,9 @@
 
 package net.daporkchop.lib.nbt.tag;
 
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 
@@ -29,6 +31,8 @@ import java.io.IOException;
 /**
  * @author DaPorkchop_
  */
+@Getter
+@Accessors(fluent = true)
 public final class LongTag extends Tag<LongTag> {
     protected final long value;
 

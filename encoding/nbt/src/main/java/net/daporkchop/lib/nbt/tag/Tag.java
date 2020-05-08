@@ -67,12 +67,12 @@ public abstract class Tag<T extends Tag<T>> extends AbstractRefCounted {
         map.put(LongTag.class, (byte) TAG_LONG);
         map.put(FloatTag.class, (byte) TAG_FLOAT);
         map.put(DoubleTag.class, (byte) TAG_DOUBLE);
-        //map.put(ByteArrayTag.class, (byte) TAG_ARRAY_BYTE);
+        map.put(ByteArrayTag.class, (byte) TAG_ARRAY_BYTE);
         map.put(StringTag.class, (byte) TAG_STRING);
         map.put(ListTag.class, (byte) TAG_LIST);
         map.put(CompoundTag.class, (byte) TAG_COMPOUND);
-        //map.put(IntArrayTag.class, (byte) TAG_ARRAY_INT);
-        //map.put(LongArrayTag.class, (byte) TAG_ARRAY_LONG);
+        map.put(IntArrayTag.class, (byte) TAG_ARRAY_INT);
+        map.put(LongArrayTag.class, (byte) TAG_ARRAY_LONG);
 
         CLASS_TO_ID = Collections.unmodifiableMap(map);
     }
@@ -92,10 +92,18 @@ public abstract class Tag<T extends Tag<T>> extends AbstractRefCounted {
                 return new FloatTag(in);
             case TAG_DOUBLE:
                 return new DoubleTag(in);
+            case TAG_ARRAY_BYTE:
+                return new ByteArrayTag(in);
             case TAG_STRING:
                 return new StringTag(in);
+            case TAG_LIST:
+                return new ListTag(in, null);
             case TAG_COMPOUND:
                 return new CompoundTag(in, null);
+            case TAG_ARRAY_INT:
+                return new IntArrayTag(in);
+            case TAG_ARRAY_LONG:
+                return new LongArrayTag(in);
             default:
                 throw new IllegalArgumentException("Unknown tag id: " + id);
         }

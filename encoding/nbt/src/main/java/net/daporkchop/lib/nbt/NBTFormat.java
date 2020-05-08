@@ -29,6 +29,8 @@ import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.binary.stream.order.ReverseOrderedDataIn;
 import net.daporkchop.lib.binary.stream.order.ReverseOrderedDataOut;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
+import net.daporkchop.lib.nbt.tag.ListTag;
+import net.daporkchop.lib.nbt.tag.Tag;
 import net.daporkchop.lib.nbt.util.VarIntReverseOrderedDataIn;
 import net.daporkchop.lib.nbt.util.VarIntReverseOrderedDataOut;
 
@@ -138,6 +140,27 @@ public enum NBTFormat {
         checkArg(tag.name() != null, "root tag must have a name!");
         out = this.wrapOut(out);
         out.writeByte(TAG_COMPOUND);
+        out.writeUTF(tag.name());
+        tag.write(out);
+    }
+
+    /**
+     * Reads a full NBT object tree where the root tag is a list tag.
+     *
+     * @param in the {@link DataIn} to read the NBT data from
+     * @return the parsed NBT data
+     */
+    @SuppressWarnings("deprecation")
+    public <T extends Tag<T>> ListTag<T> readList(@NonNull DataIn in) throws IOException {
+        in = this.wrapIn(in);
+        checkState(in.readUnsignedByte() == TAG_LIST, "Root tag was not a list tag!");
+        return new ListTag<>(in, in.readUTF());
+    }
+
+    public void writeList(@NonNull DataOut out, @NonNull ListTag tag) throws IOException  {
+        checkArg(tag.name() != null, "root tag must have a name!");
+        out = this.wrapOut(out);
+        out.writeByte(TAG_LIST);
         out.writeUTF(tag.name());
         tag.write(out);
     }

@@ -27,9 +27,13 @@ import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
 import net.daporkchop.lib.common.misc.string.PStrings;
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.primitive.map.ObjByteMap;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.Map;
 
 import static net.daporkchop.lib.common.util.PorkUtil.*;
 
@@ -39,6 +43,8 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
  * @author DaPorkchop_
  */
 public abstract class Tag<T extends Tag<T>> extends AbstractRefCounted {
+    public static final Map<Class<? extends Tag>, Byte> CLASS_TO_ID;
+
     public static final int TAG_END = 0;
     public static final int TAG_BYTE = 1;
     public static final int TAG_SHORT = 2;
@@ -53,9 +59,39 @@ public abstract class Tag<T extends Tag<T>> extends AbstractRefCounted {
     public static final int TAG_ARRAY_INT = 11;
     public static final int TAG_ARRAY_LONG = 12;
 
+    static {
+        Map<Class<? extends Tag>, Byte> map = new IdentityHashMap<>();
+        map.put(ByteTag.class, (byte) TAG_BYTE);
+        map.put(ShortTag.class, (byte) TAG_SHORT);
+        map.put(IntTag.class, (byte) TAG_INT);
+        map.put(LongTag.class, (byte) TAG_LONG);
+        map.put(FloatTag.class, (byte) TAG_FLOAT);
+        map.put(DoubleTag.class, (byte) TAG_DOUBLE);
+        //map.put(ByteArrayTag.class, (byte) TAG_ARRAY_BYTE);
+        map.put(StringTag.class, (byte) TAG_STRING);
+        map.put(ListTag.class, (byte) TAG_LIST);
+        map.put(CompoundTag.class, (byte) TAG_COMPOUND);
+        //map.put(IntArrayTag.class, (byte) TAG_ARRAY_INT);
+        //map.put(LongArrayTag.class, (byte) TAG_ARRAY_LONG);
+
+        CLASS_TO_ID = Collections.unmodifiableMap(map);
+    }
+
     @SuppressWarnings("deprecation")
     static Tag read(DataIn in, int id) throws IOException {
         switch (id) {
+            case TAG_BYTE:
+                return new ByteTag(in);
+            case TAG_SHORT:
+                return new ShortTag(in);
+            case TAG_INT:
+                return new IntTag(in);
+            case TAG_LONG:
+                return new LongTag(in);
+            case TAG_FLOAT:
+                return new FloatTag(in);
+            case TAG_DOUBLE:
+                return new DoubleTag(in);
             case TAG_STRING:
                 return new StringTag(in);
             case TAG_COMPOUND:

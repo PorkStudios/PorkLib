@@ -78,7 +78,7 @@ public interface ArrayAllocator<T> {
      * @param <T>           the array type
      * @return a new unpooled {@link ArrayAllocator}
      */
-    static <T> ArrayAllocator<T> pow2(@NonNull Class<?> componentType) {
+    static <T> ArrayAllocator<T> unpooled(@NonNull Class<?> componentType) {
         return new UnpooledArrayAllocator<>(componentType);
     }
 

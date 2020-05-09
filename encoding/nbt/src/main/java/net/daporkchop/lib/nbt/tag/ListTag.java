@@ -41,6 +41,7 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
  */
 @Accessors(fluent = true)
 public final class ListTag<T extends Tag<T>> extends Tag<ListTag<T>> {
+    @Getter
     protected final List<T> list;
     @Getter
     protected final String name;

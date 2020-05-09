@@ -26,7 +26,7 @@ import net.daporkchop.lib.minecraft.registry.ResourceLocation;
 import net.daporkchop.lib.minecraft.util.world.WorldMemberPersistent;
 
 /**
- * A tile entity attaches an NBT {@link net.daporkchop.lib.nbt.tag.notch.CompoundTag} to a block position in the world.
+ * A tile entity attaches an NBT {@link net.daporkchop.lib.nbt.tag.CompoundTag} to a block position in the world.
  *
  * Technically, they've been officially renamed to "Block Entities" in recent versions of the game, but I prefer "Tile Entity" and am sticking
  * with it as long as feasibly possible.

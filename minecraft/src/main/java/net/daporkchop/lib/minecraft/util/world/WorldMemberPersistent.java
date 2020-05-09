@@ -22,7 +22,7 @@ package net.daporkchop.lib.minecraft.util.world;
 
 import lombok.NonNull;
 import net.daporkchop.lib.minecraft.world.World;
-import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
+import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
  * A member of a {@link World} that is stored persistently as an NBT {@link CompoundTag}.

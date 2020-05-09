@@ -27,8 +27,8 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.minecraft.registry.ResourceLocation;
 import net.daporkchop.lib.minecraft.tileentity.TileEntityBase;
 import net.daporkchop.lib.minecraft.world.World;
-import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
-import net.daporkchop.lib.nbt.tag.notch.StringTag;
+import net.daporkchop.lib.nbt.tag.CompoundTag;
+import net.daporkchop.lib.nbt.tag.StringTag;
 
 /**
  * Implementation of a {@code minecraft:sign} tile entity.

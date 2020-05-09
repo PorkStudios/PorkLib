@@ -28,6 +28,7 @@ import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.binary.stream.order.ReverseOrderedDataIn;
 import net.daporkchop.lib.binary.stream.order.ReverseOrderedDataOut;
+import net.daporkchop.lib.nbt.stream.encode.NBTEncoder;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 import net.daporkchop.lib.nbt.tag.ListTag;
 import net.daporkchop.lib.nbt.tag.Tag;
@@ -147,12 +148,28 @@ public enum NBTFormat {
         return new CompoundTag(in, options, in.readUTF());
     }
 
+    /**
+     * Writes a full NBT object tree where the root tag is a compound tag.
+     *
+     * @param out the {@link DataOut} to write the NBT data to
+     * @param tag the {@link CompoundTag} to write
+     */
     public void writeCompound(@NonNull DataOut out, @NonNull CompoundTag tag) throws IOException {
         checkArg(tag.name() != null, "root tag must have a name!");
         out = this.wrapOut(out);
         out.writeByte(TAG_COMPOUND);
         out.writeUTF(tag.name());
         tag.write(out);
+    }
+
+    /**
+     * Gets an {@link NBTEncoder} for writing a full NBT object tree where the root tag is a compound tag.
+     *
+     * @param out      the {@link DataOut} to write the NBT data to
+     * @param rootName the name of the root tag
+     */
+    public NBTEncoder encodeCompound(@NonNull DataOut out, @NonNull String rootName) throws IOException {
+        return NBTEncoder.beginCompound(this.wrapOut(out), rootName);
     }
 
     /**
@@ -179,11 +196,29 @@ public enum NBTFormat {
         return new ListTag<>(in, options, in.readUTF());
     }
 
+    /**
+     * Writes a full NBT object tree where the root tag is a list tag.
+     *
+     * @param out the {@link DataOut} to write the NBT data to
+     * @param tag the {@link ListTag} to write
+     */
     public void writeList(@NonNull DataOut out, @NonNull ListTag tag) throws IOException {
         checkArg(tag.name() != null, "root tag must have a name!");
         out = this.wrapOut(out);
         out.writeByte(TAG_LIST);
         out.writeUTF(tag.name());
         tag.write(out);
+    }
+
+    /**
+     * Gets an {@link NBTEncoder} for writing a full NBT object tree where the root tag is a list tag.
+     *
+     * @param out       the {@link DataOut} to write the NBT data to
+     * @param rootName  the name of the root tag
+     * @param component the component type of the root tag
+     * @param length    the number of elements that should go in the root tag
+     */
+    public NBTEncoder encodeList(@NonNull DataOut out, @NonNull String rootName, @NonNull Class<? extends Tag> component, int length) throws IOException {
+        return NBTEncoder.beginList(this.wrapOut(out), rootName, component, length);
     }
 }

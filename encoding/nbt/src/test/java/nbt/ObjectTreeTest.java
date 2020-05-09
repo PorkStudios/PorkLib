@@ -24,12 +24,10 @@ import io.netty.buffer.Unpooled;
 import net.daporkchop.lib.binary.oio.StreamUtil;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.encoding.Hexadecimal;
 import net.daporkchop.lib.nbt.NBTFormat;
 import net.daporkchop.lib.nbt.stream.encode.NBTEncoder;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 import net.daporkchop.lib.nbt.tag.ListTag;
-import net.daporkchop.lib.nbt.tag.Tag;
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -38,7 +36,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.zip.GZIPInputStream;
 
-import static net.daporkchop.lib.common.util.PValidation.checkState;
+import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
  * @author DaPorkchop_
@@ -107,15 +105,38 @@ public class ObjectTreeTest {
     @Test
     public void testEncode() throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (NBTEncoder encoder = NBTEncoder.beginCompound(DataOut.wrap(baos), "Level"))    {
+        try (NBTEncoder encoder = NBTFormat.VARINT.encodeCompound(DataOut.wrap(baos), "Level")) {
             encoder.putByte("byte", 0)
                     .putString("text1", "Hello World!");
-            encoder.startString("text2").putString("asdf").close();
+            encoder.startString("text2").appendString("asdf").close();
 
             encoder.startListString("list_string", 3)
-                    .putString("a").putString("b").putString("c").close();
+                    .appendString("a").appendString("b").appendString("c").close();
+
+            encoder.startByteArray("byte_array", 3)
+                    .appendByte(1).appendBytes(new byte[2]).close();
+
+            encoder.startListCompound("compounds", 2)
+                    .appendCompound().closeTag()
+                    .appendCompound().closeTag()
+                    .close();
+
+            encoder.startListList("lists", 2)
+                    .appendListCompound(1).appendCompound().putString("key", "value").closeTag().closeTag()
+                    .appendListString(2).appendString("Hello").appendString("World!").closeTag()
+                    .close();
+
+            byte[] arr;
+            try (InputStream in = ObjectTreeTest.class.getResourceAsStream("/hello_world.nbt")) {
+                arr = StreamUtil.toByteArray(in);
+            }
+            CompoundTag tag = NBTFormat.BIG_ENDIAN.readCompound(DataIn.wrap(Unpooled.wrappedBuffer(arr)));
+
+            encoder.putTag(tag.name(), tag)
+                    .startListCompound("hello worlds", 2)
+                    .appendTag(tag).appendTag(tag).close();
         }
 
-        System.out.println(NBTFormat.BIG_ENDIAN.readCompound(DataIn.wrap(Unpooled.wrappedBuffer(baos.toByteArray()))));
+        System.out.println(NBTFormat.VARINT.readCompound(DataIn.wrap(Unpooled.wrappedBuffer(baos.toByteArray()))));
     }
 }

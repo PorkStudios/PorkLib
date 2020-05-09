@@ -58,7 +58,7 @@ public class StreamingEncodeTest {
         baos.reset();
         try (NBTEncoder encoder = NBTEncoder.beginCompound(DataOut.wrap(baos), "hello world")) {
             try (NBTEncoder string = encoder.startString("name"))   {
-                string.putString("Bananrama");
+                string.appendString("Bananrama");
             }
         }
 

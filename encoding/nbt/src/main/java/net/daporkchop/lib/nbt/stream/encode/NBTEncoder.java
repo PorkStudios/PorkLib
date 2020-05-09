@@ -25,6 +25,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.nbt.tag.Tag;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -43,6 +44,17 @@ public final class NBTEncoder implements AutoCloseable {
         return new NBTEncoder(out, EncodeContext.create(null, TAG_COMPOUND, 0, 0));
     }
 
+    public static NBTEncoder beginList(@NonNull DataOut out, @NonNull String name, @NonNull Class<? extends Tag> type, int length) throws IOException {
+        int component = Tag.CLASS_TO_ID.getOrDefault(type, 0);
+        notNegative(length, "length");
+        checkArg(component != 0, "Invalid component class: %s", type);
+        out.writeByte(TAG_LIST);
+        out.writeUTF(name);
+        out.writeByte(component);
+        out.writeInt(length);
+        return new NBTEncoder(out, EncodeContext.create(null, TAG_LIST, length, component));
+    }
+
     @Getter
     protected final DataOut out;
 
@@ -52,6 +64,12 @@ public final class NBTEncoder implements AutoCloseable {
         this.out = out;
         this.context = context;
     }
+
+    //
+    //
+    // put named tag
+    //
+    //
 
     /**
      * Writes a named TAG_Byte.
@@ -284,8 +302,8 @@ public final class NBTEncoder implements AutoCloseable {
      *
      * @param name  the tag's name
      * @param value the tag's value
-     * @param off   the index of the first int in the array to write
-     * @param len   the number of ints to write
+     * @param off   the index of the first long in the array to write
+     * @param len   the number of longs to write
      */
     public NBTEncoder putLongArray(@NonNull String name, @NonNull long[] value, int off, int len) throws IOException {
         checkRangeLen(value.length, off, len);
@@ -300,19 +318,26 @@ public final class NBTEncoder implements AutoCloseable {
     }
 
     /**
-     * Writes a TAG_String value.
+     * Writes a named {@link Tag}.
      * <p>
-     * The current tag must be expecting a TAG_String value (i.e. the value of a TAG_String or the next entry in a TAG_List of TAG_Strings).
+     * The current tag must be a TAG_Compound.
      *
+     * @param name  the tag's name
      * @param value the tag's value
      */
-    public NBTEncoder putString(@NonNull String value) throws IOException {
-        checkState(this.context.component == TAG_STRING, "Current tag cannot accept a string value!");
-        checkState(this.context.length > 0, "Current tag cannot accept any more values!");
-        this.out.writeUTF(value);
-        this.context.length--;
+    public NBTEncoder putTag(@NonNull String name, @NonNull Tag value) throws IOException {
+        checkState(this.context.id == TAG_COMPOUND, "Cannot append named tag to a non-compound tag!");
+        this.out.writeByte(value.id());
+        this.out.writeUTF(name);
+        value.write(this.out);
         return this;
     }
+
+    //
+    //
+    // start named tag
+    //
+    //
 
     /**
      * Begins to write a named TAG_Byte.
@@ -393,6 +418,7 @@ public final class NBTEncoder implements AutoCloseable {
         checkState(this.context.id == TAG_COMPOUND, "Cannot append named tag to a non-compound tag!");
         this.out.writeByte(TAG_ARRAY_BYTE);
         this.out.writeUTF(name);
+        this.out.writeInt(length);
         this.context = EncodeContext.create(this.context, TAG_ARRAY_BYTE, length, TAG_BYTE);
         return this;
     }
@@ -575,6 +601,7 @@ public final class NBTEncoder implements AutoCloseable {
         checkState(this.context.id == TAG_COMPOUND, "Cannot append named tag to a non-compound tag!");
         this.out.writeByte(TAG_ARRAY_INT);
         this.out.writeUTF(name);
+        this.out.writeInt(length);
         this.context = EncodeContext.create(this.context, TAG_ARRAY_INT, length, TAG_INT);
         return this;
     }
@@ -592,9 +619,400 @@ public final class NBTEncoder implements AutoCloseable {
         checkState(this.context.id == TAG_COMPOUND, "Cannot append named tag to a non-compound tag!");
         this.out.writeByte(TAG_ARRAY_LONG);
         this.out.writeUTF(name);
+        this.out.writeInt(length);
         this.context = EncodeContext.create(this.context, TAG_ARRAY_LONG, length, TAG_LONG);
         return this;
     }
+
+    //
+    //
+    // put raw tag value(s)
+    //
+    //
+
+    /**
+     * Writes a TAG_Byte value.
+     * <p>
+     * The current tag must be expecting a TAG_Byte value (i.e. the value of a TAG_Byte or the next entry in a TAG_List of TAG_Byte).
+     *
+     * @param value the tag's value
+     */
+    public NBTEncoder appendByte(int value) throws IOException {
+        checkState(this.context.component == TAG_BYTE, "Current tag cannot accept a byte value!");
+        checkState(this.context.length > 0, "Current tag cannot accept any more values!");
+        this.out.writeByte(value);
+        this.context.length--;
+        return this;
+    }
+
+    /**
+     * Writes a TAG_Short value.
+     * <p>
+     * The current tag must be expecting a TAG_Short value (i.e. the value of a TAG_Short or the next entry in a TAG_List of TAG_Short).
+     *
+     * @param value the tag's value
+     */
+    public NBTEncoder appendShort(int value) throws IOException {
+        checkState(this.context.component == TAG_SHORT, "Current tag cannot accept a short value!");
+        checkState(this.context.length > 0, "Current tag cannot accept any more values!");
+        this.out.writeShort(value);
+        this.context.length--;
+        return this;
+    }
+
+    /**
+     * Writes a TAG_Int value.
+     * <p>
+     * The current tag must be expecting a TAG_Int value (i.e. the value of a TAG_Int or the next entry in a TAG_List of TAG_Int).
+     *
+     * @param value the tag's value
+     */
+    public NBTEncoder appendInt(int value) throws IOException {
+        checkState(this.context.component == TAG_INT, "Current tag cannot accept a int value!");
+        checkState(this.context.length > 0, "Current tag cannot accept any more values!");
+        this.out.writeInt(value);
+        this.context.length--;
+        return this;
+    }
+
+    /**
+     * Writes a TAG_Long value.
+     * <p>
+     * The current tag must be expecting a TAG_Long value (i.e. the value of a TAG_Long or the next entry in a TAG_List of TAG_Long).
+     *
+     * @param value the tag's value
+     */
+    public NBTEncoder appendLong(long value) throws IOException {
+        checkState(this.context.component == TAG_LONG, "Current tag cannot accept a long value!");
+        checkState(this.context.length > 0, "Current tag cannot accept any more values!");
+        this.out.writeLong(value);
+        this.context.length--;
+        return this;
+    }
+
+    /**
+     * Writes a TAG_Float value.
+     * <p>
+     * The current tag must be expecting a TAG_Float value (i.e. the value of a TAG_Float or the next entry in a TAG_List of TAG_Float).
+     *
+     * @param value the tag's value
+     */
+    public NBTEncoder appendFloat(float value) throws IOException {
+        checkState(this.context.component == TAG_FLOAT, "Current tag cannot accept a float value!");
+        checkState(this.context.length > 0, "Current tag cannot accept any more values!");
+        this.out.writeFloat(value);
+        this.context.length--;
+        return this;
+    }
+
+    /**
+     * Writes a TAG_Double value.
+     * <p>
+     * The current tag must be expecting a TAG_Double value (i.e. the value of a TAG_Double or the next entry in a TAG_List of TAG_Double).
+     *
+     * @param value the tag's value
+     */
+    public NBTEncoder appendDouble(double value) throws IOException {
+        checkState(this.context.component == TAG_DOUBLE, "Current tag cannot accept a double value!");
+        checkState(this.context.length > 0, "Current tag cannot accept any more values!");
+        this.out.writeDouble(value);
+        this.context.length--;
+        return this;
+    }
+
+    /**
+     * Writes a sequence of byte values.
+     * <p>
+     * The current tag must be expecting the given number of TAG_Byte values (i.e. the value of a single TAG_Byte, the next entries in a TAG_List
+     * of TAG_Byte, or some/all of the value of a TAG_Byte_Array).
+     *
+     * @param value the byte values
+     */
+    public NBTEncoder appendBytes(@NonNull byte[] value) throws IOException {
+        return this.appendBytes(value, 0, value.length);
+    }
+
+    /**
+     * Writes a sequence of byte values.
+     * <p>
+     * The current tag must be expecting the given number of TAG_Byte values (i.e. the value of a single TAG_Byte, the next entries in a TAG_List
+     * of TAG_Byte, or some/all of the value of a TAG_Byte_Array).
+     *
+     * @param value the byte values
+     * @param off   the index of the first byte in the array to write
+     * @param len   the number of bytes to write
+     */
+    public NBTEncoder appendBytes(@NonNull byte[] value, int off, int len) throws IOException {
+        checkRangeLen(value.length, off, len);
+        checkState(this.context.component == TAG_BYTE, "Current tag cannot accept a byte value!");
+        checkState(this.context.length >= len, "Current tag cannot accept %d more values! (remaining: %d)", len, this.context.length);
+        this.out.write(value, off, len);
+        this.context.length -= len;
+        return this;
+    }
+
+    /**
+     * Writes a sequence of byte values.
+     * <p>
+     * The current tag must be expecting the given number of TAG_Byte values (i.e. the value of a single TAG_Byte, the next entries in a TAG_List
+     * of TAG_Byte, or some/all of the value of a TAG_Byte_Array).
+     *
+     * @param value the byte values
+     */
+    public NBTEncoder appendBytes(@NonNull ByteBuffer value) throws IOException {
+        checkState(this.context.component == TAG_BYTE, "Current tag cannot accept a byte value!");
+        checkState(this.context.length >= value.remaining(), "Current tag cannot accept %d more values! (remaining: %d)", value.remaining(), this.context.length);
+        this.context.length -= this.out.write(value);
+        return this;
+    }
+
+    /**
+     * Writes a sequence of byte values.
+     * <p>
+     * The current tag must be expecting the given number of TAG_Byte values (i.e. the value of a single TAG_Byte, the next entries in a TAG_List
+     * of TAG_Byte, or some/all of the value of a TAG_Byte_Array).
+     *
+     * @param value the byte values
+     */
+    public NBTEncoder appendBytes(@NonNull ByteBuf value) throws IOException {
+        checkState(this.context.component == TAG_BYTE, "Current tag cannot accept a byte value!");
+        checkState(this.context.length >= value.readableBytes(), "Current tag cannot accept %d more values! (remaining: %d)", value.readableBytes(), this.context.length);
+        this.context.length -= this.out.write(value);
+        return this;
+    }
+
+    /**
+     * Writes a TAG_String value.
+     * <p>
+     * The current tag must be expecting a TAG_String value (i.e. the value of a TAG_String or the next entry in a TAG_List of TAG_Strings).
+     *
+     * @param value the tag's value
+     */
+    public NBTEncoder appendString(@NonNull String value) throws IOException {
+        checkState(this.context.component == TAG_STRING, "Current tag cannot accept a string value!");
+        checkState(this.context.length > 0, "Current tag cannot accept any more values!");
+        this.out.writeUTF(value);
+        this.context.length--;
+        return this;
+    }
+
+    /**
+     * Begins to write an unnamed TAG_List with TAG_Byte values.
+     *
+     * @param length the number of values that will be in the list
+     */
+    public NBTEncoder appendListByte(int length) throws IOException {
+        return this.doStartUnnamedList(length, TAG_BYTE);
+    }
+
+    /**
+     * Begins to write an unnamed TAG_List with TAG_Short values.
+     *
+     * @param length the number of values that will be in the list
+     */
+    public NBTEncoder appendListShort(int length) throws IOException {
+        return this.doStartUnnamedList(length, TAG_SHORT);
+    }
+
+    /**
+     * Begins to write an unnamed TAG_List with TAG_Int values.
+     *
+     * @param length the number of values that will be in the list
+     */
+    public NBTEncoder appendListInt(int length) throws IOException {
+        return this.doStartUnnamedList(length, TAG_INT);
+    }
+
+    /**
+     * Begins to write an unnamed TAG_List with TAG_Long values.
+     *
+     * @param length the number of values that will be in the list
+     */
+    public NBTEncoder appendListLong(int length) throws IOException {
+        return this.doStartUnnamedList(length, TAG_LONG);
+    }
+
+    /**
+     * Begins to write an unnamed TAG_List with TAG_Float values.
+     *
+     * @param length the number of values that will be in the list
+     */
+    public NBTEncoder appendListFloat(int length) throws IOException {
+        return this.doStartUnnamedList(length, TAG_FLOAT);
+    }
+
+    /**
+     * Begins to write an unnamed TAG_List with TAG_Double values.
+     *
+     * @param length the number of values that will be in the list
+     */
+    public NBTEncoder appendListDouble(int length) throws IOException {
+        return this.doStartUnnamedList(length, TAG_DOUBLE);
+    }
+
+    /**
+     * Begins to write an unnamed TAG_List with TAG_Byte_Array values.
+     *
+     * @param length the number of values that will be in the list
+     */
+    public NBTEncoder appendListByteArray(int length) throws IOException {
+        return this.doStartUnnamedList(length, TAG_ARRAY_BYTE);
+    }
+
+    /**
+     * Begins to write an unnamed TAG_List with TAG_String values.
+     *
+     * @param length the number of values that will be in the list
+     */
+    public NBTEncoder appendListString(int length) throws IOException {
+        return this.doStartUnnamedList(length, TAG_STRING);
+    }
+
+    /**
+     * Begins to write an unnamed TAG_List with TAG_List values.
+     *
+     * @param length the number of values that will be in the list
+     */
+    public NBTEncoder appendListList(int length) throws IOException {
+        return this.doStartUnnamedList(length, TAG_LIST);
+    }
+
+    /**
+     * Begins to write an unnamed TAG_List with TAG_Compound values.
+     *
+     * @param length the number of values that will be in the list
+     */
+    public NBTEncoder appendListCompound(int length) throws IOException {
+        return this.doStartUnnamedList(length, TAG_COMPOUND);
+    }
+
+    /**
+     * Begins to write an unnamed TAG_List with TAG_Int_Array values.
+     *
+     * @param length the number of values that will be in the list
+     */
+    public NBTEncoder appendListIntArray(int length) throws IOException {
+        return this.doStartUnnamedList(length, TAG_ARRAY_INT);
+    }
+
+    /**
+     * Begins to write an unnamed TAG_List with TAG_Long_Array values.
+     *
+     * @param length the number of values that will be in the list
+     */
+    public NBTEncoder appendListLongArray(int length) throws IOException {
+        return this.doStartUnnamedList(length, TAG_ARRAY_LONG);
+    }
+
+    private NBTEncoder doStartUnnamedList(int length, int component) throws IOException {
+        notNegative(length, "length");
+        checkState(this.context.component == TAG_LIST, "Current tag cannot accept a list value!");
+        checkState(this.context.length > 0, "Current tag cannot accept any more values!");
+        this.out.writeByte(component);
+        this.out.writeInt(length);
+        this.context.length--;
+        this.context = EncodeContext.create(this.context, TAG_LIST, length, component);
+        return this;
+    }
+
+    /**
+     * Begins to write an unnamed TAG_Compound value.
+     * <p>
+     * The current tag must be expecting a TAG_Compound value (i.e. the next entry in a TAG_List of TAG_Compounds).
+     */
+    public NBTEncoder appendCompound() throws IOException {
+        checkState(this.context.component == TAG_COMPOUND, "Current tag cannot accept a compound tag!");
+        checkState(this.context.length > 0, "Current tag cannot accept any more values!");
+        this.context.length--;
+        this.context = EncodeContext.create(this.context, TAG_COMPOUND, 0, 0);
+        return this;
+    }
+
+    /**
+     * Writes a sequence of int values.
+     * <p>
+     * The current tag must be expecting the given number of TAG_Int values (i.e. the value of a single TAG_Int, the next entries in a TAG_List
+     * of TAG_Int, or some/all of the value of a TAG_Int_Array).
+     *
+     * @param value the int values
+     */
+    public NBTEncoder appendInts(@NonNull int[] value) throws IOException {
+        return this.appendInts(value, 0, value.length);
+    }
+
+    /**
+     * Writes a sequence of int values.
+     * <p>
+     * The current tag must be expecting the given number of TAG_Int values (i.e. the value of a single TAG_Int, the next entries in a TAG_List
+     * of TAG_Int, or some/all of the value of a TAG_Int_Array).
+     *
+     * @param value the int values
+     * @param off   the index of the first int in the array to write
+     * @param len   the number of ints to write
+     */
+    public NBTEncoder appendInts(@NonNull int[] value, int off, int len) throws IOException {
+        checkRangeLen(value.length, off, len);
+        checkState(this.context.component == TAG_INT, "Current tag cannot accept a int value!");
+        checkState(this.context.length >= len, "Current tag cannot accept %d more values! (remaining: %d)", len, this.context.length);
+        for (int i = 0; i < len; i++) {
+            this.out.writeInt(value[off + i]);
+        }
+        this.context.length -= len;
+        return this;
+    }
+
+    /**
+     * Writes a sequence of long values.
+     * <p>
+     * The current tag must be expecting the given number of TAG_Long values (i.e. the value of a single TAG_Long, the next entries in a TAG_List
+     * of TAG_Long, or some/all of the value of a TAG_Long_Array).
+     *
+     * @param value the long values
+     */
+    public NBTEncoder appendLongs(@NonNull long[] value) throws IOException {
+        return this.appendLongs(value, 0, value.length);
+    }
+
+    /**
+     * Writes a sequence of long values.
+     * <p>
+     * The current tag must be expecting the given number of TAG_Long values (i.e. the value of a single TAG_Long, the next entries in a TAG_List
+     * of TAG_Long, or some/all of the value of a TAG_Long_Array).
+     *
+     * @param value the long values
+     * @param off   the index of the first long in the array to write
+     * @param len   the number of longs to write
+     */
+    public NBTEncoder appendLongs(@NonNull long[] value, int off, int len) throws IOException {
+        checkRangeLen(value.length, off, len);
+        checkState(this.context.component == TAG_LONG, "Current tag cannot accept a long value!");
+        checkState(this.context.length >= len, "Current tag cannot accept %d more values! (remaining: %d)", len, this.context.length);
+        for (int i = 0; i < len; i++) {
+            this.out.writeLong(value[off + i]);
+        }
+        this.context.length -= len;
+        return this;
+    }
+
+    /**
+     * Writes an unnamed {@link Tag}.
+     *
+     * @param value the tag's value
+     */
+    public NBTEncoder appendTag(@NonNull Tag value) throws IOException {
+        int id = value.id();
+        checkState(this.context.component == id, "Current tag cannot accept a value of type %d!", id);
+        checkState(this.context.length > 0, "Current tag cannot accept any more values!");
+        value.write(this.out);
+        this.context.length--;
+        return this;
+    }
+
+    //
+    //
+    // close tag/encoder
+    //
+    //
 
     /**
      * An unsafe alternative to {@link #close()}.
@@ -602,7 +1020,7 @@ public final class NBTEncoder implements AutoCloseable {
      * This method omits all tag length checks, meaning that it could be possible for a tag to be written with an invalid number of values. It's
      * only intended for use in a scenario where raw data is being manually appended to {@link #out()}.
      */
-    public void closeUnsafe() throws IOException {
+    public NBTEncoder closeUnsafe() throws IOException {
         if (this.context.id == TAG_COMPOUND) {
             this.out.writeByte(TAG_END);
         }
@@ -611,6 +1029,17 @@ public final class NBTEncoder implements AutoCloseable {
             //root tag was finished!
             this.out.close();
         }
+        return this;
+    }
+
+    /**
+     * Exactly the same as {@link #close()}, but returns itself for chaining.
+     *
+     * @see #close()
+     */
+    public NBTEncoder closeTag() throws IOException {
+        this.close();
+        return this;
     }
 
     /**

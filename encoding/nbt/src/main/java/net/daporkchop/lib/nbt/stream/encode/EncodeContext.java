@@ -44,14 +44,6 @@ final class EncodeContext {
         }
     };
 
-    public static EncodeContext create(EncodeContext parent, int id, int length) {
-        return RECYCLER.get()
-                .parent(parent)
-                .id(id)
-                .length(length)
-                .component(id);
-    }
-
     public static EncodeContext create(EncodeContext parent, int id, int length, int component) {
         return RECYCLER.get()
                 .parent(parent)

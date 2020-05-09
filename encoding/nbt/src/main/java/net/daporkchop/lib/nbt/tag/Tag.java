@@ -44,7 +44,7 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
  * @author DaPorkchop_
  */
 public abstract class Tag<T extends Tag<T>> extends AbstractRefCounted {
-    public static final Map<Class<? extends Tag>, Byte> CLASS_TO_ID;
+    public static final Map<Class<? extends Tag>, Integer> CLASS_TO_ID;
 
     public static final int TAG_END = 0;
     public static final int TAG_BYTE = 1;
@@ -61,19 +61,19 @@ public abstract class Tag<T extends Tag<T>> extends AbstractRefCounted {
     public static final int TAG_ARRAY_LONG = 12;
 
     static {
-        Map<Class<? extends Tag>, Byte> map = new IdentityHashMap<>();
-        map.put(ByteTag.class, (byte) TAG_BYTE);
-        map.put(ShortTag.class, (byte) TAG_SHORT);
-        map.put(IntTag.class, (byte) TAG_INT);
-        map.put(LongTag.class, (byte) TAG_LONG);
-        map.put(FloatTag.class, (byte) TAG_FLOAT);
-        map.put(DoubleTag.class, (byte) TAG_DOUBLE);
-        map.put(ByteArrayTag.class, (byte) TAG_ARRAY_BYTE);
-        map.put(StringTag.class, (byte) TAG_STRING);
-        map.put(ListTag.class, (byte) TAG_LIST);
-        map.put(CompoundTag.class, (byte) TAG_COMPOUND);
-        map.put(IntArrayTag.class, (byte) TAG_ARRAY_INT);
-        map.put(LongArrayTag.class, (byte) TAG_ARRAY_LONG);
+        Map<Class<? extends Tag>, Integer> map = new IdentityHashMap<>();
+        map.put(ByteTag.class, TAG_BYTE);
+        map.put(ShortTag.class, TAG_SHORT);
+        map.put(IntTag.class, TAG_INT);
+        map.put(LongTag.class, TAG_LONG);
+        map.put(FloatTag.class, TAG_FLOAT);
+        map.put(DoubleTag.class, TAG_DOUBLE);
+        map.put(ByteArrayTag.class, TAG_ARRAY_BYTE);
+        map.put(StringTag.class, TAG_STRING);
+        map.put(ListTag.class, TAG_LIST);
+        map.put(CompoundTag.class, TAG_COMPOUND);
+        map.put(IntArrayTag.class, TAG_ARRAY_INT);
+        map.put(LongArrayTag.class, TAG_ARRAY_LONG);
 
         CLASS_TO_ID = Collections.unmodifiableMap(map);
     }

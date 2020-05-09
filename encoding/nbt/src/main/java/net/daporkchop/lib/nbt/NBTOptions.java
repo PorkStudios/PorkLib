@@ -34,7 +34,7 @@ import net.daporkchop.lib.common.pool.array.ArrayAllocator;
 @Getter
 @Accessors(fluent = true)
 public final class NBTOptions {
-    public static final NBTOptions DEFAULT = new NBTOptions(null, null, null, true);
+    public static final NBTOptions DEFAULT = new NBTOptions(null, null, null, true, false);
 
     /**
      * The {@link ArrayAllocator} used for allocating {@code byte[]}s.
@@ -65,31 +65,47 @@ public final class NBTOptions {
      */
     protected final boolean exactArraySize;
 
+    /**
+     * Controls whether or not duplicate tag names are allowed in compound tags.
+     * <p>
+     * If {@code false} and a duplicate tag name is read, an {@link IllegalStateException} will be thrown.
+     * <p>
+     * If {@code true} and a duplicate tag name is read, the older value will be silently replaced.
+     */
+    protected final boolean allowDuplicates;
+
     public NBTOptions withByteAlloc(ArrayAllocator<byte[]> byteAlloc) {
         if (byteAlloc == this.byteAlloc) {
             return this;
         }
-        return new NBTOptions(byteAlloc, this.intAlloc, this.longAlloc, this.exactArraySize);
+        return new NBTOptions(byteAlloc, this.intAlloc, this.longAlloc, this.exactArraySize, this.allowDuplicates);
     }
 
     public NBTOptions withIntAlloc(ArrayAllocator<int[]> intAlloc) {
         if (intAlloc == this.intAlloc) {
             return this;
         }
-        return new NBTOptions(this.byteAlloc, intAlloc, this.longAlloc, this.exactArraySize);
+        return new NBTOptions(this.byteAlloc, intAlloc, this.longAlloc, this.exactArraySize, this.allowDuplicates);
     }
 
     public NBTOptions withLongAlloc(ArrayAllocator<long[]> longAlloc) {
         if (longAlloc == this.longAlloc) {
             return this;
         }
-        return new NBTOptions(this.byteAlloc, this.intAlloc, longAlloc, this.exactArraySize);
+        return new NBTOptions(this.byteAlloc, this.intAlloc, longAlloc, this.exactArraySize, this.allowDuplicates);
     }
 
     public NBTOptions withExactArraySize(boolean exactArraySize) {
         if (exactArraySize == this.exactArraySize) {
             return this;
         }
-        return new NBTOptions(this.byteAlloc, this.intAlloc, this.longAlloc, exactArraySize);
+        return new NBTOptions(this.byteAlloc, this.intAlloc, this.longAlloc, exactArraySize, this.allowDuplicates);
+    }
+
+    public NBTOptions withDuplicates(boolean allowDuplicates) {
+        if (allowDuplicates == this.allowDuplicates) {
+            return this;
+        }
+        return new NBTOptions(this.byteAlloc, this.intAlloc, this.longAlloc, this.exactArraySize, allowDuplicates);
     }
 }

@@ -49,13 +49,13 @@ public final class ListTag<T extends Tag<T>> extends Tag<ListTag<T>> {
     public ListTag(@NonNull Class<T> type) {
         this.list = new ArrayList<>();
         this.name = null;
-        checkArg((this.component = Tag.CLASS_TO_ID.getOrDefault(type, (byte) 0)) != 0, "Invalid component class: %s", type);
+        checkArg((this.component = Tag.CLASS_TO_ID.getOrDefault(type, 0)) != 0, "Invalid component class: %s", type);
     }
 
     public ListTag(@NonNull String name, @NonNull Class<T> type) {
         this.list = new ArrayList<>();
         this.name = name;
-        checkArg((this.component = Tag.CLASS_TO_ID.getOrDefault(type, (byte) 0)) != 0, "Invalid component class: %s", type);
+        checkArg((this.component = Tag.CLASS_TO_ID.getOrDefault(type, 0)) != 0, "Invalid component class: %s", type);
     }
 
     /**

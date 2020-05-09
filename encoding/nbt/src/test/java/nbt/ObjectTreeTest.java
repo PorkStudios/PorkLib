@@ -26,6 +26,7 @@ import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.encoding.Hexadecimal;
 import net.daporkchop.lib.nbt.NBTFormat;
+import net.daporkchop.lib.nbt.stream.encode.NBTEncoder;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 import net.daporkchop.lib.nbt.tag.ListTag;
 import net.daporkchop.lib.nbt.tag.Tag;
@@ -50,7 +51,6 @@ public class ObjectTreeTest {
             arr = StreamUtil.toByteArray(in);
         }
         CompoundTag tag = NBTFormat.BIG_ENDIAN.readCompound(DataIn.wrap(Unpooled.wrappedBuffer(arr)));
-        System.out.println(tag);
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         NBTFormat.BIG_ENDIAN.writeCompound(DataOut.wrap(baos), tag);
@@ -66,7 +66,6 @@ public class ObjectTreeTest {
             arr = StreamUtil.toByteArray(in);
         }
         CompoundTag tag = NBTFormat.BIG_ENDIAN.readCompound(DataIn.wrap(Unpooled.wrappedBuffer(arr)));
-        System.out.println(tag);
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         NBTFormat.BIG_ENDIAN.writeCompound(DataOut.wrap(baos), tag);
@@ -85,11 +84,6 @@ public class ObjectTreeTest {
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         NBTFormat.LITTLE_ENDIAN.writeList(DataOut.wrap(baos), tag);
-        if (false) {
-            System.out.println(Hexadecimal.encode(arr));
-            System.out.println(Hexadecimal.encode(baos.toByteArray()));
-            System.out.println(tag);
-        }
         checkState(Arrays.equals(arr, baos.toByteArray()));
         ListTag<CompoundTag> tag2 = NBTFormat.LITTLE_ENDIAN.readList(DataIn.wrap(Unpooled.wrappedBuffer(baos.toByteArray())));
         checkState(tag.equals(tag2));
@@ -108,5 +102,20 @@ public class ObjectTreeTest {
         checkState(Arrays.equals(arr, baos.toByteArray()));
         CompoundTag tag2 = NBTFormat.VARINT.readCompound(DataIn.wrap(Unpooled.wrappedBuffer(baos.toByteArray())));
         checkState(tag.equals(tag2));
+    }
+
+    @Test
+    public void testEncode() throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try (NBTEncoder encoder = NBTEncoder.beginCompound(DataOut.wrap(baos), "Level"))    {
+            encoder.putByte("byte", 0)
+                    .putString("text1", "Hello World!");
+            encoder.startString("text2").putString("asdf").close();
+
+            encoder.startListString("list_string", 3)
+                    .putString("a").putString("b").putString("c").close();
+        }
+
+        System.out.println(NBTFormat.BIG_ENDIAN.readCompound(DataIn.wrap(Unpooled.wrappedBuffer(baos.toByteArray()))));
     }
 }

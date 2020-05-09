@@ -67,7 +67,12 @@ public final class CompoundTag extends Tag<CompoundTag> {
                 break;
             }
             String name = in.readUTF();
-            checkState(this.map.putIfAbsent(name, Tag.read(in, options, id)) == null, "Duplicate tag name: \"%s\"", name);
+            Tag tag = Tag.read(in, options, id);
+            if (options.allowDuplicates()) {
+                this.map.put(name, tag);
+            } else {
+                checkState(this.map.putIfAbsent(name, tag) == null, "Duplicate tag name: \"%s\"", name);
+            }
         }
     }
 

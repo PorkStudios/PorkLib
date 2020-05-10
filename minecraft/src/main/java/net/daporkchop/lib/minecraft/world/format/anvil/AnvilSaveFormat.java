@@ -22,6 +22,7 @@ package net.daporkchop.lib.minecraft.world.format.anvil;
 
 import lombok.Getter;
 import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.minecraft.registry.IDRegistry;
 import net.daporkchop.lib.minecraft.registry.IDRegistryBuilder;
 import net.daporkchop.lib.minecraft.registry.ResourceLocation;
@@ -30,9 +31,9 @@ import net.daporkchop.lib.minecraft.world.MinecraftSave;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.format.SaveFormat;
 import net.daporkchop.lib.minecraft.world.format.WorldManager;
-import net.daporkchop.lib.nbt.NBTInputStream;
-import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
-import net.daporkchop.lib.nbt.tag.notch.ListTag;
+import net.daporkchop.lib.nbt.NBTFormat;
+import net.daporkchop.lib.nbt.tag.CompoundTag;
+import net.daporkchop.lib.nbt.tag.ListTag;
 import net.daporkchop.lib.primitive.lambda.consumer.IntObjConsumer;
 
 import java.io.File;
@@ -81,8 +82,8 @@ public class AnvilSaveFormat implements SaveFormat {
             } else {
                 throw new UnsupportedOperationException("create world");
             }
-            try (NBTInputStream is = new NBTInputStream(new GZIPInputStream(new FileInputStream(levelDat_file)))) {
-                this.levelDat = is.readTag();
+            try (DataIn in = DataIn.wrap(new GZIPInputStream(new FileInputStream(levelDat_file)))) {
+                this.levelDat = NBTFormat.BIG_ENDIAN.readCompound(in);
             }
         }
     }
@@ -98,7 +99,7 @@ public class AnvilSaveFormat implements SaveFormat {
         //load other dimensions
         Matcher matcher = null;
         for (File file : this.root.listFiles()) {
-            if (matcher == null)    {
+            if (matcher == null) {
                 matcher = DIM_PATTERN.matcher(file.getName());
             } else {
                 matcher.reset(file.getName());
@@ -117,21 +118,16 @@ public class AnvilSaveFormat implements SaveFormat {
     @Override
     @SuppressWarnings("unchecked")
     public void loadRegistries(@NonNull BiConsumer<ResourceLocation, IDRegistry> callback) {
-        CompoundTag fmlTag = this.levelDat.get("FML");
+        CompoundTag fmlTag = this.levelDat.getCompound("FML", null);
         if (fmlTag == null) {
             //TODO
             throw new UnsupportedOperationException("save must be created by FML, otherwise we can't read the registry! (this feature will be added Soon(tm))");
         } else {
-            CompoundTag registriesTag = fmlTag.get("Registries");
-            if (registriesTag == null) {
-                throw new NullPointerException("Registries");
-            }
             IDRegistryBuilder builder = IDRegistry.builder();
-            registriesTag.getContents().forEach((key, nbt) -> {
+            fmlTag.getCompound("Registries").<CompoundTag>forEach((key, tag) -> {
                 ResourceLocation registryName = new ResourceLocation(key);
-                CompoundTag tag = nbt.getAsCompoundTag();
                 builder.clear().name(registryName);
-                for (CompoundTag subTag : tag.<ListTag<CompoundTag>>get("ids")) {
+                for (CompoundTag subTag : tag.getList("ids", CompoundTag.class).list()) {
                     builder.register(new ResourceLocation(subTag.getString("K")), subTag.getInt("V", -1));
                 }
                 callback.accept(registryName, builder.build());

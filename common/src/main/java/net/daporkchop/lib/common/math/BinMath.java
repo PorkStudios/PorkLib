@@ -28,19 +28,19 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class BinMath {
     public static boolean isPow2(long value) {
-        return value != 0L && (value & value - 1L) == 0L;
+        return value != 0L && (value & (value - 1L)) == 0L;
     }
 
     public static boolean isPow2(int value) {
-        return value != 0 && (value & value - 1) == 0;
+        return value != 0 && (value & (value - 1)) == 0;
     }
 
     public static boolean isPow2(short value) {
-        return value != 0 && (value & value - 1) == 0;
+        return value != 0 && (value & (value - 1)) == 0;
     }
 
     public static boolean isPow2(byte value) {
-        return value != 0 && (value & value - 1) == 0;
+        return value != 0 && (value & (value - 1)) == 0;
     }
 
     /**

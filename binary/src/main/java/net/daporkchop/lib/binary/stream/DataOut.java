@@ -43,6 +43,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.GatheringByteChannel;
 import java.nio.charset.Charset;
@@ -251,6 +252,20 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
     void writeShortLE(int v) throws IOException;
 
     /**
+     * Writes a {@code short} in the given {@link ByteOrder}.
+     *
+     * @see #writeShort(int)
+     * @see #writeShortLE(int) 
+     */
+    default void writeShort(int v, @NonNull ByteOrder order) throws IOException {
+        if (order == ByteOrder.BIG_ENDIAN)  {
+            this.writeShort(v);
+        } else {
+            this.writeShortLE(v);
+        }
+    }
+
+    /**
      * Writes a big-endian {@code char}.
      *
      * @see DataOutput#writeChar(int)
@@ -264,6 +279,20 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @see #writeChar(int)
      */
     void writeCharLE(int v) throws IOException;
+
+    /**
+     * Writes a {@code char} in the given {@link ByteOrder}.
+     *
+     * @see #writeChar(int)
+     * @see #writeCharLE(int)
+     */
+    default void writeChar(int v, @NonNull ByteOrder order) throws IOException {
+        if (order == ByteOrder.BIG_ENDIAN)  {
+            this.writeChar(v);
+        } else {
+            this.writeCharLE(v);
+        }
+    }
 
     /**
      * Writes a big-endian {@code int}.
@@ -281,6 +310,20 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
     void writeIntLE(int v) throws IOException;
 
     /**
+     * Writes am {@code int} in the given {@link ByteOrder}.
+     *
+     * @see #writeInt(int)
+     * @see #writeIntLE(int)
+     */
+    default void writeInt(int v, @NonNull ByteOrder order) throws IOException {
+        if (order == ByteOrder.BIG_ENDIAN)  {
+            this.writeInt(v);
+        } else {
+            this.writeIntLE(v);
+        }
+    }
+
+    /**
      * Writes a big-endian {@code long}.
      *
      * @see DataOutput#writeLong(long)
@@ -294,6 +337,20 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @see DataOutput#writeLong(long)
      */
     void writeLongLE(long v) throws IOException;
+
+    /**
+     * Writes a {@code long} in the given {@link ByteOrder}.
+     *
+     * @see #writeLong(long)
+     * @see #writeLongLE(long)
+     */
+    default void writeLong(long v, @NonNull ByteOrder order) throws IOException {
+        if (order == ByteOrder.BIG_ENDIAN)  {
+            this.writeLong(v);
+        } else {
+            this.writeLongLE(v);
+        }
+    }
 
     /**
      * Writes a big-endian float (32-bit floating point) value.
@@ -314,6 +371,20 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
     }
 
     /**
+     * Writes a {@code float} in the given {@link ByteOrder}.
+     *
+     * @see #writeFloat(float)
+     * @see #writeFloatLE(float)
+     */
+    default void writeFloat(float f, @NonNull ByteOrder order) throws IOException {
+        if (order == ByteOrder.BIG_ENDIAN)  {
+            this.writeFloat(f);
+        } else {
+            this.writeFloatLE(f);
+        }
+    }
+
+    /**
      * Writes a big-endian double (64-bit floating point) value.
      *
      * @param d the double to write
@@ -329,6 +400,20 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      */
     default void writeDoubleLE(double d) throws IOException {
         this.writeLongLE(Double.doubleToLongBits(d));
+    }
+
+    /**
+     * Writes a {@code double} in the given {@link ByteOrder}.
+     *
+     * @see #writeDouble(double)
+     * @see #writeDoubleLE(double)
+     */
+    default void writeDouble(double d, @NonNull ByteOrder order) throws IOException {
+        if (order == ByteOrder.BIG_ENDIAN)  {
+            this.writeDouble(d);
+        } else {
+            this.writeDoubleLE(d);
+        }
     }
 
     //
@@ -556,14 +641,19 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @param value the value to write
      */
     default void writeVarInt(int value) throws IOException {
-        do {
-            byte temp = (byte) (value & 0b01111111);
-            value >>>= 7;
-            if (value != 0) {
-                temp |= 0b10000000;
-            }
-            this.write(temp);
-        } while (value != 0);
+        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get())   {
+            byte[] arr = handle.get();
+            int i = 0;
+            do {
+                byte temp = (byte) (value & 0b01111111);
+                value >>>= 7;
+                if (value != 0) {
+                    temp |= 0b10000000;
+                }
+                arr[i++] = temp;
+            } while (value != 0);
+            this.write(arr, 0, i);
+        }
     }
 
     /**
@@ -583,14 +673,19 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @param value the value to write
      */
     default void writeVarLong(long value) throws IOException {
-        do {
-            byte temp = (byte) (value & 0b01111111);
-            value >>>= 7L;
-            if (value != 0) {
-                temp |= 0b10000000;
-            }
-            this.write(temp);
-        } while (value != 0L);
+        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get())   {
+            byte[] arr = handle.get();
+            int i = 0;
+            do {
+                byte temp = (byte) (value & 0b01111111);
+                value >>>= 7L;
+                if (value != 0) {
+                    temp |= 0b10000000;
+                }
+                arr[i++] = temp;
+            } while (value != 0);
+            this.write(arr, 0, i);
+        }
     }
 
     /**

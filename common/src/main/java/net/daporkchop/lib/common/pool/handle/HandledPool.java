@@ -20,6 +20,11 @@
 
 package net.daporkchop.lib.common.pool.handle;
 
+import lombok.NonNull;
+import net.daporkchop.lib.common.ref.ReferenceType;
+
+import java.util.function.Supplier;
+
 /**
  * A simple form of resource pooling, using {@link Handle}s to manage references to pooled objects.
  *
@@ -27,6 +32,37 @@ package net.daporkchop.lib.common.pool.handle;
  * @author DaPorkchop_
  */
 public interface HandledPool<V> {
+    /**
+     * Creates a new global {@link HandledPool}.
+     *
+     * @param factory       a {@link Supplier} for new value instances
+     * @param referenceType the {@link ReferenceType} to use for storing references to values
+     * @param maxCapacity   the maximum number of values to be stored
+     * @param <V>           the value type
+     * @return a new global {@link HandledPool}
+     */
+    static <V> HandledPool<V> global(@NonNull Supplier<V> factory, @NonNull ReferenceType referenceType, int maxCapacity) {
+        return new BasicHandledPool<>(factory, referenceType, maxCapacity);
+    }
+
+    /**
+     * Creates a new thread-local {@link HandledPool}.
+     *
+     * @param factory              a {@link Supplier} for new value instances
+     * @param maxCapacityPerThread the maximum number of values to be stored per thread
+     * @param <V>                  the value type
+     * @return a new thread-local {@link HandledPool}
+     */
+    static <V> HandledPool<V> threadLocal(@NonNull Supplier<V> factory, int maxCapacityPerThread) {
+        try {
+            Class.forName("io.netty.util.Recycler"); //make sure class exists
+
+            return new RecyclingHandledPool<>(factory, maxCapacityPerThread);
+        } catch (ClassNotFoundException e) {
+            return new JavaRecyclingHandledPool<>(factory, maxCapacityPerThread);
+        }
+    }
+
     /**
      * Gets a value from this pool.
      *

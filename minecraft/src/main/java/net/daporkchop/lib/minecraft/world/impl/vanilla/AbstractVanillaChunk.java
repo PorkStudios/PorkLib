@@ -23,11 +23,10 @@ package net.daporkchop.lib.minecraft.world.impl.vanilla;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.pool.array.ArrayHandle;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.World;
-import net.daporkchop.lib.nbt.alloc.NBTArrayHandle;
 
 import java.util.Arrays;
 
@@ -44,7 +43,7 @@ public abstract class AbstractVanillaChunk implements Chunk.Vanilla {
     protected final World world;
 
     protected int[] heightMap;
-    protected NBTArrayHandle<int[]> heightMapHandle;
+    protected ArrayHandle<int[]> heightMapHandle;
 
     protected volatile boolean dirty;
     protected volatile boolean loaded;
@@ -97,9 +96,9 @@ public abstract class AbstractVanillaChunk implements Chunk.Vanilla {
         }
     }
 
-    protected void doUnload()   {
+    protected void doUnload() {
         this.heightMap = null;
-        if (this.heightMapHandle != null)   {
+        if (this.heightMapHandle != null) {
             this.heightMapHandle.release();
             this.heightMapHandle = null;
         }
@@ -124,24 +123,24 @@ public abstract class AbstractVanillaChunk implements Chunk.Vanilla {
         }
     }
 
-    public void heightMap(int[] heightMap)  {
+    public void heightMap(int[] heightMap) {
         this.heightMap = heightMap;
 
-        if (this.heightMapHandle != null)   {
+        if (this.heightMapHandle != null) {
             this.heightMapHandle.release();
             this.heightMapHandle = null;
         }
     }
 
-    public void heightMap(NBTArrayHandle<int[]> handle)  {
+    public void heightMap(ArrayHandle<int[]> handle) {
         this.heightMap = null;
-        if (this.heightMapHandle != null)   {
+        if (this.heightMapHandle != null) {
             this.heightMapHandle.release();
             this.heightMapHandle = null;
         }
 
         if (handle != null) {
-            this.heightMap = handle.value();
+            this.heightMap = handle.retain().get();
             this.heightMapHandle = handle;
         }
     }

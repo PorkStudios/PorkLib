@@ -31,6 +31,7 @@ import net.daporkchop.lib.binary.stream.DataOut;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.util.function.Function;
 
@@ -87,6 +88,16 @@ public abstract class ForwardingDataIn implements DataIn {
     }
 
     @Override
+    public short readShort(@NonNull ByteOrder order) throws IOException {
+        return this.delegate.readShort(order);
+    }
+
+    @Override
+    public int readUnsignedShort(@NonNull ByteOrder order) throws IOException {
+        return this.delegate.readUnsignedShort(order);
+    }
+
+    @Override
     public char readChar() throws IOException {
         return this.delegate.readChar();
     }
@@ -94,6 +105,11 @@ public abstract class ForwardingDataIn implements DataIn {
     @Override
     public char readCharLE() throws IOException {
         return this.delegate.readCharLE();
+    }
+
+    @Override
+    public char readChar(@NonNull ByteOrder order) throws IOException {
+        return this.delegate.readChar(order);
     }
 
     @Override
@@ -107,6 +123,11 @@ public abstract class ForwardingDataIn implements DataIn {
     }
 
     @Override
+    public int readInt(@NonNull ByteOrder order) throws IOException {
+        return this.delegate.readInt(order);
+    }
+
+    @Override
     public long readLong() throws IOException {
         return this.delegate.readLong();
     }
@@ -114,6 +135,11 @@ public abstract class ForwardingDataIn implements DataIn {
     @Override
     public long readLongLE() throws IOException {
         return this.delegate.readLongLE();
+    }
+
+    @Override
+    public long readLong(@NonNull ByteOrder order) throws IOException {
+        return this.delegate.readLong(order);
     }
 
     @Override
@@ -127,6 +153,11 @@ public abstract class ForwardingDataIn implements DataIn {
     }
 
     @Override
+    public float readFloat(@NonNull ByteOrder order) throws IOException {
+        return this.delegate.readFloat(order);
+    }
+
+    @Override
     public double readDouble() throws IOException {
         return this.delegate.readDouble();
     }
@@ -134,6 +165,11 @@ public abstract class ForwardingDataIn implements DataIn {
     @Override
     public double readDoubleLE() throws IOException {
         return this.delegate.readDoubleLE();
+    }
+
+    @Override
+    public double readDouble(@NonNull ByteOrder order) throws IOException {
+        return this.delegate.readDouble(order);
     }
 
     @Override

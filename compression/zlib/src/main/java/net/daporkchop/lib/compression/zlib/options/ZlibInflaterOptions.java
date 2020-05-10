@@ -41,7 +41,7 @@ public final class ZlibInflaterOptions extends ZlibOptions<ZlibInflaterOptions> 
 
     @Override
     public ZlibInflaterOptions withMode(@NonNull ZlibMode mode) {
-        checkArg(mode.compression(), "Zlib mode %s can't be used for compression!", mode);
+        checkArg(mode.decompression(), "Zlib mode %s can't be used for compression!", mode);
         if (mode == this.mode) {
             return this;
         }

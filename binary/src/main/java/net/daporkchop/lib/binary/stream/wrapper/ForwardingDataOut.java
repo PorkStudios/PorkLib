@@ -31,6 +31,7 @@ import net.daporkchop.lib.binary.stream.DataOut;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 
 /**
@@ -71,6 +72,11 @@ public abstract class ForwardingDataOut implements DataOut {
     }
 
     @Override
+    public void writeShort(int v, @NonNull ByteOrder order) throws IOException {
+        this.delegate.writeShort(v, order);
+    }
+
+    @Override
     public void writeChar(int v) throws IOException {
         this.delegate.writeChar(v);
     }
@@ -78,6 +84,11 @@ public abstract class ForwardingDataOut implements DataOut {
     @Override
     public void writeCharLE(int v) throws IOException {
         this.delegate.writeCharLE(v);
+    }
+
+    @Override
+    public void writeChar(int v, @NonNull ByteOrder order) throws IOException {
+        this.delegate.writeChar(v, order);
     }
 
     @Override
@@ -91,6 +102,11 @@ public abstract class ForwardingDataOut implements DataOut {
     }
 
     @Override
+    public void writeInt(int v, @NonNull ByteOrder order) throws IOException {
+        this.delegate.writeInt(v, order);
+    }
+
+    @Override
     public void writeLong(long v) throws IOException {
         this.delegate.writeLong(v);
     }
@@ -98,6 +114,11 @@ public abstract class ForwardingDataOut implements DataOut {
     @Override
     public void writeLongLE(long v) throws IOException {
         this.delegate.writeLongLE(v);
+    }
+
+    @Override
+    public void writeLong(long v, @NonNull ByteOrder order) throws IOException {
+        this.delegate.writeLong(v, order);
     }
 
     @Override
@@ -111,6 +132,11 @@ public abstract class ForwardingDataOut implements DataOut {
     }
 
     @Override
+    public void writeFloat(float f, @NonNull ByteOrder order) throws IOException {
+        this.delegate.writeFloat(f, order);
+    }
+
+    @Override
     public void writeDouble(double d) throws IOException {
         this.delegate.writeDouble(d);
     }
@@ -118,6 +144,11 @@ public abstract class ForwardingDataOut implements DataOut {
     @Override
     public void writeDoubleLE(double d) throws IOException {
         this.delegate.writeDoubleLE(d);
+    }
+
+    @Override
+    public void writeDouble(double d, @NonNull ByteOrder order) throws IOException {
+        this.delegate.writeDouble(d, order);
     }
 
     @Override

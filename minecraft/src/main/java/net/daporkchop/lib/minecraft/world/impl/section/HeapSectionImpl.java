@@ -24,11 +24,11 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.pool.array.ArrayHandle;
 import net.daporkchop.lib.minecraft.util.SectionLayer;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Section;
-import net.daporkchop.lib.nbt.alloc.NBTArrayHandle;
-import net.daporkchop.lib.nbt.tag.notch.ByteArrayTag;
+import net.daporkchop.lib.nbt.tag.ByteArrayTag;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 /**
@@ -45,11 +45,11 @@ public final class HeapSectionImpl implements Section {
     private SectionLayer blockLight;
     private SectionLayer skyLight;
 
-    private NBTArrayHandle<byte[]> blocksHandle;
-    private NBTArrayHandle<byte[]> addHandle;
-    private NBTArrayHandle<byte[]> metaHandle;
-    private NBTArrayHandle<byte[]> blockLightHandle;
-    private NBTArrayHandle<byte[]> skyLightHandle;
+    private ArrayHandle<byte[]> blocksHandle;
+    private ArrayHandle<byte[]> addHandle;
+    private ArrayHandle<byte[]> metaHandle;
+    private ArrayHandle<byte[]> blockLightHandle;
+    private ArrayHandle<byte[]> skyLightHandle;
 
     private final Chunk chunk;
 
@@ -146,26 +146,26 @@ public final class HeapSectionImpl implements Section {
     //setters
     public void setBlocks(ByteArrayTag tag) {
         this.blocks = tag == null ? null : tag.value();
-        this.blocksHandle = tag == null ? null : tag.handle();
+        this.blocksHandle = tag == null ? null : tag.handle().retain();
     }
 
     public void setAdd(ByteArrayTag tag) {
         this.add = tag == null ? null : new SectionLayer(tag.value());
-        this.addHandle = tag == null ? null : tag.handle();
+        this.addHandle = tag == null ? null : tag.handle().retain();
     }
 
     public void setMeta(ByteArrayTag tag) {
         this.meta = tag == null ? null : new SectionLayer(tag.value());
-        this.metaHandle = tag == null ? null : tag.handle();
+        this.metaHandle = tag == null ? null : tag.handle().retain();
     }
 
     public void setBlockLight(ByteArrayTag tag) {
         this.blockLight = tag == null ? null : new SectionLayer(tag.value());
-        this.blockLightHandle = tag == null ? null : tag.handle();
+        this.blockLightHandle = tag == null ? null : tag.handle().retain();
     }
 
     public void setSkyLight(ByteArrayTag tag) {
         this.skyLight = tag == null ? null : new SectionLayer(tag.value());
-        this.skyLightHandle = tag == null ? null : tag.handle();
+        this.skyLightHandle = tag == null ? null : tag.handle().retain();
     }
 }

@@ -21,6 +21,7 @@
 package net.daporkchop.lib.random.impl;
 
 import lombok.AllArgsConstructor;
+import net.daporkchop.lib.common.math.PMath;
 import net.daporkchop.lib.random.PRandom;
 
 /**
@@ -35,34 +36,23 @@ import net.daporkchop.lib.random.PRandom;
 public final class FastPRandom extends AbstractFastPRandom {
     private static final long GAMMA = 0x9e3779b97f4a7c15L;
 
-    public static long mix64(long z) {
-        z = (z ^ (z >>> 33)) * 0xff51afd7ed558ccdL;
-        z = (z ^ (z >>> 33)) * 0xc4ceb9fe1a85ec53L;
-        return z ^ (z >>> 33);
-    }
-
-    public static int mix32(long z) {
-        z = (z ^ (z >>> 33)) * 0xff51afd7ed558ccdL;
-        return (int) (((z ^ (z >>> 33)) * 0xc4ceb9fe1a85ec53L) >>> 32);
-    }
-
     private long seed;
 
     /**
      * Creates a new {@link FastPRandom} instance using a seed based on the current time.
      */
     public FastPRandom() {
-        this(mix64(System.currentTimeMillis()) ^ mix64(System.nanoTime()));
+        this(PMath.mix64(System.currentTimeMillis()) ^ PMath.mix64(System.nanoTime()));
     }
 
     @Override
     public int nextInt() {
-        return mix32(this.seed += GAMMA);
+        return PMath.mix32(this.seed += GAMMA);
     }
 
     @Override
     public long nextLong() {
-        return mix64(this.seed += GAMMA);
+        return PMath.mix64(this.seed += GAMMA);
     }
 
     @Override

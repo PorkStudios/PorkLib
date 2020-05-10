@@ -26,7 +26,6 @@ import net.daporkchop.lib.noise.NoiseSource;
 import net.daporkchop.lib.random.PRandom;
 
 import static net.daporkchop.lib.common.math.PMath.*;
-import static net.daporkchop.lib.random.impl.FastPRandom.*;
 
 /**
  * An implementation of Porkian v2 noise, which is a simple value noise algorithm.

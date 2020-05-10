@@ -25,21 +25,21 @@ import net.daporkchop.lib.primitive.map.ObjIntMap;
 import net.daporkchop.lib.primitive.map.hash.open.ObjIntOpenHashMap;
 
 /**
- * An extension of {@link IDRegistryImpl} that stores {@link ResourceLocation} to ID mappings in a map for fast reverse lookups.
+ * An extension of {@link IDRegistryImpl} that stores {@link Identifier} to ID mappings in a map for fast reverse lookups.
  *
  * @author DaPorkchop_
  */
 public class MappedIDRegistryImpl extends IDRegistryImpl {
-    protected final ObjIntMap<ResourceLocation> map = new ObjIntOpenHashMap<>();
+    protected final ObjIntMap<Identifier> map = new ObjIntOpenHashMap<>();
 
-    public MappedIDRegistryImpl(@NonNull ResourceLocation[] contents, ResourceLocation name) {
+    public MappedIDRegistryImpl(@NonNull Identifier[] contents, Identifier name) {
         super(contents, name);
 
         this.forEach(this.map::put);
     }
 
     @Override
-    public int lookup(@NonNull ResourceLocation name) {
+    public int lookup(@NonNull Identifier name) {
         return this.map.get(name);
     }
 }

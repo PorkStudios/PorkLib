@@ -19,7 +19,7 @@
  */
 
 package minecraft.worldscanner;import net.daporkchop.lib.minecraft.registry.IDRegistry;
-import net.daporkchop.lib.minecraft.registry.ResourceLocation;
+import net.daporkchop.lib.minecraft.registry.Identifier;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.MinecraftSave;
 import net.daporkchop.lib.minecraft.world.format.anvil.AnvilSaveFormat;
@@ -42,7 +42,7 @@ public class AnvilTest {
         System.out.printf("%d registries\n", save.registries().size());
         save.registries().forEach((resourceLocation, registry) -> System.out.printf("  %s: %d entries\n", resourceLocation, registry.size()));
 
-        IDRegistry blockRegistry = save.registry(new ResourceLocation("minecraft:blocks"));
+        IDRegistry blockRegistry = save.registry(new Identifier("minecraft:blocks"));
 
         Chunk chunk = save.world(0).column(30, 6);
         chunk.load();
@@ -50,7 +50,7 @@ public class AnvilTest {
         for (int y = 255; y >= 0; y--) {
             if ((id = chunk.getBlockId(7, y, 7)) != 0) {
                 System.out.printf("Surface in chunk (%d,%d) is at y=%d\n", chunk.getX(), chunk.getZ(), y);
-                ResourceLocation surfaceBlock = blockRegistry.lookup(id);
+                Identifier surfaceBlock = blockRegistry.lookup(id);
                 if (surfaceBlock.equals("tconstruct:blueslime"))    {
                     System.out.printf("Surface block id id %d (registry name: %s)\n", id, surfaceBlock);
                 } else {

@@ -34,7 +34,7 @@ import net.daporkchop.lib.http.Http;
 import net.daporkchop.lib.math.vector.i.Vec2i;
 import net.daporkchop.lib.minecraft.region.WorldScanner;
 import net.daporkchop.lib.minecraft.registry.IDRegistry;
-import net.daporkchop.lib.minecraft.registry.ResourceLocation;
+import net.daporkchop.lib.minecraft.registry.Identifier;
 import net.daporkchop.lib.minecraft.tileentity.impl.TileEntitySign;
 import net.daporkchop.lib.minecraft.world.MinecraftSave;
 import net.daporkchop.lib.minecraft.world.format.anvil.AnvilSaveFormat;
@@ -103,9 +103,9 @@ public class ScannerTest {
     @Test
     public void findDoubleChests() throws IOException {
         try (MinecraftSave save = this.getTestWorld()) {
-            IDRegistry blocksRegistry = save.registry(new ResourceLocation("minecraft:blocks"));
-            int chestId = blocksRegistry.lookup(new ResourceLocation("minecraft:chest"));
-            int trappedChestId = blocksRegistry.lookup(new ResourceLocation("minecraft:trapped_chest"));
+            IDRegistry blocksRegistry = save.registry(new Identifier("minecraft:blocks"));
+            int chestId = blocksRegistry.lookup(new Identifier("minecraft:chest"));
+            int trappedChestId = blocksRegistry.lookup(new Identifier("minecraft:trapped_chest"));
             new WorldScanner(save.world(0))
                     .addProcessor(col -> {
                         if ((col.getX() & 0x1F) == 31 && (col.getZ() & 0x1F) == 31) {
@@ -169,7 +169,7 @@ public class ScannerTest {
 
     @Test
     public void makeSimpleMap() throws IOException {
-        Map<ResourceLocation, Color[]> colorMap = new Hashtable<>();
+        Map<Identifier, Color[]> colorMap = new Hashtable<>();
         {
             String colorData = Http.getString("https://raw.githubusercontent.com/DaMatrix/betterMapArt/master/src/main/resources/colors.json");
             JsonParser parser = new JsonParser();
@@ -188,15 +188,15 @@ public class ScannerTest {
             }
             JsonArray array = object.getAsJsonArray("blocks");
             array.forEach(element -> {
-                Color[] states = colorMap.computeIfAbsent(new ResourceLocation(element.getAsJsonObject().get("registryName").getAsString()), name -> new Color[16]);
+                Color[] states = colorMap.computeIfAbsent(new Identifier(element.getAsJsonObject().get("registryName").getAsString()), name -> new Color[16]);
                 Color col = colors[Integer.parseInt(element.getAsJsonObject().get("color").getAsString())];
                 states[element.getAsJsonObject().get("meta").getAsInt()] = col;
             });
-            colorMap.put(new ResourceLocation("minecraft:water"), new Color[]{colors[25], colors[25], colors[25], colors[25], colors[25], colors[25], colors[25], colors[25], colors[25], colors[25], colors[25], colors[25], colors[25], colors[25], colors[25], colors[25]});
-            colorMap.put(new ResourceLocation("minecraft:snow_layer"), new Color[]{colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8]});
+            colorMap.put(new Identifier("minecraft:water"), new Color[]{colors[25], colors[25], colors[25], colors[25], colors[25], colors[25], colors[25], colors[25], colors[25], colors[25], colors[25], colors[25], colors[25], colors[25], colors[25], colors[25]});
+            colorMap.put(new Identifier("minecraft:snow_layer"), new Color[]{colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8], colors[8]});
         }
         try (MinecraftSave save = this.getTestWorld()) {
-            IDRegistry registry = save.registry(new ResourceLocation("minecraft:blocks"));
+            IDRegistry registry = save.registry(new Identifier("minecraft:blocks"));
             File out = new File(".", "run/out");
             PFiles.rmContents(PFiles.ensureDirectoryExists(out));
             LoadingCache<Vec2i, BufferedImage> outCache = CacheBuilder.newBuilder()
@@ -242,7 +242,7 @@ public class ScannerTest {
                                 for (int y = 255; y >= 0; y--) {
                                     if ((id = col.getBlockId(x, y, z)) != 0) {
                                         int meta = col.getBlockMeta(x, y, z);
-                                        ResourceLocation registryName = registry.lookup(id);
+                                        Identifier registryName = registry.lookup(id);
                                         Color[] colors = registryName == null ? null : colorMap.get(registryName);
                                         if (colors == null || colors[meta] == null) {
                                             continue;

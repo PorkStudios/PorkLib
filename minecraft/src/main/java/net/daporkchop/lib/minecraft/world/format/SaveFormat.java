@@ -22,13 +22,12 @@ package net.daporkchop.lib.minecraft.world.format;
 
 import lombok.NonNull;
 import net.daporkchop.lib.minecraft.registry.IDRegistry;
-import net.daporkchop.lib.minecraft.registry.ResourceLocation;
+import net.daporkchop.lib.minecraft.registry.Identifier;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.MinecraftSave;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.primitive.lambda.consumer.IntObjConsumer;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.function.BiConsumer;
 
@@ -42,7 +41,7 @@ public interface SaveFormat extends AutoCloseable {
 
     void closeWorld(@NonNull World world) throws IOException;
 
-    void loadRegistries(@NonNull BiConsumer<ResourceLocation, IDRegistry> callback);
+    void loadRegistries(@NonNull BiConsumer<Identifier, IDRegistry> callback);
 
     Chunk createColumnInstance(int x, int z);
 

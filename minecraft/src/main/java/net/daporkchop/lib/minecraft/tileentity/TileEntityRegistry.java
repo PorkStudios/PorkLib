@@ -26,7 +26,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.minecraft.registry.ResourceLocation;
+import net.daporkchop.lib.minecraft.registry.Identifier;
 import net.daporkchop.lib.minecraft.tileentity.impl.TileEntitySign;
 import net.daporkchop.lib.minecraft.tileentity.impl.UnknownTileEntity;
 import net.daporkchop.lib.minecraft.util.factory.TileEntityFactory;
@@ -78,11 +78,11 @@ public class TileEntityRegistry implements TileEntityFactory {
     }
 
     @NonNull
-    protected final Map<ResourceLocation, Supplier<? extends TileEntity>> delegate;
+    protected final Map<Identifier, Supplier<? extends TileEntity>> delegate;
     protected final Supplier<? extends TileEntity>                        fallback;
 
     @Override
-    public TileEntity create(@NonNull ResourceLocation id) {
+    public TileEntity create(@NonNull Identifier id) {
         Supplier<? extends TileEntity> supplier = this.delegate.getOrDefault(id, this.fallback);
         if (supplier != null) {
             return supplier.get();
@@ -98,20 +98,20 @@ public class TileEntityRegistry implements TileEntityFactory {
      */
     @Accessors(fluent = true, chain = true)
     public static class Builder {
-        protected Map<ResourceLocation, Supplier<? extends TileEntity>> map = Collections.emptyMap();
+        protected Map<Identifier, Supplier<? extends TileEntity>> map = Collections.emptyMap();
         @Getter
         @Setter
         protected Supplier<? extends TileEntity> fallback;
 
         /**
-         * Adds a new tile entity using the given {@link ResourceLocation} ID and a supplier of instances.
+         * Adds a new tile entity using the given {@link Identifier} ID and a supplier of instances.
          *
          * @param id       the tile entity's ID
          * @param supplier an {@link Supplier} for creating instances of the tile entity
          * @return this {@link Builder} instance
          * @throws IllegalArgumentException if the given ID is already registered
          */
-        public synchronized Builder add(@NonNull ResourceLocation id, @NonNull Supplier<? extends TileEntity> supplier) {
+        public synchronized Builder add(@NonNull Identifier id, @NonNull Supplier<? extends TileEntity> supplier) {
             if (this.map.isEmpty()) {
                 this.map = new HashMap<>();
             }
@@ -133,7 +133,7 @@ public class TileEntityRegistry implements TileEntityFactory {
             if (this.map.isEmpty()) {
                 this.map = new HashMap<>();
             }
-            if (this.map.putIfAbsent(new ResourceLocation(id), supplier) != null) {
+            if (this.map.putIfAbsent(new Identifier(id), supplier) != null) {
                 throw new IllegalArgumentException(String.format("ID \"%s\" already registered!", id));
             }
             return this;
@@ -144,9 +144,9 @@ public class TileEntityRegistry implements TileEntityFactory {
          *
          * @param source the {@link Map} from which to copy registrations
          * @return this {@link Builder} instance
-         * @see #add(ResourceLocation, Supplier)
+         * @see #add(Identifier, Supplier)
          */
-        public synchronized Builder addAll(@NonNull Map<ResourceLocation, Supplier<? extends TileEntity>> source) {
+        public synchronized Builder addAll(@NonNull Map<Identifier, Supplier<? extends TileEntity>> source) {
             if (!source.isEmpty()) {
                 if (this.map.isEmpty()) {
                     this.map = new HashMap<>(source);
@@ -169,7 +169,7 @@ public class TileEntityRegistry implements TileEntityFactory {
          *
          * @param source the {@link Builder} from which to copy registrations
          * @return this {@link Builder} instance
-         * @see #add(ResourceLocation, Supplier)
+         * @see #add(Identifier, Supplier)
          */
         public synchronized Builder addAll(@NonNull Builder source) {
             return this.addAll(source.map);
@@ -180,14 +180,14 @@ public class TileEntityRegistry implements TileEntityFactory {
          *
          * @param source the {@link TileEntityRegistry} from which to copy registrations
          * @return this {@link Builder} instance
-         * @see #add(ResourceLocation, Supplier)
+         * @see #add(Identifier, Supplier)
          */
         public synchronized Builder addAll(@NonNull TileEntityRegistry source) {
             return this.addAll(source.delegate);
         }
 
         /**
-         * Adds a new tile entity using the given {@link ResourceLocation} ID and a supplier of instances.
+         * Adds a new tile entity using the given {@link Identifier} ID and a supplier of instances.
          * <p>
          * If the given ID is already registered in this builder, it will be silently replaced.
          *
@@ -195,7 +195,7 @@ public class TileEntityRegistry implements TileEntityFactory {
          * @param supplier an {@link Supplier} for creating instances of the tile entity
          * @return this {@link Builder} instance
          */
-        public synchronized Builder put(@NonNull ResourceLocation id, @NonNull Supplier<? extends TileEntity> supplier) {
+        public synchronized Builder put(@NonNull Identifier id, @NonNull Supplier<? extends TileEntity> supplier) {
             if (this.map.isEmpty()) {
                 this.map = new HashMap<>();
             }
@@ -216,7 +216,7 @@ public class TileEntityRegistry implements TileEntityFactory {
             if (this.map.isEmpty()) {
                 this.map = new HashMap<>();
             }
-            this.map.put(new ResourceLocation(id), supplier);
+            this.map.put(new Identifier(id), supplier);
             return this;
         }
 
@@ -227,9 +227,9 @@ public class TileEntityRegistry implements TileEntityFactory {
          *
          * @param source the {@link Map} from which to copy registrations
          * @return this {@link Builder} instance
-         * @see #put(ResourceLocation, Supplier)
+         * @see #put(Identifier, Supplier)
          */
-        public synchronized Builder putAll(@NonNull Map<ResourceLocation, Supplier<? extends TileEntity>> source) {
+        public synchronized Builder putAll(@NonNull Map<Identifier, Supplier<? extends TileEntity>> source) {
             if (!source.isEmpty()) {
                 if (this.map.isEmpty()) {
                     this.map = new HashMap<>(source);
@@ -247,7 +247,7 @@ public class TileEntityRegistry implements TileEntityFactory {
          *
          * @param source the {@link Builder} from which to copy registrations
          * @return this {@link Builder} instance
-         * @see #put(ResourceLocation, Supplier)
+         * @see #put(Identifier, Supplier)
          */
         public synchronized Builder putAll(@NonNull Builder source) {
             return this.addAll(source.map);
@@ -260,7 +260,7 @@ public class TileEntityRegistry implements TileEntityFactory {
          *
          * @param source the {@link TileEntityRegistry} from which to copy registrations
          * @return this {@link Builder} instance
-         * @see #put(ResourceLocation, Supplier)
+         * @see #put(Identifier, Supplier)
          */
         public synchronized Builder putAll(@NonNull TileEntityRegistry source) {
             return this.addAll(source.delegate);

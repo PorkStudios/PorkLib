@@ -31,7 +31,11 @@ import net.daporkchop.lib.nbt.NBTOptions;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Spliterator;
+import java.util.function.Consumer;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 import static net.daporkchop.lib.common.util.PorkUtil.*;
@@ -39,8 +43,9 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
 /**
  * @author DaPorkchop_
  */
+//TODO: this really needs some convenience methods
 @Accessors(fluent = true)
-public final class ListTag<T extends Tag<T>> extends Tag<ListTag<T>> {
+public final class ListTag<T extends Tag<T>> extends Tag<ListTag<T>> implements Iterable<T> {
     @Getter
     protected final List<T> list;
     @Getter
@@ -68,9 +73,13 @@ public final class ListTag<T extends Tag<T>> extends Tag<ListTag<T>> {
 
         this.component = in.readUnsignedByte();
         int size = in.readInt();
-        this.list = new ArrayList<>(size);
-        for (int i = 0; i < size; i++) {
-            this.list.add(uncheckedCast(Tag.read(in, options, this.component)));
+        if (size != 0) {
+            this.list = new ArrayList<>(size);
+            for (int i = 0; i < size; i++) {
+                this.list.add(uncheckedCast(Tag.read(in, options, this.component)));
+            }
+        } else {
+            this.list = Collections.emptyList();
         }
     }
 
@@ -114,5 +123,28 @@ public final class ListTag<T extends Tag<T>> extends Tag<ListTag<T>> {
         }
         PStrings.appendMany(builder, ' ', depth << 1);
         builder.append("]\n");
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        return this.list.iterator();
+    }
+
+    @Override
+    public void forEach(Consumer<? super T> action) {
+        this.list.forEach(action);
+    }
+
+    @Override
+    public Spliterator<T> spliterator() {
+        return this.list.spliterator();
+    }
+
+    public int size()   {
+        return this.list.size();
+    }
+
+    public boolean isEmpty()    {
+        return this.list.isEmpty() || this.component == TAG_END;
     }
 }

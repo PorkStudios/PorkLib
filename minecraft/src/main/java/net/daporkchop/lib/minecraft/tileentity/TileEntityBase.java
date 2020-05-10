@@ -25,7 +25,7 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.math.vector.i.Vec3i;
-import net.daporkchop.lib.minecraft.registry.ResourceLocation;
+import net.daporkchop.lib.minecraft.registry.Identifier;
 import net.daporkchop.lib.minecraft.util.world.AbstractDirtiable;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
@@ -124,9 +124,9 @@ public abstract class TileEntityBase extends AbstractDirtiable implements TileEn
     }
 
     /**
-     * Checks whether the given text-encoded {@link ResourceLocation} indicates NBT data that can be loaded by this {@link TileEntity} implementation.
+     * Checks whether the given text-encoded {@link Identifier} indicates NBT data that can be loaded by this {@link TileEntity} implementation.
      *
-     * @param id a {@link ResourceLocation} in text representation
+     * @param id a {@link Identifier} in text representation
      * @return whether the given resource location indicates valid NBT for this implementation
      */
     protected boolean isValidId(@NonNull String id) {

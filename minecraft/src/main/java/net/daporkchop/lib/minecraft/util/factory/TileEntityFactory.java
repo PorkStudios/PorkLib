@@ -21,7 +21,7 @@
 package net.daporkchop.lib.minecraft.util.factory;
 
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.registry.ResourceLocation;
+import net.daporkchop.lib.minecraft.registry.Identifier;
 import net.daporkchop.lib.minecraft.tileentity.TileEntity;
 
 /**
@@ -37,5 +37,5 @@ public interface TileEntityFactory {
      * @param id the {@link TileEntity}'s ID
      * @return a new {@link TileEntity} instance
      */
-    TileEntity create(@NonNull ResourceLocation id);
+    TileEntity create(@NonNull Identifier id);
 }

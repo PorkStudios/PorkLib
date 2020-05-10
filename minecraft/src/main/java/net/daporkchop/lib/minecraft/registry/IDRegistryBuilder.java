@@ -42,12 +42,12 @@ import java.util.function.Consumer;
 public class IDRegistryBuilder {
     @Getter
     @Setter
-    protected ResourceLocation name = null;
+    protected Identifier name = null;
 
-    protected ArrayList<ResourceLocation> list = new ArrayList<>();
+    protected ArrayList<Identifier> list = new ArrayList<>();
 
     /**
-     * Whether or not the output registry should also create an indexed map of {@link ResourceLocation}s to IDs for fast reverse ID lookups.
+     * Whether or not the output registry should also create an indexed map of {@link Identifier}s to IDs for fast reverse ID lookups.
      * <p>
      * This will more than double memory consumption of the created {@link IDRegistry} instance, so it is recommended to only enable this if you
      * know you'll be needing it.
@@ -57,15 +57,15 @@ public class IDRegistryBuilder {
     protected boolean map = true;
 
     /**
-     * Registers a {@link ResourceLocation} with the given ID.
+     * Registers a {@link Identifier} with the given ID.
      *
-     * @param location the {@link ResourceLocation} to register
-     * @param id       the new ID of the {@link ResourceLocation}
+     * @param location the {@link Identifier} to register
+     * @param id       the new ID of the {@link Identifier}
      * @return this {@link IDRegistryBuilder} instance
      * @throws IllegalArgumentException if the given ID is less than 0
-     * @throws IllegalArgumentException if an identical {@link ResourceLocation} is already registered with a different ID
+     * @throws IllegalArgumentException if an identical {@link Identifier} is already registered with a different ID
      */
-    public synchronized IDRegistryBuilder register(@NonNull ResourceLocation location, int id) {
+    public synchronized IDRegistryBuilder register(@NonNull Identifier location, int id) {
         if (id < 0) {
             throw new IllegalArgumentException("ID may not be less than 0!");
         }
@@ -75,7 +75,7 @@ public class IDRegistryBuilder {
                 if (i == id) {
                     continue;
                 }
-                ResourceLocation other = this.list.get(i);
+                Identifier other = this.list.get(i);
                 if (other != null && other.hashCode() == hashCode && other.equals(location)) {
                     throw new IllegalArgumentException(String.format("Resource location \"%s\" is already registered with ID %d!", location, i));
                 }
@@ -90,7 +90,7 @@ public class IDRegistryBuilder {
     }
 
     /**
-     * Registers all {@link ResourceLocation}s in the given {@link IDRegistry} with their existing ID.
+     * Registers all {@link Identifier}s in the given {@link IDRegistry} with their existing ID.
      *
      * @param registry the registry to copy from
      * @return this {@link IDRegistryBuilder} instance
@@ -101,7 +101,7 @@ public class IDRegistryBuilder {
     }
 
     /**
-     * Registers all {@link ResourceLocation}s in the given {@link IDRegistryBuilder} with their existing ID.
+     * Registers all {@link Identifier}s in the given {@link IDRegistryBuilder} with their existing ID.
      *
      * @param builder the builder to copy from
      * @return this {@link IDRegistryBuilder} instance
@@ -112,25 +112,25 @@ public class IDRegistryBuilder {
     }
 
     /**
-     * Registers all {@link ResourceLocation}s in the given {@link Map} with their existing ID.
+     * Registers all {@link Identifier}s in the given {@link Map} with their existing ID.
      *
      * @param map the map to copy from
      * @return this {@link IDRegistryBuilder} instance
      */
-    public synchronized IDRegistryBuilder registerAll(@NonNull Map<ResourceLocation, Integer> map) {
+    public synchronized IDRegistryBuilder registerAll(@NonNull Map<Identifier, Integer> map) {
         map.forEach(this::register);
         return this;
     }
 
     /**
-     * Runs the given callback function for every {@link ResourceLocation} in this builder.
+     * Runs the given callback function for every {@link Identifier} in this builder.
      *
      * @param callback the callback function to run
      * @return this {@link IDRegistryBuilder} instance
      */
-    public synchronized IDRegistryBuilder forEach(@NonNull Consumer<ResourceLocation> callback) {
+    public synchronized IDRegistryBuilder forEach(@NonNull Consumer<Identifier> callback) {
         for (int i = 0, size = this.list.size(); i < size; i++) {
-            ResourceLocation location = this.list.get(i);
+            Identifier location = this.list.get(i);
             if (location != null) {
                 callback.accept(location);
             }
@@ -139,14 +139,14 @@ public class IDRegistryBuilder {
     }
 
     /**
-     * Runs the given callback function for every {@link ResourceLocation} and ID in this builder.
+     * Runs the given callback function for every {@link Identifier} and ID in this builder.
      *
      * @param callback the callback function to run
      * @return this {@link IDRegistryBuilder} instance
      */
-    public synchronized IDRegistryBuilder forEach(@NonNull ObjIntConsumer<ResourceLocation> callback) {
+    public synchronized IDRegistryBuilder forEach(@NonNull ObjIntConsumer<Identifier> callback) {
         for (int i = 0, size = this.list.size(); i < size; i++) {
-            ResourceLocation location = this.list.get(i);
+            Identifier location = this.list.get(i);
             if (location != null) {
                 callback.accept(location, i);
             }
@@ -155,7 +155,7 @@ public class IDRegistryBuilder {
     }
 
     /**
-     * Clears this {@link IDRegistryBuilder}, removing all {@link ResourceLocation} to ID mappings.
+     * Clears this {@link IDRegistryBuilder}, removing all {@link Identifier} to ID mappings.
      * <p>
      * After calling this method, this {@link IDRegistryBuilder} instance may be re-used to make another registry.
      *
@@ -172,7 +172,7 @@ public class IDRegistryBuilder {
      * @return a new {@link IDRegistry} with this builder's contents
      */
     public synchronized IDRegistry build() {
-        ResourceLocation[] arr = this.list.toArray(new ResourceLocation[this.list.size()]);
+        Identifier[] arr = this.list.toArray(new Identifier[this.list.size()]);
         return this.map ? new MappedIDRegistryImpl(arr, this.name) : new IDRegistryImpl(arr, this.name);
     }
 }

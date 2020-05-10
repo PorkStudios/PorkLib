@@ -23,7 +23,7 @@ package net.daporkchop.lib.minecraft.tileentity.impl;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.minecraft.registry.ResourceLocation;
+import net.daporkchop.lib.minecraft.registry.Identifier;
 import net.daporkchop.lib.minecraft.tileentity.TileEntityBase;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
@@ -35,13 +35,13 @@ import net.daporkchop.lib.nbt.tag.CompoundTag;
 @Getter
 @Accessors(fluent = true)
 public final class UnknownTileEntity extends TileEntityBase {
-    protected ResourceLocation id;
+    protected Identifier id;
     protected CompoundTag data;
 
     @Override
     protected void doInit(@NonNull CompoundTag nbt) {
         this.data = nbt; //TODO: some way to make immutable tags? i should probably rewrite NBT lib to use interfaces for each tag type
-        this.id = new ResourceLocation(nbt.getString("id"));
+        this.id = new Identifier(nbt.getString("id"));
     }
 
     @Override

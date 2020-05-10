@@ -26,7 +26,7 @@ import net.daporkchop.lib.primitive.lambda.consumer.ObjIntConsumer;
 import java.util.function.Consumer;
 
 /**
- * A simple registry of numeric IDs to {@link ResourceLocation}s.
+ * A simple registry of numeric IDs to {@link Identifier}s.
  *
  * @author DaPorkchop_
  */
@@ -41,7 +41,7 @@ public interface IDRegistry {
     /**
      * @return the name of this registry. May be {@code null}
      */
-    ResourceLocation name();
+    Identifier name();
 
     /**
      * @return the number of IDs in this registry
@@ -49,32 +49,32 @@ public interface IDRegistry {
     int size();
 
     /**
-     * Runs the given callback function for every {@link ResourceLocation} in this registry.
+     * Runs the given callback function for every {@link Identifier} in this registry.
      *
      * @param callback the callback function
      */
-    void forEach(@NonNull Consumer<ResourceLocation> callback);
+    void forEach(@NonNull Consumer<Identifier> callback);
 
     /**
-     * Runs the given callback function for every {@link ResourceLocation} and ID in this registry.
+     * Runs the given callback function for every {@link Identifier} and ID in this registry.
      *
      * @param callback the callback function
      */
-    void forEach(@NonNull ObjIntConsumer<ResourceLocation> callback);
+    void forEach(@NonNull ObjIntConsumer<Identifier> callback);
 
     /**
-     * Finds the {@link ResourceLocation} with the given ID in this registry.
+     * Finds the {@link Identifier} with the given ID in this registry.
      *
-     * @param id the ID of the {@link ResourceLocation} to get
-     * @return the {@link ResourceLocation} with the given ID, or {@code null} if none could be found
+     * @param id the ID of the {@link Identifier} to get
+     * @return the {@link Identifier} with the given ID, or {@code null} if none could be found
      */
-    ResourceLocation lookup(int id);
+    Identifier lookup(int id);
 
     /**
-     * Finds the ID of the given {@link ResourceLocation} in this registry.
+     * Finds the ID of the given {@link Identifier} in this registry.
      *
-     * @param name the {@link ResourceLocation} to get the ID for
-     * @return the ID of the given {@link ResourceLocation}, or {@code -1} if none could be found
+     * @param name the {@link Identifier} to get the ID for
+     * @return the ID of the given {@link Identifier}, or {@code -1} if none could be found
      */
-    int lookup(@NonNull ResourceLocation name);
+    int lookup(@NonNull Identifier name);
 }

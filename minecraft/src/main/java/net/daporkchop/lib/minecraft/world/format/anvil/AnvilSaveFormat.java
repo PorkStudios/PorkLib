@@ -25,7 +25,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.minecraft.registry.IDRegistry;
 import net.daporkchop.lib.minecraft.registry.IDRegistryBuilder;
-import net.daporkchop.lib.minecraft.registry.ResourceLocation;
+import net.daporkchop.lib.minecraft.registry.Identifier;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.MinecraftSave;
 import net.daporkchop.lib.minecraft.world.World;
@@ -33,7 +33,6 @@ import net.daporkchop.lib.minecraft.world.format.SaveFormat;
 import net.daporkchop.lib.minecraft.world.format.WorldManager;
 import net.daporkchop.lib.nbt.NBTFormat;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
-import net.daporkchop.lib.nbt.tag.ListTag;
 import net.daporkchop.lib.primitive.lambda.consumer.IntObjConsumer;
 
 import java.io.File;
@@ -117,7 +116,7 @@ public class AnvilSaveFormat implements SaveFormat {
 
     @Override
     @SuppressWarnings("unchecked")
-    public void loadRegistries(@NonNull BiConsumer<ResourceLocation, IDRegistry> callback) {
+    public void loadRegistries(@NonNull BiConsumer<Identifier, IDRegistry> callback) {
         CompoundTag fmlTag = this.levelDat.getCompound("FML", null);
         if (fmlTag == null) {
             //TODO
@@ -125,10 +124,10 @@ public class AnvilSaveFormat implements SaveFormat {
         } else {
             IDRegistryBuilder builder = IDRegistry.builder();
             fmlTag.getCompound("Registries").<CompoundTag>forEach((key, tag) -> {
-                ResourceLocation registryName = new ResourceLocation(key);
+                Identifier registryName = new Identifier(key);
                 builder.clear().name(registryName);
                 for (CompoundTag subTag : tag.getList("ids", CompoundTag.class).list()) {
-                    builder.register(new ResourceLocation(subTag.getString("K")), subTag.getInt("V", -1));
+                    builder.register(new Identifier(subTag.getString("K")), subTag.getInt("V", -1));
                 }
                 callback.accept(registryName, builder.build());
             });

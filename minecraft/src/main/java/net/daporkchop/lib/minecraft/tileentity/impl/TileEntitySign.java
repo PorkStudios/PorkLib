@@ -22,13 +22,10 @@ package net.daporkchop.lib.minecraft.tileentity.impl;
 
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.minecraft.registry.ResourceLocation;
+import net.daporkchop.lib.minecraft.registry.Identifier;
 import net.daporkchop.lib.minecraft.tileentity.TileEntityBase;
-import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
-import net.daporkchop.lib.nbt.tag.StringTag;
 
 /**
  * Implementation of a {@code minecraft:sign} tile entity.
@@ -38,7 +35,7 @@ import net.daporkchop.lib.nbt.tag.StringTag;
 @Getter
 @Accessors(fluent = true)
 public final class TileEntitySign extends TileEntityBase {
-    public static final ResourceLocation ID = new ResourceLocation("minecraft:sign");
+    public static final Identifier ID = new Identifier("minecraft:sign");
 
     private String line1;
     private String line2;
@@ -67,7 +64,7 @@ public final class TileEntitySign extends TileEntityBase {
     }
 
     @Override
-    public ResourceLocation id() {
+    public Identifier id() {
         return ID;
     }
 

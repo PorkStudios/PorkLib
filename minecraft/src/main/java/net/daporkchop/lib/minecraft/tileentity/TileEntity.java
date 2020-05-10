@@ -22,7 +22,7 @@ package net.daporkchop.lib.minecraft.tileentity;
 
 import net.daporkchop.lib.math.vector.i.IntVector3;
 import net.daporkchop.lib.math.vector.i.Vec3i;
-import net.daporkchop.lib.minecraft.registry.ResourceLocation;
+import net.daporkchop.lib.minecraft.registry.Identifier;
 import net.daporkchop.lib.minecraft.util.world.WorldMemberPersistent;
 
 /**
@@ -37,7 +37,7 @@ public interface TileEntity extends WorldMemberPersistent, IntVector3.Addressabl
     /**
      * @return this tile entity's ID
      */
-    ResourceLocation id();
+    Identifier id();
 
     /**
      * @return this tile entity's current position

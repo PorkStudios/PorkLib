@@ -37,7 +37,7 @@ import net.daporkchop.lib.compression.context.PInflater;
 import net.daporkchop.lib.compression.zlib.Zlib;
 import net.daporkchop.lib.compression.zlib.ZlibMode;
 import net.daporkchop.lib.math.vector.i.Vec2i;
-import net.daporkchop.lib.minecraft.registry.ResourceLocation;
+import net.daporkchop.lib.minecraft.registry.Identifier;
 import net.daporkchop.lib.minecraft.tileentity.TileEntity;
 import net.daporkchop.lib.minecraft.util.SectionLayer;
 import net.daporkchop.lib.minecraft.world.Chunk;
@@ -51,7 +51,6 @@ import net.daporkchop.lib.minecraft.world.impl.section.HeapSectionImpl;
 import net.daporkchop.lib.minecraft.world.impl.vanilla.VanillaChunkImpl;
 import net.daporkchop.lib.nbt.NBTFormat;
 import net.daporkchop.lib.nbt.NBTOptions;
-import net.daporkchop.lib.nbt.tag.ByteArrayTag;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 import net.daporkchop.lib.nbt.tag.IntArrayTag;
 import net.daporkchop.lib.nbt.tag.ListTag;
@@ -203,7 +202,7 @@ public class AnvilWorldManager implements WorldManager {
                 ListTag<CompoundTag> sectionsTag = rootTag.getList("TileEntities", CompoundTag.class);
                 sectionsTag.list().stream()
                         .map(tag -> {
-                            TileEntity tileEntity = this.world.getSave().config().tileEntityFactory().create(new ResourceLocation(tag.getString("id")));
+                            TileEntity tileEntity = this.world.getSave().config().tileEntityFactory().create(new Identifier(tag.getString("id")));
                             tileEntity.init(this.world, tag);
                             return tileEntity;
                         })

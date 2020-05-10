@@ -22,12 +22,11 @@ package net.daporkchop.lib.minecraft.world;
 
 import lombok.NonNull;
 import net.daporkchop.lib.minecraft.registry.IDRegistry;
-import net.daporkchop.lib.minecraft.registry.ResourceLocation;
+import net.daporkchop.lib.minecraft.registry.Identifier;
 import net.daporkchop.lib.minecraft.world.format.SaveFormat;
 import net.daporkchop.lib.minecraft.world.impl.MinecraftSaveConfig;
 import net.daporkchop.lib.primitive.map.IntObjMap;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.Map;
 
@@ -39,9 +38,9 @@ public interface MinecraftSave extends AutoCloseable {
 
     MinecraftSaveConfig config();
 
-    Map<ResourceLocation, IDRegistry> registries();
+    Map<Identifier, IDRegistry> registries();
 
-    default IDRegistry registry(@NonNull ResourceLocation name) {
+    default IDRegistry registry(@NonNull Identifier name) {
         return this.registries().get(name);
     }
 

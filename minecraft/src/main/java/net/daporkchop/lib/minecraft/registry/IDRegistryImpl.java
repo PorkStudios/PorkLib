@@ -23,7 +23,6 @@ package net.daporkchop.lib.minecraft.registry;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.primitive.lambda.consumer.ObjIntConsumer;
 
@@ -40,12 +39,12 @@ import java.util.function.Consumer;
 @Accessors(fluent = true)
 public class IDRegistryImpl implements IDRegistry {
     @Getter(AccessLevel.NONE)
-    protected final ResourceLocation[] contents;
-    protected final ResourceLocation name;
+    protected final Identifier[] contents;
+    protected final Identifier name;
 
     protected final int size;
 
-    public IDRegistryImpl(@NonNull ResourceLocation[] contents, ResourceLocation name)  {
+    public IDRegistryImpl(@NonNull Identifier[] contents, Identifier name)  {
         this.contents = contents;
         this.name = name;
 
@@ -53,9 +52,9 @@ public class IDRegistryImpl implements IDRegistry {
     }
 
     @Override
-    public void forEach(@NonNull Consumer<ResourceLocation> callback) {
+    public void forEach(@NonNull Consumer<Identifier> callback) {
         for (int i = 0, size = this.size; i < size; i++)  {
-            ResourceLocation location = this.contents[i];
+            Identifier location = this.contents[i];
             if (location != null)   {
                 callback.accept(location);
             }
@@ -63,9 +62,9 @@ public class IDRegistryImpl implements IDRegistry {
     }
 
     @Override
-    public void forEach(@NonNull ObjIntConsumer<ResourceLocation> callback) {
+    public void forEach(@NonNull ObjIntConsumer<Identifier> callback) {
         for (int i = 0, size = this.size; i < size; i++)  {
-            ResourceLocation location = this.contents[i];
+            Identifier location = this.contents[i];
             if (location != null)   {
                 callback.accept(location, i);
             }
@@ -73,15 +72,15 @@ public class IDRegistryImpl implements IDRegistry {
     }
 
     @Override
-    public ResourceLocation lookup(int id) {
+    public Identifier lookup(int id) {
         return id >= 0 && id < this.size ? this.contents[id] : null;
     }
 
     @Override
-    public int lookup(@NonNull ResourceLocation name) {
+    public int lookup(@NonNull Identifier name) {
         int hashCode = name.hashCode();
         for (int i = 0, size = this.size; i < size; i++)  {
-            ResourceLocation location = this.contents[i];
+            Identifier location = this.contents[i];
             if (location != null && location.hashCode() == hashCode && location.equals(name))   {
                 return i;
             }

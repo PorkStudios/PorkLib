@@ -127,7 +127,7 @@ public final class CompoundTag extends Tag<CompoundTag> {
         this.map.clear();
     }
 
-    public boolean contains(@NonNull String name)    {
+    public boolean contains(@NonNull String name) {
         return this.map.containsKey(name);
     }
 
@@ -326,6 +326,19 @@ public final class CompoundTag extends Tag<CompoundTag> {
         } else {
             return fallback;
         }
+    }
+
+    public <T extends Tag<T>> ListTag<T> getListUnchecked(@NonNull String name) {
+        @SuppressWarnings("unchecked")
+        ListTag<T> tag = (ListTag<T>) this.map.get(name);
+        checkArg(tag != null, "No tag with name \"%s\" found!", name);
+        return tag;
+    }
+
+    public <T extends Tag<T>> ListTag<T> getListUnchecked(@NonNull String name, ListTag<T> fallback) {
+        @SuppressWarnings("unchecked")
+        ListTag<T> tag = (ListTag<T>) this.map.get(name);
+        return tag != null ? tag : fallback;
     }
 
     public CompoundTag getCompound(@NonNull String name) {

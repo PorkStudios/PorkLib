@@ -23,9 +23,8 @@ package net.daporkchop.lib.minecraft.world.impl;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.minecraft.registry.IDRegistry;
-import net.daporkchop.lib.minecraft.registry.ResourceLocation;
+import net.daporkchop.lib.minecraft.registry.Identifier;
 import net.daporkchop.lib.minecraft.world.MinecraftSave;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.format.SaveFormat;
@@ -45,7 +44,7 @@ import java.util.Map;
 public class MinecraftSaveImpl implements MinecraftSave {
     private final SaveFormat          saveFormat;
     private final MinecraftSaveConfig config;
-    private final Map<ResourceLocation, IDRegistry> registries = new Hashtable<>();
+    private final Map<Identifier, IDRegistry> registries = new Hashtable<>();
     private final IntObjMap<World>                  worlds     = new IntObjOpenNodeHashMap<>();
 
     public MinecraftSaveImpl(@NonNull SaveBuilder builder) {

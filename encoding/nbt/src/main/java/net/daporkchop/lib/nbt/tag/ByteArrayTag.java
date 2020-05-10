@@ -37,7 +37,7 @@ import java.util.Arrays;
  */
 @Getter
 @Accessors(fluent = true)
-public final class ByteArrayTag extends Tag<ByteArrayTag> {
+public final class ByteArrayTag extends RefCountedTag<ByteArrayTag> {
     protected final byte[] value;
     protected final ArrayHandle<byte[]> handle;
     protected final int length;

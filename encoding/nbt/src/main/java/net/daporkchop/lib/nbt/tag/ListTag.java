@@ -25,6 +25,7 @@ import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.common.misc.refcount.RefCounted;
 import net.daporkchop.lib.common.misc.string.PStrings;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.nbt.NBTOptions;
@@ -45,7 +46,7 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
  */
 //TODO: this really needs some convenience methods
 @Accessors(fluent = true)
-public final class ListTag<T extends Tag<T>> extends Tag<ListTag<T>> implements Iterable<T> {
+public final class ListTag<T extends Tag<T>> extends RefCountedTag<ListTag<T>> implements Iterable<T> {
     @Getter
     protected final List<T> list;
     @Getter
@@ -123,6 +124,16 @@ public final class ListTag<T extends Tag<T>> extends Tag<ListTag<T>> implements 
         }
         PStrings.appendMany(builder, ' ', depth << 1);
         builder.append("]\n");
+    }
+
+    @Override
+    protected void doRelease() {
+        this.list.forEach(value -> {
+            if (value instanceof RefCounted)    {
+                ((RefCounted) value).release();
+            }
+        });
+        this.list.clear();
     }
 
     @Override

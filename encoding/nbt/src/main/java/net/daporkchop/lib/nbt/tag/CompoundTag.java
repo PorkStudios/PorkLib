@@ -25,6 +25,7 @@ import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.common.misc.refcount.RefCounted;
 import net.daporkchop.lib.common.misc.string.PStrings;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.nbt.NBTOptions;
@@ -43,7 +44,7 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
  * @author DaPorkchop_
  */
 @Accessors(fluent = true)
-public final class CompoundTag extends Tag<CompoundTag> {
+public final class CompoundTag extends RefCountedTag<CompoundTag> {
     protected final Map<String, Tag> map = new LinkedHashMap<>();
     @Getter
     protected final String name;
@@ -123,7 +124,11 @@ public final class CompoundTag extends Tag<CompoundTag> {
 
     @Override
     protected void doRelease() {
-        this.map.forEach((key, value) -> value.release());
+        this.map.forEach((key, value) -> {
+            if (value instanceof RefCounted) {
+                ((RefCounted) value).release();
+            }
+        });
         this.map.clear();
     }
 

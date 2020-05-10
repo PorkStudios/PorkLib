@@ -36,7 +36,7 @@ import java.util.Arrays;
  */
 @Getter
 @Accessors(fluent = true)
-public final class IntArrayTag extends Tag {
+public final class IntArrayTag extends RefCountedTag<IntArrayTag> {
     protected final int[] value;
     protected final ArrayHandle<int[]> handle;
     protected final int length;

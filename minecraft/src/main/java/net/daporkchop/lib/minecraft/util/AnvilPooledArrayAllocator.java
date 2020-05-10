@@ -18,7 +18,7 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.world.format.anvil;
+package net.daporkchop.lib.minecraft.util;
 
 import lombok.AccessLevel;
 import lombok.Getter;

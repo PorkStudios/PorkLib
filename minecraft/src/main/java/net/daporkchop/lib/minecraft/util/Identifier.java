@@ -18,7 +18,7 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.registry;
+package net.daporkchop.lib.minecraft.util;
 
 import lombok.Getter;
 import lombok.NonNull;

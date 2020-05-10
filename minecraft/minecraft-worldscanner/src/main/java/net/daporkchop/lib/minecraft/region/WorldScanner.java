@@ -21,35 +21,14 @@
 package net.daporkchop.lib.minecraft.region;
 
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.math.vector.i.Vec2i;
-import net.daporkchop.lib.math.vector.i.Vec3i;
-import net.daporkchop.lib.minecraft.region.util.ChunkProcessor;
-import net.daporkchop.lib.minecraft.region.util.NeighboringChunkProcessor;
-import net.daporkchop.lib.minecraft.tileentity.TileEntity;
-import net.daporkchop.lib.minecraft.world.Chunk;
-import net.daporkchop.lib.minecraft.world.MinecraftSave;
-import net.daporkchop.lib.minecraft.world.World;
-import net.daporkchop.lib.minecraft.world.format.WorldManager;
-import net.daporkchop.lib.minecraft.world.format.anvil.AnvilWorldManager;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
 public class WorldScanner {
-    @NonNull
+    /*@NonNull
     private final World world;
 
     private final Collection<ChunkProcessor>            processors            = new ArrayList<>();
@@ -228,5 +207,5 @@ public class WorldScanner {
         public int maxZ() {
             return (this.offsetZ + 33) << 4;
         }
-    }
+    }*/
 }

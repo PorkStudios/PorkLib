@@ -18,33 +18,39 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.world.format;
+package net.daporkchop.lib.minecraft.registry;
 
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.registry.IDRegistry;
-import net.daporkchop.lib.minecraft.registry.Identifier;
-import net.daporkchop.lib.minecraft.world.Chunk;
-import net.daporkchop.lib.minecraft.world.MinecraftSave;
-import net.daporkchop.lib.minecraft.world.World;
-import net.daporkchop.lib.primitive.lambda.consumer.IntObjConsumer;
-
-import java.io.IOException;
-import java.util.function.BiConsumer;
+import net.daporkchop.lib.minecraft.util.Identifier;
 
 /**
+ * {@link Registry} implementation for blocks.
+ *
  * @author DaPorkchop_
  */
-public interface SaveFormat extends AutoCloseable {
-    void init(@NonNull MinecraftSave save) throws IOException;
+public final class BlockRegistry extends AbstractRegistry {
+    public static Builder builder() {
+        return new Builder();
+    }
 
-    void loadWorlds(@NonNull IntObjConsumer<WorldManager> callback);
+    private BlockRegistry(@NonNull AbstractRegistry.Builder builder) {
+        super(builder);
+    }
 
-    void closeWorld(@NonNull World world) throws IOException;
+    public static final class Builder extends AbstractRegistry.Builder {
+        private Builder() {
+            super(Identifier.fromString("minecraft:blocks"));
+        }
 
-    void loadRegistries(@NonNull BiConsumer<Identifier, IDRegistry> callback);
+        @Override
+        public Builder register(@NonNull Identifier identifier, int id) {
+            super.register(identifier, id);
+            return this;
+        }
 
-    Chunk createColumnInstance(int x, int z);
-
-    @Override
-    void close() throws IOException;
+        @Override
+        public BlockRegistry build() {
+            return new BlockRegistry(this);
+        }
+    }
 }

@@ -206,4 +206,15 @@ public class PMath {
     public static int lerpI(int a, int b, double t) {
         return floorI(a + (b - a) * t);
     }
+
+    public static long mix64(long z) {
+        z = (z ^ (z >>> 33L)) * 0xFF51AFD7ED558CCDL;
+        z = (z ^ (z >>> 33L)) * 0xC4CEB9FE1A85EC53L;
+        return z ^ (z >>> 33L);
+    }
+
+    public static int mix32(long z) {
+        z = (z ^ (z >>> 33L)) * 0xFF51AFD7ED558CCDL;
+        return (int) (((z ^ (z >>> 33L)) * 0xC4CEB9FE1A85EC53L) >>> 32L);
+    }
 }

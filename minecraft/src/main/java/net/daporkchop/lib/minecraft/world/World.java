@@ -82,7 +82,10 @@ public interface World extends RefCounted {
      * @param load whether or not to load the {@link Chunk} if it wasn't loaded already
      * @return the {@link Chunk} at the given coordinates
      */
-    Chunk chunk(int x, int z, boolean load);
+    default Chunk chunk(int x, int z, boolean load) {
+        Chunk chunk = this.chunk(x, z);
+        return chunk == null && load ? this.loadChunk(x, z).join() : chunk;
+    }
 
     /**
      * Gets or loads the {@link Chunk} at the given coordinates.

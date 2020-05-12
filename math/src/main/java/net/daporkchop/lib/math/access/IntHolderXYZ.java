@@ -18,19 +18,17 @@
  *
  */
 
-package net.daporkchop.lib.math.vector.i;
+package net.daporkchop.lib.math.access;
 
-//TODO: refactor all the vector stuff
-public interface IntVector2 {
-    int getX();
+/**
+ * A type with {@code int} X, Y and Z coordinates.
+ *
+ * @author DaPorkchop_
+ */
+public interface IntHolderXYZ {
+    int x();
 
-    int getY();
+    int y();
 
-    IntVector2 add(int x, int y);
-
-    IntVector2 subtract(int x, int y);
-
-    IntVector2 multiply(int x, int y);
-
-    IntVector2 divide(int x, int y);
+    int z();
 }

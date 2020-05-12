@@ -18,19 +18,33 @@
  *
  */
 
-package net.daporkchop.lib.math.vector.i;
+package net.daporkchop.lib.minecraft.world;
 
-//TODO: refactor all the vector stuff
-public interface IntVector2 {
-    int getX();
+import net.daporkchop.lib.common.misc.refcount.RefCounted;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
-    int getY();
+/**
+ * Representation of a Minecraft chunk section, consisting of a 16³ volume of blocks, along with light levels for block and (optionally) sky light.
+ *
+ * @author DaPorkchop_
+ */
+public interface Section extends RefCounted {
+    /**
+     * @return the {@link Chunk} that loaded this section
+     */
+    Chunk parent();
 
-    IntVector2 add(int x, int y);
+    /**
+     * @return this section's Y coordinate
+     */
+    int y();
 
-    IntVector2 subtract(int x, int y);
+    @Override
+    int refCnt();
 
-    IntVector2 multiply(int x, int y);
+    @Override
+    Section retain() throws AlreadyReleasedException;
 
-    IntVector2 divide(int x, int y);
+    @Override
+    boolean release() throws AlreadyReleasedException;
 }

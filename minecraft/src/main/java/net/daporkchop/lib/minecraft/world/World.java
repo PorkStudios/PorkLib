@@ -18,39 +18,10 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.registry;
-
-import lombok.NonNull;
-import net.daporkchop.lib.minecraft.util.Identifier;
+package net.daporkchop.lib.minecraft.world;
 
 /**
- * {@link Registry} implementation for blocks.
- *
  * @author DaPorkchop_
  */
-public class BlockRegistry extends AbstractRegistry {
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    protected BlockRegistry(@NonNull AbstractRegistry.Builder builder) {
-        super(builder);
-    }
-
-    public static class Builder extends AbstractRegistry.Builder {
-        protected Builder() {
-            super(Identifier.fromString("minecraft:blocks"));
-        }
-
-        @Override
-        public Builder register(@NonNull Identifier identifier, int id) {
-            super.register(identifier, id);
-            return this;
-        }
-
-        @Override
-        public BlockRegistry build() {
-            return new BlockRegistry(this);
-        }
-    }
+public interface World {
 }

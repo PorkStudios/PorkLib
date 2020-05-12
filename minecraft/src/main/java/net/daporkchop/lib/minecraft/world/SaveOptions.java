@@ -18,39 +18,28 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.registry;
+package net.daporkchop.lib.minecraft.world;
 
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.util.Identifier;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.minecraft.util.SaveAccess;
 
 /**
- * {@link Registry} implementation for blocks.
+ * Options used when opening a {@link Save}.
  *
  * @author DaPorkchop_
  */
-public class BlockRegistry extends AbstractRegistry {
-    public static Builder builder() {
-        return new Builder();
-    }
+@Getter
+@Setter
+@Accessors(fluent = true, chain = true)
+public class SaveOptions implements Cloneable {
+    @NonNull
+    protected SaveAccess access = SaveAccess.READ_WRITE;
 
-    protected BlockRegistry(@NonNull AbstractRegistry.Builder builder) {
-        super(builder);
-    }
-
-    public static class Builder extends AbstractRegistry.Builder {
-        protected Builder() {
-            super(Identifier.fromString("minecraft:blocks"));
-        }
-
-        @Override
-        public Builder register(@NonNull Identifier identifier, int id) {
-            super.register(identifier, id);
-            return this;
-        }
-
-        @Override
-        public BlockRegistry build() {
-            return new BlockRegistry(this);
-        }
+    @Override
+    public SaveOptions clone() {
+        return new SaveOptions().access(this.access);
     }
 }

@@ -18,39 +18,14 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.registry;
+package net.daporkchop.lib.minecraft.world;
 
-import lombok.NonNull;
-import net.daporkchop.lib.minecraft.util.Identifier;
+import net.daporkchop.lib.common.misc.refcount.RefCounted;
 
 /**
- * {@link Registry} implementation for blocks.
+ * Representation of a Minecraft save, consisting of one or more {@link World}s for each dimension.
  *
  * @author DaPorkchop_
  */
-public class BlockRegistry extends AbstractRegistry {
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    protected BlockRegistry(@NonNull AbstractRegistry.Builder builder) {
-        super(builder);
-    }
-
-    public static class Builder extends AbstractRegistry.Builder {
-        protected Builder() {
-            super(Identifier.fromString("minecraft:blocks"));
-        }
-
-        @Override
-        public Builder register(@NonNull Identifier identifier, int id) {
-            super.register(identifier, id);
-            return this;
-        }
-
-        @Override
-        public BlockRegistry build() {
-            return new BlockRegistry(this);
-        }
-    }
+public interface Save extends RefCounted {
 }

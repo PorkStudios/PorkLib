@@ -18,39 +18,27 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.registry;
-
-import lombok.NonNull;
-import net.daporkchop.lib.minecraft.util.Identifier;
+package net.daporkchop.lib.minecraft.util;
 
 /**
- * {@link Registry} implementation for blocks.
+ * The different write access levels that can be used for opening a {@link net.daporkchop.lib.minecraft.world.Save}.
  *
  * @author DaPorkchop_
  */
-public class BlockRegistry extends AbstractRegistry {
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    protected BlockRegistry(@NonNull AbstractRegistry.Builder builder) {
-        super(builder);
-    }
-
-    public static class Builder extends AbstractRegistry.Builder {
-        protected Builder() {
-            super(Identifier.fromString("minecraft:blocks"));
-        }
-
-        @Override
-        public Builder register(@NonNull Identifier identifier, int id) {
-            super.register(identifier, id);
-            return this;
-        }
-
-        @Override
-        public BlockRegistry build() {
-            return new BlockRegistry(this);
-        }
-    }
+public enum SaveAccess {
+    /**
+     * All attempts to modify the contents of the world will be revoked.
+     * <p>
+     * Despite this, some {@link net.daporkchop.lib.minecraft.world.SaveFormat} implementations may choose to allow the world (blocks, entities, etc.) to
+     * be modified in memory, and simply throw an exception if requested to write to disk.
+     */
+    READ_ONLY,
+    /**
+     * Allows adding new columns/cubes to the world, but prevents modification of columns/cubes already in the save.
+     */
+    WRITE_NEW,
+    /**
+     * Grants full read/write access to the world.
+     */
+    READ_WRITE;
 }

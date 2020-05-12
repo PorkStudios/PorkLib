@@ -18,39 +18,38 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.registry;
+package net.daporkchop.lib.minecraft.world;
 
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.util.Identifier;
+
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.Optional;
 
 /**
- * {@link Registry} implementation for blocks.
+ * Implementation of a save format for opening {@link Save}s.
  *
  * @author DaPorkchop_
  */
-public class BlockRegistry extends AbstractRegistry {
-    public static Builder builder() {
-        return new Builder();
+public interface SaveFormat {
+    /**
+     * Open the {@link Save} at the given path.
+     *
+     * @param root    a {@link Path} indicating the root directory
+     * @param options the {@link SaveOptions} to be used for opening the given save
+     * @return the opened {@link Save}
+     * @throws IllegalArgumentException if the save could not be opened
+     */
+    default Save open(@NonNull Path root, @NonNull SaveOptions options) throws IOException {
+        return this.tryOpen(root, options).orElseThrow(IllegalStateException::new);
     }
 
-    protected BlockRegistry(@NonNull AbstractRegistry.Builder builder) {
-        super(builder);
-    }
-
-    public static class Builder extends AbstractRegistry.Builder {
-        protected Builder() {
-            super(Identifier.fromString("minecraft:blocks"));
-        }
-
-        @Override
-        public Builder register(@NonNull Identifier identifier, int id) {
-            super.register(identifier, id);
-            return this;
-        }
-
-        @Override
-        public BlockRegistry build() {
-            return new BlockRegistry(this);
-        }
-    }
+    /**
+     * Attempts to open the {@link Save} at the given path.
+     *
+     * @param root    a {@link Path} indicating the root directory
+     * @param options the {@link SaveOptions} to be used for opening the given save
+     * @return the opened {@link Save}, or nothing if it could not be opened
+     */
+    Optional<Save> tryOpen(@NonNull Path root, @NonNull SaveOptions options) throws IOException;
 }

@@ -81,6 +81,13 @@ public interface PFuture<V> extends Future<V>, CompletionStage<V> {
         return new DefaultPFuture<>(this.executor());
     }
 
+    /**
+     * @see CompletableFuture#join()
+     */
+    default V join()    {
+        return this.syncUninterruptibly().getNow();
+    }
+
     //
     //
     //Future methods

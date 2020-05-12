@@ -20,8 +20,11 @@
 
 package net.daporkchop.lib.minecraft.util;
 
+import net.daporkchop.lib.minecraft.save.Save;
+import net.daporkchop.lib.minecraft.save.SaveFormat;
+
 /**
- * The different write access levels that can be used for opening a {@link net.daporkchop.lib.minecraft.world.Save}.
+ * The different write access levels that can be used for opening a {@link Save}.
  *
  * @author DaPorkchop_
  */
@@ -29,7 +32,7 @@ public enum SaveAccess {
     /**
      * All attempts to modify the contents of the world will be revoked.
      * <p>
-     * Despite this, some {@link net.daporkchop.lib.minecraft.world.SaveFormat} implementations may choose to allow the world (blocks, entities, etc.) to
+     * Despite this, some {@link SaveFormat} implementations may choose to allow the world (blocks, entities, etc.) to
      * be modified in memory, and simply throw an exception if requested to write to disk.
      */
     READ_ONLY,

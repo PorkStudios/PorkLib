@@ -18,16 +18,19 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.world;
+package net.daporkchop.lib.minecraft.save;
 
 import lombok.NonNull;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Optional;
+
+import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
- * Implementation of a save format for opening {@link Save}s.
+ * A save format for opening {@link Save}s.
+ * <p>
+ * All implementations are expected to be completely stateless.
  *
  * @author DaPorkchop_
  */
@@ -41,7 +44,9 @@ public interface SaveFormat {
      * @throws IllegalArgumentException if the save could not be opened
      */
     default Save open(@NonNull Path root, @NonNull SaveOptions options) throws IOException {
-        return this.tryOpen(root, options).orElseThrow(IllegalStateException::new);
+        Save save = this.tryOpen(root, options);
+        checkState(save != null, "Couldn't open save at \"%s\" (options: %s)", root, options);
+        return save;
     }
 
     /**
@@ -49,7 +54,7 @@ public interface SaveFormat {
      *
      * @param root    a {@link Path} indicating the root directory
      * @param options the {@link SaveOptions} to be used for opening the given save
-     * @return the opened {@link Save}, or nothing if it could not be opened
+     * @return the opened {@link Save}, or {@code null} if it could not be opened
      */
-    Optional<Save> tryOpen(@NonNull Path root, @NonNull SaveOptions options) throws IOException;
+    Save tryOpen(@NonNull Path root, @NonNull SaveOptions options) throws IOException;
 }

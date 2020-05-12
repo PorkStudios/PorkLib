@@ -76,6 +76,11 @@ public class CompletableFutureAsPFuture<V> implements PFuture<V> {
     }
 
     @Override
+    public V join() {
+        return this.delegate.join();
+    }
+
+    @Override
     public CompletableFuture<V> toCompletableFuture() {
         return this.delegate;
     }

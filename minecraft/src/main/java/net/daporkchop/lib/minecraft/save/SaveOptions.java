@@ -18,14 +18,28 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.world;
+package net.daporkchop.lib.minecraft.save;
 
-import net.daporkchop.lib.common.misc.refcount.RefCounted;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.minecraft.util.SaveAccess;
 
 /**
- * Representation of a Minecraft save, consisting of one or more {@link World}s for each dimension.
+ * Options used when opening a {@link Save}.
  *
  * @author DaPorkchop_
  */
-public interface Save extends RefCounted {
+@Getter
+@Setter
+@Accessors(fluent = true, chain = true)
+public class SaveOptions implements Cloneable {
+    @NonNull
+    protected SaveAccess access = SaveAccess.READ_WRITE;
+
+    @Override
+    public SaveOptions clone() {
+        return new SaveOptions().access(this.access);
+    }
 }

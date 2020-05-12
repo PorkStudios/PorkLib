@@ -20,26 +20,10 @@
 
 package net.daporkchop.lib.minecraft.world;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.minecraft.util.SaveAccess;
+import net.daporkchop.lib.common.misc.refcount.RefCounted;
 
 /**
- * Options used when opening a {@link Save}.
- *
  * @author DaPorkchop_
  */
-@Getter
-@Setter
-@Accessors(fluent = true, chain = true)
-public class SaveOptions implements Cloneable {
-    @NonNull
-    protected SaveAccess access = SaveAccess.READ_WRITE;
-
-    @Override
-    public SaveOptions clone() {
-        return new SaveOptions().access(this.access);
-    }
+public interface Chunk extends RefCounted {
 }

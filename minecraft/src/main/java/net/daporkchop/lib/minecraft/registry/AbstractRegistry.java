@@ -48,11 +48,15 @@ public abstract class AbstractRegistry implements Registry {
     @Getter
     protected final Identifier id;
 
-    public AbstractRegistry(@NonNull Builder builder) {
+    protected AbstractRegistry(@NonNull Builder builder, boolean toIds, boolean fromIds) {
         this.id = builder.id;
-        this.toIds = new IdentityHashMap<>(builder.toIds);
-        this.fromIds = new Identifier[builder.highestId];
-        this.toIds.forEach((identifier, id) -> this.fromIds[id] = identifier);
+        this.toIds = toIds ? new IdentityHashMap<>(builder.toIds) : null;
+        if (fromIds) {
+            this.fromIds = new Identifier[builder.highestId];
+            builder.toIds.forEach((identifier, id) -> this.fromIds[id] = identifier);
+        } else {
+            this.fromIds = null;
+        }
     }
 
     @Override

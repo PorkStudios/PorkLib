@@ -25,6 +25,7 @@ import net.daporkchop.lib.minecraft.util.Identifier;
 
 import java.util.Iterator;
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 import java.util.function.ObjIntConsumer;
 
 /**
@@ -61,15 +62,6 @@ public interface Registry extends Iterable<Identifier> {
     int get(@NonNull Identifier identifier);
 
     /**
-     * Gets the numeric ID mapped to the given {@link Identifier}.
-     *
-     * @param identifier the {@link Identifier} to get the numeric ID for
-     * @param fallback   the {@code int} to return if the given {@link Identifier} is not registered
-     * @return the numeric ID mapped to the given {@link Identifier}
-     */
-    int get(@NonNull Identifier identifier, int fallback);
-
-    /**
      * Checks whether or not this {@link Registry} contains the given numeric ID.
      *
      * @param id the numeric ID to check for
@@ -86,20 +78,13 @@ public interface Registry extends Iterable<Identifier> {
      */
     Identifier get(int id);
 
-    /**
-     * Gets the {@link Identifier} mapped to the given numeric ID.
-     *
-     * @param id       the numeric ID to get the {@link Identifier} for
-     * @param fallback the {@link Identifier} to return if the given numeric ID is not registered
-     * @return the {@link Identifier} mapped to the given numeric ID
-     */
-    Identifier get(int id, Identifier fallback);
-
     @Override
     Iterator<Identifier> iterator();
 
     @Override
     void forEach(@NonNull Consumer<? super Identifier> action);
 
-    void forEach(@NonNull ObjIntConsumer<Identifier> action);
+    void forEach(@NonNull IntConsumer action);
+
+    void forEach(@NonNull ObjIntConsumer<? super Identifier> action);
 }

@@ -31,18 +31,19 @@ import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 import java.util.function.ObjIntConsumer;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
- * Base implementation of a {@link Registry}.
+ * A basic implementation of a {@link Registry}.
  *
  * @author DaPorkchop_
  */
 @Accessors(fluent = true)
 public abstract class AbstractRegistry implements Registry {
-    protected final Map<Identifier, Integer> toIds;
+    protected final Map<Identifier, Integer> toIds; //TODO: replace these, as well as the maps used by BlockRegistry implementations, with unboxed primitive maps
     protected final Identifier[] fromIds;
 
     @Getter
@@ -77,12 +78,6 @@ public abstract class AbstractRegistry implements Registry {
     }
 
     @Override
-    public int get(@NonNull Identifier identifier, int fallback) {
-        Integer id = this.toIds.get(identifier);
-        return id != null ? id : fallback;
-    }
-
-    @Override
     public boolean contains(int id) {
         return id >= 0 && id < this.fromIds.length && this.fromIds[id] != null;
     }
@@ -92,12 +87,6 @@ public abstract class AbstractRegistry implements Registry {
         Identifier identifier = id >= 0 && id < this.fromIds.length ? this.fromIds[id] : null;
         checkArg(identifier != null, "Unknown ID: %s", id);
         return identifier;
-    }
-
-    @Override
-    public Identifier get(int id, Identifier fallback) {
-        Identifier identifier = id >= 0 && id < this.fromIds.length ? this.fromIds[id] : null;
-        return identifier != null ? identifier : fallback;
     }
 
     @Override
@@ -111,7 +100,16 @@ public abstract class AbstractRegistry implements Registry {
     }
 
     @Override
-    public void forEach(@NonNull ObjIntConsumer<Identifier> action) {
+    public void forEach(@NonNull IntConsumer action) {
+        for (int i = 0, length = this.fromIds.length; i < length; i++)  {
+            if (this.fromIds[i] != null)    {
+                action.accept(i);
+            }
+        }
+    }
+
+    @Override
+    public void forEach(@NonNull ObjIntConsumer<? super Identifier> action) {
         this.toIds.forEach(action::accept);
     }
 

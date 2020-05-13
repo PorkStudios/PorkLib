@@ -72,7 +72,7 @@ public interface Save extends RefCounted {
      * @throws IllegalArgumentException if the given {@link Identifier} isn't known by {@link #dimensions()}
      * @see #world(int)
      */
-    World world(@NonNull Identifier id);
+    World world(@NonNull Identifier id); //TODO: this needs to be redesigned to support multiple worlds with the same dimension ID
 
     /**
      * Gets or loads the {@link World} with the given ID.

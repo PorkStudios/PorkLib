@@ -25,6 +25,7 @@ import net.daporkchop.lib.minecraft.util.Identifier;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.IntConsumer;
 
 import static net.daporkchop.lib.common.util.PValidation.checkArg;
 
@@ -71,8 +72,8 @@ public class DimensionRegistry extends AbstractRegistry {
     }
 
     @Override
-    public Identifier get(int id, Identifier fallback) {
-        return this.fromIds.getOrDefault(id, fallback);
+    public void forEach(@NonNull IntConsumer action) {
+        this.fromIds.keySet().forEach(action::accept);
     }
 
     public static class Builder extends AbstractRegistry.Builder {
@@ -87,7 +88,7 @@ public class DimensionRegistry extends AbstractRegistry {
         }
 
         @Override
-        public DimensionRegistry build() {
+        public synchronized DimensionRegistry build() {
             return new DimensionRegistry(this);
         }
     }

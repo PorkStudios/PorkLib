@@ -22,8 +22,11 @@ package net.daporkchop.lib.nbt;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.pool.array.ArrayAllocator;
+import net.daporkchop.lib.nbt.tag.Tag;
+import net.daporkchop.lib.nbt.util.NBTObjectParser;
 
 /**
  * Additional options used when processing NBT data.
@@ -34,7 +37,14 @@ import net.daporkchop.lib.common.pool.array.ArrayAllocator;
 @Getter
 @Accessors(fluent = true)
 public final class NBTOptions {
-    public static final NBTOptions DEFAULT = new NBTOptions(null, null, null, true, false);
+    public static final NBTOptions DEFAULT = new NBTOptions(Tag.DEFAULT_NBT_PARSER, null, null, null, true, false);
+
+    /**
+     * The {@link NBTObjectParser} used for actually creating the NBT tag objects when reading an object tree.
+     * <p>
+     * May not be {@code null}.
+     */
+    protected final NBTObjectParser parser;
 
     /**
      * The {@link ArrayAllocator} used for allocating {@code byte[]}s.
@@ -74,38 +84,45 @@ public final class NBTOptions {
      */
     protected final boolean allowDuplicates;
 
+    public NBTOptions withObjectParser(@NonNull NBTObjectParser parser) {
+        if (parser == this.parser) {
+            return this;
+        }
+        return new NBTOptions(parser, this.byteAlloc, this.intAlloc, this.longAlloc, this.exactArraySize, this.allowDuplicates);
+    }
+
     public NBTOptions withByteAlloc(ArrayAllocator<byte[]> byteAlloc) {
         if (byteAlloc == this.byteAlloc) {
             return this;
         }
-        return new NBTOptions(byteAlloc, this.intAlloc, this.longAlloc, this.exactArraySize, this.allowDuplicates);
+        return new NBTOptions(this.parser, byteAlloc, this.intAlloc, this.longAlloc, this.exactArraySize, this.allowDuplicates);
     }
 
     public NBTOptions withIntAlloc(ArrayAllocator<int[]> intAlloc) {
         if (intAlloc == this.intAlloc) {
             return this;
         }
-        return new NBTOptions(this.byteAlloc, intAlloc, this.longAlloc, this.exactArraySize, this.allowDuplicates);
+        return new NBTOptions(this.parser, this.byteAlloc, intAlloc, this.longAlloc, this.exactArraySize, this.allowDuplicates);
     }
 
     public NBTOptions withLongAlloc(ArrayAllocator<long[]> longAlloc) {
         if (longAlloc == this.longAlloc) {
             return this;
         }
-        return new NBTOptions(this.byteAlloc, this.intAlloc, longAlloc, this.exactArraySize, this.allowDuplicates);
+        return new NBTOptions(this.parser, this.byteAlloc, this.intAlloc, longAlloc, this.exactArraySize, this.allowDuplicates);
     }
 
     public NBTOptions withExactArraySize(boolean exactArraySize) {
         if (exactArraySize == this.exactArraySize) {
             return this;
         }
-        return new NBTOptions(this.byteAlloc, this.intAlloc, this.longAlloc, exactArraySize, this.allowDuplicates);
+        return new NBTOptions(this.parser, this.byteAlloc, this.intAlloc, this.longAlloc, exactArraySize, this.allowDuplicates);
     }
 
     public NBTOptions withDuplicates(boolean allowDuplicates) {
         if (allowDuplicates == this.allowDuplicates) {
             return this;
         }
-        return new NBTOptions(this.byteAlloc, this.intAlloc, this.longAlloc, this.exactArraySize, allowDuplicates);
+        return new NBTOptions(this.parser, this.byteAlloc, this.intAlloc, this.longAlloc, this.exactArraySize, allowDuplicates);
     }
 }

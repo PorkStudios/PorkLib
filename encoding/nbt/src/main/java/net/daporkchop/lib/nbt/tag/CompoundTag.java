@@ -70,7 +70,7 @@ public final class CompoundTag extends RefCountedTag<CompoundTag> {
                 break;
             }
             String name = in.readUTF();
-            Tag tag = Tag.read(in, options, id);
+            Tag tag = options.parser().read(in, options, id);
             if (options.allowDuplicates()) {
                 this.map.put(name, tag);
             } else {

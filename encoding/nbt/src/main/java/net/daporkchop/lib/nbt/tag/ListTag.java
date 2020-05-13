@@ -70,7 +70,7 @@ public final class ListTag<T extends Tag<T>> extends Tag<ListTag<T>> {
         int size = in.readInt();
         this.list = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {
-            this.list.add(uncheckedCast(Tag.read(in, options, this.component)));
+            this.list.add(uncheckedCast(options.parser().read(in, options, this.component)));
         }
     }
 

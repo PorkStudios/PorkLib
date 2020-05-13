@@ -28,6 +28,7 @@ import net.daporkchop.lib.common.misc.string.PStrings;
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.nbt.NBTOptions;
+import net.daporkchop.lib.nbt.util.NBTObjectParser;
 import net.daporkchop.lib.primitive.map.ObjByteMap;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
@@ -60,26 +61,8 @@ public abstract class Tag<T extends Tag<T>> extends AbstractRefCounted {
     public static final int TAG_ARRAY_INT = 11;
     public static final int TAG_ARRAY_LONG = 12;
 
-    static {
-        Map<Class<? extends Tag>, Integer> map = new IdentityHashMap<>();
-        map.put(ByteTag.class, TAG_BYTE);
-        map.put(ShortTag.class, TAG_SHORT);
-        map.put(IntTag.class, TAG_INT);
-        map.put(LongTag.class, TAG_LONG);
-        map.put(FloatTag.class, TAG_FLOAT);
-        map.put(DoubleTag.class, TAG_DOUBLE);
-        map.put(ByteArrayTag.class, TAG_ARRAY_BYTE);
-        map.put(StringTag.class, TAG_STRING);
-        map.put(ListTag.class, TAG_LIST);
-        map.put(CompoundTag.class, TAG_COMPOUND);
-        map.put(IntArrayTag.class, TAG_ARRAY_INT);
-        map.put(LongArrayTag.class, TAG_ARRAY_LONG);
-
-        CLASS_TO_ID = Collections.unmodifiableMap(map);
-    }
-
     @SuppressWarnings("deprecation")
-    static Tag read(DataIn in, NBTOptions options, int id) throws IOException {
+    public static final NBTObjectParser DEFAULT_NBT_PARSER = (in, options, id) -> {
         switch (id) {
             case TAG_BYTE:
                 return new ByteTag(in);
@@ -108,6 +91,24 @@ public abstract class Tag<T extends Tag<T>> extends AbstractRefCounted {
             default:
                 throw new IllegalArgumentException("Unknown tag id: " + id);
         }
+    };
+
+    static {
+        Map<Class<? extends Tag>, Integer> map = new IdentityHashMap<>();
+        map.put(ByteTag.class, TAG_BYTE);
+        map.put(ShortTag.class, TAG_SHORT);
+        map.put(IntTag.class, TAG_INT);
+        map.put(LongTag.class, TAG_LONG);
+        map.put(FloatTag.class, TAG_FLOAT);
+        map.put(DoubleTag.class, TAG_DOUBLE);
+        map.put(ByteArrayTag.class, TAG_ARRAY_BYTE);
+        map.put(StringTag.class, TAG_STRING);
+        map.put(ListTag.class, TAG_LIST);
+        map.put(CompoundTag.class, TAG_COMPOUND);
+        map.put(IntArrayTag.class, TAG_ARRAY_INT);
+        map.put(LongArrayTag.class, TAG_ARRAY_LONG);
+
+        CLASS_TO_ID = Collections.unmodifiableMap(map);
     }
 
     public abstract void write(@NonNull DataOut out) throws IOException;

@@ -20,31 +20,47 @@
 
 package net.daporkchop.lib.minecraft.world;
 
-import net.daporkchop.lib.common.misc.refcount.RefCounted;
-import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
+import net.daporkchop.lib.minecraft.registry.BlockRegistry;
+import net.daporkchop.lib.minecraft.util.Identifier;
 
 /**
- * Representation of a Minecraft chunk section, consisting of a 16³ volume of blocks, along with light levels for block and (optionally) sky light.
+ * Represents a block state: the block's {@link Identifier} combined with a metadata value.
  *
  * @author DaPorkchop_
+ * @see BlockRegistry for an explanation of what all the values mean
  */
-public interface Section extends BlockAccess, RefCounted {
+public interface BlockState {
     /**
-     * @return the {@link Chunk} that loaded this section
+     * @return the block's {@link Identifier}
      */
-    Chunk parent();
+    Identifier id();
 
     /**
-     * @return this section's Y coordinate
+     * @return the block's legacy ID
      */
-    int y();
+    int legacyId();
 
-    @Override
-    int refCnt();
+    /**
+     * @return the block state's metadata value
+     */
+    int meta();
 
-    @Override
-    Section retain() throws AlreadyReleasedException;
+    /**
+     * @return the block state's runtime ID
+     */
+    int runtimeId();
 
-    @Override
-    boolean release() throws AlreadyReleasedException;
+    /**
+     * Gets a {@link BlockState} with the same block {@link Identifier} and the given metadata value.
+     *
+     * @param meta the new metadata value
+     * @return a {@link BlockState} with the given metadata value
+     * @throws IllegalArgumentException if a state with the given metadata value was not registered for the block
+     */
+    BlockState withMeta(int meta);
+
+    /**
+     * @return the {@link BlockRegistry} that this block state belongs to
+     */
+    BlockRegistry registry();
 }

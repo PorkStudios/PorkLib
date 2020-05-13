@@ -22,7 +22,6 @@ package net.daporkchop.lib.minecraft.world;
 
 import net.daporkchop.lib.common.misc.refcount.RefCounted;
 import net.daporkchop.lib.concurrent.PFuture;
-import net.daporkchop.lib.minecraft.registry.BlockRegistry;
 import net.daporkchop.lib.minecraft.save.Save;
 import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
@@ -36,7 +35,7 @@ import java.util.Collection;
  *
  * @author DaPorkchop_
  */
-public interface World extends RefCounted {
+public interface World extends BlockAccess, RefCounted {
     /**
      * @return the {@link Save} that loaded this world
      */
@@ -51,11 +50,6 @@ public interface World extends RefCounted {
      * @return the ID used to identify this world in its parent {@link Save}
      */
     int id();
-
-    /**
-     * @return a registry of all available blocks in this world
-     */
-    BlockRegistry blocks();
 
     /**
      * @return a snapshot of all of the {@link Chunk}s currently loaded by this world

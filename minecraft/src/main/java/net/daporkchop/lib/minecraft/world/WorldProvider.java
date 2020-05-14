@@ -1,0 +1,172 @@
+/*
+ * Adapted from The MIT License (MIT)
+ *
+ * Copyright (c) 2018-2020 DaPorkchop_
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software
+ * is furnished to do so, subject to the following conditions:
+ *
+ * Any persons and/or organizations using this software must include the above copyright notice and this permission notice,
+ * provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+
+package net.daporkchop.lib.minecraft.world;
+
+import lombok.NonNull;
+import net.daporkchop.lib.common.misc.refcount.RefCounted;
+import net.daporkchop.lib.concurrent.PFuture;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
+
+import java.io.IOException;
+import java.util.Spliterator;
+
+/**
+ * Low-level interface for loading/saving chunks/sections.
+ * <p>
+ * Note that this is completely disconnected from the loaded chunk map used by {@link World}. All load methods in this class are likely to block for IO
+ * operations, and all chunks/sections returned by this class, either directly or indirectly, will have been newly allocated. However, implementations
+ * may choose to make save operations asynchronous.
+ * <p>
+ * Multiple save operations on the same chunks/section are ALWAYS guaranteed to be written to disk in order. If a chunk is saved, modified, and saved
+ * again before the first save operation was completed, the implementation must ensure that, once both save operations are complete, it is the second
+ * one that is present on disk.
+ * <p>
+ * When a world provider is released, it must block until all queued write operations are completed.
+ * <p>
+ * Implementations of this class are expected to be safely usable from multiple threads.
+ *
+ * @author DaPorkchop_
+ */
+public interface WorldProvider extends RefCounted {
+    /**
+     * Loads the {@link Chunk} at the given coordinates.
+     *
+     * @param parent the {@link World} that will be used as the chunk's parent
+     * @param x      the X coordinate of the chunk to load
+     * @param z      the Z coordinate of the chunk to load
+     * @return the loaded {@link Chunk}, or {@code null} if the chunk doesn't exist
+     */
+    Chunk loadChunk(@NonNull World parent, int x, int z) throws IOException;
+
+    /**
+     * Loads the {@link Section} at the given coordinates.
+     *
+     * @param parent the {@link Chunk} that will be used as the section's parent
+     * @param x      the X coordinate of the section to load
+     * @param y      the Y coordinate of the section to load
+     * @param z      the Z coordinate of the section to load
+     * @return the loaded {@link Section}, or {@code null} if the section doesn't exist
+     */
+    Section loadSection(@NonNull Chunk parent, int x, int y, int z) throws IOException;
+
+    /**
+     * Saves the given {@link Chunk}.
+     * <p>
+     * The exact behavior of this method is left mostly up to the implementation. Some implementations may choose to make this method encode the chunk
+     * and write the chunk to disk, blocking until the operation is complete, while others may attempt to queue blocking I/O operations to be executed
+     * asynchronously. The only constraint is that the chunk's dirty flag must be reset as soon as possible, before the return of this method, which
+     * means that if the saving is going to be done asynchronously, the implementation is required to make some kind of snapshot of the chunk data
+     * first.
+     *
+     * @param chunk the {@link Chunk} to save
+     */
+    void saveChunk(@NonNull Chunk chunk) throws IOException;
+
+    /**
+     * Saves the given {@link Section}.
+     * <p>
+     * The exact behavior of this method is left mostly up to the implementation. Some implementations may choose to make this method encode the section
+     * and write the section to disk, blocking until the operation is complete, while others may attempt to queue blocking I/O operations to be executed
+     * asynchronously. The only constraint is that the section's dirty flag must be reset as soon as possible, before the return of this method, which
+     * means that if the saving is going to be done asynchronously, the implementation is required to make some kind of snapshot of the section data
+     * first.
+     *
+     * @param section the {@link Section} to save
+     */
+    void saveSection(@NonNull Section section) throws IOException;
+
+    /**
+     * Saves the given {@link Chunk} asynchronously.
+     * <p>
+     * Unlike {@link #saveChunk(Chunk)}, this method makes no guarantees as to when the chunk will be saved. An implementation may choose to make the
+     * entire operation block, returning a completed {@link PFuture}, or it may do everything asynchronously, causing the chunk's dirty flag to be
+     * reset at an unknown point in the future.
+     *
+     * @param chunk the {@link Chunk} to save
+     * @return a {@link PFuture} which will be completed after the chunk was written to disk
+     */
+    PFuture<Void> saveChunkAsync(@NonNull Chunk chunk);
+
+    /**
+     * Saves the given {@link Section} asynchronously.
+     * <p>
+     * Unlike {@link #saveSection(Section)}, this method makes no guarantees as to when the section will be saved. An implementation may choose to make
+     * the entire operation block, returning a completed {@link PFuture}, or it may do everything asynchronously, causing the section's dirty flag to be
+     * reset at an unknown point in the future.
+     *
+     * @param section the {@link Section} to save
+     * @return a {@link PFuture} which will be completed after the section was written to disk
+     */
+    PFuture<Void> saveSectionAsync(@NonNull Section section);
+
+    /**
+     * Flushes any data that may be queued for writing to disk.
+     * <p>
+     * This method is guaranteed to block at least until all operations that were queued at the time this method was called, although an implementation
+     * may choose to block until the save queue is empty.
+     * <p>
+     * This method will do nothing if the implementation does not queue writes.
+     */
+    void flush() throws IOException;
+
+    /**
+     * Asynchronously any data that may be queued for writing to disk.
+     * <p>
+     * This method is guaranteed to block at least until all operations that were queued at the time this method was called, although an implementation
+     * may choose to block until the save queue is empty.
+     * <p>
+     * This method will return an already completed {@link PFuture} if the implementation does not queue writes.
+     *
+     * @return a {@link PFuture} which will be completed once the chunks have been flushed
+     */
+    PFuture<Void> flushAsync();
+
+    /**
+     * Gets a {@link Spliterator} over all the {@link Chunk}s in the world.
+     * <p>
+     * The order in which {@link Chunk}s are returned is up to the implementation, which may choose any order most efficient for parallel iteration.
+     * <p>
+     * Note that all of the {@link Chunk}s returned by the {@link Spliterator} will have been newly loaded from disk, and must be released manually.
+     *
+     * @return a {@link Spliterator} over all the {@link Chunk}s in the world
+     */
+    Spliterator<Chunk> allChunks() throws IOException;
+
+    /**
+     * Gets a {@link Spliterator} over all the {@link Section}s in the world.
+     * <p>
+     * The order in which {@link Section}s are returned is up to the implementation, which may choose any order most efficient for parallel iteration.
+     * <p>
+     * Note that all of the {@link Section}s returned by the {@link Spliterator} will have been newly loaded from disk, and must be released manually.
+     *
+     * @return a {@link Spliterator} over all the {@link Section}s in the world
+     */
+    Spliterator<Section> allSections() throws IOException;
+
+    @Override
+    int refCnt();
+
+    @Override
+    WorldProvider retain() throws AlreadyReleasedException;
+
+    @Override
+    boolean release() throws AlreadyReleasedException;
+}

@@ -31,7 +31,8 @@ import java.util.Collection;
 /**
  * Representation of a Minecraft world, consisting of {@link Chunk}s identified by their integer X, Z coordinates.
  * <p>
- * Every {@link Chunk} loaded by a world keeps a reference to the world which is not released until the {@link Chunk} itself is released.
+ * Every {@link Chunk} loaded by a world keeps a reference to the world which is not released until the {@link Chunk} itself is released. Additionally,
+ * world instances keep a reference to their {@link WorldProvider} which is not released until the world is released.
  *
  * @author DaPorkchop_
  */
@@ -50,6 +51,11 @@ public interface World extends BlockAccess, RefCounted {
      * @return the ID used to identify this world in its parent {@link Save}
      */
     int id();
+
+    /**
+     * @return the {@link WorldProvider} used for handling I/O of chunks and cubes
+     */
+    WorldProvider provider();
 
     /**
      * @return a snapshot of all of the {@link Chunk}s currently loaded by this world

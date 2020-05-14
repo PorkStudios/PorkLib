@@ -28,6 +28,7 @@ import net.daporkchop.lib.minecraft.save.SaveFormat;
  *
  * @author DaPorkchop_
  */
+//does this really need to be an enum? i doubt there'll ever be need for other modes
 public enum SaveAccess {
     /**
      * All attempts to modify the contents of the world will be revoked.
@@ -36,10 +37,6 @@ public enum SaveAccess {
      * be modified in memory, and simply throw an exception if requested to write to disk.
      */
     READ_ONLY,
-    /**
-     * Allows adding new columns/cubes to the world, but prevents modification of columns/cubes already in the save.
-     */
-    WRITE_NEW,
     /**
      * Grants full read/write access to the world.
      */

@@ -21,6 +21,7 @@
 package net.daporkchop.lib.minecraft.world;
 
 import net.daporkchop.lib.common.misc.refcount.RefCounted;
+import net.daporkchop.lib.math.access.IntHolderXYZ;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 /**
@@ -28,16 +29,29 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
  *
  * @author DaPorkchop_
  */
-public interface Section extends BlockAccess, RefCounted {
+public interface Section extends BlockAccess, IntHolderXYZ, RefCounted {
     /**
      * @return the {@link Chunk} that loaded this section
      */
     Chunk parent();
 
     /**
+     * @return this section's X coordinate
+     */
+    @Override
+    int x();
+
+    /**
      * @return this section's Y coordinate
      */
+    @Override
     int y();
+
+    /**
+     * @return this section's Z coordinate
+     */
+    @Override
+    int z();
 
     @Override
     int refCnt();

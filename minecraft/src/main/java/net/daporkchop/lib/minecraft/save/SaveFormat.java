@@ -22,8 +22,8 @@ package net.daporkchop.lib.minecraft.save;
 
 import lombok.NonNull;
 
+import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 
@@ -38,12 +38,12 @@ public interface SaveFormat {
     /**
      * Open the {@link Save} at the given path.
      *
-     * @param root    a {@link Path} indicating the root directory
+     * @param root    a {@link File} indicating the root directory
      * @param options the {@link SaveOptions} to be used for opening the given save
      * @return the opened {@link Save}
      * @throws IllegalArgumentException if the save could not be opened
      */
-    default Save open(@NonNull Path root, @NonNull SaveOptions options) throws IOException {
+    default Save open(@NonNull File root, @NonNull SaveOptions options) throws IOException {
         Save save = this.tryOpen(root, options);
         checkState(save != null, "Couldn't open save at \"%s\" (options: %s)", root, options);
         return save;
@@ -52,9 +52,9 @@ public interface SaveFormat {
     /**
      * Attempts to open the {@link Save} at the given path.
      *
-     * @param root    a {@link Path} indicating the root directory
+     * @param root    a {@link File} indicating the root directory
      * @param options the {@link SaveOptions} to be used for opening the given save
      * @return the opened {@link Save}, or {@code null} if it could not be opened
      */
-    Save tryOpen(@NonNull Path root, @NonNull SaveOptions options) throws IOException;
+    Save tryOpen(@NonNull File root, @NonNull SaveOptions options) throws IOException;
 }

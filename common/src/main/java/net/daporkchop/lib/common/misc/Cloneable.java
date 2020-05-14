@@ -18,47 +18,13 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.save;
-
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.misc.Cloneable;
-import net.daporkchop.lib.minecraft.util.WriteAccess;
-
-import java.util.concurrent.Executor;
-import java.util.concurrent.ForkJoinPool;
+package net.daporkchop.lib.common.misc;
 
 /**
- * Options used when opening a {@link Save}.
+ * Better version of {@link java.lang.Cloneable} which forces the subclass to actually implement {@link Object#clone()}.
  *
  * @author DaPorkchop_
  */
-@Getter
-@Setter
-@Accessors(fluent = true, chain = true)
-public class SaveOptions implements Cloneable<SaveOptions> {
-    /**
-     * The write access level that the save will be opened with.
-     * <p>
-     * Defaults to {@link WriteAccess#WRITE_REQUIRED}.
-     */
-    @NonNull
-    protected WriteAccess access = WriteAccess.WRITE_REQUIRED;
-
-    /**
-     * The {@link Executor} that will be used for executing async I/O operations.
-     * <p>
-     * Defaults to {@link ForkJoinPool#commonPool()}.
-     */
-    @NonNull
-    protected Executor ioExecutor = ForkJoinPool.commonPool();
-
-    @Override
-    public SaveOptions clone() {
-        return new SaveOptions()
-                .access(this.access)
-                .ioExecutor(this.ioExecutor);
-    }
+public interface Cloneable<T> extends java.lang.Cloneable {
+    T clone();
 }

@@ -21,7 +21,6 @@
 package net.daporkchop.lib.minecraft.util;
 
 import net.daporkchop.lib.minecraft.save.Save;
-import net.daporkchop.lib.minecraft.save.SaveFormat;
 
 /**
  * The different write access levels that can be used for opening a {@link Save}.
@@ -29,16 +28,19 @@ import net.daporkchop.lib.minecraft.save.SaveFormat;
  * @author DaPorkchop_
  */
 //does this really need to be an enum? i doubt there'll ever be need for other modes
-public enum SaveAccess {
+public enum WriteAccess {
     /**
-     * All attempts to modify the contents of the world will be revoked.
+     * Opens the save in read-write mode. If either read or write access could not be acquired, an exception will be thrown.
+     */
+    WRITE_REQUIRED,
+    /**
+     * Makes a best-effort attempt to open the save in read-write mode, transparent falling back to read-only mode if write access could not be acquired.
      * <p>
-     * Despite this, some {@link SaveFormat} implementations may choose to allow the world (blocks, entities, etc.) to
-     * be modified in memory, and simply throw an exception if requested to write to disk.
+     * If read access could not be acquired, an exception will be thrown.
      */
-    READ_ONLY,
+    WRITE_OPTIONAL,
     /**
-     * Grants full read/write access to the world.
+     * Opens the save in read-only mode. If read access could not be acquired, an exception will be thrown.
      */
-    READ_WRITE;
+    READ_ONLY;
 }

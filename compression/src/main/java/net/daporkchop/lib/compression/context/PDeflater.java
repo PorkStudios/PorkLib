@@ -164,7 +164,7 @@ public interface PDeflater extends Context {
     }
 
     /**
-     * Gets a {@link DataOut} which will compress data written to it using this {@link PDeflater} and write the compressed data to the given {@link DataOut}.
+     * Gets a {@link DataOut} which will compress data written to it using this {@link PDeflater} and write the compressed version to the given {@link DataOut}.
      *
      * @param bufferAlloc the {@link ByteBufAllocator} to be used for allocating the internal write buffer. If {@code null}, the default allocator will be used
      * @param bufferSize  the size of the internal write buffer. If not positive, the default buffer size will be used

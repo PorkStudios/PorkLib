@@ -24,6 +24,7 @@ import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.minecraft.format.anvil.AnvilSaveFormat;
+import net.daporkchop.lib.minecraft.save.Save;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -75,8 +76,10 @@ public class LevelDatParserTest {
     @Test
     public void test() throws IOException {
         for (String version : VERSIONS) {
-            System.out.println(version);
-            new AnvilSaveFormat().tryOpen(new File(ROOT, version), new SaveOptions());
+            System.out.printf("Opening minecraft world at %s...\n", new File(ROOT, version));
+            try (Save save = new AnvilSaveFormat().tryOpen(new File(ROOT, version), new SaveOptions())) {
+                System.out.println(save.version());
+            }
         }
     }
 }

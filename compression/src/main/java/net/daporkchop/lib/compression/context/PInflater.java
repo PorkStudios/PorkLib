@@ -164,7 +164,7 @@ public interface PInflater extends Context {
     }
 
     /**
-     * Gets a {@link DataIn} which will decompress data written to it using this {@link PDeflater} and write the decompressed data to the given {@link DataIn}.
+     * Gets a {@link DataIn} which will decompress data written to it using this {@link PDeflater} and write the decompressed version to the given {@link DataIn}.
      *
      * @param bufferAlloc the {@link ByteBufAllocator} to be used for allocating the internal write buffer. If {@code null}, the default allocator will be used
      * @param bufferSize  the size of the internal write buffer. If not positive, the default buffer size will be used

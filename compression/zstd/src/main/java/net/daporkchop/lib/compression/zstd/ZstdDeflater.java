@@ -246,7 +246,7 @@ public interface ZstdDeflater extends PDeflater {
     }
 
     /**
-     * Gets a {@link DataOut} which will compress data written to it using this {@link PDeflater} and write the compressed data to the given {@link DataOut}.
+     * Gets a {@link DataOut} which will compress data written to it using this {@link PDeflater} and write the compressed version to the given {@link DataOut}.
      * <p>
      * This will digest the dictionary before decompressing, which is an expensive operation. If the same dictionary is going to be used multiple times,
      * it is strongly advised to use {@link #compressionStream(DataOut, ByteBufAllocator, int, ZstdDeflateDictionary)}.
@@ -285,7 +285,7 @@ public interface ZstdDeflater extends PDeflater {
     }
 
     /**
-     * Gets a {@link DataOut} which will compress data written to it using this {@link PDeflater} and write the compressed data to the given {@link DataOut}.
+     * Gets a {@link DataOut} which will compress data written to it using this {@link PDeflater} and write the compressed version to the given {@link DataOut}.
      *
      * @param bufferAlloc the {@link ByteBufAllocator} to be used for allocating the internal write buffer. If {@code null}, the default allocator will be used
      * @param bufferSize  the size of the internal write buffer. If not positive, the default buffer size will be used

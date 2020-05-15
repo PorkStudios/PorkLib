@@ -21,40 +21,33 @@
 package net.daporkchop.lib.minecraft.format.anvil;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.common.misc.file.PFiles;
-import net.daporkchop.lib.compression.context.PInflater;
-import net.daporkchop.lib.compression.zlib.Zlib;
-import net.daporkchop.lib.compression.zlib.ZlibMode;
-import net.daporkchop.lib.minecraft.save.Save;
-import net.daporkchop.lib.minecraft.save.SaveFormat;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
-import net.daporkchop.lib.nbt.NBTFormat;
-import net.daporkchop.lib.nbt.tag.CompoundTag;
+import net.daporkchop.lib.minecraft.util.WriteAccess;
 
-import java.io.File;
-import java.io.IOException;
+import java.util.concurrent.Executor;
 
 /**
+ * Extension of {@link SaveOptions} for the Anvil save format.
+ *
  * @author DaPorkchop_
  */
-public class AnvilSaveFormat implements SaveFormat {
+public class AnvilSaveOptions extends SaveOptions {
     @Override
-    public Save tryOpen(@NonNull File root, @NonNull SaveOptions options) throws IOException {
-        File levelDatFile = new File(root, "level.dat");
-        if (!PFiles.checkFileExists(levelDatFile)) {
-            return null;
-        }
+    public AnvilSaveOptions access(@NonNull WriteAccess access) {
+        super.access(access);
+        return this;
+    }
 
-        CompoundTag levelDat;
-        try (PInflater inflater = Zlib.PROVIDER.inflater(Zlib.PROVIDER.inflateOptions().withMode(ZlibMode.GZIP));
-             DataIn in = inflater.decompressionStream(DataIn.wrapBuffered(levelDatFile))) {
-            levelDat = NBTFormat.BIG_ENDIAN.readCompound(in);
-        }
-        //System.out.println(levelDat);
-        if (levelDat.contains("Data"))  {
-            return new AnvilSave(root, options, levelDat);
-        }
-        return null;
+    @Override
+    public AnvilSaveOptions ioExecutor(@NonNull Executor ioExecutor) {
+        super.ioExecutor(ioExecutor);
+        return this;
+    }
+
+    @Override
+    public AnvilSaveOptions clone() {
+        return new AnvilSaveOptions()
+                .access(this.access)
+                .ioExecutor(this.ioExecutor);
     }
 }

@@ -25,9 +25,11 @@ import net.daporkchop.lib.common.misc.refcount.RefCounted;
 import net.daporkchop.lib.concurrent.PFuture;
 import net.daporkchop.lib.minecraft.registry.DimensionRegistry;
 import net.daporkchop.lib.minecraft.util.Identifier;
+import net.daporkchop.lib.minecraft.version.MinecraftVersion;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.util.Collection;
 
@@ -42,7 +44,12 @@ public interface Save extends RefCounted {
     /**
      * @return this save's root directory/file
      */
-    Path root();
+    File root();
+
+    /**
+     * @return the version of the game that this save was last used by
+     */
+    MinecraftVersion version();
 
     /**
      * @return a registry of all available dimensions in this save

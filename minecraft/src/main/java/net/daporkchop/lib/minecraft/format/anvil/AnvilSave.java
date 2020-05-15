@@ -21,40 +21,41 @@
 package net.daporkchop.lib.minecraft.format.anvil;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.common.misc.file.PFiles;
-import net.daporkchop.lib.compression.context.PInflater;
-import net.daporkchop.lib.compression.zlib.Zlib;
-import net.daporkchop.lib.compression.zlib.ZlibMode;
-import net.daporkchop.lib.minecraft.save.Save;
-import net.daporkchop.lib.minecraft.save.SaveFormat;
+import net.daporkchop.lib.minecraft.format.common.AbstractSave;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
-import net.daporkchop.lib.nbt.NBTFormat;
+import net.daporkchop.lib.minecraft.version.MinecraftEdition;
+import net.daporkchop.lib.minecraft.version.MinecraftVersion;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 import java.io.File;
-import java.io.IOException;
 
 /**
  * @author DaPorkchop_
  */
-public class AnvilSaveFormat implements SaveFormat {
-    @Override
-    public Save tryOpen(@NonNull File root, @NonNull SaveOptions options) throws IOException {
-        File levelDatFile = new File(root, "level.dat");
-        if (!PFiles.checkFileExists(levelDatFile)) {
-            return null;
-        }
+public class AnvilSave extends AbstractSave<AnvilSaveOptions> {
+    public AnvilSave(@NonNull File root, @NonNull SaveOptions options, @NonNull CompoundTag levelData) {
+        super(root, options, levelData);
+    }
 
-        CompoundTag levelDat;
-        try (PInflater inflater = Zlib.PROVIDER.inflater(Zlib.PROVIDER.inflateOptions().withMode(ZlibMode.GZIP));
-             DataIn in = inflater.decompressionStream(DataIn.wrapBuffered(levelDatFile))) {
-            levelDat = NBTFormat.BIG_ENDIAN.readCompound(in);
+    @Override
+    protected AnvilSaveOptions processOptions(@NonNull SaveOptions options) {
+        return options instanceof AnvilSaveOptions
+               ? (AnvilSaveOptions) options.clone()
+               : new AnvilSaveOptions().access(options.access()).ioExecutor(options.ioExecutor());
+    }
+
+    @Override
+    protected MinecraftVersion getVersion() {
+        CompoundTag versionTag = this.levelData.getCompound("Data").getCompound("Version", null);
+        if (versionTag == null) {
+            //the world is older than 15w32a
+            return new MinecraftVersion(MinecraftEdition.JAVA, null, false, 0, 0);
         }
-        //System.out.println(levelDat);
-        if (levelDat.contains("Data"))  {
-            return new AnvilSave(root, options, levelDat);
-        }
-        return null;
+        return new MinecraftVersion(
+                MinecraftEdition.JAVA,
+                versionTag.getString("Name"),
+                versionTag.getByte("Snapshot") != 0,
+                0, //TODO: we don't know the protocol version
+                versionTag.getInt("Id"));
     }
 }

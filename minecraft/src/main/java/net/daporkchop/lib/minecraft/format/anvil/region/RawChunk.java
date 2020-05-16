@@ -18,31 +18,32 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.anvil;
+package net.daporkchop.lib.minecraft.format.anvil.region;
 
+import io.netty.buffer.ByteBuf;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.format.common.AbstractSave;
-import net.daporkchop.lib.minecraft.registry.DimensionRegistry;
-import net.daporkchop.lib.minecraft.save.SaveOptions;
-import net.daporkchop.lib.nbt.tag.CompoundTag;
-
-import java.io.File;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.unsafe.util.AbstractReleasable;
 
 /**
+ * Representation of the raw chunk data that was read from a {@link RegionFile}.
+ * <p>
+ * Note: releasing a raw chunk will also release the data buffer.
+ *
  * @author DaPorkchop_
  */
-public class AnvilSave extends AbstractSave<AnvilSaveOptions> {
-    public AnvilSave(@NonNull File root, @NonNull SaveOptions options, @NonNull CompoundTag levelData) {
-        super(root, options, levelData);
-    }
+@AllArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public final class RawChunk extends AbstractReleasable {
+    protected final long timestamp;
+    @NonNull
+    protected final ByteBuf data;
 
     @Override
-    protected AnvilSaveOptions processOptions(@NonNull SaveOptions options) {
-        return options instanceof AnvilSaveOptions ? (AnvilSaveOptions) options.clone() : new AnvilSaveOptions(options);
-    }
-
-    @Override
-    protected DimensionRegistry findDimensions() {
-        return DimensionRegistry.DEFAULT_JAVA; //TODO: find actual dimensions
+    protected void doRelease() {
+        this.data.release();
     }
 }

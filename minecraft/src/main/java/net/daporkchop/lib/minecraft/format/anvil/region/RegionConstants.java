@@ -18,31 +18,49 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.anvil;
+package net.daporkchop.lib.minecraft.format.anvil.region;
 
-import lombok.NonNull;
-import net.daporkchop.lib.minecraft.format.common.AbstractSave;
-import net.daporkchop.lib.minecraft.registry.DimensionRegistry;
-import net.daporkchop.lib.minecraft.save.SaveOptions;
-import net.daporkchop.lib.nbt.tag.CompoundTag;
+import lombok.experimental.UtilityClass;
 
-import java.io.File;
+import static net.daporkchop.lib.common.util.PValidation.checkIndex;
 
 /**
+ * Shared constants used for interacting with Anvil region files.
+ *
  * @author DaPorkchop_
  */
-public class AnvilSave extends AbstractSave<AnvilSaveOptions> {
-    public AnvilSave(@NonNull File root, @NonNull SaveOptions options, @NonNull CompoundTag levelData) {
-        super(root, options, levelData);
+@UtilityClass
+public class RegionConstants {
+    /**
+     * The size of a region sector, in bytes.
+     */
+    public static final int SECTOR_BYTES = 4096;
+
+    /**
+     * The number of sectors that make up a region file's header.
+     */
+    public static final int HEADER_SECTORS = 2;
+
+    /**
+     * The size of a region file's header, in bytes.
+     */
+    public static final int HEADER_BYTES = SECTOR_BYTES * HEADER_SECTORS;
+
+    public static final byte ID_GZIP  = 1; //official, no longer used by vanilla
+    public static final byte ID_ZLIB  = 2; //official
+
+    public static void checkCoords(int x, int z) {
+        checkIndex(x >= 0 && x < 32, "x");
+        checkIndex(z >= 0 && z < 32, "z");
     }
 
-    @Override
-    protected AnvilSaveOptions processOptions(@NonNull SaveOptions options) {
-        return options instanceof AnvilSaveOptions ? (AnvilSaveOptions) options.clone() : new AnvilSaveOptions(options);
+    public static int getOffsetIndex(int x, int z) {
+        checkCoords(x, z);
+        return (x << 2) | (z << 7);
     }
 
-    @Override
-    protected DimensionRegistry findDimensions() {
-        return DimensionRegistry.DEFAULT_JAVA; //TODO: find actual dimensions
+    public static int getTimestampIndex(int x, int z) {
+        checkCoords(x, z);
+        return ((x << 2) | (z << 7)) + SECTOR_BYTES;
     }
 }

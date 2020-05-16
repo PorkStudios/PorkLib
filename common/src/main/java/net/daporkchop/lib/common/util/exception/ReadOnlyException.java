@@ -18,31 +18,29 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.anvil;
+package net.daporkchop.lib.common.util.exception;
 
-import lombok.NonNull;
-import net.daporkchop.lib.minecraft.format.common.AbstractSave;
-import net.daporkchop.lib.minecraft.registry.DimensionRegistry;
-import net.daporkchop.lib.minecraft.save.SaveOptions;
-import net.daporkchop.lib.nbt.tag.CompoundTag;
-
-import java.io.File;
+import java.io.IOException;
 
 /**
+ * Thrown when an attempt is made to modify a resource that is read-only.
+ *
  * @author DaPorkchop_
  */
-public class AnvilSave extends AbstractSave<AnvilSaveOptions> {
-    public AnvilSave(@NonNull File root, @NonNull SaveOptions options, @NonNull CompoundTag levelData) {
-        super(root, options, levelData);
+public class ReadOnlyException extends IOException {
+    public ReadOnlyException() {
+        super();
     }
 
-    @Override
-    protected AnvilSaveOptions processOptions(@NonNull SaveOptions options) {
-        return options instanceof AnvilSaveOptions ? (AnvilSaveOptions) options.clone() : new AnvilSaveOptions(options);
+    public ReadOnlyException(String message) {
+        super(message);
     }
 
-    @Override
-    protected DimensionRegistry findDimensions() {
-        return DimensionRegistry.DEFAULT_JAVA; //TODO: find actual dimensions
+    public ReadOnlyException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public ReadOnlyException(Throwable cause) {
+        super(cause);
     }
 }

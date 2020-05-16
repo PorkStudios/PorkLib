@@ -20,7 +20,13 @@
 
 package net.daporkchop.lib.minecraft.format.anvil;
 
+import io.netty.buffer.ByteBufAllocator;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.pool.array.ArrayAllocator;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
 import net.daporkchop.lib.minecraft.util.WriteAccess;
 
@@ -31,7 +37,28 @@ import java.util.concurrent.Executor;
  *
  * @author DaPorkchop_
  */
+@NoArgsConstructor
+@Getter
+@Setter
+@Accessors(fluent = true, chain = true)
 public class AnvilSaveOptions extends SaveOptions {
+    public AnvilSaveOptions(@NonNull SaveOptions other) {
+        super(other);
+
+        if (other instanceof AnvilSaveOptions) {
+            this.copyFrom((AnvilSaveOptions) other);
+        }
+    }
+
+    public AnvilSaveOptions(@NonNull AnvilSaveOptions other) {
+        super(other);
+
+        this.copyFrom(other);
+    }
+
+    private void copyFrom(@NonNull AnvilSaveOptions other) {
+    }
+
     @Override
     public AnvilSaveOptions access(@NonNull WriteAccess access) {
         super.access(access);
@@ -45,9 +72,31 @@ public class AnvilSaveOptions extends SaveOptions {
     }
 
     @Override
+    public AnvilSaveOptions nettyAlloc(@NonNull ByteBufAllocator nettyAlloc) {
+        super.nettyAlloc(nettyAlloc);
+        return this;
+    }
+
+    @Override
+    public AnvilSaveOptions byteAlloc(ArrayAllocator<byte[]> byteAlloc) {
+        super.byteAlloc(byteAlloc);
+        return this;
+    }
+
+    @Override
+    public AnvilSaveOptions intAlloc(ArrayAllocator<int[]> intAlloc) {
+        super.intAlloc(intAlloc);
+        return this;
+    }
+
+    @Override
+    public AnvilSaveOptions longAlloc(ArrayAllocator<long[]> longAlloc) {
+        super.longAlloc(longAlloc);
+        return this;
+    }
+
+    @Override
     public AnvilSaveOptions clone() {
-        return new AnvilSaveOptions()
-                .access(this.access)
-                .ioExecutor(this.ioExecutor);
+        return new AnvilSaveOptions(this);
     }
 }

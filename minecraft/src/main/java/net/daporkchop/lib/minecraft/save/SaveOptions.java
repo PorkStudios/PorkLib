@@ -20,11 +20,15 @@
 
 package net.daporkchop.lib.minecraft.save;
 
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.PooledByteBufAllocator;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.misc.Cloneable;
+import net.daporkchop.lib.common.pool.array.ArrayAllocator;
 import net.daporkchop.lib.minecraft.util.WriteAccess;
 
 import java.util.concurrent.Executor;
@@ -35,10 +39,20 @@ import java.util.concurrent.ForkJoinPool;
  *
  * @author DaPorkchop_
  */
+@NoArgsConstructor
 @Getter
 @Setter
 @Accessors(fluent = true, chain = true)
 public class SaveOptions implements Cloneable<SaveOptions> {
+    public SaveOptions(@NonNull SaveOptions other) {
+        this.access = other.access;
+        this.ioExecutor = other.ioExecutor;
+        this.nettyAlloc = other.nettyAlloc;
+        this.byteAlloc = other.byteAlloc;
+        this.intAlloc = other.intAlloc;
+        this.longAlloc = other.longAlloc;
+    }
+
     /**
      * The write access level that the save will be opened with.
      * <p>
@@ -55,10 +69,37 @@ public class SaveOptions implements Cloneable<SaveOptions> {
     @NonNull
     protected Executor ioExecutor = ForkJoinPool.commonPool();
 
+    /**
+     * The {@link ByteBufAllocator} used for allocating Netty {@link io.netty.buffer.ByteBuf}s.
+     * <p>
+     * Defaults to {@link PooledByteBufAllocator#DEFAULT}
+     */
+    @NonNull
+    protected ByteBufAllocator nettyAlloc = PooledByteBufAllocator.DEFAULT;
+
+    /**
+     * The {@link ArrayAllocator} used for allocating {@code byte[]}s.
+     * <p>
+     * If {@code null}, {@code byte[]}s will be allocated using {@code new}.
+     */
+    protected ArrayAllocator<byte[]> byteAlloc;
+
+    /**
+     * The {@link ArrayAllocator} used for allocating {@code int[]}s.
+     * <p>
+     * If {@code null}, {@code int[]}s will be allocated using {@code new}.
+     */
+    protected ArrayAllocator<int[]> intAlloc;
+
+    /**
+     * The {@link ArrayAllocator} used for allocating {@code long[]}s.
+     * <p>
+     * If {@code null}, {@code long[]}s will be allocated using {@code new}.
+     */
+    protected ArrayAllocator<long[]> longAlloc;
+
     @Override
     public SaveOptions clone() {
-        return new SaveOptions()
-                .access(this.access)
-                .ioExecutor(this.ioExecutor);
+        return new SaveOptions(this);
     }
 }

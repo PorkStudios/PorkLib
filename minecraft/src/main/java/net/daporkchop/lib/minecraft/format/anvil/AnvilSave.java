@@ -23,7 +23,6 @@ package net.daporkchop.lib.minecraft.format.anvil;
 import lombok.NonNull;
 import net.daporkchop.lib.minecraft.format.common.AbstractSave;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
-import net.daporkchop.lib.minecraft.version.MinecraftEdition;
 import net.daporkchop.lib.minecraft.version.MinecraftVersion;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
@@ -49,13 +48,11 @@ public class AnvilSave extends AbstractSave<AnvilSaveOptions> {
         CompoundTag versionTag = this.levelData.getCompound("Data").getCompound("Version", null);
         if (versionTag == null) {
             //the world is older than 15w32a
-            return new MinecraftVersion(MinecraftEdition.JAVA, null, false, 0, 0);
+            return MinecraftVersion.UNKNOWN_JAVA;
         }
-        return new MinecraftVersion(
-                MinecraftEdition.JAVA,
+        return MinecraftVersion.fromNameAndDataVersion(
                 versionTag.getString("Name"),
-                versionTag.getByte("Snapshot") != 0,
-                0, //TODO: we don't know the protocol version
-                versionTag.getInt("Id"));
+                versionTag.getInt("Id"),
+                versionTag.getByte("Snapshot", (byte) 0) != 0);
     }
 }

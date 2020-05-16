@@ -21,81 +21,54 @@
 package net.daporkchop.lib.minecraft.version;
 
 import lombok.NonNull;
-import net.daporkchop.lib.common.pool.handle.Handle;
-import net.daporkchop.lib.common.util.PorkUtil;
-
-import static java.lang.Math.*;
 
 /**
  * Representation of a Minecraft version.
  *
  * @author DaPorkchop_
  */
-//TODO: make this class identity-comparable, like Identifier
-public final class MinecraftVersion implements Comparable<MinecraftVersion> {
-    protected final MinecraftEdition edition;
-    protected final String name;
-    protected final boolean snapshot;
-    protected final int protocolVersion;
-    protected final int dataVersion;
+public interface MinecraftVersion extends Comparable<MinecraftVersion> {
+    MinecraftVersion UNKNOWN_JAVA = new DefaultVersion(MinecraftEdition.JAVA, null, 0, 0, false);
+    MinecraftVersion UNKNOWN_BEDROCK = new DefaultVersion(MinecraftEdition.BEDROCK, null, 0, 0, false);
+    MinecraftVersion UNKNOWN = new DefaultVersion(MinecraftEdition.UNKNOWN, null, 0, 0, false);
 
-    public MinecraftVersion(@NonNull MinecraftEdition edition, String name, boolean snapshot, int protocolVersion, int dataVersion) {
-        this.edition = edition;
-        this.name = PorkUtil.fallbackIfNull(name, "Unknown");
-        this.snapshot = snapshot;
-        this.protocolVersion = max(protocolVersion, 0);
-        this.dataVersion = max(dataVersion, 0);
+    static MinecraftVersion fromName(@NonNull MinecraftEdition edition, @NonNull String name) {
+        MinecraftVersion version = edition == MinecraftEdition.JAVA ? DefaultVersion.FROM_NAME.get(name) : null;
+        return version != null ? version : new DefaultVersion(edition, name, 0, 0, false);
     }
 
-    @Override
-    public int hashCode() {
-        return (this.edition.ordinal() * 31 + this.name.hashCode()) * 31 + this.protocolVersion;
+    static MinecraftVersion fromDataVersion(int dataVersion) {
+        MinecraftVersion version = DefaultVersion.FROM_DATA_VERSION.get(dataVersion);
+        return version != null ? version : new DefaultVersion(MinecraftEdition.JAVA, null, dataVersion, 0, false);
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof MinecraftVersion) {
-            MinecraftVersion other = (MinecraftVersion) obj;
-            return this.edition == other.edition && this.name.equals(other.name);
-        } else {
-            return false;
-        }
+    static MinecraftVersion fromNameAndDataVersion(@NonNull String name, int dataVersion, boolean snapshot) {
+        MinecraftVersion version = DefaultVersion.FROM_DATA_VERSION.get(dataVersion);
+        return version != null ? version : new DefaultVersion(MinecraftEdition.JAVA, name, dataVersion, 0, snapshot);
     }
 
-    @Override
-    public int compareTo(@NonNull MinecraftVersion o) {
-        if (this.edition != o.edition) {
-            return Integer.compare(this.edition.ordinal(), o.edition.ordinal());
-        } else {
-            return this.name.compareTo(o.name);
-        }
-    }
+    /**
+     * @return the {@link MinecraftEdition} that this version belongs to
+     */
+    MinecraftEdition edition();
 
-    @Override
-    public String toString() {
-        try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get()) {
-            StringBuilder builder = handle.get();
-            builder.setLength(0);
-            builder.append(this.edition).append(" Edition");
-            if (this.name == "Unknown") {
-                builder.append(" (unknown version)");
-            } else {
-                builder.append(' ').append('v').append(this.name);
-            }
-            if (this.snapshot) {
-                builder.append(" (snapshot)");
-            }
-            if (this.protocolVersion > 0 || this.dataVersion > 0) {
-                builder.append(' ').append('(');
-                if (this.protocolVersion > 0)   {
-                    builder.append("protocol").append(this.protocolVersion);
-                }
-                if (this.dataVersion > 0) {
-                    builder.append(this.protocolVersion > 0 ? ", data version " : "data version ").append(this.dataVersion);
-                }
-                builder.append(')');
-            }
-            return builder.toString();
-        }
-    }
+    /**
+     * @return this version's name (e.g. {@code "1.12.2"})
+     */
+    String name();
+
+    /**
+     * @return this version's data version, or {@code 0} if it is not known
+     */
+    int data();
+
+    /**
+     * @return this version's network protocol number, or {@code 0} if it is not known
+     */
+    int protocol();
+
+    /**
+     * @return whether or not this version is a snapshot/beta release
+     */
+    boolean snapshot();
 }

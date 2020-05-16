@@ -1,0 +1,132 @@
+[
+  {
+    "name": "1.15.2",
+    "protocol": 578,
+    "data": 2230
+  },
+  {
+    "name": "1.15.1",
+    "protocol": 575,
+    "data": 2227
+  },
+  {
+    "name": "1.15",
+    "protocol": 573,
+    "data": 2225
+  },
+  {
+    "name": "1.14.4",
+    "protocol": 498,
+    "data": 1976
+  },
+  {
+    "name": "1.14.3",
+    "protocol": 490,
+    "data": 1968
+  },
+  {
+    "name": "1.14.2",
+    "protocol": 485,
+    "data": 1963
+  },
+  {
+    "name": "1.14.1",
+    "protocol": 480,
+    "data": 1957
+  },
+  {
+    "name": "1.14",
+    "protocol": 477,
+    "data": 1952
+  },
+  {
+    "name": "1.13.2",
+    "protocol": 404,
+    "data": 1631
+  },
+  {
+    "name": "1.13.1",
+    "protocol": 401,
+    "data": 1628
+  },
+  {
+    "name": "1.13",
+    "protocol": 393,
+    "data": 1519
+  },
+  {
+    "name": "1.12.2",
+    "protocol": 340,
+    "data": 1343
+  },
+  {
+    "name": "1.12.1",
+    "protocol": 338,
+    "data": 1241
+  },
+  {
+    "name": "1.12",
+    "protocol": 335,
+    "data": 1139
+  },
+  {
+    "name": "1.11.2",
+    "protocol": 316,
+    "data": 2230
+  },
+  {
+    "name": "1.11.1",
+    "protocol": 578,
+    "data": 2230
+  },
+  {
+    "name": "1.11",
+    "protocol": 578,
+    "data": 2230
+  },
+  {
+    "name": "1.10.2",
+    "protocol": 210,
+    "data": 512
+  },
+  {
+    "name": "1.10.1",
+    "protocol": 210,
+    "data": 511
+  },
+  {
+    "name": "1.10",
+    "protocol": 210,
+    "data": 510
+  },
+  {
+    "name": "1.11.1",
+    "protocol": 578,
+    "data": 2230
+  },
+  {
+    "name": "1.9.4",
+    "protocol": 110,
+    "data": 184
+  },
+  {
+    "name": "1.9.3",
+    "protocol": 110,
+    "data": 183
+  },
+  {
+    "name": "1.9.2",
+    "protocol": 109,
+    "data": 176
+  },
+  {
+    "name": "1.9.1",
+    "protocol": 108,
+    "data": 175
+  },
+  {
+    "name": "1.9",
+    "protocol": 107,
+    "data": 169
+  }
+]

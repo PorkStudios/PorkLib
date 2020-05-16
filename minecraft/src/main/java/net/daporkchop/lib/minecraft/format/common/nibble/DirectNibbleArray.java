@@ -23,7 +23,9 @@ package net.daporkchop.lib.minecraft.format.common.nibble;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import lombok.NonNull;
+import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
 import net.daporkchop.lib.unsafe.PUnsafe;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 
@@ -32,7 +34,7 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  *
  * @author DaPorkchop_
  */
-public abstract class DirectNibbleArray implements NibbleArray {
+public abstract class DirectNibbleArray extends AbstractRefCounted implements NibbleArray {
     protected final long addr;
 
     protected final ByteBuf buf;
@@ -67,10 +69,21 @@ public abstract class DirectNibbleArray implements NibbleArray {
     public abstract NibbleArray clone();
 
     @Override
-    public void close() {
+    public NibbleArray retain() throws AlreadyReleasedException {
+        super.retain();
+        return this;
+    }
+
+    @Override
+    protected void doRelease() {
         this.buf.release();
     }
 
+    /**
+     * Direct memory-based {@link NibbleArray} implementation using the YZX coordinate order.
+     *
+     * @author DaPorkchop_
+     */
     public static final class YZX extends DirectNibbleArray {
         public YZX() {
             super();
@@ -103,6 +116,11 @@ public abstract class DirectNibbleArray implements NibbleArray {
         }
     }
 
+    /**
+     * Direct memory-based {@link NibbleArray} implementation using the XZY coordinate order.
+     *
+     * @author DaPorkchop_
+     */
     public static final class XZY extends DirectNibbleArray {
         public XZY() {
             super();

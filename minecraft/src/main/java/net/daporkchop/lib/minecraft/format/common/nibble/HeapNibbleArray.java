@@ -22,8 +22,10 @@ package net.daporkchop.lib.minecraft.format.common.nibble;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
+import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
 import net.daporkchop.lib.common.pool.array.ArrayHandle;
 import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.util.Arrays;
 
@@ -34,7 +36,7 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  *
  * @author DaPorkchop_
  */
-public abstract class HeapNibbleArray implements NibbleArray {
+public abstract class HeapNibbleArray extends AbstractRefCounted implements NibbleArray {
     protected final byte[] arr;
     protected final int offset;
 
@@ -42,20 +44,20 @@ public abstract class HeapNibbleArray implements NibbleArray {
     protected final ByteBuf buf;
 
     public HeapNibbleArray() {
-        this(new byte[2048], 0);
+        this(new byte[PACKED_SIZE], 0);
     }
 
     public HeapNibbleArray(@NonNull byte[] arr, int offset) {
-        checkRangeLen(arr.length, offset, MAX_INDEX >> 1);
+        checkRangeLen(arr.length, offset, PACKED_SIZE);
 
         this.arr = arr;
-        this.offset = notNegative(offset, "offset");
+        this.offset = offset;
         this.handle = null;
         this.buf = null;
     }
 
     public HeapNibbleArray(@NonNull Handle<byte[]> handle) {
-        checkRange(handle instanceof ArrayHandle ? ((ArrayHandle) handle).length() : handle.get().length, 0, MAX_INDEX >> 1);
+        checkRange(handle instanceof ArrayHandle ? ((ArrayHandle) handle).length() : handle.get().length, 0, PACKED_SIZE);
 
         this.arr = handle.retain().get();
         this.offset = 0;
@@ -65,7 +67,7 @@ public abstract class HeapNibbleArray implements NibbleArray {
 
     public HeapNibbleArray(@NonNull ByteBuf buf) {
         checkArg(buf.hasArray(), "buffer doesn't have an array!");
-        checkRangeLen(buf.capacity(), buf.readerIndex(), MAX_INDEX >> 1);
+        checkRangeLen(buf.capacity(), buf.readerIndex(), PACKED_SIZE);
 
         this.arr = buf.retain().array();
         this.offset = buf.arrayOffset() + buf.readerIndex();
@@ -90,7 +92,13 @@ public abstract class HeapNibbleArray implements NibbleArray {
     public abstract NibbleArray clone();
 
     @Override
-    public void close() {
+    public NibbleArray retain() throws AlreadyReleasedException {
+        super.retain();
+        return this;
+    }
+
+    @Override
+    protected void doRelease() {
         if (this.handle != null) {
             this.handle.release();
         }
@@ -99,6 +107,11 @@ public abstract class HeapNibbleArray implements NibbleArray {
         }
     }
 
+    /**
+     * Heap-based {@link NibbleArray} implementation using the YZX coordinate order.
+     *
+     * @author DaPorkchop_
+     */
     public static final class YZX extends HeapNibbleArray {
         public YZX() {
             super();
@@ -133,10 +146,15 @@ public abstract class HeapNibbleArray implements NibbleArray {
 
         @Override
         public NibbleArray clone() {
-            return new YZX(Arrays.copyOfRange(this.arr, this.offset, MAX_INDEX >> 1), 0);
+            return new YZX(Arrays.copyOfRange(this.arr, this.offset, this.offset + PACKED_SIZE), 0);
         }
     }
 
+    /**
+     * Heap-based {@link NibbleArray} implementation using the XZY coordinate order.
+     *
+     * @author DaPorkchop_
+     */
     public static final class XZY extends HeapNibbleArray {
         public XZY() {
             super();
@@ -171,7 +189,7 @@ public abstract class HeapNibbleArray implements NibbleArray {
 
         @Override
         public NibbleArray clone() {
-            return new XZY(Arrays.copyOfRange(this.arr, this.offset, MAX_INDEX >> 1), 0);
+            return new XZY(Arrays.copyOfRange(this.arr, this.offset, this.offset + PACKED_SIZE), 0);
         }
     }
 }

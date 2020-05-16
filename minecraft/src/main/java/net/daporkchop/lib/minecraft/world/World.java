@@ -36,7 +36,7 @@ import java.util.Collection;
  *
  * @author DaPorkchop_
  */
-public interface World extends BlockAccess, RefCounted {
+public interface World extends BlockAccess, LightAccess, RefCounted {
     /**
      * @return the {@link Save} that loaded this world
      */

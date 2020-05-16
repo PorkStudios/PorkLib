@@ -18,33 +18,33 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.anvil;
+package net.daporkchop.lib.minecraft.save.codec;
 
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.format.common.AbstractSave;
-import net.daporkchop.lib.minecraft.registry.DimensionRegistry;
-import net.daporkchop.lib.minecraft.save.SaveOptions;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
-import java.io.File;
-
 /**
+ * Encodes/decodes a Minecraft object to/from its {@link CompoundTag} form.
+ * <p>
+ * Implementations must be stateless and therefore thread-safe.
+ *
  * @author DaPorkchop_
  */
-public class AnvilSave extends AbstractSave<AnvilSaveOptions> {
-    public AnvilSave(@NonNull File root, @NonNull SaveOptions options, @NonNull CompoundTag levelData) {
-        super(root, options, levelData);
-    }
+public interface MinecraftCodec<V> {
+    /**
+     * Decodes the given value.
+     *
+     * @param tag         the encoded value data
+     * @param dataVersion the data version that the value is encoded with, or {@code 0} if it is unknown
+     * @return the decoded value
+     */
+    V decode(@NonNull CompoundTag tag, int dataVersion);
 
-    @Override
-    protected AnvilSaveOptions processOptions(@NonNull SaveOptions options) {
-        return options instanceof AnvilSaveOptions
-               ? (AnvilSaveOptions) options.clone()
-               : new AnvilSaveOptions().access(options.access()).ioExecutor(options.ioExecutor());
-    }
-
-    @Override
-    protected DimensionRegistry findDimensions() {
-        return DimensionRegistry.DEFAULT_JAVA; //TODO: find actual dimensions
-    }
+    /**
+     * Encodes the given value.
+     *
+     * @param value the value to encode
+     * @return the encoded value data, along with its data version (if applicable)
+     */
+    EncodedObject encode(@NonNull V value);
 }

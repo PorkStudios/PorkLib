@@ -21,33 +21,40 @@
 package net.daporkchop.lib.minecraft.format.common.nibble;
 
 import net.daporkchop.lib.common.misc.Cloneable;
+import net.daporkchop.lib.common.misc.refcount.RefCounted;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
-import static net.daporkchop.lib.common.util.PValidation.checkIndex;
+import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
  * A 16³ array of nibbles (4-bit integers).
- * <p>
- * Warning: this class is not reference-counted, and doesn't have safety checks to see if it was closed. Accessing a closed {@link NibbleArray} can cause
- * exceptions or even segfaults.
  *
  * @author DaPorkchop_
  */
-public interface NibbleArray extends Cloneable<NibbleArray>, AutoCloseable {
-    int MAX_INDEX = 16 * 16 * 16; //the size of a nibble array in bytes
+public interface NibbleArray extends Cloneable<NibbleArray>, RefCounted {
+    /**
+     * The number of nibbles in a single nibble array.
+     */
+    int MAX_INDEX = 16 * 16 * 16;
 
-    static void checkCoords(int x, int y, int z)    {
+    /**
+     * The size, in bytes, of a packed nibble array.
+     */
+    int PACKED_SIZE = MAX_INDEX >> 1;
+
+    static void checkCoords(int x, int y, int z) {
         checkIndex(x >= 0 && x < 16, "x");
         checkIndex(y >= 0 && y < 16, "y");
         checkIndex(z >= 0 && z < 16, "z");
     }
 
-    static int extractNibble(int index, int value)  {
+    static int extractNibble(int index, int value) {
         //this adds some extra shifts, but look! no branches!
         //as a result this should (in theory) be quite a lot faster
         return (value >> ((index & 1) << 2)) & 0xF;
     }
 
-    static int insertNibble(int index, int existing, int value)  {
+    static int insertNibble(int index, int existing, int value) {
         int shift = (index & 1) << 2;
         return (existing & ~(0xF << shift)) | (value << shift);
     }
@@ -96,5 +103,11 @@ public interface NibbleArray extends Cloneable<NibbleArray>, AutoCloseable {
     NibbleArray clone();
 
     @Override
-    void close();
+    int refCnt();
+
+    @Override
+    NibbleArray retain() throws AlreadyReleasedException;
+
+    @Override
+    boolean release() throws AlreadyReleasedException;
 }

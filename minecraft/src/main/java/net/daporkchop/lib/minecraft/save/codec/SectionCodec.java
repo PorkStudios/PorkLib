@@ -18,33 +18,22 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.anvil;
+package net.daporkchop.lib.minecraft.save.codec;
 
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.format.common.AbstractSave;
-import net.daporkchop.lib.minecraft.registry.DimensionRegistry;
-import net.daporkchop.lib.minecraft.save.SaveOptions;
+import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
-import java.io.File;
-
 /**
+ * Encodes/decodes a {@link Section} to/from its {@link CompoundTag} form.
+ *
  * @author DaPorkchop_
+ * @see MinecraftCodec
  */
-public class AnvilSave extends AbstractSave<AnvilSaveOptions> {
-    public AnvilSave(@NonNull File root, @NonNull SaveOptions options, @NonNull CompoundTag levelData) {
-        super(root, options, levelData);
-    }
+public interface SectionCodec extends MinecraftCodec<Section> {
+    @Override
+    Section decode(@NonNull CompoundTag tag, int dataVersion);
 
     @Override
-    protected AnvilSaveOptions processOptions(@NonNull SaveOptions options) {
-        return options instanceof AnvilSaveOptions
-               ? (AnvilSaveOptions) options.clone()
-               : new AnvilSaveOptions().access(options.access()).ioExecutor(options.ioExecutor());
-    }
-
-    @Override
-    protected DimensionRegistry findDimensions() {
-        return DimensionRegistry.DEFAULT_JAVA; //TODO: find actual dimensions
-    }
+    EncodedObject encode(@NonNull Section section);
 }

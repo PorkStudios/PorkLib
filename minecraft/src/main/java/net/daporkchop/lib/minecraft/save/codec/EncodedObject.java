@@ -18,33 +18,28 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.anvil;
+package net.daporkchop.lib.minecraft.save.codec;
 
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.format.common.AbstractSave;
-import net.daporkchop.lib.minecraft.registry.DimensionRegistry;
-import net.daporkchop.lib.minecraft.save.SaveOptions;
-import net.daporkchop.lib.nbt.tag.CompoundTag;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.nbt.tag.Tag;
 
-import java.io.File;
+import static java.lang.Math.*;
 
 /**
+ * Wrapper around an encoded value, allowing codecs to specify the data version that an object was encoded with.
+ *
  * @author DaPorkchop_
  */
-public class AnvilSave extends AbstractSave<AnvilSaveOptions> {
-    public AnvilSave(@NonNull File root, @NonNull SaveOptions options, @NonNull CompoundTag levelData) {
-        super(root, options, levelData);
-    }
+@Getter
+@Accessors(fluent = true)
+public final class EncodedObject {
+    protected final Tag value;
+    protected final int dataVersion;
 
-    @Override
-    protected AnvilSaveOptions processOptions(@NonNull SaveOptions options) {
-        return options instanceof AnvilSaveOptions
-               ? (AnvilSaveOptions) options.clone()
-               : new AnvilSaveOptions().access(options.access()).ioExecutor(options.ioExecutor());
-    }
-
-    @Override
-    protected DimensionRegistry findDimensions() {
-        return DimensionRegistry.DEFAULT_JAVA; //TODO: find actual dimensions
+    public EncodedObject(@NonNull Tag value, int dataVersion) {
+        this.value = value;
+        this.dataVersion = max(dataVersion, 0);
     }
 }

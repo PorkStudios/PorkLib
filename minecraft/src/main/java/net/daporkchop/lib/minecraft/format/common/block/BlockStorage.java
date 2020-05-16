@@ -18,64 +18,38 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.world;
+package net.daporkchop.lib.minecraft.format.common.block;
 
+import net.daporkchop.lib.common.misc.Cloneable;
 import net.daporkchop.lib.common.misc.refcount.RefCounted;
-import net.daporkchop.lib.math.access.IntHolderXYZ;
-import net.daporkchop.lib.minecraft.format.common.block.BlockStorage;
-import net.daporkchop.lib.minecraft.format.common.nibble.NibbleArray;
+import net.daporkchop.lib.minecraft.world.BlockAccess;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
+import static net.daporkchop.lib.common.util.PValidation.*;
+
 /**
- * Representation of a Minecraft chunk section, consisting of a 16³ volume of blocks, along with light levels for block and (optionally) sky light.
+ * A 16³ array of block states.
  *
  * @author DaPorkchop_
+ * @see net.daporkchop.lib.minecraft.registry.BlockRegistry
  */
-public interface Section extends BlockAccess, LightAccess, IntHolderXYZ, RefCounted {
+public interface BlockStorage extends BlockAccess, Cloneable<BlockStorage>, RefCounted {
     /**
-     * @return the {@link Chunk} that loaded this section
+     * The number of blocks in a single block storage.
      */
-    Chunk parent();
+    int NUM_BLOCKS = 16 * 16 * 16;
 
-    /**
-     * @return this section's X coordinate
-     */
-    @Override
-    int x();
-
-    /**
-     * @return this section's Y coordinate
-     */
-    @Override
-    int y();
-
-    /**
-     * @return this section's Z coordinate
-     */
-    @Override
-    int z();
-
-    /**
-     * @return the {@link BlockStorage} used by this section for storing block data
-     */
-    BlockStorage blockStorage();
-
-    /**
-     * @return the {@link NibbleArray} used by this section for storing block light data
-     */
-    NibbleArray blockLightStorage();
-
-    /**
-     * @return the {@link NibbleArray} used by this section for storing sky light data
-     * @throws UnsupportedOperationException if this section does not have sky light (see {@link #hasSkyLight()})
-     */
-    NibbleArray skyLightStorage();
+    static void checkCoords(int x, int y, int z) {
+        checkIndex(x >= 0 && x < 16, "x");
+        checkIndex(y >= 0 && y < 16, "y");
+        checkIndex(z >= 0 && z < 16, "z");
+    }
 
     @Override
     int refCnt();
 
     @Override
-    Section retain() throws AlreadyReleasedException;
+    BlockStorage retain() throws AlreadyReleasedException;
 
     @Override
     boolean release() throws AlreadyReleasedException;

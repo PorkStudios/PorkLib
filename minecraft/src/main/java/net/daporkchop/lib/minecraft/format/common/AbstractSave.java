@@ -24,19 +24,17 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
-import net.daporkchop.lib.common.misc.refcount.RefCounted;
 import net.daporkchop.lib.concurrent.PFuture;
+import net.daporkchop.lib.minecraft.registry.BlockRegistry;
 import net.daporkchop.lib.minecraft.registry.DimensionRegistry;
 import net.daporkchop.lib.minecraft.save.Save;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
 import net.daporkchop.lib.minecraft.util.Identifier;
-import net.daporkchop.lib.minecraft.version.MinecraftVersion;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.File;
-import java.nio.file.Path;
 import java.util.Collection;
 
 /**
@@ -50,23 +48,22 @@ public abstract class AbstractSave<O extends SaveOptions> extends AbstractRefCou
     protected final O options;
     protected final CompoundTag levelData;
     protected final File root;
-    protected final MinecraftVersion version;
 
-    public AbstractSave(@NonNull File root, @NonNull SaveOptions options, @NonNull CompoundTag levelData)   {
+    protected final DimensionRegistry dimensions;
+
+    protected final BlockRegistry blocks;
+
+    public AbstractSave(@NonNull File root, @NonNull SaveOptions options, @NonNull CompoundTag levelData) {
         this.levelData = levelData;
         this.root = root;
         this.options = this.processOptions(options);
-        this.version = this.getVersion();
+
+        this.dimensions = this.findDimensions();
     }
 
     protected abstract O processOptions(@NonNull SaveOptions options);
 
-    protected abstract MinecraftVersion getVersion();
-
-    @Override
-    public DimensionRegistry dimensions() {
-        return null;
-    }
+    protected abstract DimensionRegistry findDimensions();
 
     @Override
     public Collection<World> loadedWorlds() {

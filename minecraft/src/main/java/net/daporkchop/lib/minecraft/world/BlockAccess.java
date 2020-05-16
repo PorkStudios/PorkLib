@@ -25,7 +25,7 @@ import net.daporkchop.lib.minecraft.registry.BlockRegistry;
 import net.daporkchop.lib.minecraft.util.Identifier;
 
 /**
- * Provides access to block and light data at given coordinates.
+ * Provides access to block data at given coordinates.
  *
  * @author DaPorkchop_
  */
@@ -38,6 +38,8 @@ public interface BlockAccess {
     /**
      * Gets the number of block layers that can be accessed.
      * <p>
+     * Attempting to access a block layer outside of the range inclusive range {@code 0} to {@code layers() - 1} will throw {@link IndexOutOfBoundsException}.
+     * <p>
      * This doesn't necessarily mean that there are this many block layers everywhere in the world. Rather, it should be considered an upper bound on
      * the number of block layers. Attempting to get block information in a non-existent layer will simply return air, and setting in a non-existent
      * layer will result in a new layer being allocated.
@@ -47,16 +49,6 @@ public interface BlockAccess {
      * @return the number of block layers that can be accessed
      */
     int layers();
-
-    /**
-     * Checks whether or not this {@link BlockAccess} contains sky light.
-     * <p>
-     * If {@code false}, {@link #getSkyLight(int, int, int)} will always return {@code 0} and {@link #setSkyLight(int, int, int, int)} will always
-     * throw {@link UnsupportedOperationException}.
-     *
-     * @return whether or not this {@link BlockAccess} contains sky light
-     */
-    boolean hasSkyLight();
 
     //
     //
@@ -168,26 +160,6 @@ public interface BlockAccess {
      * @return the runtime ID of the block
      */
     int getBlockRuntimeId(int x, int y, int z, int layer);
-
-    /**
-     * Gets the block light level at the given coordinates.
-     *
-     * @param x the X coordinate to get the light level at
-     * @param y the Y coordinate to get the light level at
-     * @param z the Z coordinate to get the light level at
-     * @return the block light level
-     */
-    int getBlockLight(int x, int y, int z);
-
-    /**
-     * Gets the sky light level at the given coordinates.
-     *
-     * @param x the X coordinate to get the light level at
-     * @param y the Y coordinate to get the light level at
-     * @param z the Z coordinate to get the light level at
-     * @return the sky light level
-     */
-    int getSkyLight(int x, int y, int z);
 
     //
     //
@@ -363,24 +335,4 @@ public interface BlockAccess {
      * @param runtimeId the new runtime ID
      */
     void setBlockRuntimeId(int x, int y, int z, int layer, int runtimeId);
-
-    /**
-     * Sets the block light level at the given coordinates.
-     *
-     * @param x     the X coordinate to set the light level at
-     * @param y     the Y coordinate to set the light level at
-     * @param z     the Z coordinate to set the light level at
-     * @param level the new block light level
-     */
-    void setBlockLight(int x, int y, int z, int level);
-
-    /**
-     * Sets the sky light level at the given coordinates.
-     *
-     * @param x     the X coordinate to set the light level at
-     * @param y     the Y coordinate to set the light level at
-     * @param z     the Z coordinate to set the light level at
-     * @param level the new sky light level
-     */
-    void setSkyLight(int x, int y, int z, int level);
 }

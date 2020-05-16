@@ -37,7 +37,7 @@ import java.util.Collection;
  *
  * @author DaPorkchop_
  */
-public interface Chunk extends BlockAccess, IntHolderXZ, RefCounted {
+public interface Chunk extends BlockAccess, LightAccess, IntHolderXZ, RefCounted {
     /**
      * @return the {@link World} that loaded this chunk
      */

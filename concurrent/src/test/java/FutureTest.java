@@ -23,7 +23,12 @@ import net.daporkchop.lib.concurrent.PFuture;
 import net.daporkchop.lib.concurrent.PFutures;
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ForkJoinPool;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static net.daporkchop.lib.common.util.PorkUtil.*;
 
@@ -35,17 +40,17 @@ public class FutureTest {
     public void test() {
         System.out.println("Starting...");
         PFuture<String> a = PFutures.wrap(GlobalEventExecutor.INSTANCE.submit(() -> {
-            sleep(5000L);
+            sleep(2000L);
             System.out.println("A");
             return "Hello ";
         }));
         PFuture<String> b = PFutures.wrap(CompletableFuture.supplyAsync(() -> {
-            sleep(4000L);
+            sleep(1000L);
             System.out.println("B");
             return "World";
         }));
         PFuture<String> c = PFutures.computeAsync(() -> {
-            sleep(5000L);
+            sleep(2000L);
             System.out.println("C");
             return "!";
         });
@@ -54,5 +59,19 @@ public class FutureTest {
                 .thenCombine(c, String::concat)
                 .thenAccept(System.out::println)
                 .awaitUninterruptibly();
+    }
+
+    @Test
+    public void testList()  {
+        List<String> initialValues = Arrays.asList("A", "B", "C");
+        List<String> list = PFutures.mergeToList(initialValues.stream()
+                .map(s -> (Supplier<String>) () -> {
+                    sleep(1000L);
+                    return s;
+                })
+                .map(PFutures::computeAsync)
+                .collect(Collectors.toList()))
+                .join();
+        System.out.println(list);
     }
 }

@@ -70,11 +70,7 @@ public interface WorldProvider extends RefCounted {
     /**
      * Saves the given {@link Chunk}.
      * <p>
-     * The exact behavior of this method is left mostly up to the implementation. Some implementations may choose to make this method encode the chunk
-     * and write the chunk to disk, blocking until the operation is complete, while others may attempt to queue blocking I/O operations to be executed
-     * asynchronously. The only constraint is that the chunk's dirty flag must be reset as soon as possible, before the return of this method, which
-     * means that if the saving is going to be done asynchronously, the implementation is required to make some kind of snapshot of the chunk data
-     * first.
+     * This method will block until the given chunk has been completely written to disk.
      *
      * @param chunk the {@link Chunk} to save
      */
@@ -83,11 +79,7 @@ public interface WorldProvider extends RefCounted {
     /**
      * Saves the given {@link Section}.
      * <p>
-     * The exact behavior of this method is left mostly up to the implementation. Some implementations may choose to make this method encode the section
-     * and write the section to disk, blocking until the operation is complete, while others may attempt to queue blocking I/O operations to be executed
-     * asynchronously. The only constraint is that the section's dirty flag must be reset as soon as possible, before the return of this method, which
-     * means that if the saving is going to be done asynchronously, the implementation is required to make some kind of snapshot of the section data
-     * first.
+     * This method will block until the given section has been completely written to disk.
      *
      * @param section the {@link Section} to save
      */

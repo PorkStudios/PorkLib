@@ -170,7 +170,10 @@ public abstract class AbstractRegionFile implements RegionFile {
         try {
             this.assertOpen();
 
-            return Integer.toUnsignedLong(this.headersBuf().getInt(RegionConstants.getTimestampIndex(x, z))) * 1000L;
+            ByteBuf headers = this.headersBuf();
+            return headers.getInt(getOffsetIndex(x, z)) != 0
+                   ? Integer.toUnsignedLong(headers.getInt(RegionConstants.getTimestampIndex(x, z))) * 1000L
+                   : -1L;
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
@@ -210,13 +213,15 @@ public abstract class AbstractRegionFile implements RegionFile {
     protected abstract void doFlush() throws IOException;
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         this.writeLock.lock();
         try {
             this.assertOpen();
 
             this.doClose();
             this.channel.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         } finally {
             this.writeLock.unlock();
         }

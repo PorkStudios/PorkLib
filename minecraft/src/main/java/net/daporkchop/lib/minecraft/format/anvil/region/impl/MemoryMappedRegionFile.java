@@ -89,5 +89,6 @@ public final class MemoryMappedRegionFile extends AbstractRegionFile {
     @Override
     protected void doClose() throws IOException {
         this.buf.release();
+        this.channel.close();
     }
 }

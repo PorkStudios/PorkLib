@@ -51,7 +51,7 @@ public abstract class AbstractSave<O extends SaveOptions> extends AbstractRefCou
 
     protected final DimensionRegistry dimensions;
 
-    protected final BlockRegistry blocks;
+    //protected final BlockRegistry blocks;
 
     public AbstractSave(@NonNull File root, @NonNull SaveOptions options, @NonNull CompoundTag levelData) {
         this.levelData = levelData;

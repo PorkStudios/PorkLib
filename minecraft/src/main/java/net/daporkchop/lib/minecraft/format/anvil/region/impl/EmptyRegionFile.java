@@ -90,17 +90,7 @@ public final class EmptyRegionFile implements RegionFile {
     }
 
     @Override
-    public int refCnt() {
-        return 1;
-    }
-
-    @Override
-    public RegionFile retain() throws AlreadyReleasedException {
-        return this;
-    }
-
-    @Override
-    public boolean release() throws AlreadyReleasedException {
-        return false;
+    public void close() throws IOException {
+        //no-op
     }
 }

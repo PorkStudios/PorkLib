@@ -18,8 +18,17 @@
  *
  */
 
-dependencies {
-    compile project(":concurrent")
-    compile project(":math")
-    compile project(":primitive:primitive-lambda")
+package net.daporkchop.lib.math.access;
+
+/**
+ * Common interface for types with two coordinates.
+ *
+ * @author DaPorkchop_
+ */
+public interface BiIntHolder {
+    /**
+     * @return both of the object's coordinates, packed into a single {@code long}
+     * @see net.daporkchop.lib.common.math.BinMath#packIntsToLong(int, int)
+     */
+    long packedCoords();
 }

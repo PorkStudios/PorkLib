@@ -18,10 +18,11 @@
  *
  */
 
-package net.daporkchop.lib.collections.map;
+package net.daporkchop.lib.collections.map.cache;
 
 import io.netty.util.concurrent.Future;
 import lombok.NonNull;
+import net.daporkchop.lib.concurrent.PFuture;
 
 import java.util.Map;
 
@@ -33,8 +34,8 @@ import java.util.Map;
  *
  * @author DaPorkchop_
  */
-public interface Cache<K, V> extends Map<K, Future<V>> {
+public interface Cache<K, V> extends Map<K, PFuture<V>> {
     default V getNow(@NonNull K key) {
-        return this.get(key).syncUninterruptibly().get();
+        return this.get(key).syncUninterruptibly().getNow();
     }
 }

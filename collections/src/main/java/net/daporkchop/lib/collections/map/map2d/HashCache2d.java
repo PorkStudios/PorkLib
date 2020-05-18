@@ -24,6 +24,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.math.BinMath;
+import net.daporkchop.lib.common.math.PMath;
 import net.daporkchop.lib.primitive.lambda.consumer.IntIntConsumer;
 import net.daporkchop.lib.primitive.lambda.consumer.IntIntObjConsumer;
 import net.daporkchop.lib.primitive.lambda.function.IntIntObjFunction;
@@ -44,14 +45,14 @@ import static net.daporkchop.lib.common.math.BinMath.*;
  * @author DaPorkchop_
  */
 @Accessors(fluent = true)
-public class CachingMap2d<V> implements Map2d<V> {
+public class HashCache2d<V> implements Map2d<V> {
     protected final long[]   keys;
     protected final Object[] values;
     protected final int      mask;
     @Getter
     protected       int      size;
 
-    public CachingMap2d(int maxSize) {
+    public HashCache2d(int maxSize) {
         if (!BinMath.isPow2(maxSize)) {
             throw new IllegalArgumentException(String.valueOf(maxSize));
         }
@@ -180,8 +181,7 @@ public class CachingMap2d<V> implements Map2d<V> {
     }
 
     protected int mix(long z) {
-        z = (z ^ (z >>> 33)) * 0xff51afd7ed558ccdL;
-        return (int) (((z ^ (z >>> 33)) * 0xc4ceb9fe1a85ec53L) >>> 32);
+        return PMath.mix32(z);
     }
 
     protected void onEvicted(int x, int y, @NonNull V value) {

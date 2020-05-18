@@ -21,7 +21,7 @@
 package collections;
 
 import lombok.NonNull;
-import net.daporkchop.lib.collections.map.map2d.CachingMap2d;
+import net.daporkchop.lib.collections.map.map2d.HashCache2d;
 import net.daporkchop.lib.collections.map.map2d.Map2d;
 import net.daporkchop.lib.math.vector.i.Vec2i;
 import org.junit.Test;
@@ -36,7 +36,7 @@ public class CachingMap2dTest {
     @Test
     public void test()  {
         Collection<Vec2i> evictedPositions = new HashSet<>();
-        Map2d<String> map = new CachingMap2d<String>(256) {
+        Map2d<String> map = new HashCache2d<String>(256) {
             @Override
             protected void onEvicted(int x, int y, @NonNull String value) {
                 if (!evictedPositions.add(new Vec2i(x, y))) {

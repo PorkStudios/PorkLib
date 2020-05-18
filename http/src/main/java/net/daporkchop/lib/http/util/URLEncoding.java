@@ -58,7 +58,7 @@ public class URLEncoding {
 
     public String encode(@NonNull CharSequence text, boolean preserveSlash) {
         try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get())  {
-            StringBuilder builder = handle.value();
+            StringBuilder builder = handle.get();
             builder.setLength(0);
             encode(builder, text, preserveSlash);
             return builder.toString();
@@ -127,7 +127,7 @@ public class URLEncoding {
 
     public String decode(@NonNull CharSequence text) throws HttpException {
         try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get())  {
-            StringBuilder builder = handle.value();
+            StringBuilder builder = handle.get();
             builder.setLength(0);
             decode(builder, text);
             return builder.toString();

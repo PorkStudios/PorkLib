@@ -133,6 +133,7 @@ public class PlatformInfo {
         UNALIGNED = unaligned;
     }
 
+    public final ByteOrder BYTE_ORDER = ByteOrder.nativeOrder();
     public final boolean IS_LITTLE_ENDIAN = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN;
     public final boolean IS_BIG_ENDIAN    = ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN;
 }

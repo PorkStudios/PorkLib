@@ -24,7 +24,7 @@ import net.daporkchop.lib.unsafe.capability.DirectMemoryHolder;
 import net.daporkchop.lib.unsafe.PUnsafe;
 import net.daporkchop.lib.math.grid.Grid2d;
 
-import static net.daporkchop.lib.math.primitive.PMath.*;
+import static net.daporkchop.lib.common.math.PMath.*;
 
 /**
  * @author DaPorkchop_

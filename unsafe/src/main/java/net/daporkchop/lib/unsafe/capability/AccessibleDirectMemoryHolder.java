@@ -26,6 +26,7 @@ package net.daporkchop.lib.unsafe.capability;
  *
  * @author DaPorkchop_
  */
+@Deprecated
 public interface AccessibleDirectMemoryHolder extends DirectMemoryHolder {
     /**
      * @return an object (possibly {@code null}) that is used as a relative reference

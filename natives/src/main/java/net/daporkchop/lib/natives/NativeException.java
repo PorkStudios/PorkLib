@@ -30,8 +30,14 @@ import lombok.experimental.Accessors;
  */
 @Getter
 @Accessors(fluent = true)
-public class NativeException extends RuntimeException {
+public final class NativeException extends RuntimeException {
     protected final long code;
+
+    public NativeException(long code) {
+        super();
+
+        this.code = code;
+    }
 
     public NativeException(String message) {
         this(message, 0L);

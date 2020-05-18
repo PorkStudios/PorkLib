@@ -23,7 +23,7 @@ package net.daporkchop.lib.encoding;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
-import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.common.util.PValidation;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -58,7 +58,7 @@ public class Hexadecimal {
     }
 
     public String encode(@NonNull byte[] data, int from, int length) throws IndexOutOfBoundsException {
-        PorkUtil.assertInRangeLen(data.length, from, length);
+        PValidation.checkRangeLen(data.length, from, length);
         char[] newText = new char[length << 1];
         for (int i = 0; i < length; i++) {
             byte b = data[i + from];
@@ -74,7 +74,7 @@ public class Hexadecimal {
     }
 
     public void encode(@NonNull StringBuilder to, @NonNull byte[] data, int from, int length) throws IndexOutOfBoundsException {
-        PorkUtil.assertInRangeLen(data.length, from, length);
+        PValidation.checkRangeLen(data.length, from, length);
         to.ensureCapacity(length << 1);
         for (int i = 0; i < length; i++)    {
             byte b = data[i + from];
@@ -91,7 +91,7 @@ public class Hexadecimal {
     }
 
     public void encode(@NonNull Appendable dst, @NonNull byte[] data, int from, int length) throws IOException, IndexOutOfBoundsException {
-        PorkUtil.assertInRangeLen(data.length, from, length);
+        PValidation.checkRangeLen(data.length, from, length);
         for (int i = 0; i < length; i++)    {
             byte b = data[i + from];
             dst.append(ALPHABET[(b >>> 4) & 0xF]).append(ALPHABET[b & 0xF]);

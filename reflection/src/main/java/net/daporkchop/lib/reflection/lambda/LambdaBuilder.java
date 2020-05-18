@@ -28,8 +28,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.function.throwing.EFunction;
-import net.daporkchop.lib.unsafe.PUnsafe;
 import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.lang.invoke.CallSite;
 import java.lang.invoke.LambdaMetafactory;
@@ -220,7 +220,8 @@ public class LambdaBuilder<T> {
         }
 
         try {
-            MethodHandles.Lookup lookup = LOOKUP_CREATOR.apply(this.interfaceClass);
+            //MethodHandles.Lookup lookup = LOOKUP_CREATOR.apply(this.interfaceClass);
+            MethodHandles.Lookup lookup = LOOKUP_CREATOR.apply(this.methodHolder);
 
             //get method parameters
             Class<?>[] targetParams = this.params.stream().map(param -> param.isTargetGeneric() ? Object.class : param.getType()).toArray(Class[]::new);
@@ -248,8 +249,12 @@ public class LambdaBuilder<T> {
             MethodType targetType;
             MethodType interfaceType;
             try {
-                targetType = MethodType.methodType(this.returnType.isTargetGeneric() ? Object.class : this.returnType.getType(), targetParams);
+                //targetType = MethodType.methodType(this.returnType.isTargetGeneric() ? Object.class : this.returnType.getType(), targetParams);
                 targetHandle = lookup.unreflect(targetMethod);
+                targetType = targetHandle.type();
+                /*targetHandle = this.methodStatic
+                        ? lookup.findStatic(this.methodHolder, this.methodName, targetType)
+                        : lookup.findSpecial(this.methodHolder, this.methodName, targetType);*/
                 interfaceType = MethodType.methodType(this.returnType.isInterfaceGeneric() ? Object.class : this.returnType.getType(), interfaceParams);
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
@@ -262,9 +267,9 @@ public class LambdaBuilder<T> {
                         lookup,
                         interfaceMethod.getName(),
                         MethodType.methodType(this.interfaceClass),
-                        targetType,
+                        interfaceType,
                         targetHandle,
-                        interfaceType
+                        targetType
                 );
                 MethodHandle target = site.getTarget();
                 return (T) target.invoke();

@@ -20,94 +20,138 @@
 
 package net.daporkchop.lib.nbt.tag;
 
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.nbt.NBTInputStream;
-import net.daporkchop.lib.nbt.NBTOutputStream;
-import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
-import net.daporkchop.lib.nbt.tag.notch.ListTag;
-import net.daporkchop.lib.unsafe.capability.Releasable;
+import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
+import net.daporkchop.lib.common.misc.string.PStrings;
+import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.nbt.NBTOptions;
+import net.daporkchop.lib.primitive.map.ObjByteMap;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.Map;
+
+import static net.daporkchop.lib.common.util.PorkUtil.*;
 
 /**
- * Represents an NBT tag.
+ * Base class for all NBT tags.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-public abstract class Tag implements Releasable {
-    /**
-     * The name of this tag.
-     * <p>
-     * This will never be {@code null} unless this is an element of a {@link ListTag} or the root {@link CompoundTag}.
-     */
-    private final String name;
+public abstract class Tag<T extends Tag<T>> extends AbstractRefCounted {
+    public static final Map<Class<? extends Tag>, Integer> CLASS_TO_ID;
 
-    /**
-     * Gets and casts this tag to a specific tag type
-     *
-     * @param <T> the type to cast to
-     * @return this tag casted to the given type
-     */
-    @SuppressWarnings("unchecked")
-    public <T extends Tag> T getAs() {
-        return (T) this;
+    public static final int TAG_END = 0;
+    public static final int TAG_BYTE = 1;
+    public static final int TAG_SHORT = 2;
+    public static final int TAG_INT = 3;
+    public static final int TAG_LONG = 4;
+    public static final int TAG_FLOAT = 5;
+    public static final int TAG_DOUBLE = 6;
+    public static final int TAG_ARRAY_BYTE = 7;
+    public static final int TAG_STRING = 8;
+    public static final int TAG_LIST = 9;
+    public static final int TAG_COMPOUND = 10;
+    public static final int TAG_ARRAY_INT = 11;
+    public static final int TAG_ARRAY_LONG = 12;
+
+    static {
+        Map<Class<? extends Tag>, Integer> map = new IdentityHashMap<>();
+        map.put(ByteTag.class, TAG_BYTE);
+        map.put(ShortTag.class, TAG_SHORT);
+        map.put(IntTag.class, TAG_INT);
+        map.put(LongTag.class, TAG_LONG);
+        map.put(FloatTag.class, TAG_FLOAT);
+        map.put(DoubleTag.class, TAG_DOUBLE);
+        map.put(ByteArrayTag.class, TAG_ARRAY_BYTE);
+        map.put(StringTag.class, TAG_STRING);
+        map.put(ListTag.class, TAG_LIST);
+        map.put(CompoundTag.class, TAG_COMPOUND);
+        map.put(IntArrayTag.class, TAG_ARRAY_INT);
+        map.put(LongArrayTag.class, TAG_ARRAY_LONG);
+
+        CLASS_TO_ID = Collections.unmodifiableMap(map);
     }
 
-    /**
-     * Gets this tag as a {@link CompoundTag}
-     *
-     * @return this tag as a {@link CompoundTag}
-     */
-    public CompoundTag getAsCompoundTag() {
-        return this.getAs();
+    @SuppressWarnings("deprecation")
+    static Tag read(DataIn in, NBTOptions options, int id) throws IOException {
+        switch (id) {
+            case TAG_BYTE:
+                return new ByteTag(in);
+            case TAG_SHORT:
+                return new ShortTag(in);
+            case TAG_INT:
+                return new IntTag(in);
+            case TAG_LONG:
+                return new LongTag(in);
+            case TAG_FLOAT:
+                return new FloatTag(in);
+            case TAG_DOUBLE:
+                return new DoubleTag(in);
+            case TAG_ARRAY_BYTE:
+                return new ByteArrayTag(in, options);
+            case TAG_STRING:
+                return new StringTag(in);
+            case TAG_LIST:
+                return new ListTag(in, options, null);
+            case TAG_COMPOUND:
+                return new CompoundTag(in, options, null);
+            case TAG_ARRAY_INT:
+                return new IntArrayTag(in, options);
+            case TAG_ARRAY_LONG:
+                return new LongArrayTag(in, options);
+            default:
+                throw new IllegalArgumentException("Unknown tag id: " + id);
+        }
     }
 
-    /**
-     * Gets this tag as a {@link ListTag}
-     *
-     * @param <T> the type of tag contained in the list
-     * @return this tag as a {@link ListTag}
-     */
-    public <T extends Tag> ListTag<T> getAsList() {
-        return this.getAs();
-    }
+    public abstract void write(@NonNull DataOut out) throws IOException;
 
-    /**
-     * Reads this tag from a stream
-     *
-     * @param in       the input stream to read from
-     * @param registry the registry of NBT tag ids
-     * @throws IOException if an IO exception occurs you dummy
-     */
-    public abstract void read(@NonNull NBTInputStream in, @NonNull TagRegistry registry) throws IOException;
+    public abstract int id();
 
-    /**
-     * Writes this tag to a stream
-     *
-     * @param out      the output stream to write to
-     * @param registry the registry of NBT tag ids
-     * @throws IOException if an IO exception occurs you dummy
-     */
-    public abstract void write(@NonNull NBTOutputStream out, @NonNull TagRegistry registry) throws IOException;
+    public abstract String typeName();
 
     @Override
-    public abstract String toString();
+    public T retain() throws AlreadyReleasedException {
+        super.retain();
+        return uncheckedCast(this);
+    }
 
-    /**
-     * Releases this {@link Tag}, along with any children it may have.
-     * <p>
-     * This method is not required to be called, and tags should be able to be left for the garbage collector without any concern, however releasing
-     * them manually may be beneficial for performance.
-     *
-     * @throws AlreadyReleasedException if this {@link Tag} was already released and the implementation of {@link #release()} is not no-op
-     */
     @Override
-    public void release() throws AlreadyReleasedException {
-        //no-op
+    protected void doRelease() {
+        //do nothing by default, only a few tags actually have any releasing to do
+    }
+
+    @Override
+    public abstract int hashCode();
+
+    @Override
+    public abstract boolean equals(Object obj);
+
+    @Override
+    public String toString() {
+        try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get()) {
+            StringBuilder builder = handle.get();
+            builder.setLength(0);
+            this.toString(builder, 0, null, -1);
+            return builder.toString();
+        }
+    }
+
+    protected void toString(StringBuilder builder, int depth, String name, int index) {
+        PStrings.appendMany(builder, ' ', depth << 1);
+        builder.append("TAG_").append(this.typeName());
+        if (name != null) {
+            builder.append("(\"").append(name).append("\"): ");
+        } else if (index >= 0) {
+            builder.append('[').append(index).append("]: ");
+        } else {
+            builder.append(": ");
+        }
     }
 }

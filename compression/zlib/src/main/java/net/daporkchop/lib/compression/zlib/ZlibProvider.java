@@ -20,21 +20,20 @@
 
 package net.daporkchop.lib.compression.zlib;
 
-
-import net.daporkchop.lib.common.util.PValidation;
-import net.daporkchop.lib.common.util.exception.ValueCannotFitException;
+import lombok.NonNull;
 import net.daporkchop.lib.compression.CompressionProvider;
-import net.daporkchop.lib.compression.OneShotCompressionProvider;
-import net.daporkchop.lib.compression.StreamingCompressionProvider;
-import net.daporkchop.lib.compression.util.exception.InvalidCompressionLevelException;
-import net.daporkchop.lib.natives.impl.Feature;
+import net.daporkchop.lib.compression.zlib.options.ZlibDeflaterOptions;
+import net.daporkchop.lib.compression.zlib.options.ZlibInflaterOptions;
+import net.daporkchop.lib.natives.Feature;
+
+import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
  * Representation of a Zlib implementation.
  *
  * @author DaPorkchop_
  */
-public interface ZlibProvider extends StreamingCompressionProvider, OneShotCompressionProvider, Feature<ZlibProvider> {
+public interface ZlibProvider extends CompressionProvider<ZlibProvider, ZlibDeflaterOptions, ZlibInflaterOptions>, Feature<ZlibProvider> {
     @Override
     default int levelFast() {
         return Zlib.LEVEL_FASTEST;
@@ -51,8 +50,8 @@ public interface ZlibProvider extends StreamingCompressionProvider, OneShotCompr
     }
 
     @Override
-    default int compressBound(int srcSize) throws ValueCannotFitException {
-        return PValidation.toInt(this.compressBoundLong(srcSize, Zlib.MODE_ZLIB));
+    default int compressBound(int srcSize) {
+        return toInt(this.compressBoundLong(srcSize, ZlibMode.ZLIB));
     }
 
     /**
@@ -60,25 +59,25 @@ public interface ZlibProvider extends StreamingCompressionProvider, OneShotCompr
      *
      * @see #compressBound(int)
      */
-    default int compressBoundGzip(int srcSize) throws ValueCannotFitException {
-        return PValidation.toInt(this.compressBoundLong(srcSize, Zlib.MODE_GZIP));
+    default int compressBoundGzip(int srcSize) {
+        return toInt(this.compressBoundLong(srcSize, ZlibMode.GZIP));
     }
 
     /**
      * Gets the maximum (worst-case) compressed size for input data of the given length using the given mode.
      *
      * @param srcSize the size (in bytes) of the source data
-     * @param mode    the {@link Zlib} mode to use. Must be one of {@link Zlib#MODE_ZLIB}, {@link Zlib#MODE_GZIP} or {@link Zlib#MODE_RAW}
+     * @param mode    the {@link ZlibMode} to use
      * @return the worst-case size of the compressed data
      * @see #compressBound(int)
      */
-    default int compressBound(long srcSize, int mode) throws ValueCannotFitException {
-        return PValidation.toInt(this.compressBoundLong(srcSize, mode));
+    default int compressBound(long srcSize, @NonNull ZlibMode mode) {
+        return toInt(this.compressBoundLong(srcSize, mode));
     }
 
     @Override
     default long compressBoundLong(long srcSize) {
-        return this.compressBoundLong(srcSize, Zlib.MODE_ZLIB);
+        return this.compressBoundLong(srcSize, ZlibMode.ZLIB);
     }
 
     /**
@@ -87,193 +86,15 @@ public interface ZlibProvider extends StreamingCompressionProvider, OneShotCompr
      * @see #compressBoundLong(long)
      */
     default long compressBoundGzipLong(long srcSize) {
-        return this.compressBoundLong(srcSize, Zlib.MODE_GZIP);
+        return this.compressBoundLong(srcSize, ZlibMode.GZIP);
     }
 
     /**
      * Gets the maximum (worst-case) compressed size for input data of the given length using the given mode.
      *
      * @param srcSize the size (in bytes) of the source data
-     * @param mode    the {@link Zlib} mode to use. Must be one of {@link Zlib#MODE_ZLIB}, {@link Zlib#MODE_GZIP} or {@link Zlib#MODE_RAW}
+     * @param mode    the {@link ZlibMode} to use
      * @return the worst-case size of the compressed data
      */
-    long compressBoundLong(long srcSize, int mode);
-
-    /**
-     * @return a new {@link ZlibDeflater}
-     */
-    @Override
-    default ZlibDeflater deflater() {
-        return this.deflater(Zlib.LEVEL_DEFAULT, Zlib.STRATEGY_DEFAULT, Zlib.MODE_ZLIB);
-    }
-
-    /**
-     * Creates a new {@link ZlibDeflater}.
-     *
-     * @param level the {@link Zlib} level to use
-     * @return a new {@link ZlibDeflater} with the given level
-     */
-    @Override
-    default ZlibDeflater deflater(int level) throws InvalidCompressionLevelException {
-        return this.deflater(level, Zlib.STRATEGY_DEFAULT, Zlib.MODE_ZLIB);
-    }
-
-    /**
-     * Creates a new {@link ZlibDeflater}.
-     *
-     * @param level    the {@link Zlib} level to use
-     * @param strategy the {@link Zlib} strategy to use
-     * @return a new {@link ZlibDeflater} with the given level and strategy
-     */
-    default ZlibDeflater deflater(int level, int strategy) throws InvalidCompressionLevelException {
-        return this.deflater(level, strategy, Zlib.MODE_ZLIB);
-    }
-
-    /**
-     * @return a new {@link ZlibDeflater} using the Gzip format
-     */
-    default ZlibDeflater deflaterGzip() {
-        return this.deflater(Zlib.LEVEL_DEFAULT, Zlib.STRATEGY_DEFAULT, Zlib.MODE_GZIP);
-    }
-
-    /**
-     * Creates a new {@link ZlibDeflater} using the Gzip format.
-     *
-     * @param level the {@link Zlib} level to use
-     * @return a new {@link ZlibDeflater} using the Gzip format with the given level
-     */
-    default ZlibDeflater deflaterGzip(int level) throws InvalidCompressionLevelException {
-        return this.deflater(level, Zlib.STRATEGY_DEFAULT, Zlib.MODE_GZIP);
-    }
-
-    /**
-     * Creates a new {@link ZlibDeflater} using the Gzip format.
-     *
-     * @param level    the {@link Zlib} level to use
-     * @param strategy the {@link Zlib} strategy to use
-     * @return a new {@link ZlibDeflater} using the Gzip format with the given level and strategy
-     */
-    default ZlibDeflater deflaterGzip(int level, int strategy) throws InvalidCompressionLevelException {
-        return this.deflater(level, strategy, Zlib.MODE_GZIP);
-    }
-
-    /**
-     * Creates a new {@link ZlibDeflater}.
-     *
-     * @param level    the {@link Zlib} level to use. Must be in range {@link Zlib#LEVEL_NONE} to {@link Zlib#LEVEL_BEST} (inclusive), or {@link Zlib#LEVEL_DEFAULT}
-     * @param strategy the {@link Zlib} strategy to use. Must be one of {@link Zlib#STRATEGY_DEFAULT}, {@link Zlib#STRATEGY_FILTERED}, {@link Zlib#STRATEGY_HUFFMAN},
-     *                 {@link Zlib#STRATEGY_RLE} or {@link Zlib#STRATEGY_FIXED}
-     * @param mode     the {@link Zlib} mode to use. Must be one of {@link Zlib#MODE_ZLIB}, {@link Zlib#MODE_GZIP} or {@link Zlib#MODE_RAW}
-     * @return a new {@link ZlibDeflater} with the given level, strategy and mode
-     * @throws InvalidCompressionLevelException if the given compression level is invalid
-     */
-    ZlibDeflater deflater(int level, int strategy, int mode) throws InvalidCompressionLevelException;
-
-    /**
-     * @return a new {@link ZlibInflater}
-     */
-    @Override
-    default ZlibInflater inflater() {
-        return this.inflater(Zlib.MODE_ZLIB);
-    }
-
-    /**
-     * @return a new {@link ZlibInflater} using the Gzip format
-     */
-    default ZlibInflater inflaterGzip() {
-        return this.inflater(Zlib.MODE_GZIP);
-    }
-
-    /**
-     * @return a new {@link ZlibInflater} that will automatically detect whether the compressed data is in Zlib or Gzip format
-     */
-    default ZlibInflater inflaterAuto() {
-        return this.inflater(Zlib.MODE_AUTO);
-    }
-
-    /**
-     * Creates a new {@link ZlibInflater}.
-     *
-     * @param mode the {@link Zlib} mode to use. Must be one of {@link Zlib#MODE_ZLIB}, {@link Zlib#MODE_GZIP}, {@link Zlib#MODE_RAW} or {@link Zlib#MODE_AUTO}
-     * @return a new {@link ZlibInflater}
-     */
-    ZlibInflater inflater(int mode);
-
-    /**
-     * @return a new {@link ZlibCCtx}
-     */
-    @Override
-    default ZlibCCtx compressionContext() {
-        return this.compressionContext(Zlib.LEVEL_BEST, Zlib.STRATEGY_DEFAULT, Zlib.MODE_ZLIB);
-    }
-
-    /**
-     * @return a new {@link ZlibCCtx} with the given level
-     */
-    @Override
-    default ZlibCCtx compressionContext(int level) throws InvalidCompressionLevelException {
-        return this.compressionContext(level, Zlib.STRATEGY_DEFAULT, Zlib.MODE_ZLIB);
-    }
-
-    /**
-     * @return a new {@link ZlibCCtx} with the given level and strategy
-     */
-    default ZlibCCtx compressionContext(int level, int strategy) throws InvalidCompressionLevelException {
-        return this.compressionContext(level, strategy, Zlib.MODE_ZLIB);
-    }
-
-    /**
-     * @return a new {@link ZlibCCtx} using the Gzip format
-     */
-    default ZlibCCtx compressionContextGzip() {
-        return this.compressionContext(Zlib.LEVEL_BEST, Zlib.STRATEGY_DEFAULT, Zlib.MODE_GZIP);
-    }
-
-    /**
-     * @return a new {@link ZlibCCtx} using the Gzip format with the given level
-     */
-    default ZlibCCtx compressionContextGzip(int level) throws InvalidCompressionLevelException {
-        return this.compressionContext(level, Zlib.STRATEGY_DEFAULT, Zlib.MODE_GZIP);
-    }
-
-    /**
-     * @return a new {@link ZlibCCtx} using the Gzip format with the given level and strategy
-     */
-    default ZlibCCtx compressionContextGzip(int level, int strategy) throws InvalidCompressionLevelException {
-        return this.compressionContext(level, strategy, Zlib.MODE_GZIP);
-    }
-
-    /**
-     * @return a new {@link ZlibCCtx} with the given level, strategy and mode
-     * @see #deflater(int, int, int)
-     */
-    ZlibCCtx compressionContext(int level, int strategy, int mode);
-
-    /**
-     * @return a new {@link ZlibDCtx}
-     */
-    @Override
-    default ZlibDCtx decompressionContext() {
-        return this.decompressionContext(Zlib.MODE_ZLIB);
-    }
-
-    /**
-     * @return a new {@link ZlibDCtx} using the Gzip format
-     */
-    default ZlibDCtx decompressionContextGzip() {
-        return this.decompressionContext(Zlib.MODE_GZIP);
-    }
-
-    /**
-     * @return a new {@link ZlibDCtx} that will automatically detect whether the compressed data is in Zlib or Gzip format
-     */
-    default ZlibDCtx decompressionContextAuto() {
-        return this.decompressionContext(Zlib.MODE_AUTO);
-    }
-
-    /**
-     * @return a new {@link ZlibDCtx} with the given mode
-     * @see #inflater(int)
-     */
-    ZlibDCtx decompressionContext(int mode);
+    long compressBoundLong(long srcSize, @NonNull ZlibMode mode);
 }

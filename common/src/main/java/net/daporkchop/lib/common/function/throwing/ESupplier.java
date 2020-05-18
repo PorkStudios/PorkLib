@@ -23,22 +23,24 @@ package net.daporkchop.lib.common.function.throwing;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
+import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 
 /**
  * @author DaPorkchop_
  */
 @FunctionalInterface
-public interface ESupplier<T> extends Supplier<T> {
+public interface ESupplier<T> extends Supplier<T>, Callable<T> {
     @Override
     default T get() {
         try {
-            return this.getThrowing();
+            return this.call();
         } catch (Exception e) {
             PUnsafe.throwException(e);
             throw new RuntimeException(e);
         }
     }
 
-    T getThrowing() throws Exception;
+    @Override
+    T call() throws Exception;
 }

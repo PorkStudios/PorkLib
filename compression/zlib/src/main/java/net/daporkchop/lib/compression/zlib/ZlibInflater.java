@@ -20,22 +20,35 @@
 
 package net.daporkchop.lib.compression.zlib;
 
-import io.netty.buffer.ByteBuf;
-import lombok.NonNull;
-import net.daporkchop.lib.compression.PInflater;
-import net.daporkchop.lib.natives.util.exception.InvalidBufferTypeException;
+import net.daporkchop.lib.compression.context.PInflater;
+import net.daporkchop.lib.compression.zlib.options.ZlibInflaterOptions;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 /**
- * Extension of {@link PInflater} for {@link Zlib}.
+ * An extension of {@link PInflater} for {@link Zlib}.
  *
  * @author DaPorkchop_
  */
 public interface ZlibInflater extends PInflater {
+    @Override
+    ZlibInflaterOptions options();
+
+    @Override
+    default ZlibProvider provider() {
+        return this.options().provider();
+    }
+
     @Override
     default boolean hasDict() {
         return true;
     }
 
     @Override
-    PInflater dict(@NonNull ByteBuf dict) throws InvalidBufferTypeException;
+    int refCnt();
+
+    @Override
+    ZlibInflater retain() throws AlreadyReleasedException;
+
+    @Override
+    boolean release() throws AlreadyReleasedException;
 }

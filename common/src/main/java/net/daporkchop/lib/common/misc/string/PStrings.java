@@ -34,6 +34,7 @@ import java.util.Locale;
 import java.util.Objects;
 
 import static net.daporkchop.lib.common.misc.string.PUnsafeStrings.*;
+import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
  * Questionably safe methods for working with {@link String} and {@link CharSequence}.
@@ -67,6 +68,22 @@ public class PStrings {
     }
 
     /**
+     * Quickly appends the same character to the given {@link StringBuilder} multiple times.
+     *
+     * @param builder the {@link StringBuilder} to append the characters to
+     * @param c       the character to append
+     * @param count   the number of times to append the character
+     */
+    public static void appendMany(@NonNull StringBuilder builder, char c, int count) {
+        if (notNegative(count, "count") == 0) {
+            return;
+        }
+        int initialLength = builder.length();
+        builder.setLength(initialLength + count);
+        Arrays.fill(PUnsafeStrings.unwrap(builder), initialLength, initialLength + count, c);
+    }
+
+    /**
      * A much faster alternative to {@link String#format(String, Object...)}, by simply replacing all occurrences of {@code %s}
      * with the {@link Objects#toString(Object)} value of the object.
      *
@@ -75,7 +92,7 @@ public class PStrings {
      * @return a {@link String} containing the formatted text
      */
     public static String lightFormat(@NonNull String template, Object... args) {
-        return wrap(lightFormat(unwrap(template), args));
+        return wrap(lightFormat(PUnsafeStrings.unwrap(template), args));
     }
 
     /**
@@ -92,7 +109,7 @@ public class PStrings {
         }
 
         try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get()) {
-            StringBuilder builder = handle.value();
+            StringBuilder builder = handle.get();
             builder.setLength(0);
 
             for (int i = 0, length = template.length, j = 0; i < length; i++) {
@@ -119,7 +136,7 @@ public class PStrings {
      */
     public static String fastFormat(@NonNull String template, Object... args) {
         try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get()) {
-            StringBuilder builder = handle.value();
+            StringBuilder builder = handle.get();
             builder.setLength(0);
 
             new Formatter(builder, Locale.US).format(template, args);

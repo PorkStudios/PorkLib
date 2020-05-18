@@ -24,8 +24,11 @@ import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import sun.misc.Cleaner;
 import sun.misc.Unsafe;
+import sun.nio.ch.DirectBuffer;
 
 import java.lang.reflect.Field;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
 import java.security.ProtectionDomain;
 
 /**
@@ -46,10 +49,10 @@ public class PUnsafe {
             unsafe = (Unsafe) field.get(null);
         } catch (NoSuchFieldException
                 | IllegalAccessException e) {
-            throw new RuntimeException("Unable to obtain instance of sun.misc.Unsafe", e);
+            throw new AssertionError("Unable to obtain instance of sun.misc.Unsafe", e);
         } finally {
             if ((UNSAFE = unsafe) == null)  {
-                throw new RuntimeException("Unable to obtain instance of sun.misc.Unsafe");
+                throw new AssertionError("Unable to obtain instance of sun.misc.Unsafe");
             }
         }
     }
@@ -605,5 +608,26 @@ public class PUnsafe {
             }
         } while (!UNSAFE.compareAndSwapObject(o, pos, v, newValue));
         return (V) v;
+    }
+
+    public static long pork_directBufferAddress(Buffer buffer)   {
+        return ((DirectBuffer) buffer).address();
+    }
+
+    public static Object pork_directBufferAttachment(Buffer buffer)   {
+        return ((DirectBuffer) buffer).attachment();
+    }
+
+    public static Cleaner pork_directBufferCleaner(Buffer buffer)   {
+        return ((DirectBuffer) buffer).cleaner();
+    }
+
+    public static void pork_releaseBuffer(Buffer buffer) {
+        if (buffer instanceof DirectBuffer) {
+            Cleaner cleaner = pork_directBufferCleaner(buffer);
+            if (cleaner != null)    {
+                cleaner.clean();
+            }
+        }
     }
 }

@@ -28,7 +28,7 @@ import net.daporkchop.lib.noise.NoiseSource;
 
 import java.awt.image.BufferedImage;
 
-import static net.daporkchop.lib.math.primitive.PMath.*;
+import static net.daporkchop.lib.common.math.PMath.*;
 import static noise.NoiseTests.*;
 
 /**

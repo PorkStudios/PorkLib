@@ -19,7 +19,7 @@
  */
 
 /**
- * All classes in this package are copied from <a href="https://github.com/DaMatrix/RegionMerger/tree/5eeb907de28b435c3aca6a2d7d74571f2a546fbb/src/main/java/net/daporkchop/regionmerger/anvil">my own implementations in RegionMerger</a>.
+ * All classes in this package are copied from <a href="https://github.com/DaMatrix/RegionMerger/tree/5eeb907de28b435c3aca6a2d7d74571f2a546fbb/src/main/java/net/daporkchop/regionmerger/anvil">my own implementations delegate RegionMerger</a>.
  *
  * @author DaPorkchop_
  */

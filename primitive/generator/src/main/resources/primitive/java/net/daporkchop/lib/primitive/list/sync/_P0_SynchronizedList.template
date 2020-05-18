@@ -6,7 +6,7 @@ $$$settings$$$
 }
 _headers_
 
-import net.daporkchop.lib.math.primitive.BinMath;
+import net.daporkchop.lib.common.math.BinMath;
 
 import net.daporkchop.lib.primitive.lambda.consumer._P0_Consumer;
 import net.daporkchop.lib.primitive.list._P0_List;

@@ -23,7 +23,7 @@ package net.daporkchop.lib.encoding.basen;
 import lombok.NonNull;
 import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
 import net.daporkchop.lib.encoding.util.FastCharIntMap;
-import net.daporkchop.lib.math.primitive.PMath;
+import net.daporkchop.lib.common.math.PMath;
 
 import java.util.Arrays;
 
@@ -87,7 +87,7 @@ public final class BaseN {
                 ++inputStart; // optimization - skip leading zeros
             }
         }
-        // Preserve exactly as many leading encoded zeros in output as there were leading zeros in input.
+        // Preserve exactly as many leading encoded zeros in output as there were leading zeros delegate input.
         while (outputStart < encoded.length && encoded[outputStart] == this.zero) {
             ++outputStart;
         }

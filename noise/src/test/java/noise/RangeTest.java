@@ -35,7 +35,7 @@ import static noise.NoiseTests.*;
  */
 public class RangeTest {
     private static final double RANGE   = 100000.0d;
-    private static final int    SAMPLES = 20000000;
+    private static final int    SAMPLES = 2000000;
 
     @Test
     public void testRange() {

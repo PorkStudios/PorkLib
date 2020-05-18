@@ -29,7 +29,7 @@ import net.daporkchop.lib.gui.component.Component;
 import net.daporkchop.lib.gui.component.state.ElementState;
 import net.daporkchop.lib.gui.util.math.BoundingBox;
 
-import static net.daporkchop.lib.math.primitive.PMath.*;
+import static net.daporkchop.lib.common.math.PMath.*;
 
 /**
  * An implementation of {@link Orientation} that uses 4 separate functions to calculate the element's x,

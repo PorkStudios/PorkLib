@@ -51,8 +51,7 @@ public final class ImmutableListTwo<T> extends ImmutableList<T> {
 
     @Override
     public T get(int index) {
-        PValidation.checkIndex(index, 0, 2);
-        return index == 0 ? this.v0 : this.v1;
+        return PValidation.checkIndex(2, index) == 0 ? this.v0 : this.v1;
     }
 
     @Override

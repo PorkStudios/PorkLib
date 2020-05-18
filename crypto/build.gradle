@@ -25,4 +25,10 @@ dependencies {
     compile project(":math")
 
     compile "org.bouncycastle:bcprov-jdk15on:$bouncycastleVersion"
+
+    testCompile project(":logging")
+}
+
+test {
+    maxParallelForks = Math.max(Runtime.runtime.availableProcessors() - 1, 2)
 }

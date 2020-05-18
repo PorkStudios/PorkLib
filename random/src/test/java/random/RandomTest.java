@@ -69,7 +69,6 @@ public class RandomTest {
                 ThreadLocalPRandom.current(),
                 new Random(),
                 ThreadLocalRandom.current(),
-                io.netty.util.internal.ThreadLocalRandom.current(),
                 new FastPRandom(),
                 new FastJavaPRandom()
         };

@@ -22,7 +22,7 @@ package net.daporkchop.lib.random;
 
 import lombok.NonNull;
 import net.daporkchop.lib.common.util.PArrays;
-import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.random.impl.AbstractFastPRandom;
 import net.daporkchop.lib.random.impl.ThreadLocalPRandom;
 import net.daporkchop.lib.random.wrapper.JavaRandomWrapper;
@@ -253,7 +253,7 @@ public interface PRandom {
      * @return the {@code byte[]}
      */
     default byte[] shuffle(@NonNull byte[] arr, int start, int length){
-        PorkUtil.assertInRangeLen(arr.length, start, length);
+        PValidation.checkRangeLen(arr.length, start, length);
         final int end = start + length;
         for (int i = start; i < end; i++)   {
             PArrays.swap(arr, i, this.nextInt(start, length));
@@ -280,7 +280,7 @@ public interface PRandom {
      * @return the {@code short[]}
      */
     default short[] shuffle(@NonNull short[] arr, int start, int length){
-        PorkUtil.assertInRangeLen(arr.length, start, length);
+        PValidation.checkRangeLen(arr.length, start, length);
         final int end = start + length;
         for (int i = start; i < end; i++)   {
             PArrays.swap(arr, i, this.nextInt(start, length));
@@ -307,7 +307,7 @@ public interface PRandom {
      * @return the {@code char[]}
      */
     default char[] shuffle(@NonNull char[] arr, int start, int length){
-        PorkUtil.assertInRangeLen(arr.length, start, length);
+        PValidation.checkRangeLen(arr.length, start, length);
         final int end = start + length;
         for (int i = start; i < end; i++)   {
             PArrays.swap(arr, i, this.nextInt(start, length));
@@ -334,7 +334,7 @@ public interface PRandom {
      * @return the {@code int[]}
      */
     default int[] shuffle(@NonNull int[] arr, int start, int length){
-        PorkUtil.assertInRangeLen(arr.length, start, length);
+        PValidation.checkRangeLen(arr.length, start, length);
         final int end = start + length;
         for (int i = start; i < end; i++)   {
             PArrays.swap(arr, i, this.nextInt(start, length));
@@ -361,7 +361,7 @@ public interface PRandom {
      * @return the {@code long[]}
      */
     default long[] shuffle(@NonNull long[] arr, int start, int length){
-        PorkUtil.assertInRangeLen(arr.length, start, length);
+        PValidation.checkRangeLen(arr.length, start, length);
         final int end = start + length;
         for (int i = start; i < end; i++)   {
             PArrays.swap(arr, i, this.nextInt(start, length));
@@ -388,7 +388,7 @@ public interface PRandom {
      * @return the {@code float[]}
      */
     default float[] shuffle(@NonNull float[] arr, int start, int length){
-        PorkUtil.assertInRangeLen(arr.length, start, length);
+        PValidation.checkRangeLen(arr.length, start, length);
         final int end = start + length;
         for (int i = start; i < end; i++)   {
             PArrays.swap(arr, i, this.nextInt(start, length));
@@ -415,7 +415,7 @@ public interface PRandom {
      * @return the {@code double[]}
      */
     default double[] shuffle(@NonNull double[] arr, int start, int length){
-        PorkUtil.assertInRangeLen(arr.length, start, length);
+        PValidation.checkRangeLen(arr.length, start, length);
         final int end = start + length;
         for (int i = start; i < end; i++)   {
             PArrays.swap(arr, i, this.nextInt(start, length));
@@ -442,7 +442,7 @@ public interface PRandom {
      * @return the {@code Object[]}
      */
     default <T> T[] shuffle(@NonNull T[] arr, int start, int length){
-        PorkUtil.assertInRangeLen(arr.length, start, length);
+        PValidation.checkRangeLen(arr.length, start, length);
         final int end = start + length;
         for (int i = start; i < end; i++)   {
             PArrays.swap(arr, i, this.nextInt(start, length));

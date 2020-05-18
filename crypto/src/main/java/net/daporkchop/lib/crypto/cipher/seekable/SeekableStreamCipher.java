@@ -107,7 +107,7 @@ public class SeekableStreamCipher extends SeekableCipher {
                     throw new BufferUnderflowException();
                 } else {
                     try (Handle<byte[]> handle = PorkUtil.BUFFER_POOL.get())    {
-                        byte[] buf = handle.value();
+                        byte[] buf = handle.get();
                         int bytes;
                         for (int i = 0; i < len; i += bytes) {
                             bytes = Math.min(len - i, buf.length);
@@ -162,7 +162,7 @@ public class SeekableStreamCipher extends SeekableCipher {
                     throw new BufferUnderflowException();
                 } else {
                     try (Handle<byte[]> handle = PorkUtil.BUFFER_POOL.get())    {
-                        byte[] buf = handle.value();
+                        byte[] buf = handle.get();
                         int i;
                         int j = -1;
                         int bytes = Math.min(len, buf.length);

@@ -26,12 +26,12 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
-import net.daporkchop.lib.common.system.Endianess;
 import net.daporkchop.lib.common.system.PlatformInfo;
-import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
+import java.nio.ByteOrder;
 
 /**
  * Implementation of {@link PAppendable} that appends UTF-16-encoded text to a {@link ByteBuf}.
@@ -49,18 +49,18 @@ public final class UTF16ByteBufAppendable implements PAppendable {
     @NonNull
     protected final String    lineEnding;
     @NonNull
-    protected final Endianess endianess;
+    protected final ByteOrder order;
 
     public UTF16ByteBufAppendable(@NonNull ByteBuf buf, @NonNull String lineEnding) {
-        this(buf, lineEnding, Endianess.BIG);
+        this(buf, lineEnding, ByteOrder.BIG_ENDIAN);
     }
 
-    public UTF16ByteBufAppendable(@NonNull ByteBuf buf, @NonNull Endianess endianess) {
-        this(buf, PlatformInfo.OPERATING_SYSTEM.lineEnding(), endianess);
+    public UTF16ByteBufAppendable(@NonNull ByteBuf buf, @NonNull ByteOrder order) {
+        this(buf, PlatformInfo.OPERATING_SYSTEM.lineEnding(), order);
     }
 
     public UTF16ByteBufAppendable(@NonNull ByteBuf buf) {
-        this(buf, PlatformInfo.OPERATING_SYSTEM.lineEnding(), Endianess.BIG);
+        this(buf, PlatformInfo.OPERATING_SYSTEM.lineEnding(), ByteOrder.BIG_ENDIAN);
     }
 
     @Override
@@ -74,7 +74,7 @@ public final class UTF16ByteBufAppendable implements PAppendable {
             seq = "null";
         }
 
-        PorkUtil.assertInRange(seq.length(), start, end);
+        PValidation.checkRange(seq.length(), start, end);
         if (start == end) {
             return this;
         }
@@ -93,8 +93,8 @@ public final class UTF16ByteBufAppendable implements PAppendable {
             arr = PUnsafeStrings.unwrap((StringBuffer) seq);
         }
         if (arr != null) {
-            if (this.endianess == Endianess.NATIVE) {
-                //turbo mode if endianess is native, we can do it in a single copy
+            if (this.order == PlatformInfo.BYTE_ORDER) {
+                //turbo mode if order is native, we can do it in a single copy
 
                 Object base;
                 long offset;
@@ -107,7 +107,7 @@ public final class UTF16ByteBufAppendable implements PAppendable {
                 }
                 PUnsafe.copyMemory(arr, PUnsafe.ARRAY_CHAR_BASE_OFFSET + (start << 1), base, offset, (end - start) << 1);
                 this.buf.writerIndex(this.buf.writerIndex() + ((end - start) << 1));
-            } else if (this.endianess == Endianess.BIG) {
+            } else if (this.order == ByteOrder.BIG_ENDIAN) {
                 for (int i = start; i < end; i++) {
                     this.buf.writeChar(arr[i]);
                 }
@@ -116,7 +116,7 @@ public final class UTF16ByteBufAppendable implements PAppendable {
                     this.buf.writeChar(Character.reverseBytes(arr[i]));
                 }
             }
-        } else if (this.endianess == Endianess.BIG) {
+        } else if (this.order == ByteOrder.BIG_ENDIAN) {
             for (int i = start; i < end; i++) {
                 this.buf.writeChar(seq.charAt(i));
             }

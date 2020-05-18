@@ -25,7 +25,7 @@ import net.daporkchop.lib.common.ref.Ref;
 import net.daporkchop.lib.noise.NoiseSource;
 import net.daporkchop.lib.random.PRandom;
 
-import static net.daporkchop.lib.math.primitive.PMath.*;
+import static net.daporkchop.lib.common.math.PMath.*;
 
 /**
  * Port of Ken Perlin's improved Perlin noise as described in <a href="https://mrl.nyu.edu/~perlin/paper445.pdf">Perlin, K. (2002). Improving Noise</a>.

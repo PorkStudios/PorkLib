@@ -50,7 +50,7 @@ public final class ImmutableListOne<T> extends ImmutableList<T> {
 
     @Override
     public T get(int index) {
-        PValidation.checkIndex(index, 0, 1);
+        PValidation.checkIndex(1, index);
         return this.value;
     }
 

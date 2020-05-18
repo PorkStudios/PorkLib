@@ -25,16 +25,17 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.PooledByteBufAllocator;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.common.misc.file.PFiles;
+import net.daporkchop.lib.common.pool.array.ArrayAllocator;
 import net.daporkchop.lib.common.ref.Ref;
 import net.daporkchop.lib.common.ref.ThreadRef;
-import net.daporkchop.lib.common.misc.file.PFiles;
-import net.daporkchop.lib.compression.PInflater;
+import net.daporkchop.lib.compression.context.PInflater;
 import net.daporkchop.lib.compression.zlib.Zlib;
+import net.daporkchop.lib.compression.zlib.ZlibMode;
 import net.daporkchop.lib.math.vector.i.Vec2i;
 import net.daporkchop.lib.minecraft.registry.ResourceLocation;
 import net.daporkchop.lib.minecraft.tileentity.TileEntity;
@@ -48,11 +49,12 @@ import net.daporkchop.lib.minecraft.world.format.anvil.region.RegionFile;
 import net.daporkchop.lib.minecraft.world.impl.section.DirectSectionImpl;
 import net.daporkchop.lib.minecraft.world.impl.section.HeapSectionImpl;
 import net.daporkchop.lib.minecraft.world.impl.vanilla.VanillaChunkImpl;
-import net.daporkchop.lib.nbt.NBTInputStream;
-import net.daporkchop.lib.nbt.alloc.NBTArrayAllocator;
-import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
-import net.daporkchop.lib.nbt.tag.notch.IntArrayTag;
-import net.daporkchop.lib.nbt.tag.notch.ListTag;
+import net.daporkchop.lib.nbt.NBTFormat;
+import net.daporkchop.lib.nbt.NBTOptions;
+import net.daporkchop.lib.nbt.tag.ByteArrayTag;
+import net.daporkchop.lib.nbt.tag.CompoundTag;
+import net.daporkchop.lib.nbt.tag.IntArrayTag;
+import net.daporkchop.lib.nbt.tag.ListTag;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.File;
@@ -70,23 +72,24 @@ import java.util.stream.Collectors;
  */
 @Getter
 public class AnvilWorldManager implements WorldManager {
-    protected static final Ref<HeapSectionImpl> CHUNK_CACHE    = ThreadRef.soft(() -> new HeapSectionImpl(-1, null));
-    protected static final Pattern              REGION_PATTERN = Pattern.compile("^r\\.(-?[0-9]+)\\.(-?[0-9]+)\\.mca$");
-    protected static final Ref<PInflater>       INFLATER_CACHE = ThreadRef.soft(() -> Zlib.PROVIDER.inflater(Zlib.MODE_AUTO));
+    protected static final Ref<HeapSectionImpl> CHUNK_CACHE = ThreadRef.soft(() -> new HeapSectionImpl(-1, null));
+    protected static final Pattern REGION_PATTERN = Pattern.compile("^r\\.(-?[0-9]+)\\.(-?[0-9]+)\\.mca$");
+    protected static final Ref<PInflater> ZLIB_INFLATER_CACHE = ThreadRef.soft(() -> Zlib.PROVIDER.inflater(Zlib.PROVIDER.inflateOptions().withMode(ZlibMode.ZLIB)));
+    protected static final Ref<PInflater> GZIP_INFLATER_CACHE = ThreadRef.soft(() -> Zlib.PROVIDER.inflater(Zlib.PROVIDER.inflateOptions().withMode(ZlibMode.GZIP)));
 
     protected final AnvilSaveFormat format;
-    protected final File            root;
+    protected final File root;
 
     @NonNull
     @Setter
     protected World world;
 
     protected LoadingCache<Vec2i, RegionFile> regionFileCache;
-    protected LoadingCache<Vec2i, Boolean>    regionExists;
+    protected LoadingCache<Vec2i, Boolean> regionExists;
 
     //TODO: make this configurable
-    protected final NBTArrayAllocator arrayAllocator = new AnvilPooledNBTArrayAllocator(34 * 34 * 8 * 3, 34 * 34 * 8); //these sizes are suitable for WorldScanner with neighboring chunks
-
+    protected final ArrayAllocator<byte[]> arrayAllocator = new AnvilPooledArrayAllocator(ArrayAllocator.unpooled(byte.class), 34 * 34 * 8 * 3, 34 * 34 * 8); //these sizes are suitable for WorldScanner with neighboring chunks
+    protected final NBTOptions nbtOptions = NBTOptions.DEFAULT.withByteAlloc(this.arrayAllocator);
 
     public AnvilWorldManager(@NonNull AnvilSaveFormat format, @NonNull File root) {
         this.format = format;
@@ -136,26 +139,19 @@ public class AnvilWorldManager implements WorldManager {
     @Override
     @SuppressWarnings("unchecked")
     public void loadColumn(Chunk chunk) {
+        CompoundTag rootTag = null;
         try {
-            CompoundTag rootTag;
             //TODO: check if region contains chunk
             {
                 ByteBuf compressed = this.regionFileCache.get(new Vec2i(chunk.getX() >> 5, chunk.getZ() >> 5)).readDirect(chunk.getX() & 0x1F, chunk.getZ() & 0x1F);
                 try {
                     byte compressionId = compressed.readByte();
                     switch (compressionId) {
-                        case RegionConstants.ID_GZIP: //i can use the same instance for both compression types since it's using ZLIB_MODE_AUTO
-                        case RegionConstants.ID_ZLIB: {
-                            PInflater inflater = INFLATER_CACHE.get();
-                            ByteBuf uncompressed = PooledByteBufAllocator.DEFAULT.directBuffer();
-                            try {
-                                inflater.fullInflateGrowing(compressed, uncompressed);
-                                try (NBTInputStream in = new NBTInputStream(DataIn.wrap(uncompressed), this.arrayAllocator)) {
-                                    rootTag = in.readTag().getCompound("Level");
-                                }
-                            } finally {
-                                uncompressed.release();
-                                inflater.reset();
+                        case RegionConstants.ID_ZLIB:
+                        case RegionConstants.ID_GZIP: {
+                            PInflater inflater = (compressionId == RegionConstants.ID_ZLIB ? ZLIB_INFLATER_CACHE : GZIP_INFLATER_CACHE).get();
+                            try (DataIn in = inflater.decompressionStream(DataIn.wrap(compressed))) {
+                                rootTag = NBTFormat.BIG_ENDIAN.readCompound(in, this.nbtOptions);
                             }
                         }
                         break;
@@ -172,14 +168,16 @@ public class AnvilWorldManager implements WorldManager {
                     compressed.release();
                 }
             }
+            //System.out.println(rootTag);
+            rootTag = rootTag.getCompound("Level");
             //ListTag<CompoundTag> entitiesTag = rootTag.getTypedList("Entities"); //TODO
             {
-                ListTag<CompoundTag> sectionsTag = rootTag.getList("Sections");
+                ListTag<CompoundTag> sectionsTag = rootTag.getList("Sections", CompoundTag.class);
                 //TODO: biomes, terrain populated flag etc.
                 for (int y = 15; y >= 0; y--) {
                     Section section = chunk.section(y);
                     CompoundTag tag = null;
-                    for (CompoundTag t : sectionsTag) {
+                    for (CompoundTag t : sectionsTag.list()) {
                         if (t.getByte("Y") == y) {
                             tag = t;
                             break;
@@ -199,11 +197,11 @@ public class AnvilWorldManager implements WorldManager {
                 }
             }
             if (chunk instanceof VanillaChunkImpl && rootTag.contains("HeightMap")) {
-                ((VanillaChunkImpl) chunk).heightMap(rootTag.<IntArrayTag>get("HeightMap").handle());
+                ((VanillaChunkImpl) chunk).heightMap(rootTag.<IntArrayTag>getTag("HeightMap").handle());
             }
             {
-                ListTag<CompoundTag> sectionsTag = rootTag.get("TileEntities");
-                sectionsTag.getValue().stream()
+                ListTag<CompoundTag> sectionsTag = rootTag.getList("TileEntities", CompoundTag.class);
+                sectionsTag.list().stream()
                         .map(tag -> {
                             TileEntity tileEntity = this.world.getSave().config().tileEntityFactory().create(new ResourceLocation(tag.getString("id")));
                             tileEntity.init(this.world, tag);
@@ -216,6 +214,10 @@ public class AnvilWorldManager implements WorldManager {
         } catch (Exception e) {
             new RuntimeException(String.format("Unable to parse chunk (%d,%d) in region (%d,%d)", chunk.getX(), chunk.getZ(), chunk.getX() >> 5, chunk.getZ() >> 5), e).printStackTrace();
             chunk.unload();
+        } finally {
+            if (rootTag != null)    {
+                rootTag.release();
+            }
         }
     }
 
@@ -241,11 +243,11 @@ public class AnvilWorldManager implements WorldManager {
     }
 
     private void loadSection(@NonNull HeapSectionImpl impl, @NonNull CompoundTag tag) {
-        impl.setBlocks(tag.get("Blocks"));
-        impl.setMeta(tag.get("Data"));
-        impl.setBlockLight(tag.get("BlockLight"));
-        impl.setSkyLight(tag.get("SkyLight"));
-        impl.setAdd(tag.get("Add"));
+        impl.setBlocks(tag.getTag("Blocks"));
+        impl.setMeta(tag.getTag("Data"));
+        impl.setBlockLight(tag.getTag("BlockLight"));
+        impl.setSkyLight(tag.getTag("SkyLight"));
+        impl.setAdd(tag.getTag("Add", null));
     }
 
     private void loadSection(@NonNull DirectSectionImpl impl, @NonNull CompoundTag tag) {
@@ -298,6 +300,10 @@ public class AnvilWorldManager implements WorldManager {
 
     @Override
     public void saveColumn(Chunk chunk) {
+        //whoa this code has somehow managed to stay here through like three different rewrites
+        //and i STILL haven't implemented it
+        //yee
+
         /*CompoundTag tag1 = new CompoundTag();
         CompoundTag levelTag = new CompoundTag();
         tag1.putCompound("Level", levelTag);

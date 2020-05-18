@@ -23,11 +23,8 @@ package net.daporkchop.lib.common.util;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
-import net.daporkchop.lib.common.pool.handle.DefaultThreadHandledPool;
 import net.daporkchop.lib.common.pool.handle.HandledPool;
 import net.daporkchop.lib.unsafe.PUnsafe;
-import sun.misc.Cleaner;
-import sun.misc.SoftCache;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -36,6 +33,8 @@ import java.awt.FlowLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -44,11 +43,6 @@ import java.text.SimpleDateFormat;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 
@@ -61,47 +55,44 @@ import java.util.regex.Matcher;
 @UtilityClass
 public class PorkUtil {
     protected final long MATCHER_GROUPS_OFFSET = PUnsafe.pork_getOffset(Matcher.class, "groups");
-    protected final long MATCHER_TEXT_OFFSET   = PUnsafe.pork_getOffset(Matcher.class, "text");
+    protected final long MATCHER_TEXT_OFFSET = PUnsafe.pork_getOffset(Matcher.class, "text");
 
     private final Function<Throwable, StackTraceElement[]> GET_STACK_TRACE_WRAPPER;
 
-    public final HandledPool<byte[]>        BUFFER_POOL        = new DefaultThreadHandledPool<>(() -> new byte[PUnsafe.PAGE_SIZE], 4);
-    public final HandledPool<StringBuilder> STRINGBUILDER_POOL = new DefaultThreadHandledPool<>(StringBuilder::new, 4); //TODO: make this soft
+    public final int TINY_BUFFER_SIZE = 32;
+    public final int BUFFER_SIZE = 65536;
 
-    private final AtomicInteger DEFAULT_EXECUTOR_THREAD_COUNTER = new AtomicInteger(0);
-    public final  Executor      DEFAULT_EXECUTOR                = new ThreadPoolExecutor(
-            0, Integer.MAX_VALUE,
-            2, TimeUnit.SECONDS,
-            new SynchronousQueue<>(),
-            runnable -> new Thread(runnable, String.format("PorkLib executor #%d", DEFAULT_EXECUTOR_THREAD_COUNTER.getAndIncrement()))
-    );
+    public final HandledPool<byte[]> TINY_BUFFER_POOL = HandledPool.threadLocal(() -> new byte[TINY_BUFFER_SIZE], 4);
+    public final HandledPool<ByteBuffer> DIRECT_TINY_BUFFER_POOL =  HandledPool.threadLocal(() -> ByteBuffer.allocateDirect(TINY_BUFFER_SIZE), 4);
+    public final HandledPool<byte[]> BUFFER_POOL =  HandledPool.threadLocal(() -> new byte[BUFFER_SIZE], 4);
+    public final HandledPool<ByteBuffer> DIRECT_BUFFER_POOL =  HandledPool.threadLocal(() -> ByteBuffer.allocateDirect(BUFFER_SIZE), 4);
 
-    public final DateFormat DATE_FORMAT     = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-    public final String     PORKLIB_VERSION = "0.5.1-SNAPSHOT";
-    public final int        CPU_COUNT       = Runtime.getRuntime().availableProcessors();
+    public final HandledPool<StringBuilder> STRINGBUILDER_POOL =  HandledPool.threadLocal(StringBuilder::new, 4); //TODO: make this soft
+
+    public final DateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+    public final String PORKLIB_VERSION = "0.5.4-SNAPSHOT"; //TODO: set this dynamically
+    public final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
 
     public final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
 
     static {
-        {
-            Function<Throwable, StackTraceElement[]> func = t -> {
-                throw new UnsupportedOperationException();
+        Function<Throwable, StackTraceElement[]> func = t -> {
+            throw new UnsupportedOperationException();
+        };
+        try {
+            Method m = Throwable.class.getDeclaredMethod("getOurStackTrace");
+            m.setAccessible(true);
+            func = t -> {
+                try {
+                    return (StackTraceElement[]) m.invoke(t);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
             };
-            try {
-                Method m = Throwable.class.getDeclaredMethod("getOurStackTrace");
-                m.setAccessible(true);
-                func = t -> {
-                    try {
-                        return (StackTraceElement[]) m.invoke(t);
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                };
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            } finally {
-                GET_STACK_TRACE_WRAPPER = func;
-            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            GET_STACK_TRACE_WRAPPER = func;
         }
     }
 
@@ -138,17 +129,19 @@ public class PorkUtil {
         return GET_STACK_TRACE_WRAPPER.apply(t);
     }
 
-    public static void release(@NonNull ByteBuffer buffer) {
-        Cleaner cleaner = ((sun.nio.ch.DirectBuffer) buffer).cleaner();
-        if (cleaner != null) {
-            cleaner.clean();
-        }
-    }
-
     @SuppressWarnings("unchecked")
     public static <T> Class<T> classForName(@NonNull String name) {
         try {
             return (Class<T>) Class.forName(name);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> Class<T> classForName(@NonNull String name, ClassLoader loader) {
+        try {
+            return (Class<T>) Class.forName(name, true, loader);
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
@@ -194,18 +187,27 @@ public class PorkUtil {
     }
 
     /**
-     * Creates a new instance of {@link SoftCache}.
+     * Creates a new instance of {@code sun.misc.SoftCache}.
      * <p>
      * This simply allows not showing compile-time warnings for using internal classes when creating
      * new instances.
      *
      * @param <K> the key type
      * @param <V> the value type
-     * @return a new {@link SoftCache}
+     * @return a new {@code sun.misc.SoftCache}
      */
     @SuppressWarnings("unchecked")
     public static <K, V> Map<K, V> newSoftCache() {
-        return (Map<K, V>) new SoftCache();
+        try {
+            Class<?> clazz = Class.forName("sun.misc.SoftCache");
+            return (Map<K, V>) clazz.newInstance();
+        } catch (ClassNotFoundException e)  {
+            throw new RuntimeException("Unable to find class: sun.misc.SoftCache", e);
+        } catch (IllegalAccessException e)  {
+            throw new AssertionError(e);
+        } catch (InstantiationException e)  {
+            throw new RuntimeException(e.getCause() == null ? e : e.getCause());
+        }
     }
 
     public static void simpleDisplayImage(@NonNull BufferedImage img) {
@@ -278,22 +280,21 @@ public class PorkUtil {
         return PUnsafe.<CharSequence>getObject(matcher, MATCHER_TEXT_OFFSET).subSequence(start, end);
     }
 
-    public static void assertInRange(int size, int start, int end) throws IndexOutOfBoundsException {
-        if (start < 0) {
-            throw new IndexOutOfBoundsException(String.format("start (%d) < 0", start));
-        } else if (end > size) {
-            throw new IndexOutOfBoundsException(String.format("end (%d) > size (%d)", end, size));
-        } else if (end < start) {
-            throw new IllegalArgumentException(String.format("end (%d) < start (%d)", end, start));
-        }
-    }
-
-    public static void assertInRangeLen(int size, int start, int length) throws IndexOutOfBoundsException {
-        assertInRange(size, start, start + length);
-    }
-
     @SuppressWarnings("unchecked")
     public static <T> T uncheckedCast(Object value) {
         return (T) value;
+    }
+
+    public static <T> T newInstance(@NonNull Class<T> clazz)    {
+        try {
+            Constructor<T> constructor = clazz.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            return constructor.newInstance();
+        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException e)   {
+            PUnsafe.throwException(e);
+        } catch (InvocationTargetException e)   {
+            PUnsafe.throwException(e.getCause() != null ? e.getCause() : e);
+        }
+        throw new IllegalStateException();
     }
 }

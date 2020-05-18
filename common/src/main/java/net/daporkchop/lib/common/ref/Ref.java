@@ -51,7 +51,7 @@ public interface Ref<T> extends Supplier<T> {
      * @return a {@link Ref}
      */
     static <T> Ref<T> soft(@NonNull Supplier<T> factory) {
-        return new SoftRef<>(factory);
+        return new SoftLateRef<>(factory);
     }
 
     /**

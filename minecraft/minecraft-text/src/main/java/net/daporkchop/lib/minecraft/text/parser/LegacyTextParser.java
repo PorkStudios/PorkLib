@@ -63,7 +63,7 @@ public class LegacyTextParser {
         TextFormat format = new TextFormat();
         boolean expectingCode = false;
         try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get()) {
-            StringBuilder builder = handle.value();
+            StringBuilder builder = handle.get();
             builder.setLength(0);
 
             int nextChar;

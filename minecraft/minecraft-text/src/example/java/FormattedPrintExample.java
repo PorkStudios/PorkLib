@@ -20,7 +20,7 @@
 
 import net.daporkchop.lib.minecraft.text.MCTextEncoder;
 import net.daporkchop.lib.minecraft.text.MCTextType;
-import net.daporkchop.lib.minecraft.text.parser.MinecraftFormatParser;
+import net.daporkchop.lib.minecraft.text.parser.MCFormatParser;
 
 import static net.daporkchop.lib.logging.Logging.*;
 
@@ -43,13 +43,13 @@ public class FormattedPrintExample {
 
         logger.info("Displaying legacy text:");
         for (String message : MESSAGES) {
-            logger.info(MCTextEncoder.encode(MCTextType.LEGACY, MinecraftFormatParser.getDefaultInstance().parse(message)));
+            logger.info(MCTextEncoder.encode(MCTextType.LEGACY, MCFormatParser.DEFAULT.parse(message)));
         }
 
-        logger.setFormatParser(MinecraftFormatParser.getDefaultInstance())
+        logger.setFormatParser(MCFormatParser.DEFAULT)
                 .info("\nDisplaying legacy text as formatted messages:");
         for (String message : MESSAGES) {
-            logger.info(MCTextEncoder.encode(MCTextType.LEGACY, MinecraftFormatParser.getDefaultInstance().parse(message)));
+            logger.info(MCTextEncoder.encode(MCTextType.LEGACY, MCFormatParser.DEFAULT.parse(message)));
         }
 
         logger.info("\nDisplaying formatted messages:");

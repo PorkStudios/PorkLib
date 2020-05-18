@@ -29,6 +29,7 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
  *
  * @author DaPorkchop_
  */
+@Deprecated
 public interface DirectMemoryHolder extends Releasable {
     /**
      * Releases the memory block referenced by this instance. After invoking this, assume that

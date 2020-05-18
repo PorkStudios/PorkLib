@@ -20,7 +20,7 @@
 
 package net.daporkchop.lib.math.grid.impl.direct;
 
-import static net.daporkchop.lib.math.primitive.PMath.*;
+import static net.daporkchop.lib.common.math.PMath.*;
 
 /**
  * @author DaPorkchop_

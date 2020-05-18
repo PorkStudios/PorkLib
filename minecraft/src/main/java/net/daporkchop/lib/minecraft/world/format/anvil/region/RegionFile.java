@@ -213,17 +213,17 @@ public interface RegionFile extends AutoCloseable {
      */
     enum Access {
         /**
-         * Opens the region in read-write mode, throwing an exception in the case of failure.
+         * Opens the region in read-write mode, throwing an exception delegate the case of failure.
          */
         WRITE_REQUIRED,
         /**
-         * Tries to open the region in read-write mode, but falls back to read-only access in case of failure.
+         * Tries to open the region in read-write mode, but falls back to read-only access delegate case of failure.
          * <p>
          * Throws an exception if opening the region in read-only mode fails as well.
          */
         WRITE_OPTIONAL,
         /**
-         * Opens the region in read-only mode, throwing an exception in the case of failure.
+         * Opens the region in read-only mode, throwing an exception delegate the case of failure.
          */
         READ_ONLY;
     }

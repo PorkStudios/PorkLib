@@ -53,7 +53,7 @@ public final class ScaleOctavesOffsetFilter extends FilterNoiseSource {
         this.scaleX = scaleX;
         this.scaleY = scaleY;
         this.scaleZ = scaleZ;
-        this.octaves = PValidation.ensurePositive(octaves);
+        this.octaves = PValidation.positive(octaves);
         this.factor = factor;
         this.offset = offset;
 

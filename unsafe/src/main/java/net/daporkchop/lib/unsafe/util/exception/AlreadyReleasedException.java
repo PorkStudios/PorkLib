@@ -24,4 +24,19 @@ package net.daporkchop.lib.unsafe.util.exception;
  * @author DaPorkchop_
  */
 public class AlreadyReleasedException extends RuntimeException {
+    public AlreadyReleasedException() {
+        super();
+    }
+
+    public AlreadyReleasedException(String message) {
+        super(message);
+    }
+
+    public AlreadyReleasedException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public AlreadyReleasedException(Throwable cause) {
+        super(cause);
+    }
 }

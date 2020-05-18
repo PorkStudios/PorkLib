@@ -22,9 +22,10 @@ package net.daporkchop.lib.encoding;
 
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.common.system.Endianess;
+import net.daporkchop.lib.common.system.PlatformInfo;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
+import java.nio.ByteOrder;
 import java.util.UUID;
 
 /**
@@ -38,13 +39,13 @@ public class ToBytes {
         return toBytes(null, in);
     }
 
-    public byte[] toBytes(Endianess endianess, @NonNull short... in) {
+    public byte[] toBytes(ByteOrder order, @NonNull short... in) {
         if (in.length == 0) {
             return new byte[0];
         } else {
             int length = in.length;
             byte[] b = new byte[length << 1];
-            if (endianess == null || endianess.isNative()) {
+            if (order == null || order == PlatformInfo.BYTE_ORDER) {
                 PUnsafe.copyMemory(in, PUnsafe.ARRAY_SHORT_BASE_OFFSET, b, PUnsafe.ARRAY_BYTE_BASE_OFFSET, length << 1);
             } else {
                 for (int j = 0; j < length; j++) {
@@ -59,13 +60,13 @@ public class ToBytes {
         return toBytes(null, in);
     }
 
-    public byte[] toBytes(Endianess endianess, @NonNull int... in) {
+    public byte[] toBytes(ByteOrder order, @NonNull int... in) {
         if (in.length == 0) {
             return new byte[0];
         } else {
             int length = in.length;
             byte[] b = new byte[length << 2];
-            if (endianess == null || endianess.isNative()) {
+            if (order == null || order == PlatformInfo.BYTE_ORDER) {
                 PUnsafe.copyMemory(in, PUnsafe.ARRAY_INT_BASE_OFFSET, b, PUnsafe.ARRAY_BYTE_BASE_OFFSET, length << 2);
             } else {
                 for (int j = 0; j < length; j++) {
@@ -80,13 +81,13 @@ public class ToBytes {
         return toBytes(null, in);
     }
 
-    public byte[] toBytes(Endianess endianess, @NonNull long... in) {
+    public byte[] toBytes(ByteOrder order, @NonNull long... in) {
         if (in.length == 0) {
             return new byte[0];
         } else {
             int length = in.length;
             byte[] b = new byte[length << 3];
-            if (endianess == null || endianess.isNative()) {
+            if (order == null || order == PlatformInfo.BYTE_ORDER) {
                 PUnsafe.copyMemory(in, PUnsafe.ARRAY_LONG_BASE_OFFSET, b, PUnsafe.ARRAY_BYTE_BASE_OFFSET, length << 3);
             } else {
                 for (int j = 0; j < length; j++) {
@@ -101,13 +102,13 @@ public class ToBytes {
         return toShorts(null, in);
     }
 
-    public short[] toShorts(Endianess endianess, @NonNull byte[] in) {
+    public short[] toShorts(ByteOrder order, @NonNull byte[] in) {
         if (in.length == 0) {
             return new short[0];
         } else {
             int length = in.length >>> 1;
             short[] out = new short[length];
-            if (endianess == null || endianess.isNative()) {
+            if (order == null || order == PlatformInfo.BYTE_ORDER) {
                 PUnsafe.copyMemory(in, PUnsafe.ARRAY_BYTE_BASE_OFFSET, out, PUnsafe.ARRAY_SHORT_BASE_OFFSET, length << 1);
             } else {
                 for (int j = 0; j < length; j++) {
@@ -122,13 +123,13 @@ public class ToBytes {
         return toInts(null, in);
     }
 
-    public static int[] toInts(Endianess endianess, @NonNull byte[] in) {
+    public static int[] toInts(ByteOrder order, @NonNull byte[] in) {
         if (in.length == 0) {
             return new int[0];
         } else {
             int length = in.length >>> 2;
             int[] out = new int[length];
-            if (endianess == null || endianess.isNative()) {
+            if (order == null || order == PlatformInfo.BYTE_ORDER) {
                 PUnsafe.copyMemory(in, PUnsafe.ARRAY_BYTE_BASE_OFFSET, out, PUnsafe.ARRAY_INT_BASE_OFFSET, length << 2);
             } else {
                 for (int j = 0; j < length; j++) {
@@ -143,13 +144,13 @@ public class ToBytes {
         return toLongs(null, in);
     }
 
-    public static long[] toLongs(Endianess endianess, @NonNull byte[] in) {
+    public static long[] toLongs(ByteOrder order, @NonNull byte[] in) {
         if (in.length == 0) {
             return new long[0];
         } else {
             int length = in.length >>> 3;
             long[] out = new long[length];
-            if (endianess == null || endianess.isNative()) {
+            if (order == null || order == PlatformInfo.BYTE_ORDER) {
                 PUnsafe.copyMemory(in, PUnsafe.ARRAY_BYTE_BASE_OFFSET, out, PUnsafe.ARRAY_LONG_BASE_OFFSET, length << 3);
             } else {
                 for (int j = 0; j < length; j++) {
@@ -164,9 +165,9 @@ public class ToBytes {
         return toBytes(null, uuid);
     }
 
-    public byte[] toBytes(Endianess endianess, @NonNull UUID uuid) {
+    public byte[] toBytes(ByteOrder order, @NonNull UUID uuid) {
         byte[] out = new byte[16];
-        if (endianess == null || endianess.isNative()) {
+        if (order == null || order == PlatformInfo.BYTE_ORDER) {
             PUnsafe.putLong(out, PUnsafe.ARRAY_BYTE_BASE_OFFSET, uuid.getMostSignificantBits());
             PUnsafe.putLong(out, PUnsafe.ARRAY_BYTE_BASE_OFFSET + 8, uuid.getLeastSignificantBits());
         } else {
@@ -180,10 +181,10 @@ public class ToBytes {
         return fromBytes(null, in);
     }
 
-    public UUID fromBytes(Endianess endianess, @NonNull byte[] in) {
+    public UUID fromBytes(ByteOrder endianess, @NonNull byte[] in) {
         if (in.length != 16) {
             throw new IllegalArgumentException(String.valueOf(in.length));
-        } else if (endianess == null || endianess.isNative()) {
+        } else if (endianess == null || endianess == PlatformInfo.BYTE_ORDER) {
             return new UUID(
                     PUnsafe.getLong(in, PUnsafe.ARRAY_BYTE_BASE_OFFSET),
                     PUnsafe.getLong(in, PUnsafe.ARRAY_BYTE_BASE_OFFSET + 8)

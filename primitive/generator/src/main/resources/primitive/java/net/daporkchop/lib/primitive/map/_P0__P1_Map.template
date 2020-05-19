@@ -1,16 +1,18 @@
 $$$settings$$$
 {
-    "P0": {
-        "blacklist": [
-            "boolean",
-            "float",
-            "double"
-        ]
-    },
-    "genericNames": {
-        "P0": "K",
-        "P1": "V"
-    }
+    "params": [
+        {
+            "genericName": "K",
+            "blacklist": [
+                "boolean",
+                "float",
+                "double"
+            ]
+        },
+        {
+            "genericName": "V"
+        }
+    ]
 }
 _headers_
 

@@ -1,15 +1,15 @@
 $$$settings$$$
 {
-    "P0": {
-        "blacklist": [
-            "Object",
-            "boolean",
-            "char"
-        ]
-    },
-    "genericNames": {
-        "P0": "E"
-    }
+    "params": [
+        {
+            "genericName": "E",
+            "blacklist": [
+                "Object",
+                "boolean",
+                "char"
+            ]
+        }
+    ]
 }
 _headers_
 

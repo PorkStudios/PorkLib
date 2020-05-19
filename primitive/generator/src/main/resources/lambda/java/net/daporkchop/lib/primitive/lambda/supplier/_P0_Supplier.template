@@ -1,8 +1,10 @@
 $$$settings$$$
 {
-     "genericNames": {
-         "P0": "R"
-     }
+    "params": [
+        {
+            "genericName": "R"
+        }
+    ]
 }
 _headers_
 

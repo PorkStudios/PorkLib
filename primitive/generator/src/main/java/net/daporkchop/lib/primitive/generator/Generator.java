@@ -57,6 +57,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static net.daporkchop.lib.common.util.PValidation.*;
 import static net.daporkchop.lib.primitive.generator.Primitive.*;
 
 /**
@@ -232,7 +233,7 @@ public class Generator {
             nameOut = ctx.primitive().format(nameOut, ctx.parameter().index(), params);
         }
         File file = new File(dir, nameOut);
-        if (file.lastModified() >= options.lastModified())   {
+        if (file.lastModified() == options.lastModified()) {
             return;
         }
 
@@ -272,9 +273,8 @@ public class Generator {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        if (!file.setLastModified(System.currentTimeMillis())) {
-            throw new IllegalStateException();
-        }
+
+        checkState(file.setLastModified(options.lastModified()));
     }
 
     private String getPackageName(@NonNull File file) {

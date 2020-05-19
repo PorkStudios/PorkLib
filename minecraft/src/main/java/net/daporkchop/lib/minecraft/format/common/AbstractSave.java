@@ -56,7 +56,7 @@ public abstract class AbstractSave<O extends SaveOptions> extends AbstractRefCou
     public AbstractSave(@NonNull File root, @NonNull SaveOptions options, @NonNull CompoundTag levelData) {
         this.levelData = levelData;
         this.root = root;
-        this.options = this.processOptions(options);
+        (this.options = this.processOptions(options)).validate();
 
         this.dimensions = this.findDimensions();
     }

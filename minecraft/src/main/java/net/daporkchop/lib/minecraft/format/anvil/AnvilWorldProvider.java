@@ -24,6 +24,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
 import net.daporkchop.lib.concurrent.PFuture;
+import net.daporkchop.lib.minecraft.format.anvil.region.RegionFile;
 import net.daporkchop.lib.minecraft.format.anvil.region.RegionFileCache;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Section;
@@ -48,13 +49,13 @@ public class AnvilWorldProvider extends AbstractRefCounted implements WorldProvi
     protected final Lock readLock;
     protected final Lock writeLock;
 
-    protected final RegionFileCache regionCache;
+    protected final RegionFile regionCache;
 
     public AnvilWorldProvider(@NonNull File root, @NonNull AnvilSaveOptions options) {
         this.root = PFiles.ensureDirectoryExists(root);
         this.options = options;
 
-        this.regionCache = new RegionFileCache(options, root, 1024);
+        this.regionCache = new RegionFileCache(options, root);
 
         ReadWriteLock lock = new ReentrantReadWriteLock();
         this.readLock = lock.readLock();

@@ -18,14 +18,50 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":compression:compression-zlib")
-    compile project(":collections")
-    compile project(":concurrent")
-    compile project(":encoding:nbt")
-    compile project(":minecraft:minecraft-text")
-    compile project(":primitive:primitive-lambda")
+package net.daporkchop.lib.concurrent.lock;
 
-    compile "com.google.code.gson:gson:$gsonVersion"
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+
+/**
+ * Implementation of {@link Lock} which does nothing at all.
+ * <p>
+ * Note that this doesn't do any checks when unlocking to ensure that the lock was already held by the current thread.
+ *
+ * @author DaPorkchop_
+ */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class NoopLock implements Lock {
+    public static final NoopLock INSTANCE = new NoopLock();
+
+    @Override
+    public void lock() {
+    }
+
+    @Override
+    public void lockInterruptibly() throws InterruptedException {
+    }
+
+    @Override
+    public boolean tryLock() {
+        return true;
+    }
+
+    @Override
+    public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
+        return true;
+    }
+
+    @Override
+    public void unlock() {
+    }
+
+    @Override
+    public Condition newCondition() {
+        throw new UnsupportedOperationException("not currently implemented");
+    }
 }

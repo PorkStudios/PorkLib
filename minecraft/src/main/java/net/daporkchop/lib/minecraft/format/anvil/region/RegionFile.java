@@ -27,13 +27,15 @@ import net.daporkchop.lib.common.util.exception.ReadOnlyException;
 import java.io.File;
 import java.io.Flushable;
 import java.io.IOException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
 
 /**
  * An Anvil region file, consisting of a 32² area of chunks and serving as the core of the Anvil storage format.
  *
  * @author DaPorkchop_
  */
-public interface RegionFile extends Flushable, AutoCloseable {
+public interface RegionFile extends ReadWriteLock, Flushable, AutoCloseable {
     /**
      * Reads the chunk at the given coordinates into a buffer.
      * <p>
@@ -115,6 +117,18 @@ public interface RegionFile extends Flushable, AutoCloseable {
             throw new ReadOnlyException(this.file().getAbsolutePath());
         }
     }
+
+    /**
+     * @return the {@link Lock} used for read operations on this region file
+     */
+    @Override
+    Lock readLock();
+
+    /**
+     * @return the {@link Lock} used for write operations on this region file (including flushing and closing)
+     */
+    @Override
+    Lock writeLock();
 
     /**
      * Forces any changes that may be buffered internally to be written to disk.

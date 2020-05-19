@@ -25,6 +25,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.common.util.exception.ReadOnlyException;
+import net.daporkchop.lib.concurrent.lock.NoopLock;
 import net.daporkchop.lib.minecraft.format.anvil.region.RawChunk;
 import net.daporkchop.lib.minecraft.format.anvil.region.RegionConstants;
 import net.daporkchop.lib.minecraft.format.anvil.region.RegionFile;
@@ -32,6 +33,7 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.locks.Lock;
 
 /**
  * A dummy implementation of {@link RegionFile} which is empty and contains no chunks.
@@ -66,6 +68,7 @@ public final class EmptyRegionFile implements RegionFile {
 
     @Override
     public long timestamp(int x, int z) throws IOException {
+        RegionConstants.checkCoords(x, z);
         return -1;
     }
 
@@ -82,6 +85,16 @@ public final class EmptyRegionFile implements RegionFile {
     @Override
     public boolean readOnly() {
         return true;
+    }
+
+    @Override
+    public Lock readLock() {
+        return NoopLock.INSTANCE;
+    }
+
+    @Override
+    public Lock writeLock() {
+        return NoopLock.INSTANCE;
     }
 
     @Override

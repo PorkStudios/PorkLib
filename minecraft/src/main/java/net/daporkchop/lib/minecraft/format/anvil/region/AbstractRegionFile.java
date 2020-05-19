@@ -22,6 +22,7 @@ package net.daporkchop.lib.minecraft.format.anvil.region;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
@@ -29,6 +30,7 @@ import net.daporkchop.lib.common.util.exception.ReadOnlyException;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.FileChannel;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
@@ -45,6 +47,7 @@ import static net.daporkchop.lib.minecraft.format.anvil.region.RegionConstants.*
  *
  * @author DaPorkchop_
  */
+@Getter
 @Accessors(fluent = true)
 public abstract class AbstractRegionFile implements RegionFile {
     protected static final OpenOption[] RO_OPEN_OPTIONS = {StandardOpenOption.READ};
@@ -54,13 +57,12 @@ public abstract class AbstractRegionFile implements RegionFile {
             StandardOpenOption.WRITE
     };
 
-    @Getter
     protected final File file;
     protected final Lock readLock;
     protected final Lock writeLock;
+    @Getter(AccessLevel.NONE)
     protected final FileChannel channel;
 
-    @Getter
     protected final boolean readOnly;
 
     public AbstractRegionFile(@NonNull File file, boolean readOnly) throws IOException {
@@ -231,7 +233,7 @@ public abstract class AbstractRegionFile implements RegionFile {
 
     protected void assertOpen() throws IOException {
         if (!this.channel.isOpen()) {
-            throw new IOException("Region closed!");
+            throw new ClosedChannelException();
         }
     }
 }

@@ -20,9 +20,15 @@
 
 package net.daporkchop.lib.minecraft.format.anvil.region;
 
+import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.collections.map.MaxSizeLinkedHashMap;
+import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.common.function.io.IOFunction;
 import net.daporkchop.lib.common.misc.file.PFiles;
+import net.daporkchop.lib.common.util.exception.ReadOnlyException;
+import net.daporkchop.lib.concurrent.lock.NoopLock;
 import net.daporkchop.lib.math.vector.i.Vec2i;
 import net.daporkchop.lib.minecraft.format.anvil.AnvilSaveOptions;
 import net.daporkchop.lib.minecraft.format.anvil.region.impl.EmptyRegionFile;
@@ -31,87 +37,184 @@ import net.daporkchop.lib.minecraft.format.anvil.region.impl.OverclockedRegionFi
 import net.daporkchop.lib.minecraft.util.WriteAccess;
 
 import java.io.File;
-import java.io.Flushable;
 import java.io.IOException;
+import java.nio.channels.ClosedChannelException;
+import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
-import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
  * A cache for {@link RegionFile}s to prevent having too many files open at once.
  *
  * @author DaPorkchop_
  */
-public final class RegionFileCache implements IOFunction<Vec2i, RegionFile>, Flushable, AutoCloseable {
-    protected final AnvilSaveOptions options;
-    protected final Map<Vec2i, RegionFile> internalCache = new ConcurrentHashMap<>();
-    protected final int maxSize;
-
-    protected final File root;
-
-    protected final Lock readLock;
-    protected final Lock writeLock;
-
-    public RegionFileCache(@NonNull AnvilSaveOptions options, @NonNull File root, int maxSize) {
-        this.options = options;
-        this.maxSize = notNegative(maxSize, "maxSize");
-        this.root = PFiles.ensureDirectoryExists(root);
-
-        ReadWriteLock lock = new ReentrantReadWriteLock();
-        this.readLock = lock.readLock();
-        this.writeLock = lock.writeLock();
+//this has some pretty complex locking, i don't THINK it should be able to deadlock but don't quote me on that
+@Accessors(fluent = true)
+public class RegionFileCache implements RegionFile, IOFunction<Vec2i, RegionFile> {
+    protected static Vec2i toRegionCoords(int chunkX, int chunkZ) {
+        return new Vec2i(chunkX >> 5, chunkZ >> 5);
     }
 
-    public RegionFile get(int x, int z) throws IOException {
-        this.readLock.lock();
+    protected final AnvilSaveOptions options;
+    protected final Map<Vec2i, RegionFile> internalCache;
+    protected final File root;
+
+    protected boolean closed = false;
+
+    public RegionFileCache(@NonNull AnvilSaveOptions options, @NonNull File root) {
+        this.options = options;
+        this.internalCache = new MaxSizeLinkedHashMap.Closing<>(options.regionCacheSize(), true);
+        this.root = PFiles.ensureDirectoryExists(root);
+    }
+
+    @Override
+    public RawChunk read(int x, int z) throws IOException {
+        RegionFile region;
+        Lock lock;
+        synchronized (this.internalCache) {
+            region = this.internalCache.computeIfAbsent(toRegionCoords(x, z), this);
+            (lock = region.readLock()).lock();
+        }
         try {
-            //TODO: actually close regions after some time (will require some kind of linked cache)
-            return this.internalCache.computeIfAbsent(new Vec2i(x, z), this);
+            return region.read(x & 0x1F, z & 0x1F);
         } finally {
-            this.readLock.unlock();
+            lock.unlock();
         }
     }
 
     @Override
-    public void flush() throws IOException {
-        this.readLock.lock();
+    public boolean write(int x, int z, @NonNull ByteBuf data, int version, long timestamp, boolean forceOverwrite) throws ReadOnlyException, IOException {
+        this.assertWritable();
+        RegionFile region;
+        Lock lock;
+        synchronized (this.internalCache) {
+            region = this.internalCache.computeIfAbsent(toRegionCoords(x, z), this);
+            (lock = region.writeLock()).lock();
+        }
         try {
-            for (RegionFile region : this.internalCache.values()) {
-                region.flush();
-            }
+            return region.write(x & 0x1F, z & 0x1F, data, version, timestamp, forceOverwrite);
         } finally {
-            this.readLock.unlock();
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public boolean delete(int x, int z) throws ReadOnlyException, IOException {
+        this.assertWritable();
+        RegionFile region;
+        Lock lock;
+        synchronized (this.internalCache) {
+            region = this.internalCache.computeIfAbsent(toRegionCoords(x, z), this);
+            (lock = region.writeLock()).lock();
+        }
+        try {
+            return region.delete(x & 0x1F, z & 0x1F);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public boolean contains(int x, int z) throws IOException {
+        RegionFile region;
+        Lock lock;
+        synchronized (this.internalCache) {
+            region = this.internalCache.computeIfAbsent(toRegionCoords(x, z), this);
+            (lock = region.readLock()).lock();
+        }
+        try {
+            return region.contains(x & 0x1F, z & 0x1F);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public long timestamp(int x, int z) throws IOException {
+        RegionFile region;
+        Lock lock;
+        synchronized (this.internalCache) {
+            region = this.internalCache.computeIfAbsent(toRegionCoords(x, z), this);
+            (lock = region.readLock()).lock();
+        }
+        try {
+            return region.timestamp(x & 0x1F, z & 0x1F);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public void defrag() throws ReadOnlyException, IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public File file() {
+        return this.root;
+    }
+
+    @Override
+    public boolean readOnly() {
+        return this.options.access() == WriteAccess.READ_ONLY;
+    }
+
+    @Override
+    public Lock readLock() {
+        return NoopLock.INSTANCE;
+    }
+
+    @Override
+    public Lock writeLock() {
+        return NoopLock.INSTANCE;
+    }
+
+    @Override
+    public void flush() throws IOException {
+        synchronized (this.internalCache) {
+            this.internalCache.values().forEach((IOConsumer<RegionFile>) RegionFile::flush);
         }
     }
 
     @Override
     public void close() throws IOException {
-        this.writeLock.lock();
-        try {
-            for (RegionFile region : this.internalCache.values()) {
-                region.close();
+        synchronized (this.internalCache) {
+            for (Iterator<RegionFile> itr = this.internalCache.values().iterator(); itr.hasNext(); ) {
+                itr.next().close();
+                itr.remove();
             }
-            this.internalCache.clear();
-        } finally {
-            this.writeLock.unlock();
         }
     }
 
+    /**
+     * Attempts to open a region.
+     *
+     * @param pos the region's position
+     * @return the opened region
+     * @deprecated internal method, should not be called by user code
+     */
     @Override
+    @Deprecated
     public RegionFile applyThrowing(Vec2i pos) throws IOException {
         File file = new File(this.root, String.format("r.%d.%d.mca", pos.getX(), pos.getY()));
-        if (this.options.access() == WriteAccess.READ_ONLY) {
+        if (this.readOnly()) {
             if (PFiles.checkFileExists(file)) {
-                return new MemoryMappedRegionFile(file, true);
+                if (this.options.mmappedRegions()) {
+                    return new MemoryMappedRegionFile(file, this.options.prefetchRegions());
+                } else {
+                    return new OverclockedRegionFile(file, this.options.nettyAlloc(), true);
+                }
             } else {
                 return EmptyRegionFile.INSTANCE;
             }
         } else {
             return new OverclockedRegionFile(file, this.options.nettyAlloc(), false);
+        }
+    }
+
+    protected void assertOpen() throws IOException {
+        if (this.closed) {
+            throw new ClosedChannelException();
         }
     }
 }

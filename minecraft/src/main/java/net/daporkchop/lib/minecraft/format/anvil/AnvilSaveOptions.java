@@ -32,6 +32,8 @@ import net.daporkchop.lib.minecraft.util.WriteAccess;
 
 import java.util.concurrent.Executor;
 
+import static net.daporkchop.lib.common.util.PValidation.*;
+
 /**
  * Extension of {@link SaveOptions} for the Anvil save format.
  *
@@ -42,6 +44,29 @@ import java.util.concurrent.Executor;
 @Setter
 @Accessors(fluent = true, chain = true)
 public class AnvilSaveOptions extends SaveOptions {
+    /**
+     * The maximum number of regions files that may be open at once.
+     * <p>
+     * May not be negative.
+     */
+    protected int regionCacheSize = 1024;
+
+    /**
+     * Whether or not regions should be opened using memory-mapping rather than traditional read/write methods.
+     * <p>
+     * This is likely to improve performance when loading chunks, but could have negative effects on systems with low memory or slow read speeds.
+     * <p>
+     * May only be set if the world is read-only.
+     */
+    protected boolean mmappedRegions = false;
+
+    /**
+     * Whether or not memory-mapped regions should be prefetched from disk when opened.
+     * <p>
+     * Will have no effect unless the world is set to read-only.
+     */
+    protected boolean prefetchRegions = false;
+
     public AnvilSaveOptions(@NonNull SaveOptions other) {
         super(other);
 
@@ -57,6 +82,7 @@ public class AnvilSaveOptions extends SaveOptions {
     }
 
     private void copyFrom(@NonNull AnvilSaveOptions other) {
+        this.prefetchRegions = other.prefetchRegions;
     }
 
     @Override
@@ -98,5 +124,13 @@ public class AnvilSaveOptions extends SaveOptions {
     @Override
     public AnvilSaveOptions clone() {
         return new AnvilSaveOptions(this);
+    }
+
+    @Override
+    public void validate() {
+        super.validate();
+
+        checkState(this.access == WriteAccess.READ_ONLY || !this.mmappedRegions, "mmappedRegions may only be used in read-only mode!");
+        checkState(this.mmappedRegions || !this.prefetchRegions, "prefetchRegions may only be used in combination with mmappedRegions!");
     }
 }

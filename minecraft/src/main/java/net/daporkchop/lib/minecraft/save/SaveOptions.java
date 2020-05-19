@@ -102,4 +102,10 @@ public class SaveOptions implements Cloneable<SaveOptions> {
     public SaveOptions clone() {
         return new SaveOptions(this);
     }
+
+    /**
+     * Ensures that the currently configured options are valid.
+     */
+    public void validate() {
+    }
 }

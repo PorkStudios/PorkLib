@@ -18,23 +18,12 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.util;
+package net.daporkchop.lib.minecraft.format.anvil;
 
-import net.daporkchop.lib.minecraft.save.Save;
+import net.daporkchop.lib.minecraft.format.common.AbstractWorld;
 
 /**
- * The different write access levels that can be used for opening a {@link Save}.
- *
  * @author DaPorkchop_
  */
-//does this really need to be an enum? i doubt there'll ever be need for other modes
-public enum WriteAccess {
-    /**
-     * Opens the save in read-write mode. If either read or write access could not be acquired, an exception will be thrown.
-     */
-    WRITE_REQUIRED,
-    /**
-     * Opens the save in read-only mode. If read access could not be acquired, an exception will be thrown.
-     */
-    READ_ONLY;
+public class AnvilWorld/* extends AbstractWorld<AnvilSave, AnvilSaveOptions>*/ {
 }

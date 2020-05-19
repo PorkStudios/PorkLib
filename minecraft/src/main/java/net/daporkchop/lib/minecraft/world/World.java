@@ -45,12 +45,7 @@ public interface World extends BlockAccess, LightAccess, RefCounted {
     /**
      * @return the {@link Identifier} used to identify this world in its parent {@link Save}
      */
-    Identifier identifier();
-
-    /**
-     * @return the ID used to identify this world in its parent {@link Save}
-     */
-    int id();
+    Identifier id();
 
     /**
      * @return the {@link WorldProvider} used for handling I/O of chunks and cubes

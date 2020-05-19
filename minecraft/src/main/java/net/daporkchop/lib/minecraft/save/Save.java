@@ -55,34 +55,13 @@ public interface Save extends RefCounted {
     Collection<World> loadedWorlds();
 
     /**
-     * Gets the already loaded {@link World} with the given ID.
-     *
-     * @param id the ID of the {@link World}
-     * @return the {@link World} with the given ID, or {@link null} if it wasn't loaded
-     * @throws IllegalArgumentException if the given ID isn't known by {@link #dimensions()}
-     * @see #world(Identifier)
-     */
-    World world(int id);
-
-    /**
      * Gets the already loaded {@link World} with the given {@link Identifier}.
      *
      * @param id the {@link Identifier} of the {@link World}
      * @return the {@link World} with the given {@link Identifier}, or {@link null} if it wasn't loaded
      * @throws IllegalArgumentException if the given {@link Identifier} isn't known by {@link #dimensions()}
-     * @see #world(int)
      */
-    World world(@NonNull Identifier id); //TODO: this needs to be redesigned to support multiple worlds with the same dimension ID
-
-    /**
-     * Gets or loads the {@link World} with the given ID.
-     *
-     * @param id the ID of the {@link World}
-     * @return a future which will be completed with the {@link World} with the given ID
-     * @throws IllegalArgumentException if the given ID isn't known by {@link #dimensions()}
-     * @see #loadWorld(Identifier)
-     */
-    PFuture<World> loadWorld(int id);
+    World world(@NonNull Identifier id);
 
     /**
      * Gets or loads the {@link World} with the given {@link Identifier}.
@@ -90,7 +69,6 @@ public interface Save extends RefCounted {
      * @param id the {@link Identifier} of the {@link World}
      * @return a future which will be completed with the {@link World} with the given {@link Identifier}
      * @throws IllegalArgumentException if the given {@link Identifier} isn't known by {@link #dimensions()}
-     * @see #loadWorld(int)
      */
     PFuture<World> loadWorld(@NonNull Identifier id);
 

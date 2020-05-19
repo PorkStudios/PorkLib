@@ -27,9 +27,11 @@ import com.google.gson.JsonParser;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.oio.StreamUtil;
-import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.common.misc.InstancePool;
-import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.common.misc.file.PFiles;
+import net.daporkchop.lib.primitive.generator.option.HeaderOptions;
+import net.daporkchop.lib.primitive.generator.option.Parameter;
+import net.daporkchop.lib.primitive.generator.option.ParameterContext;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -43,26 +45,19 @@ import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.Set;
 import java.util.StringJoiner;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
-import static java.lang.Math.max;
 import static net.daporkchop.lib.primitive.generator.Primitive.*;
-
-import static net.daporkchop.lib.logging.Logging.*;
 
 /**
  * @author DaPorkchop_
@@ -90,123 +85,21 @@ public class Generator {
     private static final JsonArray EMPTY_JSON_ARRAY = new JsonArray();
 
     static {
-        PRIMITIVES.add(
-                new Primitive()
-                        .setFullName("Boolean")
-                        .setDisplayName("Bool")
-                        .setName("boolean")
-                        .setHashCode("$1 ? 1 : 0")
-                        .setEmptyValue("false")
-                        .setEquals("$1 == $2")
-                        .setNequals("$1 != $2")
-                        .build()
-        );
-        PRIMITIVES.add(
-                new Primitive()
-                        .setFullName("Byte")
-                        .setName("byte")
-                        .setHashCode("$1 & 0xFF")
-                        .setEmptyValue("Byte.MIN_VALUE")
-                        .setEquals("$1 == $2")
-                        .setNequals("$1 != $2")
-                        .build()
-        );
-        PRIMITIVES.add(
-                new Primitive()
-                        .setFullName("Character")
-                        .setDisplayName("Char")
-                        .setName("char")
-                        .setHashCode("($1 >>> 8) ^ $1")
-                        .setEmptyValue("(char) 65535")
-                        .setEquals("$1 == $2")
-                        .setNequals("$1 != $2")
-                        .build()
-        );
-        PRIMITIVES.add(
-                new Primitive()
-                        .setFullName("Short")
-                        .setName("short")
-                        .setHashCode("($1 >>> 8) ^ $1")
-                        .setEmptyValue("Short.MIN_VALUE")
-                        .setEquals("$1 == $2")
-                        .setNequals("$1 != $2")
-                        .build()
-        );
-        PRIMITIVES.add(
-                new Primitive()
-                        .setFullName("Integer")
-                        .setDisplayName("Int")
-                        .setUnsafeName("Int")
-                        .setName("int")
-                        .setHashCode("($1 >>> 24) ^ ($1 >>> 16) ^ ($1 >>> 8) ^ $1")
-                        .setEmptyValue("Integer.MIN_VALUE")
-                        .setEquals("$1 == $2")
-                        .setNequals("$1 != $2")
-                        .build()
-        );
-        PRIMITIVES.add(
-                new Primitive()
-                        .setFullName("Long")
-                        .setName("long")
-                        .setHashCode("(int) (($1 >>> 56) ^ ($1 >>> 48) ^ ($1 >>> 40) ^ ($1 >>> 32) ^ ($1 >>> 24) ^ ($1 >>> 16) ^ ($1 >>> 8) ^ $1)")
-                        .setEmptyValue("Long.MIN_VALUE")
-                        .setEquals("$1 == $2")
-                        .setNequals("$1 != $2")
-                        .build()
-        );
-        PRIMITIVES.add(
-                new Primitive()
-                        .setFullName("Float")
-                        .setName("float")
-                        .setHashCode("Float.floatToIntBits($1)")
-                        .setEmptyValue("Float.NaN")
-                        .setEquals("$1 == $2")
-                        .setNequals("$1 != $2")
-                        .build()
-        );
-        PRIMITIVES.add(
-                new Primitive()
-                        .setFullName("Double")
-                        .setName("double")
-                        .setHashCode("(int) Double.doubleToLongBits($1)")
-                        .setEmptyValue("Double.NaN")
-                        .setEquals("$1 == $2")
-                        .setNequals("$1 != $2")
-                        .build()
-        );
-        PRIMITIVES.add(
-                new Primitive()
-                        .setFullName("Object")
-                        .setDisplayName("Obj")
-                        .setName("Object")
-                        .setHashCode("java.util.Objects.hashCode($1)")
-                        .setGeneric()
-                        .setEmptyValue("null")
-                        .setEquals("java.util.Objects.equals($1, $2)")
-                        .setNequals("!java.util.Objects.equals($1, $2)")
-                        .build()
-        );
-
         try (InputStream is = new FileInputStream(new File(".", "../../LICENSE"))) {
             LICENSE = String.format("/*\n * %s\n */",
                     new String(StreamUtil.toByteArray(is))
                             .replace("$today.year", String.valueOf(Calendar.getInstance().get(Calendar.YEAR)))
-                            /*.trim()*/.replaceAll("\n", "\n * "));
+                            .replaceAll("\n", "\n * "), StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     public static void main(String... args) throws IOException {
-        /*Generator generator = new Generator(
-                new File(".", "primitive/generator/src/main/resources"),
-                new File(".", "primitive/src/main/java/net/daporkchop/lib/primitive")
-        );*/
-        for (Generator generator : GENERATORS)  {
+        for (Generator generator : GENERATORS) {
             generator.generate();
         }
 
-        //System.out.println("Generated " + FILES + " files, totalling " + SIZE + " bytes (" + (SIZE / 1024D / 1024D) + " megabytes)");
         System.out.printf(
                 "Generated %d files, totalling %s bytes (%.2f megabytes)\n",
                 FILES.get(),
@@ -227,12 +120,7 @@ public class Generator {
     private String imports;
 
     public void generate() {
-        if (false && this.outRoot.exists()) {
-            PFiles.rmContentsParallel(this.outRoot);
-            //TODO: only delete files that no longer need to be created
-        }
-
-            this.addAllExisting(PFiles.ensureDirectoryExists(this.outRoot));
+        this.addAllExisting(PFiles.ensureDirectoryExists(this.outRoot));
 
         this.getImports();
 
@@ -283,189 +171,109 @@ public class Generator {
             if (file.getName().endsWith("_methods")) {
                 return;
             }
-            if (!"java".equals(file.getName())) {
-                out = new File(out, file.getName());
+            File realOut = "java".equals(file.getName()) ? out : new File(out, file.getName());
+            for (File f : file.listFiles()) {
+                this.generate(f, realOut);
             }
-            File realOut = out;
-            Arrays.stream(file.listFiles()).forEach(f -> this.generate(f, realOut));
         } else if (file.getName().endsWith(".template")) {
             String name = file.getName();
             String packageName = this.getPackageName(file);
-            int count;
-            {
-                count = Primitive.countVariables(name);
-                int countUpper = Primitive.countVariables(name.toUpperCase());
-                if (countUpper > count) {
-                    for (int i = 0; ; i++) {
-                        String s = String.format(DISPLAYNAME_DEF.toLowerCase(), i);
-                        if (name.contains(s)) {
-                            name = name.replaceAll(s, "");
-                        } else {
-                            break;
-                        }
-                    }
-                    count = countUpper;
-                }
-            }
             this.generated.add(String.format("%s.%s", packageName, name));
-            long lastModified = file.lastModified();
 
-            String[] methods = new String[0];
-            File methodsDir = new File(file.getParentFile(), String.format("%s_methods", name.replaceAll(".template", "")));
-            if (methodsDir.exists()) {
-                File[] files = PFiles.ensureDirectoryExists(methodsDir).listFiles();
-                methods = new String[files.length];
-                for (int i = 0; i < files.length; i++) {
-                    File f = files[i];
-                    lastModified = max(lastModified, f.lastModified());
-                    try (InputStream is = new FileInputStream(f)) {
-                        methods[i] = new String(StreamUtil.toByteArray(is));
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            }
-            {
-                String s = name.replaceAll(".template", ".java");
-                for (int i = 0; i < count; i++) {
-                    s = s.replaceAll(String.format(DISPLAYNAME_DEF, i), "Byte");
-                }
-                File potentialOut = new File(out, s);
-                if (potentialOut.exists() && potentialOut.lastModified() >= lastModified) {
-                    System.out.printf("Skipping %s\n", name);
-                    return;
-                }
-            }
-            String content;
+            String rawContent;
             try (InputStream is = new FileInputStream(file)) {
-                content = new String(StreamUtil.toByteArray(is));
+                rawContent = new String(StreamUtil.toByteArray(is), StandardCharsets.UTF_8);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            PFiles.ensureDirectoryExists(out);
-            JsonObject settings;
+
+            String content;
+            HeaderOptions options;
             {
-                if (content.startsWith("$$$settings$$$")) {
-                    String[] split = content.split("_headers_", 2);
+                JsonObject obj;
+                if (rawContent.startsWith("$$$settings$$$")) {
+                    String[] split = rawContent.split("_headers_", 2);
                     content = "_headers_" + split[1];
                     try (Reader reader = new StringReader(split[0])) {
                         reader.skip("$$$settings$$$".length());
-                        settings = InstancePool.getInstance(JsonParser.class).parse(reader).getAsJsonObject();
+                        obj = InstancePool.getInstance(JsonParser.class).parse(reader).getAsJsonObject();
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
                 } else {
-                    settings = new JsonObject();
+                    content = rawContent;
+                    obj = new JsonObject();
                 }
+                options = new HeaderOptions(obj, file);
             }
+
             System.out.printf("Generating %s\n", name);
-            this.populateToDepth(out, name, content, String.format("package %s;", packageName), methods, count, settings, this.imports);
+            PFiles.ensureDirectoryExists(out);
+            Stream<List<ParameterContext>> stream = Stream.of(Collections.emptyList());
+            for (Parameter parameter : options.parameters()) {
+                stream = stream.flatMap(currentParams -> parameter.primitives().stream()
+                        .map(primitive -> new ParameterContext(parameter, primitive))
+                        .map(ctx -> {
+                            List<ParameterContext> params = new ArrayList<>(currentParams.size() + 1);
+                            params.addAll(currentParams);
+                            params.add(ctx);
+                            return params;
+                        }));
+            }
+
+            String pkg = String.format("package %s;", packageName);
+            stream.parallel().forEach(params -> this.generate0(out, name, content, pkg, options, params));
         }
     }
 
-    private void populateToDepth(@NonNull File path, @NonNull String name, @NonNull String content, @NonNull String packageName, @NonNull String[] methods, int depth, @NonNull JsonObject settings, @NonNull String imports, Primitive... primitives) {
-        if (depth > primitives.length) {
-            Primitive[] p = new Primitive[primitives.length + 1];
-            System.arraycopy(primitives, 0, p, 0, primitives.length);
-            Set<String> valid = Primitive.PRIMITIVES.stream().map(pr -> pr.name).collect(Collectors.toSet());
-            if (settings.has(String.format("P%d", primitives.length))) {
-                JsonObject object = settings.getAsJsonObject(String.format("P%d", primitives.length));
-                if (object.has("whitelist")) {
-                    valid = StreamSupport.stream(object.getAsJsonArray("whitelist").spliterator(), true).map(JsonElement::getAsString).collect(Collectors.toSet());
-                } else if (object.has("blacklist")) {
-                    for (JsonElement element : object.getAsJsonArray("blacklist")) {
-                        valid.remove(element.getAsString());
-                    }
-                }
-            }
-            for (Primitive primitive : Primitive.PRIMITIVES) {
-                if (valid.contains(primitive.name)) {
-                    p[p.length - 1] = primitive;
-                    this.populateToDepth(path, name, content, packageName, methods, depth, settings, imports, p);
-                }
-            }
+    private void generate0(@NonNull File dir, @NonNull String name, @NonNull String content, @NonNull String pkg, @NonNull HeaderOptions options, @NonNull List<ParameterContext> params) {
+        String nameOut = name.replace(".template", ".java");
+        for (ParameterContext ctx : params) {
+            nameOut = ctx.primitive().format(nameOut, ctx.parameter().index(), params);
+        }
+        File file = new File(dir, nameOut);
+        if (file.lastModified() >= options.lastModified())   {
+            return;
+        }
+
+        String contentOut = content;
+
+        if (params.stream().map(ParameterContext::primitive).anyMatch(Primitive::isGeneric)) {
+            contentOut = contentOut.replaceAll("\\s*?<!%[\\s\\S]*?%>", "")
+                    .replaceAll("<!%[\\s\\S]*?%>", "")
+                    .replaceAll("(\\s*?)<%([\\s\\S]*?)%>", "$1$2")
+                    .replaceAll("<%([\\s\\S]*?)%>", "$1");
         } else {
-            String nameOut = name.replace(".template", ".java");
-            String contentOut = content;
+            contentOut = contentOut.replaceAll("\\s*?<%[\\s\\S]*?%>", "")
+                    .replaceAll("<%[\\s\\S]*?%>", "")
+                    .replaceAll("(\\s*?)<!%([\\s\\S]*?)%>", "$1$2")
+                    .replaceAll("<!%([\\s\\S]*?)%>", "$1");
+        }
 
-            if (methods.length != 0) { //TODO: figure out what this code actually does
-                StringBuilder builder = new StringBuilder();
-                for (String s : methods) {
-                    this.forEachPrimitiveRecursive(primitives1 -> {
-                        String in = s;
-                        for (int i = primitives.length - 1; i >= 0; i--) {
-                            in = primitives[i].format(in, i);
-                        }
-                        in = in
-                                .replaceAll("_method", "_")
-                                .replaceAll("<method%", "<%");
-                        AtomicReference<String> ref = new AtomicReference<>(in);
-                        for (int i = 0; i < primitives1.length; i++) {
-                            ref.set(primitives1[i].format(ref.get(), i));
-                        }
-                        builder.append(ref.get()
-                                .replaceAll(GENERIC_HEADER_DEF, Primitive.getGenericHeader(settings, primitives1)));
-                    }, depth, settings);
-                }
-                contentOut = contentOut.replaceAll(METHODS_DEF, builder.toString());
-            }
+        for (ParameterContext ctx : params) {
+            nameOut = ctx.primitive().format(nameOut, ctx.parameter().index(), params);
+            contentOut = ctx.primitive().format(contentOut, ctx.parameter().index(), params);
+        }
 
-            {
-                boolean areAnyGeneric = false;
-                if (depth == 0) {
-                    areAnyGeneric = true;
-                } else {
-                    for (int i = primitives.length - 1; i >= 0; i--) {
-                        areAnyGeneric |= primitives[i].generic;
-                    }
-                }
-                if (areAnyGeneric) {
-                    contentOut = contentOut.replaceAll("\\s*?<!%[\\s\\S]*?%>", "")
-                            .replaceAll("<!%[\\s\\S]*?%>", "")
-                            .replaceAll("(\\s*?)<%([\\s\\S]*?)%>", "$1$2")
-                            .replaceAll("<%([\\s\\S]*?)%>", "$1");
-                } else {
-                    contentOut = contentOut.replaceAll("\\s*?<%[\\s\\S]*?%>", "")
-                            .replaceAll("<%[\\s\\S]*?%>", "")
-                            .replaceAll("(\\s*?)<!%([\\s\\S]*?)%>", "$1$2")
-                            .replaceAll("<!%([\\s\\S]*?)%>", "$1");
-                }
-            }
-            if (depth == 0) {
-                int i = 0;
-                for (Primitive p : Primitive.PRIMITIVES) {
-                    nameOut = p.format(nameOut, i, settings);
-                    contentOut = p.format(contentOut, i++, settings);
-                }
-            } else {
-                for (int i = primitives.length - 1; i >= 0; i--) {
-                    Primitive p = primitives[i];
-                    nameOut = p.format(nameOut, i, settings);
-                    contentOut = p.format(contentOut, i, settings);
-                }
-            }
-            File file = new File(path, nameOut);
+        contentOut = contentOut
+                .replaceAll(GENERIC_HEADER_DEF, Primitive.getGenericHeader(params))
+                .replaceAll(HEADERS_DEF, imports.isEmpty() ?
+                                         String.format("%s\n\n%s", LICENSE_DEF, PACKAGE_DEF) :
+                                         String.format("%s\n\n%s\n\n%s", LICENSE_DEF, PACKAGE_DEF, IMPORTS_DEF))
+                .replaceAll(PACKAGE_DEF, pkg)
+                .replaceAll(IMPORTS_DEF, imports)
+                .replaceAll(LICENSE_DEF, LICENSE);
 
-            contentOut = contentOut
-                    .replaceAll(GENERIC_HEADER_DEF, Primitive.getGenericHeader(settings, primitives))
-                    .replaceAll(HEADERS_DEF, imports.isEmpty() ?
-                            String.format("%s\n\n%s", LICENSE_DEF, PACKAGE_DEF) :
-                            String.format("%s\n\n%s\n\n%s", LICENSE_DEF, PACKAGE_DEF, IMPORTS_DEF))
-                    .replaceAll(PACKAGE_DEF, packageName)
-                    .replaceAll(IMPORTS_DEF, imports)
-                    .replaceAll(LICENSE_DEF, LICENSE);
-
-            try (OutputStream os = new FileOutputStream(file)) {
-                byte[] b = contentOut.getBytes(StandardCharsets.UTF_8);
-                os.write(b);
-                SIZE.addAndGet(file.length());
-                FILES.incrementAndGet();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            if (!file.setLastModified(System.currentTimeMillis())) {
-                throw new IllegalStateException();
-            }
+        try (OutputStream os = new FileOutputStream(file)) {
+            byte[] b = contentOut.getBytes(StandardCharsets.UTF_8);
+            os.write(b);
+            SIZE.addAndGet(b.length);
+            FILES.incrementAndGet();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        if (!file.setLastModified(System.currentTimeMillis())) {
+            throw new IllegalStateException();
         }
     }
 
@@ -527,7 +335,7 @@ public class Generator {
 
     private void addAllExisting(@NonNull File file) {
         File[] files = PFiles.ensureDirectoryExists(file).listFiles();
-        if (files == null)  {
+        if (files == null) {
             throw new IllegalArgumentException(file.getAbsolutePath() + " has null contents!");
         }
         for (File f : files) {

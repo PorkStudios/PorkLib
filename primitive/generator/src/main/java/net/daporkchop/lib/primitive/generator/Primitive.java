@@ -21,20 +21,110 @@
 package net.daporkchop.lib.primitive.generator;
 
 import com.google.gson.JsonObject;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.util.PArrays;
+import net.daporkchop.lib.common.function.PFunctions;
+import net.daporkchop.lib.primitive.generator.option.Parameter;
+import net.daporkchop.lib.primitive.generator.option.ParameterContext;
 
-import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-@Accessors(chain = true)
+@Getter
 @Setter
 @NoArgsConstructor
+@Accessors(chain = true)
 public class Primitive {
-    public static final Collection<Primitive> PRIMITIVES = new ArrayDeque<>();
+    public static final Collection<Primitive> PRIMITIVES = Collections.unmodifiableList(Arrays.asList(
+            new Primitive()
+                    .setFullName("Boolean")
+                    .setDisplayName("Bool")
+                    .setName("boolean")
+                    .setHashCode("$1 ? 1 : 0")
+                    .setEmptyValue("false")
+                    .setEquals("$1 == $2")
+                    .setNequals("$1 != $2")
+                    .build(),
+            new Primitive()
+                    .setFullName("Byte")
+                    .setName("byte")
+                    .setHashCode("$1 & 0xFF")
+                    .setEmptyValue("Byte.MIN_VALUE")
+                    .setEquals("$1 == $2")
+                    .setNequals("$1 != $2")
+                    .build(),
+            new Primitive()
+                    .setFullName("Character")
+                    .setDisplayName("Char")
+                    .setName("char")
+                    .setHashCode("($1 >>> 8) ^ $1")
+                    .setEmptyValue("(char) 65535")
+                    .setEquals("$1 == $2")
+                    .setNequals("$1 != $2")
+                    .build(),
+            new Primitive()
+                    .setFullName("Short")
+                    .setName("short")
+                    .setHashCode("($1 >>> 8) ^ $1")
+                    .setEmptyValue("Short.MIN_VALUE")
+                    .setEquals("$1 == $2")
+                    .setNequals("$1 != $2")
+                    .build(),
+            new Primitive()
+                    .setFullName("Integer")
+                    .setDisplayName("Int")
+                    .setUnsafeName("Int")
+                    .setName("int")
+                    .setHashCode("($1 >>> 24) ^ ($1 >>> 16) ^ ($1 >>> 8) ^ $1")
+                    .setEmptyValue("Integer.MIN_VALUE")
+                    .setEquals("$1 == $2")
+                    .setNequals("$1 != $2")
+                    .build(),
+            new Primitive()
+                    .setFullName("Long")
+                    .setName("long")
+                    .setHashCode("(int) (($1 >>> 56) ^ ($1 >>> 48) ^ ($1 >>> 40) ^ ($1 >>> 32) ^ ($1 >>> 24) ^ ($1 >>> 16) ^ ($1 >>> 8) ^ $1)")
+                    .setEmptyValue("Long.MIN_VALUE")
+                    .setEquals("$1 == $2")
+                    .setNequals("$1 != $2")
+                    .build(),
+            new Primitive()
+                    .setFullName("Float")
+                    .setName("float")
+                    .setHashCode("Float.floatToIntBits($1)")
+                    .setEmptyValue("Float.NaN")
+                    .setEquals("$1 == $2")
+                    .setNequals("$1 != $2")
+                    .build(),
+            new Primitive()
+                    .setFullName("Double")
+                    .setName("double")
+                    .setHashCode("(int) Double.doubleToLongBits($1)")
+                    .setEmptyValue("Double.NaN")
+                    .setEquals("$1 == $2")
+                    .setNequals("$1 != $2")
+                    .build(),
+            new Primitive()
+                    .setFullName("Object")
+                    .setDisplayName("Obj")
+                    .setName("Object")
+                    .setHashCode("java.util.Objects.hashCode($1)")
+                    .setGeneric()
+                    .setEmptyValue("null")
+                    .setEquals("java.util.Objects.equals($1, $2)")
+                    .setNequals("!java.util.Objects.equals($1, $2)")
+                    .build()));
+
+    public static final Map<String, Primitive> BY_NAME = Collections.unmodifiableMap(PRIMITIVES.stream()
+            .collect(Collectors.toMap(Primitive::getName, PFunctions.identity())));
+
     public static final String PARAM_DEF = "P%d";
     public static final String DISPLAYNAME_DEF = String.format("_%s_", PARAM_DEF);
     public static final String BOXED_FORCE_DEF = String.format("_obj%s_", PARAM_DEF);
@@ -71,85 +161,10 @@ public class Primitive {
         }
     }
 
-    protected static String[] getGenericNames(@NonNull JsonObject settings, int count) {
-        return settings.has("genericNames") ?
-                PArrays.filled(count, String[]::new, i -> settings.getAsJsonObject("genericNames").get(String.format("P%d", i)).getAsString().trim()) :
-                PArrays.filled(count, String[]::new, i -> String.valueOf((char) ('A' + i)));
-    }
-
-    public static String getGenericHeader(@NonNull JsonObject settings, @NonNull Primitive... primitives) {
-        if (primitives.length == 0) {
-            return "";
-        }
-        String[] genericNames = getGenericNames(settings, primitives.length);
-        int i = 0;
-        for (Primitive p : primitives) {
-            if (p.generic) {
-                i++;
-            }
-        }
-        if (i == 0) {
-            return "";
-        }
-        String s = "<";
-        for (int j = 0; j < primitives.length; j++) {
-            if (primitives[j].generic) {
-                s += genericNames[j] + ", ";
-            }
-        }
-        return (s.endsWith(", ") ? s.substring(0, s.length() - 2) : s) + '>';
-    }
-
-    public static String getGenericSuper(@NonNull JsonObject settings, int x, Primitive... primitives) {
-        if (primitives.length == 0) {
-            return "";
-        }
-        String[] genericNames = getGenericNames(settings, primitives.length);
-        int i = 0;
-        for (Primitive p : primitives) {
-            if (p.generic) {
-                i++;
-            }
-        }
-        if (i == 0) {
-            return "";
-        }
-        String s = "<";
-        for (int j = 0; j < primitives.length; j++) {
-            if (primitives[j].generic) {
-                s += "? super " + genericNames[j] + ", ";
-            }
-        }
-        if (s.endsWith(", ")) {
-            s = s.substring(0, s.length() - 2);
-        }
-        return s + '>';
-    }
-
-    public static String getGenericExtends(@NonNull JsonObject settings, int x, Primitive... primitives) {
-        if (primitives.length == 0) {
-            return "";
-        }
-        String[] genericNames = getGenericNames(settings, primitives.length);
-        int i = 0;
-        for (Primitive p : primitives) {
-            if (p.generic) {
-                i++;
-            }
-        }
-        if (i == 0) {
-            return "";
-        }
-        String s = "<";
-        for (int j = 0; j < primitives.length; j++) {
-            if (primitives[j].generic) {
-                s += "? extends " + genericNames[j] + ", ";
-            }
-        }
-        if (s.endsWith(", ")) {
-            s = s.substring(0, s.length() - 2);
-        }
-        return s + '>';
+    public static String getGenericHeader(@NonNull List<ParameterContext> params) {
+        List<ParameterContext> generics = params.stream().filter(ctx -> ctx.primitive().generic).collect(Collectors.toList());
+        return generics.isEmpty() ? "" : generics.stream().map(ParameterContext::parameter).map(Parameter::genericName)
+                .collect(Collectors.joining(", ", "<", ">"));
     }
 
     @NonNull
@@ -170,15 +185,8 @@ public class Primitive {
     @NonNull
     public String nequals;
 
-    public String format(@NonNull String text, int i)   {
-        return this.format(text, i, new JsonObject());
-    }
-
-    public String format(@NonNull String text, int i, @NonNull JsonObject settings) {
-        String genericName = String.valueOf((char) ('A' + i));
-        if (settings.has("genericNames"))   {
-            genericName = settings.getAsJsonObject("genericNames").get(String.format("P%d", i)).getAsString();
-        }
+    public String format(@NonNull String text, int i, @NonNull List<ParameterContext> params) {
+        String genericName = params.get(i).parameter().genericName();
 
         if (this.generic) {
             text = text.replaceAll("\\s*?<~!%[\\s\\S]*?%>".replace("~", String.valueOf(i)), "")
@@ -202,8 +210,6 @@ public class Primitive {
                 .replace(String.format(EMPTYVALUE_DEF, i), this.emptyValue)
                 .replace(String.format(NON_GENERIC_DEF, i), this.generic ? "" : this.name)
                 .replace(String.format(GENERIC_DEF, i), this.generic ? "<" + genericName + "> " : " ")
-                .replace(String.format(GENERIC_SUPER_P_DEF, i), getGenericSuper(settings, i, this))
-                .replace(String.format(GENERIC_EXTENDS_P_DEF, i), getGenericExtends(settings, i, this))
                 .replace(String.format(UNSAFE_ARRAY_OFFSET_DEF, i), String.format("PUnsafe.ARRAY_%s_BASE_OFFSET", this.name.toUpperCase()))
                 .replace(String.format(UNSAFE_ARRAY_SCALE_DEF, i), String.format("PUnsafe.ARRAY_%s_INDEX_SCALE", this.name.toUpperCase()))
                 .replaceAll("_equalsP~\\|([^!]*?)\\|([^!]*?)\\|_".replace("~", String.valueOf(i)), this.equals)

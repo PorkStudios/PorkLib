@@ -1,0 +1,6 @@
+[
+  {
+    "override": "ObjIterable",
+    "with": "java.util.Iterable"
+  }
+]

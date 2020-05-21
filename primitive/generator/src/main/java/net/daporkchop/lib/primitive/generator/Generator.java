@@ -29,15 +29,18 @@ import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.oio.StreamUtil;
 import net.daporkchop.lib.common.misc.InstancePool;
 import net.daporkchop.lib.common.misc.file.PFiles;
+import net.daporkchop.lib.common.misc.string.PStrings;
 import net.daporkchop.lib.primitive.generator.option.HeaderOptions;
 import net.daporkchop.lib.primitive.generator.option.Parameter;
 import net.daporkchop.lib.primitive.generator.option.ParameterContext;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
@@ -56,6 +59,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 import static net.daporkchop.lib.primitive.generator.Primitive.*;
@@ -72,7 +76,7 @@ public class Generator {
             , new Generator(
                     new File("src/main/resources/primitive/java"),
                     new File("../src/generated/java"),
-                    Collections.emptyList())
+                    new File("src/main/resources/primitive/primitive.json"))
             /*, new Generator(
                     new File("src/main/resources/test/java"),
                     new File("../src/test/java"),
@@ -80,7 +84,7 @@ public class Generator {
             , new Generator(
                     new File("src/main/resources/lambda/java"),
                     new File("../lambda/src/generated/java"),
-                    Collections.emptyList())
+                    new File("src/main/resources/lambda/lambda.json"))
     ).filter(Objects::nonNull).collect(Collectors.toList());
     public static String LICENSE;
     private static final JsonArray EMPTY_JSON_ARRAY = new JsonArray();
@@ -88,9 +92,9 @@ public class Generator {
     static {
         try (InputStream is = new FileInputStream(new File(".", "../../LICENSE"))) {
             LICENSE = String.format("/*\n * %s\n */",
-                    new String(StreamUtil.toByteArray(is))
+                    new String(StreamUtil.toByteArray(is), StandardCharsets.UTF_8)
                             .replace("$today.year", String.valueOf(Calendar.getInstance().get(Calendar.YEAR)))
-                            .replaceAll("\n", "\n * "), StandardCharsets.UTF_8);
+                            .replaceAll("\n", "\n * "));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -109,21 +113,32 @@ public class Generator {
         );
     }
 
-    @NonNull
     public final File inRoot;
-    @NonNull
     public final File outRoot;
-    @NonNull
-    public final Collection<String> additionalImports;
-    private final List<String> importList = new ArrayList<>();
     private final Collection<String> existing = new ArrayDeque<>();
     private final Collection<String> generated = new ArrayDeque<>();
-    private String imports;
+    private final String imports;
+
+    public Generator(@NonNull File inRoot, @NonNull File outRoot, @NonNull File manifestFile) {
+        this.inRoot = PFiles.assertDirectoryExists(inRoot);
+        this.outRoot = PFiles.ensureDirectoryExists(outRoot);
+
+        JsonObject manifest;
+        try (Reader reader = new BufferedReader(new InputStreamReader(new FileInputStream(PFiles.assertFileExists(manifestFile)), StandardCharsets.UTF_8))) {
+            manifest = InstancePool.getInstance(JsonParser.class).parse(reader).getAsJsonObject();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        this.imports = StreamSupport.stream(manifest.getAsJsonArray("imports").spliterator(), false)
+                .map(JsonElement::getAsString)
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .map(s -> PStrings.fastFormat("import %s;", s))
+                .collect(Collectors.joining("\n"));
+    }
 
     public void generate() {
         this.addAllExisting(PFiles.ensureDirectoryExists(this.outRoot));
-
-        this.getImports();
 
         this.generate(this.inRoot, this.outRoot);
 
@@ -290,47 +305,6 @@ public class Generator {
         StringJoiner joiner = new StringJoiner(".");
         list.forEach(joiner::add);
         return joiner.toString();
-    }
-
-    private void getImports() {
-        if (this.imports == null) {
-            this.importList.clear();
-            Collections.addAll(
-                    this.importList,
-                    "net.daporkchop.lib.unsafe.PUnsafe"//,
-                    //"lombok.*",
-                    //"java.util.*",
-                    //"java.util.concurrent.*",
-                    //"java.util.concurrent.atomic.*",
-                    //"java.util.concurrent.locks.*",
-                    //"java.io.*",
-                    //"java.nio.*"
-            );
-            this.importList.addAll(this.additionalImports);
-            //this.getImportsRecursive(this.inRoot);
-            this.importList.sort(String::compareTo);
-
-            StringBuilder builder = new StringBuilder();
-            for (String s : this.importList) {
-                builder.append(String.format("import %s;\n", s));
-            }
-            String s = builder.toString();
-            this.imports = s.isEmpty() ? "" : s.substring(0, s.length() - 1);
-        }
-    }
-
-    private void getImportsRecursive(@NonNull File file) {
-        boolean flag = true;
-        for (File f : PFiles.ensureDirectoryExists(file).listFiles()) {
-            if (f.isDirectory()) {
-                if (!f.getName().endsWith("_methods")) {
-                    this.getImportsRecursive(f);
-                }
-            } else if (flag && f.getName().endsWith(".template")) {
-                this.importList.add(String.format("%s.*", this.getPackageName(f)));
-                flag = false;
-            }
-        }
     }
 
     private void addAllExisting(@NonNull File file) {

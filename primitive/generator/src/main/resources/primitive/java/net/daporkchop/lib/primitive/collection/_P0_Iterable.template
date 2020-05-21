@@ -10,6 +10,8 @@ _headers_
 
 import net.daporkchop.lib.primitive.lambda.consumer._P0_Consumer;
 
+import java.util.function.Consumer;
+
 /**
  * A type which may be iterated over.
  *
@@ -18,7 +20,7 @@ import net.daporkchop.lib.primitive.lambda.consumer._P0_Consumer;
  */
 public interface _P0_Iterable_gH_ extends Iterable<_fullnameP0_> {
     /**
-     * @return an {@link _P0_Iterator_gH_} over elements of type {@code _nameP0_}
+     * @return a {@link _P0_Iterator} over the elements described by this {@link _P0_Iterable}
      */
     @Override
     _P0_Iterator_gH_ iterator();
@@ -26,9 +28,26 @@ public interface _P0_Iterable_gH_ extends Iterable<_fullnameP0_> {
     /**
      * Executes the given {@link _P0_Consumer} for all of the values.
      */
-    default void forEach(@NonNull _P0_Consumer_gH_ action) {
+    default void forEach(@NonNull _P0_Consumer action) {
         for (_P0_Iterator_gH_ itr = this.iterator(); itr.hasNext();) {
             action.accept(itr.next_P0_());
         }
     }
+
+    @Override
+    @Deprecated
+    default void forEach(@NonNull Consumer<? super _fullnameP0_> action)    {
+        if (action instanceof _P0_Consumer) {
+            this.forEach((_P0_Consumer) action);
+        } else {
+            this.forEach((_P0_Consumer) action::accept);
+        }
+    }
+
+    /**
+     * @return a {@link _P0_Spliterator} over the elements described by this {@link _P0_Iterable}
+     */
+    /*default _P0_Spliterator spliterator() {
+        return Spliterators.spliteratorUnknownSize(iterator(), 0);
+    }*/
 }

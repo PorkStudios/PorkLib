@@ -43,15 +43,11 @@
 
   //collections
   {
-    "override": "ObjIterable",
-    "with": "java.util.Iterable"
+    "override": "Obj(ArrayList|Collection|List|ListIterator|Iterator|Iterable)",
+    "with": "java.util.$1"
   },
   {
     "override": "(Int|Long|Double)Iterator",
     "with": "java.util.PrimitiveIterator.Of$1"
-  },
-  {
-    "override": "ObjIterator",
-    "with": "java.util.Iterator"
   }
 ]

@@ -63,6 +63,7 @@ public class Primitive {
             new Primitive()
                     .setFullName("Character")
                     .setDisplayName("Char")
+                    .setUnsafeName("Char")
                     .setName("char")
                     .setHashCode("($1 >>> 8) ^ $1")
                     .setEmptyValue("(char) 65535")

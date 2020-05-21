@@ -10,6 +10,7 @@ _headers_
 
 import net.daporkchop.lib.primitive.lambda.consumer._P0_Consumer;
 
+import java.util.function.Consumer;
 import java.util.PrimitiveIterator;
 import java.util.NoSuchElementException;
 
@@ -57,6 +58,7 @@ public interface _P0_Iterator_gH_ extends PrimitiveIterator<_fullnameP0_, _P0_Co
      * {@link #next_P0_()}, and returns that boxed result.
      */
     @Override
+    @Deprecated
     default _fullnameP0_ next() {
         return this.next_P0_();
     }

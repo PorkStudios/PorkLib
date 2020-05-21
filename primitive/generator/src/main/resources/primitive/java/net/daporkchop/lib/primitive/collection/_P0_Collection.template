@@ -9,6 +9,7 @@ $$$settings$$$
 _headers_
 
 import net.daporkchop.lib.primitive.lambda.consumer._P0_Consumer;
+import net.daporkchop.lib.primitive.lambda.function._P0_BoolFunction;
 
 /**
  * The most simple abstraction of a collection. Supports adding, removing, counting and iterating over
@@ -16,7 +17,45 @@ import net.daporkchop.lib.primitive.lambda.consumer._P0_Consumer;
  *
  * @author DaPorkchop_
  */
-public interface _P0_Collection_gH_ {
+public interface _P0_Collection_gH_ extends _P0_Iterable_gH_ {
+    /**
+     * @return the number of elements in this collection, or {@link Integer#MAX_VALUE} if the size is too large to fit in an {@code int}
+     */
+    int size();
+
+    /**
+     * @return whether or not this collection is empty
+     */
+    boolean isEmpty();
+
+    /**
+     * Checks if the collection contains the given value.
+     * <p>
+     * This function checks for a value that is equal to the given value. What exactly constitutes equality
+     * between two values is up to the implementation to decide, although generally it will check using the
+     * {@code ==} operator or {@link Object#equals(Object)}.
+     *
+     * @param val the value to check for
+     * @return whether or not the collection contains an equal value
+     */
+    boolean contains(_p0_ val);
+
+    /**
+     * @return an array containing all the values in this collection in iteration order
+     */
+    _p0_[] toArray();
+
+    /**
+     * Returns an array containing all the values in this collection in iteration order.
+     * <p>
+     * If the given array is {@code null} or too small, a new one will be created and returned.
+     * <p>
+     * If the given array is too large, the element immediately following the final value will be set to {@code _P0E_}.
+     *
+     * @return an array containing all the values in this collection in iteration order
+     */
+    _p0_[] toArray(_p0_[] a);
+
     /**
      * Adds a value to the collection.
      * <p>
@@ -41,74 +80,63 @@ public interface _P0_Collection_gH_ {
     boolean remove(_p0_ val) throws UnsupportedOperationException;
 
     /**
-     * Checks if the collection contains the given value.
-     * <p>
-     * This function checks for a value that is equal to the given value. What exactly constitutes equality
-     * between two values is up to the implementation to decide, although generally it will check using the
-     * {@code ==} operator or {@link Object#equals(Object)}.
+     * @return whether or not this collection contains all of the elements in the given collection
+     */
+    boolean containsAll(@NonNull _P0_Collection c);
+
+    /**
+     * Adds all of the elements in the given collection to this collection in iteration order.
      *
-     * @param val the value to check for
-     * @return whether or not the collection contains an equal value
+     * @whether or not this collection changed as a result of the call
      */
-    boolean contains(_p0_ val);
+    boolean addAll(@NonNull _P0_Collection c);
 
     /**
-     * Passes each element in this collection to the given function.
+     * Removes all of the elements in the given collection from this collection.
      *
-     * @param consumer the function to run
+     * @whether or not this collection changed as a result of the call
      */
-    void forEach(_P0_Consumer_gH_ consumer);
+    boolean removeAll(@NonNull _P0_Collection c);
 
     /**
-     * @return an {@link _P0_Iterator} over the elements in this collection
-     */
-    _P0_Iterator_gH_ iterator();
-
-    /**
-     * @return the number of elements in this collection, or {@link Integer#MAX_VALUE} if the size is too large to fit in an {@code int}
-     */
-    int size();
-
-    /**
-     * For collections that allow more than {@code 2^31 - 1} elements.
+     * Removes all of the elements of this collection that match the given predicate.
      *
-     * @return the number of elements in this collection
+     * @whether or not this collection changed as a result of the call
      */
-    default long longSize() {
-        return this.size();
+    default boolean removeIf(@NonNull _P0_BoolFunction filter)  {
+        boolean removed = false;
+        for (_P0_Iterator itr = this.iterator(); itr.hasNext();)    {
+            if (filter.applyAsBool(itr.next_P0_()))    {
+                itr.remove();
+                removed = true;
+            }
+        }
+        return removed;
     }
 
     /**
-     * Clears this collection, removing all elements.
-     * <p>
-     * After this method has been invoked, this instance is expected to be reset as if it were a newly created
-     * instance.
+     * Removes all of the elements not contained in the given collection from this collection.
+     *
+     * @whether or not this collection changed as a result of the call
+     */
+    boolean retainAll(@NonNull _P0_Collection c);
+
+    /**
+     * Removes all of the elements from this collection.
      */
     void clear();
 
     /**
-     * Clears this collection, removing all elements.
-     * <p>
-     * Unlike {@link #clear()}, implementations may choose to not completely reset this instance's state, and
-     * rather maintain some allocated resources in order to preserve performance. However, by default this is
-     * simply a proxy to {@link #clear()}.
+     * @return a sequential {@link _P0_Stream} with this collection as its source.
      */
-    default void removeAll()    {
-        this.clear();
-    }
+    /*default _P0_Stream stream() {
+        return StreamSupport.stream(spliterator(), false);
+    }*/
 
     /**
-     * Releases any resources allocated by this collection.
-     * <p>
-     * After invoking this method the collection should not be used for any purpose, and attempting to invoke
-     * any methods on a released collection will produce undefined behavior.
-     * <p>
-     * The behavior of this method is highly implementation-dependant. This may e.g. free directly allocated
-     * memory, or simply make resources available for garbage collection.
-     * <p>
-     * Any actions done by this method are expected to be done automatically when this collection instance
-     * is garbage collected, this method simply allows doing it explicitly to free up as many resources as possible
-     * for performance reasons in some scenarios.
+     * @return a possibly parallel {@link _P0_Stream} with this collection as its source.
      */
-    void release();
+    /*default _P0_Stream parallelStream() {
+        return StreamSupport.stream(spliterator(), true);
+    }*/
 }

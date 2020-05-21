@@ -1,0 +1,97 @@
+$$$settings$$$
+{
+    "params": [
+        {
+            "genericName": "E",
+            "blacklist": [
+                "boolean"
+            ]
+        }
+    ]
+}
+_headers_
+
+import net.daporkchop.lib.primitive.collection._P0_Collection;
+import net.daporkchop.lib.primitive.lambda.unary._P0_UnaryOperator;
+
+import java.util.Arrays;
+
+/**
+ * A {@link _P0_Collection} that maintains element order in a numeric sequence, without gaps.
+ *
+ * @author DaPorkchop_
+ */
+public interface _P0_List_gH_ extends _P0_Collection_gH_ {
+    /**
+     * Inserts all of the elements in the given collection into this list at the specified position.
+     *
+     * @return whether or not this list changed as a result of the call
+     */
+    boolean addAll(int index, @NonNull _P0_Collection c);
+
+    /**
+     * Replaces each element of this list with the result of applying the given operator to that element.
+     */
+    default void replaceAll(@NonNull _P0_UnaryOperator operator)    {
+        for (_P0_ListIterator itr = this.iterator(); itr.hasNext();)   {
+            itr.set_P0_(operator.applyAs_P0_(itr.next_P0_()));
+        }
+    }
+
+    /**
+     * Sorts the contents of this list.
+     */
+    default void sort() {
+        _p0_[] a = this.toArray();
+        Arrays.sort(a);
+        _P0_ListIterator itr = this.iterator();
+        for (_p0_ e : a)    {
+            itr.next_P0_();
+            itr.set_P0_(e);
+        }
+    }
+
+    /**
+     * @return the element at the given position in this list
+     */
+    _p0_ get(int index);
+
+    /**
+     * Replaces the element at the given position in this list with the given element.
+     *
+     * @return the element previously at the given position
+     */
+    _p0_ set(int index, _p0_ element);
+
+    /**
+     * Inserts the given element at the given position in this list.
+     */
+    void add(int index, _p0_ element);
+
+    /**
+     * Removes the element at the given position in this list.
+     *
+     * @return the element previously at the given position
+     */
+    _p0_ removeAt(int index);
+
+    /**
+     * @return the index of the first occurrence of the given element in this list, or {@code -1} if this list doesn't contain the element.
+     */
+    int indexOf(_p0_ v);
+
+    /**
+     * @return the index of the last occurrence of the given element in this list, or {@code -1} if this list doesn't contain the element.
+     */
+    int lastIndexOf(_p0_ v);
+
+    @Override
+    default _P0_ListIterator iterator() {
+        return this.iterator(0);
+    }
+
+    /**
+     * @return a {@link _P0_ListIterator} over the contents of this list, starting at the given index
+     */
+    _P0_ListIterator iterator(int index);
+}

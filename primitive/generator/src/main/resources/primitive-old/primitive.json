@@ -1,0 +1,6 @@
+{
+  "imports": [
+    "net.daporkchop.lib.unsafe.PUnsafe",
+    "lombok.*"
+  ]
+}

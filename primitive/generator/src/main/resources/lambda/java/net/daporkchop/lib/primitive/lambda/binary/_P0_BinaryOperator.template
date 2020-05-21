@@ -16,5 +16,5 @@ _headers_
  */
 @FunctionalInterface
 public interface _P0_BinaryOperator_gH_ {
-    _p0_ apply(_p0_ t, _p0_ u);
+    _p0_ apply<0!%As_P0_%>(_p0_ t, _p0_ u);
 }

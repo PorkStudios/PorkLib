@@ -46,11 +46,11 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -86,17 +86,28 @@ public class Generator {
                     new File("../lambda/src/generated/java"),
                     new File("src/main/resources/lambda/lambda.json"))
     ).filter(Objects::nonNull).collect(Collectors.toList());
-    public static String LICENSE;
+    public static final String LICENSE;
+    public static final Collection<OverrideReplacer> OVERRIDES;
     private static final JsonArray EMPTY_JSON_ARRAY = new JsonArray();
 
     static {
-        try (InputStream is = new FileInputStream(new File(".", "../../LICENSE"))) {
-            LICENSE = String.format("/*\n * %s\n */",
-                    new String(StreamUtil.toByteArray(is), StandardCharsets.UTF_8)
-                            .replace("$today.year", String.valueOf(Calendar.getInstance().get(Calendar.YEAR)))
-                            .replaceAll("\n", "\n * "));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        try {
+            try (InputStream is = new FileInputStream(new File("../../LICENSE"))) {
+                LICENSE = String.format("/*\n * %s\n */",
+                        new String(StreamUtil.toByteArray(is), StandardCharsets.UTF_8)
+                                .replace("$today.year", String.valueOf(Calendar.getInstance().get(Calendar.YEAR)))
+                                .replaceAll("\n", "\n * "));
+            }
+
+            try (Reader reader = new BufferedReader(new InputStreamReader(new FileInputStream(new File("src/main/resources/overrides.json")), StandardCharsets.UTF_8))) {
+                OVERRIDES = Collections.unmodifiableList(StreamSupport.stream(
+                        InstancePool.getInstance(JsonParser.class).parse(reader).getAsJsonArray().spliterator(), false)
+                        .map(JsonElement::getAsJsonObject)
+                        .map(OverrideReplacer::new)
+                        .collect(Collectors.toList()));
+            }
+        } catch (Exception e) {
+            throw new AssertionError(e);
         }
     }
 
@@ -109,14 +120,13 @@ public class Generator {
                 "Generated %d files, totalling %s bytes (%.2f megabytes)\n",
                 FILES.get(),
                 NumberFormat.getInstance(Locale.US).format(SIZE.get()),
-                (double) SIZE.get() / 1024.0d / 1024.0d
-        );
+                (double) SIZE.get() / 1024.0d / 1024.0d);
     }
 
     public final File inRoot;
     public final File outRoot;
-    private final Collection<String> existing = new ArrayDeque<>();
-    private final Collection<String> generated = new ArrayDeque<>();
+    private final Collection<String> existing = new HashSet<>();
+    private final Collection<String> generated = new HashSet<>();
     private final String imports;
 
     public Generator(@NonNull File inRoot, @NonNull File outRoot, @NonNull File manifestFile) {
@@ -142,41 +152,27 @@ public class Generator {
 
         this.generate(this.inRoot, this.outRoot);
 
-        if (this.existing.size() > this.generated.size()) {
-            System.out.printf("Existing: %d, generated: %d\n", this.existing.size(), this.generated.size());
-            for (String s : new ArrayDeque<>(this.generated)) {
-                int count = Primitive.countVariables(s);
-                if (count == 0) {
-                    this.generated.add(s.replaceAll("\\.template", ".java"));
-                } else {
-                    this.forEachPrimitiveRecursive(primitives -> {
-                        String s1 = s;
-                        for (int i = 0; i < primitives.length; i++) {
-                            s1 = s1.replaceAll(String.format(DISPLAYNAME_DEF, i), primitives[i].displayName);
-                        }
-                        this.generated.add(s1.replaceAll("\\.template", ".java"));
-                    }, count, new JsonObject());
-                }
-            }
-            this.existing.removeAll(this.generated);
-            System.out.printf("Existing: %d, generated: %d\n", this.existing.size(), this.generated.size());
-            AtomicLong deletedFiles = new AtomicLong(0L);
-            AtomicLong deletedSize = new AtomicLong(0L);
-            this.existing.stream().forEach(s -> {
-                File file = new File(this.outRoot, s.replaceAll("\\.", "/").replaceAll("/java", ".java"));
-                deletedSize.addAndGet(file.length());
-                if (!file.delete()) {
-                    throw new IllegalStateException(String.format("Unable to delete file %s", file.getAbsoluteFile().getAbsolutePath()));
-                }
-                deletedFiles.incrementAndGet();
-            });
-            System.out.printf(
-                    "Deleted %d old files, totalling %s bytes (%.2f megabytes)\n",
-                    deletedFiles.get(),
-                    NumberFormat.getInstance(Locale.US).format(deletedSize.get()),
-                    deletedSize.get() / 1024.0d / 1024.0d
-            );
-        }
+        this.existing.removeAll(this.generated);
+        System.out.printf("Existing: %d, generated: %d\n", this.existing.size(), this.generated.size());
+        AtomicLong deletedFiles = new AtomicLong(0L);
+        AtomicLong deletedSize = new AtomicLong(0L);
+        this.existing.parallelStream()
+                .map(name -> {
+                    int dotIndex = name.substring(0, name.length() - ".java".length()).lastIndexOf('.');
+                    return new File(new File(this.outRoot, name.substring(0, dotIndex).replace('.', '/')), name.substring(dotIndex + 1, name.length()));
+                })
+                .filter(file -> !this.generated.contains(file.getName()))
+                .forEach(file -> {
+                    deletedSize.addAndGet(file.length());
+                    PFiles.rm(file);
+                    deletedFiles.incrementAndGet();
+                });
+
+        System.out.printf(
+                "Deleted %d old files, totalling %s bytes (%.2f megabytes)\n",
+                deletedFiles.get(),
+                NumberFormat.getInstance(Locale.US).format(deletedSize.get()),
+                deletedSize.get() / 1024.0d / 1024.0d);
     }
 
     public void generate(@NonNull File file, @NonNull File out) {
@@ -247,6 +243,13 @@ public class Generator {
         for (ParameterContext ctx : params) {
             nameOut = ctx.primitive().format(nameOut, ctx.parameter().index(), params);
         }
+        for (OverrideReplacer replacer : OVERRIDES) {
+            if ((nameOut = replacer.processName(nameOut, -1)) == null) {
+                return;
+            }
+        }
+
+        checkState(this.generated.add(nameOut), "File %s was already generated?!?", name);
         File file = new File(dir, nameOut);
         if (file.lastModified() == options.lastModified()) {
             return;
@@ -279,6 +282,12 @@ public class Generator {
                 .replaceAll(PACKAGE_DEF, pkg)
                 .replaceAll(IMPORTS_DEF, imports)
                 .replaceAll(LICENSE_DEF, LICENSE);
+
+        for (OverrideReplacer replacer : OVERRIDES) {
+            if ((contentOut = replacer.processCode(contentOut, -1)) == null) {
+                return;
+            }
+        }
 
         try (OutputStream os = new FileOutputStream(file)) {
             byte[] b = contentOut.getBytes(StandardCharsets.UTF_8);

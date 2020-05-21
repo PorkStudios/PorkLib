@@ -12,9 +12,9 @@ _headers_
  * A function that returns _nameP0_.
  *
  * @author DaPorkchop_
- * @see java.util.function.Supplier
+ * @see Supplier
  */
 @FunctionalInterface
 public interface _P0_Supplier_gH_ {
-    _p0_ get();
+    _p0_ get<0!%As_P0_%>();
 }

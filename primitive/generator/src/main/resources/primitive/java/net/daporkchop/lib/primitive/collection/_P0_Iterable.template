@@ -1,0 +1,34 @@
+$$$settings$$$
+{
+    "params": [
+        {
+            "genericName": "E"
+        }
+    ]
+}
+_headers_
+
+import net.daporkchop.lib.primitive.lambda.consumer._P0_Consumer;
+
+/**
+ * A type which may be iterated over.
+ *
+ * @author DaPorkchop_
+ * @see Iterable
+ */
+public interface _P0_Iterable_gH_ extends Iterable<_fullnameP0_> {
+    /**
+     * @return an {@link _P0_Iterator_gH_} over elements of type {@code _nameP0_}
+     */
+    @Override
+    _P0_Iterator_gH_ iterator();
+
+    /**
+     * Executes the given {@link _P0_Consumer} for all of the values.
+     */
+    default void forEach(@NonNull _P0_Consumer_gH_ action) {
+        for (_P0_Iterator_gH_ itr = this.iterator(); itr.hasNext();) {
+            action.accept(itr.next_P0_());
+        }
+    }
+}

@@ -42,7 +42,7 @@ public class OverrideReplacer implements Replacer {
         this.with = obj.get("with").getAsString();
 
         this.nameMatcherCache = ThreadRef.regex(Pattern.compile('^' + this.override));
-        this.codeMatcherCache = ThreadRef.regex(Pattern.compile("(?:net\\.daporkchop\\.lib\\.primitive\\.(?:[a-z]+\\.)*)?" + this.override));
+        this.codeMatcherCache = ThreadRef.regex(Pattern.compile("(?<![a-zA-Z])(?:net\\.daporkchop\\.lib\\.primitive\\.(?:[a-z]+\\.)*)?" + this.override));
     }
 
     @Override

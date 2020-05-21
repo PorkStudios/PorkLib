@@ -22,5 +22,5 @@ _headers_
  */
 @FunctionalInterface
 public interface _P0__P1__P2_Function_gH_ {
-    _p2_ apply(_p0_ t, _p1_ u);
+    _p2_ apply<2!%As_P2_%>(_p0_ t, _p1_ u);
 }

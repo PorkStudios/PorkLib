@@ -19,5 +19,5 @@ _headers_
  */
 @FunctionalInterface
 public interface _P0__P1_Function_gH_ {
-    _p1_ apply(_p0_ t);
+    _p1_ apply<1!%As_P1_%>(_p0_ t);
 }

@@ -27,6 +27,8 @@ import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.function.PFunctions;
+import net.daporkchop.lib.common.ref.Ref;
+import net.daporkchop.lib.common.ref.ThreadRef;
 import net.daporkchop.lib.primitive.generator.option.Parameter;
 import net.daporkchop.lib.primitive.generator.option.ParameterContext;
 
@@ -35,6 +37,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Getter
@@ -56,7 +60,15 @@ public class Primitive {
                     .setFullName("Byte")
                     .setName("byte")
                     .setHashCode("$1 & 0xFF")
-                    .setEmptyValue("Byte.MIN_VALUE")
+                    .setEmptyValue("(byte) -1")
+                    .setEquals("$1 == $2")
+                    .setNequals("$1 != $2")
+                    .build(),
+            new Primitive()
+                    .setFullName("Short")
+                    .setName("short")
+                    .setHashCode("($1 >>> 8) ^ $1")
+                    .setEmptyValue("(short) -1")
                     .setEquals("$1 == $2")
                     .setNequals("$1 != $2")
                     .build(),
@@ -66,15 +78,7 @@ public class Primitive {
                     .setUnsafeName("Char")
                     .setName("char")
                     .setHashCode("($1 >>> 8) ^ $1")
-                    .setEmptyValue("(char) 65535")
-                    .setEquals("$1 == $2")
-                    .setNequals("$1 != $2")
-                    .build(),
-            new Primitive()
-                    .setFullName("Short")
-                    .setName("short")
-                    .setHashCode("($1 >>> 8) ^ $1")
-                    .setEmptyValue("Short.MIN_VALUE")
+                    .setEmptyValue("(char) 0")
                     .setEquals("$1 == $2")
                     .setNequals("$1 != $2")
                     .build(),
@@ -84,7 +88,7 @@ public class Primitive {
                     .setUnsafeName("Int")
                     .setName("int")
                     .setHashCode("($1 >>> 24) ^ ($1 >>> 16) ^ ($1 >>> 8) ^ $1")
-                    .setEmptyValue("Integer.MIN_VALUE")
+                    .setEmptyValue("-1")
                     .setEquals("$1 == $2")
                     .setNequals("$1 != $2")
                     .build(),
@@ -92,7 +96,7 @@ public class Primitive {
                     .setFullName("Long")
                     .setName("long")
                     .setHashCode("(int) (($1 >>> 56) ^ ($1 >>> 48) ^ ($1 >>> 40) ^ ($1 >>> 32) ^ ($1 >>> 24) ^ ($1 >>> 16) ^ ($1 >>> 8) ^ $1)")
-                    .setEmptyValue("Long.MIN_VALUE")
+                    .setEmptyValue("-1L")
                     .setEquals("$1 == $2")
                     .setNequals("$1 != $2")
                     .build(),
@@ -139,9 +143,12 @@ public class Primitive {
     public static final String EMPTYVALUE_DEF = String.format("_%sE_", PARAM_DEF);
     public static final String NON_GENERIC_DEF = String.format("_nG%s_", PARAM_DEF);
     public static final String GENERIC_DEF = String.format("_G%s_", PARAM_DEF);
-    public static final String GENERIC_SUPER_P_DEF = String.format("_Gsuper%s_", PARAM_DEF);
     public static final String GENERIC_EXTENDS_P_DEF = String.format("_Gextends%s_", PARAM_DEF);
+    public static final String GENERIC_SUPER_P_DEF = String.format("_Gsuper%s_", PARAM_DEF);
+
     public static final String GENERIC_HEADER_DEF = "_gH_";
+    public static final String GENERIC_EXTRA_DEF = "_G(extends|super)_";
+    public static final Ref<Matcher> GENERIC_COMPLEX_EXTRA_PATTERN = ThreadRef.regex(Pattern.compile("_G(?:\\d+(?:extends|super))+_"));
 
     public static final String HEADERS_DEF = "_headers_";
     public static final String LICENSE_DEF = "_copyright_";
@@ -153,19 +160,10 @@ public class Primitive {
     public static final String UNSAFE_ARRAY_OFFSET_DEF = String.format("_arrOffset%s_", PARAM_DEF);
     public static final String UNSAFE_ARRAY_SCALE_DEF = String.format("_arrScale%s_", PARAM_DEF);
 
-    public static int countVariables(@NonNull String filename) {
-        for (int i = 0; ; i++) {
-            String s = String.format(DISPLAYNAME_DEF, i);
-            if (!filename.contains(s)) {
-                return i;
-            }
-        }
-    }
-
-    public static String getGenericHeader(@NonNull List<ParameterContext> params) {
+    public static String getGenericHeader(@NonNull List<ParameterContext> params, @NonNull String prefix) {
         List<ParameterContext> generics = params.stream().filter(ctx -> ctx.primitive().generic).collect(Collectors.toList());
         return generics.isEmpty() ? "" : generics.stream().map(ParameterContext::parameter).map(Parameter::genericName)
-                .collect(Collectors.joining(", ", "<", ">"));
+                .collect(Collectors.joining(", " + prefix, "<" + prefix, ">"));
     }
 
     @NonNull
@@ -210,7 +208,7 @@ public class Primitive {
                 .replace(String.format(CAST_DEF, i), this.generic ? "(" + genericName + ") " : "")
                 .replace(String.format(EMPTYVALUE_DEF, i), this.emptyValue)
                 .replace(String.format(NON_GENERIC_DEF, i), this.generic ? "" : this.name)
-                .replace(String.format(GENERIC_DEF, i), this.generic ? "<" + genericName + "> " : " ")
+                .replace(String.format(GENERIC_DEF, i), this.generic ? "<" + genericName + ">" : "")
                 .replace(String.format(UNSAFE_ARRAY_OFFSET_DEF, i), String.format("PUnsafe.ARRAY_%s_BASE_OFFSET", this.name.toUpperCase()))
                 .replace(String.format(UNSAFE_ARRAY_SCALE_DEF, i), String.format("PUnsafe.ARRAY_%s_INDEX_SCALE", this.name.toUpperCase()))
                 .replaceAll("_equalsP~\\|([^!]*?)\\|([^!]*?)\\|_".replace("~", String.valueOf(i)), this.equals)

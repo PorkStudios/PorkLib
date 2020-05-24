@@ -57,6 +57,8 @@ import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -274,13 +276,34 @@ public class Generator {
             contentOut = ctx.primitive().format(contentOut, ctx.parameter().index(), params);
         }
 
+        Matcher complexGenericMatcher = GENERIC_COMPLEX_EXTRA_PATTERN.get().reset(contentOut);
+        if (complexGenericMatcher.find()) {
+            StringBuffer buffer = new StringBuffer(); //gosh darn it java
+            do {
+                List<String> formatted = new ArrayList<>();
+                Matcher valueMatcher = Pattern.compile("(\\d+)(extends|super)?").matcher(complexGenericMatcher.group());
+                while (valueMatcher.find()) {
+                    ParameterContext param = params.get(Integer.parseUnsignedInt(valueMatcher.group(1)));
+                    if (param.primitive().isGeneric())  {
+                        String requirement = valueMatcher.group(2);
+                        formatted.add((requirement == null ? "" : "? " + requirement + ' ') + param.parameter().genericName());
+                    }
+                }
+                complexGenericMatcher.appendReplacement(buffer,
+                        formatted.isEmpty() ? "" : formatted.stream().collect(Collectors.joining(", ", "<", ">")));
+            } while (complexGenericMatcher.find());
+            complexGenericMatcher.appendTail(buffer);
+            contentOut = buffer.toString();
+        }
+
         contentOut = contentOut
-                .replaceAll(GENERIC_HEADER_DEF, Primitive.getGenericHeader(params))
-                .replaceAll(HEADERS_DEF, imports.isEmpty() ?
+                .replaceAll(GENERIC_HEADER_DEF, Primitive.getGenericHeader(params, ""))
+                .replaceAll(GENERIC_EXTRA_DEF, Primitive.getGenericHeader(params, "? $1 "))
+                .replaceAll(HEADERS_DEF, this.imports.isEmpty() ?
                                          String.format("%s\n\n%s", LICENSE_DEF, PACKAGE_DEF) :
                                          String.format("%s\n\n%s\n\n%s", LICENSE_DEF, PACKAGE_DEF, IMPORTS_DEF))
                 .replaceAll(PACKAGE_DEF, pkg)
-                .replaceAll(IMPORTS_DEF, imports)
+                .replaceAll(IMPORTS_DEF, this.imports)
                 .replaceAll(LICENSE_DEF, LICENSE);
 
         for (OverrideReplacer replacer : OVERRIDES) {

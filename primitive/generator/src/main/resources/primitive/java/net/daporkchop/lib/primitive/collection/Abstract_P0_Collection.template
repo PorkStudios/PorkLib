@@ -17,6 +17,8 @@ import net.daporkchop.lib.primitive.lambda.function._P0_BoolFunction;
  * @author DaPorkchop_
  */
 public abstract class Abstract_P0_Collection_gH_ implements _P0_Collection_gH_ {
+    protected transient int modCount = 0;
+
     public abstract _P0_Iterator iterator();
 
     public abstract int size();

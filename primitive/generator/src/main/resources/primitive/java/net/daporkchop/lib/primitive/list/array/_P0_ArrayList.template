@@ -16,25 +16,22 @@ import net.daporkchop.lib.primitive.collection._P0_Iterator;
 import net.daporkchop.lib.primitive.lambda.consumer._P0_Consumer;
 import net.daporkchop.lib.primitive.lambda.function._P0_BoolFunction;
 import net.daporkchop.lib.primitive.lambda.unary._P0_UnaryOperator;
+import net.daporkchop.lib.primitive.list.Abstract_P0_List;
 import net.daporkchop.lib.primitive.list._P0_List;
 import net.daporkchop.lib.primitive.list._P0_ListIterator;
-
-import java.util.Arrays;
-import java.util.RandomAccess;
 
 /**
  * Implementation of {@link _P0_List} backed by a resizable array.
  *
  * @author DaPorkchop_
  */
-public class _P0_ArrayList implements _P0_List, RandomAccess, Cloneable, java.io.Serializable {
+public class _P0_ArrayList extends Abstract_P0_List implements _P0_List, RandomAccess, Cloneable, java.io.Serializable {
     protected static final int DEFAULT_CAPACITY = 10;
     protected static final _p0_[] EMPTY_ELEMENTDATA = {};
     protected static final _p0_[] DEFAULTCAPACITY_EMPTY_ELEMENTDATA = {};
 
     protected transient _p0_[] elementData;
     protected int size;
-    protected transient int modCount = 0;
 
     public _P0_ArrayList() {
         this.elementData = DEFAULTCAPACITY_EMPTY_ELEMENTDATA;
@@ -326,7 +323,7 @@ public class _P0_ArrayList implements _P0_List, RandomAccess, Cloneable, java.io
         }
 
         if (modCount != expectedModCount) {
-            throw new java.util.ConcurrentModificationException();
+            throw new ConcurrentModificationException();
         }
     }
 
@@ -366,11 +363,11 @@ public class _P0_ArrayList implements _P0_List, RandomAccess, Cloneable, java.io
                 this.checkForComodification();
                 int i = this.cursor;
                 if (i >=  _P0_ArrayList.this.size) {
-                    throw new java.util.NoSuchElementException();
+                    throw new NoSuchElementException();
                 }
                 _p0_[] elementData = _P0_ArrayList.this.elementData;
                 if (i >= elementData.length)    {
-                    throw new java.util.ConcurrentModificationException();
+                    throw new ConcurrentModificationException();
                 }
                 this.cursor = i + 1;
                 return elementData[this.lastRet = i];
@@ -387,7 +384,7 @@ public class _P0_ArrayList implements _P0_List, RandomAccess, Cloneable, java.io
                     this.lastRet = -1;
                     this.expectedModCount = _P0_ArrayList.this.modCount;
                 } catch (IndexOutOfBoundsException e)   {
-                    throw new java.util.ConcurrentModificationException();
+                    throw new ConcurrentModificationException();
                 }
             }
 
@@ -400,7 +397,7 @@ public class _P0_ArrayList implements _P0_List, RandomAccess, Cloneable, java.io
                 }
                 final _p0_[] elementData = _P0_ArrayList.this.elementData;
                 if (i >= elementData.length) {
-                    throw new java.util.ConcurrentModificationException();
+                    throw new ConcurrentModificationException();
                 }
                 while (i != size && _P0_ArrayList.this.modCount == this.expectedModCount) {
                     consumer.accept(elementData[i++]);
@@ -431,11 +428,11 @@ public class _P0_ArrayList implements _P0_List, RandomAccess, Cloneable, java.io
                 this.checkForComodification();
                 int i = this.cursor - 1;
                 if (i < 0)  {
-                    throw new java.util.NoSuchElementException();
+                    throw new NoSuchElementException();
                 }
                 _p0_[] elementData = _P0_ArrayList.this.elementData;
                 if (i >= elementData.length)    {
-                    throw new java.util.ConcurrentModificationException();
+                    throw new ConcurrentModificationException();
                 }
                 this.cursor = i;
                 return elementData[this.lastRet = i];
@@ -449,7 +446,7 @@ public class _P0_ArrayList implements _P0_List, RandomAccess, Cloneable, java.io
                 try {
                     _P0_ArrayList.this.set(this.lastRet, e);
                 } catch (IndexOutOfBoundsException ex) {
-                    throw new java.util.ConcurrentModificationException();
+                    throw new ConcurrentModificationException();
                 }
             }
 
@@ -464,13 +461,13 @@ public class _P0_ArrayList implements _P0_List, RandomAccess, Cloneable, java.io
                     this.lastRet = -1;
                     this.expectedModCount = _P0_ArrayList.this.modCount;
                 } catch (IndexOutOfBoundsException ex) {
-                    throw new java.util.ConcurrentModificationException();
+                    throw new ConcurrentModificationException();
                 }
             }
 
             final void checkForComodification() {
                 if (this.expectedModCount != _P0_ArrayList.this.modCount)   {
-                    throw new java.util.ConcurrentModificationException();
+                    throw new ConcurrentModificationException();
                 }
             }
         };
@@ -485,7 +482,7 @@ public class _P0_ArrayList implements _P0_List, RandomAccess, Cloneable, java.io
             action.accept(elementData[i]);
         }
         if (this.modCount != expectedModCount) {
-            throw new java.util.ConcurrentModificationException();
+            throw new ConcurrentModificationException();
         }
     }
 
@@ -495,7 +492,7 @@ public class _P0_ArrayList implements _P0_List, RandomAccess, Cloneable, java.io
         // any exception thrown from the filter predicate at this stage
         // will leave the collection unmodified
         int removeCount = 0;
-        final java.util.BitSet removeSet = new java.util.BitSet(this.size);
+        final BitSet removeSet = new BitSet(this.size);
         final int expectedModCount = this.modCount;
         final int size = this.size;
         for (int i = 0; this.modCount == expectedModCount && i < size; i++) {
@@ -505,7 +502,7 @@ public class _P0_ArrayList implements _P0_List, RandomAccess, Cloneable, java.io
             }
         }
         if (this.modCount != expectedModCount) {
-            throw new java.util.ConcurrentModificationException();
+            throw new ConcurrentModificationException();
         }
 
         // shift surviving elements left over the spaces left by removed elements
@@ -518,7 +515,7 @@ public class _P0_ArrayList implements _P0_List, RandomAccess, Cloneable, java.io
             }
             this.size = newSize;
             if (this.modCount != expectedModCount) {
-                throw new java.util.ConcurrentModificationException();
+                throw new ConcurrentModificationException();
             }
             this.modCount++;
         }
@@ -534,7 +531,7 @@ public class _P0_ArrayList implements _P0_List, RandomAccess, Cloneable, java.io
             this.elementData[i] = operator.applyAs_P0_(this.elementData[i]);
         }
         if (this.modCount != expectedModCount) {
-            throw new java.util.ConcurrentModificationException();
+            throw new ConcurrentModificationException();
         }
         this.modCount++;
     }
@@ -544,18 +541,8 @@ public class _P0_ArrayList implements _P0_List, RandomAccess, Cloneable, java.io
         final int expectedModCount = this.modCount;
         Arrays.sort(this.elementData, 0, this.size);
         if (this.modCount != expectedModCount) {
-            throw new java.util.ConcurrentModificationException();
+            throw new ConcurrentModificationException();
         }
         this.modCount++;
-    }
-
-    @Override
-    public boolean containsAll(@NonNull _P0_Collection c)   {
-        for (_P0_Iterator itr = c.iterator(); itr.hasNext();) {
-            if (!this.contains(itr.next_P0_())) {
-                return false;
-            }
-        }
-        return true;
     }
 }

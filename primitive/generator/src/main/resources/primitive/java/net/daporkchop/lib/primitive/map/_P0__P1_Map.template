@@ -1,0 +1,58 @@
+$$$settings$$$
+{
+    "params": [
+        {
+            "genericName": "K",
+            "blacklist": [
+                "boolean"
+            ]
+        },
+        {
+            "genericName": "V"
+        }
+    ]
+}
+_headers_
+
+/**
+ * A mapping of unique keys to values.
+ *
+ * @author DaPorkchop_
+ */
+public interface _P0__P1_Map_gH_ {
+    /**
+     * @return the number of elements in this collection, or {@link Integer#MAX_VALUE} if the size is too large to fit in an {@code int}
+     */
+    int size();
+
+    /**
+     * @return whether or not this collection is empty
+     */
+    boolean isEmpty();
+
+    /**
+     * Checks if the map contains the given key.
+     * <p>
+     * This function checks for a key that is equal to the given key. What exactly constitutes equality
+     * between two keys is up to the implementation to decide, although generally it will check using the
+     * {@code ==} operator or {@link Object#equals(Object)}.
+     *
+     * @param key the key to check for
+     * @return whether or not the map contains an equal key
+     */
+    boolean containsKey(_p0_ key);
+
+    /**
+     * Checks if the map contains the given value.
+     * <p>
+     * This function checks for a value that is equal to the given value. What exactly constitutes equality
+     * between two values is up to the implementation to decide, although generally it will check using the
+     * {@code ==} operator or {@link Object#equals(Object)}.
+     * <p>
+     * This method will likely require iteration over the entire map.
+     *
+     * @param value the value to check for
+     * @return whether or not the map contains an equal value
+     */
+    boolean containsValue(_p1_ value);
+}

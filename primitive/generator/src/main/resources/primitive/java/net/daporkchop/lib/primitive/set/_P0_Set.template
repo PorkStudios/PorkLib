@@ -1,0 +1,21 @@
+$$$settings$$$
+{
+    "params": [
+        {
+            "genericName": "E",
+            "blacklist": [
+                "boolean"
+            ]
+        }
+    ]
+}
+_headers_
+
+/**
+ * A {@link _P0_Collection} with unique values.
+ *
+ * @author DaPorkchop_
+ */
+public interface _P0_Set_gH_ extends _P0_Collection_gH_ {
+    //there are literally no new methods to define here
+}

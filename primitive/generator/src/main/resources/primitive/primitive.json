@@ -2,6 +2,7 @@
   "imports": [
     "static net.daporkchop.lib.common.util.PValidation.*",
     "net.daporkchop.lib.unsafe.PUnsafe",
-    "lombok.*"
+    "lombok.*",
+    "java.util.*"
   ]
 }

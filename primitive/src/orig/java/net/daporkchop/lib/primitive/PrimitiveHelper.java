@@ -54,11 +54,11 @@ public class PrimitiveHelper {
     }
 
     public int hash(int v) {
-        return v;
+        return (v >>> 16) ^ v;
     }
 
     public int hash(long v) {
-        return (int) ((v >>> 32L) ^ v);
+        return hash((int) ((v >>> 32L) ^ v));
     }
 
     public int hash(float v) {
@@ -70,7 +70,7 @@ public class PrimitiveHelper {
     }
 
     public int hash(Object v) {
-        return Objects.hashCode(v);
+        return hash(Objects.hashCode(v));
     }
 
     //

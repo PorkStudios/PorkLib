@@ -55,8 +55,8 @@ public class OverrideReplacer implements Replacer {
         if (matcher.find()) {
             buffer.setLength(0);
             do {
-                String name = matcher.group(1);
-                matcher.appendReplacement(buffer, this.overrides.getOrDefault(name, name));
+                String overriddenName = this.overrides.get(matcher.group(1));
+                matcher.appendReplacement(buffer, overriddenName == null ? matcher.group() : overriddenName);
             } while (matcher.find());
             matcher.appendTail(buffer);
             return buffer.toString();

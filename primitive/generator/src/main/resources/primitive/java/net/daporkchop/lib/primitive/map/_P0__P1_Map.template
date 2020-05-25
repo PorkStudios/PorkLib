@@ -86,6 +86,17 @@ public interface _P0__P1_Map_G_ {<1!%
     _p1_ get(_nameP0_ key);
 
     /**
+     * Gets the value mapped to the given key.
+     *
+     * @param key the key to get the mapped value for
+     * @return the value, or the given default value if a matching entry could not be found
+     */
+    default _p1_ getOrDefault(_nameP0_ key, _p1_ defaultValue)  {
+        _p1_ v = this.get(key);
+        return v == <1!%this.defaultValue()%><1%null%> ? defaultValue : v;
+    }
+
+    /**
      * Associates the given value with the given key in this map.
      * <p>
      * If the map previously contained a mapping for the key, the old value is replaced by the given value.
@@ -146,17 +157,6 @@ public interface _P0__P1_Map_G_ {<1!%
          * @return the old value
          */
         _p1_ setValue(_p1_ value);
-    }
-
-    /**
-     * Gets the value mapped to the given key.
-     *
-     * @param key the key to get the mapped value for
-     * @return the value, or the given default value if a matching entry could not be found
-     */
-    default _p1_ getOrDefault(_nameP0_ key, _p1_ defaultValue)  {
-        _p1_ v = this.get(key);
-        return v == <1!%this.defaultValue()%><1%null%> ? defaultValue : v;
     }
 
     /**

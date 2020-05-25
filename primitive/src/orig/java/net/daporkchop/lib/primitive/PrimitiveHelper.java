@@ -79,39 +79,39 @@ public class PrimitiveHelper {
     //
     //
 
-    public boolean equals(boolean a, boolean b) {
+    public boolean eq(boolean a, boolean b) {
         return a == b;
     }
 
-    public boolean equals(byte a, byte b) {
+    public boolean eq(byte a, byte b) {
         return a == b;
     }
 
-    public boolean equals(short a, short b) {
+    public boolean eq(short a, short b) {
         return a == b;
     }
 
-    public boolean equals(char a, char b) {
+    public boolean eq(char a, char b) {
         return a == b;
     }
 
-    public boolean equals(int a, int b) {
+    public boolean eq(int a, int b) {
         return a == b;
     }
 
-    public boolean equals(long a, long b) {
+    public boolean eq(long a, long b) {
         return a == b;
     }
 
-    public boolean equals(float a, float b) {
+    public boolean eq(float a, float b) {
         return a == b;
     }
 
-    public boolean equals(double a, double b) {
+    public boolean eq(double a, double b) {
         return a == b;
     }
 
-    public boolean equals(Object a, Object b) {
+    public boolean eq(Object a, Object b) {
         return Objects.equals(a, b);
     }
 }

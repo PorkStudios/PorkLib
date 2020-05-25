@@ -4,6 +4,7 @@
     "static net.daporkchop.lib.primitive.PrimitiveHelper.*",
     "net.daporkchop.lib.unsafe.PUnsafe",
     "lombok.*",
+    "lombok.experimental.*",
     "java.util.*"
   ]
 }

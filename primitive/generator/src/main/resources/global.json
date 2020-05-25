@@ -43,6 +43,7 @@
     "ObjArrayList": "java.util.ArrayList",
 
     "ObjSet": "java.util.Set",
+    "AbstractObjSet": "java.util.AbstractSet",
 
     "ObjObjMap": "java.util.Map"
   }

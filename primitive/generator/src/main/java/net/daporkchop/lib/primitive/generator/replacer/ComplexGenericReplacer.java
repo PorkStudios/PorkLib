@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
  * @author DaPorkchop_
  */
 public class ComplexGenericReplacer implements TokenReplacer {
-    public static final Ref<Matcher> COMPLEX_GENERIC_MATCHER = ThreadRef.regex(Pattern.compile("^_G(?:\\d+(?:extends|super))+_$"));
+    public static final Ref<Matcher> COMPLEX_GENERIC_MATCHER = ThreadRef.regex(Pattern.compile("^_G(?:\\d+(?:extends|super)?)+_$"));
     public static final Ref<Matcher> COMPLEX_GENERIC_PARAMS = ThreadRef.regex(Pattern.compile("(\\d+)(extends|super)?"));
 
     @Override

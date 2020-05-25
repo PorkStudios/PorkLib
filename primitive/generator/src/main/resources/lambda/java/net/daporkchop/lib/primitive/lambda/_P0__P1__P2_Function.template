@@ -21,6 +21,6 @@ _headers_
  * @see java.util.function.BiFunction
  */
 @FunctionalInterface
-public interface _P0__P1__P2_Function_gH_ {
+public interface _P0__P1__P2_Function_G_ {
     _p2_ apply<2!%As_P2_%>(_p0_ t, _p1_ u);
 }

@@ -35,16 +35,18 @@ public interface Replacer {
      *
      * @param name  the current name
      * @param index the current primitive index
+     * @param buffer
      * @return the processed name, or {@code null} if generation of the file should be stopped
      */
-    String processName(@NonNull String name, int index);
+    String processName(@NonNull String name, int index, StringBuffer buffer);
 
     /**
      * Processes a file's contents.
      *
      * @param code  the current file contents
      * @param index the current primitive index
+     * @param buffer
      * @return the processed contents, or {@code null} if generation of the file should be stopped
      */
-    String processCode(@NonNull String code, int index);
+    String processCode(@NonNull String code, int index, StringBuffer buffer);
 }

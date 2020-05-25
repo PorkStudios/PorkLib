@@ -15,6 +15,6 @@ _headers_
  * @see Supplier
  */
 @FunctionalInterface
-public interface _P0_Supplier_gH_ {
+public interface _P0_Supplier_G_ {
     _p0_ get<0!%As_P0_%>();
 }

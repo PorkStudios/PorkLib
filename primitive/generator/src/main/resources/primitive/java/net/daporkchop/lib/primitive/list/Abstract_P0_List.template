@@ -11,15 +11,15 @@ _headers_
 import net.daporkchop.lib.primitive.collection.Abstract_P0_Collection;
 import net.daporkchop.lib.primitive.collection._P0_Collection;
 import net.daporkchop.lib.primitive.collection._P0_Iterator;
-import net.daporkchop.lib.primitive.lambda.consumer._P0_Consumer;
-import net.daporkchop.lib.primitive.lambda.function._P0_BoolFunction;
+import net.daporkchop.lib.primitive.lambda._P0_Consumer;
+import net.daporkchop.lib.primitive.lambda._P0_BoolFunction;
 
 /**
  * Base implementation of {@link _P0_List}.
  *
  * @author DaPorkchop_
  */
-public abstract class Abstract_P0_List_gH_ extends Abstract_P0_Collection_gH_ implements _P0_List_gH_ {
+public abstract class Abstract_P0_List_G_ extends Abstract_P0_Collection_G_ implements _P0_List_G_ {
     @Override
     public boolean add(_p0_ e)  {
         this.add(this.size(), e);

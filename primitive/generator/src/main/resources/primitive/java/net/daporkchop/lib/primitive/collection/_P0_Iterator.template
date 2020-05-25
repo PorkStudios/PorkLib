@@ -8,7 +8,7 @@ $$$settings$$$
 }
 _headers_
 
-import net.daporkchop.lib.primitive.lambda.consumer._P0_Consumer;
+import net.daporkchop.lib.primitive.lambda._P0_Consumer;
 
 import java.util.function.Consumer;
 import java.util.PrimitiveIterator;
@@ -20,7 +20,7 @@ import java.util.NoSuchElementException;
  * @author DaPorkchop_
  * @see PrimitiveIterator
  */
-public interface _P0_Iterator_gH_ extends PrimitiveIterator<_fullnameP0_, _P0_Consumer_gH_> {
+public interface _P0_Iterator_G_ extends PrimitiveIterator<_fullnameP0_, _P0_Consumer_G_> {
     /**
      * Returns the next {@code _p0_} element in the iteration.
      *
@@ -45,7 +45,7 @@ public interface _P0_Iterator_gH_ extends PrimitiveIterator<_fullnameP0_, _P0_Co
      * @param action The action to be performed for each element
      * @throws NullPointerException if the specified action is null
      */
-    default void forEachRemaining(@NonNull _P0_Consumer_gH_ action) {
+    default void forEachRemaining(@NonNull _P0_Consumer_G_ action) {
         while (this.hasNext())  {
             action.accept(this.next_P0_());
         }

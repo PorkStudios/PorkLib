@@ -8,7 +8,7 @@ $$$settings$$$
 }
 _headers_
 
-import net.daporkchop.lib.primitive.lambda.consumer._P0_Consumer;
+import net.daporkchop.lib.primitive.lambda._P0_Consumer;
 
 import java.util.function.Consumer;
 
@@ -18,18 +18,18 @@ import java.util.function.Consumer;
  * @author DaPorkchop_
  * @see Iterable
  */
-public interface _P0_Iterable_gH_ extends Iterable<_fullnameP0_> {
+public interface _P0_Iterable_G_ extends Iterable<_fullnameP0_> {
     /**
      * @return a {@link _P0_Iterator} over the elements described by this {@link _P0_Iterable}
      */
     @Override
-    _P0_Iterator_gH_ iterator();
+    _P0_Iterator_G_ iterator();
 
     /**
      * Executes the given {@link _P0_Consumer} for all of the values.
      */
     default void forEach(@NonNull _P0_Consumer action) {
-        for (_P0_Iterator_gH_ itr = this.iterator(); itr.hasNext();) {
+        for (_P0_Iterator_G_ itr = this.iterator(); itr.hasNext();) {
             action.accept(itr.next_P0_());
         }
     }

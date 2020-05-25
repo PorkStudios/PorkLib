@@ -15,10 +15,10 @@ $$$settings$$$
 _headers_
 
 import net.daporkchop.lib.primitive.collection._P1_Collection;
-import net.daporkchop.lib.primitive.lambda.consumer._P0__P1_Consumer;
-import net.daporkchop.lib.primitive.lambda.function._P0__P1_Function;
-import net.daporkchop.lib.primitive.lambda.function._P0__P1__P1_Function;
-import net.daporkchop.lib.primitive.lambda.function._P1__P1__P1_Function;
+import net.daporkchop.lib.primitive.lambda._P0__P1_Consumer;
+import net.daporkchop.lib.primitive.lambda._P0__P1_Function;
+import net.daporkchop.lib.primitive.lambda._P0__P1__P1_Function;
+import net.daporkchop.lib.primitive.lambda._P1__P1__P1_Function;
 import net.daporkchop.lib.primitive.set._P0_Set;
 
 /**
@@ -26,7 +26,7 @@ import net.daporkchop.lib.primitive.set._P0_Set;
  *
  * @author DaPorkchop_
  */
-public interface _P0__P1_Map_gH_ {<1!%
+public interface _P0__P1_Map_G_ {<1!%
     /**
      * @return the value that will be returned to indicate absence of the corresponding key
      */
@@ -39,7 +39,7 @@ public interface _P0__P1_Map_gH_ {<1!%
      *
      * @return this {@link _P0__P1_Map}
      */
-    _P0__P1_Map_gH_ defaultValue(_p1_ defaultValue);
+    _P0__P1_Map_G_ defaultValue(_p1_ defaultValue);
 %>
     /**
      * @return the number of elements in this collection, or {@link Integer#MAX_VALUE} if the size is too large to fit in an {@code int}
@@ -126,9 +126,9 @@ public interface _P0__P1_Map_gH_ {<1!%
     /**
      * @return a {@link _P0_Set} view of the entries contained in this map
      */
-    Set<Entry_gH_> entrySet();
+    Set<Entry_G_> entrySet();
 
-    interface Entry_gH_ {
+    interface Entry_G_ {
         /**
          * @return this entry's key
          */
@@ -163,7 +163,7 @@ public interface _P0__P1_Map_gH_ {<1!%
      * Performs the given action for each entry in this map until all entries have been processed or the action throws an exception.
      */
     default void forEach(@NonNull _P0__P1_Consumer_Gsuper_ action)  {
-        for (Entry_gH_ entry : this.entrySet()) {
+        for (Entry_G_ entry : this.entrySet()) {
             _p0_ k;
             _p1_ v;
             try {
@@ -181,7 +181,7 @@ public interface _P0__P1_Map_gH_ {<1!%
      * function throws an exception.
      */
     default void replaceAll(@NonNull _P0__P1__P1_Function_G0super1super1extends_ function) {
-        for (Entry_gH_ entry : this.entrySet()) {
+        for (Entry_G_ entry : this.entrySet()) {
             _p0_ k;
             _p1_ v;
             try {

@@ -8,15 +8,15 @@ $$$settings$$$
 }
 _headers_
 
-import net.daporkchop.lib.primitive.lambda.consumer._P0_Consumer;
-import net.daporkchop.lib.primitive.lambda.function._P0_BoolFunction;
+import net.daporkchop.lib.primitive.lambda._P0_Consumer;
+import net.daporkchop.lib.primitive.lambda._P0_BoolFunction;
 
 /**
  * Base implementation of {@link _P0_Collection}.
  *
  * @author DaPorkchop_
  */
-public abstract class Abstract_P0_Collection_gH_ implements _P0_Collection_gH_ {
+public abstract class Abstract_P0_Collection_G_ implements _P0_Collection_G_ {
     protected transient int modCount = 0;
 
     public abstract _P0_Iterator iterator();

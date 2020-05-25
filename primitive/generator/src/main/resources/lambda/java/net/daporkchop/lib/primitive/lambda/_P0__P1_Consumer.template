@@ -18,6 +18,6 @@ _headers_
  * @see java.util.function.BiConsumer
  */
 @FunctionalInterface
-public interface _P0__P1_Consumer_gH_ {
+public interface _P0__P1_Consumer_G_ {
     void accept(_p0_ t, _p1_ u);
 }

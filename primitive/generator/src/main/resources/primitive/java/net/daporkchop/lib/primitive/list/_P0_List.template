@@ -12,7 +12,7 @@ $$$settings$$$
 _headers_
 
 import net.daporkchop.lib.primitive.collection._P0_Collection;
-import net.daporkchop.lib.primitive.lambda.unary._P0_UnaryOperator;
+import net.daporkchop.lib.primitive.lambda._P0__P0_Function;
 
 import java.util.Arrays;
 
@@ -21,7 +21,7 @@ import java.util.Arrays;
  *
  * @author DaPorkchop_
  */
-public interface _P0_List_gH_ extends _P0_Collection_gH_ {
+public interface _P0_List_G_ extends _P0_Collection_G_ {
     /**
      * Inserts all of the elements in the given collection into this list at the specified position.
      *
@@ -32,7 +32,7 @@ public interface _P0_List_gH_ extends _P0_Collection_gH_ {
     /**
      * Replaces each element of this list with the result of applying the given operator to that element.
      */
-    default void replaceAll(@NonNull _P0_UnaryOperator operator)    {
+    default void replaceAll(@NonNull _P0__P0_Function operator)    {
         for (_P0_ListIterator itr = this.iterator(); itr.hasNext();)   {
             itr.set_P0_(operator.applyAs_P0_(itr.next_P0_()));
         }

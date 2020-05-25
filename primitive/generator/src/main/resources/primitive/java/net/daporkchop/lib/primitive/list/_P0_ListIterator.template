@@ -21,7 +21,7 @@ import java.util.ListIterator;
  *
  * @author DaPorkchop_
  */
-public interface _P0_ListIterator_gH_ extends ListIterator<_fullnameP0_>, _P0_Iterator_gH_ {
+public interface _P0_ListIterator_G_ extends ListIterator<_fullnameP0_>, _P0_Iterator_G_ {
     /**
      * Returns the previous {@code _p0_} element in the iteration.
      *

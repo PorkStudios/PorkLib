@@ -8,8 +8,8 @@ $$$settings$$$
 }
 _headers_
 
-import net.daporkchop.lib.primitive.lambda.consumer._P0_Consumer;
-import net.daporkchop.lib.primitive.lambda.function._P0_BoolFunction;
+import net.daporkchop.lib.primitive.lambda._P0_Consumer;
+import net.daporkchop.lib.primitive.lambda._P0_BoolFunction;
 
 /**
  * The most simple abstraction of a collection. Supports adding, removing, counting and iterating over
@@ -17,7 +17,7 @@ import net.daporkchop.lib.primitive.lambda.function._P0_BoolFunction;
  *
  * @author DaPorkchop_
  */
-public interface _P0_Collection_gH_ extends _P0_Iterable_gH_ {
+public interface _P0_Collection_G_ extends _P0_Iterable_G_ {
     /**
      * @return the number of elements in this collection, or {@link Integer#MAX_VALUE} if the size is too large to fit in an {@code int}
      */

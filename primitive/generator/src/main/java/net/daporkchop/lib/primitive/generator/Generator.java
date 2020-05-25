@@ -26,7 +26,9 @@ import com.google.gson.JsonParser;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.oio.StreamUtil;
+import net.daporkchop.lib.common.function.PFunctions;
 import net.daporkchop.lib.common.misc.InstancePool;
+import net.daporkchop.lib.common.misc.Tuple;
 import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.common.misc.string.PStrings;
 import net.daporkchop.lib.common.ref.Ref;
@@ -54,11 +56,12 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.StringJoiner;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -67,7 +70,6 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
-import static net.daporkchop.lib.primitive.generator.Primitive.*;
 
 /**
  * @author DaPorkchop_
@@ -93,7 +95,7 @@ public class Generator {
     ).filter(Objects::nonNull).collect(Collectors.toList());
 
     public static final String LICENSE;
-    public static final Collection<OverrideReplacer> OVERRIDES;
+    public static final OverrideReplacer OVERRIDES;
 
     private static final Ref<StringBuffer> STRINGBUFFER_CACHE = ThreadRef.late(StringBuffer::new);
     private static final Ref<Matcher> NAME_MATCHER_CACHE = ThreadRef.regex(Pattern.compile("_P(\\d+)_"));
@@ -111,11 +113,7 @@ public class Generator {
 
             try (Reader reader = new BufferedReader(new InputStreamReader(new FileInputStream(new File("src/main/resources/global.json")), StandardCharsets.UTF_8))) {
                 JsonObject global = InstancePool.getInstance(JsonParser.class).parse(reader).getAsJsonObject();
-                OVERRIDES = Collections.unmodifiableList(StreamSupport.stream(
-                        global.getAsJsonArray("overrides").spliterator(), false)
-                        .map(JsonElement::getAsJsonObject)
-                        .map(OverrideReplacer::new)
-                        .collect(Collectors.toList()));
+                OVERRIDES = new OverrideReplacer(global.getAsJsonObject("overrides"));
             }
         } catch (Exception e) {
             throw new AssertionError(e);
@@ -132,12 +130,30 @@ public class Generator {
                 FILES.get(),
                 NumberFormat.getInstance(Locale.US).format(SIZE.get()),
                 (double) SIZE.get() / 1024.0d / 1024.0d);
+
+        System.out.println(Stream.of(
+                new Tuple<>(NAME_TIME.get(), "Name"),
+                new Tuple<>(NAME_OVERRIDE_TIME.get(), "Name overrides"),
+                new Tuple<>(GENERIC_FILTER_TIME.get(), "Filter generics"),
+                new Tuple<>(TOKEN_REPLACE_TIME.get(), "Replace tokens"),
+                new Tuple<>(CONTENT_OVERRIDE_TIME.get(), "Content overrides"),
+                new Tuple<>(UTF8_ENCODE_TIME.get(), "UTF8 encode"))
+                .sorted(Comparator.comparingLong(Tuple::getA))
+                .map(t -> String.format("%.2fms, %s", t.getA() / 1000000.0d, t.getB()))
+                .collect(Collectors.joining("\n")));
     }
+
+    public static final AtomicLong NAME_TIME = new AtomicLong();
+    public static final AtomicLong NAME_OVERRIDE_TIME = new AtomicLong();
+    public static final AtomicLong GENERIC_FILTER_TIME = new AtomicLong();
+    public static final AtomicLong TOKEN_REPLACE_TIME = new AtomicLong();
+    public static final AtomicLong CONTENT_OVERRIDE_TIME = new AtomicLong();
+    public static final AtomicLong UTF8_ENCODE_TIME = new AtomicLong();
 
     public final File inRoot;
     public final File outRoot;
-    private final Collection<String> existing = new HashSet<>();
-    private final Collection<String> generated = new HashSet<>();
+    private final Collection<File> existing = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private final Collection<File> generated = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private final String imports;
     private final TokenReplacer[] tokenReplacers;
 
@@ -170,16 +186,11 @@ public class Generator {
 
         this.generate(this.inRoot, this.outRoot);
 
-        this.existing.removeAll(this.generated);
         System.out.printf("Existing: %d, generated: %d\n", this.existing.size(), this.generated.size());
         AtomicLong deletedFiles = new AtomicLong(0L);
         AtomicLong deletedSize = new AtomicLong(0L);
         this.existing.parallelStream()
-                .map(name -> {
-                    int dotIndex = name.substring(0, name.length() - ".java".length()).lastIndexOf('.');
-                    return new File(new File(this.outRoot, name.substring(0, dotIndex).replace('.', '/')), name.substring(dotIndex + 1, name.length()));
-                })
-                .filter(file -> !this.generated.contains(file.getName()))
+                .filter(PFunctions.not(this.generated::contains))
                 .forEach(file -> {
                     deletedSize.addAndGet(file.length());
                     PFiles.rm(file);
@@ -206,9 +217,8 @@ public class Generator {
                 this.generate(f, realOut);
             }
         } else if (file.getName().endsWith(".template")) {
-            String name = file.getName();
+            String name = file.getName().substring(0, file.getName().length() - ".template".length());
             String packageName = this.getPackageName(file);
-            this.generated.add(String.format("%s.%s", packageName, name));
 
             String rawContent;
             try (InputStream is = new FileInputStream(file)) {
@@ -252,7 +262,7 @@ public class Generator {
             }
 
             String pkg = String.format("package %s;", packageName);
-            stream/*.parallel()*/.forEach(params -> this.generate0(out, name, content, pkg, options, params));
+            stream.parallel().forEach(params -> this.generate0(out, name, content, pkg, options, params));
         }
     }
 
@@ -260,30 +270,36 @@ public class Generator {
         StringBuffer buffer = STRINGBUFFER_CACHE.get();
         Matcher matcher;
 
-        String nameOut = name.replace(".template", ".java");
-        matcher = NAME_MATCHER_CACHE.get().reset(nameOut);
+        long time;
+        time = System.nanoTime();
+        matcher = NAME_MATCHER_CACHE.get().reset(name);
         if (matcher.find()) {
             buffer.setLength(0);
             do {
                 matcher.appendReplacement(buffer, params.get(Integer.parseUnsignedInt(matcher.group(1))).primitive().displayName);
             } while (matcher.find());
             matcher.appendTail(buffer);
-            nameOut = buffer.toString();
+            name = buffer.toString();
         }
 
-        for (OverrideReplacer replacer : OVERRIDES) {
-            if ((nameOut = replacer.processName(nameOut, -1)) == null) {
-                return;
-            }
-        }
+        NAME_TIME.getAndAdd(System.nanoTime() - time);
+        time = System.nanoTime();
 
-        checkState(this.generated.add(nameOut), "File %s was already generated?!?", name);
-        File file = new File(dir, nameOut);
+        if ((name = OVERRIDES.processName(name, -1, buffer)) == null) {
+            return;
+        }
+        name += ".java";
+
+        NAME_OVERRIDE_TIME.getAndAdd(System.nanoTime() - time);
+
+        File file = new File(dir, name);
+        checkState(this.generated.add(file), "File %s was already generated?!?", name);
         if (file.lastModified() == options.lastModified()) {
-            //return;
+            return;
         }
 
         String contentOut = content;
+        time = System.nanoTime();
 
         //start off by filtering generic things out
         matcher = GENERIC_FILTER_CACHE.get().reset(contentOut);
@@ -299,6 +315,9 @@ public class Generator {
             matcher.appendTail(buffer);
             contentOut = buffer.toString();
         }
+
+        GENERIC_FILTER_TIME.getAndAdd(System.nanoTime() - time);
+        time = System.nanoTime();
 
         matcher = TOKEN_MATCHER_CACHE.get().reset(contentOut);
         if (matcher.find()) {
@@ -330,19 +349,25 @@ public class Generator {
             contentOut = buffer.toString();
         }
 
-        for (OverrideReplacer replacer : OVERRIDES) {
-            if ((contentOut = replacer.processCode(contentOut, -1)) == null) {
-                return;
-            }
+        TOKEN_REPLACE_TIME.getAndAdd(System.nanoTime() - time);
+        time = System.nanoTime();
+
+        if ((contentOut = OVERRIDES.processCode(contentOut, -1, buffer)) == null) {
+            throw new IllegalStateException();
         }
 
+        CONTENT_OVERRIDE_TIME.getAndAdd(System.nanoTime() - time);
+        time = System.nanoTime();
+
         byte[] b = contentOut.getBytes(StandardCharsets.UTF_8);
-        /*try (OutputStream os = new FileOutputStream(file)) {
+        try (OutputStream os = new FileOutputStream(file)) {
             os.write(b);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        checkState(file.setLastModified(options.lastModified()));*/
+        checkState(file.setLastModified(options.lastModified()));
+
+        UTF8_ENCODE_TIME.getAndAdd(System.nanoTime() - time);
 
         SIZE.addAndGet(b.length);
         FILES.incrementAndGet();
@@ -371,8 +396,8 @@ public class Generator {
         for (File f : files) {
             if (f.isDirectory() && !f.getName().endsWith(".java")) { //why is isDirectory() returning true when it isn't?
                 this.addAllExisting(f);
-            } else {
-                this.existing.add(String.format("%s.%s", this.getPackageName(file), f.getName()));
+            } else if (f.isFile()) {
+                this.existing.add(f);
             }
         }
     }

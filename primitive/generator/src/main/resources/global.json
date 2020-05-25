@@ -2,60 +2,48 @@
   "ignored_tokens": [
     "_ARRAY_"
   ],
-  "overrides": [
+  "overrides": {
     //lambda
-    {
-      "override": "ObjObj(Int|Long|Double)Function",
-      "with": "java.util.function.To$1BiFunction"
-    },
-    {
-      "override": "ObjObjObjFunction",
-      "with": "java.util.function.BiFunction"
-    },
-    {
-      "override": "(?:Obj|(Int|Long|Double))BinaryOperator",
-      "with": "java.util.function.$1BinaryOperator"
-    },
-    {
-      "override": "ObjObjConsumer",
-      "with": "java.util.function.BiConsumer"
-    },
-    {
-      "override": "(?:Obj|(Int|Long|Double))Consumer",
-      "with": "java.util.function.$1Consumer"
-    },
-    {
-      "override": "(?:Obj|(Int|Long|Double))ObjFunction",
-      "with": "java.util.function.$1Function"
-    },
-    {
-      "override": "Obj(Int|Long|Double)Function",
-      "with": "java.util.function.To$1Function"
-    },
-    {
-      "override": "ObjObjFunction",
-      "with": "java.util.function.Function"
-    },
-    {
-      "override": "(?:Obj|(Boolean|Int|Long|Double))Supplier",
-      "with": "java.util.function.$1Supplier"
-    },
-    {
-      "override": "(?:Obj|(Int|Long|Double))UnaryOperator",
-      "with": "java.util.function.$1UnaryOperator"
-    },
+    "ObjObjDoubleFunction": "java.util.function.ToDoubleBiFunction",
+    "ObjObjIntFunction": "java.util.function.ToIntBiFunction",
+    "ObjObjLongFunction": "java.util.function.ToLongBiFunction",
+    "ObjObjObjFunction": "java.util.function.BiFunction",
+    
+    "ObjObjConsumer": "java.util.function.BiConsumer",
+    "DoubleConsumer": "java.util.function.DoubleConsumer",
+    "IntConsumer": "java.util.function.IntConsumer",
+    "LongConsumer": "java.util.function.LongConsumer",
+    "ObjConsumer": "java.util.function.Consumer",
+
+    "DoubleObjFunction": "java.util.function.DoubleFunction",
+    "IntObjFunction": "java.util.function.IntFunction",
+    "LongObjFunction": "java.util.function.LongFunction",
+    "ObjObjFunction": "java.util.function.Function",
+
+    "ObjDoubleFunction": "java.util.function.ToDoubleFunction",
+    "ObjIntFunction": "java.util.function.ToIntFunction",
+    "ObjLongFunction": "java.util.function.ToLongFunction",
+
+    "BooleanSupplier": "java.util.function.BooleanSupplier",
+    "DoubleSupplier": "java.util.function.DoubleSupplier",
+    "IntSupplier": "java.util.function.IntSupplier",
+    "LongSupplier": "java.util.function.LongSupplier",
+    "ObjSupplier": "java.util.function.Supplier",
+    
     //collections
-    {
-      "override": "(Abstract)?Obj(ArrayList|Collection|List|ListIterator|Iterator|Iterable|Set)",
-      "with": "java.util.$1$2"
-    },
-    {
-      "override": "(Int|Long|Double)Iterator",
-      "with": "java.util.PrimitiveIterator.Of$1"
-    },
-    {
-      "override": "ObjObj(Map)",
-      "with": "java.util.$1"
-    }
-  ]
+    "ObjIterator": "java.util.Iterator",
+    "ObjIterable": "java.util.Iterable",
+    
+    "ObjCollection": "java.util.Collection",
+    "AbstractObjCollection": "java.util.AbstractCollection",
+
+    "ObjList": "java.util.List",
+    "ObjListIterator": "java.util.ListIterator",
+    "AbstractObjList": "java.util.AbstractList",
+    "ObjArrayList": "java.util.ArrayList",
+
+    "ObjSet": "java.util.Set",
+
+    "ObjObjMap": "java.util.Map"
+  }
 }

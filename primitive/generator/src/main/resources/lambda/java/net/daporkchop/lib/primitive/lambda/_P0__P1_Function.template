@@ -18,6 +18,6 @@ _headers_
  * @see java.util.function.Function
  */
 @FunctionalInterface
-public interface _P0__P1_Function_gH_ {
+public interface _P0__P1_Function_G_ {
     _p1_ apply<1!%As_P1_%>(_p0_ t);
 }

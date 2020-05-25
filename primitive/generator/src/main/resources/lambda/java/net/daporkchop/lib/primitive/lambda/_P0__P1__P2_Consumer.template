@@ -20,6 +20,6 @@ _headers_
  * @author DaPorkchop_
  */
 @FunctionalInterface
-public interface _P0__P1__P2_Consumer_gH_ {
+public interface _P0__P1__P2_Consumer_G_ {
     void accept(_p0_ t, _p1_ u, _p2_ v);
 }

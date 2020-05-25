@@ -13,9 +13,8 @@ _headers_
 
 import net.daporkchop.lib.primitive.collection._P0_Collection;
 import net.daporkchop.lib.primitive.collection._P0_Iterator;
-import net.daporkchop.lib.primitive.lambda.consumer._P0_Consumer;
-import net.daporkchop.lib.primitive.lambda.function._P0_BoolFunction;
-import net.daporkchop.lib.primitive.lambda.unary._P0_UnaryOperator;
+import net.daporkchop.lib.primitive.lambda._P0_Consumer;
+import net.daporkchop.lib.primitive.lambda._P0_BoolFunction;
 import net.daporkchop.lib.primitive.list.Abstract_P0_List;
 import net.daporkchop.lib.primitive.list._P0_List;
 import net.daporkchop.lib.primitive.list._P0_ListIterator;
@@ -524,7 +523,7 @@ public class _P0_ArrayList extends Abstract_P0_List implements _P0_List, RandomA
     }
 
     @Override
-    public void replaceAll(@NonNull _P0_UnaryOperator operator) {
+    public void replaceAll(@NonNull _P0__P0_Function operator) {
         final int expectedModCount = this.modCount;
         final int size = this.size;
         for (int i = 0; this.modCount == expectedModCount && i < size; i++) {

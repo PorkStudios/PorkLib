@@ -22,36 +22,45 @@ package net.daporkchop.lib.primitive.generator;
 
 import com.google.gson.JsonObject;
 import lombok.NonNull;
+import net.daporkchop.lib.common.misc.Tuple;
 import net.daporkchop.lib.common.ref.Ref;
 import net.daporkchop.lib.common.ref.ThreadRef;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * @author DaPorkchop_
  */
 public class OverrideReplacer implements Replacer {
-    private final Ref<Matcher> nameMatcherCache;
-    private final Ref<Matcher> codeMatcherCache;
-    private final String override;
-    private final String with;
+    private static final Ref<Matcher> NAME_MATCHER_CACHE = ThreadRef.regex(Pattern.compile("(?:[a-z]+\\.)*(?<![a-zA-Z])([A-Z][a-zA-Z]+)"));
+
+    private final Map<String, String> overrides;
 
     public OverrideReplacer(@NonNull JsonObject obj)    {
-        this.override = obj.get("override").getAsString();
-        this.with = obj.get("with").getAsString();
-
-        this.nameMatcherCache = ThreadRef.regex(Pattern.compile('^' + this.override));
-        this.codeMatcherCache = ThreadRef.regex(Pattern.compile("(?<![a-zA-Z])(?:net\\.daporkchop\\.lib\\.primitive\\.(?:[a-z]+\\.)*)?" + this.override));
+        this.overrides = obj.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getAsString()));
     }
 
     @Override
-    public String processName(@NonNull String name, int index) {
-        return this.nameMatcherCache.get().reset(name).find() ? null : name;
+    public String processName(@NonNull String name, int index, StringBuffer buffer) {
+        return this.overrides.containsKey(name) ? null : name;
     }
 
     @Override
-    public String processCode(@NonNull String code, int index) {
-        return this.codeMatcherCache.get().reset(code).replaceAll(this.with);
+    public String processCode(@NonNull String code, int index, StringBuffer buffer) {
+        Matcher matcher = NAME_MATCHER_CACHE.get().reset(code);
+        if (matcher.find()) {
+            buffer.setLength(0);
+            do {
+                String name = matcher.group(1);
+                matcher.appendReplacement(buffer, this.overrides.getOrDefault(name, name));
+            } while (matcher.find());
+            matcher.appendTail(buffer);
+            return buffer.toString();
+        }
+        return code;
     }
 }

@@ -1,6 +1,7 @@
 {
   "imports": [
     "static net.daporkchop.lib.common.util.PValidation.*",
+    "static net.daporkchop.lib.primitive.PrimitiveHelper.*",
     "net.daporkchop.lib.unsafe.PUnsafe",
     "lombok.*",
     "java.util.*"

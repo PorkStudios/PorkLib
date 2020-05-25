@@ -20,15 +20,12 @@
 
 package net.daporkchop.lib.primitive.generator;
 
-import com.google.gson.JsonObject;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.function.PFunctions;
-import net.daporkchop.lib.common.ref.Ref;
-import net.daporkchop.lib.common.ref.ThreadRef;
 import net.daporkchop.lib.primitive.generator.option.Parameter;
 import net.daporkchop.lib.primitive.generator.option.ParameterContext;
 
@@ -37,8 +34,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Getter
@@ -51,80 +46,53 @@ public class Primitive {
                     .setFullName("Boolean")
                     .setDisplayName("Bool")
                     .setName("boolean")
-                    .setHashCode("$1 ? 1 : 0")
                     .setEmptyValue("false")
-                    .setEquals("$1 == $2")
-                    .setNequals("$1 != $2")
                     .build(),
             new Primitive()
                     .setFullName("Byte")
                     .setName("byte")
-                    .setHashCode("$1 & 0xFF")
                     .setEmptyValue("(byte) -1")
-                    .setEquals("$1 == $2")
-                    .setNequals("$1 != $2")
                     .build(),
             new Primitive()
                     .setFullName("Short")
                     .setName("short")
-                    .setHashCode("($1 >>> 8) ^ $1")
                     .setEmptyValue("(short) -1")
-                    .setEquals("$1 == $2")
-                    .setNequals("$1 != $2")
                     .build(),
             new Primitive()
                     .setFullName("Character")
                     .setDisplayName("Char")
                     .setUnsafeName("Char")
                     .setName("char")
-                    .setHashCode("($1 >>> 8) ^ $1")
                     .setEmptyValue("(char) 0")
-                    .setEquals("$1 == $2")
-                    .setNequals("$1 != $2")
                     .build(),
             new Primitive()
                     .setFullName("Integer")
                     .setDisplayName("Int")
                     .setUnsafeName("Int")
                     .setName("int")
-                    .setHashCode("($1 >>> 24) ^ ($1 >>> 16) ^ ($1 >>> 8) ^ $1")
                     .setEmptyValue("-1")
-                    .setEquals("$1 == $2")
-                    .setNequals("$1 != $2")
                     .build(),
             new Primitive()
                     .setFullName("Long")
                     .setName("long")
-                    .setHashCode("(int) (($1 >>> 56) ^ ($1 >>> 48) ^ ($1 >>> 40) ^ ($1 >>> 32) ^ ($1 >>> 24) ^ ($1 >>> 16) ^ ($1 >>> 8) ^ $1)")
                     .setEmptyValue("-1L")
-                    .setEquals("$1 == $2")
-                    .setNequals("$1 != $2")
                     .build(),
             new Primitive()
                     .setFullName("Float")
                     .setName("float")
-                    .setHashCode("Float.floatToIntBits($1)")
                     .setEmptyValue("Float.NaN")
-                    .setEquals("$1 == $2")
-                    .setNequals("$1 != $2")
                     .build(),
             new Primitive()
                     .setFullName("Double")
                     .setName("double")
-                    .setHashCode("(int) Double.doubleToLongBits($1)")
                     .setEmptyValue("Double.NaN")
-                    .setEquals("$1 == $2")
-                    .setNequals("$1 != $2")
                     .build(),
             new Primitive()
                     .setFullName("Object")
                     .setDisplayName("Obj")
                     .setName("Object")
-                    .setHashCode("java.util.Objects.hashCode($1)")
                     .setGeneric()
                     .setEmptyValue("null")
-                    .setEquals("java.util.Objects.equals($1, $2)")
-                    .setNequals("!java.util.Objects.equals($1, $2)")
                     .build()));
 
     public static final Map<String, Primitive> BY_NAME = Collections.unmodifiableMap(PRIMITIVES.stream()
@@ -174,14 +142,8 @@ public class Primitive {
     @NonNull
     public String name;
     @NonNull
-    public String hashCode;
-    public boolean generic;
-    @NonNull
     public String emptyValue;
-    @NonNull
-    public String equals;
-    @NonNull
-    public String nequals;
+    public boolean generic;
 
     public Primitive setGeneric() {
         this.generic = true;

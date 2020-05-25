@@ -218,7 +218,7 @@ public interface _P0__P1_Map_G_ {<1!%
      */
     default boolean remove(_nameP0_ key, _nameP1_ value)    {
         _nameP1_ curValue = this.get(key);
-        if (value != curValue) { //TODO: this won't work for objects
+        if (!equals(value, curValue)) {
             return false;
         }
         this.remove(key);
@@ -232,7 +232,7 @@ public interface _P0__P1_Map_G_ {<1!%
      */
     default boolean replace(_p0_ key, _p1_ oldValue, _p1_ newValue)  {
         _p1_ curValue = this.get(key);
-        if (oldValue != curValue) { //TODO: this won't work for objects
+        if (!equals(value, curValue)) {
             return false;
         }
         this.put(key, newValue);

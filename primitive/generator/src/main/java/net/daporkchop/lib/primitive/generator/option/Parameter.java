@@ -79,4 +79,21 @@ public class Parameter {
             this.primitives = Primitive.PRIMITIVES;
         }
     }
+
+    @Override
+    public int hashCode() {
+        return this.genericName.hashCode() * 31 + this.index;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this)    {
+            return true;
+        } else if (obj instanceof Parameter)    {
+            Parameter other = (Parameter) obj;
+            return this.index == other.index && this.genericName.equals(other.genericName);
+        } else {
+            return false;
+        }
+    }
 }

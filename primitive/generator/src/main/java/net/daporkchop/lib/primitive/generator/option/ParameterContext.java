@@ -24,7 +24,11 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.primitive.generator.Primitive;
+import net.daporkchop.lib.primitive.generator.TokenReplacer;
+
+import java.util.List;
 
 /**
  * @author DaPorkchop_
@@ -37,4 +41,51 @@ public class ParameterContext {
     private final Parameter parameter;
     @NonNull
     private final Primitive primitive;
+
+    public String replace(@NonNull String token, boolean lowercase, @NonNull List<ParameterContext> params) {
+        switch (token) {
+            case "":
+                return lowercase
+                       ? this.primitive.generic ? this.parameter.genericName : this.primitive.name
+                       : this.primitive.displayName;
+            case "obj":
+                return this.primitive.fullName;
+            case "unsafe":
+                return PorkUtil.fallbackIfNull(this.primitive.unsafeName, this.primitive.fullName);
+            case "fullname":
+                return this.primitive.generic ? this.parameter.genericName : this.primitive.fullName;
+            case "name":
+                return this.primitive.name;
+            case "cast":
+                return this.primitive.generic ? '(' + this.parameter.genericName + ") " : "";
+            case "E":
+                return this.primitive.emptyValue;
+            case "nG":
+                return this.primitive.generic ? "" : this.primitive.name;
+            case "G":
+                return this.primitive.generic ? '<' + this.parameter.genericName + '>' : "";
+            case "arrOffset":
+                return "PUnsafe.ARRAY_" + this.primitive.name.toUpperCase() + "_BASE_OFFSET";
+            case "arrScale":
+                return "PUnsafe.ARRAY_" + this.primitive.name.toUpperCase() + "_INDEX_SCALE";
+        }
+        throw new IllegalArgumentException(token);
+    }
+
+    @Override
+    public int hashCode() {
+        return this.parameter.hashCode() * 31 + this.primitive.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this)    {
+            return true;
+        } else if (obj instanceof ParameterContext)    {
+            ParameterContext other = (ParameterContext) obj;
+            return this.parameter.equals(other.parameter) && this.primitive.equals(other.primitive);
+        } else {
+            return false;
+        }
+    }
 }

@@ -35,7 +35,7 @@ public interface _P0__P1_Map_gH_ {<1!%
     /**
      * Sets the value that will be returned to indicate absence of the corresponding key.
      * <p>
-     * This value is set to {@code _P1E_} by default.
+     * This value is set to {@code _EP1_} by default.
      *
      * @return this {@link _P0__P1_Map}
      */

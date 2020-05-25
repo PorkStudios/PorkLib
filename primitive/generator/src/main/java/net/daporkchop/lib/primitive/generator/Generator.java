@@ -20,7 +20,6 @@
 
 package net.daporkchop.lib.primitive.generator;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -30,9 +29,14 @@ import net.daporkchop.lib.binary.oio.StreamUtil;
 import net.daporkchop.lib.common.misc.InstancePool;
 import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.common.misc.string.PStrings;
+import net.daporkchop.lib.common.ref.Ref;
+import net.daporkchop.lib.common.ref.ThreadRef;
 import net.daporkchop.lib.primitive.generator.option.HeaderOptions;
 import net.daporkchop.lib.primitive.generator.option.Parameter;
 import net.daporkchop.lib.primitive.generator.option.ParameterContext;
+import net.daporkchop.lib.primitive.generator.replacer.ComplexGenericReplacer;
+import net.daporkchop.lib.primitive.generator.replacer.FileHeaderReplacer;
+import net.daporkchop.lib.primitive.generator.replacer.GenericHeaderReplacer;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -56,7 +60,6 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -88,9 +91,14 @@ public class Generator {
                     new File("../lambda/src/generated/java"),
                     new File("src/main/resources/lambda/lambda.json"))
     ).filter(Objects::nonNull).collect(Collectors.toList());
+
     public static final String LICENSE;
     public static final Collection<OverrideReplacer> OVERRIDES;
-    private static final JsonArray EMPTY_JSON_ARRAY = new JsonArray();
+
+    private static final Ref<StringBuffer> STRINGBUFFER_CACHE = ThreadRef.late(StringBuffer::new);
+    private static final Ref<Matcher> NAME_MATCHER_CACHE = ThreadRef.regex(Pattern.compile("_P(\\d+)_"));
+    private static final Ref<Matcher> GENERIC_FILTER_CACHE = ThreadRef.regex(Pattern.compile("<(\\d+)?(!)?%(.*?)%>", Pattern.DOTALL));
+    private static final Ref<Matcher> TOKEN_MATCHER_CACHE = ThreadRef.regex(Pattern.compile("_(.*?)(?:([pP])(\\d+))?_"));
 
     static {
         try {
@@ -101,9 +109,10 @@ public class Generator {
                                 .replaceAll("\n", "\n * "));
             }
 
-            try (Reader reader = new BufferedReader(new InputStreamReader(new FileInputStream(new File("src/main/resources/overrides.json")), StandardCharsets.UTF_8))) {
+            try (Reader reader = new BufferedReader(new InputStreamReader(new FileInputStream(new File("src/main/resources/global.json")), StandardCharsets.UTF_8))) {
+                JsonObject global = InstancePool.getInstance(JsonParser.class).parse(reader).getAsJsonObject();
                 OVERRIDES = Collections.unmodifiableList(StreamSupport.stream(
-                        InstancePool.getInstance(JsonParser.class).parse(reader).getAsJsonArray().spliterator(), false)
+                        global.getAsJsonArray("overrides").spliterator(), false)
                         .map(JsonElement::getAsJsonObject)
                         .map(OverrideReplacer::new)
                         .collect(Collectors.toList()));
@@ -130,6 +139,7 @@ public class Generator {
     private final Collection<String> existing = new HashSet<>();
     private final Collection<String> generated = new HashSet<>();
     private final String imports;
+    private final TokenReplacer[] tokenReplacers;
 
     public Generator(@NonNull File inRoot, @NonNull File outRoot, @NonNull File manifestFile) {
         this.inRoot = PFiles.assertDirectoryExists(inRoot);
@@ -147,6 +157,12 @@ public class Generator {
                 .sorted(String.CASE_INSENSITIVE_ORDER)
                 .map(s -> PStrings.fastFormat("import %s;", s))
                 .collect(Collectors.joining("\n"));
+
+        this.tokenReplacers = new TokenReplacer[]{
+                new GenericHeaderReplacer(),
+                new FileHeaderReplacer(this.imports),
+                new ComplexGenericReplacer()
+        };
     }
 
     public void generate() {
@@ -236,15 +252,25 @@ public class Generator {
             }
 
             String pkg = String.format("package %s;", packageName);
-            stream.parallel().forEach(params -> this.generate0(out, name, content, pkg, options, params));
+            stream/*.parallel()*/.forEach(params -> this.generate0(out, name, content, pkg, options, params));
         }
     }
 
     private void generate0(@NonNull File dir, @NonNull String name, @NonNull String content, @NonNull String pkg, @NonNull HeaderOptions options, @NonNull List<ParameterContext> params) {
+        StringBuffer buffer = STRINGBUFFER_CACHE.get();
+        Matcher matcher;
+
         String nameOut = name.replace(".template", ".java");
-        for (ParameterContext ctx : params) {
-            nameOut = ctx.primitive().format(nameOut, ctx.parameter().index(), params);
+        matcher = NAME_MATCHER_CACHE.get().reset(nameOut);
+        if (matcher.find()) {
+            buffer.setLength(0);
+            do {
+                matcher.appendReplacement(buffer, params.get(Integer.parseUnsignedInt(matcher.group(1))).primitive().displayName);
+            } while (matcher.find());
+            matcher.appendTail(buffer);
+            nameOut = buffer.toString();
         }
+
         for (OverrideReplacer replacer : OVERRIDES) {
             if ((nameOut = replacer.processName(nameOut, -1)) == null) {
                 return;
@@ -254,57 +280,55 @@ public class Generator {
         checkState(this.generated.add(nameOut), "File %s was already generated?!?", name);
         File file = new File(dir, nameOut);
         if (file.lastModified() == options.lastModified()) {
-            return;
+            //return;
         }
 
         String contentOut = content;
 
-        if (params.stream().map(ParameterContext::primitive).anyMatch(Primitive::isGeneric)) {
-            contentOut = contentOut.replaceAll("\\s*?<!%[\\s\\S]*?%>", "")
-                    .replaceAll("<!%[\\s\\S]*?%>", "")
-                    .replaceAll("(\\s*?)<%([\\s\\S]*?)%>", "$1$2")
-                    .replaceAll("<%([\\s\\S]*?)%>", "$1");
-        } else {
-            contentOut = contentOut.replaceAll("\\s*?<%[\\s\\S]*?%>", "")
-                    .replaceAll("<%[\\s\\S]*?%>", "")
-                    .replaceAll("(\\s*?)<!%([\\s\\S]*?)%>", "$1$2")
-                    .replaceAll("<!%([\\s\\S]*?)%>", "$1");
-        }
-
-        for (ParameterContext ctx : params) {
-            nameOut = ctx.primitive().format(nameOut, ctx.parameter().index(), params);
-            contentOut = ctx.primitive().format(contentOut, ctx.parameter().index(), params);
-        }
-
-        Matcher complexGenericMatcher = GENERIC_COMPLEX_EXTRA_PATTERN.get().reset(contentOut);
-        if (complexGenericMatcher.find()) {
-            StringBuffer buffer = new StringBuffer(); //gosh darn it java
+        //start off by filtering generic things out
+        matcher = GENERIC_FILTER_CACHE.get().reset(contentOut);
+        boolean anyGeneric = params.stream().map(ParameterContext::primitive).anyMatch(Primitive::isGeneric);
+        if (matcher.find()) {
+            buffer.setLength(0);
             do {
-                List<String> formatted = new ArrayList<>();
-                Matcher valueMatcher = Pattern.compile("(\\d+)(extends|super)?").matcher(complexGenericMatcher.group());
-                while (valueMatcher.find()) {
-                    ParameterContext param = params.get(Integer.parseUnsignedInt(valueMatcher.group(1)));
-                    if (param.primitive().isGeneric())  {
-                        String requirement = valueMatcher.group(2);
-                        formatted.add((requirement == null ? "" : "? " + requirement + ' ') + param.parameter().genericName());
-                    }
-                }
-                complexGenericMatcher.appendReplacement(buffer,
-                        formatted.isEmpty() ? "" : formatted.stream().collect(Collectors.joining(", ", "<", ">")));
-            } while (complexGenericMatcher.find());
-            complexGenericMatcher.appendTail(buffer);
+                String numberTxt = matcher.group(1);
+                boolean generic = numberTxt == null ? anyGeneric : params.get(Integer.parseUnsignedInt(numberTxt)).primitive().generic;
+                boolean inverted = matcher.group(2) != null;
+                matcher.appendReplacement(buffer, generic ^ inverted ? matcher.group(3) : "");
+            } while (matcher.find());
+            matcher.appendTail(buffer);
             contentOut = buffer.toString();
         }
 
-        contentOut = contentOut
-                .replaceAll(GENERIC_HEADER_DEF, Primitive.getGenericHeader(params, ""))
-                .replaceAll(GENERIC_EXTRA_DEF, Primitive.getGenericHeader(params, "? $1 "))
-                .replaceAll(HEADERS_DEF, this.imports.isEmpty() ?
-                                         String.format("%s\n\n%s", LICENSE_DEF, PACKAGE_DEF) :
-                                         String.format("%s\n\n%s\n\n%s", LICENSE_DEF, PACKAGE_DEF, IMPORTS_DEF))
-                .replaceAll(PACKAGE_DEF, pkg)
-                .replaceAll(IMPORTS_DEF, this.imports)
-                .replaceAll(LICENSE_DEF, LICENSE);
+        matcher = TOKEN_MATCHER_CACHE.get().reset(contentOut);
+        if (matcher.find()) {
+            buffer.setLength(0);
+            MAIN:
+            do {
+                String original = matcher.group();
+                String numberTxt = matcher.group(3);
+                if (numberTxt != null) {
+                    String token = matcher.group(1);
+                    boolean lowerCase = matcher.group(2).charAt(0) == 'p';
+                    String text = params.get(Integer.parseUnsignedInt(numberTxt)).replace(token, lowerCase, params);
+                    if (text != null) {
+                        matcher.appendReplacement(buffer, text);
+                        continue;
+                    }
+                } else {
+                    for (TokenReplacer replacer : this.tokenReplacers) {
+                        String text = replacer.replace(original, params, pkg);
+                        if (text != null) {
+                            matcher.appendReplacement(buffer, text);
+                            continue MAIN;
+                        }
+                    }
+                }
+                matcher.appendReplacement(buffer, original);
+            } while (matcher.find());
+            matcher.appendTail(buffer);
+            contentOut = buffer.toString();
+        }
 
         for (OverrideReplacer replacer : OVERRIDES) {
             if ((contentOut = replacer.processCode(contentOut, -1)) == null) {
@@ -312,16 +336,16 @@ public class Generator {
             }
         }
 
-        try (OutputStream os = new FileOutputStream(file)) {
-            byte[] b = contentOut.getBytes(StandardCharsets.UTF_8);
+        byte[] b = contentOut.getBytes(StandardCharsets.UTF_8);
+        /*try (OutputStream os = new FileOutputStream(file)) {
             os.write(b);
-            SIZE.addAndGet(b.length);
-            FILES.incrementAndGet();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        checkState(file.setLastModified(options.lastModified()));*/
 
-        checkState(file.setLastModified(options.lastModified()));
+        SIZE.addAndGet(b.length);
+        FILES.incrementAndGet();
     }
 
     private String getPackageName(@NonNull File file) {
@@ -350,34 +374,6 @@ public class Generator {
             } else {
                 this.existing.add(String.format("%s.%s", this.getPackageName(file), f.getName()));
             }
-        }
-    }
-
-    private void forEachPrimitiveRecursive(@NonNull Consumer<Primitive[]> consumer, int depth, @NonNull JsonObject settings, Primitive... primitives) {
-        if (depth > primitives.length) {
-            Primitive[] p = new Primitive[primitives.length + 1];
-            System.arraycopy(primitives, 0, p, 0, primitives.length);
-            JsonArray validRoot = settings.has("valid") ? settings.getAsJsonArray("valid") : EMPTY_JSON_ARRAY;
-            JsonArray valid = validRoot.size() >= p.length ? validRoot.get(p.length - 1).getAsJsonArray() : EMPTY_JSON_ARRAY;
-            Primitive.PRIMITIVES.forEach(primitive -> {
-                if (valid.size() != 0) {
-                    //only if not empty
-                    String primitiveFullName = primitive.fullName;
-                    boolean flag = false;
-                    for (JsonElement element : valid) {
-                        if (element.getAsString().equalsIgnoreCase(primitiveFullName)) {
-                            flag = true;
-                        }
-                    }
-                    if (!flag) {
-                        return;
-                    }
-                }
-                p[p.length - 1] = primitive;
-                this.forEachPrimitiveRecursive(consumer, depth, settings, p);
-            });
-        } else {
-            consumer.accept(primitives);
         }
     }
 }

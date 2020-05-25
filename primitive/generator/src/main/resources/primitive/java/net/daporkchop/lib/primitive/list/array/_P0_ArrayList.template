@@ -179,7 +179,7 @@ public class _P0_ArrayList extends Abstract_P0_List implements _P0_List, RandomA
         } else {
             System.arraycopy(this.elementData, 0, a, 0, this.size);
             if (a.length > this.size)   {
-                a[this.size] = _P0E_;
+                a[this.size] = _EP0_;
             }
             return a;
         }

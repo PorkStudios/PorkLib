@@ -1,0 +1,61 @@
+{
+  "ignored_tokens": [
+    "_ARRAY_"
+  ],
+  "overrides": [
+    //lambda
+    {
+      "override": "ObjObj(Int|Long|Double)Function",
+      "with": "java.util.function.To$1BiFunction"
+    },
+    {
+      "override": "ObjObjObjFunction",
+      "with": "java.util.function.BiFunction"
+    },
+    {
+      "override": "(?:Obj|(Int|Long|Double))BinaryOperator",
+      "with": "java.util.function.$1BinaryOperator"
+    },
+    {
+      "override": "ObjObjConsumer",
+      "with": "java.util.function.BiConsumer"
+    },
+    {
+      "override": "(?:Obj|(Int|Long|Double))Consumer",
+      "with": "java.util.function.$1Consumer"
+    },
+    {
+      "override": "(?:Obj|(Int|Long|Double))ObjFunction",
+      "with": "java.util.function.$1Function"
+    },
+    {
+      "override": "Obj(Int|Long|Double)Function",
+      "with": "java.util.function.To$1Function"
+    },
+    {
+      "override": "ObjObjFunction",
+      "with": "java.util.function.Function"
+    },
+    {
+      "override": "(?:Obj|(Boolean|Int|Long|Double))Supplier",
+      "with": "java.util.function.$1Supplier"
+    },
+    {
+      "override": "(?:Obj|(Int|Long|Double))UnaryOperator",
+      "with": "java.util.function.$1UnaryOperator"
+    },
+    //collections
+    {
+      "override": "(Abstract)?Obj(ArrayList|Collection|List|ListIterator|Iterator|Iterable|Set)",
+      "with": "java.util.$1$2"
+    },
+    {
+      "override": "(Int|Long|Double)Iterator",
+      "with": "java.util.PrimitiveIterator.Of$1"
+    },
+    {
+      "override": "ObjObj(Map)",
+      "with": "java.util.$1"
+    }
+  ]
+}

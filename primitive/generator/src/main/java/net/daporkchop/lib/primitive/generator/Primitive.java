@@ -140,7 +140,7 @@ public class Primitive {
     public static final String HASHCODE_DEF = String.format("_hashCode%s_", PARAM_DEF);
     public static final String EQUALS_DEF = String.format("_equals%s_", PARAM_DEF);
     public static final String CAST_DEF = String.format("_cast%s_", PARAM_DEF);
-    public static final String EMPTYVALUE_DEF = String.format("_%sE_", PARAM_DEF);
+    public static final String EMPTYVALUE_DEF = String.format("_E%s_", PARAM_DEF);
     public static final String NON_GENERIC_DEF = String.format("_nG%s_", PARAM_DEF);
     public static final String GENERIC_DEF = String.format("_G%s_", PARAM_DEF);
     public static final String GENERIC_EXTENDS_P_DEF = String.format("_Gextends%s_", PARAM_DEF);
@@ -148,7 +148,6 @@ public class Primitive {
 
     public static final String GENERIC_HEADER_DEF = "_gH_";
     public static final String GENERIC_EXTRA_DEF = "_G(extends|super)_";
-    public static final Ref<Matcher> GENERIC_COMPLEX_EXTRA_PATTERN = ThreadRef.regex(Pattern.compile("_G(?:\\d+(?:extends|super))+_"));
 
     public static final String HEADERS_DEF = "_headers_";
     public static final String LICENSE_DEF = "_copyright_";
@@ -183,38 +182,6 @@ public class Primitive {
     public String equals;
     @NonNull
     public String nequals;
-
-    public String format(@NonNull String text, int i, @NonNull List<ParameterContext> params) {
-        String genericName = params.get(i).parameter().genericName();
-
-        if (this.generic) {
-            text = text.replaceAll("\\s*?<~!%[\\s\\S]*?%>".replace("~", String.valueOf(i)), "")
-                    .replaceAll("<~!%[\\s\\S]*?%>".replace("~", String.valueOf(i)), "")
-                    .replaceAll("(\\s*?)<~%([\\s\\S]*?)%>".replace("~", String.valueOf(i)), "$1$2")
-                    .replaceAll("<~%([\\s\\S]*?)%>".replace("~", String.valueOf(i)), "$1");
-        } else {
-            text = text.replaceAll("\\s*?<~%[\\s\\S]*?%>".replace("~", String.valueOf(i)), "")
-                    .replaceAll("<~%[\\s\\S]*?%>".replace("~", String.valueOf(i)), "")
-                    .replaceAll("(\\s*?)<~!%([\\s\\S]*?)%>".replace("~", String.valueOf(i)), "$1$2")
-                    .replaceAll("<~!%([\\s\\S]*?)%>".replace("~", String.valueOf(i)), "$1");
-        }
-        return text
-                .replace(String.format(DISPLAYNAME_DEF, i), this.displayName)
-                .replace(String.format(BOXED_FORCE_DEF, i), this.fullName)
-                .replace(String.format(UNSAFE_FORCE_DEF, i), this.unsafeName != null ? this.unsafeName : this.fullName)
-                .replace(String.format(FULLNAME_FORCE_DEF, i), this.generic ? genericName : this.fullName)
-                .replace(String.format(NAME_DEF, i), this.generic ? genericName : this.name)
-                .replace(String.format(NAME_FORCE_DEF, i), this.name)
-                .replace(String.format(CAST_DEF, i), this.generic ? "(" + genericName + ") " : "")
-                .replace(String.format(EMPTYVALUE_DEF, i), this.emptyValue)
-                .replace(String.format(NON_GENERIC_DEF, i), this.generic ? "" : this.name)
-                .replace(String.format(GENERIC_DEF, i), this.generic ? "<" + genericName + ">" : "")
-                .replace(String.format(UNSAFE_ARRAY_OFFSET_DEF, i), String.format("PUnsafe.ARRAY_%s_BASE_OFFSET", this.name.toUpperCase()))
-                .replace(String.format(UNSAFE_ARRAY_SCALE_DEF, i), String.format("PUnsafe.ARRAY_%s_INDEX_SCALE", this.name.toUpperCase()))
-                .replaceAll("_equalsP~\\|([^!]*?)\\|([^!]*?)\\|_".replace("~", String.valueOf(i)), this.equals)
-                .replaceAll("_nequalsP~\\|([^!]*?)\\|([^!]*?)\\|_".replace("~", String.valueOf(i)), this.nequals)
-                .replaceAll("_hashP~\\|([^!]*?)\\|_".replace("~", String.valueOf(i)), this.hashCode);
-    }
 
     public Primitive setGeneric() {
         this.generic = true;

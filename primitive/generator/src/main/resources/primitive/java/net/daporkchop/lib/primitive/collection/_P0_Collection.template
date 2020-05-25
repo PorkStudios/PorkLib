@@ -50,7 +50,7 @@ public interface _P0_Collection_gH_ extends _P0_Iterable_gH_ {
      * <p>
      * If the given array is {@code null} or too small, a new one will be created and returned.
      * <p>
-     * If the given array is too large, the element immediately following the final value will be set to {@code _P0E_}.
+     * If the given array is too large, the element immediately following the final value will be set to {@code _EP0_}.
      *
      * @return an array containing all the values in this collection in iteration order
      */

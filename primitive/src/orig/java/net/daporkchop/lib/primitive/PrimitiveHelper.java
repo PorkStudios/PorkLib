@@ -21,6 +21,7 @@
 package net.daporkchop.lib.primitive;
 
 import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.common.math.PMath;
 
 import java.util.Objects;
 
@@ -42,23 +43,23 @@ public class PrimitiveHelper {
     }
 
     public int hash(byte v) {
-        return v;
+        return PMath.mix32(v);
     }
 
     public int hash(short v) {
-        return v;
+        return PMath.mix32(v);
     }
 
     public int hash(char v) {
-        return v;
+        return PMath.mix32(v);
     }
 
     public int hash(int v) {
-        return (v >>> 16) ^ v;
+        return PMath.mix32(v);
     }
 
     public int hash(long v) {
-        return hash((int) ((v >>> 32L) ^ v));
+        return PMath.mix32(v);
     }
 
     public int hash(float v) {

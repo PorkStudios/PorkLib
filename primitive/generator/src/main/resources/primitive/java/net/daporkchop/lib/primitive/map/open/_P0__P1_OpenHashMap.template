@@ -4,7 +4,9 @@ $$$settings$$$
         {
             "genericName": "K",
             "blacklist": [
-                "boolean"
+                "boolean",
+                "float",
+                "double"
             ]
         },
         {
@@ -23,94 +25,50 @@ import net.daporkchop.lib.primitive.map.Abstract_P0__P1_Map;
 import net.daporkchop.lib.primitive.map._P0__P1_Map;
 import net.daporkchop.lib.primitive.set._P0_Set;
 
+import static net.daporkchop.lib.common.system.PlatformInfo.*;
+import static net.daporkchop.lib.primitive.map.hash.HashMapHelper.*;
+
 /**
- * Implementation of {@link _P0__P1_Map} backed by a hash table. Hash collisions are resolved using a small red-black tree for each bucket.
+ * Implementation of {@link _P0__P1_Map} backed by an open hash table.
  * <p>
+ * The table implementation is inspired by a <a href="https://abseil.io/blog/20180927-swisstables">Swiss Table</a>. It makes use
+ * of three separate arrays: one array each for keys and values, and a third "index" array which contains a single 8-bit entry
+ * for each address in the hash table, enabling fast searches while attempting to minimize cache thrashing.
+ * <p>
+ * As there are no node objects present to represent entries in the map, all operations relating to {@link #entrySet()} will
+ * cause huge numbers of objects to be allocated.
  *
  * @author DaPorkchop_
  */
-public class _P0__P1_HashMap_G_ extends Abstract_P0__P1_Map_G_ implements Cloneable, Serializable {
-    @AllArgsConstructor(access = AccessLevel.PROTECTED)
-    protected static class Node_G_ implements Entry_G_ {
-        protected final int hash;
-        @Getter
-        protected final _p0_ key;
-        @Getter
-        protected _p1_ value;
-        protected Node_G_ next;
+public class _P0__P1_OpenHashMap_G_ extends Abstract_P0__P1_Map_G_ {
+    protected byte[] index;
+    protected _nameP0_[] keys;
+    protected _nameP1_[] values;
 
-        public String toString() { return key + "=" + value; }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(key) ^ Objects.hashCode(value);
-        }
-
-        @Override
-        public _p1_ setValue(_p1_ newValue) {
-            _p1_ oldValue = this.value;
-            this.value = newValue;
-            return oldValue;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (o == this)  {
-                return true;
-            } else if (o instanceof Entry) {
-                Entry entry = (Entry) o;
-                return eq(this.key, entry.getKey()) && eq(this.value, entry.getValue());
-            } else {
-                return false;
-            }
-        }
-    }
-
-    protected transient Node_G_[] table;
-    protected transient Set<Entry_G_> entrySet;
-    protected transient int size;
-    protected transient int modCount;
+    protected int size;
     protected int threshold;
     protected final float loadFactor;
 
-    public _P0__P1_HashMap(int initialCapacity, float loadFactor) {
-        initialCapacity = Math.min(notNegative(initialCapacity, "initialCapacity"), HashMapHelper.MAXIMUM_CAPACITY);
+    protected Set<Entry_G_> entrySet;
+
+    public _P0__P1_OpenHashMap(int initialCapacity, float loadFactor) {
+        initialCapacity = Math.min(notNegative(initialCapacity, "initialCapacity"), MAXIMUM_CAPACITY);
         checkArg(loadFactor > 0.0f && !Float.isNaN(loadFactor), "Illegal load factor: " + loadFactor);
         this.loadFactor = loadFactor;
-        this.threshold = HashMapHelper.tableSizeFor(initialCapacity);
+        this.threshold = tableSizeFor(initialCapacity);
     }
 
-    public _P0__P1_HashMap(int initialCapacity) {
-        this(initialCapacity, HashMapHelper.DEFAULT_LOAD_FACTOR);
+    public _P0__P1_OpenHashMap(int initialCapacity) {
+        this(initialCapacity, DEFAULT_LOAD_FACTOR);
     }
 
-    public _P0__P1_HashMap() {
-        this.loadFactor = HashMapHelper.DEFAULT_LOAD_FACTOR;
+    public _P0__P1_OpenHashMap() {
+        this.loadFactor = DEFAULT_LOAD_FACTOR;
     }
 
-    public _P0__P1_HashMap(@NonNull _P0__P1_Map_Gextends_ m)    {
+    public _P0__P1_OpenHashMap(@NonNull _P0__P1_Map_Gextends_ m)    {
         this();
-        this.putMapEntries(m, false);
-    }
-
-    protected final void putMapEntries(_P0__P1_Map_Gextends_ m, boolean evict) {
-        int s = m.size();
-        if (s > 0) {
-            if (table == null) { // pre-size
-                float ft = ((float) s / loadFactor) + 1.0F;
-                int t = ft < HashMapHelper.MAXIMUM_CAPACITY ? (int) ft : HashMapHelper.MAXIMUM_CAPACITY;
-                if (t > threshold)  {
-                    threshold = tableSizeFor(t);
-                }
-            } else if (s > this.threshold)  {
-                this.resize();
-            }
-            for (Entry_Gextends_ e : m.entrySet()) {
-                _p0_ key = e.getKey();
-                _p1_ value = e.getValue();
-                this.putVal(hash(key), key, value, false, evict);
-            }
-        }
+        this.putAll(m);
     }
 
     @Override
@@ -125,7 +83,30 @@ public class _P0__P1_HashMap_G_ extends Abstract_P0__P1_Map_G_ implements Clonea
 
     @Override
     public boolean containsKey(_nameP0_ key)    {
-        return this.getNode(hash(key), key) != null;
+        return this.getIndex(this.hash(key), key) >= 0;
+    }
+<0%
+    @SuppressWarnings("unchecked")%>
+    protected int getOffset(int hash, _nameP0_ key)  {
+        byte[] index = this.index;
+        if (index == null){
+            return -1;
+        }
+        int mask = index.length - 1; //we assume it is always a power of 2
+        while (true)    {
+            int offset = hash++ & mask;
+            byte ie = index[offset];
+            if ((ie & 0x80) != 0)   {
+                if ((ie ^ 0x80) == (hash & 0x7F) //lowest 7 bits of hash match, check for key equality
+                    && this.equals0(_castP0_key, _castP0_this.keys[offset]))   {
+                    return offset;
+                }
+            } else if ((ie ^ 0x80) != 0) { //sentinel
+                continue;
+            } else { //empty
+                return -1;
+            }
+        }
     }
 
     /**
@@ -154,76 +135,9 @@ public class _P0__P1_HashMap_G_ extends Abstract_P0__P1_Map_G_ implements Clonea
         return node == null ? defaultValue : e.value;
     }
 
-    protected Node_G_ getNode(int hash, _nameP0_ key) {
-        Node_G_[] tab = this.table;
-        Node_G_ first, e;
-        int n;
-        if (tab != null && (n = tab.length) > 0 && (first = tab[hash & (n - 1)]) != null) {
-            if (first.hash == hash && eq(key, first.key))   {
-                return first;
-            } else if ((e = first.next) != null) {
-                if (first instanceof TreeNode)  {
-                    return ((TreeNode_G_) first).getTreeNode(hash, key);
-                }
-                do {
-                    if (e.hash == hash && eq(key, e.key))   {
-                        return e;
-                    }
-                } while ((e = e.next) != null);
-            }
-        }
-        return null;
-    }
-
     @Override
     public _p1_ put(_p0_ key, _p1_ value)   {
         return this.putVal(hash(key), key, value, false, true);
-    }
-
-    protected _p1_ putVal(int hash, _p0_ key, _p1_ value, boolean onlyIfAbsent, boolean evict) {
-        Node_G_[] tab = this.table;
-        Node_G_ p;
-        int n, i;
-        if (tab == null || n = tab.length == 0) {
-            n = (tab = this.resize()).length;
-        }
-        if ((p = tab[i = hash & (n - 1)]) == null)  {
-            tab[i] = this.newNode(hash, key, value, null);
-        } else {
-            Node_G_ e;
-            if (p.hash == hash && eq(key, p.key))   {
-                e = p;
-            } else if (p instanceof TreeNode)   {
-                e = ((TreeNode_G_) p).putTreeVal(this, tab, hash, key, value);
-            } else {
-                for (int binCount = 0;; binCount++) {
-                    if ((e = p.next) == null) {
-                        p.next = this.newNode(hash, key, value, null);
-                        if (binCount >= TREEIFY_THRESHOLD - 1) {
-                            this.treeifyBin(tab, hash);
-                        }
-                        break;
-                    } else if (e.hash == hash && eq(key, e.key))   {
-                        break;
-                    }
-                    p = e;
-                }
-            }
-            if (e != null) {
-                _p1_ oldValue = e.value;
-                if (!onlyIfAbsent)  {
-                    e.value = value;
-                }
-                this.afterNodeAccess(e);
-                return oldValue;
-            }
-        }
-        this.modCount++;
-        if (this.size++ > this.threshold)   {
-            this.resize();
-        }
-        this.afterNodeInsertion(evict);
-        return null;
     }
 
     /**
@@ -259,26 +173,6 @@ public class _P0__P1_HashMap_G_ extends Abstract_P0__P1_Map_G_ implements Clonea
      * @return a {@link _P0_Set} view of the entries contained in this map
      */
     Set<Entry_G_> entrySet();
-
-    interface Entry_G_ {
-        /**
-         * @return this entry's key
-         */
-        _p0_ getKey();
-
-        /**
-         * @return this entry's value
-         */
-        _p1_ getValue();
-
-        /**
-         * Replaces this entry's value with the given value.
-         *
-         * @param value the new value
-         * @return the old value
-         */
-        _p1_ setValue(_p1_ value);
-    }
 
     /**
      * Gets the value mapped to the given key.
@@ -462,5 +356,14 @@ public class _P0__P1_HashMap_G_ extends Abstract_P0__P1_Map_G_ implements Clonea
             this.put(key, newValue);
         }
         return newValue;
+    }
+
+    protected int hash0(_p0_ key)    {
+        int hash = hash(key);
+        return (hash >>> 16) ^ hash; //the lowest 7 hash bits are the important ones, so smear entropy down
+    }
+
+    protected boolean equals0(_p0_ k1, _p0_ k2) {
+        return eq(k1, k2);
     }
 }

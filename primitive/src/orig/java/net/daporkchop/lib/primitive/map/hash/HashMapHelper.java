@@ -38,4 +38,8 @@ public class HashMapHelper {
     public static int tableSizeFor(int capacity) {
         return PMath.clamp(BinMath.roundToNearestPowerOf2(capacity - 1) + 1, 1, MAXIMUM_CAPACITY);
     }
+
+    public static int thresholdFor(int currentCapacity, float loadFactor)  {
+        return PMath.floorI(currentCapacity * loadFactor);
+    }
 }

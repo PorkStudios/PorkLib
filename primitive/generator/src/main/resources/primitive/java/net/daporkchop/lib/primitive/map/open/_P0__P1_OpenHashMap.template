@@ -53,9 +53,12 @@ public class _P0__P1_OpenHashMap_G_ extends Abstract_P0__P1_Map_G_ {
 
     public _P0__P1_OpenHashMap(int initialCapacity, float loadFactor) {
         initialCapacity = Math.min(notNegative(initialCapacity, "initialCapacity"), MAXIMUM_CAPACITY);
-        checkArg(loadFactor > 0.0f && !Float.isNaN(loadFactor), "Illegal load factor: " + loadFactor);
+        checkArg(loadFactor > 0.0f && loadFactor < 1.0f, "Illegal load factor: " + loadFactor);
         this.loadFactor = loadFactor;
-        this.threshold = tableSizeFor(initialCapacity);
+        this.threshold = thresholdFor(initialCapacity, this.loadFactor);
+        this.index = new byte[initialCapacity];
+        this.keys = new _nameP0_[initialCapacity];
+        this.values = new _nameP1_[initialCapacity];
     }
 
     public _P0__P1_OpenHashMap(int initialCapacity) {
@@ -83,61 +86,100 @@ public class _P0__P1_OpenHashMap_G_ extends Abstract_P0__P1_Map_G_ {
 
     @Override
     public boolean containsKey(_nameP0_ key)    {
-        return this.getIndex(this.hash(key), key) >= 0;
+        return this.getOffset(this.hash0(key), key) >= 0;
+    }
+
+    @Override
+    public boolean containsValue(_nameP1_ value)    {
+        if (this.isEmpty()) {
+            return false;
+        }
+        final byte[] index = this.index;
+        final _nameP1_[] values = this.values;
+        for (int offset = 0, length = index.length; offset < length; offset++)  { //iterate over whole table
+            if ((index[offset] & 0x80) != 0)    { //entry is present
+                if (eq(value, values[offset]))    {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    @Override<1%
+    @SuppressWarnings("unchecked")%>
+    public _p1_ get(_nameP0_ key)   {
+        int offset = this.getOffset(this.hash0(key), key);
+        return offset >= 0 ? _castP1_this.values[key] : <1!%this.defaultValue%><1%null%>;
+    }
+
+    @Override<1%
+    @SuppressWarnings("unchecked")%>
+    public _p1_ getOrDefault(_nameP0_ key, _p1_ defaultValue)   {
+        int offset = this.getOffset(this.hash0(key), key);
+        return offset >= 0 ? _castP1_this.values[key] : defaultValue;
     }
 <0%
     @SuppressWarnings("unchecked")%>
     protected int getOffset(int hash, _nameP0_ key)  {
-        byte[] index = this.index;
-        if (index == null){
-            return -1;
-        }
-        int mask = index.length - 1; //we assume it is always a power of 2
+        final byte[] index = this.index;
+        final _nameP0_[] keys = this.keys;
+        final int mask = index.length - 1; //assume table size is always a power of 2
         while (true)    {
             int offset = hash++ & mask;
             byte ie = index[offset];
             if ((ie & 0x80) != 0)   {
                 if ((ie ^ 0x80) == (hash & 0x7F) //lowest 7 bits of hash match, check for key equality
-                    && this.equals0(_castP0_key, _castP0_this.keys[offset]))   {
+                    && this.equals0(_castP0_key, _castP0_keys[offset]))   {
                     return offset;
                 }
-            } else if ((ie ^ 0x80) != 0) { //sentinel
-                continue;
-            } else { //empty
+            } else { //empty entry, key does not exist
                 return -1;
             }
         }
     }
 
-    /**
-     * Checks if the map contains the given value.
-     * <p>
-     * This function checks for a value that is equal to the given value. What exactly constitutes equality
-     * between two values is up to the implementation to decide, although generally it will check using the
-     * {@code ==} operator or {@link Object#equals(Object)}.
-     * <p>
-     * This method will likely require iteration over the entire map.
-     *
-     * @param value the value to check for
-     * @return whether or not the map contains an equal value
-     */
-    boolean containsValue(_nameP1_ value);
-
-    @Override
-    public _p1_ get(_nameP0_ key)   {
-        Node_G_ node = this.getNode(hash(key), key);
-        return node == null ? <1!%this.defaultValue%><1%null%> : e.value;
-    }
-
-    @Override
-    public _p1_ getOrDefault(_nameP0_ key, _p1_ defaultValue)   {
-        Node_G_ node = this.getNode(hash(key), key);
-        return node == null ? defaultValue : e.value;
-    }
-
     @Override
     public _p1_ put(_p0_ key, _p1_ value)   {
-        return this.putVal(hash(key), key, value, false, true);
+        int offset = this.insert(this.hash0(key), key, value);
+        if (offset < 0) { //insert() already handled everything for us
+            return <1!%this.defaultValue%><1%null%>;
+        }
+        final _nameP1_[] values = this.values;<1%
+        @SuppressWarnings("unchecked")%>
+        _p1_ oldValue = _castP1_values[offset];
+        values[offset] = value;
+        return oldValue;
+    }
+
+    /**
+     * Inserts the given entry into the map.
+     * <p>
+     * If the entry was already present, returns the entry's offset, otherwise the entry is inserted and {@code -1} is returned.
+     */
+    protected int insert(int hash, _p0_ key, _p1_ value)    {
+        final byte[] index = this.index;
+        final _nameP0_[] keys = this.keys;
+        final int mask = index.length - 1; //assume table size is always a power of 2
+        int offset = hash & mask;
+        while (true)    {
+            byte ie = index[offset];
+            if ((ie & 0x80) != 0)   {
+                if ((ie ^ 0x80) == (hash & 0x7F) //lowest 7 bits of hash match, check for key equality
+                    && this.equals0(key, _castP0_keys[offset]))   {
+                    return offset; //entry exists, do nothing
+                }
+            } else { //empty entry, insert value
+                index[offset] = (byte) (hash | 0x80);
+                keys[offset] = key;
+                this.values[offset] = value;
+                if (this.size++ >= this.threshold)    { //resize table if needed
+                    this.resize((mask + 1) << 1);
+                }
+                return -1;
+            }
+            offset = (offset + 1) & hash;
+        }
     }
 
     /**
@@ -173,17 +215,6 @@ public class _P0__P1_OpenHashMap_G_ extends Abstract_P0__P1_Map_G_ {
      * @return a {@link _P0_Set} view of the entries contained in this map
      */
     Set<Entry_G_> entrySet();
-
-    /**
-     * Gets the value mapped to the given key.
-     *
-     * @param key the key to get the mapped value for
-     * @return the value, or the given default value if a matching entry could not be found
-     */
-    default _p1_ getOrDefault(_nameP0_ key, _p1_ defaultValue)  {
-        _p1_ v = this.get(key);
-        return v == <1!%this.defaultValue()%><1%null%> ? defaultValue : v;
-    }
 
     /**
      * Performs the given action for each entry in this map until all entries have been processed or the action throws an exception.

@@ -98,9 +98,13 @@ public class Generator {
     public static final OverrideReplacer OVERRIDES;
 
     private static final Ref<StringBuffer> STRINGBUFFER_CACHE = ThreadRef.late(StringBuffer::new);
+    private static final Ref<StringBuffer> STRINGBUFFER_CACHE_2 = ThreadRef.late(StringBuffer::new);
     private static final Ref<Matcher> NAME_MATCHER_CACHE = ThreadRef.regex(Pattern.compile("_P(\\d+)_"));
-    private static final Ref<Matcher> GENERIC_FILTER_CACHE = ThreadRef.regex(Pattern.compile("<(\\d+)?(!)?%(.*?)%>", Pattern.DOTALL));
     private static final Ref<Matcher> TOKEN_MATCHER_CACHE = ThreadRef.regex(Pattern.compile("_(.*?)(?:([pP])(\\d+))?_"));
+
+    private static final Pattern GENERIC_FILTER_PATTERN = Pattern.compile("<(\\d+)?(!)?%((?:.*?(?:<(\\d+)?(!)?%(.*?)%>)?)*)%>", Pattern.DOTALL);
+    private static final Ref<Matcher> GENERIC_FILTER_CACHE = ThreadRef.regex(GENERIC_FILTER_PATTERN);
+    private static final Ref<Matcher> GENERIC_FILTER_CACHE_2 = ThreadRef.regex(GENERIC_FILTER_PATTERN);
 
     static {
         try {
@@ -310,7 +314,25 @@ public class Generator {
                 String numberTxt = matcher.group(1);
                 boolean generic = numberTxt == null ? anyGeneric : params.get(Integer.parseUnsignedInt(numberTxt)).primitive().generic;
                 boolean inverted = matcher.group(2) != null;
-                matcher.appendReplacement(buffer, generic ^ inverted ? matcher.group(3) : "");
+                if (generic ^ inverted) {
+                    String content2 = matcher.group(3);
+                    Matcher matcher2 = GENERIC_FILTER_CACHE_2.get().reset(content2);
+                    if (matcher2.find()) {
+                        StringBuffer buffer2 = STRINGBUFFER_CACHE_2.get();
+                        buffer2.setLength(0);
+                        do {
+                            String numberTxt2 = matcher2.group(1);
+                            boolean generic2 = numberTxt2 == null ? anyGeneric : params.get(Integer.parseUnsignedInt(numberTxt2)).primitive().generic;
+                            boolean inverted2 = matcher2.group(2) != null;
+                            matcher2.appendReplacement(buffer2, generic2 ^ inverted2 ? matcher2.group(3) : "");
+                        } while (matcher2.find());
+                        matcher2.appendTail(buffer2);
+                        content2 = buffer2.toString();
+                    }
+                    matcher.appendReplacement(buffer, content2);
+                } else {
+                    matcher.appendReplacement(buffer, "");
+                }
             } while (matcher.find());
             matcher.appendTail(buffer);
             contentOut = buffer.toString();

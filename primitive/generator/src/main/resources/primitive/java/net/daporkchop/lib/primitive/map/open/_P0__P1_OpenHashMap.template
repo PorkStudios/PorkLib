@@ -153,6 +153,13 @@ public class _P0__P1_OpenHashMap_G_ extends Abstract_P0__P1_Map_G_ implements _P
         return oldValue;
     }
 
+    @Override<1%
+    @SuppressWarnings("unchecked")%>
+    public _p1_ putIfAbsent(_p0_ key, _p1_ value)  {
+        int offset = this.insert(this.hash0(key), key, value);
+        return offset < 0 ? <1!%this.defaultValue%><1%null%> : _castP1_this.values[offset];
+    }
+
     /**
      * Inserts the given entry into the map.
      * <p>
@@ -219,6 +226,20 @@ public class _P0__P1_OpenHashMap_G_ extends Abstract_P0__P1_Map_G_ implements _P
         return oldValue;
     }
 
+    @Override<%
+    @SuppressWarnings("unchecked")%>
+    public boolean remove(_nameP0_ key, _nameP1_ value)    {
+        int hash = this.hash0(_castP0_key);
+        int offset = this.getOffset(hash, key);
+        if (offset < 0 //entry doesn't exist
+            || !eq(value, _castP1_this.values[offset])) { //existing value doesn't match
+            return false;
+        }
+        this.size--;
+        this.collapse(offset);
+        return true;
+    }
+
     protected void collapse(int offset) {
         final byte[] index = this.index;
         final _nameP0_[] keys = this.keys;
@@ -282,7 +303,8 @@ public class _P0__P1_OpenHashMap_G_ extends Abstract_P0__P1_Map_G_ implements _P
         return null;
     }
 
-    @Override
+    @Override<%
+    @SuppressWarnings("unchecked")%>
     public void forEach(@NonNull _P0__P1_Consumer_Gsuper_ action)  {
         final byte[] index = this.index;
         final _nameP0_[] keys = this.keys;
@@ -294,157 +316,128 @@ public class _P0__P1_OpenHashMap_G_ extends Abstract_P0__P1_Map_G_ implements _P
         }
     }
 
-    /*default void replaceAll(@NonNull _P0__P1__P1_Function_G0super1super1extends_ function) {
-        for (Entry_G_ entry : this.entrySet()) {
-            _p0_ k;
-            _p1_ v;
-            try {
-                k = entry.getKey();
-                v = entry.getValue();
-            } catch (IllegalStateException e)   {
-                throw new ConcurrentModificationException(e);
-            }
-            v = function.apply<1!%As_P1_%>(k, v);
-            try {
-                entry.setValue(v);
-            } catch (IllegalStateException e)   {
-                throw new ConcurrentModificationException(e);
+    @Override<%
+    @SuppressWarnings("unchecked")%>
+    public void replaceAll(@NonNull _P0__P1__P1_Function_G0super1super1extends_ function) {
+        final byte[] index = this.index;
+        final _nameP0_[] keys = this.keys;
+        final _nameP1_[] values = this.values;
+        for (int offset = 0, length = index.length; offset < length; offset++)    {
+            if ((index[offset] & 0x80) != 0)    {
+                values[offset] = function.apply<1!%As_P1_%>(_castP0_keys[offset], _castP1_values[offset]);
             }
         }
-    }*/
+    }
 
-    /**
-     * Associates the given value with the given key in this map.
-     * <p>
-     * If the map previously contained a mapping for the key, the old value is returned and the map is not modified.
-     *
-     * @return the value previously mapped to the given key, or <1!%{@link #defaultValue()}%><1%{@code null}%> if it did not previously exist
-     */
-    /*default _p1_ putIfAbsent(_p0_ key, _p1_ value)  {
-        _p1_ v = this.get(key);
-        return v == <1!%this.defaultValue()%><1%null%> ? this.put(key, value) : v;
-    }*/
-
-    /**
-     * Removes the entry for the given key only if it is currently mapped to the given value.
-     *
-     * @return whether or not the entry was removed
-     */
-    /*default boolean remove(_nameP0_ key, _nameP1_ value)    {
-        _nameP1_ curValue = this.get(key);
-        if (!equals(value, curValue)) {
+    @Override<1%
+    @SuppressWarnings("unchecked")%>
+    public boolean replace(_p0_ key, _p1_ oldValue, _p1_ newValue)  {
+        int offset = this.getOffset(this.hash0(key), key);
+        if (offset < 0) {
             return false;
         }
-        this.remove(key);
-        return true;
-    }*/
-
-    /**
-     * Removes the value for the given key only if it is currently mapped to the given value.
-     *
-     * @return whether or not the value was replaced
-     */
-    /*default boolean replace(_p0_ key, _p1_ oldValue, _p1_ newValue)  {
-        _p1_ curValue = this.get(key);
-        if (!equals(value, curValue)) {
+        final _nameP1_[] values = this.values;
+        if (!eq(oldValue, _castP1_values[offset])) {
             return false;
         }
-        this.put(key, newValue);
+        values[offset] = newValue;
         return true;
-    }*/
+    }
 
-    /**
-     * Replaces the value for the given key.
-     * <p>
-     * If the map did not previously contain a mapping for the key, the map is not modified.
-     *
-     * @return the value previously mapped to the given key, or <1!%{@link #defaultValue()}%><1%{@code null}%> if it did not previously exist
-     */
-    /*default _p1_ replace(_p0_ key, _p1_ value)  {
-        _p1_ curValue = this.get(key);
-        return curValue == <1!%this.defaultValue()%><1%null%> ? curValue : this.put(key, value);
-    }*/
-
-    /**
-     * Gets the value mapped to the given key, computing it using the given function and storing it in the map if absent.
-     *
-     * @return the value
-     */
-    /*default _p1_ computeIfAbsent(_p0_ key, @NonNull _P0__P1_Function_G0super1extends_ mappingFunction)  {
-        _p1_ v = this.get(key);
-        _p1_ defaultValue = <1!%this.defaultValue()%><1%null%>;
-        if (v == defaultValue && (v = mappingFunction.apply<1!%As_P1_%>(key)) != defaultValue)   {
-            this.put(key, v);
+    @Override<1%
+    @SuppressWarnings("unchecked")%>
+    public _p1_ replace(_p0_ key, _p1_ value)  {
+        int offset = this.getOffset(this.hash0(key), key);
+        if (offset < 0) {
+            return <1!%this.defaultValue%><1%null%>;
         }
-        return v;
-    }*/
+        final _nameP1_[] values = this.values;
+        _p1_ oldValue = _castP1_values[offset];
+        values[offset] = value;
+        return oldValue;
+    }
 
-    /**
-     * If the value for the specified key is present, attempts to compute a new mapping given the key and its current mapped value.
-     * <p>
-     * If the function returns <1!%{@link #defaultValue()}%><1%{@code null}%>, the mapping is removed.
-     *
-     * @return the new value, or <1!%{@link #defaultValue()}%><1%{@code null}%> if none
-     */
-    /*default _p1_ computeIfPresent(_p0_ key, @NonNull _P0__P1__P1_Function_G0super1super1extends_ remappingFunction) {
-        _p1_ oldValue = this.get(key);
-        _p1_ defaultValue = <1!%this.defaultValue()%><1%null%>;
-        if (oldValue != defaultValue)   {
-            _p1_ newValue = remappingFunction.apply<1!%As_P1_%>(key, oldValue);
-            if (newValue != defaultValue)   {
-                this.put(key, newValue);
-                return newValue;
-            } else {
-                this.remove(key);
-                return defaultValue;
+    @Override<1%
+    @SuppressWarnings("unchecked")%>
+    public _p1_ computeIfAbsent(_p0_ key, @NonNull _P0__P1_Function_G0super1extends_ mappingFunction)  {
+        int hash = this.hash0(key);
+        int offset = this.getOffset(this.hash0(key), key);
+        if (offset < 0) { //key was absent, compute it
+            _p1_ value = mappingFunction.apply<1!%As_P1_%>(key);
+            if (value != <1!%this.defaultValue%><1%null%>)  {
+                this.insert(hash, key, value);
             }
-        } else {
-            return defaultValue;
+            return value;
         }
-    }*/
+        return _castP1_this.values[offset];
+    }
 
-    /**
-     * Attempts to compute a mapping for the specified key and its current mapped value (or <1!%{@link #defaultValue()}%><1%{@code null}%> if
-     * there is no current mapping).
-     * <p>
-     * If the function returns <1!%{@link #defaultValue()}%><1%{@code null}%>, the mapping is removed.
-     *
-     * @return the new value, or <1!%{@link #defaultValue()}%><1%{@code null}%> if none
-     */
-    /*default _p1_ compute(_p0_ key, @NonNull _P0__P1__P1_Function_G0super1super1extends_ remappingFunction) {
-        _p1_ oldValue = this.get(key);
+    @Override
+    public _p1_ computeIfPresent(_p0_ key, @NonNull _P0__P1__P1_Function_G0super1super1extends_ remappingFunction) {
+        int offset = this.getOffset(this.hash0(key), key);
+        if (offset < 0) { //key was absent, do nothing
+            return <1!%this.defaultValue%><1%null%>;
+        }
+        final _nameP1_[] values = this.values;<1%
+        @SuppressWarnings("unchecked")%>
+        _p1_ oldValue = _castP1_values[offset];
         _p1_ newValue = remappingFunction.apply<1!%As_P1_%>(key, oldValue);
-
-        _p1_ defaultValue = <1!%this.defaultValue()%><1%null%>;
-        if (newValue == defaultValue)   {
-            if (oldValue != defaultValue)   {
-                this.remove(key);
-            }
-            return defaultValue;
+        if (newValue != <1!%this.defaultValue%><1%null%>)   {
+            this.values[offset] = newValue; //re-use existing entry
         } else {
-            this.put(key, newValue);
-            return newValue;
-        }
-    }*/
-
-    /**
-     * If the specified key is not already associated with a value, associates it with the given value. Otherwise, replaces the associated
-     * value with the results of the given remapping function, or removes it if the result is <1!%{@link #defaultValue()}%><1%{@code null}%>.
-     *
-     * @return the new value, or <1!%{@link #defaultValue()}%><1%{@code null}%> if none
-     */
-    /*default _p1_ merge(_p0_ key, _p1_ value, @NonNull _P1__P1__P1_Function_G1super1super1extends_ remappingFunction) {
-        _p1_ oldValue = this.get(key);
-
-        _p1_ defaultValue = <1!%this.defaultValue()%><1%null%>;
-        _p1_ newValue = oldValue == defaultValue ? value : remappingFunction.apply<1!%As_P1_%>(oldValue, value);
-        if (newValue == defaultValue)   {
-            this.remove(key);
-        } else {
-            this.put(key, newValue);
+            this.collapse(offset);
+            this.size--;
         }
         return newValue;
-    }*/
+    }
+
+    @Override
+    public _p1_ compute(_p0_ key, @NonNull _P0__P1__P1_Function_G0super1super1extends_ remappingFunction) {
+        int hash = this.hash0(key);
+        int offset = this.getOffset(this.hash0(key), key);
+        final _nameP1_[] values = this.values;
+        _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;<1%
+        @SuppressWarnings("unchecked")%>
+        _p1_ oldValue = offset < 0 ? defaultValue : _castP1_values[offset];
+        _p1_ newValue = remappingFunction.apply<1!%As_P1_%>(key, oldValue);
+        if (offset < 0) { //key was absent, insert it
+            if (newValue != defaultValue)  {
+                this.insert(hash, key, newValue);
+            }
+        } else {
+            if (newValue != defaultValue)   {
+                this.values[offset] = newValue; //re-use existing entry
+            } else {
+                this.collapse(offset);
+                this.size--;
+            }
+        }
+        return newValue;
+    }
+
+    @Override
+    public _p1_ merge(_p0_ key, _p1_ value, @NonNull _P1__P1__P1_Function_G1super1super1extends_ remappingFunction) {
+        int hash = this.hash0(key);
+        int offset = this.getOffset(this.hash0(key), key);
+        final _nameP1_[] values = this.values;
+        _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;<1%
+        @SuppressWarnings("unchecked")%>
+        _p1_ oldValue = offset < 0 ? defaultValue : _castP1_values[offset];
+        _p1_ newValue = remappingFunction.apply<1!%As_P1_%>(oldValue, value);
+        if (offset < 0) { //key was absent, insert it
+            if (newValue != defaultValue)  {
+                this.insert(hash, key, newValue);
+            }
+        } else {
+            if (newValue != defaultValue)   {
+                this.values[offset] = newValue; //re-use existing entry
+            } else {
+                this.collapse(offset);
+                this.size--;
+            }
+        }
+        return newValue;
+    }
 
     @Override
     @Deprecated

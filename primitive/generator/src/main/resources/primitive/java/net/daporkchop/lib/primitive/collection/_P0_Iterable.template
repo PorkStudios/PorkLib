@@ -28,7 +28,7 @@ public interface _P0_Iterable_G_ extends Iterable<_fullnameP0_> {
     /**
      * Executes the given {@link _P0_Consumer} for all of the values.
      */
-    default void forEach(@NonNull _P0_Consumer action) {
+    default void forEach(@NonNull _P0_Consumer_Gsuper_ action) {
         for (_P0_Iterator_G_ itr = this.iterator(); itr.hasNext();) {
             action.accept(itr.next_P0_());
         }

@@ -39,7 +39,7 @@ public abstract class Abstract_P0__P1_Map_G_ implements _P0__P1_Map_G_ {<1!%
     protected _p1_ defaultValue = _EP1_;
 %>
     protected transient _P0_Set_GP0_ keySet;
-    protected transient _P1_Collection_GP1_ values;
+    protected transient _P1_Collection_GP1_ valuesCollection;
 
     @Override
     public int size()   {
@@ -120,103 +120,13 @@ public abstract class Abstract_P0__P1_Map_G_ implements _P0__P1_Map_G_ {<1!%
     @Override
     public _P0_Set_GP0_ keySet()    {
         _P0_Set_GP0_ keySet = this.keySet;
-        if (keySet == null) {
-            this.keySet = keySet = new Abstract_P0_Set_GP0_() {
-                @Override
-                public _P0_Iterator_GP0_ iterator() {
-                    return new _P0_Iterator_GP0_() {
-                        private final Iterator<Entry_G_> itr = Abstract_P0__P1_Map.this.entrySet().iterator();
-
-                        @Override
-                        public boolean hasNext()    {
-                            return this.itr.hasNext();
-                        }
-
-                        @Override
-                        public _p0_ next<0!%_P0_%>()  {
-                            return this.itr.next().getKey();
-                        }
-
-                        @Override
-                        public void remove()    {
-                            this.itr.remove();
-                        }
-                    };
-                }
-
-                @Override
-                public int size()   {
-                    return Abstract_P0__P1_Map.this.size();
-                }
-
-                @Override
-                public boolean isEmpty()    {
-                    return Abstract_P0__P1_Map.this.isEmpty();
-                }
-
-                @Override
-                public void clear() {
-                    Abstract_P0__P1_Map.this.clear();
-                }
-
-                @Override
-                public boolean contains(_nameP0_ key)  {
-                    return Abstract_P0__P1_Map.this.containsKey(key);
-                }
-            };
-        }
-        return keySet;
+        return keySet == null ? this.keySet = new Keys() : keySet;
     }
 
     @Override
     public _P1_Collection_GP1_ values() {
-        _P1_Collection_GP1_ values = this.values;
-        if (values == null) {
-            this.values = values = new Abstract_P1_Collection_GP1_() {
-                @Override
-                public _P1_Iterator_GP1_ iterator() {
-                    return new _P1_Iterator_GP1_() {
-                        private final Iterator<Entry_G_> itr = Abstract_P0__P1_Map.this.entrySet().iterator();
-
-                        @Override
-                        public boolean hasNext()    {
-                            return this.itr.hasNext();
-                        }
-
-                        @Override
-                        public _p1_ next<1!%_P1_%>()  {
-                            return this.itr.next().getValue();
-                        }
-
-                        @Override
-                        public void remove()    {
-                            this.itr.remove();
-                        }
-                    };
-                }
-
-                @Override
-                public int size()   {
-                    return Abstract_P0__P1_Map.this.size();
-                }
-
-                @Override
-                public boolean isEmpty()    {
-                    return Abstract_P0__P1_Map.this.isEmpty();
-                }
-
-                @Override
-                public void clear() {
-                    Abstract_P0__P1_Map.this.clear();
-                }
-
-                @Override
-                public boolean contains(_nameP1_ value)  {
-                    return Abstract_P0__P1_Map.this.containsValue(value);
-                }
-            };
-        }
-        return values;
+        _P1_Collection_GP1_ values = this.valuesCollection;
+        return values == null ? this.valuesCollection = new Values() : values;
     }
 
     @Override
@@ -291,12 +201,99 @@ public abstract class Abstract_P0__P1_Map_G_ implements _P0__P1_Map_G_ {<1!%
     protected Object clone() throws CloneNotSupportedException {
         Abstract_P0__P1_Map result = (Abstract_P0__P1_Map) super.clone();
         result.keySet = null;
-        result.values = null;
+        result.valuesCollection = null;
         return result;
     }
 
+    protected class Keys extends Abstract_P0_Set_GP0_ {
+        @Override
+        public _P0_Iterator_GP0_ iterator() {
+            return new _P0_Iterator_GP0_() {
+                private final Iterator<Entry_G_> itr = Abstract_P0__P1_Map.this.entrySet().iterator();
+
+                @Override
+                public boolean hasNext()    {
+                    return this.itr.hasNext();
+                }
+
+                @Override
+                public _p0_ next<0!%_P0_%>()  {
+                    return this.itr.next().getKey();
+                }
+
+                @Override
+                public void remove()    {
+                    this.itr.remove();
+                }
+            };
+        }
+
+        @Override
+        public int size()   {
+            return Abstract_P0__P1_Map.this.size();
+        }
+
+        @Override
+        public boolean isEmpty()    {
+            return Abstract_P0__P1_Map.this.isEmpty();
+        }
+
+        @Override
+        public void clear() {
+            Abstract_P0__P1_Map.this.clear();
+        }
+
+        @Override
+        public boolean contains(_nameP0_ key)  {
+            return Abstract_P0__P1_Map.this.containsKey(key);
+        }
+    }
+
+    protected class Values extends Abstract_P1_Collection_GP1_ {
+        @Override
+        public _P1_Iterator_GP1_ iterator() {
+           return new _P1_Iterator_GP1_() {
+               private final Iterator<Entry_G_> itr = Abstract_P0__P1_Map.this.entrySet().iterator();
+
+               @Override
+               public boolean hasNext()    {
+                   return this.itr.hasNext();
+               }
+
+               @Override
+               public _p1_ next<1!%_P1_%>()  {
+                   return this.itr.next().getValue();
+               }
+
+               @Override
+               public void remove()    {
+                   this.itr.remove();
+               }
+           };
+        }
+
+        @Override
+        public int size()   {
+           return Abstract_P0__P1_Map.this.size();
+        }
+
+        @Override
+        public boolean isEmpty()    {
+           return Abstract_P0__P1_Map.this.isEmpty();
+        }
+
+        @Override
+        public void clear() {
+           Abstract_P0__P1_Map.this.clear();
+        }
+
+        @Override
+        public boolean contains(_nameP1_ value)  {
+           return Abstract_P0__P1_Map.this.containsValue(value);
+        }
+    }
+
     @AllArgsConstructor
-    @Getter
     public static class SimpleEntry_G_ implements Entry_G_, java.io.Serializable {
         private static final long serialVersionUID = -8499721149061103585L;
 
@@ -305,6 +302,16 @@ public abstract class Abstract_P0__P1_Map_G_ implements _P0__P1_Map_G_ {<1!%
 
         public SimpleEntry(@NonNull Entry_Gextends_ entry) {
             this(entry.getKey(), entry.getValue());
+        }
+
+        @Override
+        public _p0_ getKey()    {
+            return this.key;
+        }
+
+        @Override
+        public _p1_ getValue()    {
+            return this.value;
         }
 
         @Override
@@ -337,7 +344,6 @@ public abstract class Abstract_P0__P1_Map_G_ implements _P0__P1_Map_G_ {<1!%
     }
 
     @AllArgsConstructor
-    @Getter
     public static class SimpleImmutableEntry_G_ implements Entry_G_, java.io.Serializable {
         private static final long serialVersionUID = -8499721149061103585L;
 
@@ -346,6 +352,16 @@ public abstract class Abstract_P0__P1_Map_G_ implements _P0__P1_Map_G_ {<1!%
 
         public SimpleImmutableEntry(@NonNull Entry_Gextends_ entry) {
             this(entry.getKey(), entry.getValue());
+        }
+
+        @Override
+        public _p0_ getKey()    {
+            return this.key;
+        }
+
+        @Override
+        public _p1_ getValue()    {
+            return this.value;
         }
 
         @Override

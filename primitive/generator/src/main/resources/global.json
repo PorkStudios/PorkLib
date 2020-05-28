@@ -45,6 +45,7 @@
     "ObjSet": "java.util.Set",
     "AbstractObjSet": "java.util.AbstractSet",
 
-    "ObjObjMap": "java.util.Map"
+    "ObjObjMap": "java.util.Map",
+    "AbstractObjObjMap": "java.util.AbstractMap"
   }
 }

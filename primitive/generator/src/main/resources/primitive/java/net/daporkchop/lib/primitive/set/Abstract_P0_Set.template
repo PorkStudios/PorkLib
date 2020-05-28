@@ -2,7 +2,10 @@ $$$settings$$$
 {
     "params": [
         {
-            "genericName": "E"
+            "genericName": "E",
+            "blacklist": [
+                "boolean"
+            ]
         }
     ]
 }

@@ -2,7 +2,10 @@ $$$settings$$$
 {
     "params": [
         {
-            "genericName": "E"
+            "genericName": "E",
+            "blacklist": [
+                "boolean"
+            ]
         }
     ]
 }
@@ -220,7 +223,7 @@ public abstract class Abstract_P0_List_G_ extends Abstract_P0_Collection_G_ impl
     public int hashCode()   {
         int hashCode = 1;
         for (_P0_ListIterator itr = this.iterator(); itr.hasNext();)    {
-            hashCode = hashCode * 31 + itr.next_P0_();
+            hashCode = hashCode * 31 + hash(itr.next_P0_());
         }
         return hashCode;
     }

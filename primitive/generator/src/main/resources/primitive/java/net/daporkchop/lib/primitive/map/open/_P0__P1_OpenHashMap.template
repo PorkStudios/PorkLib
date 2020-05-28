@@ -16,13 +16,19 @@ $$$settings$$$
 }
 _headers_
 
+import net.daporkchop.lib.primitive.collection.Abstract_P1_Collection;
 import net.daporkchop.lib.primitive.collection._P1_Collection;
+import net.daporkchop.lib.primitive.collection._P0_Iterator;
+import net.daporkchop.lib.primitive.collection._P1_Iterator;
+import net.daporkchop.lib.primitive.lambda._P0_Consumer;
+import net.daporkchop.lib.primitive.lambda._P1_Consumer;
 import net.daporkchop.lib.primitive.lambda._P0__P1_Consumer;
 import net.daporkchop.lib.primitive.lambda._P0__P1_Function;
 import net.daporkchop.lib.primitive.lambda._P0__P1__P1_Function;
 import net.daporkchop.lib.primitive.lambda._P1__P1__P1_Function;
 import net.daporkchop.lib.primitive.map.Abstract_P0__P1_Map;
 import net.daporkchop.lib.primitive.map._P0__P1_Map;
+import net.daporkchop.lib.primitive.set.Abstract_P0_Set;
 import net.daporkchop.lib.primitive.set._P0_Set;
 
 import static net.daporkchop.lib.common.system.PlatformInfo.*;
@@ -49,7 +55,9 @@ public class _P0__P1_OpenHashMap_G_ extends Abstract_P0__P1_Map_G_ implements _P
     protected int threshold;
     protected final float loadFactor;
 
-    protected Set<Entry_G_> entrySet;
+    protected Set<Entry_G_> entrySet;<0%<1%
+    protected transient _P0_Set_GP0_ keySet;
+    protected transient _P1_Collection_GP1_ valuesCollection;%>%>
 
     public _P0__P1_OpenHashMap(int initialCapacity, float loadFactor) {
         initialCapacity = tableSizeFor(Math.min(notNegative(initialCapacity, "initialCapacity"), MAXIMUM_CAPACITY));
@@ -215,8 +223,7 @@ public class _P0__P1_OpenHashMap_G_ extends Abstract_P0__P1_Map_G_ implements _P
     @Override<%
     @SuppressWarnings("unchecked")%>
     public _p1_ remove(_nameP0_ key)    {
-        int hash = this.hash0(_castP0_key);
-        int offset = this.getOffset(hash, key);
+        int offset = this.getOffset(this.hash0(_castP0_key), key);
         if (offset < 0) { //entry doesn't exist
             return <1!%this.defaultValue%><1%null%>;
         }
@@ -290,12 +297,14 @@ public class _P0__P1_OpenHashMap_G_ extends Abstract_P0__P1_Map_G_ implements _P
 
     @Override
     public _P0_Set_GP0_ keySet()    {
-        return null;
+        _P0_Set_GP0_ keySet = this.keySet;
+        return keySet == null ? this.keySet = new Keys() : keySet;
     }
 
     @Override
-    public _P1_Collection_GP1_ values()    {
-        return null;
+    public _P1_Collection_GP1_ values() {
+        _P1_Collection_GP1_ values = this.valuesCollection;
+        return values == null ? this.valuesCollection = new Values() : values;
     }
 
     @Override
@@ -486,4 +495,151 @@ public class _P0__P1_OpenHashMap_G_ extends Abstract_P0__P1_Map_G_ implements _P
             return k1 == k2;
         }
     }%>
+
+    protected abstract class BaseIterator {
+        protected final byte[] index = _P0__P1_OpenHashMap.this.index;
+        protected int offset = this.findNext(0);
+        protected int current = -1;
+
+        protected int findNext(int offset)    {
+            final byte[] index = this.index;
+            for (int length = index.length; offset < length; offset++)  {
+                if ((index[offset] & 0x80) != 0)    {
+                    return offset;
+                }
+            }
+            return -1;
+        }
+
+        public boolean hasNext()    {
+            return this.offset >= 0;
+        }
+
+        public int nextOffset() {
+            int offset = this.offset;
+            if (offset < 0) {
+                throw new NoSuchElementException();
+            }
+            this.offset = this.findNext(offset + 1);
+            return this.current = offset;
+        }
+
+        public void remove()    {
+            int current = this.current;
+            if (current < 0)    {
+                throw new NoSuchElementException();
+            }
+            this.current = -1;
+            _P0__P1_OpenHashMap.this.collapse(current);
+            _P0__P1_OpenHashMap.this.size--;
+        }
+    }
+
+    protected class Keys extends Abstract_P0_Set_GP0_ {
+        @Override
+        public _P0_Iterator_GP0_ iterator() {
+            class KeyIterator extends BaseIterator implements _P0_Iterator_GP0_ {
+                protected final _nameP0_[] keys = _P0__P1_OpenHashMap.this.keys;
+
+                @Override<0%
+                @SuppressWarnings("unchecked")%>
+                public _p0_ next<0!%_P0_%>()  {
+                    return _castP0_this.keys[this.nextOffset()];
+                }
+            }
+            return new KeyIterator();
+        }
+
+        @Override
+        public int size()   {
+            return _P0__P1_OpenHashMap.this.size();
+        }
+
+        @Override
+        public boolean isEmpty()    {
+            return _P0__P1_OpenHashMap.this.isEmpty();
+        }
+
+        @Override
+        public void clear() {
+            _P0__P1_OpenHashMap.this.clear();
+        }
+
+        @Override
+        public boolean contains(_nameP0_ key)  {
+            return _P0__P1_OpenHashMap.this.containsKey(key);
+        }
+
+        @Override<0%
+        @SuppressWarnings("unchecked")%>
+        public boolean remove(_nameP0_ key)   {
+            int offset = _P0__P1_OpenHashMap.this.getOffset(_P0__P1_OpenHashMap.this.hash0(_castP0_key), key);
+            if (offset < 0) { //entry doesn't exist
+                return false;
+            }
+            _P0__P1_OpenHashMap.this.size--;
+            _P0__P1_OpenHashMap.this.collapse(offset);
+            return true;
+        }
+
+        @Override<0%
+        @SuppressWarnings("unchecked")%>
+        public void forEach(@NonNull _P0_Consumer_GsuperP0_ action) {
+            final byte[] index = _P0__P1_OpenHashMap.this.index;
+            final _nameP0_[] keys = _P0__P1_OpenHashMap.this.keys;
+            for (int offset = 0, length = index.length; offset < length; offset++)  {
+                if ((index[offset] & 0x80) != 0)    {
+                    action.accept(_castP0_keys[offset]);
+                }
+            }
+        }
+    }
+
+    protected class Values extends Abstract_P1_Collection_GP1_ {
+        @Override
+        public _P1_Iterator_GP1_ iterator() {
+            class ValueIterator extends BaseIterator implements _P1_Iterator_GP1_ {
+                protected final _nameP1_[] values = _P0__P1_OpenHashMap.this.values;
+
+                @Override<1%
+                @SuppressWarnings("unchecked")%>
+                public _p1_ next<1!%_P1_%>()  {
+                    return _castP1_this.values[this.nextOffset()];
+                }
+            }
+            return new ValueIterator();
+        }
+
+        @Override
+        public int size()   {
+           return _P0__P1_OpenHashMap.this.size();
+        }
+
+        @Override
+        public boolean isEmpty()    {
+           return _P0__P1_OpenHashMap.this.isEmpty();
+        }
+
+        @Override
+        public void clear() {
+           _P0__P1_OpenHashMap.this.clear();
+        }
+
+        @Override
+        public boolean contains(_nameP1_ value)  {
+           return _P0__P1_OpenHashMap.this.containsValue(value);
+        }
+
+        @Override<1%
+        @SuppressWarnings("unchecked")%>
+        public void forEach(@NonNull _P1_Consumer_GsuperP1_ action) {
+            final byte[] index = _P0__P1_OpenHashMap.this.index;
+            final _nameP1_[] values = _P0__P1_OpenHashMap.this.values;
+            for (int offset = 0, length = index.length; offset < length; offset++)  {
+                if ((index[offset] & 0x80) != 0)    {
+                    action.accept(_castP1_values[offset]);
+                }
+            }
+        }
+    }
 }

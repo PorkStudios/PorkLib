@@ -15,6 +15,7 @@ import net.daporkchop.lib.primitive.collection._P0_Collection;
 import net.daporkchop.lib.primitive.collection._P0_Iterator;
 import net.daporkchop.lib.primitive.lambda._P0_Consumer;
 import net.daporkchop.lib.primitive.lambda._P0_BoolFunction;
+import net.daporkchop.lib.primitive.lambda._P0__P0_Function;
 import net.daporkchop.lib.primitive.list.Abstract_P0_List;
 import net.daporkchop.lib.primitive.list._P0_List;
 import net.daporkchop.lib.primitive.list._P0_ListIterator;
@@ -24,7 +25,7 @@ import net.daporkchop.lib.primitive.list._P0_ListIterator;
  *
  * @author DaPorkchop_
  */
-public class _P0_ArrayList extends Abstract_P0_List implements _P0_List, RandomAccess, Cloneable, java.io.Serializable {
+public class _P0_ArrayList extends Abstract_P0_List implements RandomAccess, Cloneable, java.io.Serializable {
     protected static final int DEFAULT_CAPACITY = 10;
     protected static final _p0_[] EMPTY_ELEMENTDATA = {};
     protected static final _p0_[] DEFAULTCAPACITY_EMPTY_ELEMENTDATA = {};

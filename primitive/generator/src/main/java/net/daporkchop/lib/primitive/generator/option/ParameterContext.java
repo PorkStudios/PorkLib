@@ -64,6 +64,10 @@ public class ParameterContext {
                 return this.primitive.generic ? "" : this.primitive.name;
             case "G":
                 return this.primitive.generic ? '<' + this.parameter.genericName + '>' : "";
+            case "Gsuper":
+                return this.primitive.generic ? "<? super " + this.parameter.genericName + '>' : "";
+            case "Gextends":
+                return this.primitive.generic ? "<? extends " + this.parameter.genericName + '>' : "";
             case "arrOffset":
                 return "PUnsafe.ARRAY_" + this.primitive.name.toUpperCase() + "_BASE_OFFSET";
             case "arrScale":

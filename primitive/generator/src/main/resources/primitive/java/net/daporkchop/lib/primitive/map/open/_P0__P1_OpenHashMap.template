@@ -74,11 +74,11 @@ public class _P0__P1_OpenHashMap_G_ extends Abstract_P0__P1_Map_G_ implements _P
     }
 
     public _P0__P1_OpenHashMap() {
-        this.loadFactor = DEFAULT_LOAD_FACTOR;
+        this(DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR);
     }
 
     public _P0__P1_OpenHashMap(@NonNull _P0__P1_Map_Gextends_ m)    {
-        this();
+        this(DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR);
         this.putAll(m);
     }
 
@@ -134,17 +134,18 @@ public class _P0__P1_OpenHashMap_G_ extends Abstract_P0__P1_Map_G_ implements _P
         final byte[] index = this.index;
         final _nameP0_[] keys = this.keys;
         final int mask = index.length - 1; //assume table size is always a power of 2
+        int offset = hash & mask;
         while (true)    {
-            int offset = hash++ & mask;
             byte ie = index[offset];
             if ((ie & 0x80) != 0)   {
-                if ((ie ^ 0x80) == (hash & 0x7F) //lowest 7 bits of hash match, check for key equality
+                if ((ie & 0x7F) == (hash & 0x7F) //lowest 7 bits of hash match, check for key equality
                     && this.equals0(_castP0_key, _castP0_keys[offset]))   {
                     return offset;
                 }
             } else { //empty entry, key does not exist
                 return -1;
             }
+            offset = (offset + 1) & mask;
         }
     }
 
@@ -172,7 +173,8 @@ public class _P0__P1_OpenHashMap_G_ extends Abstract_P0__P1_Map_G_ implements _P
      * Inserts the given entry into the map.
      * <p>
      * If the entry was already present, returns the entry's offset, otherwise the entry is inserted and {@code -1} is returned.
-     */
+     */<0%
+    @SuppressWarnings("unchecked")%>
     protected int insert(int hash, _p0_ key, _p1_ value)    {
         final byte[] index = this.index;
         final _nameP0_[] keys = this.keys;
@@ -181,7 +183,7 @@ public class _P0__P1_OpenHashMap_G_ extends Abstract_P0__P1_Map_G_ implements _P
         while (true)    {
             byte ie = index[offset];
             if ((ie & 0x80) != 0)   {
-                if ((ie ^ 0x80) == (hash & 0x7F) //lowest 7 bits of hash match, check for key equality
+                if ((ie & 0x7F) == (hash & 0x7F) //lowest 7 bits of hash match, check for key equality
                     && this.equals0(key, _castP0_keys[offset]))   {
                     return offset; //entry exists, do nothing
                 }
@@ -194,23 +196,25 @@ public class _P0__P1_OpenHashMap_G_ extends Abstract_P0__P1_Map_G_ implements _P
                 }
                 return -1;
             }
-            offset = (offset + 1) & hash;
+            offset = (offset + 1) & mask;
         }
     }
 <%
     @SuppressWarnings("unchecked")%>
     protected void rehash(int capacity)  {
-        capacity = tableSizeFor(Math.min(notNegative(capacity, "capacity"), MAXIMUM_CAPACITY));
+        capacity = tableSizeFor(capacity);
         final byte[] index = this.index; //old arrays
         final _nameP0_[] keys = this.keys;
         final _nameP1_[] values = this.values;
         this.index = new byte[capacity];
         this.keys = new _nameP0_[capacity];
         this.values = new _nameP1_[capacity];
+        this.size = 0;
+        this.threshold = thresholdFor(capacity, this.loadFactor);
         for (int offset = 0, length = index.length; offset < length; offset++)  {
             if ((index[offset] & 0x80) != 0)    {
                 _p0_ key = _castP0_keys[offset];
-                checkState(this.insert(this.hash0(key), key, _castP1_values[offset]) >= 0);
+                checkState(this.insert(this.hash0(key), key, _castP1_values[offset]) < 0);
             }
         }
     }

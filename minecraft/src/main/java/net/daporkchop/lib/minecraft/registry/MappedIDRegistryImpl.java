@@ -22,7 +22,7 @@ package net.daporkchop.lib.minecraft.registry;
 
 import lombok.NonNull;
 import net.daporkchop.lib.primitive.map.ObjIntMap;
-import net.daporkchop.lib.primitive.map.hash.open.ObjIntOpenHashMap;
+import net.daporkchop.lib.primitive.map.open.ObjIntOpenHashMap;
 
 /**
  * An extension of {@link IDRegistryImpl} that stores {@link ResourceLocation} to ID mappings in a map for fast reverse lookups.

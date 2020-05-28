@@ -26,7 +26,7 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.primitive.lambda.consumer.ObjIntConsumer;
+import net.daporkchop.lib.primitive.lambda.ObjIntConsumer;
 
 import java.util.ArrayList;
 import java.util.Map;

@@ -49,6 +49,7 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
@@ -169,7 +170,7 @@ public class ScannerTest {
 
     @Test
     public void makeSimpleMap() throws IOException {
-        Map<ResourceLocation, Color[]> colorMap = new Hashtable<>();
+        Map<ResourceLocation, Color[]> colorMap = new HashMap<>();
         {
             String colorData = Http.getString("https://raw.githubusercontent.com/DaMatrix/betterMapArt/master/src/main/resources/colors.json");
             JsonParser parser = new JsonParser();

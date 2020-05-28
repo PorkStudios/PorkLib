@@ -24,6 +24,8 @@ import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.math.BinMath;
 import net.daporkchop.lib.common.math.PMath;
 
+import static net.daporkchop.lib.common.util.PValidation.*;
+
 /**
  * Various constants used by hash map implementations.
  *
@@ -36,10 +38,10 @@ public class HashMapHelper {
     public static final float DEFAULT_LOAD_FACTOR = 0.75f;
 
     public static int tableSizeFor(int capacity) {
-        return PMath.clamp(BinMath.roundToNearestPowerOf2(capacity - 1) + 1, 1, MAXIMUM_CAPACITY);
+        return PMath.clamp(BinMath.roundToNearestPowerOf2(notNegative(capacity, "capacity")), 1, MAXIMUM_CAPACITY);
     }
 
-    public static int thresholdFor(int currentCapacity, float loadFactor)  {
+    public static int thresholdFor(int currentCapacity, float loadFactor) {
         return PMath.floorI(currentCapacity * loadFactor);
     }
 }

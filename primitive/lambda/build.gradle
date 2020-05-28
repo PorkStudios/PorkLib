@@ -21,29 +21,27 @@
 sourceSets {
     orig
     generated
-    main {
-        java {
-            srcDirs = [
-                    "src/main/java",
-                    "src/generated/java",
-                    "src/orig/java"
-            ]
-        }
-    }
 }
 
 dependencies {
-    //origCompile project(":unsafe")
+    //orig
+    origCompileOnly "org.projectlombok:lombok:$lombokVersion"
+    origAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
 
-    //generatedCompile project(":unsafe")
+    //generated
     generatedCompile sourceSets.orig.output
 
-    compile sourceSets.orig.compileClasspath
-    compile sourceSets.generated.compileClasspath
+    generatedCompileOnly "org.projectlombok:lombok:$lombokVersion"
+    generatedAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
+
+    //main
+    compile sourceSets.orig.output
+    compile sourceSets.generated.output
 }
 
 task deleteSource(type: Delete) {
     delete "src/generated"
+    delete "src/test"
 }
 
 clean.dependsOn(deleteSource)

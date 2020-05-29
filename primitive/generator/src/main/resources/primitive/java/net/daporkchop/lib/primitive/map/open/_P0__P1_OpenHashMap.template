@@ -31,6 +31,10 @@ import net.daporkchop.lib.primitive.map._P0__P1_Map;
 import net.daporkchop.lib.primitive.set.Abstract_P0_Set;
 import net.daporkchop.lib.primitive.set._P0_Set;
 
+import java.util.AbstractSet;
+import java.util.Iterator;
+import java.util.function.Consumer;
+
 import static net.daporkchop.lib.common.system.PlatformInfo.*;
 import static net.daporkchop.lib.primitive.map.hash.HashMapHelper.*;
 
@@ -313,7 +317,8 @@ public class _P0__P1_OpenHashMap_G_ extends Abstract_P0__P1_Map_G_ implements _P
 
     @Override
     public Set<Entry_G_> entrySet()    {
-        return null;
+        Set<Entry_G_> entrySet = this.entrySet;
+        return entrySet == null ? this.entrySet = new Entries() : entrySet;
     }
 
     @Override<%
@@ -536,6 +541,77 @@ public class _P0__P1_OpenHashMap_G_ extends Abstract_P0__P1_Map_G_ implements _P
             this.current = -1;
             _P0__P1_OpenHashMap.this.collapse(current);
             _P0__P1_OpenHashMap.this.size--;
+        }
+    }
+
+    protected class Entries extends AbstractSet<Entry_G_> {
+        @Override
+        public Iterator<Entry_G_> iterator() {
+            class EntryIterator extends BaseIterator implements Iterator<Entry_G_> {
+                protected final _nameP0_[] keys = _P0__P1_OpenHashMap.this.keys;
+                protected final _nameP1_[] values = _P0__P1_OpenHashMap.this.values;
+
+                @Override<%
+                @SuppressWarnings("unchecked")%>
+                public Entry_G_ next()  {
+                    int offset = this.nextOffset();
+                    return new SimpleImmutableEntry<%<>%>(_castP0_this.keys[offset], _castP1_this.values[offset]);
+                }
+            }
+            return new EntryIterator();
+        }
+
+        @Override
+        public int size()   {
+            return _P0__P1_OpenHashMap.this.size();
+        }
+
+        @Override
+        public boolean isEmpty()    {
+            return _P0__P1_OpenHashMap.this.isEmpty();
+        }
+
+        @Override
+        public void clear() {
+            _P0__P1_OpenHashMap.this.clear();
+        }
+
+        @Override<1%
+        @SuppressWarnings("unchecked")%>
+        public boolean contains(@NonNull Object o)  {
+            if (o instanceof Entry) {<%
+                @SuppressWarnings("unchecked")%>
+                Entry_G_ entry = (Entry_G_) o;
+                _p0_ key = entry.getKey();
+                int offset = _P0__P1_OpenHashMap.this.getOffset(_P0__P1_OpenHashMap.this.hash0(key), key);
+                return offset >= 0 && eq(entry.getValue(), _castP1__P0__P1_OpenHashMap.this.values[offset]);
+            } else {
+                return false;
+            }
+        }
+
+        @Override
+        public boolean remove(@NonNull Object o)   {
+            if (o instanceof Entry) {<%
+                @SuppressWarnings("unchecked")%>
+                Entry_G_ entry = (Entry_G_) o;
+                return _P0__P1_OpenHashMap.this.remove(entry.getKey(), entry.getValue());
+            } else {
+                return false;
+            }
+        }
+
+        @Override<%
+        @SuppressWarnings("unchecked")%>
+        public void forEach(@NonNull Consumer<? super Entry_G_> action) {
+            final byte[] index = _P0__P1_OpenHashMap.this.index;
+            final _nameP0_[] keys = _P0__P1_OpenHashMap.this.keys;
+            final _nameP1_[] values = _P0__P1_OpenHashMap.this.values;
+            for (int offset = 0, length = index.length; offset < length; offset++)  {
+                if ((index[offset] & 0x80) != 0)    {
+                    action.accept(new SimpleImmutableEntry<%<>%>(_castP0_keys[offset], _castP1_values[offset]));
+                }
+            }
         }
     }
 

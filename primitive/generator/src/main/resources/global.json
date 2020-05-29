@@ -46,6 +46,7 @@
     "AbstractObjSet": "java.util.AbstractSet",
 
     "ObjObjMap": "java.util.Map",
-    "AbstractObjObjMap": "java.util.AbstractMap"
+    "AbstractObjObjMap": "java.util.AbstractMap",
+    "ObjObjConcurrentMap": "java.util.ConcurrentMap"
   }
 }

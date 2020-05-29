@@ -70,7 +70,7 @@ public class Parameter {
                     .collect(Collectors.toList()));
         } else if (obj.has("whitelist")) {
             checkState(!obj.has("blacklist"), "blacklist and whitelist may not be set together!");
-            this.primitives = Collections.unmodifiableList(StreamSupport.stream(obj.getAsJsonArray("blacklist").spliterator(), false)
+            this.primitives = Collections.unmodifiableList(StreamSupport.stream(obj.getAsJsonArray("whitelist").spliterator(), false)
                     .map(JsonElement::getAsString)
                     .map(Primitive.BY_NAME::get)
                     .peek(Objects::requireNonNull)

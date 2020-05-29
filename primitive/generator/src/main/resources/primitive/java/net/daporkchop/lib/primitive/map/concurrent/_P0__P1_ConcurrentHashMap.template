@@ -1,0 +1,257 @@
+$$$settings$$$
+{
+    "params": [
+        {
+            "genericName": "K",
+            "whitelist": [
+                "int",
+                "long",
+                "Object"
+            ]
+        },
+        {
+            "genericName": "V",
+            "whitelist": [
+                "int",
+                "long",
+                "Object"
+            ]
+        }
+    ]
+}
+_headers_
+
+import net.daporkchop.lib.primitive.collection.Abstract_P1_Collection;
+import net.daporkchop.lib.primitive.collection._P1_Collection;
+import net.daporkchop.lib.primitive.collection._P0_Iterator;
+import net.daporkchop.lib.primitive.collection._P1_Iterator;
+import net.daporkchop.lib.primitive.lambda._P0_Consumer;
+import net.daporkchop.lib.primitive.lambda._P1_Consumer;
+import net.daporkchop.lib.primitive.lambda._P0__P1_Consumer;
+import net.daporkchop.lib.primitive.lambda._P0__P1_Function;
+import net.daporkchop.lib.primitive.lambda._P0__P1__P1_Function;
+import net.daporkchop.lib.primitive.lambda._P1__P1__P1_Function;
+import net.daporkchop.lib.primitive.map._P0__P1_Map;
+import net.daporkchop.lib.primitive.map._P0__P1_ConcurrentMap;
+import net.daporkchop.lib.primitive.set.Abstract_P0_Set;
+import net.daporkchop.lib.primitive.set._P0_Set;
+
+import java.util.AbstractSet;
+import java.util.Iterator;
+import java.util.function.Consumer;
+
+import static net.daporkchop.lib.primitive.map.hash.HashMapHelper.*;
+
+/**
+ * Type-specific implementation of {@link _P0__P1_ConcurrentMap} backed by a hash table.
+ * <p>
+ * The implementation is inspired by the OpenJDK 8 implementation of {@link java.util.concurrent.ConcurrentHashMap}, but
+ * with various performance tweaks (as it's type-specific).
+ *
+ * @author DaPorkchop_
+ */
+public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _P0__P1_Consumer_G_ {<1!%
+    @Getter
+    @Accessors(fluent = true)
+    protected _p1_ defaultValue = _EP1_;
+%>
+    protected transient Set<Entry_G_> entrySet;<0%<1%
+    protected transient _P0_Set_GP0_ keySet;
+    protected transient _P1_Collection_GP1_ valuesCollection;%>%>
+
+    public _P0__P1_ConcurrentHashMap(int initialCapacity, float loadFactor) {
+    }
+
+    public _P0__P1_ConcurrentHashMap(int initialCapacity) {
+        this(initialCapacity, DEFAULT_LOAD_FACTOR);
+    }
+
+    public _P0__P1_ConcurrentHashMap() {
+        this(DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR);
+    }
+
+    public _P0__P1_ConcurrentHashMap(@NonNull _P0__P1_Map_Gextends_ m)    {
+        this(DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR);
+        this.putAll(m);
+    }<1!%
+
+    @Override
+    public final _P0__P1_ConcurrentHashMap_G_ defaultValue(_p1_ defaultValue)   {
+        throw new UnsupportedOperationException();
+    }%>
+
+    @Override
+    public int size()   {
+        return 0; //todo
+    }
+
+    @Override
+    public boolean isEmpty()    {
+        return false; //todo
+    }
+
+    @Override<0%
+    @SuppressWarnings("unchecked")%>
+    public boolean containsKey(_nameP0_ key)    {
+        return false; //todo
+    }
+
+    @Override
+    public boolean containsValue(_nameP1_ value)    {
+        return false; //todo
+    }
+
+    @Override<%
+    @SuppressWarnings("unchecked")%>
+    public _p1_ get(_nameP0_ key)   {
+        return _EP1_; //todo
+    }
+
+    @Override<%
+    @SuppressWarnings("unchecked")%>
+    public _p1_ getOrDefault(_nameP0_ key, _p1_ defaultValue)   {
+        return defaultValue; //todo
+    }
+
+    @Override
+    public _p1_ put(_p0_ key, _p1_ value)   {
+        return _EP1_; //todo
+    }
+
+    @Override<1%
+    @SuppressWarnings("unchecked")%>
+    public _p1_ putIfAbsent(_p0_ key, _p1_ value)  {
+        return _EP1_; //todo
+    }
+
+    @Override
+    public void putAll(@NonNull _P0__P1_Map_Gextends_ m)    {
+        m.forEach(this);
+    }
+
+    @Override<%
+    @SuppressWarnings("unchecked")%>
+    public _p1_ remove(_nameP0_ key)    {
+        return _EP1_; //todo
+    }
+
+    @Override<%
+    @SuppressWarnings("unchecked")%>
+    public boolean remove(_nameP0_ key, _nameP1_ value)    {
+        return false; //todo
+    }
+
+    @Override
+    public void clear() {
+         //todo
+    }
+
+    @Override
+    public _P0_Set_GP0_ keySet()    {
+        /*_P0_Set_GP0_ keySet = this.keySet;
+        return keySet == null ? this.keySet = new Keys() : keySet;*/
+        return null; //todo
+    }
+
+    @Override
+    public _P1_Collection_GP1_ values() {
+        /*_P1_Collection_GP1_ values = this.valuesCollection;
+        return values == null ? this.valuesCollection = new Values() : values;*/
+        return null; //todo
+    }
+
+    @Override
+    public Set<Entry_G_> entrySet()    {
+        /*Set<Entry_G_> entrySet = this.entrySet;
+        return entrySet == null ? this.entrySet = new Entries() : entrySet;*/
+        return null; //todo
+    }
+
+    @Override
+    public void forEach(@NonNull _P0__P1_Consumer_Gsuper_ action)  {
+         //todo
+    }
+
+    @Override
+    public void replaceAll(@NonNull _P0__P1__P1_Function_G0super1super1extends_ function) {
+         //todo
+    }
+
+    @Override
+    public boolean replace(_p0_ key, _p1_ oldValue, _p1_ newValue)  {
+        return false; //todo
+    }
+
+    @Override
+    public _p1_ replace(_p0_ key, _p1_ value)  {
+        return _EP1_; //todo
+    }
+
+    @Override
+    public _p1_ computeIfAbsent(_p0_ key, @NonNull _P0__P1_Function_G0super1extends_ mappingFunction)  {
+        return _EP1_; //todo
+    }
+
+    @Override
+    public _p1_ computeIfPresent(_p0_ key, @NonNull _P0__P1__P1_Function_G0super1super1extends_ remappingFunction) {
+        return _EP1_; //todo
+    }
+
+    @Override
+    public _p1_ compute(_p0_ key, @NonNull _P0__P1__P1_Function_G0super1super1extends_ remappingFunction) {
+        return _EP1_; //todo
+    }
+
+    @Override
+    public _p1_ merge(_p0_ key, _p1_ value, @NonNull _P1__P1__P1_Function_G1super1super1extends_ remappingFunction) {
+        return _EP1_; //todo
+    }
+
+    @Override
+    @Deprecated
+    public void accept(_p0_ key, _p1_ value) {
+        this.put(key, value);
+    }
+
+    protected int hash0(_p0_ key)    {
+        int hash = hash(key);
+        return (hash >>> 16) ^ hash; //the lowest 7 hash bits are the important ones, so smear entropy down
+    }
+
+    protected boolean equals0(_p0_ k1, _p0_ k2) {
+        return eq(k1, k2);
+    }<0%
+
+    /**
+     * Extension of {@link _P0__P1_OpenHashMap} which compares keys by identity.
+     *
+     * @author DaPorkchop_
+     */
+    /*public static final class Identity_G_ extends _P0__P1_OpenHashMap_G_ {
+        public Identity(int initialCapacity, float loadFactor) {
+            super(initialCapacity, loadFactor);
+        }
+
+        public Identity(int initialCapacity) {
+            super(initialCapacity);
+        }
+
+        public Identity() {
+            super();
+        }
+
+        public Identity(@NonNull _P0__P1_Map_Gextends_ m)    {
+            super(m);
+        }
+
+        @Override
+        protected int hash0(_p0_ key)    {
+            return key != null ? System.identityHashCode(key) : 0;
+        }
+
+        @Override
+        protected boolean equals0(_p0_ k1, _p0_ k2) {
+            return k1 == k2;
+        }
+    }*/%>
+}

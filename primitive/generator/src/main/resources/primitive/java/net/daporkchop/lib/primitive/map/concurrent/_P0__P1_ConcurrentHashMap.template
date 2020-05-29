@@ -40,40 +40,75 @@ import java.util.AbstractSet;
 import java.util.Iterator;
 import java.util.function.Consumer;
 
-import static net.daporkchop.lib.primitive.map.hash.HashMapHelper.*;
+import static net.daporkchop.lib.primitive.map.concurrent.ConcurrentHashMapHelper.*;
 
 /**
- * Type-specific implementation of {@link _P0__P1_ConcurrentMap} backed by a hash table.
+ * Implementation of {@link _P0__P1_ConcurrentMap} backed by a hash table.
  * <p>
- * The implementation is inspired by the OpenJDK 8 implementation of {@link java.util.concurrent.ConcurrentHashMap}, but
- * with various performance tweaks (as it's type-specific).
+ * The implementation is based on the OpenJDK 8 implementation of {@link java.util.concurrent.ConcurrentHashMap}, with various
+ * performance tweaks and simplifications.
+ * <p>
+ * Unlike {@link net.daporkchop.lib.primitive.map.open._P0__P1_OpenHashMap}, this does not allow use of custom hash/equality/comparison
+ * functions.
  *
  * @author DaPorkchop_
  */
-public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _P0__P1_Consumer_G_ {<1!%
+public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _P0__P1_Consumer_G_ {
+    //split into multiple lines to work around generator limitations
+    protected static final long SIZECTL = PUnsafe.pork_getOffset(
+            _P0__P1_ConcurrentHashMap.class, "sizeCtl");
+    protected static final long TRANSFERINDEX = PUnsafe.pork_getOffset(
+            _P0__P1_ConcurrentHashMap.class, "transferIndex");
+    protected static final long BASECOUNT = PUnsafe.pork_getOffset(
+            _P0__P1_ConcurrentHashMap.class, "baseCount");
+    protected static final long CELLSBUSY = PUnsafe.pork_getOffset(_P0__P1_ConcurrentHashMap.class, "cellsBusy");
+    protected static final long CELLVALUE = PUnsafe.pork_getOffset(_P0__P1_ConcurrentHashMap.class, "counterCells");
+<1!%
     @Getter
     @Accessors(fluent = true)
-    protected _p1_ defaultValue = _EP1_;
+    protected final _p1_ defaultValue;
 %>
-    protected transient Set<Entry_G_> entrySet;<0%<1%
-    protected transient _P0_Set_GP0_ keySet;
-    protected transient _P1_Collection_GP1_ valuesCollection;%>%>
+    protected transient volatile Node_G_[] table;
+    protected transient volatile Node_G_[] nextTable;
+    protected transient volatile long baseCount;
+    protected transient volatile int sizeCtl;
+    protected transient volatile int transferIndex;
+    protected transient volatile int cellsBusy;
+    protected transient volatile CounterCell[] counterCells;
 
-    public _P0__P1_ConcurrentHashMap(int initialCapacity, float loadFactor) {
+    //protected transient KeySetView_G_ keySet;
+    //protected transient ValuesView_G_ values;
+    //protected transient EntrySetView_G_ entrySet;
+<1%
+    public _P0__P1_ConcurrentHashMap() {
+        this(DEFAULT_CAPACITY);
     }
 
     public _P0__P1_ConcurrentHashMap(int initialCapacity) {
-        this(initialCapacity, DEFAULT_LOAD_FACTOR);
+        this.sizeCtl = (notNegative(initialCapacity, "initialCapacity") >= (MAXIMUM_CAPACITY >>> 1)
+                ? MAXIMUM_CAPACITY
+                : tableSizeFor(initialCapacity + (initialCapacity >>> 1) + 1));
     }
 
-    public _P0__P1_ConcurrentHashMap() {
-        this(DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR);
-    }
-
-    public _P0__P1_ConcurrentHashMap(@NonNull _P0__P1_Map_Gextends_ m)    {
-        this(DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR);
+    public _P0__P1_ConcurrentHashMap(@NonNull _P0__P1_Map_Gextends_ m) {
+        this(DEFAULT_CAPACITY);
         this.putAll(m);
-    }<1!%
+    }%><1!%
+    public _P0__P1_ConcurrentHashMap(_p1_ defaultValue) {
+        this(defaultValue, DEFAULT_CAPACITY);
+    }
+
+    public _P0__P1_ConcurrentHashMap(_p1_ defaultValue, int initialCapacity) {
+        this.defaultValue = defaultValue;
+        this.sizeCtl = (notNegative(initialCapacity, "initialCapacity") >= (MAXIMUM_CAPACITY >>> 1)
+                ? MAXIMUM_CAPACITY
+                : tableSizeFor(initialCapacity + (initialCapacity >>> 1) + 1));
+    }
+
+    public _P0__P1_ConcurrentHashMap(_p1_ defaultValue, @NonNull _P0__P1_Map_Gextends_ m) {
+        this(defaultValue, DEFAULT_CAPACITY);
+        this.putAll(m);
+    }
 
     @Override
     public final _P0__P1_ConcurrentHashMap_G_ defaultValue(_p1_ defaultValue)   {
@@ -82,40 +117,146 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
 
     @Override
     public int size()   {
-        return 0; //todo
+        return (int) Math.min(this.size.sum(), Integer.MAX_VALUE);
     }
 
     @Override
     public boolean isEmpty()    {
-        return false; //todo
+        return this.size.sum() <= 0L;
     }
 
-    @Override<0%
-    @SuppressWarnings("unchecked")%>
+    @Override
+    public _p1_ get(_nameP0_ key)   {
+        return this.getOrDefault(key, <1!%this.defaultValue%><1%null%>);
+    }
+
+    @Override
+    public _p1_ getOrDefault(_nameP0_ key, _p1_ defaultValue)   {
+        int hash = hash(key) & HASH_BITS;
+        Node_G_[] table = this.table;
+        if (table == null || table.length <= 0)  {
+            return defaultValue;
+        }
+        Node_G_ node = getArrayVolatile(table, hash & (table.length - 1));
+        if (node == null)   {
+            return defaultValue;
+        } else if (hash == node.hash && eq(key, node.key)) {
+            return node.value;
+        } else if (node.hash < 0)    { //special node
+            return (node = node.find(hash, key)) != null ? node.value : defaultValue;
+        }
+        while ((node = node.next) != null)  {
+            if (hash == node.hash && eq(key, node.key)) {
+                return node.value;
+            }
+        }
+        return defaultValue;
+    }
+
+    @Override
     public boolean containsKey(_nameP0_ key)    {
-        return false; //todo
+        _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;
+        return this.getOrDefault(key, defaultValue) != defaultValue;
     }
 
     @Override
     public boolean containsValue(_nameP1_ value)    {
+        if (value == <1!%this.defaultValue%><1%null%>)  {
+            return false;
+        }
         return false; //todo
-    }
-
-    @Override<%
-    @SuppressWarnings("unchecked")%>
-    public _p1_ get(_nameP0_ key)   {
-        return _EP1_; //todo
-    }
-
-    @Override<%
-    @SuppressWarnings("unchecked")%>
-    public _p1_ getOrDefault(_nameP0_ key, _p1_ defaultValue)   {
-        return defaultValue; //todo
     }
 
     @Override
     public _p1_ put(_p0_ key, _p1_ value)   {
-        return _EP1_; //todo
+        return this.putVal(key, value, false);
+    }
+
+    protected _p1_ putVal(_p0_ key, _p1_ value, boolean onlyIfAbsent)   {
+        if (value == <1!%this.defaultValue%><1%null%>)  {
+            throw new NullPointerException();
+        }
+        int hash = hash(key) & HASH_BITS;
+        int binCount = 0;
+        _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;
+        Node_G_[] table = this.table;
+        while (true)    {
+            if (table == null || table.length == 0) {
+                table = this.initTable();
+            }
+            int index = hash & (table.length - 1);
+            Node_G_ node = getArrayVolatile(table, index);
+            if (node == null && casArray(table, index, null, new Node<%<>%>(hash, key, value, null)))   {
+                break; //bin is empty, we can CAS the entry right into it with no additional synchronization logic
+            } else if (node.hash == MOVED)  {
+                //TODO: table = this.helpTransfer(table, node);
+            } else {
+                _p1_ oldValue = defaultValue;
+                synchronized (node) {
+                    if (getArrayVolatile(table, index) == node) {
+                        if (node.hash >= 0) {
+                            binCount = 1;
+                            for (Node_G_ child = node;; binCount++) {
+                                if (hash == child.hash && eq(key, child.key))   {
+                                    oldValue = child.value;
+                                    if (!onlyIfAbsent)  {
+                                        child.value = value;
+                                    }
+                                    break;
+                                }
+                                Node_G_ prev = child;
+                                if ((child = child.next) == null)   {
+                                    prev.next = new Node<%<>%>(hash, key, value, null);
+                                    break;
+                                }
+                            }
+                        }/* else if (node instanceof TreeBin) { //TODO
+                            binCount = 2;
+                            Node_G_ node = ((TreeBin_G_) node).putTreeVal(hash, key, value);
+                            if (node != null)   {
+                                oldValue = node.value;
+                                if (!onlyIfAbsent)  {
+                                    child.value = value;
+                                }
+                            }
+                        }*/
+                    }
+                }
+                if (binCount != 0)  {
+                    if (binCount >= TREEIFY_THRESHOLD)  {
+                        //TODO: this.treeifyBin(table, index);
+                    } else if (oldValue != defaultValue)    {
+                        return oldValue;
+                    }
+                    break;
+                }
+            }
+        }
+        this.addCount(1L, binCount);
+        return defaultValue;
+    }
+<%
+    @SuppressWarnings("unchecked")%>
+    protected Node_G_[] initTable() {
+        Node_G_[] table = this.table;
+        for (; table == null || table.length == 0; table = this.table)  {
+            int sizeCtl = this.sizeCtl;
+            if (sizeCtl < 0) {
+                Thread.yield();
+            } else if (PUnsafe.compareAndSwapInt(this, SIZECTL, sizeCtl, -1))   {
+                try {
+                    if ((table = this.table) == null || table.length == 0)  {
+                        int capacity = sizeCtl > 0 ? sizeCtl : DEFAULT_CAPACITY;
+                        this.table = table = <%(Node_G_[]) %>new Node[capacity];
+                        sizeCtl = capacity - (capacity >>> 2);
+                    }
+                } finally {
+                    this.sizeCtl = sizeCtl;
+                }
+                break;
+            }
+        }
+        return table;
     }
 
     @Override<1%
@@ -213,45 +354,68 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
         this.put(key, value);
     }
 
-    protected int hash0(_p0_ key)    {
-        int hash = hash(key);
-        return (hash >>> 16) ^ hash; //the lowest 7 hash bits are the important ones, so smear entropy down
+    @AllArgsConstructor
+    @sun.misc.Contended
+    protected static final class CounterCell {
+        protected volatile long value;
     }
 
-    protected boolean equals0(_p0_ k1, _p0_ k2) {
-        return eq(k1, k2);
-    }<0%
-
-    /**
-     * Extension of {@link _P0__P1_OpenHashMap} which compares keys by identity.
-     *
-     * @author DaPorkchop_
-     */
-    /*public static final class Identity_G_ extends _P0__P1_OpenHashMap_G_ {
-        public Identity(int initialCapacity, float loadFactor) {
-            super(initialCapacity, loadFactor);
+    protected final long sumCount() {
+        CounterCell[] counterCells = this.counterCells;
+        long sum = this.baseCount;
+        if (counterCells != null)   {
+            for (CounterCell cell : counterCells)   {
+                if (cell != null)   {
+                    sum += cell.value;
+                }
+            }
         }
+        return sum;
+    }
 
-        public Identity(int initialCapacity) {
-            super(initialCapacity);
-        }
+    @AllArgsConstructor
+    protected static class Node_G_ implements Entry_G_ {
+        protected final int hash;
+        @Getter
+        protected final _p0_ key;
+        @Getter
+        protected volatile _p1_ value;
+        protected volatile Node_G_ next;
 
-        public Identity() {
-            super();
-        }
-
-        public Identity(@NonNull _P0__P1_Map_Gextends_ m)    {
-            super(m);
+        @Override
+        public final int hashCode() {
+            return hash(this.key) ^ hash(this.value);
         }
 
         @Override
-        protected int hash0(_p0_ key)    {
-            return key != null ? System.identityHashCode(key) : 0;
+        public final String toString() {
+            return this.key + "=" + this.value;
         }
 
         @Override
-        protected boolean equals0(_p0_ k1, _p0_ k2) {
-            return k1 == k2;
+        public final _p1_ setValue(_p1_ value) {
+            throw new UnsupportedOperationException();
         }
-    }*/%>
+
+        @Override
+        public final boolean equals(Object o) {
+            if (o instanceof Entry)  {<%
+                @SuppressWarnings("unchecked")%>
+                Entry_G_ e = (Entry_G_) o;
+                return eq(this.key, e.getKey()) && eq(this.value, e.getValue());
+            } else {
+                return false;
+            }
+        }
+
+        protected Node_G_ find(int h, _nameP0_ k) {
+            Node_G_ e = this;
+            do {
+                if (e.hash == h && eq(e.key, k))   {
+                    return e;
+                }
+            } while ((e = e.next) != null);
+            return null;
+        }
+    }
 }

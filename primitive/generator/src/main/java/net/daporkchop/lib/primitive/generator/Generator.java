@@ -266,7 +266,7 @@ public class Generator {
             }
 
             String pkg = String.format("package %s;", packageName);
-            stream.parallel().forEach(params -> this.generate0(out, name, content, pkg, options, params));
+            stream/*.parallel()*/.forEach(params -> this.generate0(out, name, content, pkg, options, params));
         }
     }
 
@@ -344,33 +344,29 @@ public class Generator {
         matcher = TOKEN_MATCHER_CACHE.get().reset(contentOut);
         if (matcher.find()) {
             buffer.setLength(0);
-            try {
-                MAIN:
-                do {
-                    String original = matcher.group();
-                    String numberTxt = matcher.group(3);
-                    if (numberTxt != null) {
-                        String token = matcher.group(1);
-                        boolean lowerCase = matcher.group(2).charAt(0) == 'p';
-                        String text = params.get(Integer.parseUnsignedInt(numberTxt)).replace(token, lowerCase, params);
+            MAIN:
+            do {
+                String original = matcher.group();
+                String numberTxt = matcher.group(3);
+                if (numberTxt != null) {
+                    String token = matcher.group(1);
+                    boolean lowerCase = matcher.group(2).charAt(0) == 'p';
+                    String text = params.get(Integer.parseUnsignedInt(numberTxt)).replace(token, lowerCase, params);
+                    if (text != null) {
+                        matcher.appendReplacement(buffer, text);
+                        continue;
+                    }
+                } else {
+                    for (TokenReplacer replacer : this.tokenReplacers) {
+                        String text = replacer.replace(original, params, pkg);
                         if (text != null) {
                             matcher.appendReplacement(buffer, text);
-                            continue;
-                        }
-                    } else {
-                        for (TokenReplacer replacer : this.tokenReplacers) {
-                            String text = replacer.replace(original, params, pkg);
-                            if (text != null) {
-                                matcher.appendReplacement(buffer, text);
-                                continue MAIN;
-                            }
+                            continue MAIN;
                         }
                     }
-                    matcher.appendReplacement(buffer, original);
-                } while (matcher.find());
-            } catch (StackOverflowError e)  {
-                int i = 0;
-            }
+                }
+                matcher.appendReplacement(buffer, original);
+            } while (matcher.find());
             matcher.appendTail(buffer);
             contentOut = buffer.toString();
         }

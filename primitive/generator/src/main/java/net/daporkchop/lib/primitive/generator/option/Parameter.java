@@ -24,6 +24,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.function.PFunctions;
 import net.daporkchop.lib.primitive.generator.Primitive;
@@ -42,6 +43,7 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  *
  * @author DaPorkchop_
  */
+@ToString
 @Getter
 @Accessors(fluent = true)
 public class Parameter {

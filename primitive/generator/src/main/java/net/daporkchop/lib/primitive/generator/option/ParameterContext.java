@@ -23,6 +23,7 @@ package net.daporkchop.lib.primitive.generator.option;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.primitive.generator.Primitive;
@@ -34,6 +35,7 @@ import java.util.List;
  * @author DaPorkchop_
  */
 @AllArgsConstructor
+@ToString
 @Getter
 @Accessors(fluent = true)
 public class ParameterContext {

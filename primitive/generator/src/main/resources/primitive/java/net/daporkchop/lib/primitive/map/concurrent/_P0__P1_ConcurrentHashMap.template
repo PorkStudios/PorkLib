@@ -424,6 +424,7 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
                 if (PUnsafe.compareAndSwapInt(this, SIZECTL, sizeCtl, -1))  {
                     try {
                         if (this.table == table)    {<%
+                            @SuppressWarnings("unchecked")%>
                             Node_G_[] nextTable = <%(Node_G_[]) %>new Node[n];
                             this.table = nextTable;
                             sizeCtl = n - (n >>> 2);
@@ -432,7 +433,7 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
                         this.sizeCtl = sizeCtl;
                     }
                 }
-            } else if (capacity <= sizeCtl || n >= MAXIMUM_CAPACITY)    {
+            } else if (capacity <= sizeCtl || table.length >= MAXIMUM_CAPACITY)    {
                 break;
             } else if (table == this.table) {
                 int stamp = resizeStamp(table.length);
@@ -441,7 +442,7 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
                     if ((sizeCtl >>> RESIZE_STAMP_SHIFT) != stamp || sizeCtl == stamp + 1 || sizeCtl == stamp + MAX_RESIZERS
                         || (nextTable = this.nextTable) == null || this.transferIndex <= 0)    {
                         break;
-                    } else if (PUnsafe.compareAndSwapInt(this, SIZECTL, sizeCtl, sizeCtl + 1)    {
+                    } else if (PUnsafe.compareAndSwapInt(this, SIZECTL, sizeCtl, sizeCtl + 1))    {
                         this.transfer(table, nextTable);
                     }
                 } else if (PUnsafe.compareAndSwapInt(this, SIZECTL, sizeCtl, (stamp << RESIZE_STAMP_SHIFT) + 2))    {

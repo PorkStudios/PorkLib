@@ -191,7 +191,7 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
             if (node == null && casArray(table, index, null, new Node<%<>%>(hash, key, value, null)))   {
                 break; //bin is empty, we can CAS the entry right into it with no additional synchronization logic
             } else if (node.hash == MOVED)  {
-                //TODO: table = this.helpTransfer(table, node);
+                table = this.helpTransfer(table, node);
             } else {
                 _p1_ oldValue = defaultValue;
                 synchronized (node) {
@@ -237,68 +237,6 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
         this.addCount(1L, binCount);
         return defaultValue;
     }
-<%
-    @SuppressWarnings("unchecked")%>
-    protected Node_G_[] initTable() {
-        Node_G_[] table = this.table;
-        for (; table == null || table.length == 0; table = this.table)  {
-            int sizeCtl = this.sizeCtl;
-            if (sizeCtl < 0) {
-                Thread.yield();
-            } else if (PUnsafe.compareAndSwapInt(this, SIZECTL, sizeCtl, -1))   {
-                try {
-                    if ((table = this.table) == null || table.length == 0)  {
-                        int capacity = sizeCtl > 0 ? sizeCtl : DEFAULT_CAPACITY;
-                        this.table = table = <%(Node_G_[]) %>new Node[capacity];
-                        sizeCtl = capacity - (capacity >>> 2);
-                    }
-                } finally {
-                    this.sizeCtl = sizeCtl;
-                }
-                break;
-            }
-        }
-        return table;
-    }
-
-    protected void addCount(long x, int check)  {
-        CounterCell[] counterCells = this.counterCells;
-        long baseCount;
-        long sum;
-        if (counterCells != null || !PUnsafe.compareAndSwapLong(this, BASECOUNT, baseCount = this.baseCount, sum = baseCount + x))   {
-            CounterCell cell;
-            long value;
-            boolean uncontended = true;
-            if (counterCells == null || counterCells.length == 0
-                || (cell = counterCells[getProbe() & (counterCells.length - 1)]) == null
-                || !(uncontended = PUnsafe.compareAndSwapLong(cell, CELLVALUE, baseCount = cell.value, baseCount + x))) {
-                this.fullAddCount(x, uncontended);
-                return;
-            } else if (check <= 1)  {
-                return;
-            }
-            sum = this.sumCount();
-        }
-        if (check >= 0) {
-            Node_G_[] table;
-            int sizeCtl;
-            while (sum >= (sizeCtl = this.sizeCtl) && (table = this.table) != null && table.length < MAXIMUM_CAPACITY)  {
-                int stamp = resizeStamp(table.length);
-                if (sizeCtl < 0)    {
-                    Node_G_[] nextTable;
-                    if (sizeCtl >>> RESIZE_STAMP_SHIFT != stamp || sizeCtl == stamp + 1 || sizeCtl == stamp + MAX_RESIZERS
-                        || (nextTable = this.nextTable) == null || this.transferIndex <= 0)  {
-                        break;
-                    } else if (PUnsafe.compareAndSwapInt(this, SIZECTL, sizeCtl, sizeCtl + 1))  {
-                        this.transfer(table, nextTable);
-                    }
-                } else if (PUnsafe.compareAndSwapInt(this, SIZECTL, sizeCtl, (stamp << RESIZE_STAMP_SHIFT) + 2))    {
-                    this.transfer(table, null);
-                }
-                sum = this.sumCount();
-            }
-        }
-    }
 
     @Override<1%
     @SuppressWarnings("unchecked")%>
@@ -308,6 +246,7 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
 
     @Override
     public void putAll(@NonNull _P0__P1_Map_Gextends_ m)    {
+        this.tryPresize(m.size());
         m.forEach(this);
     }
 
@@ -392,7 +331,247 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
     @Override
     @Deprecated
     public void accept(_p0_ key, _p1_ value) {
-        this.put(key, value);
+        this.putVal(key, value, false);
+    }
+<%
+    @SuppressWarnings("unchecked")%>
+    protected Node_G_[] initTable() {
+        Node_G_[] table = this.table;
+        for (; table == null || table.length == 0; table = this.table)  {
+            int sizeCtl = this.sizeCtl;
+            if (sizeCtl < 0) {
+                Thread.yield();
+            } else if (PUnsafe.compareAndSwapInt(this, SIZECTL, sizeCtl, -1))   {
+                try {
+                    if ((table = this.table) == null || table.length == 0)  {
+                        int capacity = sizeCtl > 0 ? sizeCtl : DEFAULT_CAPACITY;
+                        this.table = table = <%(Node_G_[]) %>new Node[capacity];
+                        sizeCtl = capacity - (capacity >>> 2);
+                    }
+                } finally {
+                    this.sizeCtl = sizeCtl;
+                }
+                break;
+            }
+        }
+        return table;
+    }
+
+    protected void addCount(long x, int check)  {
+        CounterCell[] counterCells = this.counterCells;
+        long baseCount;
+        long sum;
+        if (counterCells != null || !PUnsafe.compareAndSwapLong(this, BASECOUNT, baseCount = this.baseCount, sum = baseCount + x))   {
+            CounterCell cell;
+            long value;
+            boolean uncontended = true;
+            if (counterCells == null || counterCells.length == 0
+                || (cell = counterCells[getProbe() & (counterCells.length - 1)]) == null
+                || !(uncontended = PUnsafe.compareAndSwapLong(cell, CELLVALUE, baseCount = cell.value, baseCount + x))) {
+                this.fullAddCount(x, uncontended);
+                return;
+            } else if (check <= 1)  {
+                return;
+            }
+            sum = this.sumCount();
+        }
+        if (check >= 0) {
+            Node_G_[] table;
+            int sizeCtl;
+            while (sum >= (sizeCtl = this.sizeCtl) && (table = this.table) != null && table.length < MAXIMUM_CAPACITY)  {
+                int stamp = resizeStamp(table.length);
+                if (sizeCtl < 0)    {
+                    Node_G_[] nextTable;
+                    if (sizeCtl >>> RESIZE_STAMP_SHIFT != stamp || sizeCtl == stamp + 1 || sizeCtl == stamp + MAX_RESIZERS
+                        || (nextTable = this.nextTable) == null || this.transferIndex <= 0)  {
+                        break;
+                    } else if (PUnsafe.compareAndSwapInt(this, SIZECTL, sizeCtl, sizeCtl + 1))  {
+                        this.transfer(table, nextTable);
+                    }
+                } else if (PUnsafe.compareAndSwapInt(this, SIZECTL, sizeCtl, (stamp << RESIZE_STAMP_SHIFT) + 2))    {
+                    this.transfer(table, null);
+                }
+                sum = this.sumCount();
+            }
+        }
+    }
+
+    protected Node_G_[] helpTransfer(Node_G_[] table, Node_G_ f)    {
+        Node_G_[] nextTable;
+        if (table != null && f instanceof ForwardingNode && (nextTable = ((ForwardingNode_G_) f).nextTable) != null)    {
+            int stamp = resizeStamp(table.length);
+            int sizeCtl;
+            while (nextTable == this.nextTable && table == this.table && (sizeCtl = this.sizeCtl) < 0)  {
+                if ((sizeCtl >>> RESIZE_STAMP_SHIFT) != stamp || sizeCtl == stamp + 1 || sizeCtl == stamp + MAX_RESIZERS || this.transferIndex <= 0)   {
+                    break;
+                } else if (PUnsafe.compareAndSwapInt(this, SIZECTL, sizeCtl, sizeCtl + 1))  {
+                    this.transfer(table, nextTable);
+                    break;
+                }
+            }
+            return nextTable;
+        }
+        return this.table;
+    }
+
+    protected void tryPresize(int size) {
+        int capacity = size >= (MAXIMUM_CAPACITY >>> 1) ? MAXIMUM_CAPACITY : tableSizeFor(size + (size >>> 1) + 1);
+        int sizeCtl;
+        while ((sizeCtl = this.sizeCtl) >= 0)   {
+            Node_G_[] table = this.table;
+            if (table == null || table.length == 0) {
+                int n = Math.max(sizeCtl, capacity);
+                if (PUnsafe.compareAndSwapInt(this, SIZECTL, sizeCtl, -1))  {
+                    try {
+                        if (this.table == table)    {<%
+                            Node_G_[] nextTable = <%(Node_G_[]) %>new Node[n];
+                            this.table = nextTable;
+                            sizeCtl = n - (n >>> 2);
+                        }
+                    } finally {
+                        this.sizeCtl = sizeCtl;
+                    }
+                }
+            } else if (capacity <= sizeCtl || n >= MAXIMUM_CAPACITY)    {
+                break;
+            } else if (table == this.table) {
+                int stamp = resizeStamp(table.length);
+                if (sizeCtl < 0)    {
+                    Node_G_[] nextTable;
+                    if ((sizeCtl >>> RESIZE_STAMP_SHIFT) != stamp || sizeCtl == stamp + 1 || sizeCtl == stamp + MAX_RESIZERS
+                        || (nextTable = this.nextTable) == null || this.transferIndex <= 0)    {
+                        break;
+                    } else if (PUnsafe.compareAndSwapInt(this, SIZECTL, sizeCtl, sizeCtl + 1)    {
+                        this.transfer(table, nextTable);
+                    }
+                } else if (PUnsafe.compareAndSwapInt(this, SIZECTL, sizeCtl, (stamp << RESIZE_STAMP_SHIFT) + 2))    {
+                    this.transfer(table, null);
+                }
+            }
+        }
+    }
+
+    protected void transfer(Node_G_[] table, Node_G_[] nextTable)   {
+        int n = table.length;
+        int stride = Math.max(NCPU > 1 ? (n >>> 3) / NCPU : n, MIN_TRANSFER_STRIDE);
+        if (nextTable == null)  {
+            try {<%
+                @SuppressWarnings("unchecked")%>
+                Node_G_[] nt = <%(Node_G_[]) %>new Node[n << 1];
+                nextTable = nt;
+            } catch (Throwable ignored) {
+                this.sizeCtl = Integer.MAX_VALUE;
+            }
+            this.nextTable = nextTable;
+            this.transferIndex = n;
+        }
+        int nextn = nextTable.length;
+        ForwardingNode_G_ fwd = new ForwardingNode<%<>%>(nextTable);
+        boolean advance = true, finishing = false;
+        int i = 0, bound = 0;
+        while (true)    {
+            while (advance) {
+                int nextIndex, nextBound;
+                if (--i >= bound || finishing)  {
+                    advance = false;
+                } else if ((nextIndex = this.transferIndex) <= 0)   {
+                    i = -1;
+                    advance = false;
+                } else if (PUnsafe.compareAndSwapInt(this, TRANSFERINDEX, nextIndex, nextBound = nextIndex > stride ? nextIndex - stride : 0))  {
+                    bound = nextBound;
+                    i = nextIndex - 1;
+                    advance = false;
+                }
+            }
+            Node_G_ f;
+            if (i < 0 || i >= n || i + n >= nextn)  {
+                if (finishing)  {
+                    this.nextTable = null;
+                    this.table = nextTable;
+                    this.sizeCtl = (n << 1) - (n >>> 1);
+                    return;
+                }
+                int sizeCtl = this.sizeCtl;
+                if (PUnsafe.compareAndSwapInt(this, SIZECTL, sizeCtl, sizeCtl - 1)) {
+                    if (sizeCtl - 2 != resizeStamp(n) << RESIZE_STAMP_SHIFT)    {
+                        return;
+                    }
+                    finishing = advance = true;
+                    i = n;
+                }
+            } else if ((f = getArrayVolatile(table, i)) == null)    {
+                advance = casArray(table, i, null, fwd); //empty bin, forward it to new table
+            } else if (f.hash == MOVED)  {
+                advance = true; //already processed
+            } else {
+                synchronized (f)    {
+                    if (getArrayVolatile(table, i) != f)    {
+                        continue;
+                    }
+                    if (f.hash >= 0)    {
+                        int runBit = f.hash & n;
+                        Node_G_ lastRun = f;
+                        for (Node_G_ node = f.next; node != null; node = node.next) {
+                            int nodeBit = node.hash & n;
+                            if (nodeBit != runBit)  {
+                                runBit = nodeBit;
+                                lastRun = node;
+                            }
+                        }
+                        Node_G_ loNode, hiNode;
+                        if (runBit == 0)    {
+                            loNode = lastRun;
+                            hiNode = null;
+                        } else {
+                            loNode = null;
+                            hiNode = lastRun;
+                        }
+                        for (Node_G_ node = f; node != lastRun; node = node.next)   {
+                            if ((node.hash & n) == 0)   {
+                                loNode = new Node<%<>%>(node.hash, node.key, node.value, loNode);
+                            } else {
+                                hiNode = new Node<%<>%>(node.hash, node.key, node.value, hiNode);
+                            }
+                        }
+                        setArrayVolatile(nextTable, i, loNode);
+                        setArrayVolatile(nextTable, i + n, hiNode);
+                        setArrayVolatile(table, i, fwd);
+                        advance = true;
+                    }/* else if (f instanceof TreeBin)    { //TODO
+                        TreeBin_G_ t = (TreeBin_G_) f;
+                        TreeNode_G_ lo = null, loTail = null;
+                        TreeNode_G_ hi = null, hiTail = null;
+                        int lc = 0, hc = 0;
+                        for (Node_G_ node = t.first; node != null; node = node.next)    {
+                            TreeNode_G_ p = new TreeNode<%<>%>(node.hash, node.key, node.value, null, null);
+                            if ((node.hash & n) == 0)   {
+                                if ((p.prev = loTail) == null)  {
+                                    lo = p;
+                                } else {
+                                    loTail.next = p;
+                                }
+                                loTail = p;
+                                lc++;
+                            } else {
+                                if ((p.prev = hiTail) == null)  {
+                                    hi = p;
+                                } else {
+                                    hiTail.next = p;
+                                }
+                                hiTail = p;
+                                hc++;
+                            }
+                        }
+                        Node_G_ loNode = lc <= UNTREEIFY_THRESHOLD ? untreeify(lo) : hc != 0 ? new TreeBin<%<>%>(lo) : t;
+                        Node_G_ hiNode = hc <= UNTREEIFY_THRESHOLD ? untreeify(hi) : lc != 0 ? new TreeBin<%<>%>(hi) : t;
+                        setArrayVolatile(nextTable, i, loNode);
+                        setArrayVolatile(nextTable, i + n, hiNode);
+                        setArrayVolatile(table, i, fwd);
+                        advance = true;
+                    }*/
+                }
+            }
+        }
     }
 
     @AllArgsConstructor
@@ -521,13 +700,62 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
             }
         }
 
-        protected Node_G_ find(int h, _nameP0_ k) {
+        protected Node_G_ find(int hash, _nameP0_ key) {
             Node_G_ e = this;
             do {
-                if (e.hash == h && eq(e.key, k))   {
+                if (hash == e.hash && eq(key, e.key))   {
                     return e;
                 }
             } while ((e = e.next) != null);
+            return null;
+        }
+    }
+
+    protected static final class ForwardingNode_G_ extends Node_G_ {
+        protected final Node_G_[] nextTable;
+
+        protected ForwardingNode(Node_G_[] nextTable)   {
+            super(MOVED, _EP0_, _EP1_, null);
+            this.nextTable = nextTable;
+        }
+
+        @Override
+        protected Node_G_ find(int hash, _nameP0_ key)  {
+            Node_G_[] table = this.nextTable;
+            OUT:
+            while (true)    {
+                if (table == null || table.length == 0) { //CHM also checks if key is null, but there doesn't seem to be any good reason for it...
+                    return null;
+                }
+                Node_G_ node = getArrayVolatile(table, hash & (table.length - 1));
+                if (node == null)   {
+                    return null;
+                }
+                while (true)    {
+                    if (hash == node.hash && eq(key, node.key)) {
+                        return node;
+                    } else if (node.hash < 0)   { //special node
+                        if (node instanceof ForwardingNode) {
+                            table = ((ForwardingNode_G_) node).nextTable;
+                            continue OUT;
+                        } else {
+                            return node.find(hash, key);
+                        }
+                    } else if ((node = node.next) == null)  {
+                        return null;
+                    }
+                }
+            }
+        }
+    }
+
+    protected static final class ReservationNode_G_ extends Node_G_ {
+        protected ReservationNode() {
+            super(RESERVED, _EP0_, _EP1_, null);
+        }
+
+        @Override
+        protected Node_G_ find(int hash, _nameP0_ key) {
             return null;
         }
     }

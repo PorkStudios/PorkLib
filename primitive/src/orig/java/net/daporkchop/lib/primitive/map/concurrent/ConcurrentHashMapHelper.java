@@ -21,10 +21,8 @@
 package net.daporkchop.lib.primitive.map.concurrent;
 
 import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
-import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.concurrent.ThreadLocalRandom;
@@ -103,6 +101,10 @@ public class ConcurrentHashMapHelper {
 
     public static <T> T getArrayVolatile(Object base, int index) {
         return PUnsafe.getObjectVolatile(base, PUnsafe.ARRAY_OBJECT_BASE_OFFSET + index * PUnsafe.ARRAY_OBJECT_INDEX_SCALE);
+    }
+
+    public static void setArrayVolatile(Object base, int index, Object value) {
+        PUnsafe.putObjectVolatile(base, PUnsafe.ARRAY_OBJECT_BASE_OFFSET + index * PUnsafe.ARRAY_OBJECT_INDEX_SCALE, value);
     }
 
     public static boolean casArray(Object base, int index, Object expect, Object value) {

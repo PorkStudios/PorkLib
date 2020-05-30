@@ -100,7 +100,7 @@ public class Generator {
     private static final Ref<StringBuffer> STRINGBUFFER_CACHE = ThreadRef.late(StringBuffer::new);
     private static final Ref<StringBuffer> STRINGBUFFER_CACHE_2 = ThreadRef.late(StringBuffer::new);
     private static final Ref<Matcher> NAME_MATCHER_CACHE = ThreadRef.regex(Pattern.compile("_P(\\d+)_"));
-    private static final Ref<Matcher> TOKEN_MATCHER_CACHE = ThreadRef.regex(Pattern.compile("_(.*?)(?:([pP])(\\d+))?_"));
+    private static final Ref<Matcher> TOKEN_MATCHER_CACHE = ThreadRef.regex(Pattern.compile("_([a-zA-Z0-9]*?)(?:([pP])(\\d+))?_"));
 
     private static final Pattern GENERIC_FILTER_PATTERN = Pattern.compile("<(\\d+)?(!)?%((?:.*?(?:<(\\d+)?(!)?%(.*?)%>)?)*)%>", Pattern.DOTALL);
     private static final Ref<Matcher> GENERIC_FILTER_CACHE = ThreadRef.regex(GENERIC_FILTER_PATTERN);
@@ -344,29 +344,33 @@ public class Generator {
         matcher = TOKEN_MATCHER_CACHE.get().reset(contentOut);
         if (matcher.find()) {
             buffer.setLength(0);
-            MAIN:
-            do {
-                String original = matcher.group();
-                String numberTxt = matcher.group(3);
-                if (numberTxt != null) {
-                    String token = matcher.group(1);
-                    boolean lowerCase = matcher.group(2).charAt(0) == 'p';
-                    String text = params.get(Integer.parseUnsignedInt(numberTxt)).replace(token, lowerCase, params);
-                    if (text != null) {
-                        matcher.appendReplacement(buffer, text);
-                        continue;
-                    }
-                } else {
-                    for (TokenReplacer replacer : this.tokenReplacers) {
-                        String text = replacer.replace(original, params, pkg);
+            try {
+                MAIN:
+                do {
+                    String original = matcher.group();
+                    String numberTxt = matcher.group(3);
+                    if (numberTxt != null) {
+                        String token = matcher.group(1);
+                        boolean lowerCase = matcher.group(2).charAt(0) == 'p';
+                        String text = params.get(Integer.parseUnsignedInt(numberTxt)).replace(token, lowerCase, params);
                         if (text != null) {
                             matcher.appendReplacement(buffer, text);
-                            continue MAIN;
+                            continue;
+                        }
+                    } else {
+                        for (TokenReplacer replacer : this.tokenReplacers) {
+                            String text = replacer.replace(original, params, pkg);
+                            if (text != null) {
+                                matcher.appendReplacement(buffer, text);
+                                continue MAIN;
+                            }
                         }
                     }
-                }
-                matcher.appendReplacement(buffer, original);
-            } while (matcher.find());
+                    matcher.appendReplacement(buffer, original);
+                } while (matcher.find());
+            } catch (StackOverflowError e)  {
+                int i = 0;
+            }
             matcher.appendTail(buffer);
             contentOut = buffer.toString();
         }

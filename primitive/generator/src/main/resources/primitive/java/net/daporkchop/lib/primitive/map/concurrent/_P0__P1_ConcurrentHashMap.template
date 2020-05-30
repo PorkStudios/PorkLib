@@ -61,8 +61,10 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
             _P0__P1_ConcurrentHashMap.class, "transferIndex");
     protected static final long BASECOUNT = PUnsafe.pork_getOffset(
             _P0__P1_ConcurrentHashMap.class, "baseCount");
-    protected static final long CELLSBUSY = PUnsafe.pork_getOffset(_P0__P1_ConcurrentHashMap.class, "cellsBusy");
-    protected static final long CELLVALUE = PUnsafe.pork_getOffset(_P0__P1_ConcurrentHashMap.class, "counterCells");
+    protected static final long CELLSBUSY = PUnsafe.pork_getOffset(
+        _P0__P1_ConcurrentHashMap.class, "cellsBusy");
+    protected static final long CELLVALUE = PUnsafe.pork_getOffset(
+        CounterCell.class, "cellValue");
 <1!%
     @Getter
     @Accessors(fluent = true)
@@ -117,12 +119,12 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
 
     @Override
     public int size()   {
-        return (int) Math.min(this.size.sum(), Integer.MAX_VALUE);
+        return (int) Math.max(Math.min(this.sumCount(), Integer.MAX_VALUE), 0L);
     }
 
     @Override
     public boolean isEmpty()    {
-        return this.size.sum() <= 0L;
+        return this.sumCount() <= 0L;
     }
 
     @Override
@@ -259,6 +261,45 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
         return table;
     }
 
+    protected void addCount(long x, int check)  {
+        CounterCell[] counterCells = this.counterCells;
+        long baseCount;
+        long sum;
+        if (counterCells != null || !PUnsafe.compareAndSwapLong(this, BASECOUNT, baseCount = this.baseCount, sum = baseCount + x))   {
+            CounterCell cell;
+            long value;
+            boolean uncontended = true;
+            if (counterCells == null || counterCells.length == 0
+                || (cell = counterCells[getProbe() & (counterCells.length - 1)]) == null
+                || !(uncontended = PUnsafe.compareAndSwapLong(cell, CELLVALUE, baseCount = cell.value, baseCount + x))) {
+                this.fullAddCount(x, uncontended);
+                return;
+            } else if (check <= 1)  {
+                return;
+            }
+            sum = this.sumCount();
+        }
+        if (check >= 0) {
+            Node_G_[] table;
+            int sizeCtl;
+            while (sum >= (sizeCtl = this.sizeCtl) && (table = this.table) != null && table.length < MAXIMUM_CAPACITY)  {
+                int stamp = resizeStamp(table.length);
+                if (sizeCtl < 0)    {
+                    Node_G_[] nextTable;
+                    if (sizeCtl >>> RESIZE_STAMP_SHIFT != stamp || sizeCtl == stamp + 1 || sizeCtl == stamp + MAX_RESIZERS
+                        || (nextTable = this.nextTable) == null || this.transferIndex <= 0)  {
+                        break;
+                    } else if (PUnsafe.compareAndSwapInt(this, SIZECTL, sizeCtl, sizeCtl + 1))  {
+                        this.transfer(table, nextTable);
+                    }
+                } else if (PUnsafe.compareAndSwapInt(this, SIZECTL, sizeCtl, (stamp << RESIZE_STAMP_SHIFT) + 2))    {
+                    this.transfer(table, null);
+                }
+                sum = this.sumCount();
+            }
+        }
+    }
+
     @Override<1%
     @SuppressWarnings("unchecked")%>
     public _p1_ putIfAbsent(_p0_ key, _p1_ value)  {
@@ -371,6 +412,78 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
             }
         }
         return sum;
+    }
+
+    protected final void fullAddCount(long x, boolean wasUncontended)   {
+        int probe = getProbe();
+        if (probe == 0) {
+            initProbe();
+            probe = getProbe();
+            wasUncontended = true;
+        }
+        boolean collision = false;
+        while (true)    {
+            CounterCell[] counterCells = this.counterCells;
+            long v;
+            if (counterCells != null && counterCells.length > 0)    {
+                CounterCell cell = counterCells[probe & (counterCells.length - 1)];
+                if (cell == null)   {
+                    if (this.cellsBusy == 0)    {
+                        CounterCell newCell = new CounterCell(x);
+                        if (this.cellsBusy == 0 && PUnsafe.compareAndSwapInt(this, CELLSBUSY, 0, 1))    {
+                            try {
+                                CounterCell[] counterCells2 = this.counterCells;
+                                if (counterCells2 != null && counterCells2.length > 0)  {
+                                    int index = probe & (counterCells2.length - 1);
+                                    if (counterCells2[index] == null)   {
+                                        counterCells2[index] = newCell;
+                                        break; //CHM uses a "created" flag to do this, but as far as i can tell this is effectively the same
+                                    }
+                                }
+                            } finally {
+                                this.cellsBusy = 0;
+                            }
+                            continue;
+                        }
+                    }
+                    collision = false;
+                } else if (!wasUncontended) {
+                    wasUncontended = true;
+                } else if (PUnsafe.compareAndSwapLong(cell, CELLVALUE, v = cell.value, v + x))  {
+                    break;
+                } else if (this.counterCells != counterCells || counterCells.length >= NCPU)    {
+                    collision = false;
+                } else if (!collision)  {
+                    collision = true;
+                } else if (this.cellsBusy == 0 && PUnsafe.compareAndSwapInt(this, CELLSBUSY, 0, 1)) {
+                    try {
+                        if (this.counterCells == counterCells)  {
+                            CounterCell[] newCounterCells = new CounterCell[counterCells.length << 1];
+                            System.arraycopy(counterCells, 0, newCounterCells, 0, counterCells.length);
+                            this.counterCells = newCounterCells;
+                        }
+                    } finally {
+                        this.cellsBusy = 0;
+                    }
+                    collision = false;
+                    continue;
+                }
+                probe = advanceProbe(probe);
+            } else if (this.cellsBusy == 0 && this.counterCells == counterCells && PUnsafe.compareAndSwapInt(this, CELLSBUSY, 0, 1))    {
+                try {
+                    if (this.counterCells == counterCells)  {
+                        counterCells = new CounterCell[2];
+                        counterCells[probe & 1] = new CounterCell(x);
+                        this.counterCells = counterCells;
+                        break; //CHM uses an "init" flag to do this, but as far as i can tell this is effectively the same
+                    }
+                } finally {
+                    this.cellsBusy = 0;
+                }
+            } else if (PUnsafe.compareAndSwapLong(this, BASECOUNT, v = this.baseCount, v + x))  {
+                break;
+            }
+        }
     }
 
     @AllArgsConstructor

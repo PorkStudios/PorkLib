@@ -57,16 +57,6 @@ public class ConcurrentHashMapHelper {
     public static final int NCPU = Runtime.getRuntime().availableProcessors();
 
     public static final long THREAD_PROBE_OFFSET = PUnsafe.pork_getOffset(Thread.class, "threadLocalRandomProbe");
-    public static final Method THREADLOCALRANDOM_LOCAL_INIT;
-
-    static {
-        try {
-            THREADLOCALRANDOM_LOCAL_INIT = ThreadLocalRandom.class.getDeclaredMethod("localInit");
-            THREADLOCALRANDOM_LOCAL_INIT.setAccessible(true);
-        } catch (Exception e) {
-            throw new AssertionError(e);
-        }
-    }
 
     public static int tableSizeFor(int c) {
         int n = c - 1;
@@ -107,6 +97,10 @@ public class ConcurrentHashMapHelper {
         return x == null || x.getClass() != kc ? 0 : ((Comparable) k).compareTo(x);
     }
 
+    public static int resizeStamp(int n) {
+        return Integer.numberOfLeadingZeros(n) | (1 << (RESIZE_STAMP_BITS - 1));
+    }
+
     public static <T> T getArrayVolatile(Object base, int index) {
         return PUnsafe.getObjectVolatile(base, PUnsafe.ARRAY_OBJECT_BASE_OFFSET + index * PUnsafe.ARRAY_OBJECT_INDEX_SCALE);
     }
@@ -116,15 +110,18 @@ public class ConcurrentHashMapHelper {
     }
 
     public static int getProbe() {
-        int probe = PUnsafe.getInt(Thread.currentThread(), THREAD_PROBE_OFFSET);
-        if (probe == 0) {
-            try { //only called once per thread at most
-                THREADLOCALRANDOM_LOCAL_INIT.invoke(null, PorkUtil.EMPTY_OBJECT_ARRAY);
-            } catch (Exception e) {
-                throw new AssertionError(e);
-            }
-            probe = PUnsafe.getInt(Thread.currentThread(), THREAD_PROBE_OFFSET);
-        }
+        return PUnsafe.getInt(Thread.currentThread(), THREAD_PROBE_OFFSET);
+    }
+
+    public static void initProbe() {
+        ThreadLocalRandom.current();
+    }
+
+    public static int advanceProbe(int probe)   {
+        probe ^= probe << 13;   // xorshift
+        probe ^= probe >>> 17;
+        probe ^= probe << 5;
+        PUnsafe.putInt(Thread.currentThread(), THREAD_PROBE_OFFSET, probe);
         return probe;
     }
 }

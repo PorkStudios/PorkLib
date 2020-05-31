@@ -80,9 +80,9 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
     protected transient volatile int cellsBusy;
     protected transient volatile CounterCell[] counterCells;
 
-    //protected transient KeySetView_G_ keySet;
-    //protected transient ValuesView_G_ values;
-    //protected transient EntrySetView_G_ entrySet;
+    protected transient KeySetView_G_ keySet;
+    protected transient ValuesView_G_ values;
+    protected transient EntrySetView_G_ entrySet;
 <1%
     public _P0__P1_ConcurrentHashMap() {
         this(DEFAULT_CAPACITY);
@@ -368,23 +368,20 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
 
     @Override
     public _P0_Set_GP0_ keySet()    {
-        /*_P0_Set_GP0_ keySet = this.keySet;
-        return keySet == null ? this.keySet = new Keys() : keySet;*/
-        return null; //todo
+        KeySetView_G_ keySet = this.keySet;
+        return keySet == null ? this.keySet = new KeySetView<%<>%>(this) : keySet;
     }
 
     @Override
     public _P1_Collection_GP1_ values() {
-        /*_P1_Collection_GP1_ values = this.valuesCollection;
-        return values == null ? this.valuesCollection = new Values() : values;*/
-        return null; //todo
+        ValuesView_G_ values = this.values;
+        return values == null ? this.values = new ValuesView<%<>%>(this) : values;
     }
 
     @Override
     public Set<Entry_G_> entrySet()    {
-        /*Set<Entry_G_> entrySet = this.entrySet;
-        return entrySet == null ? this.entrySet = new Entries() : entrySet;*/
-        return null; //todo
+        EntrySetView_G_ entrySet = this.entrySet;
+        return entrySet == null ? this.entrySet = new EntrySetView<%<>%>(this) : entrySet;
     }
 
     @Override
@@ -1486,6 +1483,156 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
             _p1_ v = this.value;
             this.map.put(this.key, this.value = value);
             return v;
+        }
+    }
+
+    @AllArgsConstructor
+    protected static class KeySetView_G_ extends Abstract_P0_Set_GP0_ {
+        protected final _P0__P1_ConcurrentHashMap_G_ map;
+
+        @Override
+        public void clear() {
+            this.map.clear();
+        }
+
+        @Override
+        public int size()   {
+            return this.map.size();
+        }
+
+        @Override
+        public boolean isEmpty()    {
+            return this.map.isEmpty();
+        }
+
+        @Override
+        public boolean contains(_nameP0_ value) {
+            return this.map.containsKey(value);
+        }
+
+        @Override
+        public boolean remove(_nameP0_ value)   {
+            return this.map.remove(value) != <1!%this.map.defaultValue%><1%null%>;
+        }
+
+        @Override
+        public _P0_Iterator_GP0_ iterator() {
+            Node_G_[] table = this.map.table;
+            int f = table == null ? 0 : table.length;
+            return new KeyIterator<%<>%>(table, f, 0, f, this.map);
+        }
+
+        @Override
+        public void forEach(@NonNull _P0_Consumer_G0super_ action)   {
+            Node_G_[] table = this.map.table;
+            if (table != null)  {
+                Traverser_G_ it = new Traverser<%<>%>(table, table.length, 0, table.length);
+                for (Node_G_ node = it.advance(); node != null; node = it.advance())    {
+                    action.accept(node.key);
+                }
+            }
+        }
+    }
+
+    @AllArgsConstructor
+    protected static class ValuesView_G_ extends Abstract_P1_Collection_GP1_ {
+        protected final _P0__P1_ConcurrentHashMap_G_ map;
+
+        @Override
+        public void clear() {
+            this.map.clear();
+        }
+
+        @Override
+        public int size()   {
+            return this.map.size();
+        }
+
+        @Override
+        public boolean isEmpty()    {
+            return this.map.isEmpty();
+        }
+
+        @Override
+        public boolean contains(_nameP1_ value) {
+            return this.map.containsValue(value);
+        }
+
+        @Override
+        public _P1_Iterator_GP1_ iterator() {
+            Node_G_[] table = this.map.table;
+            int f = table == null ? 0 : table.length;
+            return new ValueIterator<%<>%>(table, f, 0, f, this.map);
+        }
+
+        @Override
+        public void forEach(@NonNull _P1_Consumer_G1super_ action)   {
+            Node_G_[] table = this.map.table;
+            if (table != null)  {
+                Traverser_G_ it = new Traverser<%<>%>(table, table.length, 0, table.length);
+                for (Node_G_ node = it.advance(); node != null; node = it.advance())    {
+                    action.accept(node.value);
+                }
+            }
+        }
+    }
+
+    @AllArgsConstructor
+    protected static class EntrySetView_G_ extends AbstractSet<Entry_G_> {
+        protected final _P0__P1_ConcurrentHashMap_G_ map;
+
+        @Override
+        public void clear() {
+            this.map.clear();
+        }
+
+        @Override
+        public int size()   {
+            return this.map.size();
+        }
+
+        @Override
+        public boolean isEmpty()    {
+            return this.map.isEmpty();
+        }
+
+        @Override
+        public boolean contains(Object value) {
+            if (value instanceof Entry) {<%
+                @SuppressWarnings("unchecked")%>
+                Entry_G_ entry = (Entry_G_) value;
+                _p1_ v = entry.getValue();
+                return v != <1!%this.map.defaultValue%><1%null%> && eq(v, this.map.get(entry.getKey()));
+            }
+            return false;
+        }
+
+        @Override
+        public boolean remove(Object value)   {
+            if (value instanceof Entry) {<%
+                @SuppressWarnings("unchecked")%>
+                Entry_G_ entry = (Entry_G_) value;
+                return this.map.remove(entry.getKey(), entry.getValue());
+            }
+            return false;
+        }
+
+        @Override
+        public Iterator<Entry_G_> iterator() {
+            Node_G_[] table = this.map.table;
+            int f = table == null ? 0 : table.length;
+            return new EntryIterator<%<>%>(table, f, 0, f, this.map);
+        }
+
+        @Override
+        public void forEach(@NonNull Consumer<? super Entry_G_> action)   {
+            Node_G_[] table = this.map.table;
+            if (table != null)  {
+                Traverser_G_ it = new Traverser<%<>%>(table, table.length, 0, table.length);
+                for (Node_G_ node = it.advance(); node != null; node = it.advance())    {
+                    action.accept(new MapEntry<%<>%>(node.key, node.value, this.map));
+                }
+            }
         }
     }
 }

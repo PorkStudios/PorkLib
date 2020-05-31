@@ -21,6 +21,8 @@ $$$settings$$$
 }
 _headers_
 
+import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.primitive.collection.Abstract_P1_Collection;
 import net.daporkchop.lib.primitive.collection._P1_Collection;
 import net.daporkchop.lib.primitive.collection._P0_Iterator;
@@ -163,10 +165,17 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
 
     @Override
     public boolean containsValue(_nameP1_ value)    {
-        if (value == <1!%this.defaultValue%><1%null%>)  {
-            return false;
+        checkArg(value != <1!%this.defaultValue%><1%null%>, "value (%s) may not be default value!", value);
+        Node_G_[] table = this.table;
+        if (table != null)  {
+            Traverser_G_ it = new Traverser<%<>%>(table, table.length, 0, table.length);
+            for (Node_G_ node = it.advance(); node != null; node = it.advance())    {
+                if (eq(value, node.value))  {
+                    return true;
+                }
+            }
         }
-        return false; //todo
+        return false;
     }
 
     @Override
@@ -380,17 +389,69 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
 
     @Override
     public int hashCode()   {
-        return 0; //todo
+        int h = 0;
+        Node_G_[] table = this.table;
+        if (table != null)  {
+            Traverser_G_ it = new Traverser<%<>%>(table, table.length, 0, table.length);
+            for (Node_G_ node = it.advance(); node != null; node = it.advance())    {
+                h += hash(node.key) ^ hash(node.value);
+            }
+        }
+        return h;
     }
 
     @Override
     public String toString()    {
-        return "{}"; //todo
+        try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get())  {
+            StringBuilder builder = handle.get();
+            builder.setLength(0);
+            builder.append('{');
+
+            Node_G_[] table = this.table;
+            int f = table == null ? 0 : table.length;
+            Traverser_G_ it = new Traverser<%<>%>(table, f, 0, f);
+            Node_G_ node = it.advance();
+            while (true)    {
+                _p0_ key = node.key;
+                _p1_ value = node.value;
+                builder.append(<0%key == this ? "(this _P0__P1_Map)" : %>key);
+                builder.append('=');
+                builder.append(<1%value == this ? "(this _P0__P1_Map)" : %>value);
+                if ((node = it.advance()) == null)  {
+                    break;
+                }
+                builder.append(',').append(' ');
+            }
+            return builder.append('}').toString();
+        }
     }
 
     @Override
     public boolean equals(Object o) {
-        return false; //todo
+        if (o == this)  {
+            return true;
+        } else if (o instanceof _P0__P1_Map)    {<%
+            @SuppressWarnings("unchecked")%>
+            _P0__P1_Map_G_ m = (_P0__P1_Map_G_) o;
+            Node_G_[] table = this.table;
+            int f = table == null ? 0 : table.length;
+            Traverser_G_ it = new Traverser<%<>%>(table, f, 0, f);
+            for (Node_G_ node = it.advance(); node != null; node = it.advance())    {
+                if (!eq(node.value, m.get(node.key)))   {
+                    return false;
+                }
+            }
+            _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;
+            for (Entry_G_ e : m.entrySet()) {
+                _p1_ v = e.getValue();
+                if (v == defaultValue || !eq(this.get(e.getKey()), v))  {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
@@ -421,12 +482,33 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
 
     @Override
     public void forEach(@NonNull _P0__P1_Consumer_Gsuper_ action)  {
-        //todo
+        Node_G_[] table = this.table;
+        if (table != null)  {
+            Traverser_G_ it = new Traverser<%<>%>(table, table.length, 0, table.length);
+            for (Node_G_ node = it.advance(); node != null; node = it.advance())    {
+                action.accept(node.key, node.value);
+            }
+        }
     }
 
     @Override
     public void replaceAll(@NonNull _P0__P1__P1_Function_G0super1super1extends_ function) {
-        //todo
+        Node_G_[] table = this.table;
+        if (table != null)  {
+            _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;
+            Traverser_G_ it = new Traverser<%<>%>(table, table.length, 0, table.length);
+            for (Node_G_ node = it.advance(); node != null; node = it.advance())    {
+                _p0_ key = node.key;
+                _p1_ oldValue = node.value;
+                while (true)    {
+                    _p1_ newValue = function.apply<1!%As_P1_%>(key, oldValue);
+                    checkArg(newValue != defaultValue, "value (%s) may not be default value!", defaultValue);
+                    if (this.replaceNode(key, newValue, oldValue) != defaultValue || (oldValue = this.get(key)) == defaultValue)    {
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     @Override
@@ -1196,6 +1278,214 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
         @Override
         protected Node_G_ find(int hash, _nameP0_ key) {
             return null;
+        }
+    }
+
+    protected static class TableStack_G_ {
+        protected int length;
+        protected int index;
+        protected Node_G_[] table;
+        protected TableStack_G_ next;
+    }
+
+    protected static class Traverser_G_ {
+        protected Node_G_[] table;
+        protected Node_G_ next;
+        protected TableStack_G_ stack;
+        protected TableStack_G_ spare;
+        protected int index;
+        protected int baseIndex;
+        protected int baseLimit;
+        final int baseSize;
+
+        protected Traverser(Node_G_[] table, int size, int index, int limit)    {
+            this.table = table;
+            this.baseSize = size;
+            this.baseIndex = this.index = index;
+            this.baseLimit = limit;
+        }
+
+        protected Node_G_ advance()   {
+            Node_G_ e = this.next;
+            if (e != null)  {
+                e = e.next;
+            }
+            while (true)    {
+                if (e != null || this.baseIndex >= this.baseLimit)  {
+                    return this.next = e;
+                }
+                Node_G_[] table = this.table;
+                int index = this.index;
+                if (table == null || table.length <= index || index < 0)    {
+                    return this.next = null;
+                } else if ((e = getArrayVolatile(table, index)) != null && e.hash < 0)  {
+                    if (e instanceof ForwardingNode)    {
+                        this.table = ((ForwardingNode_G_) e).nextTable;
+                        e = null;
+                        this.pushState(table, index);
+                        continue;
+                    /*} else if (e instanceof TreeBin)    { //TODO
+                        e = ((TreeBin_G_) e).first;*/
+                    } else {
+                        e = null;
+                    }
+                }
+                if (this.stack != null) {
+                    this.recoverState(table.length);
+                } else if ((this.index = this.baseSize + index) >= table.length)    {
+                    this.index = ++this.baseIndex;
+                }
+            }
+        }
+
+        protected void pushState(Node_G_[] table, int index)    {
+            TableStack_G_ s = this.spare;
+            if (s != null)  {
+                this.spare = s.next;
+            } else {
+                s = new TableStack<%<>%>();
+            }
+            s.table = table;
+            s.length = table.length;
+            s.index = index;
+            s.next = this.stack;
+            this.stack = s;
+        }
+
+        protected void recoverState(int n)  {
+            TableStack_G_ s; int len;
+            while ((s = this.stack) != null && (this.index += (len = s.length)) >= n)   {
+                n = len;
+                this.index = s.index;
+                this.table = s.table;
+                s.table = null;
+                TableStack_G_ next = s.next;
+                s.next = this.spare;
+                this.stack = next;
+                this.spare = s;
+            }
+            if (s == null && (this.index += this.baseSize) >= n)    {
+                this.index = ++this.baseIndex;
+            }
+        }
+    }
+
+    protected static class BaseIterator_G_ extends Traverser_G_ {
+        protected final _P0__P1_ConcurrentHashMap_G_ map;
+        protected Node_G_ lastReturned;
+
+        protected BaseIterator(Node_G_[] table, int size, int index, int limit, _P0__P1_ConcurrentHashMap_G_ map)    {
+            super(table, size, index, limit);
+            this.map = map;
+            this.advance();
+        }
+
+        public boolean hasNext()    {
+            return this.next != null;
+        }
+
+        public void remove()    {
+            Node_G_ node = this.lastReturned;
+            checkState(node != null);
+            this.lastReturned = null;
+            _p1_ defaultValue = <1!%this.map.defaultValue%><1%null%>;
+            this.map.replaceNode(node.key, defaultValue, defaultValue);
+        }
+    }
+
+    protected static class KeyIterator_G_ extends BaseIterator_G_ implements _P0_Iterator_GP0_  {
+        protected KeyIterator(Node_G_[] table, int size, int index, int limit, _P0__P1_ConcurrentHashMap_G_ map)    {
+            super(table, size, index, limit, map);
+        }
+
+        @Override
+        public _p0_ next<0!%_P0_%>()    {
+            Node_G_ node = this.next;
+            if (node == null)  {
+                throw new NoSuchElementException();
+            }
+            _p0_ key = node.key;
+            this.lastReturned = node;
+            this.advance();
+            return key;
+        }
+    }
+
+    protected static class ValueIterator_G_ extends BaseIterator_G_ implements _P1_Iterator_GP1_  {
+        protected ValueIterator(Node_G_[] table, int size, int index, int limit, _P0__P1_ConcurrentHashMap_G_ map)    {
+            super(table, size, index, limit, map);
+        }
+
+        @Override
+        public _p1_ next<1!%_P1_%>()    {
+            Node_G_ node = this.next;
+            if (node == null)  {
+                throw new NoSuchElementException();
+            }
+            _p1_ value = node.value;
+            this.lastReturned = node;
+            this.advance();
+            return value;
+        }
+    }
+
+    protected static class EntryIterator_G_ extends BaseIterator_G_ implements Iterator<Entry_G_>  {
+        protected EntryIterator(Node_G_[] table, int size, int index, int limit, _P0__P1_ConcurrentHashMap_G_ map)    {
+            super(table, size, index, limit, map);
+        }
+
+        @Override
+        public Entry_G_ next()    {
+            Node_G_ node = this.next;
+            if (node == null)  {
+                throw new NoSuchElementException();
+            }
+            _p0_ key = node.key;
+            _p1_ value = node.value;
+            this.lastReturned = node;
+            this.advance();
+            return new MapEntry<%<>%>(key, value, this.map);
+        }
+    }
+
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
+    protected static class MapEntry_G_ implements Entry_G_ {
+        @Getter
+        protected final _p0_ key;
+        @Getter
+        protected _p1_ value;
+        protected final _P0__P1_ConcurrentHashMap_G_ map;
+
+        @Override
+        public int hashCode()   {
+            return hash(this.key) ^ hash(this.value);
+        }
+
+        @Override
+        public String toString()    {
+            return this.key + "=" + this.value;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == this)  {
+                return true;
+            } else if (o instanceof Entry)  {<%
+                @SuppressWarnings("unchecked")%>
+                Entry_G_ entry = (Entry_G_) o;
+                return eq(this.key, entry.getKey()) && eq(this.value, entry.getValue());
+            } else {
+                return false;
+            }
+        }
+
+        @Override
+        public _p1_ setValue(_p1_ value)    {
+            _p1_ defaultValue = <1!%this.map.defaultValue%><1%null%>;
+            checkArg(value != defaultValue, "value (%s) may not be default value!", defaultValue);
+            _p1_ v = this.value;
+            this.map.put(this.key, this.value = value);
+            return v;
         }
     }
 }

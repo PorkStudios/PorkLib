@@ -21,6 +21,7 @@
 sourceSets {
     orig
     generated
+    testOrig
 }
 
 dependencies {
@@ -44,11 +45,20 @@ dependencies {
 
     compile sourceSets.orig.output
     compile sourceSets.generated.output
+
+    //testOrig
+    testOrigCompileOnly "org.projectlombok:lombok:$lombokVersion"
+    testOrigAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
+
+    //test
+    testCompile project(":primitive:primitive-lambda")
+    testCompile sourceSets.testOrig.output
 }
 
 compileOrigJava.dependsOn(":primitive:generator:gen")
 compileGeneratedJava.dependsOn(compileOrigJava)
 compileJava.dependsOn(compileGeneratedJava)
+compileTestJava.dependsOn(":primitive:generator:gen", compileTestOrigJava)
 
 task deleteSource(type: Delete) {
     delete "src/generated"

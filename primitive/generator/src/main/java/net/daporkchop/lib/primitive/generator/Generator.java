@@ -84,10 +84,10 @@ public class Generator {
                     new File("src/main/resources/primitive/java"),
                     new File("../src/generated/java"),
                     new File("src/main/resources/primitive/primitive.json"))
-            /*, new Generator(
+            , new Generator(
                     new File("src/main/resources/test/java"),
                     new File("../src/test/java"),
-                    Collections.singletonList("org.junit.*"))*/
+                    new File("src/main/resources/test/test.json"))
             , new Generator(
                     new File("src/main/resources/lambda/java"),
                     new File("../lambda/src/generated/java"),

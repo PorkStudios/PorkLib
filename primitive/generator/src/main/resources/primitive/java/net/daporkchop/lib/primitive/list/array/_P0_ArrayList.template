@@ -227,6 +227,7 @@ public class _P0_ArrayList extends Abstract_P0_List implements RandomAccess, Clo
         if (numMoved > 0)   {
             System.arraycopy(this.elementData, index + 1, this.elementData, index, numMoved);
         }
+        this.size--;
         return old;
     }
 
@@ -239,6 +240,7 @@ public class _P0_ArrayList extends Abstract_P0_List implements RandomAccess, Clo
                 if (numMoved > 0)   {
                     System.arraycopy(this.elementData, index + 1, this.elementData, index, numMoved);
                 }
+                this.size--;
                 return true;
             }
         }
@@ -362,7 +364,7 @@ public class _P0_ArrayList extends Abstract_P0_List implements RandomAccess, Clo
             public _p0_ next_P0_()  {
                 this.checkForComodification();
                 int i = this.cursor;
-                if (i >=  _P0_ArrayList.this.size) {
+                if (i >= _P0_ArrayList.this.size) {
                     throw new NoSuchElementException();
                 }
                 _p0_[] elementData = _P0_ArrayList.this.elementData;

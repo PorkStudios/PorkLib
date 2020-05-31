@@ -175,16 +175,15 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
     }
 
     protected _p1_ putVal(_p0_ key, _p1_ value, boolean onlyIfAbsent)   {
-        if (value == <1!%this.defaultValue%><1%null%>)  {
-            throw new NullPointerException();
-        }
+        _p1_ defaultValue = <1!%this.defaultValue()%><1%null%>;
+        checkArg(value != defaultValue, "value (%s) may not be default value!", value);
         int hash = hash(key) & HASH_BITS;
         int binCount = 0;
-        _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;
         Node_G_[] table = this.table;
         while (true)    {
             if (table == null || table.length == 0) {
                 table = this.initTable();
+                continue;
             }
             int index = hash & (table.length - 1);
             Node_G_ node = getArrayVolatile(table, index);
@@ -227,7 +226,8 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
                 if (binCount != 0)  {
                     if (binCount >= TREEIFY_THRESHOLD)  {
                         //TODO: this.treeifyBin(table, index);
-                    } else if (oldValue != defaultValue)    {
+                    }
+                    if (oldValue != defaultValue)    {
                         return oldValue;
                     }
                     break;
@@ -236,12 +236,6 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
         }
         this.addCount(1L, binCount);
         return defaultValue;
-    }
-
-    @Override<1%
-    @SuppressWarnings("unchecked")%>
-    public _p1_ putIfAbsent(_p0_ key, _p1_ value)  {
-        return _EP1_; //todo
     }
 
     @Override
@@ -253,18 +247,114 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
     @Override<%
     @SuppressWarnings("unchecked")%>
     public _p1_ remove(_nameP0_ key)    {
-        return _EP1_; //todo
+        _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;
+        return this.replaceNode(key, defaultValue, defaultValue);
     }
 
-    @Override<%
-    @SuppressWarnings("unchecked")%>
-    public boolean remove(_nameP0_ key, _nameP1_ value)    {
-        return false; //todo
+    protected _p1_ replaceNode(_nameP0_ key, _p1_ value, _nameP1_ cv)   {
+        int hash = hash(key) & HASH_BITS;
+        _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;
+        Node_G_[] table = this.table;
+        while (true)    {
+            if (table == null || table.length == 0) {
+                break;
+            }
+            int i = hash & (table.length - 1);
+            Node_G_ f = getArrayVolatile(table, i);
+            if (f == null)  {
+                break;
+            } else if (f.hash == MOVED) {
+                table = this.helpTransfer(table, f);
+            } else {
+                _p1_ oldValue = defaultValue;
+                boolean validated = false;
+                synchronized (f)    {
+                    if (getArrayVolatile(table, i) == f)    {
+                        if (f.hash >= 0)    {
+                            validated = true;
+                            for (Node_G_ node = f, prev = null;;)   {
+                                if (hash == node.hash && eq(key, node.key)) {
+                                    _p1_ nodeValue = node.value;
+                                    if (cv == defaultValue || eq(cv, nodeValue))    {
+                                        oldValue = nodeValue;
+                                        if (value != defaultValue)  {
+                                            node.value = value;
+                                        } else if (prev != null)    {
+                                            prev.next = node.next;
+                                        } else {
+                                            setArrayVolatile(table, i, node.next);
+                                        }
+                                    }
+                                    break;
+                                }
+                                prev = node;
+                                if ((node = node.next) == null) {
+                                    break;
+                                }
+                            }
+                        }/* else if (f instanceof TreeBin)    { //TODO
+                            validated = true;
+                            TreeBin_G_ t = (TreeNode_G_) f;
+                            if (t.root != null) {
+                                TreeNode_G_ p = t.root.findTreeNode(hash, key<0%, null%>);
+                                if (p != null)  {
+                                    _p1_ nodeValue = p.value;
+                                    if (cv == defaultValue || eq(cv, nodeValue))    {
+                                        oldValue = nodeValue;
+                                        if (value != defaultValue)  {
+                                            node.value = value;
+                                        } else if (t.removeTreeNode(p)) {
+                                            setArrayVolatile(table, i, untreeify(t.first));
+                                        }
+                                    }
+                                }
+                            }
+                        }*/
+                    }
+                }
+                if (validated)  {
+                    if (oldValue != defaultValue)   {
+                        if (value == defaultValue)  {
+                            this.addCount(-1L, -1);
+                        }
+                        return oldValue;
+                    }
+                    break;
+                }
+            }
+        }
+        return defaultValue;
     }
 
     @Override
     public void clear() {
-         //todo
+        long delta = 0L;
+        int i = 0;
+        Node_G_[] table = this.table;
+        while (table != null && i < table.length)   {
+            Node_G_ node = getArrayVolatile(table, i);
+            if (node == null)   {
+                i++;
+            } else if (node.hash == MOVED)  {
+                table = this.helpTransfer(table, node);
+                i = 0;
+            } else {
+                synchronized (node)    {
+                    if (getArrayVolatile(table, i) != node) {
+                        continue;
+                    }
+                    Node_G_ p = node.hash >= 0 ? node/* : node instanceof TreeBin ? ((TreeBin_G_) node).first*/ : null; //TODO
+                    while (p != null)   {
+                        delta--;
+                        p = p.next;
+                    }
+                    setArrayVolatile(table, i++, null);
+                }
+            }
+        }
+        if (delta != 0L)    {
+            this.addCount(delta, -1);
+        }
     }
 
     @Override
@@ -289,43 +379,391 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
     }
 
     @Override
-    public void forEach(@NonNull _P0__P1_Consumer_Gsuper_ action)  {
-         //todo
+    public int hashCode()   {
+        return 0; //todo
     }
 
     @Override
-    public void replaceAll(@NonNull _P0__P1__P1_Function_G0super1super1extends_ function) {
-         //todo
+    public String toString()    {
+        return "{}"; //todo
     }
 
     @Override
-    public boolean replace(_p0_ key, _p1_ oldValue, _p1_ newValue)  {
+    public boolean equals(Object o) {
         return false; //todo
     }
 
     @Override
+    public _p1_ putIfAbsent(_p0_ key, _p1_ value)  {
+        return this.putVal(key, value, true);
+    }
+
+    @Override
+    public boolean remove(_nameP0_ key, _nameP1_ value)    {
+        _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;
+        return value != defaultValue && this.replaceNode(key, defaultValue, value) != defaultValue;
+    }
+
+    @Override
+    public boolean replace(_p0_ key, _p1_ oldValue, _p1_ newValue)  {
+        _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;
+        checkArg(oldValue != defaultValue, "oldValue (%s) may not be default value!", defaultValue);
+        checkArg(newValue != defaultValue, "newValue (%s) may not be default value!", defaultValue);
+        return this.replaceNode(key, newValue, oldValue) != defaultValue;
+    }
+
+    @Override
     public _p1_ replace(_p0_ key, _p1_ value)  {
-        return _EP1_; //todo
+        _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;
+        checkArg(value != defaultValue, "value (%s) may not be default value!", defaultValue);
+        return this.replaceNode(key, value, defaultValue);
+    }
+
+    @Override
+    public void forEach(@NonNull _P0__P1_Consumer_Gsuper_ action)  {
+        //todo
+    }
+
+    @Override
+    public void replaceAll(@NonNull _P0__P1__P1_Function_G0super1super1extends_ function) {
+        //todo
     }
 
     @Override
     public _p1_ computeIfAbsent(_p0_ key, @NonNull _P0__P1_Function_G0super1extends_ mappingFunction)  {
-        return _EP1_; //todo
+        _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;
+        int hash = hash(key) & HASH_BITS;
+        _p1_ value = defaultValue;
+        int binCount = 0;
+        Node_G_[] table = this.table;
+        while (true)    {
+            if (table == null || table.length == 0) {
+                table = this.initTable();
+                continue;
+            }
+            int i = hash & (table.length - 1);
+            Node_G_ f = getArrayVolatile(table, i);
+            if (f == null)  { //root of bin
+                Node_G_ r = new ReservationNode<%<>%>();
+                synchronized (r)    { //obtain lock before putting node into table to ensure that no other thread manages to grab it first
+                    if (casArray(table, i, null, r))    {
+                        binCount = 1;
+                        Node_G_ node = null;
+                        try {
+                            if ((value = mappingFunction.apply<1!%As_P1_%>(key)) != defaultValue)   {
+                                node = new Node<%<>%>(hash, key, value, null);
+                            }
+                        } finally {
+                            setArrayVolatile(table, i, node);
+                        }
+                    }
+                }
+                if (binCount != 0)  {
+                    break;
+                }
+            } else if (f.hash == MOVED) {
+                table = this.helpTransfer(table, f);
+            } else {
+                boolean added = false;
+                synchronized (f)    {
+                    if (getArrayVolatile(table, i) == f)    {
+                        if (f.hash >= 0)    {
+                            binCount = 1;
+                            for (Node_G_ node = f;; binCount++) {
+                                if (hash == node.hash && eq(key, node.key)) {
+                                    value = node.value;
+                                    break;
+                                }
+                                Node_G_ prev = node;
+                                if ((node = node.next) == null) {
+                                    if ((value = mappingFunction.apply<1!%As_P1_%>(key)) != defaultValue)   {
+                                        added = true;
+                                        prev.next = new Node<%<>%>(hash, key, value, null);
+                                    }
+                                    break;
+                                }
+                            }
+                        }/* else if (f instanceof TreeBin)    { //TODO
+                            binCount = 2;
+                            TreeBin_G_ t = (TreeBin_G_) f;
+                            TreeNode_G_ p;
+                            if (t.root != null && (p = t.root.findTreeNode(hash, key<0%, null%>)) != null) {
+                                value = p.value;
+                            } else if ((value = mappingFunction.apply<1!%As_P1_%>(key)) != defaultValue)    {
+                                added = true;
+                                t.putTreeVal(hash, key, value);
+                            }
+                        }*/
+                    }
+                }
+                if (binCount != 0)  {
+                    if (binCount >= TREEIFY_THRESHOLD)  {
+                        //TODO: this.treeifyBin(table, i);
+                    }
+                    if (!added) {
+                        return value;
+                    }
+                    break;
+                }
+            }
+        }
+        if (value != defaultValue)  {
+            this.addCount(1L, binCount);
+        }
+        return value;
     }
 
     @Override
     public _p1_ computeIfPresent(_p0_ key, @NonNull _P0__P1__P1_Function_G0super1super1extends_ remappingFunction) {
-        return _EP1_; //todo
+        _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;
+        int hash = hash(key) & HASH_BITS;
+        _p1_ value = defaultValue;
+        int delta = 0, binCount = 0;
+        Node_G_[] table = this.table;
+        while (true)    {
+            if (table == null || table.length == 0)  {
+                table = this.initTable();
+                continue;
+            }
+            int i = hash & (table.length - 1);
+            Node_G_ f = getArrayVolatile(table, i);
+            if (f == null)   {
+                break; //bin is null, we can be certain the key is absent
+            } else if (hash == f.hash)  {
+                table = this.helpTransfer(table, f);
+            } else {
+                synchronized (f)    {
+                    if (getArrayVolatile(table, i) == f)    {
+                        if (f.hash >= 0)    {
+                            binCount = 1;
+                            for (Node_G_ node = f, prev = null;; binCount++)    {
+                                if (hash == node.hash && eq(key, node.key)) {
+                                    if ((value = remappingFunction.apply<1!%As_P1_%>(key, node.value)) != defaultValue) {
+                                        node.value = value;
+                                    } else {
+                                        delta = -1;
+                                        if (prev != null)   {
+                                            prev.next = node.next;
+                                        } else {
+                                            setArrayVolatile(table, i, node.next);
+                                        }
+                                    }
+                                    break;
+                                }
+                                prev = node;
+                                if ((node = node.next) == null) {
+                                    break;
+                                }
+                            }
+                        }/* else if (f instanceof TreeBin)    { //TODO
+                            binCount = 2;
+                            TreeBin_G_ t = (TreeBin_G_) f;
+                            if (t.root != null) {
+                                TreeNode_G_ p = t.root.findTreeNode(hash, key<0%, null%>);
+                                if (p != null){
+                                    if ((value = remappingFunction.apply<1!%As_P1_%>(key, p.value)) != defaultValue)    {
+                                        p.value = value;
+                                    } else {
+                                        delta = -1;
+                                        if (t.removeTreeNode(p))    {
+                                            setArrayVolatile(table, i, untreeify(t.first));
+                                        }
+                                    }
+                                }
+                            }
+                        }*/
+                    }
+                }
+                if (binCount != 0)  {
+                    break;
+                }
+            }
+        }
+        if (delta != 0) {
+            this.addCount(delta, binCount);
+        }
+        return value;
     }
 
     @Override
     public _p1_ compute(_p0_ key, @NonNull _P0__P1__P1_Function_G0super1super1extends_ remappingFunction) {
-        return _EP1_; //todo
+        _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;
+        int hash = hash(key) & HASH_BITS;
+        _p1_ value = defaultValue;
+        int delta = 0, binCount = 0;
+        Node_G_[] table = this.table;
+        while (true)    {
+            if (table == null || table.length == 0)  {
+                table = this.initTable();
+                continue;
+            }
+            int i = hash & (table.length - 1);
+            Node_G_ f = getArrayVolatile(table, i);
+            if (f == null)  {
+                Node_G_ r = new ReservationNode<%<>%>();
+                synchronized (r)    {
+                    if (casArray(table, i, null, r))    {
+                        binCount = 1;
+                        Node_G_ node = null;
+                        try {
+                            if ((value = remappingFunction.apply<1!%As_P1_%>(key, defaultValue)) != defaultValue)   {
+                                delta = 1;
+                                node = new Node<%<>%>(hash, key, value, null);
+                            }
+                        } finally {
+                            setArrayVolatile(table, i, node);
+                        }
+                    }
+                }
+                if (binCount != 0)  {
+                    break;
+                }
+            } else if (f.hash == MOVED) {
+                table = this.helpTransfer(table, f);
+            } else {
+                synchronized (f)    {
+                    if (getArrayVolatile(table, i) == f)    {
+                        if (f.hash >= 0)    {
+                            binCount = 1;
+                            for (Node_G_ node = f, prev = null;; binCount++)    {
+                                if (hash == node.hash && eq(key, node.key)) {
+                                    if ((value = remappingFunction.apply<1!%As_P1_%>(key, node.value)) != defaultValue) {
+                                        node.value = value;
+                                    } else {
+                                        delta = -1;
+                                        if (prev != null)   {
+                                            prev.next = node.next;
+                                        } else {
+                                            setArrayVolatile(table, i, node.next);
+                                        }
+                                    }
+                                    break;
+                                }
+                                prev = node;
+                                if ((node = node.next) == null) {
+                                    if ((value = remappingFunction.apply<1!%As_P1_%>(key, node.value)) != defaultValue) {
+                                        delta = 1;
+                                        prev.next = new Node<%<>%>(hash, key, value, null);
+                                    }
+                                    break;
+                                }
+                            }
+                        }/* else if (f instanceof TreeNode) { //TODO
+                            binCount = 1;
+                            TreeBin_G_ t = (TreeBin_G_) f;
+                            TreeNode_G_ p = t.root != null ? r.findTreeNode(hash, key<0%, null%>) : null;
+                            _p1_ oldValue = p != null : p.value : defaultValue;
+                            if ((value = remappingFunction.apply<1!%As_P1_%>(key, oldValue)) != defaultValue)   {
+                                if (p != null)  {
+                                    p.value = value;
+                                } else {
+                                    delta = 1;
+                                    t.putTreeVal(hash, key, value);
+                                }
+                            } else if (p != null)   {
+                                delta = -1;
+                                if (t.removeTreeNode(p))    {
+                                    setArrayVolatile(table, i, untreeify(t.first));
+                                }
+                            }
+                        }*/
+                    }
+                }
+                if (binCount != 0)  {
+                    if (binCount >= TREEIFY_THRESHOLD){
+                        //TODO: this.treeifyBin(table, i);
+                    }
+                    break;
+                }
+            }
+        }
+        if (delta != 0) {
+            this.addCount(delta, binCount);
+        }
+        return value;
     }
 
     @Override
-    public _p1_ merge(_p0_ key, _p1_ value, @NonNull _P1__P1__P1_Function_G1super1super1extends_ remappingFunction) {
-        return _EP1_; //todo
+    public _p1_ merge(_p0_ key, _p1_ vin, @NonNull _P1__P1__P1_Function_G1super1super1extends_ remappingFunction) {
+        _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;
+        checkArg(vin != defaultValue, "value (%s) may not be default value!", defaultValue);
+        int hash = hash(key) & HASH_BITS;
+        _p1_ value = defaultValue;
+        int delta = 0, binCount = 0;
+        Node_G_[] table = this.table;
+        while (true)    {
+            if (table == null || table.length == 0)  {
+                table = this.initTable();
+                continue;
+            }
+            int i = hash & (table.length - 1);
+            Node_G_ f = getArrayVolatile(table, i);
+            if (f == null)  {
+                if (casArray(table, i, null, new Node<%<>%>(hash, key, vin, null))) {
+                    delta = 1;
+                    value = vin;
+                    break;
+                }
+            } else if (f.hash == MOVED) {
+                table = this.helpTransfer(table, f);
+            } else {
+                synchronized (f)    {
+                    if (getArrayVolatile(table, i) == f)    {
+                        if (f.hash >= 0)    {
+                            binCount = 1;
+                            for (Node_G_ node = f, prev = null;; binCount++)    {
+                                if (hash == node.hash && eq(key, node.key)) {
+                                    if ((value = remappingFunction.apply<1!%As_P1_%>(node.value, vin)) != defaultValue)    {
+                                        node.value = value;
+                                    } else {
+                                        delta = -1;
+                                        if (prev != null)   {
+                                            prev.next = node.next;
+                                        } else {
+                                            setArrayVolatile(table, i, node.next);
+                                        }
+                                    }
+                                    break;
+                                }
+                                prev = node;
+                                if ((node = node.next) == null) {
+                                    delta = 1;
+                                    prev.next = new Node<%<>%>(hash, key, value = vin, null);
+                                    break;
+                                }
+                            }
+                        }/* else if (f instanceof TreeBin)    { //TODO
+                            binCount = 2;
+                            TreeBin_G_ t = (TreeBin_G_) f;
+                            TreeNode_G_ p = t.root != null ? t.root.findTreeNode(hash, key<1%, null%>) : null;
+                            if ((value = p == null ? vin : remappingFunction.apply<1!%As_P1_%>(p.value, vin)) != defaultValue)  {
+                                if (p != null)  {
+                                    p.value = value;
+                                } else {
+                                    delta = 1;
+                                    t.putTreeVal(hash, key, value);
+                                }
+                            } else if (p != null)   {
+                                delta = -1;
+                                if (t.removeTreeNode(p))    {
+                                    setArrayVolatile(table, i, untreeify(t.first));
+                                }
+                            }
+                        }*/
+                    }
+                }
+                if (binCount != 0)  {
+                    if (binCount >= TREEIFY_THRESHOLD)  {
+                        //TODO: this.treeifyBin(table, i);
+                    }
+                    break;
+                }
+            }
+        }
+        if (delta != 0) {
+            this.addCount(delta, binCount);
+        }
+        return value;
     }
 
     @Override

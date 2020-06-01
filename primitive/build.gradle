@@ -69,5 +69,11 @@ clean.dependsOn(deleteSource)
 
 compileJava {
     options.fork = true
-    options.forkOptions.setMemoryMaximumSize("2g")
+    options.forkOptions.setMemoryMaximumSize("2G")
+}
+
+jar {
+    from sourceSets.main.output
+    from sourceSets.orig.output
+    from sourceSets.generated.output
 }

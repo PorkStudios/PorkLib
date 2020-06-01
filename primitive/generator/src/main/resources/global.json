@@ -33,6 +33,9 @@
     //collections
     "ObjIterator": "java.util.Iterator",
     "ObjIterable": "java.util.Iterable",
+    "IntIterator": "java.util.PrimitiveIterator.OfInt",
+    "LongIterator": "java.util.PrimitiveIterator.OfLong",
+    "DoubleIterator": "java.util.PrimitiveIterator.OfDouble",
     
     "ObjCollection": "java.util.Collection",
     "ObjCollections": "java.util.Collections",

@@ -34,7 +34,7 @@ import net.daporkchop.lib.minecraft.world.format.WorldManager;
 import net.daporkchop.lib.nbt.NBTFormat;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 import net.daporkchop.lib.nbt.tag.ListTag;
-import net.daporkchop.lib.primitive.lambda.consumer.IntObjConsumer;
+import net.daporkchop.lib.primitive.lambda.IntObjConsumer;
 
 import java.io.File;
 import java.io.FileInputStream;

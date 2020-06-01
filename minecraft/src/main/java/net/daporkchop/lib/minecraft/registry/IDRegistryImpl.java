@@ -25,7 +25,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.primitive.lambda.consumer.ObjIntConsumer;
+import net.daporkchop.lib.primitive.lambda.ObjIntConsumer;
 
 import java.util.Arrays;
 import java.util.Objects;

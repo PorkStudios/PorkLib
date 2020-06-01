@@ -1,0 +1,20 @@
+$$$settings$$$
+{
+    "params": [
+        {
+            "genericName": "R"
+        }
+    ]
+}
+_headers_
+
+/**
+ * A function that returns _nameP0_.
+ *
+ * @author DaPorkchop_
+ * @see Supplier
+ */
+@FunctionalInterface
+public interface _P0_Supplier_G_ {
+    _p0_ get<0!%As_P0_%>();
+}

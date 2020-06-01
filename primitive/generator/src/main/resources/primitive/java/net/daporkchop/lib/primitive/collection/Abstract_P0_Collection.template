@@ -1,0 +1,205 @@
+$$$settings$$$
+{
+    "params": [
+        {
+            "genericName": "E"
+        }
+    ]
+}
+_headers_
+
+import net.daporkchop.lib.primitive.lambda._P0_Consumer;
+import net.daporkchop.lib.primitive.lambda._P0_BoolFunction;
+
+/**
+ * Base implementation of {@link _P0_Collection}.
+ *
+ * @author DaPorkchop_
+ */
+public abstract class Abstract_P0_Collection_G_ implements _P0_Collection_G_ {
+    protected transient int modCount = 0;
+
+    public abstract _P0_Iterator iterator();
+
+    public abstract int size();
+
+    @Override
+    public boolean isEmpty()    {
+        return this.size() == 0;
+    }
+
+    @Override
+    public boolean contains(_p0_ val)   {
+        for (_P0_Iterator itr = this.iterator(); itr.hasNext();)    {
+            if (val == itr.next_P0_())  {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public _p0_[] toArray() {
+        _p0_[] arr = new _p0_[this.size()];
+        _P0_Iterator itr = this.iterator();
+        for (int i = 0; i < arr.length; i++)    {
+            if (!itr.hasNext()) {
+                //fewer elements than expected
+                return Arrays.copyOf(arr, i);
+            }
+            arr[i] = itr.next_P0_();
+        }
+        return itr.hasNext() ? finishToArray(arr, itr) : arr;
+    }
+
+    @Override
+    public _p0_[] toArray(_p0_[] a) {
+        int size = size();
+        _p0_[] r = a.length >= size ? a : new _p0_[size];
+        _P0_Iterator itr = this.iterator();
+
+        for (int i = 0; i < r.length; i++) {
+            if (!itr.hasNext()) {
+                if (a == r) {
+                    r[i] = _EP0_;
+                } else if (a.length < i) {
+                    return Arrays.copyOf(r, i);
+                } else {
+                    System.arraycopy(r, 0, a, 0, i);
+                    if (a.length > i) {
+                        a[i] = _EP0_;
+                    }
+                }
+                return a;
+            }
+            r[i] = itr.next_P0_();
+        }
+        // more elements than expected
+        return itr.hasNext() ? finishToArray(r, itr) : r;
+    }
+
+    private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
+
+    private static _p0_[] finishToArray(_p0_[] r, _P0_Iterator itr) {
+        int i = r.length;
+        while (itr.hasNext()) {
+            int cap = r.length;
+            if (i == cap) {
+                int newCap = cap + (cap >> 1) + 1;
+                if (newCap - MAX_ARRAY_SIZE > 0)    {
+                    newCap = hugeCapacity(cap + 1);
+                }
+                r = Arrays.copyOf(r, newCap);
+            }
+            r[i++] = itr.next_P0_();
+        }
+        return i == r.length ? r : Arrays.copyOf(r, i);
+    }
+
+    private static int hugeCapacity(int minCapacity) {
+        if (minCapacity < 0)    {
+            throw new OutOfMemoryError("Required array size too large");
+        }
+        return minCapacity > MAX_ARRAY_SIZE ? Integer.MAX_VALUE : MAX_ARRAY_SIZE;
+    }
+
+    @Override
+    public boolean add(_p0_ val) throws UnsupportedOperationException   {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean remove(_p0_ val) throws UnsupportedOperationException   {
+        for (_P0_Iterator itr = this.iterator(); itr.hasNext();)   {
+            if (itr.next_P0_() == val)  {
+                itr.remove();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean containsAll(@NonNull _P0_Collection c)   {
+        for (_P0_Iterator itr = c.iterator(); itr.hasNext();)   {
+            if (!this.contains(itr.next_P0_())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public boolean addAll(@NonNull _P0_Collection c)   {
+        boolean modified = false;
+        for (_P0_Iterator itr = c.iterator(); itr.hasNext();)   {
+            modified |= this.add(itr.next_P0_());
+        }
+        return modified;
+    }
+
+    @Override
+    public boolean removeAll(@NonNull _P0_Collection c)   {
+        boolean modified = false;
+        for (_P0_Iterator itr = this.iterator(); itr.hasNext();)   {
+            if (c.contains(itr.next_P0_()))  {
+                itr.remove();
+                modified = true;
+            }
+        }
+        return modified;
+    }
+
+    @Override
+    public boolean retainAll(@NonNull _P0_Collection c)   {
+        boolean modified = false;
+        for (_P0_Iterator itr = this.iterator(); itr.hasNext();)   {
+            if (!c.contains(itr.next_P0_()))  {
+                itr.remove();
+                modified = true;
+            }
+        }
+        return modified;
+    }
+
+    @Override
+    public void clear()    {
+        for (_P0_Iterator itr = this.iterator(); itr.hasNext();)    {
+            itr.next_P0_();
+            itr.remove();
+        }
+    }
+
+    @Override
+    public String toString()  {
+        _P0_Iterator itr = this.iterator();
+        if (!itr.hasNext())  {
+            return "[]";
+        }
+
+        StringBuilder builder = new StringBuilder();
+        builder.append('[');
+        while (true)    {
+            builder.append(itr.next_P0_());
+            if (itr.hasNext())  {
+                builder.append(',').append(' ');
+            } else {
+                return builder.append(']').toString();
+            }
+        }
+    }
+
+    /**
+     * @return a sequential {@link _P0_Stream} with this collection as its source.
+     */
+    /*default _P0_Stream stream() {
+        return StreamSupport.stream(spliterator(), false);
+    }*/
+
+    /**
+     * @return a possibly parallel {@link _P0_Stream} with this collection as its source.
+     */
+    /*default _P0_Stream parallelStream() {
+        return StreamSupport.stream(spliterator(), true);
+    }*/
+}

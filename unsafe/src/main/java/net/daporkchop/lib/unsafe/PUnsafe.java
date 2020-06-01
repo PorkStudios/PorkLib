@@ -65,93 +65,93 @@ public class PUnsafe {
     /**
      * The value of {@code arrayBaseOffset(boolean[].class)}
      */
-    public static final int ARRAY_BOOLEAN_BASE_OFFSET = UNSAFE.arrayBaseOffset(boolean[].class);
+    public static final long ARRAY_BOOLEAN_BASE_OFFSET = UNSAFE.arrayBaseOffset(boolean[].class);
 
     //some constants
     /**
      * The value of {@code arrayBaseOffset(byte[].class)}
      */
-    public static final int ARRAY_BYTE_BASE_OFFSET = UNSAFE.arrayBaseOffset(byte[].class);
+    public static final long ARRAY_BYTE_BASE_OFFSET = UNSAFE.arrayBaseOffset(byte[].class);
 
     /**
      * The value of {@code arrayBaseOffset(short[].class)}
      */
-    public static final int ARRAY_SHORT_BASE_OFFSET = UNSAFE.arrayBaseOffset(short[].class);
+    public static final long ARRAY_SHORT_BASE_OFFSET = UNSAFE.arrayBaseOffset(short[].class);
 
     /**
      * The value of {@code arrayBaseOffset(char[].class)}
      */
-    public static final int ARRAY_CHAR_BASE_OFFSET = UNSAFE.arrayBaseOffset(char[].class);
+    public static final long ARRAY_CHAR_BASE_OFFSET = UNSAFE.arrayBaseOffset(char[].class);
 
     /**
      * The value of {@code arrayBaseOffset(int[].class)}
      */
-    public static final int ARRAY_INT_BASE_OFFSET = UNSAFE.arrayBaseOffset(int[].class);
+    public static final long ARRAY_INT_BASE_OFFSET = UNSAFE.arrayBaseOffset(int[].class);
 
     /**
      * The value of {@code arrayBaseOffset(long[].class)}
      */
-    public static final int ARRAY_LONG_BASE_OFFSET = UNSAFE.arrayBaseOffset(long[].class);
+    public static final long ARRAY_LONG_BASE_OFFSET = UNSAFE.arrayBaseOffset(long[].class);
 
     /**
      * The value of {@code arrayBaseOffset(float[].class)}
      */
-    public static final int ARRAY_FLOAT_BASE_OFFSET = UNSAFE.arrayBaseOffset(float[].class);
+    public static final long ARRAY_FLOAT_BASE_OFFSET = UNSAFE.arrayBaseOffset(float[].class);
 
     /**
      * The value of {@code arrayBaseOffset(double[].class)}
      */
-    public static final int ARRAY_DOUBLE_BASE_OFFSET = UNSAFE.arrayBaseOffset(double[].class);
+    public static final long ARRAY_DOUBLE_BASE_OFFSET = UNSAFE.arrayBaseOffset(double[].class);
 
     /**
      * The value of {@code arrayBaseOffset(Object[].class)}
      */
-    public static final int ARRAY_OBJECT_BASE_OFFSET = UNSAFE.arrayBaseOffset(Object[].class);
+    public static final long ARRAY_OBJECT_BASE_OFFSET = UNSAFE.arrayBaseOffset(Object[].class);
 
     /**
      * The value of {@code arrayIndexScale(boolean[].class)}
      */
-    public static final int ARRAY_BOOLEAN_INDEX_SCALE = UNSAFE.arrayIndexScale(boolean[].class);
+    public static final long ARRAY_BOOLEAN_INDEX_SCALE = UNSAFE.arrayIndexScale(boolean[].class);
 
     /**
      * The value of {@code arrayIndexScale(byte[].class)}
      */
-    public static final int ARRAY_BYTE_INDEX_SCALE = UNSAFE.arrayIndexScale(byte[].class);
+    public static final long ARRAY_BYTE_INDEX_SCALE = UNSAFE.arrayIndexScale(byte[].class);
 
     /**
      * The value of {@code arrayIndexScale(short[].class)}
      */
-    public static final int ARRAY_SHORT_INDEX_SCALE = UNSAFE.arrayIndexScale(short[].class);
+    public static final long ARRAY_SHORT_INDEX_SCALE = UNSAFE.arrayIndexScale(short[].class);
 
     /**
      * The value of {@code arrayIndexScale(char[].class)}
      */
-    public static final int ARRAY_CHAR_INDEX_SCALE = UNSAFE.arrayIndexScale(char[].class);
+    public static final long ARRAY_CHAR_INDEX_SCALE = UNSAFE.arrayIndexScale(char[].class);
 
     /**
      * The value of {@code arrayIndexScale(int[].class)}
      */
-    public static final int ARRAY_INT_INDEX_SCALE = UNSAFE.arrayIndexScale(int[].class);
+    public static final long ARRAY_INT_INDEX_SCALE = UNSAFE.arrayIndexScale(int[].class);
 
     /**
      * The value of {@code arrayIndexScale(long[].class)}
      */
-    public static final int ARRAY_LONG_INDEX_SCALE = UNSAFE.arrayIndexScale(long[].class);
+    public static final long ARRAY_LONG_INDEX_SCALE = UNSAFE.arrayIndexScale(long[].class);
 
     /**
      * The value of {@code arrayIndexScale(float[].class)}
      */
-    public static final int ARRAY_FLOAT_INDEX_SCALE = UNSAFE.arrayIndexScale(float[].class);
+    public static final long ARRAY_FLOAT_INDEX_SCALE = UNSAFE.arrayIndexScale(float[].class);
 
     /**
      * The value of {@code arrayIndexScale(double[].class)}
      */
-    public static final int ARRAY_DOUBLE_INDEX_SCALE = UNSAFE.arrayIndexScale(double[].class);
+    public static final long ARRAY_DOUBLE_INDEX_SCALE = UNSAFE.arrayIndexScale(double[].class);
 
     /**
      * The value of {@code arrayIndexScale(Object[].class)}
      */
-    public static final int ARRAY_OBJECT_INDEX_SCALE = UNSAFE.arrayIndexScale(Object[].class);
+    public static final long ARRAY_OBJECT_INDEX_SCALE = UNSAFE.arrayIndexScale(Object[].class);
 
     /**
      * The value of {@link Unsafe#addressSize()}.

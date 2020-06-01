@@ -1,0 +1,230 @@
+$$$settings$$$
+{
+    "params": [
+        {
+            "genericName": "E",
+            "blacklist": [
+                "boolean"
+            ]
+        }
+    ]
+}
+_headers_
+
+import net.daporkchop.lib.primitive.collection.Abstract_P0_Collection;
+import net.daporkchop.lib.primitive.collection._P0_Collection;
+import net.daporkchop.lib.primitive.collection._P0_Iterator;
+import net.daporkchop.lib.primitive.lambda._P0_Consumer;
+import net.daporkchop.lib.primitive.lambda._P0_BoolFunction;
+
+/**
+ * Base implementation of {@link _P0_List}.
+ *
+ * @author DaPorkchop_
+ */
+public abstract class Abstract_P0_List_G_ extends Abstract_P0_Collection_G_ implements _P0_List_G_ {
+    @Override
+    public boolean add(_p0_ e)  {
+        this.add(this.size(), e);
+        return true;
+    }
+
+    @Override
+    public abstract _p0_ get(int index);
+
+    @Override
+    public _p0_ set(int index, _p0_ element)   {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void add(int index, _p0_ element)   {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public _p0_ removeAt(int index) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public int indexOf(_p0_ e)  {
+        for (_P0_ListIterator itr = this.iterator(); itr.hasNext();)    {
+            if (itr.next_P0_() == e)    {
+                return itr.previousIndex();
+            }
+        }
+        return -1;
+    }
+
+    @Override
+    public int lastIndexOf(_p0_ e)  {
+        for (_P0_ListIterator itr = this.iterator(this.size()); itr.hasPrevious();)    {
+            if (itr.previous_P0_() == e)    {
+                return itr.nextIndex();
+            }
+        }
+        return -1;
+    }
+
+    @Override
+    public void clear()  {
+        for (_P0_ListIterator itr = this.iterator(this.size()); itr.hasPrevious();)    {
+            itr.previous_P0_();
+            itr.remove();
+        }
+    }
+
+    @Override
+    public boolean addAll(int index, @NonNull _P0_Collection c) {
+        checkIndex(this.size() + 1, index);
+        boolean modified = false;
+        for (_P0_Iterator itr = c.iterator(); itr.hasNext();)   {
+            this.add(index++, itr.next_P0_());
+            modified = true;
+        }
+        return modified;
+    }
+
+    @Override
+    public _P0_ListIterator iterator()  {
+        return this.iterator(0);
+    }
+
+    @Override
+    public _P0_ListIterator iterator(int index)  {
+        checkIndex(this.size() + 1, index);
+        return new _P0_ListIterator()   {
+            int expectedModCount = Abstract_P0_List.this.modCount;
+            int cursor = index;
+            int lastRet = -1;
+
+            @Override
+            public boolean hasNext()    {
+                return this.cursor != Abstract_P0_List.this.size();
+            }
+
+            @Override
+            public _p0_ next_P0_()  {
+                this.checkForComodification();
+                try {
+                    int i = this.cursor;
+                    _p0_ next = Abstract_P0_List.this.get(i);
+                    this.lastRet = i;
+                    this.cursor = i + 1;
+                    return next;
+                } catch (IndexOutOfBoundsException e)   {
+                    this.checkForComodification();
+                    throw new NoSuchElementException();
+                }
+            }
+
+            @Override
+            public void remove()    {
+                checkState(this.lastRet >= 0);
+                this.checkForComodification();
+
+                try {
+                    Abstract_P0_List.this.removeAt(this.lastRet);
+                    if (this.lastRet < this.cursor)   {
+                        this.cursor--;
+                    }
+                    this.lastRet = -1;
+                    this.expectedModCount = Abstract_P0_List.this.modCount;
+                } catch (IndexOutOfBoundsException e) {
+                    throw new ConcurrentModificationException();
+                }
+            }
+
+            @Override
+            public boolean hasPrevious() {
+                return this.cursor != 0;
+            }
+
+            @Override
+            public _p0_ previous_P0_() {
+                this.checkForComodification();
+                try {
+                    int i = this.cursor - 1;
+                    _p0_ previous = Abstract_P0_List.this.get(i);
+                    this.lastRet = this.cursor = i;
+                    return previous;
+                } catch (IndexOutOfBoundsException e) {
+                    this.checkForComodification();
+                    throw new NoSuchElementException();
+                }
+            }
+
+            @Override
+            public int nextIndex() {
+                return this.cursor;
+            }
+
+            @Override
+            public int previousIndex() {
+                return this.cursor - 1;
+            }
+
+            @Override
+            public void set_P0_(_p0_ e) {
+                checkState(this.lastRet >= 0);
+                this.checkForComodification();
+
+                try {
+                    Abstract_P0_List.this.set(this.lastRet, e);
+                    this.expectedModCount = Abstract_P0_List.this.modCount;
+                } catch (IndexOutOfBoundsException ex) {
+                    throw new ConcurrentModificationException();
+                }
+            }
+
+            @Override
+            public void add_P0_(_p0_ e) {
+                this.checkForComodification();
+
+                try {
+                    int i = this.cursor;
+                    Abstract_P0_List.this.add(i, e);
+                    this.lastRet = -1;
+                    this.cursor = i + 1;
+                    this.expectedModCount = Abstract_P0_List.this.modCount;
+                } catch (IndexOutOfBoundsException ex) {
+                    throw new ConcurrentModificationException();
+                }
+            }
+
+            final void checkForComodification() {
+                if (this.expectedModCount != Abstract_P0_List.this.modCount)   {
+                    throw new ConcurrentModificationException();
+                }
+            }
+        };
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this)  {
+            return true;
+        } else if (o instanceof _P0_List)    {
+            _P0_ListIterator itr1 = this.iterator();
+            _P0_ListIterator itr2 = ((_P0_List) o).iterator();
+            while (itr1.hasNext() && itr2.hasNext())    {
+                if (itr1.next_P0_() != itr2.next_P0_()) {
+                    return false;
+                }
+            }
+            return !itr1.hasNext() && !itr2.hasNext();
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode()   {
+        int hashCode = 1;
+        for (_P0_ListIterator itr = this.iterator(); itr.hasNext();)    {
+            hashCode = hashCode * 31 + hash(itr.next_P0_());
+        }
+        return hashCode;
+    }
+}

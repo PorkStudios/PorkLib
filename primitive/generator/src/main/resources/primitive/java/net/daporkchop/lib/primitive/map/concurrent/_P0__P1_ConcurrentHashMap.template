@@ -53,10 +53,11 @@ import static net.daporkchop.lib.primitive.map.concurrent.ConcurrentHashMapHelpe
  * Unlike {@link net.daporkchop.lib.primitive.map.open._P0__P1_OpenHashMap}, this does not allow use of custom hash/equality/comparison
  * functions. Hashes are computed as the the murmur32 hash of the key<0%'s {@link Object#hashCode()}%>.
  * <p>
- * Tree nodes are currently not implemented.
+ * Tree nodes are not currently implemented. Poor hash functions are therefore likely to cause a significant loss in performance.
  *
  * @author DaPorkchop_
  */
+//TODO: don't cache hash for int/long keys (it's just useless overhead, comparing them directly would be fine)
 public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _P0__P1_Consumer_G_ {
     //split into multiple lines to work around generator limitations
     protected static final long SIZECTL = PUnsafe.pork_getOffset(
@@ -66,9 +67,9 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
     protected static final long BASECOUNT = PUnsafe.pork_getOffset(
             _P0__P1_ConcurrentHashMap.class, "baseCount");
     protected static final long CELLSBUSY = PUnsafe.pork_getOffset(
-        _P0__P1_ConcurrentHashMap.class, "cellsBusy");
+            _P0__P1_ConcurrentHashMap.class, "cellsBusy");
     protected static final long CELLVALUE = PUnsafe.pork_getOffset(
-        CounterCell.class, "cellValue");
+            CounterCell.class, "value");
 <1!%
     @Getter
     @Accessors(fluent = true)
@@ -545,6 +546,12 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
             } else if (f.hash == MOVED) {
                 table = this.helpTransfer(table, f);
             } else {
+                { //attempt to get existing entry before locking the entire bin (reduces contention when entry is already present)
+                    Node_G_ node = f.find(hash, key);
+                    if (node != null)   {
+                        return node.value;
+                    }
+                }
                 boolean added = false;
                 synchronized (f)    {
                     if (getArrayVolatile(table, i) == f)    {
@@ -613,6 +620,9 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
             } else if (hash == f.hash)  {
                 table = this.helpTransfer(table, f);
             } else {
+                if (f.find(hash, key) == null)  { //check for existing entry before locking the entire bin (reduces contention when entry is not present)
+                    break;
+                }
                 synchronized (f)    {
                     if (getArrayVolatile(table, i) == f)    {
                         if (f.hash >= 0)    {

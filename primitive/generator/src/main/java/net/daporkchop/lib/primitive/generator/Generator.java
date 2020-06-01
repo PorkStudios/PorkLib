@@ -102,9 +102,16 @@ public class Generator {
     private static final Ref<Matcher> NAME_MATCHER_CACHE = ThreadRef.regex(Pattern.compile("_P(\\d+)_"));
     private static final Ref<Matcher> TOKEN_MATCHER_CACHE = ThreadRef.regex(Pattern.compile("_([a-zA-Z0-9]*?)(?:([pP])(\\d+))?_"));
 
-    private static final Pattern GENERIC_FILTER_PATTERN = Pattern.compile("<(\\d+)?(!)?%((?:.*?(?:<(\\d+)?(!)?%(.*?)%>)?)*)%>", Pattern.DOTALL);
+    private static final Pattern GENERIC_FILTER_PATTERN = Pattern.compile("<(\\d+)?(!)?%((?:.*?(?:<\\d+?!?%.*?%>)?)*)%>", Pattern.DOTALL);
     private static final Ref<Matcher> GENERIC_FILTER_CACHE = ThreadRef.regex(GENERIC_FILTER_PATTERN);
     private static final Ref<Matcher> GENERIC_FILTER_CACHE_2 = ThreadRef.regex(GENERIC_FILTER_PATTERN);
+
+    private static final Pattern TYPE_FILTER_PATTERN = Pattern.compile("<((?:\\d+[a-zA-Z]+)+)(!)?%((?:.*?(?:<(?:\\d+[a-zA-Z]+)+!?%.*?%>)?)*)%>", Pattern.DOTALL);
+    private static final Ref<Matcher> TYPE_FILTER_CACHE = ThreadRef.regex(TYPE_FILTER_PATTERN);
+    private static final Ref<Matcher> TYPE_FILTER_CACHE_2 = ThreadRef.regex(TYPE_FILTER_PATTERN);
+    private static final Pattern TYPE_FILTER_EXTRACT_PATTERN = Pattern.compile("(\\d+)([a-zA-Z]+)");
+    private static final Ref<Matcher> TYPE_FILTER_EXTRACT_CACHE = ThreadRef.regex(TYPE_FILTER_EXTRACT_PATTERN);
+    private static final Ref<Matcher> TYPE_FILTER_EXTRACT_CACHE_2 = ThreadRef.regex(TYPE_FILTER_EXTRACT_PATTERN);
 
     static {
         try {
@@ -139,6 +146,7 @@ public class Generator {
                 new Tuple<>(NAME_TIME.get(), "Name"),
                 new Tuple<>(NAME_OVERRIDE_TIME.get(), "Name overrides"),
                 new Tuple<>(GENERIC_FILTER_TIME.get(), "Filter generics"),
+                new Tuple<>(TYPE_FILTER_TIME.get(), "Filter types"),
                 new Tuple<>(TOKEN_REPLACE_TIME.get(), "Replace tokens"),
                 new Tuple<>(CONTENT_OVERRIDE_TIME.get(), "Content overrides"),
                 new Tuple<>(UTF8_ENCODE_TIME.get(), "UTF8 encode"))
@@ -150,6 +158,7 @@ public class Generator {
     public static final AtomicLong NAME_TIME = new AtomicLong();
     public static final AtomicLong NAME_OVERRIDE_TIME = new AtomicLong();
     public static final AtomicLong GENERIC_FILTER_TIME = new AtomicLong();
+    public static final AtomicLong TYPE_FILTER_TIME = new AtomicLong();
     public static final AtomicLong TOKEN_REPLACE_TIME = new AtomicLong();
     public static final AtomicLong CONTENT_OVERRIDE_TIME = new AtomicLong();
     public static final AtomicLong UTF8_ENCODE_TIME = new AtomicLong();
@@ -339,6 +348,50 @@ public class Generator {
         }
 
         GENERIC_FILTER_TIME.getAndAdd(System.nanoTime() - time);
+        time = System.nanoTime();
+
+        matcher = TYPE_FILTER_CACHE.get().reset(contentOut);
+        if (matcher.find()) {
+            buffer.setLength(0);
+            do {
+                boolean invert = matcher.group(2) != null;
+                boolean valid = false;
+                Matcher extractMatcher = TYPE_FILTER_EXTRACT_CACHE.get().reset(matcher.group(1));
+                while (extractMatcher.find()) {
+                    int index = Integer.parseUnsignedInt(extractMatcher.group(1));
+                    Primitive primitive = Primitive.BY_NAME.get(extractMatcher.group(2));
+                    valid |= params.get(index).primitive().equals(primitive);
+                }
+                if (valid ^ invert) {
+                    String content2 = matcher.group(3);
+                    Matcher matcher2 = TYPE_FILTER_CACHE_2.get().reset(content2);
+                    if (matcher2.find())    {
+                        StringBuffer buffer2 = STRINGBUFFER_CACHE_2.get();
+                        buffer2.setLength(0);
+                        do {
+                            boolean inverted2 = matcher2.group(2) != null;
+                            boolean valid2 = false;
+                            extractMatcher.reset(matcher2.group(1));
+                            while (extractMatcher.find()) {
+                                int index = Integer.parseUnsignedInt(extractMatcher.group(1));
+                                Primitive primitive = Primitive.BY_NAME.get(extractMatcher.group(2));
+                                valid2 |= params.get(index).primitive().equals(primitive);
+                            }
+                            matcher2.appendReplacement(buffer2, valid2 ^ inverted2 ? matcher2.group(3) : "");
+                        } while (matcher2.find());
+                        matcher2.appendTail(buffer2);
+                        content2 = buffer2.toString();
+                    }
+                    matcher.appendReplacement(buffer, content2);
+                } else {
+                    matcher.appendReplacement(buffer, "");
+                }
+            } while (matcher.find());
+            matcher.appendTail(buffer);
+            contentOut = buffer.toString();
+        }
+
+        TYPE_FILTER_TIME.getAndAdd(System.nanoTime() - time);
         time = System.nanoTime();
 
         matcher = TOKEN_MATCHER_CACHE.get().reset(contentOut);

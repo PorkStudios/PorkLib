@@ -27,7 +27,9 @@ import java.util.Map;
 @SuppressWarnings("unchecked")%>
 public class _P0__P1_MapTest {
     protected final _P0__P1_Map[] map = {
-        new net.daporkchop.lib.primitive.map.open._P0__P1_OpenHashMap()
+        new net.daporkchop.lib.primitive.map.open._P0__P1_OpenHashMap()<0int0long0Object%<1Object%,
+        new net.daporkchop.lib.primitive.map.concurrent._P0__P1_ConcurrentHashMap()%>%><0int0long0Object%<1int1long%,
+        new net.daporkchop.lib.primitive.map.concurrent._P0__P1_ConcurrentHashMap(_EP1_)%>%>
     };
 
     @Test

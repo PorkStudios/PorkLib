@@ -45,11 +45,16 @@ import static net.daporkchop.lib.primitive.map.hash.HashMapHelper.*;
  * of three separate arrays: one array each for keys and values, and a third "index" array which contains a single 8-bit entry
  * for each address in the hash table, enabling fast searches while attempting to minimize cache thrashing.
  * <p>
+ * Implementation notes:
+ * <p>
  * As there are no node objects present to represent entries in the map, all operations relating to {@link #entrySet()} will
  * cause huge numbers of objects to be allocated.
+ * <p>
+ * The table will not be reduced in size, regardless of the number of entries removed.
  *
  * @author DaPorkchop_
  */
+//TODO: add method to manually force table to shrink
 public class _P0__P1_OpenHashMap_G_ extends Abstract_P0__P1_Map_G_ implements _P0__P1_Consumer_G_ {
     protected byte[] index;
     protected _p0_[] keys;

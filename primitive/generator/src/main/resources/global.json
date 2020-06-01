@@ -35,6 +35,7 @@
     "ObjIterable": "java.util.Iterable",
     
     "ObjCollection": "java.util.Collection",
+    "ObjCollections": "java.util.Collections",
     "AbstractObjCollection": "java.util.AbstractCollection",
 
     "ObjList": "java.util.List",
@@ -46,6 +47,7 @@
     "AbstractObjSet": "java.util.AbstractSet",
 
     "ObjObjMap": "java.util.Map",
+    "ObjObjMaps": "java.util.Collections",
     "AbstractObjObjMap": "java.util.AbstractMap",
     "ObjObjConcurrentMap": "java.util.concurrent.ConcurrentMap"
   }

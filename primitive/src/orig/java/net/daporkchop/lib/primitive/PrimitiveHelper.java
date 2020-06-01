@@ -105,11 +105,11 @@ public class PrimitiveHelper {
     }
 
     public boolean eq(float a, float b) {
-        return a == b;
+        return a == b || Float.floatToIntBits(a) == Float.floatToIntBits(b);
     }
 
     public boolean eq(double a, double b) {
-        return a == b;
+        return a == b || Double.doubleToLongBits(a) == Double.doubleToLongBits(b);
     }
 
     public boolean eq(Object a, Object b) {

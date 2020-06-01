@@ -26,6 +26,7 @@ import net.daporkchop.lib.primitive.lambda._P0__P1_Consumer;
 import net.daporkchop.lib.primitive.lambda._P0__P1_Function;
 import net.daporkchop.lib.primitive.lambda._P0__P1__P1_Function;
 import net.daporkchop.lib.primitive.lambda._P1__P1__P1_Function;
+import net.daporkchop.lib.primitive.list.array.IntArrayList;
 import net.daporkchop.lib.primitive.map.Abstract_P0__P1_Map;
 import net.daporkchop.lib.primitive.map._P0__P1_Map;
 import net.daporkchop.lib.primitive.set.Abstract_P0_Set;
@@ -496,40 +497,75 @@ public class _P0__P1_OpenHashMap_G_ extends Abstract_P0__P1_Map_G_ implements _P
 
     protected abstract class BaseIterator {
         protected final byte[] index = _P0__P1_OpenHashMap.this.index;
-        protected int offset = this.findNext(0);
-        protected int current = -1;
-
-        protected int findNext(int offset)    {
-            final byte[] index = this.index;
-            for (int length = index.length; offset < length; offset++)  {
-                if ((index[offset] & 0x80) != 0)    {
-                    return offset;
-                }
-            }
-            return -1;
-        }
+        protected int pos = this.index.length;
+        protected int last = -1;
+        protected int remaining = _P0__P1_OpenHashMap.this.size;
+        protected IntArrayList wrapped;
 
         public boolean hasNext()    {
-            return this.offset >= 0;
+            return this.remaining != 0;
         }
 
         public int nextOffset() {
-            int offset = this.offset;
-            if (offset < 0) {
+            if (this.remaining == 0) {
                 throw new NoSuchElementException();
             }
-            this.offset = this.findNext(offset + 1);
-            return this.current = offset;
+            this.remaining--;
+            final byte[] index = this.index;
+            while (true)    {
+                if (--this.pos < 0) {
+                    this.last = Integer.MIN_VALUE;
+                    return this.wrapped.get(-this.pos - 1);
+                }
+                if ((index[this.pos] & 0x80) != 0)  {
+                    return this.last = this.pos;
+                }
+            }
+        }
+
+        protected void collapse(int offset) {
+            final byte[] index = this.index;
+            final _p0_[] keys = _P0__P1_OpenHashMap.this.keys;
+            final _p1_[] values = _P0__P1_OpenHashMap.this.values;
+            final int mask = index.length - 1; //assume table size is always a power of 2
+            while (true)    {
+                int prev = offset;
+                offset = (offset + 1) & mask;
+                byte ie;
+                while (true)    {
+                    if (((ie = index[offset]) & 0x80) == 0)    { //next entry is empty
+                        index[prev] = (byte) 0;<0%
+                        keys[prev] = null;%><1%
+                        values[prev] = null;%>
+                        return;
+                    }
+                    int curr = _P0__P1_OpenHashMap.this.hash0(_castP0_keys[offset]) & mask;
+                    if (prev <= offset ? prev >= curr || curr > offset : prev >= curr && curr > offset)  { //next entry cannot be moved backwards
+                        break;
+                    }
+                    offset = (offset + 1) & mask;
+                }
+                if (offset < prev)  {
+                    if (this.wrapped == null)   {
+                        this.wrapped = new IntArrayList(2);
+                    }
+                    this.wrapped.add(offset);
+                }
+                index[prev] = ie;
+                keys[prev] = keys[offset];
+                values[prev] = values[offset];
+            }
         }
 
         public void remove()    {
-            int current = this.current;
-            if (current < 0)    {
-                throw new NoSuchElementException();
+            checkState(this.last != -1);
+            if (this.pos >= 0) {
+                this.collapse(this.last);
+                _P0__P1_OpenHashMap.this.size--;
+            } else {
+                _P0__P1_OpenHashMap.this.remove(_P0__P1_OpenHashMap.this.keys[this.wrapped.get(-this.pos - 1)]);
             }
-            this.current = -1;
-            _P0__P1_OpenHashMap.this.collapse(current);
-            _P0__P1_OpenHashMap.this.size--;
+            this.last = -1;
         }
     }
 

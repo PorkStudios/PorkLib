@@ -25,7 +25,7 @@ dependencies {
     compile project(":concurrent")
     compile project(":encoding:nbt")
     compile project(":minecraft:minecraft-text")
-    compile project(":primitive:primitive-lambda")
+    compile project(":primitive")
 
     compile "com.google.code.gson:gson:$gsonVersion"
 }

@@ -18,13 +18,40 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
+package net.daporkchop.lib.primitive.generator.replacer;
 
-    compile "com.google.code.gson:gson:$gsonVersion"
-}
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.primitive.generator.Generator;
+import net.daporkchop.lib.primitive.generator.TokenReplacer;
+import net.daporkchop.lib.primitive.generator.option.ParameterContext;
 
-task gen(type: JavaExec, dependsOn: "classes") {
-    main = "net.daporkchop.lib.primitive.generator.Generator"
-    classpath = sourceSets.main.runtimeClasspath
+import java.util.List;
+
+import static net.daporkchop.lib.primitive.generator.Primitive.*;
+
+/**
+ * @author DaPorkchop_
+ */
+@RequiredArgsConstructor
+public class FileHeaderReplacer implements TokenReplacer {
+    @NonNull
+    private final String imports;
+
+    @Override
+    public String replace(@NonNull String text, @NonNull List<ParameterContext> params, String pkg) {
+        switch (text) {
+            case HEADERS_DEF:
+                return this.imports.isEmpty()
+                       ? Generator.LICENSE + "\n\n" + pkg
+                       : Generator.LICENSE + "\n\n" + pkg + "\n\n" + this.imports;
+            case LICENSE_DEF:
+                return Generator.LICENSE;
+            case PACKAGE_DEF:
+                return pkg;
+            case IMPORTS_DEF:
+                return this.imports;
+        }
+        return null;
+    }
 }

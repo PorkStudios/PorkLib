@@ -18,13 +18,53 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
+package primitive;
 
-    compile "com.google.code.gson:gson:$gsonVersion"
-}
+import lombok.experimental.UtilityClass;
 
-task gen(type: JavaExec, dependsOn: "classes") {
-    main = "net.daporkchop.lib.primitive.generator.Generator"
-    classpath = sourceSets.main.runtimeClasspath
+import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
+
+/**
+ * Helper methods for primitive test classes.
+ *
+ * @author DaPorkchop_
+ */
+@UtilityClass
+public class PrimitiveTestHelper {
+    public boolean randomBool() {
+        return ThreadLocalRandom.current().nextBoolean();
+    }
+
+    public byte randomByte()    {
+        return (byte) ThreadLocalRandom.current().nextInt();
+    }
+
+    public short randomShort()  {
+        return (short) ThreadLocalRandom.current().nextInt();
+    }
+
+    public char randomChar()  {
+        return (char) ThreadLocalRandom.current().nextInt();
+    }
+
+    public int randomInt()  {
+        return ThreadLocalRandom.current().nextInt();
+    }
+
+    public long randomLong() {
+        return ThreadLocalRandom.current().nextLong();
+    }
+
+    public float randomFloat() {
+        return ThreadLocalRandom.current().nextFloat();
+    }
+
+    public double randomDouble() {
+        return ThreadLocalRandom.current().nextDouble();
+    }
+
+    public Object randomObj() {
+        return UUID.randomUUID();
+    }
 }

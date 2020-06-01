@@ -1,0 +1,181 @@
+$$$settings$$$
+{
+    "params": [
+        {
+            "genericName": "K",
+            "blacklist": [
+                "boolean"
+            ]
+        },
+        {
+            "genericName": "V"
+        }
+    ]
+}
+_headers_
+
+import net.daporkchop.lib.primitive.collection._P1_Collection;
+import net.daporkchop.lib.primitive.lambda._P0__P1_Consumer;
+import net.daporkchop.lib.primitive.lambda._P0__P1_Function;
+import net.daporkchop.lib.primitive.lambda._P0__P1__P1_Function;
+import net.daporkchop.lib.primitive.lambda._P1__P1__P1_Function;
+import net.daporkchop.lib.primitive.map._P0__P1_Map;
+import net.daporkchop.lib.primitive.set._P0_Set;
+
+/**
+ * Various utility methods for working with {@link _P0__P1_Map}.
+ *
+ * @author DaPorkchop_
+ */
+@UtilityClass<%
+@SuppressWarnings("unchecked")%>
+public class _P0__P1_Maps {
+    private final _P0__P1_Map EMPTY_MAP = new EmptyMap();
+
+    public<% _G_%> _P0__P1_Map_G_ emptyMap()    {
+        return <%(_P0__P1_Map_G_) %>EMPTY_MAP;
+    }
+
+    /*public<% _G_%> _P0__P1_Map_G_ synchronizedMap(@NonNull _P0__P1_Map_G_ m)    {
+        return new SynchronizedMap<%<>%>(m);
+    }*/
+
+    private static final class EmptyMap_G_ implements _P0__P1_Map_G_    {<1!%
+        @Override
+        public _p1_ defaultValue()  {
+            return _EP1_;
+        }
+
+        @Override
+        public _P0__P1_Map_G_ defaultValue(_p1_ defaultValue)   {
+            throw new UnsupportedOperationException();
+        }%>
+
+        @Override
+        public int size()   {
+            return 0;
+        }
+
+        @Override
+        public boolean isEmpty()    {
+            return true;
+        }
+
+        @Override
+        public boolean containsKey(_nameP0_ key)    {
+            return false;
+        }
+
+        @Override
+        public boolean containsValue(_nameP1_ value)    {
+            return false;
+        }
+
+        @Override
+        public _p1_ get(_nameP0_ key)   {
+            return _EP1_;
+        }
+
+        @Override
+        public _p1_ getOrDefault(_nameP0_ key, _p1_ defaultValue)  {
+            return defaultValue;
+        }
+
+        @Override
+        public _p1_ put(_p0_ key, _p1_ value)   {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public _p1_ remove(_nameP0_ key)    {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void putAll(@NonNull _P0__P1_Map_Gextends_ m)    {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void clear() {
+        }
+
+        @Override
+        public _P0_Set_GP0_ keySet()    {
+            return _P0_Collections.emptySet();
+        }
+
+        @Override
+        public _P1_Collection_GP1_ values() {
+            return _P1_Collections.emptySet();
+        }
+
+        @Override
+        public Set<Entry_G_> entrySet() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public void forEach(@NonNull _P0__P1_Consumer_Gsuper_ action)  {
+        }
+
+        @Override
+        public void replaceAll(@NonNull _P0__P1__P1_Function_G0super1super1extends_ function) {
+        }
+
+        @Override
+        public _p1_ putIfAbsent(_p0_ key, _p1_ value)  {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean remove(_nameP0_ key, _nameP1_ value)    {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean replace(_p0_ key, _p1_ oldValue, _p1_ newValue)  {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public _p1_ replace(_p0_ key, _p1_ value)  {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public _p1_ computeIfAbsent(_p0_ key, @NonNull _P0__P1_Function_G0super1extends_ mappingFunction)  {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public _p1_ computeIfPresent(_p0_ key, @NonNull _P0__P1__P1_Function_G0super1super1extends_ remappingFunction) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public _p1_ compute(_p0_ key, @NonNull _P0__P1__P1_Function_G0super1super1extends_ remappingFunction) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public _p1_ merge(_p0_ key, _p1_ value, @NonNull _P1__P1__P1_Function_G1super1super1extends_ remappingFunction) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public int hashCode()   {
+            return 0;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return o instanceof _P0__P1_Map && ((_P0__P1_Map) o).isEmpty();
+        }
+
+        @Override
+        public String toString()    {
+            return "{}";
+        }
+    }
+}

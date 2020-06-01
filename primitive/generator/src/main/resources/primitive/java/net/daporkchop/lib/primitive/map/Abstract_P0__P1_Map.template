@@ -1,0 +1,393 @@
+$$$settings$$$
+{
+    "params": [
+        {
+            "genericName": "K",
+            "blacklist": [
+                "boolean"
+            ]
+        },
+        {
+            "genericName": "V"
+        }
+    ]
+}
+_headers_
+
+import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.primitive.collection.Abstract_P1_Collection;
+import net.daporkchop.lib.primitive.collection._P1_Collection;
+import net.daporkchop.lib.primitive.collection._P0_Iterator;
+import net.daporkchop.lib.primitive.collection._P1_Iterator;
+import net.daporkchop.lib.primitive.lambda._P0__P1_Consumer;
+import net.daporkchop.lib.primitive.lambda._P0__P1_Function;
+import net.daporkchop.lib.primitive.lambda._P0__P1__P1_Function;
+import net.daporkchop.lib.primitive.lambda._P1__P1__P1_Function;
+import net.daporkchop.lib.primitive.set.Abstract_P0_Set;
+import net.daporkchop.lib.primitive.set._P0_Set;
+
+/**
+ * Base implementation of {@link _P0__P1_Map}.
+ *
+ * @author DaPorkchop_
+ */
+public abstract class Abstract_P0__P1_Map_G_ implements _P0__P1_Map_G_ {<1!%
+    @Getter
+    @Setter
+    @Accessors(fluent = true)
+    protected _p1_ defaultValue = _EP1_;
+%>
+    protected transient _P0_Set_GP0_ keySet;
+    protected transient _P1_Collection_GP1_ valuesCollection;
+
+    @Override
+    public int size()   {
+        return this.entrySet().size();
+    }
+
+    @Override
+    public boolean isEmpty()    {
+        return this.size() == 0;
+    }
+
+    @Override
+    public boolean containsKey(_nameP0_ key)    {
+        for (Iterator<Entry_G_> itr = this.entrySet().iterator(); itr.hasNext();)   {
+            if (eq(itr.next().getKey(), key))   {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean containsValue(_nameP1_ value)    {
+        for (Iterator<Entry_G_> itr = this.entrySet().iterator(); itr.hasNext();)   {
+            if (eq(itr.next().getValue(), value))   {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public _p1_ get(_nameP0_ key)   {
+        return this.getOrDefault(key, <1!%this.defaultValue%><1%null%>);
+    }
+
+    @Override
+    public _p1_ getOrDefault(_nameP0_ key, _p1_ defaultValue)   {
+        for (Iterator<Entry_G_> itr = this.entrySet().iterator(); itr.hasNext();)   {
+            Entry_G_ entry = itr.next();
+            if (eq(entry.getKey(), key))   {
+                return entry.getValue();
+            }
+        }
+        return defaultValue;
+    }
+
+    @Override
+    public _p1_ put(_p0_ key, _p1_ value)   {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public _p1_ remove(_nameP0_ key)    {
+        for (Iterator<Entry_G_> itr = this.entrySet().iterator(); itr.hasNext();)   {
+            Entry_G_ entry = itr.next();
+            if (eq(entry.getKey(), key))   {
+                _p1_ oldValue = entry.getValue();
+                itr.remove();
+                return oldValue;
+            }
+        }
+        return <1!%this.defaultValue%><1%null%>;
+    }
+
+    @Override
+    public void putAll(@NonNull _P0__P1_Map_Gextends_ m)    {
+        for (Entry_G_ entry : this.entrySet())   {
+            this.put(entry.getKey(), entry.getValue());
+        }
+    }
+
+    @Override
+    public void clear() {
+        this.entrySet().clear();
+    }
+
+    @Override
+    public _P0_Set_GP0_ keySet()    {
+        _P0_Set_GP0_ keySet = this.keySet;
+        return keySet == null ? this.keySet = new Keys() : keySet;
+    }
+
+    @Override
+    public _P1_Collection_GP1_ values() {
+        _P1_Collection_GP1_ values = this.valuesCollection;
+        return values == null ? this.valuesCollection = new Values() : values;
+    }
+
+    @Override
+    public abstract Set<Entry_G_> entrySet();
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this)  {
+            return true;
+        } else if (o instanceof _P0__P1_Map)    {<%
+            @SuppressWarnings("unchecked")%>
+            _P0__P1_Map_G_ map = (_P0__P1_Map_G_) o;
+            if (map.size() != this.size())  {
+                return false;
+            }
+
+            try {<1!%
+                _nameP1_ otherDefaultValue = map.defaultValue();%>
+                for (Iterator<Entry_G_> itr = this.entrySet().iterator(); itr.hasNext();)   {
+                    Entry_G_ entry = itr.next();
+                    _p0_ key = entry.getKey();
+                    _p1_ value = entry.getValue();
+                    _p1_ otherValue = map.get<1!%OrDefault(key, otherDefaultValue)%><1%(key)%>;
+                    if (!eq(value, otherValue) || (otherValue == <1!%otherDefaultValue%><1%null%> && !map.containsKey(key)))   {
+                        return false;
+                    }
+                }
+                return true;
+            } catch (ClassCastException | NullPointerException ignored) {
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode()   {
+        int hashCode = 0;
+        for (Iterator<Entry_G_> itr = this.entrySet().iterator(); itr.hasNext();)   {
+            hashCode += itr.next().hashCode();
+        }
+        return hashCode;
+    }
+
+    @Override
+    public String toString()    {
+        Iterator<Entry_G_> itr = this.entrySet().iterator();
+        if (!itr.hasNext()) {
+            return "{}";
+        }
+
+        try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get())  {
+            StringBuilder builder = handle.get();
+            builder.setLength(0);
+            builder.append('{');
+
+            while (true)    {
+                Entry_G_ entry = itr.next();
+                _p0_ key = entry.getKey();
+                _p1_ value = entry.getValue();
+                builder.append(<0%key == this ? "(this _P0__P1_Map)" : %>key);
+                builder.append('=');
+                builder.append(<1%value == this ? "(this _P0__P1_Map)" : %>value);
+                if (!itr.hasNext()) {
+                    return builder.append('}').toString();
+                }
+                builder.append(',').append(' ');
+            }
+        }
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        Abstract_P0__P1_Map result = (Abstract_P0__P1_Map) super.clone();
+        result.keySet = null;
+        result.valuesCollection = null;
+        return result;
+    }
+
+    protected class Keys extends Abstract_P0_Set_GP0_ {
+        @Override
+        public _P0_Iterator_GP0_ iterator() {
+            return new _P0_Iterator_GP0_() {
+                private final Iterator<Entry_G_> itr = Abstract_P0__P1_Map.this.entrySet().iterator();
+
+                @Override
+                public boolean hasNext()    {
+                    return this.itr.hasNext();
+                }
+
+                @Override
+                public _p0_ next<0!%_P0_%>()  {
+                    return this.itr.next().getKey();
+                }
+
+                @Override
+                public void remove()    {
+                    this.itr.remove();
+                }
+            };
+        }
+
+        @Override
+        public int size()   {
+            return Abstract_P0__P1_Map.this.size();
+        }
+
+        @Override
+        public boolean isEmpty()    {
+            return Abstract_P0__P1_Map.this.isEmpty();
+        }
+
+        @Override
+        public void clear() {
+            Abstract_P0__P1_Map.this.clear();
+        }
+
+        @Override
+        public boolean contains(_nameP0_ key)  {
+            return Abstract_P0__P1_Map.this.containsKey(key);
+        }
+    }
+
+    protected class Values extends Abstract_P1_Collection_GP1_ {
+        @Override
+        public _P1_Iterator_GP1_ iterator() {
+           return new _P1_Iterator_GP1_() {
+               private final Iterator<Entry_G_> itr = Abstract_P0__P1_Map.this.entrySet().iterator();
+
+               @Override
+               public boolean hasNext()    {
+                   return this.itr.hasNext();
+               }
+
+               @Override
+               public _p1_ next<1!%_P1_%>()  {
+                   return this.itr.next().getValue();
+               }
+
+               @Override
+               public void remove()    {
+                   this.itr.remove();
+               }
+           };
+        }
+
+        @Override
+        public int size()   {
+           return Abstract_P0__P1_Map.this.size();
+        }
+
+        @Override
+        public boolean isEmpty()    {
+           return Abstract_P0__P1_Map.this.isEmpty();
+        }
+
+        @Override
+        public void clear() {
+           Abstract_P0__P1_Map.this.clear();
+        }
+
+        @Override
+        public boolean contains(_nameP1_ value)  {
+           return Abstract_P0__P1_Map.this.containsValue(value);
+        }
+    }
+
+    @AllArgsConstructor
+    public static class SimpleEntry_G_ implements Entry_G_, java.io.Serializable {
+        private static final long serialVersionUID = -8499721149061103585L;
+
+        private final _p0_ key;
+        private _p1_ value;
+
+        public SimpleEntry(@NonNull Entry_Gextends_ entry) {
+            this(entry.getKey(), entry.getValue());
+        }
+
+        @Override
+        public _p0_ getKey()    {
+            return this.key;
+        }
+
+        @Override
+        public _p1_ getValue()    {
+            return this.value;
+        }
+
+        @Override
+        public _p1_ setValue(_p1_ value) {
+            _p1_ oldValue = this.value;
+            this.value = value;
+            return oldValue;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o instanceof Entry)  {<%
+                @SuppressWarnings("unchecked")%>
+                Entry_G_ e = (Entry_G_) o;
+                return eq(this.key, e.getKey()) && eq(this.value, e.getValue());
+            } else {
+                return false;
+            }
+        }
+
+        @Override
+        public int hashCode() {
+            return hash(this.key) ^ hash(this.value);
+        }
+
+        @Override
+        public String toString() {
+            return this.key + "=" + this.value;
+        }
+    }
+
+    @AllArgsConstructor
+    public static class SimpleImmutableEntry_G_ implements Entry_G_, java.io.Serializable {
+        private static final long serialVersionUID = -8499721149061103585L;
+
+        private final _p0_ key;
+        private final _p1_ value;
+
+        public SimpleImmutableEntry(@NonNull Entry_Gextends_ entry) {
+            this(entry.getKey(), entry.getValue());
+        }
+
+        @Override
+        public _p0_ getKey()    {
+            return this.key;
+        }
+
+        @Override
+        public _p1_ getValue()    {
+            return this.value;
+        }
+
+        @Override
+        public _p1_ setValue(_p1_ value) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o instanceof Entry)  {<%
+                @SuppressWarnings("unchecked")%>
+                Entry_G_ e = (Entry_G_) o;
+                return eq(this.key, e.getKey()) && eq(this.value, e.getValue());
+            } else {
+                return false;
+            }
+        }
+
+        @Override
+        public int hashCode() {
+            return hash(this.key) ^ hash(this.value);
+        }
+
+        @Override
+        public String toString() {
+            return this.key + "=" + this.value;
+        }
+    }
+}

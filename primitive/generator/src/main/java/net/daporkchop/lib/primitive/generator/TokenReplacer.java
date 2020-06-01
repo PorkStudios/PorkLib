@@ -18,13 +18,16 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
+package net.daporkchop.lib.primitive.generator;
 
-    compile "com.google.code.gson:gson:$gsonVersion"
-}
+import lombok.NonNull;
+import net.daporkchop.lib.primitive.generator.option.ParameterContext;
 
-task gen(type: JavaExec, dependsOn: "classes") {
-    main = "net.daporkchop.lib.primitive.generator.Generator"
-    classpath = sourceSets.main.runtimeClasspath
+import java.util.List;
+
+/**
+ * @author DaPorkchop_
+ */
+public interface TokenReplacer {
+    String replace(@NonNull String text, @NonNull List<ParameterContext> params, String pkg);
 }

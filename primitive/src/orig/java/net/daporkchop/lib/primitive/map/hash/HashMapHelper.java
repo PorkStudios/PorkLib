@@ -18,13 +18,30 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
+package net.daporkchop.lib.primitive.map.hash;
 
-    compile "com.google.code.gson:gson:$gsonVersion"
-}
+import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.common.math.BinMath;
+import net.daporkchop.lib.common.math.PMath;
 
-task gen(type: JavaExec, dependsOn: "classes") {
-    main = "net.daporkchop.lib.primitive.generator.Generator"
-    classpath = sourceSets.main.runtimeClasspath
+import static net.daporkchop.lib.common.util.PValidation.*;
+
+/**
+ * Various constants used by hash map implementations.
+ *
+ * @author DaPorkchop_
+ */
+@UtilityClass
+public class HashMapHelper {
+    public static final int DEFAULT_INITIAL_CAPACITY = 1 << 4;
+    public static final int MAXIMUM_CAPACITY = 1 << 30;
+    public static final float DEFAULT_LOAD_FACTOR = 0.75f;
+
+    public static int tableSizeFor(int capacity) {
+        return PMath.clamp(BinMath.roundToNearestPowerOf2(notNegative(capacity, "capacity")), 1, MAXIMUM_CAPACITY);
+    }
+
+    public static int thresholdFor(int currentCapacity, float loadFactor) {
+        return PMath.floorI(currentCapacity * loadFactor);
+    }
 }

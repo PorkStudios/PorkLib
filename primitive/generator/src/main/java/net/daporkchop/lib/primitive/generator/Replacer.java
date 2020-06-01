@@ -18,13 +18,35 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
+package net.daporkchop.lib.primitive.generator;
 
-    compile "com.google.code.gson:gson:$gsonVersion"
-}
+import lombok.NonNull;
 
-task gen(type: JavaExec, dependsOn: "classes") {
-    main = "net.daporkchop.lib.primitive.generator.Generator"
-    classpath = sourceSets.main.runtimeClasspath
+/**
+ * Replaces code file contents.
+ * <p>
+ * Note that the index parameter is optional, and will be {@code -1} if not given.
+ *
+ * @author DaPorkchop_
+ */
+public interface Replacer {
+    /**
+     * Processes a file name.
+     *
+     * @param name  the current name
+     * @param index the current primitive index
+     * @param buffer
+     * @return the processed name, or {@code null} if generation of the file should be stopped
+     */
+    String processName(@NonNull String name, int index, StringBuffer buffer);
+
+    /**
+     * Processes a file's contents.
+     *
+     * @param code  the current file contents
+     * @param index the current primitive index
+     * @param buffer
+     * @return the processed contents, or {@code null} if generation of the file should be stopped
+     */
+    String processCode(@NonNull String code, int index, StringBuffer buffer);
 }

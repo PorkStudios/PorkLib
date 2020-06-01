@@ -20,49 +20,56 @@
 
 package net.daporkchop.lib.primitive.generator;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.oio.StreamUtil;
-import net.daporkchop.lib.common.misc.file.PFiles;
+import net.daporkchop.lib.common.function.PFunctions;
 import net.daporkchop.lib.common.misc.InstancePool;
-import net.daporkchop.lib.logging.Logging;
+import net.daporkchop.lib.common.misc.Tuple;
+import net.daporkchop.lib.common.misc.file.PFiles;
+import net.daporkchop.lib.common.misc.string.PStrings;
+import net.daporkchop.lib.common.ref.Ref;
+import net.daporkchop.lib.common.ref.ThreadRef;
+import net.daporkchop.lib.primitive.generator.option.HeaderOptions;
+import net.daporkchop.lib.primitive.generator.option.Parameter;
+import net.daporkchop.lib.primitive.generator.option.ParameterContext;
+import net.daporkchop.lib.primitive.generator.replacer.ComplexGenericReplacer;
+import net.daporkchop.lib.primitive.generator.replacer.FileHeaderReplacer;
+import net.daporkchop.lib.primitive.generator.replacer.GenericHeaderReplacer;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.Set;
 import java.util.StringJoiner;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static java.lang.Math.max;
-import static net.daporkchop.lib.primitive.generator.Primitive.*;
-
-import static net.daporkchop.lib.logging.Logging.*;
+import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
  * @author DaPorkchop_
@@ -76,203 +83,138 @@ public class Generator {
             , new Generator(
                     new File("src/main/resources/primitive/java"),
                     new File("../src/generated/java"),
-                    Collections.emptyList())
-            /*, new Generator(
+                    new File("src/main/resources/primitive/primitive.json"))
+            , new Generator(
                     new File("src/main/resources/test/java"),
                     new File("../src/test/java"),
-                    Collections.singletonList("org.junit.*"))*/
+                    new File("src/main/resources/test/test.json"))
             , new Generator(
                     new File("src/main/resources/lambda/java"),
                     new File("../lambda/src/generated/java"),
-                    Collections.emptyList())
+                    new File("src/main/resources/lambda/lambda.json"))
     ).filter(Objects::nonNull).collect(Collectors.toList());
-    public static String LICENSE;
-    private static final JsonArray EMPTY_JSON_ARRAY = new JsonArray();
+
+    public static final String LICENSE;
+    public static final OverrideReplacer OVERRIDES;
+
+    private static final Ref<StringBuffer> STRINGBUFFER_CACHE = ThreadRef.late(StringBuffer::new);
+    private static final Ref<StringBuffer> STRINGBUFFER_CACHE_2 = ThreadRef.late(StringBuffer::new);
+    private static final Ref<Matcher> NAME_MATCHER_CACHE = ThreadRef.regex(Pattern.compile("_P(\\d+)_"));
+    private static final Ref<Matcher> TOKEN_MATCHER_CACHE = ThreadRef.regex(Pattern.compile("_([a-zA-Z0-9]*?)(?:([pP])(\\d+))?_"));
+
+    private static final Pattern GENERIC_FILTER_PATTERN = Pattern.compile("<(\\d+)?(!)?%((?:.*?(?:<\\d+?!?%.*?%>)?)*)%>", Pattern.DOTALL);
+    private static final Ref<Matcher> GENERIC_FILTER_CACHE = ThreadRef.regex(GENERIC_FILTER_PATTERN);
+    private static final Ref<Matcher> GENERIC_FILTER_CACHE_2 = ThreadRef.regex(GENERIC_FILTER_PATTERN);
+
+    private static final Pattern TYPE_FILTER_PATTERN = Pattern.compile("<((?:\\d+[a-zA-Z]+)+)(!)?%((?:.*?(?:<(?:\\d+[a-zA-Z]+)+!?%.*?%>)?)*)%>", Pattern.DOTALL);
+    private static final Ref<Matcher> TYPE_FILTER_CACHE = ThreadRef.regex(TYPE_FILTER_PATTERN);
+    private static final Ref<Matcher> TYPE_FILTER_CACHE_2 = ThreadRef.regex(TYPE_FILTER_PATTERN);
+    private static final Pattern TYPE_FILTER_EXTRACT_PATTERN = Pattern.compile("(\\d+)([a-zA-Z]+)");
+    private static final Ref<Matcher> TYPE_FILTER_EXTRACT_CACHE = ThreadRef.regex(TYPE_FILTER_EXTRACT_PATTERN);
+    private static final Ref<Matcher> TYPE_FILTER_EXTRACT_CACHE_2 = ThreadRef.regex(TYPE_FILTER_EXTRACT_PATTERN);
 
     static {
-        PRIMITIVES.add(
-                new Primitive()
-                        .setFullName("Boolean")
-                        .setDisplayName("Bool")
-                        .setName("boolean")
-                        .setHashCode("$1 ? 1 : 0")
-                        .setEmptyValue("false")
-                        .setEquals("$1 == $2")
-                        .setNequals("$1 != $2")
-                        .build()
-        );
-        PRIMITIVES.add(
-                new Primitive()
-                        .setFullName("Byte")
-                        .setName("byte")
-                        .setHashCode("$1 & 0xFF")
-                        .setEmptyValue("Byte.MIN_VALUE")
-                        .setEquals("$1 == $2")
-                        .setNequals("$1 != $2")
-                        .build()
-        );
-        PRIMITIVES.add(
-                new Primitive()
-                        .setFullName("Character")
-                        .setDisplayName("Char")
-                        .setName("char")
-                        .setHashCode("($1 >>> 8) ^ $1")
-                        .setEmptyValue("(char) 65535")
-                        .setEquals("$1 == $2")
-                        .setNequals("$1 != $2")
-                        .build()
-        );
-        PRIMITIVES.add(
-                new Primitive()
-                        .setFullName("Short")
-                        .setName("short")
-                        .setHashCode("($1 >>> 8) ^ $1")
-                        .setEmptyValue("Short.MIN_VALUE")
-                        .setEquals("$1 == $2")
-                        .setNequals("$1 != $2")
-                        .build()
-        );
-        PRIMITIVES.add(
-                new Primitive()
-                        .setFullName("Integer")
-                        .setDisplayName("Int")
-                        .setUnsafeName("Int")
-                        .setName("int")
-                        .setHashCode("($1 >>> 24) ^ ($1 >>> 16) ^ ($1 >>> 8) ^ $1")
-                        .setEmptyValue("Integer.MIN_VALUE")
-                        .setEquals("$1 == $2")
-                        .setNequals("$1 != $2")
-                        .build()
-        );
-        PRIMITIVES.add(
-                new Primitive()
-                        .setFullName("Long")
-                        .setName("long")
-                        .setHashCode("(int) (($1 >>> 56) ^ ($1 >>> 48) ^ ($1 >>> 40) ^ ($1 >>> 32) ^ ($1 >>> 24) ^ ($1 >>> 16) ^ ($1 >>> 8) ^ $1)")
-                        .setEmptyValue("Long.MIN_VALUE")
-                        .setEquals("$1 == $2")
-                        .setNequals("$1 != $2")
-                        .build()
-        );
-        PRIMITIVES.add(
-                new Primitive()
-                        .setFullName("Float")
-                        .setName("float")
-                        .setHashCode("Float.floatToIntBits($1)")
-                        .setEmptyValue("Float.NaN")
-                        .setEquals("$1 == $2")
-                        .setNequals("$1 != $2")
-                        .build()
-        );
-        PRIMITIVES.add(
-                new Primitive()
-                        .setFullName("Double")
-                        .setName("double")
-                        .setHashCode("(int) Double.doubleToLongBits($1)")
-                        .setEmptyValue("Double.NaN")
-                        .setEquals("$1 == $2")
-                        .setNequals("$1 != $2")
-                        .build()
-        );
-        PRIMITIVES.add(
-                new Primitive()
-                        .setFullName("Object")
-                        .setDisplayName("Obj")
-                        .setName("Object")
-                        .setHashCode("java.util.Objects.hashCode($1)")
-                        .setGeneric()
-                        .setEmptyValue("null")
-                        .setEquals("java.util.Objects.equals($1, $2)")
-                        .setNequals("!java.util.Objects.equals($1, $2)")
-                        .build()
-        );
+        try {
+            try (InputStream is = new FileInputStream(new File("../../LICENSE"))) {
+                LICENSE = String.format("/*\n * %s\n */",
+                        new String(StreamUtil.toByteArray(is), StandardCharsets.UTF_8)
+                                .replace("$today.year", String.valueOf(Calendar.getInstance().get(Calendar.YEAR)))
+                                .replaceAll("\n", "\n * "));
+            }
 
-        try (InputStream is = new FileInputStream(new File(".", "../../LICENSE"))) {
-            LICENSE = String.format("/*\n * %s\n */",
-                    new String(StreamUtil.toByteArray(is))
-                            .replace("$today.year", String.valueOf(Calendar.getInstance().get(Calendar.YEAR)))
-                            /*.trim()*/.replaceAll("\n", "\n * "));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            try (Reader reader = new BufferedReader(new InputStreamReader(new FileInputStream(new File("src/main/resources/global.json")), StandardCharsets.UTF_8))) {
+                JsonObject global = InstancePool.getInstance(JsonParser.class).parse(reader).getAsJsonObject();
+                OVERRIDES = new OverrideReplacer(global.getAsJsonObject("overrides"));
+            }
+        } catch (Exception e) {
+            throw new AssertionError(e);
         }
     }
 
     public static void main(String... args) throws IOException {
-        /*Generator generator = new Generator(
-                new File(".", "primitive/generator/src/main/resources"),
-                new File(".", "primitive/src/main/java/net/daporkchop/lib/primitive")
-        );*/
-        for (Generator generator : GENERATORS)  {
+        for (Generator generator : GENERATORS) {
             generator.generate();
         }
 
-        //System.out.println("Generated " + FILES + " files, totalling " + SIZE + " bytes (" + (SIZE / 1024D / 1024D) + " megabytes)");
         System.out.printf(
                 "Generated %d files, totalling %s bytes (%.2f megabytes)\n",
                 FILES.get(),
                 NumberFormat.getInstance(Locale.US).format(SIZE.get()),
-                (double) SIZE.get() / 1024.0d / 1024.0d
-        );
+                (double) SIZE.get() / 1024.0d / 1024.0d);
+
+        System.out.println(Stream.of(
+                new Tuple<>(NAME_TIME.get(), "Name"),
+                new Tuple<>(NAME_OVERRIDE_TIME.get(), "Name overrides"),
+                new Tuple<>(GENERIC_FILTER_TIME.get(), "Filter generics"),
+                new Tuple<>(TYPE_FILTER_TIME.get(), "Filter types"),
+                new Tuple<>(TOKEN_REPLACE_TIME.get(), "Replace tokens"),
+                new Tuple<>(CONTENT_OVERRIDE_TIME.get(), "Content overrides"),
+                new Tuple<>(UTF8_ENCODE_TIME.get(), "UTF8 encode"))
+                .sorted(Comparator.comparingLong(Tuple::getA))
+                .map(t -> String.format("%.2fms, %s", t.getA() / 1000000.0d, t.getB()))
+                .collect(Collectors.joining("\n")));
     }
 
-    @NonNull
-    public final File inRoot;
-    @NonNull
-    public final File outRoot;
-    @NonNull
-    public final Collection<String> additionalImports;
-    private final List<String> importList = new ArrayList<>();
-    private final Collection<String> existing = new ArrayDeque<>();
-    private final Collection<String> generated = new ArrayDeque<>();
-    private String imports;
+    public static final AtomicLong NAME_TIME = new AtomicLong();
+    public static final AtomicLong NAME_OVERRIDE_TIME = new AtomicLong();
+    public static final AtomicLong GENERIC_FILTER_TIME = new AtomicLong();
+    public static final AtomicLong TYPE_FILTER_TIME = new AtomicLong();
+    public static final AtomicLong TOKEN_REPLACE_TIME = new AtomicLong();
+    public static final AtomicLong CONTENT_OVERRIDE_TIME = new AtomicLong();
+    public static final AtomicLong UTF8_ENCODE_TIME = new AtomicLong();
 
-    public void generate() {
-        if (false && this.outRoot.exists()) {
-            PFiles.rmContentsParallel(this.outRoot);
-            //TODO: only delete files that no longer need to be created
+    public final File inRoot;
+    public final File outRoot;
+    private final Collection<File> existing = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private final Collection<File> generated = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private final String imports;
+    private final TokenReplacer[] tokenReplacers;
+
+    public Generator(@NonNull File inRoot, @NonNull File outRoot, @NonNull File manifestFile) {
+        this.inRoot = PFiles.assertDirectoryExists(inRoot);
+        this.outRoot = PFiles.ensureDirectoryExists(outRoot);
+
+        JsonObject manifest;
+        try (Reader reader = new BufferedReader(new InputStreamReader(new FileInputStream(PFiles.assertFileExists(manifestFile)), StandardCharsets.UTF_8))) {
+            manifest = InstancePool.getInstance(JsonParser.class).parse(reader).getAsJsonObject();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
 
-            this.addAllExisting(PFiles.ensureDirectoryExists(this.outRoot));
+        this.imports = StreamSupport.stream(manifest.getAsJsonArray("imports").spliterator(), false)
+                .map(JsonElement::getAsString)
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .map(s -> PStrings.fastFormat("import %s;", s))
+                .collect(Collectors.joining("\n"));
 
-        this.getImports();
+        this.tokenReplacers = new TokenReplacer[]{
+                new GenericHeaderReplacer(),
+                new FileHeaderReplacer(this.imports),
+                new ComplexGenericReplacer()
+        };
+    }
+
+    public void generate() {
+        this.addAllExisting(PFiles.ensureDirectoryExists(this.outRoot));
 
         this.generate(this.inRoot, this.outRoot);
 
-        if (this.existing.size() > this.generated.size()) {
-            System.out.printf("Existing: %d, generated: %d\n", this.existing.size(), this.generated.size());
-            for (String s : new ArrayDeque<>(this.generated)) {
-                int count = Primitive.countVariables(s);
-                if (count == 0) {
-                    this.generated.add(s.replaceAll("\\.template", ".java"));
-                } else {
-                    this.forEachPrimitiveRecursive(primitives -> {
-                        String s1 = s;
-                        for (int i = 0; i < primitives.length; i++) {
-                            s1 = s1.replaceAll(String.format(DISPLAYNAME_DEF, i), primitives[i].displayName);
-                        }
-                        this.generated.add(s1.replaceAll("\\.template", ".java"));
-                    }, count, new JsonObject());
-                }
-            }
-            this.existing.removeAll(this.generated);
-            System.out.printf("Existing: %d, generated: %d\n", this.existing.size(), this.generated.size());
-            AtomicLong deletedFiles = new AtomicLong(0L);
-            AtomicLong deletedSize = new AtomicLong(0L);
-            this.existing.stream().forEach(s -> {
-                File file = new File(this.outRoot, s.replaceAll("\\.", "/").replaceAll("/java", ".java"));
-                deletedSize.addAndGet(file.length());
-                if (!file.delete()) {
-                    throw new IllegalStateException(String.format("Unable to delete file %s", file.getAbsoluteFile().getAbsolutePath()));
-                }
-                deletedFiles.incrementAndGet();
-            });
-            System.out.printf(
-                    "Deleted %d old files, totalling %s bytes (%.2f megabytes)\n",
-                    deletedFiles.get(),
-                    NumberFormat.getInstance(Locale.US).format(deletedSize.get()),
-                    deletedSize.get() / 1024.0d / 1024.0d
-            );
-        }
+        System.out.printf("Existing: %d, generated: %d\n", this.existing.size(), this.generated.size());
+        AtomicLong deletedFiles = new AtomicLong(0L);
+        AtomicLong deletedSize = new AtomicLong(0L);
+        this.existing.parallelStream()
+                .filter(PFunctions.not(this.generated::contains))
+                .forEach(file -> {
+                    deletedSize.addAndGet(file.length());
+                    PFiles.rm(file);
+                    deletedFiles.incrementAndGet();
+                });
+
+        System.out.printf(
+                "Deleted %d old files, totalling %s bytes (%.2f megabytes)\n",
+                deletedFiles.get(),
+                NumberFormat.getInstance(Locale.US).format(deletedSize.get()),
+                deletedSize.get() / 1024.0d / 1024.0d);
     }
 
     public void generate(@NonNull File file, @NonNull File out) {
@@ -283,190 +225,227 @@ public class Generator {
             if (file.getName().endsWith("_methods")) {
                 return;
             }
-            if (!"java".equals(file.getName())) {
-                out = new File(out, file.getName());
+            File realOut = "java".equals(file.getName()) ? out : new File(out, file.getName());
+            for (File f : file.listFiles()) {
+                this.generate(f, realOut);
             }
-            File realOut = out;
-            Arrays.stream(file.listFiles()).forEach(f -> this.generate(f, realOut));
         } else if (file.getName().endsWith(".template")) {
-            String name = file.getName();
+            String name = file.getName().substring(0, file.getName().length() - ".template".length());
             String packageName = this.getPackageName(file);
-            int count;
-            {
-                count = Primitive.countVariables(name);
-                int countUpper = Primitive.countVariables(name.toUpperCase());
-                if (countUpper > count) {
-                    for (int i = 0; ; i++) {
-                        String s = String.format(DISPLAYNAME_DEF.toLowerCase(), i);
-                        if (name.contains(s)) {
-                            name = name.replaceAll(s, "");
-                        } else {
-                            break;
-                        }
-                    }
-                    count = countUpper;
-                }
-            }
-            this.generated.add(String.format("%s.%s", packageName, name));
-            long lastModified = file.lastModified();
 
-            String[] methods = new String[0];
-            File methodsDir = new File(file.getParentFile(), String.format("%s_methods", name.replaceAll(".template", "")));
-            if (methodsDir.exists()) {
-                File[] files = PFiles.ensureDirectoryExists(methodsDir).listFiles();
-                methods = new String[files.length];
-                for (int i = 0; i < files.length; i++) {
-                    File f = files[i];
-                    lastModified = max(lastModified, f.lastModified());
-                    try (InputStream is = new FileInputStream(f)) {
-                        methods[i] = new String(StreamUtil.toByteArray(is));
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            }
-            {
-                String s = name.replaceAll(".template", ".java");
-                for (int i = 0; i < count; i++) {
-                    s = s.replaceAll(String.format(DISPLAYNAME_DEF, i), "Byte");
-                }
-                File potentialOut = new File(out, s);
-                if (potentialOut.exists() && potentialOut.lastModified() >= lastModified) {
-                    System.out.printf("Skipping %s\n", name);
-                    return;
-                }
-            }
-            String content;
+            String rawContent;
             try (InputStream is = new FileInputStream(file)) {
-                content = new String(StreamUtil.toByteArray(is));
+                rawContent = new String(StreamUtil.toByteArray(is), StandardCharsets.UTF_8);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            PFiles.ensureDirectoryExists(out);
-            JsonObject settings;
+
+            String content;
+            HeaderOptions options;
             {
-                if (content.startsWith("$$$settings$$$")) {
-                    String[] split = content.split("_headers_", 2);
+                JsonObject obj;
+                if (rawContent.startsWith("$$$settings$$$")) {
+                    String[] split = rawContent.split("_headers_", 2);
                     content = "_headers_" + split[1];
                     try (Reader reader = new StringReader(split[0])) {
                         reader.skip("$$$settings$$$".length());
-                        settings = InstancePool.getInstance(JsonParser.class).parse(reader).getAsJsonObject();
+                        obj = InstancePool.getInstance(JsonParser.class).parse(reader).getAsJsonObject();
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
                 } else {
-                    settings = new JsonObject();
+                    content = rawContent;
+                    obj = new JsonObject();
                 }
+                options = new HeaderOptions(obj, file);
             }
+
             System.out.printf("Generating %s\n", name);
-            this.populateToDepth(out, name, content, String.format("package %s;", packageName), methods, count, settings, this.imports);
+            PFiles.ensureDirectoryExists(out);
+            Stream<List<ParameterContext>> stream = Stream.of(Collections.emptyList());
+            for (Parameter parameter : options.parameters()) {
+                stream = stream.flatMap(currentParams -> parameter.primitives().stream()
+                        .map(primitive -> new ParameterContext(parameter, primitive))
+                        .map(ctx -> {
+                            List<ParameterContext> params = new ArrayList<>(currentParams.size() + 1);
+                            params.addAll(currentParams);
+                            params.add(ctx);
+                            return params;
+                        }));
+            }
+
+            String pkg = String.format("package %s;", packageName);
+            stream/*.parallel()*/.forEach(params -> this.generate0(out, name, content, pkg, options, params));
         }
     }
 
-    private void populateToDepth(@NonNull File path, @NonNull String name, @NonNull String content, @NonNull String packageName, @NonNull String[] methods, int depth, @NonNull JsonObject settings, @NonNull String imports, Primitive... primitives) {
-        if (depth > primitives.length) {
-            Primitive[] p = new Primitive[primitives.length + 1];
-            System.arraycopy(primitives, 0, p, 0, primitives.length);
-            Set<String> valid = Primitive.PRIMITIVES.stream().map(pr -> pr.name).collect(Collectors.toSet());
-            if (settings.has(String.format("P%d", primitives.length))) {
-                JsonObject object = settings.getAsJsonObject(String.format("P%d", primitives.length));
-                if (object.has("whitelist")) {
-                    valid = StreamSupport.stream(object.getAsJsonArray("whitelist").spliterator(), true).map(JsonElement::getAsString).collect(Collectors.toSet());
-                } else if (object.has("blacklist")) {
-                    for (JsonElement element : object.getAsJsonArray("blacklist")) {
-                        valid.remove(element.getAsString());
-                    }
-                }
-            }
-            for (Primitive primitive : Primitive.PRIMITIVES) {
-                if (valid.contains(primitive.name)) {
-                    p[p.length - 1] = primitive;
-                    this.populateToDepth(path, name, content, packageName, methods, depth, settings, imports, p);
-                }
-            }
-        } else {
-            String nameOut = name.replace(".template", ".java");
-            String contentOut = content;
+    private void generate0(@NonNull File dir, @NonNull String name, @NonNull String content, @NonNull String pkg, @NonNull HeaderOptions options, @NonNull List<ParameterContext> params) {
+        StringBuffer buffer = STRINGBUFFER_CACHE.get();
+        Matcher matcher;
 
-            if (methods.length != 0) { //TODO: figure out what this code actually does
-                StringBuilder builder = new StringBuilder();
-                for (String s : methods) {
-                    this.forEachPrimitiveRecursive(primitives1 -> {
-                        String in = s;
-                        for (int i = primitives.length - 1; i >= 0; i--) {
-                            in = primitives[i].format(in, i);
-                        }
-                        in = in
-                                .replaceAll("_method", "_")
-                                .replaceAll("<method%", "<%");
-                        AtomicReference<String> ref = new AtomicReference<>(in);
-                        for (int i = 0; i < primitives1.length; i++) {
-                            ref.set(primitives1[i].format(ref.get(), i));
-                        }
-                        builder.append(ref.get()
-                                .replaceAll(GENERIC_HEADER_DEF, Primitive.getGenericHeader(settings, primitives1)));
-                    }, depth, settings);
-                }
-                contentOut = contentOut.replaceAll(METHODS_DEF, builder.toString());
-            }
-
-            {
-                boolean areAnyGeneric = false;
-                if (depth == 0) {
-                    areAnyGeneric = true;
-                } else {
-                    for (int i = primitives.length - 1; i >= 0; i--) {
-                        areAnyGeneric |= primitives[i].generic;
-                    }
-                }
-                if (areAnyGeneric) {
-                    contentOut = contentOut.replaceAll("\\s*?<!%[\\s\\S]*?%>", "")
-                            .replaceAll("<!%[\\s\\S]*?%>", "")
-                            .replaceAll("(\\s*?)<%([\\s\\S]*?)%>", "$1$2")
-                            .replaceAll("<%([\\s\\S]*?)%>", "$1");
-                } else {
-                    contentOut = contentOut.replaceAll("\\s*?<%[\\s\\S]*?%>", "")
-                            .replaceAll("<%[\\s\\S]*?%>", "")
-                            .replaceAll("(\\s*?)<!%([\\s\\S]*?)%>", "$1$2")
-                            .replaceAll("<!%([\\s\\S]*?)%>", "$1");
-                }
-            }
-            if (depth == 0) {
-                int i = 0;
-                for (Primitive p : Primitive.PRIMITIVES) {
-                    nameOut = p.format(nameOut, i, settings);
-                    contentOut = p.format(contentOut, i++, settings);
-                }
-            } else {
-                for (int i = primitives.length - 1; i >= 0; i--) {
-                    Primitive p = primitives[i];
-                    nameOut = p.format(nameOut, i, settings);
-                    contentOut = p.format(contentOut, i, settings);
-                }
-            }
-            File file = new File(path, nameOut);
-
-            contentOut = contentOut
-                    .replaceAll(GENERIC_HEADER_DEF, Primitive.getGenericHeader(settings, primitives))
-                    .replaceAll(HEADERS_DEF, imports.isEmpty() ?
-                            String.format("%s\n\n%s", LICENSE_DEF, PACKAGE_DEF) :
-                            String.format("%s\n\n%s\n\n%s", LICENSE_DEF, PACKAGE_DEF, IMPORTS_DEF))
-                    .replaceAll(PACKAGE_DEF, packageName)
-                    .replaceAll(IMPORTS_DEF, imports)
-                    .replaceAll(LICENSE_DEF, LICENSE);
-
-            try (OutputStream os = new FileOutputStream(file)) {
-                byte[] b = contentOut.getBytes(StandardCharsets.UTF_8);
-                os.write(b);
-                SIZE.addAndGet(file.length());
-                FILES.incrementAndGet();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            if (!file.setLastModified(System.currentTimeMillis())) {
-                throw new IllegalStateException();
-            }
+        long time;
+        time = System.nanoTime();
+        matcher = NAME_MATCHER_CACHE.get().reset(name);
+        if (matcher.find()) {
+            buffer.setLength(0);
+            do {
+                matcher.appendReplacement(buffer, params.get(Integer.parseUnsignedInt(matcher.group(1))).primitive().displayName);
+            } while (matcher.find());
+            matcher.appendTail(buffer);
+            name = buffer.toString();
         }
+
+        NAME_TIME.getAndAdd(System.nanoTime() - time);
+        time = System.nanoTime();
+
+        if ((name = OVERRIDES.processName(name, -1, buffer)) == null) {
+            return;
+        }
+        name += ".java";
+
+        NAME_OVERRIDE_TIME.getAndAdd(System.nanoTime() - time);
+
+        File file = new File(dir, name);
+        checkState(this.generated.add(file), "File %s was already generated?!?", name);
+        if (file.lastModified() == options.lastModified()) {
+            return;
+        }
+
+        String contentOut = content;
+        time = System.nanoTime();
+
+        //start off by filtering generic things out
+        matcher = GENERIC_FILTER_CACHE.get().reset(contentOut);
+        boolean anyGeneric = params.stream().map(ParameterContext::primitive).anyMatch(Primitive::isGeneric);
+        if (matcher.find()) {
+            buffer.setLength(0);
+            do {
+                String numberTxt = matcher.group(1);
+                boolean generic = numberTxt == null ? anyGeneric : params.get(Integer.parseUnsignedInt(numberTxt)).primitive().generic;
+                boolean inverted = matcher.group(2) != null;
+                if (generic ^ inverted) {
+                    String content2 = matcher.group(3);
+                    Matcher matcher2 = GENERIC_FILTER_CACHE_2.get().reset(content2);
+                    if (matcher2.find()) {
+                        StringBuffer buffer2 = STRINGBUFFER_CACHE_2.get();
+                        buffer2.setLength(0);
+                        do {
+                            String numberTxt2 = matcher2.group(1);
+                            boolean generic2 = numberTxt2 == null ? anyGeneric : params.get(Integer.parseUnsignedInt(numberTxt2)).primitive().generic;
+                            boolean inverted2 = matcher2.group(2) != null;
+                            matcher2.appendReplacement(buffer2, generic2 ^ inverted2 ? matcher2.group(3) : "");
+                        } while (matcher2.find());
+                        matcher2.appendTail(buffer2);
+                        content2 = buffer2.toString();
+                    }
+                    matcher.appendReplacement(buffer, content2);
+                } else {
+                    matcher.appendReplacement(buffer, "");
+                }
+            } while (matcher.find());
+            matcher.appendTail(buffer);
+            contentOut = buffer.toString();
+        }
+
+        GENERIC_FILTER_TIME.getAndAdd(System.nanoTime() - time);
+        time = System.nanoTime();
+
+        matcher = TYPE_FILTER_CACHE.get().reset(contentOut);
+        if (matcher.find()) {
+            buffer.setLength(0);
+            do {
+                boolean invert = matcher.group(2) != null;
+                boolean valid = false;
+                Matcher extractMatcher = TYPE_FILTER_EXTRACT_CACHE.get().reset(matcher.group(1));
+                while (extractMatcher.find()) {
+                    int index = Integer.parseUnsignedInt(extractMatcher.group(1));
+                    Primitive primitive = Primitive.BY_NAME.get(extractMatcher.group(2));
+                    valid |= params.get(index).primitive().equals(primitive);
+                }
+                if (valid ^ invert) {
+                    String content2 = matcher.group(3);
+                    Matcher matcher2 = TYPE_FILTER_CACHE_2.get().reset(content2);
+                    if (matcher2.find())    {
+                        StringBuffer buffer2 = STRINGBUFFER_CACHE_2.get();
+                        buffer2.setLength(0);
+                        do {
+                            boolean inverted2 = matcher2.group(2) != null;
+                            boolean valid2 = false;
+                            extractMatcher.reset(matcher2.group(1));
+                            while (extractMatcher.find()) {
+                                int index = Integer.parseUnsignedInt(extractMatcher.group(1));
+                                Primitive primitive = Primitive.BY_NAME.get(extractMatcher.group(2));
+                                valid2 |= params.get(index).primitive().equals(primitive);
+                            }
+                            matcher2.appendReplacement(buffer2, valid2 ^ inverted2 ? matcher2.group(3) : "");
+                        } while (matcher2.find());
+                        matcher2.appendTail(buffer2);
+                        content2 = buffer2.toString();
+                    }
+                    matcher.appendReplacement(buffer, content2);
+                } else {
+                    matcher.appendReplacement(buffer, "");
+                }
+            } while (matcher.find());
+            matcher.appendTail(buffer);
+            contentOut = buffer.toString();
+        }
+
+        TYPE_FILTER_TIME.getAndAdd(System.nanoTime() - time);
+        time = System.nanoTime();
+
+        matcher = TOKEN_MATCHER_CACHE.get().reset(contentOut);
+        if (matcher.find()) {
+            buffer.setLength(0);
+            MAIN:
+            do {
+                String original = matcher.group();
+                String numberTxt = matcher.group(3);
+                if (numberTxt != null) {
+                    String token = matcher.group(1);
+                    boolean lowerCase = matcher.group(2).charAt(0) == 'p';
+                    String text = params.get(Integer.parseUnsignedInt(numberTxt)).replace(token, lowerCase, params);
+                    if (text != null) {
+                        matcher.appendReplacement(buffer, text);
+                        continue;
+                    }
+                } else {
+                    for (TokenReplacer replacer : this.tokenReplacers) {
+                        String text = replacer.replace(original, params, pkg);
+                        if (text != null) {
+                            matcher.appendReplacement(buffer, text);
+                            continue MAIN;
+                        }
+                    }
+                }
+                matcher.appendReplacement(buffer, original);
+            } while (matcher.find());
+            matcher.appendTail(buffer);
+            contentOut = buffer.toString();
+        }
+
+        TOKEN_REPLACE_TIME.getAndAdd(System.nanoTime() - time);
+        time = System.nanoTime();
+
+        if ((contentOut = OVERRIDES.processCode(contentOut, -1, buffer)) == null) {
+            throw new IllegalStateException();
+        }
+
+        CONTENT_OVERRIDE_TIME.getAndAdd(System.nanoTime() - time);
+        time = System.nanoTime();
+
+        byte[] b = contentOut.getBytes(StandardCharsets.UTF_8);
+        try (OutputStream os = new FileOutputStream(file)) {
+            os.write(b);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        checkState(file.setLastModified(options.lastModified()));
+
+        UTF8_ENCODE_TIME.getAndAdd(System.nanoTime() - time);
+
+        SIZE.addAndGet(b.length);
+        FILES.incrementAndGet();
     }
 
     private String getPackageName(@NonNull File file) {
@@ -484,86 +463,17 @@ public class Generator {
         return joiner.toString();
     }
 
-    private void getImports() {
-        if (this.imports == null) {
-            this.importList.clear();
-            Collections.addAll(
-                    this.importList,
-                    "net.daporkchop.lib.unsafe.PUnsafe"//,
-                    //"lombok.*",
-                    //"java.util.*",
-                    //"java.util.concurrent.*",
-                    //"java.util.concurrent.atomic.*",
-                    //"java.util.concurrent.locks.*",
-                    //"java.io.*",
-                    //"java.nio.*"
-            );
-            this.importList.addAll(this.additionalImports);
-            //this.getImportsRecursive(this.inRoot);
-            this.importList.sort(String::compareTo);
-
-            StringBuilder builder = new StringBuilder();
-            for (String s : this.importList) {
-                builder.append(String.format("import %s;\n", s));
-            }
-            String s = builder.toString();
-            this.imports = s.isEmpty() ? "" : s.substring(0, s.length() - 1);
-        }
-    }
-
-    private void getImportsRecursive(@NonNull File file) {
-        boolean flag = true;
-        for (File f : PFiles.ensureDirectoryExists(file).listFiles()) {
-            if (f.isDirectory()) {
-                if (!f.getName().endsWith("_methods")) {
-                    this.getImportsRecursive(f);
-                }
-            } else if (flag && f.getName().endsWith(".template")) {
-                this.importList.add(String.format("%s.*", this.getPackageName(f)));
-                flag = false;
-            }
-        }
-    }
-
     private void addAllExisting(@NonNull File file) {
         File[] files = PFiles.ensureDirectoryExists(file).listFiles();
-        if (files == null)  {
+        if (files == null) {
             throw new IllegalArgumentException(file.getAbsolutePath() + " has null contents!");
         }
         for (File f : files) {
             if (f.isDirectory() && !f.getName().endsWith(".java")) { //why is isDirectory() returning true when it isn't?
                 this.addAllExisting(f);
-            } else {
-                this.existing.add(String.format("%s.%s", this.getPackageName(file), f.getName()));
+            } else if (f.isFile()) {
+                this.existing.add(f);
             }
-        }
-    }
-
-    private void forEachPrimitiveRecursive(@NonNull Consumer<Primitive[]> consumer, int depth, @NonNull JsonObject settings, Primitive... primitives) {
-        if (depth > primitives.length) {
-            Primitive[] p = new Primitive[primitives.length + 1];
-            System.arraycopy(primitives, 0, p, 0, primitives.length);
-            JsonArray validRoot = settings.has("valid") ? settings.getAsJsonArray("valid") : EMPTY_JSON_ARRAY;
-            JsonArray valid = validRoot.size() >= p.length ? validRoot.get(p.length - 1).getAsJsonArray() : EMPTY_JSON_ARRAY;
-            Primitive.PRIMITIVES.forEach(primitive -> {
-                if (valid.size() != 0) {
-                    //only if not empty
-                    String primitiveFullName = primitive.fullName;
-                    boolean flag = false;
-                    for (JsonElement element : valid) {
-                        if (element.getAsString().equalsIgnoreCase(primitiveFullName)) {
-                            flag = true;
-                        }
-                    }
-                    if (!flag) {
-                        return;
-                    }
-                }
-                p[p.length - 1] = primitive;
-                this.forEachPrimitiveRecursive(consumer, depth, settings, p);
-            });
-        } else {
-            consumer.accept(primitives);
         }
     }
 }

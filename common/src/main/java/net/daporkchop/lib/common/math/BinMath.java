@@ -59,32 +59,32 @@ public class BinMath {
     }
 
     public static long roundToNearestPowerOf2(long value) {
-        long l = value - 1;
-        l = l | l >> 1;
-        l = l | l >> 2;
-        l = l | l >> 4;
-        l = l | l >> 8;
-        l = l | l >> 16;
-        l = l | l >> 32;
-        return l + 1;
+        long l = value - 1L;
+        l |= l >>> 1L;
+        l |= l >>> 2L;
+        l |= l >>> 4L;
+        l |= l >>> 8L;
+        l |= l >>> 16L;
+        l |= l >>> 32L;
+        return l + 1L;
     }
 
     public static int roundToNearestPowerOf2(int value) {
         int i = value - 1;
-        i = i | i >> 1;
-        i = i | i >> 2;
-        i = i | i >> 4;
-        i = i | i >> 8;
-        i = i | i >> 16;
+        i |= i >>> 1;
+        i |= i >>> 2;
+        i |= i >>> 4;
+        i |= i >>> 8;
+        i |= i >>> 16;
         return i + 1;
     }
 
     public static short roundToNearestPowerOf2(short value) {
         short s = (short) (value - 1);
-        s = (short) (s | s >> 1);
-        s = (short) (s | s >> 2);
-        s = (short) (s | s >> 4);
-        s = (short) (s | s >> 8);
+        s |= s >>> 1;
+        s |= s >>> 2;
+        s |= s >>> 4;
+        s |= s >>> 8;
         return (short) (s + 1);
     }
 

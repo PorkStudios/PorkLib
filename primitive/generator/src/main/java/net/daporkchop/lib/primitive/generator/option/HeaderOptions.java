@@ -18,13 +18,46 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
+package net.daporkchop.lib.primitive.generator.option;
 
-    compile "com.google.code.gson:gson:$gsonVersion"
-}
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.experimental.Accessors;
 
-task gen(type: JavaExec, dependsOn: "classes") {
-    main = "net.daporkchop.lib.primitive.generator.Generator"
-    classpath = sourceSets.main.runtimeClasspath
+import java.io.File;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+/**
+ * Options defined at the top of a class file.
+ *
+ * @author DaPorkchop_
+ */
+@Getter
+@Accessors(fluent = true)
+public class HeaderOptions {
+    /**
+     * An array of generic parameter names.
+     */
+    private final List<Parameter> parameters;
+
+    private final long lastModified;
+
+    public HeaderOptions(@NonNull JsonObject object, @NonNull File file) {
+        if (object.has("params")) {
+            JsonArray params = object.getAsJsonArray("params");
+            this.parameters = Collections.unmodifiableList(IntStream.range(0, params.size())
+                    .mapToObj(i -> new Parameter(params.get(i).getAsJsonObject(), i))
+                    .collect(Collectors.toList()));
+        } else {
+            this.parameters = Collections.emptyList();
+        }
+
+        this.lastModified = file.lastModified();
+    }
 }

@@ -71,17 +71,7 @@ public abstract class AbstractSave<O extends SaveOptions> extends AbstractRefCou
     }
 
     @Override
-    public World world(int id) {
-        return null;
-    }
-
-    @Override
     public World world(@NonNull Identifier id) {
-        return null;
-    }
-
-    @Override
-    public PFuture<World> loadWorld(int id) {
         return null;
     }
 

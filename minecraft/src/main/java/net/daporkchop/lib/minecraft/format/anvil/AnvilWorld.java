@@ -20,10 +20,40 @@
 
 package net.daporkchop.lib.minecraft.format.anvil;
 
+import lombok.NonNull;
 import net.daporkchop.lib.minecraft.format.common.AbstractWorld;
+import net.daporkchop.lib.minecraft.registry.BlockRegistry;
+import net.daporkchop.lib.minecraft.util.Identifier;
+import net.daporkchop.lib.minecraft.world.WorldStorage;
+
+import java.io.File;
 
 /**
  * @author DaPorkchop_
  */
-public class AnvilWorld/* extends AbstractWorld<AnvilSave, AnvilSaveOptions>*/ {
+public class AnvilWorld extends AbstractWorld<AnvilSave, AnvilSaveOptions> {
+    public AnvilWorld(@NonNull AnvilSave parent, @NonNull AnvilSaveOptions options, @NonNull Identifier id) {
+        super(parent, options, id);
+    }
+
+    @Override
+    protected BlockRegistry getBlockRegistry0() {
+        return null;
+    }
+
+    @Override
+    protected WorldStorage getStorage0() {
+        int dimensionId = this.parent.dimensions().get(this.id);
+        return new AnvilWorldStorage(dimensionId == 0 ? this.parent.root() : new File(this.parent.root(), "DIM" + dimensionId), this.options);
+    }
+
+    @Override
+    public int layers() {
+        return 1;
+    }
+
+    @Override
+    public boolean hasSkyLight() {
+        return false;
+    }
 }

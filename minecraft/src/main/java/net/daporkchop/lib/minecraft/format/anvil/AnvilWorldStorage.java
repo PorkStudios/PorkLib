@@ -18,97 +18,109 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.common;
+package net.daporkchop.lib.minecraft.format.anvil;
 
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.common.util.exception.ReadOnlyException;
+import net.daporkchop.lib.common.misc.file.PFiles;
+import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
 import net.daporkchop.lib.concurrent.PFuture;
-import net.daporkchop.lib.concurrent.PFutures;
-import net.daporkchop.lib.minecraft.save.SaveOptions;
+import net.daporkchop.lib.minecraft.format.anvil.region.RegionFile;
+import net.daporkchop.lib.minecraft.format.anvil.region.RegionFileCache;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.minecraft.world.World;
-import net.daporkchop.lib.minecraft.world.WorldProvider;
+import net.daporkchop.lib.minecraft.world.WorldStorage;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Spliterator;
 
 /**
- * A wrapper around a {@link WorldProvider} to make it read-only.
- *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-public final class ReadOnlyWorldProvider implements WorldProvider {
-    @NonNull
-    protected final SaveOptions options;
-    @NonNull
-    protected final WorldProvider delegate;
+public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorage {
+    protected final AnvilSaveOptions options;
+    protected final File root;
 
-    @Override
-    public Chunk loadChunk(@NonNull World parent, int x, int z) throws IOException {
-        return this.delegate.loadChunk(parent, x, z);
+    protected final RegionFile regionCache;
+
+    public AnvilWorldStorage(@NonNull File root, @NonNull AnvilSaveOptions options) {
+        this.root = PFiles.ensureDirectoryExists(root);
+        this.options = options;
+
+        this.regionCache = new RegionFileCache(options, PFiles.ensureDirectoryExists(new File(root, "region")));
     }
 
     @Override
+    public Chunk loadChunk(@NonNull World parent, int x, int z) throws IOException {
+        return null;
+    }
+
+    /**
+     * @deprecated you shouldn't be reading/writing sections on a vanilla anvil world...
+     */
+    @Override
+    @Deprecated
     public Section loadSection(@NonNull Chunk parent, int x, int y, int z) throws IOException {
-        return this.delegate.loadSection(parent, x, y, z);
+        Section section = parent.getSection(y);
+        return section != null ? section.retain() : null;
     }
 
     @Override
     public void saveChunk(@NonNull Chunk chunk) throws IOException {
-        throw new ReadOnlyException();
     }
 
+    /**
+     * @deprecated you shouldn't be reading/writing sections on a vanilla anvil world...
+     */
     @Override
+    @Deprecated
     public void saveSection(@NonNull Section section) throws IOException {
-        throw new ReadOnlyException();
+        this.saveChunk(section.parent());
     }
 
     @Override
     public PFuture<Void> saveChunkAsync(@NonNull Chunk chunk) {
-        throw new UnsupportedOperationException("read-only", new ReadOnlyException());
+        return null;
     }
 
     @Override
     public PFuture<Void> saveSectionAsync(@NonNull Section section) {
-        throw new UnsupportedOperationException("read-only", new ReadOnlyException());
+        return this.saveChunkAsync(section.parent());
     }
 
     @Override
     public void flush() throws IOException {
-        //no-op
     }
 
     @Override
     public PFuture<Void> flushAsync() {
-        return PFutures.successful(null, this.options.ioExecutor());
+        return null;
     }
 
     @Override
     public Spliterator<Chunk> allChunks() throws IOException {
-        return this.delegate.allChunks();
+        return null;
     }
 
     @Override
     public Spliterator<Section> allSections() throws IOException {
-        return this.delegate.allSections();
+        return null;
     }
 
     @Override
-    public int refCnt() {
-        return this.delegate.refCnt();
+    public WorldStorage retain() throws AlreadyReleasedException {
+        super.retain();
+        return this;
     }
 
     @Override
-    public WorldProvider retain() throws AlreadyReleasedException {
-        return this.delegate.retain();
-    }
-
-    @Override
-    public boolean release() throws AlreadyReleasedException {
-        return this.delegate.release();
+    protected void doRelease() {
+        try {
+            this.regionCache.close();
+        } catch (IOException e) {
+            throw new RuntimeException();
+        }
     }
 }

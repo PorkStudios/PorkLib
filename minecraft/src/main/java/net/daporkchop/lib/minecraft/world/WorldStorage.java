@@ -39,13 +39,13 @@ import java.util.Spliterator;
  * again before the first save operation was completed, the implementation must ensure that, once both save operations are complete, it is the second
  * one that is present on disk.
  * <p>
- * When a world provider is released, it must block until all queued write operations are completed.
+ * When a world storage is released, it must block until all queued write operations are completed.
  * <p>
  * Implementations of this class are expected to be safely usable from multiple threads.
  *
  * @author DaPorkchop_
  */
-public interface WorldProvider extends RefCounted {
+public interface WorldStorage extends RefCounted {
     /**
      * Loads the {@link Chunk} at the given coordinates.
      *
@@ -157,7 +157,7 @@ public interface WorldProvider extends RefCounted {
     int refCnt();
 
     @Override
-    WorldProvider retain() throws AlreadyReleasedException;
+    WorldStorage retain() throws AlreadyReleasedException;
 
     @Override
     boolean release() throws AlreadyReleasedException;

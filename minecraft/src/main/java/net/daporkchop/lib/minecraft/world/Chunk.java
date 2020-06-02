@@ -56,7 +56,7 @@ public interface Chunk extends BlockAccess, LightAccess, IntHolderXZ, RefCounted
     int z();
 
     /**
-     * @return a snapshot of all of the {@link Section}s currently loaded by this chunk
+     * @return a view of all of the {@link Section}s currently loaded by this chunk
      */
     Collection<Section> loadedSections();
 
@@ -66,21 +66,19 @@ public interface Chunk extends BlockAccess, LightAccess, IntHolderXZ, RefCounted
      * @param y the Y coordinate of the {@link Section}
      * @return the {@link Section} at the given Y coordinate, or {@code null} if it wasn't loaded
      */
-    Section section(int y);
+    Section getSection(int y);
 
     /**
      * Gets or loads the {@link Section} at the given Y coordinate.
      * <p>
-     * If {@code load} is {@code true} and the {@link Section} wasn't already loaded, it will be loaded and the method will block until the load is
-     * complete.
+     * If the {@link Section} wasn't already loaded, it will be loaded and the method will block until the load is complete.
      *
      * @param y    the Y coordinate of the {@link Section}
-     * @param load whether or not to load the {@link Section} if it wasn't loaded already
      * @return the {@link Section} at the given Y coordinate
      */
-    default Section section(int y, boolean load) {
-        Section section = this.section(y);
-        return section == null && load ? this.loadSection(y).join() : section;
+    default Section getOrLoadSection(int y) {
+        Section section = this.getSection(y);
+        return section != null ? section : this.loadSection(y).join();
     }
 
     /**
@@ -92,6 +90,11 @@ public interface Chunk extends BlockAccess, LightAccess, IntHolderXZ, RefCounted
      * @return a future which will be completed with the {@link Section} at the given Y coordinate
      */
     PFuture<Section> loadSection(int y);
+
+    /**
+     * @return a completed {@link PFuture} with this chunk, shared in order to minimize allocations
+     */
+    PFuture<Chunk> selfFuture();
 
     @Override
     int refCnt();

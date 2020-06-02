@@ -22,6 +22,7 @@ package net.daporkchop.lib.minecraft.format.common;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
 import net.daporkchop.lib.concurrent.PFuture;
@@ -38,39 +39,35 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
+import static net.daporkchop.lib.common.util.PValidation.*;
+
 /**
  * Base implementation of {@link World}.
  *
  * @author DaPorkchop_
  */
+@RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
 public abstract class AbstractWorld<S extends Save, O extends SaveOptions> extends AbstractRefCounted implements World {
+    @NonNull
     protected final S parent;
+    @NonNull
     protected final O options;
+    @NonNull
     protected final Identifier id;
-    protected final BlockRegistry blockRegistry;
 
-    protected final ChunkManager chunkManager;
-    protected final WorldStorage storage;
+    protected BlockRegistry blockRegistry;
+    protected ChunkManager chunkManager;
+    protected WorldStorage storage;
 
-    public AbstractWorld(@NonNull S parent, @NonNull O options, @NonNull Identifier id) {
-        this.parent = parent;
-        this.options = options;
-
-        this.id = id;
-
-        this.blockRegistry = this.getBlockRegistry0();
-        this.storage = this.getStorage0();
-        this.chunkManager = this.getChunkManager0();
-    }
-
-    protected abstract BlockRegistry getBlockRegistry0();
-
-    protected abstract WorldStorage getStorage0();
-
-    protected ChunkManager getChunkManager0() {
-        return new ChunkManager(this, this.options.ioExecutor());
+    /**
+     * Ensures that the implementation constructor has initialized all the required fields.
+     */
+    protected void validateState() {
+        checkState(this.blockRegistry != null, "blockRegistry must be set!");
+        checkState(this.chunkManager != null, "chunkManager must be set!");
+        checkState(this.storage != null, "storage must be set!");
     }
 
     @Override

@@ -23,13 +23,13 @@ package net.daporkchop.lib.minecraft.save;
 import lombok.NonNull;
 import net.daporkchop.lib.common.misc.refcount.RefCounted;
 import net.daporkchop.lib.concurrent.PFuture;
-import net.daporkchop.lib.minecraft.registry.DimensionRegistry;
 import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * Representation of a Minecraft save, consisting of one or more {@link World}s identified by numeric IDs and {@link Identifier}s.
@@ -45,21 +45,21 @@ public interface Save extends RefCounted {
     File root();
 
     /**
-     * @return a registry of all available dimensions in this save
+     * @return the {@link Identifier}s of all of the worlds present in this save
      */
-    DimensionRegistry dimensions();
+    Set<Identifier> allWorlds();
 
     /**
-     * @return a snapshot of all of the {@link World}s currently loaded by this save
+     * @return a view of all of the {@link World}s currently loaded by this save
      */
-    Collection<World> loadedWorlds();
+    Set<World> loadedWorlds();
 
     /**
      * Gets the already loaded {@link World} with the given {@link Identifier}.
      *
      * @param id the {@link Identifier} of the {@link World}
      * @return the {@link World} with the given {@link Identifier}, or {@link null} if it wasn't loaded
-     * @throws IllegalArgumentException if the given {@link Identifier} isn't known by {@link #dimensions()}
+     * @throws IllegalArgumentException if no world the given {@link Identifier} exists in this save
      */
     World world(@NonNull Identifier id);
 
@@ -68,7 +68,7 @@ public interface Save extends RefCounted {
      *
      * @param id the {@link Identifier} of the {@link World}
      * @return a future which will be completed with the {@link World} with the given {@link Identifier}
-     * @throws IllegalArgumentException if the given {@link Identifier} isn't known by {@link #dimensions()}
+     * @throws IllegalArgumentException if no world the given {@link Identifier} exists in this save
      */
     PFuture<World> loadWorld(@NonNull Identifier id);
 

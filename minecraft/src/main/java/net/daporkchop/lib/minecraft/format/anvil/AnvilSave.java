@@ -20,29 +20,43 @@
 
 package net.daporkchop.lib.minecraft.format.anvil;
 
-import lombok.NonNull;
+import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.minecraft.format.common.AbstractSave;
-import net.daporkchop.lib.minecraft.registry.DimensionRegistry;
+import net.daporkchop.lib.minecraft.format.common.SimpleDimension;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
+import net.daporkchop.lib.minecraft.util.Identifier;
+import net.daporkchop.lib.minecraft.world.Dimension;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author DaPorkchop_
  */
 public class AnvilSave extends AbstractSave<AnvilSaveOptions> {
-    public AnvilSave(@NonNull File root, @NonNull SaveOptions options, @NonNull CompoundTag levelData) {
-        super(root, options, levelData);
+    protected final Map<Identifier, Dimension> worlds;
+
+    public AnvilSave(SaveOptions options, CompoundTag levelData, File root) {
+        super(new AnvilSaveOptions(options), levelData, root);
+
+        this.worlds = this.findWorlds();
+        this.allWorlds = Collections.unmodifiableSet(this.worlds.keySet());
+
+        this.validateState();
     }
 
-    @Override
-    protected AnvilSaveOptions processOptions(@NonNull SaveOptions options) {
-        return options instanceof AnvilSaveOptions ? (AnvilSaveOptions) options.clone() : new AnvilSaveOptions(options);
-    }
-
-    @Override
-    protected DimensionRegistry findDimensions() {
-        return DimensionRegistry.DEFAULT_JAVA; //TODO: find actual dimensions
+    protected Map<Identifier, Dimension> findWorlds() {
+        Map<Identifier, Dimension> worlds = new HashMap<>(4);
+        worlds.put(Dimension.ID_OVERWORLD, new SimpleDimension(Dimension.ID_OVERWORLD, 0, true, true));
+        if (PFiles.checkDirectoryExists(new File(this.root, "DIM-1"))) {
+            worlds.put(Dimension.ID_NETHER, new SimpleDimension(Dimension.ID_NETHER, -1, false, false));
+        }
+        if (PFiles.checkDirectoryExists(new File(this.root, "DIM1"))) {
+            worlds.put(Dimension.ID_END, new SimpleDimension(Dimension.ID_END, 1, false, false));
+        }
+        return worlds;
     }
 }

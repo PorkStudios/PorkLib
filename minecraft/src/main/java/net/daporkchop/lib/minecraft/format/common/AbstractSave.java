@@ -22,11 +22,10 @@ package net.daporkchop.lib.minecraft.format.common;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
 import net.daporkchop.lib.concurrent.PFuture;
-import net.daporkchop.lib.minecraft.registry.BlockRegistry;
-import net.daporkchop.lib.minecraft.registry.DimensionRegistry;
 import net.daporkchop.lib.minecraft.save.Save;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
 import net.daporkchop.lib.minecraft.util.Identifier;
@@ -35,38 +34,39 @@ import net.daporkchop.lib.nbt.tag.CompoundTag;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.File;
-import java.util.Collection;
+import java.util.Set;
+
+import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
  * Base implementation of {@link Save}.
  *
  * @author DaPorkchop_
  */
+@RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
 public abstract class AbstractSave<O extends SaveOptions> extends AbstractRefCounted implements Save {
+    @NonNull
     protected final O options;
+    @NonNull
     protected final CompoundTag levelData;
+    @NonNull
     protected final File root;
 
-    protected final DimensionRegistry dimensions;
+    protected Set<Identifier> allWorlds;
 
     //protected final BlockRegistry blocks;
 
-    public AbstractSave(@NonNull File root, @NonNull SaveOptions options, @NonNull CompoundTag levelData) {
-        this.levelData = levelData;
-        this.root = root;
-        (this.options = this.processOptions(options)).validate();
-
-        this.dimensions = this.findDimensions();
+    /**
+     * Ensures that the implementation constructor has initialized all the required fields.
+     */
+    protected void validateState() {
+        checkState(this.allWorlds != null, "allWorlds must be set!");
     }
 
-    protected abstract O processOptions(@NonNull SaveOptions options);
-
-    protected abstract DimensionRegistry findDimensions();
-
     @Override
-    public Collection<World> loadedWorlds() {
+    public Set<World> loadedWorlds() {
         return null;
     }
 

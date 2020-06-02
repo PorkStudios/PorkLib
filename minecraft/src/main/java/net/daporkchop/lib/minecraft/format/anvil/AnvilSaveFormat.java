@@ -53,7 +53,7 @@ public class AnvilSaveFormat implements SaveFormat {
         }
         //System.out.println(levelDat);
         if (levelDat.contains("Data"))  {
-            return new AnvilSave(root, options, levelDat);
+            return new AnvilSave(options, levelDat, root);
         }
         return null;
     }

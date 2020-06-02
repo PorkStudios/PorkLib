@@ -48,6 +48,11 @@ public interface World extends BlockAccess, LightAccess, RefCounted {
     Identifier id();
 
     /**
+     * @return the {@link WorldInfo} which describes this world
+     */
+    WorldInfo info();
+
+    /**
      * @return the {@link WorldStorage} used for handling I/O of chunks and cubes
      */
     WorldStorage storage();
@@ -71,8 +76,8 @@ public interface World extends BlockAccess, LightAccess, RefCounted {
      * <p>
      * If the {@link Chunk} wasn't already loaded, it will be loaded and the method will block until the load is complete.
      *
-     * @param x    the X coordinate of the {@link Chunk}
-     * @param z    the Z coordinate of the {@link Chunk}
+     * @param x the X coordinate of the {@link Chunk}
+     * @param z the Z coordinate of the {@link Chunk}
      * @return the {@link Chunk} at the given coordinates
      */
     default Chunk getOrLoadChunk(int x, int z) {

@@ -18,53 +18,27 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.anvil;
+package net.daporkchop.lib.minecraft.format.common;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.minecraft.format.common.AbstractWorld;
-import net.daporkchop.lib.minecraft.format.common.ChunkManager;
+import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.world.Dimension;
-import net.daporkchop.lib.minecraft.world.WorldInfo;
-
-import java.io.File;
 
 /**
+ * Simple, read-only implementation of {@link Dimension}.
+ *
  * @author DaPorkchop_
  */
+@AllArgsConstructor
+@Getter
 @Accessors(fluent = true)
-public class AnvilWorld extends AbstractWorld<AnvilSave, AnvilSaveOptions> implements WorldInfo {
-    @Getter
-    protected final Dimension dimension;
-
-    public AnvilWorld(AnvilSave parent, AnvilSaveOptions options, @NonNull Dimension dimension) {
-        super(parent, options, dimension.id());
-
-        this.dimension = dimension;
-
-        this.blockRegistry = null; //TODO
-
-        File root = dimension.legacyId() == 0 ? parent.root() : new File(parent.root(), "DIM" + dimension.legacyId());
-        this.storage = new AnvilWorldStorage(root, options);
-
-        this.chunkManager = new ChunkManager(this, this.storage, options.ioExecutor());
-
-        this.validateState();
-    }
-
-    @Override
-    public WorldInfo info() {
-        return this;
-    }
-
-    @Override
-    public int layers() {
-        return 1;
-    }
-
-    @Override
-    public boolean hasSkyLight() {
-        return this.dimension.hasSkyLight();
-    }
+public final class SimpleDimension implements Dimension {
+    @NonNull
+    protected final Identifier id;
+    protected final int legacyId;
+    protected final boolean hasSkyLight;
+    protected final boolean hasPrecipitation;
 }

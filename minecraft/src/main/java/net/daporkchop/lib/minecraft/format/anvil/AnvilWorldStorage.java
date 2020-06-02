@@ -49,7 +49,7 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
         this.root = PFiles.ensureDirectoryExists(root);
         this.options = options;
 
-        this.regionCache = new RegionFileCache(options, PFiles.ensureDirectoryExists(new File(root, "region")));
+        this.regionCache = new RegionFileCache(options, new File(root, "region"));
     }
 
     @Override

@@ -20,7 +20,9 @@
 
 package net.daporkchop.lib.minecraft.format.common;
 
+import lombok.AllArgsConstructor;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.math.BinMath;
 import net.daporkchop.lib.concurrent.PFuture;
 import net.daporkchop.lib.concurrent.PFutures;
@@ -41,19 +43,17 @@ import java.util.stream.Stream;
  * @author DaPorkchop_
  */
 //this could be improved by maintaining separate maps for loaded and loading chunks, but it'll become a race condition mess
+@RequiredArgsConstructor
 public class ChunkManager {
+    @NonNull
     protected final World world;
+    @NonNull
     protected final WorldStorage provider;
+    @NonNull
     protected final Executor ioExecutor;
 
     protected final LongObjMap<PFuture<Chunk>> chunks = new LongObjConcurrentHashMap<>();
     protected final LongFunction<PFuture<Chunk>> computeChunkFunction = this::computeChunk0;
-
-    public ChunkManager(@NonNull World world, @NonNull Executor ioExecutor) {
-        this.world = world;
-        this.provider = world.storage();
-        this.ioExecutor = ioExecutor;
-    }
 
     protected PFuture<Chunk> computeChunk0(long key) {
         return PFutures.computeThrowableAsync(() -> this.provider.loadChunk(this.world, BinMath.unpackX(key), BinMath.unpackY(key)), this.ioExecutor);

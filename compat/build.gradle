@@ -18,40 +18,5 @@
  *
  */
 
-sourceSets {
-    orig
-    generated
-}
-
 dependencies {
-    //orig
-    origCompileOnly "org.projectlombok:lombok:$lombokVersion"
-    origAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
-
-    //generated
-    generatedCompile sourceSets.orig.output
-
-    generatedCompileOnly "org.projectlombok:lombok:$lombokVersion"
-    generatedAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
-
-    //main
-    compile sourceSets.orig.output
-    compile sourceSets.generated.output
-}
-
-compileOrigJava.dependsOn(":primitive:generator:gen")
-compileGeneratedJava.dependsOn(compileOrigJava)
-compileJava.dependsOn(compileGeneratedJava)
-
-task deleteSource(type: Delete) {
-    delete "src/generated"
-    delete "src/test"
-}
-
-clean.dependsOn(deleteSource)
-
-jar {
-    from sourceSets.main.output
-    from sourceSets.orig.output
-    from sourceSets.generated.output
 }

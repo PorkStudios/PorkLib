@@ -18,40 +18,30 @@
  *
  */
 
-sourceSets {
-    orig
-    generated
-}
+package net.daporkchop.lib.compat.datafix;
 
-dependencies {
-    //orig
-    origCompileOnly "org.projectlombok:lombok:$lombokVersion"
-    origAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
+import lombok.NonNull;
 
-    //generated
-    generatedCompile sourceSets.orig.output
+/**
+ * A function which is able to decode values at a specific version.
+ *
+ * @author DaPorkchop_
+ * @see DataFixer
+ */
+public interface DataCodec<O, D> {
+    /**
+     * Decodes the given data.
+     *
+     * @param data the data to decode
+     * @return the decoded value
+     */
+    O decode(@NonNull D data);
 
-    generatedCompileOnly "org.projectlombok:lombok:$lombokVersion"
-    generatedAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
-
-    //main
-    compile sourceSets.orig.output
-    compile sourceSets.generated.output
-}
-
-compileOrigJava.dependsOn(":primitive:generator:gen")
-compileGeneratedJava.dependsOn(compileOrigJava)
-compileJava.dependsOn(compileGeneratedJava)
-
-task deleteSource(type: Delete) {
-    delete "src/generated"
-    delete "src/test"
-}
-
-clean.dependsOn(deleteSource)
-
-jar {
-    from sourceSets.main.output
-    from sourceSets.orig.output
-    from sourceSets.generated.output
+    /**
+     * Encodes the given value.
+     *
+     * @param value the value to encode
+     * @return the encoded data
+     */
+    D encode(@NonNull O value);
 }

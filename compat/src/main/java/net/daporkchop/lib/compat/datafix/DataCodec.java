@@ -28,7 +28,7 @@ import lombok.NonNull;
  * @author DaPorkchop_
  * @see DataFixer
  */
-public interface DataCodec<D, O> {
+public interface DataCodec<O, D> {
     /**
      * Decodes the given data.
      *

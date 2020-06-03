@@ -32,10 +32,9 @@ import java.util.TreeMap;
  *
  * @author DaPorkchop_
  */
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class DataFixerBuilder<D, O, V extends Comparable<V>> {
+public class DataFixerBuilder<O, D, V extends Comparable<V>> {
     protected final Map<V, DataConverter<D>> converters = new TreeMap<>();
-    protected final Map<V, DataCodec<D, O>> codecs = new TreeMap<>();
+    protected final Map<V, DataCodec<O, D>> codecs = new TreeMap<>();
 
     /**
      * Adds a new {@link DataConverter} which is required to convert data to the given version.
@@ -44,7 +43,7 @@ public class DataFixerBuilder<D, O, V extends Comparable<V>> {
      * @param converter the {@link DataConverter} to add
      * @return this builder
      */
-    public synchronized DataFixerBuilder<D, O, V> addConverter(@NonNull V version, @NonNull DataConverter<D> converter) {
+    public synchronized DataFixerBuilder<O, D, V> addConverter(@NonNull V version, @NonNull DataConverter<D> converter) {
         this.converters.merge(version, converter, DataConverter::andThen);
         return this;
     }
@@ -58,12 +57,12 @@ public class DataFixerBuilder<D, O, V extends Comparable<V>> {
      * @param codec   the {@link DataCodec} to use
      * @return this builder
      */
-    public synchronized DataFixerBuilder<D, O, V> addCodec(@NonNull V version, @NonNull DataCodec<D, O> codec) {
+    public synchronized DataFixerBuilder<O, D, V> addCodec(@NonNull V version, @NonNull DataCodec<O, D> codec) {
         this.codecs.put(version, codec);
         return this;
     }
 
-    public synchronized DataFixer<D, O, V> build() {
+    public synchronized DataFixer<O, D, V> build() {
         return new DataFixer<>(this.converters, this.codecs);
     }
 }

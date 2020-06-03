@@ -36,15 +36,15 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  * @param <V> the type of version used to identify the processor chain required to handle data at a given version
  * @author DaPorkchop_
  */
-public class DataFixer<D, O, V extends Comparable<V>> {
-    public static <D, O, V extends Comparable<V>> DataFixerBuilder<D, O, V> builder() {
+public class DataFixer<O, D, V extends Comparable<V>> {
+    public static <O, D, V extends Comparable<V>> DataFixerBuilder<O, D, V> builder() {
         return new DataFixerBuilder<>();
     }
 
     protected final NavigableMap<V, DataConverter<D>> converters;
-    protected final NavigableMap<V, DataCodec<D, O>> codecs;
+    protected final NavigableMap<V, DataCodec<O, D>> codecs;
 
-    protected DataFixer(@NonNull Map<V, DataConverter<D>> converters, @NonNull Map<V, DataCodec<D, O>> codecs) {
+    protected DataFixer(@NonNull Map<V, DataConverter<D>> converters, @NonNull Map<V, DataCodec<O, D>> codecs) {
         this.converters = new TreeMap<>(converters);
         this.codecs = new TreeMap<>(codecs);
     }
@@ -77,7 +77,7 @@ public class DataFixer<D, O, V extends Comparable<V>> {
      * @throws IllegalArgumentException if no suitable codec for the given target version could be found
      */
     public O decode(@NonNull D data, @NonNull V dataVersion, @NonNull V targetVersion) {
-        DataCodec<D, O> codec = this.codecs.get(targetVersion);
+        DataCodec<O, D> codec = this.codecs.get(targetVersion);
         checkArg(codec != null, "no codec registered for given targetVersion (%s)", targetVersion);
         return codec.decode(this.upgrade(data, dataVersion, targetVersion));
     }
@@ -110,7 +110,7 @@ public class DataFixer<D, O, V extends Comparable<V>> {
      * @throws IllegalArgumentException if no suitable codec for the given target version could be found
      */
     public D encode(@NonNull O value, @NonNull V valueVersion) {
-        DataCodec<D, O> codec = this.codecs.get(valueVersion);
+        DataCodec<O, D> codec = this.codecs.get(valueVersion);
         checkArg(codec != null, "no codec registered for given valueVersion (%s)", valueVersion);
         return codec.encode(value);
     }

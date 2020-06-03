@@ -28,8 +28,8 @@ import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * Representation of a Minecraft save, consisting of one or more {@link World}s identified by numeric IDs and {@link Identifier}s.
@@ -47,30 +47,21 @@ public interface Save extends RefCounted {
     /**
      * @return the {@link Identifier}s of all of the worlds present in this save
      */
-    Set<Identifier> allWorlds();
+    Set<Identifier> worldIds();
 
     /**
-     * @return a view of all of the {@link World}s currently loaded by this save
+     * @return a stream over all of the {@link World}s currently loaded by this save
      */
-    Set<World> loadedWorlds();
+    Stream<World> worlds();
 
     /**
-     * Gets the already loaded {@link World} with the given {@link Identifier}.
+     * Gets the {@link World} with the given {@link Identifier}.
      *
      * @param id the {@link Identifier} of the {@link World}
-     * @return the {@link World} with the given {@link Identifier}, or {@link null} if it wasn't loaded
+     * @return the {@link World} with the given {@link Identifier}
      * @throws IllegalArgumentException if no world the given {@link Identifier} exists in this save
      */
     World world(@NonNull Identifier id);
-
-    /**
-     * Gets or loads the {@link World} with the given {@link Identifier}.
-     *
-     * @param id the {@link Identifier} of the {@link World}
-     * @return a future which will be completed with the {@link World} with the given {@link Identifier}
-     * @throws IllegalArgumentException if no world the given {@link Identifier} exists in this save
-     */
-    PFuture<World> loadWorld(@NonNull Identifier id);
 
     @Override
     Save retain() throws AlreadyReleasedException;

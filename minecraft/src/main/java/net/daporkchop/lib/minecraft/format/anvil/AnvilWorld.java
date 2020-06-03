@@ -24,13 +24,16 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.minecraft.format.common.AbstractWorld;
-import net.daporkchop.lib.minecraft.format.common.ChunkManager;
+import net.daporkchop.lib.minecraft.format.common.DefaultChunkManager;
 import net.daporkchop.lib.minecraft.world.Dimension;
+import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.WorldInfo;
 
 import java.io.File;
 
 /**
+ * Implementation of {@link World} for the Anvil format.
+ *
  * @author DaPorkchop_
  */
 @Accessors(fluent = true)
@@ -45,10 +48,11 @@ public class AnvilWorld extends AbstractWorld<AnvilSave, AnvilSaveOptions> imple
 
         this.blockRegistry = null; //TODO
 
+        //anvil is implemented in a way that makes it a real pain to have their dimension be abstracted away from the individual worlds
         File root = dimension.legacyId() == 0 ? parent.root() : new File(parent.root(), "DIM" + dimension.legacyId());
-        this.storage = new AnvilWorldStorage(root, options);
+        this.storage = new AnvilWorldStorage(root, options, parent.chunkNBTOptions());
 
-        this.chunkManager = new ChunkManager(this, this.storage, options.ioExecutor());
+        this.chunkManager = new DefaultChunkManager(this, this.storage, options.ioExecutor());
 
         this.validateState();
     }

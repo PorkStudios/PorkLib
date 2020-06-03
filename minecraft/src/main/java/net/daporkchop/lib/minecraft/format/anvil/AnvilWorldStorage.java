@@ -20,16 +20,28 @@
 
 package net.daporkchop.lib.minecraft.format.anvil;
 
+import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
+import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.pool.handle.HandledPool;
+import net.daporkchop.lib.compression.context.PInflater;
+import net.daporkchop.lib.compression.zlib.Zlib;
+import net.daporkchop.lib.compression.zlib.ZlibMode;
+import net.daporkchop.lib.compression.zlib.options.ZlibInflaterOptions;
 import net.daporkchop.lib.concurrent.PFuture;
+import net.daporkchop.lib.minecraft.format.anvil.region.RawChunk;
 import net.daporkchop.lib.minecraft.format.anvil.region.RegionFile;
 import net.daporkchop.lib.minecraft.format.anvil.region.RegionFileCache;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.WorldStorage;
+import net.daporkchop.lib.nbt.NBTFormat;
+import net.daporkchop.lib.nbt.NBTOptions;
+import net.daporkchop.lib.nbt.tag.CompoundTag;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.File;
@@ -40,20 +52,49 @@ import java.util.Spliterator;
  * @author DaPorkchop_
  */
 public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorage {
-    protected final AnvilSaveOptions options;
+    protected static final ZlibInflaterOptions INFLATER_OPTIONS = Zlib.PROVIDER.inflateOptions().withMode(ZlibMode.AUTO);
+    protected static final HandledPool<PInflater> INFLATER_CACHE = HandledPool.threadLocal(() -> Zlib.PROVIDER.inflater(INFLATER_OPTIONS), 1);
+
     protected final File root;
+    protected final AnvilSaveOptions options;
+    protected final NBTOptions nbtOptions;
 
     protected final RegionFile regionCache;
 
-    public AnvilWorldStorage(@NonNull File root, @NonNull AnvilSaveOptions options) {
+    public AnvilWorldStorage(@NonNull File root, @NonNull AnvilSaveOptions options, @NonNull NBTOptions nbtOptions) {
         this.root = PFiles.ensureDirectoryExists(root);
         this.options = options;
+        this.nbtOptions = nbtOptions;
 
         this.regionCache = new RegionFileCache(options, new File(root, "region"));
     }
 
     @Override
     public Chunk loadChunk(@NonNull World parent, int x, int z) throws IOException {
+        CompoundTag tag = null;
+        try {
+            ByteBuf uncompressed = null;
+            try {
+                try (RawChunk chunk = this.regionCache.read(x, z)) {
+                    if (chunk == null) { //chunk doesn't exist on disk
+                        return null;
+                    }
+                    uncompressed = this.options.nettyAlloc().ioBuffer(1 << 18); //256 KiB
+                    try (Handle<PInflater> handle = INFLATER_CACHE.get()) {
+                        handle.get().decompress(chunk.data(), uncompressed);
+                    }
+                } //release compressed chunk data before parsing NBT
+                tag = NBTFormat.BIG_ENDIAN.readCompound(DataIn.wrap(uncompressed, false), this.nbtOptions);
+            } finally { //release uncompressed chunk data before constructing chunk instance
+                if (uncompressed != null) {
+                    uncompressed.release();
+                }
+            }
+        } finally {
+            if (tag != null) {
+                tag.release();
+            }
+        }
         return null;
     }
 

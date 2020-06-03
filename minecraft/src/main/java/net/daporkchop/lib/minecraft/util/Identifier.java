@@ -45,7 +45,7 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  * @author DaPorkchop_
  */
 @Getter
-public final class Identifier {
+public final class Identifier implements Comparable<Identifier> {
     public static final Identifier EMPTY = new Identifier("", "", ":");
 
     protected static final Pattern VALIDATION_PATTERN = Pattern.compile("^(?>minecraft:|([a-zA-Z0-9_]*):)?([a-zA-Z0-9_]*)$");
@@ -134,5 +134,10 @@ public final class Identifier {
     @Override
     public String toString() {
         return this.fullName;
+    }
+
+    @Override
+    public int compareTo(Identifier o) {
+        return this == o ? 0 : this.fullName.compareTo(o.fullName);
     }
 }

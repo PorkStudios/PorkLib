@@ -32,7 +32,7 @@ import net.daporkchop.lib.common.ref.ThreadRef;
 
 /**
  * Implementation of {@link ArrayAllocator} which allocates 2KiB and 4KiB {@code byte[]}s using a simple soft referencing stack-based pool,
- * and creates new arrays for all other sizes.
+ * and falls back to a given alternate {@link ArrayAllocator} for all other array lengths.
  * <p>
  * This is beneficial for the Anvil save format since nearly all memory allocated while parsing a chunk's NBT will be 2- and 4KiB {@code byte[]}s.
  *

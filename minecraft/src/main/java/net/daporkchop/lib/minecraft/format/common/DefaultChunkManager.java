@@ -27,6 +27,7 @@ import net.daporkchop.lib.common.math.BinMath;
 import net.daporkchop.lib.concurrent.PFuture;
 import net.daporkchop.lib.concurrent.PFutures;
 import net.daporkchop.lib.minecraft.world.Chunk;
+import net.daporkchop.lib.minecraft.world.ChunkManager;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.WorldStorage;
 import net.daporkchop.lib.primitive.map.LongObjMap;
@@ -44,7 +45,7 @@ import java.util.stream.Stream;
  */
 //this could be improved by maintaining separate maps for loaded and loading chunks, but it'll become a race condition mess
 @RequiredArgsConstructor
-public class ChunkManager {
+public class DefaultChunkManager implements ChunkManager {
     @NonNull
     protected final World world;
     @NonNull
@@ -59,34 +60,31 @@ public class ChunkManager {
         return PFutures.computeThrowableAsync(() -> this.provider.loadChunk(this.world, BinMath.unpackX(key), BinMath.unpackY(key)), this.ioExecutor);
     }
 
+    @Override
     public Stream<Chunk> loadedChunks() {
         return this.chunks.values().stream()
                 .map(PFuture::getNow)
                 .filter(Objects::nonNull);
     }
 
+    @Override
     public Chunk getChunk(int x, int z) {
         PFuture<Chunk> future = this.chunks.get(BinMath.packXY(x, z));
         return future != null ? future.getNow() : null;
     }
 
+    @Override
     public Chunk getOrLoadChunk(int x, int z) {
         return this.chunks.computeIfAbsent(BinMath.packXY(x, z), this.computeChunkFunction).join();
     }
 
+    @Override
     public PFuture<Chunk> loadChunk(int x, int z) {
         return this.chunks.computeIfAbsent(BinMath.packXY(x, z), this.computeChunkFunction);
     }
 
-    public boolean unloadChunk(int x, int z)   {
-        return false; //TODO
-    }
-
-    public void unloadSomeChunks()  {
-        this.unloadAllChunks();
-    }
-
-    public void unloadAllChunks()  {
-        this.loadedChunks().forEach(chunk -> this.unloadChunk(chunk.x(), chunk.z()));
+    @Override
+    public void gc(boolean full)  {
+        //TODO
     }
 }

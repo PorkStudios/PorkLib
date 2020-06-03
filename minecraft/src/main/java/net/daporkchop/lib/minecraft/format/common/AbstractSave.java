@@ -34,7 +34,11 @@ import net.daporkchop.lib.nbt.tag.CompoundTag;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 
@@ -54,7 +58,8 @@ public abstract class AbstractSave<O extends SaveOptions> extends AbstractRefCou
     @NonNull
     protected final File root;
 
-    protected Set<Identifier> allWorlds;
+    protected final Map<Identifier, World> worlds = new HashMap<>();
+    protected final Set<Identifier> worldIds = Collections.unmodifiableSet(this.worlds.keySet());
 
     //protected final BlockRegistry blocks;
 
@@ -62,22 +67,18 @@ public abstract class AbstractSave<O extends SaveOptions> extends AbstractRefCou
      * Ensures that the implementation constructor has initialized all the required fields.
      */
     protected void validateState() {
-        checkState(this.allWorlds != null, "allWorlds must be set!");
     }
 
     @Override
-    public Set<World> loadedWorlds() {
-        return null;
+    public Stream<World> worlds() {
+        return this.worlds.values().stream();
     }
 
     @Override
     public World world(@NonNull Identifier id) {
-        return null;
-    }
-
-    @Override
-    public PFuture<World> loadWorld(@NonNull Identifier id) {
-        return null;
+        World world = this.worlds.get(id);
+        checkArg(world != null, id);
+        return world;
     }
 
     @Override
@@ -89,5 +90,7 @@ public abstract class AbstractSave<O extends SaveOptions> extends AbstractRefCou
     @Override
     protected void doRelease() {
         this.levelData.release();
+        this.worlds.values().forEach(World::release);
+        this.worlds.clear();
     }
 }

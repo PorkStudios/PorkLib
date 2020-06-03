@@ -20,18 +20,19 @@
 
 package net.daporkchop.lib.minecraft.format.common;
 
-import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.math.BinMath;
+import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
 import net.daporkchop.lib.concurrent.PFuture;
 import net.daporkchop.lib.concurrent.PFutures;
 import net.daporkchop.lib.minecraft.world.Chunk;
-import net.daporkchop.lib.minecraft.world.ChunkManager;
+import net.daporkchop.lib.minecraft.world.SectionManager;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.WorldStorage;
 import net.daporkchop.lib.primitive.map.LongObjMap;
 import net.daporkchop.lib.primitive.map.concurrent.LongObjConcurrentHashMap;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.util.Objects;
 import java.util.concurrent.Executor;
@@ -45,11 +46,11 @@ import java.util.stream.Stream;
  */
 //this could be improved by maintaining separate maps for loaded and loading chunks, but it'll become a race condition mess
 @RequiredArgsConstructor
-public class DefaultChunkManager implements ChunkManager {
+public class DefaultSectionManager extends AbstractRefCounted implements SectionManager {
     @NonNull
     protected final World world;
     @NonNull
-    protected final WorldStorage provider;
+    protected final WorldStorage storage;
     @NonNull
     protected final Executor ioExecutor;
 
@@ -57,7 +58,7 @@ public class DefaultChunkManager implements ChunkManager {
     protected final LongFunction<PFuture<Chunk>> computeChunkFunction = this::computeChunk0;
 
     protected PFuture<Chunk> computeChunk0(long key) {
-        return PFutures.computeThrowableAsync(() -> this.provider.loadChunk(this.world, BinMath.unpackX(key), BinMath.unpackY(key)), this.ioExecutor);
+        return PFutures.computeThrowableAsync(() -> this.storage.loadChunk(this.world, BinMath.unpackX(key), BinMath.unpackY(key)), this.ioExecutor);
     }
 
     @Override
@@ -84,7 +85,32 @@ public class DefaultChunkManager implements ChunkManager {
     }
 
     @Override
-    public void gc(boolean full)  {
+    public void gc(boolean full) {
+        this.ensureNotReleased();
+        if (full)   {
+            this.fullGc();
+        } else {
+            this.partialGc();
+        }
+    }
+
+    protected void partialGc()    {
         //TODO
+    }
+
+    protected void fullGc()    {
+        //TODO
+    }
+
+    @Override
+    public SectionManager retain() throws AlreadyReleasedException {
+        super.retain();
+        return this;
+    }
+
+    @Override
+    protected void doRelease() {
+        this.fullGc();
+        this.storage.release();
     }
 }

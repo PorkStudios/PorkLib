@@ -18,22 +18,10 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.save.codec;
-
-import lombok.NonNull;
-import net.daporkchop.lib.minecraft.world.Section;
-import net.daporkchop.lib.nbt.tag.CompoundTag;
+package net.daporkchop.lib.minecraft.format.anvil.chunk;
 
 /**
- * Encodes/decodes a {@link Section} to/from its {@link CompoundTag} form.
- *
  * @author DaPorkchop_
- * @see MinecraftCodec
  */
-public interface SectionCodec extends MinecraftCodec<Section> {
-    @Override
-    Section decode(@NonNull CompoundTag tag, int dataVersion);
-
-    @Override
-    EncodedObject encode(@NonNull Section section);
+public class VanillaAnvilChunk {
 }

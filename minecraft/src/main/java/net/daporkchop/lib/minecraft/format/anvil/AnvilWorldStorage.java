@@ -27,6 +27,7 @@ import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.pool.handle.HandledPool;
+import net.daporkchop.lib.compat.datafix.DataFixer;
 import net.daporkchop.lib.compression.context.PInflater;
 import net.daporkchop.lib.compression.zlib.Zlib;
 import net.daporkchop.lib.compression.zlib.ZlibMode;
@@ -61,12 +62,19 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
 
     protected final RegionFile regionCache;
 
-    public AnvilWorldStorage(@NonNull File root, @NonNull AnvilSaveOptions options, @NonNull NBTOptions nbtOptions) {
+    protected final Integer worldVersion;
+    protected final DataFixer<Chunk, CompoundTag, Integer> chunkFixer;
+
+    public AnvilWorldStorage(@NonNull File root, @NonNull AnvilSaveOptions options, @NonNull NBTOptions nbtOptions, Integer worldVersion) {
         this.root = PFiles.ensureDirectoryExists(root);
         this.options = options;
         this.nbtOptions = nbtOptions;
+        this.worldVersion = worldVersion;
 
         this.regionCache = new RegionFileCache(options, new File(root, "region"));
+
+        this.chunkFixer = DataFixer.<Chunk, CompoundTag, Integer>builder()
+                .build();
     }
 
     @Override
@@ -90,12 +98,15 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
                     uncompressed.release();
                 }
             }
+            int dataVersion = tag.getInt("DataVersion", 0);
+            return this.worldVersion == null
+                   ? this.chunkFixer.decode(tag, dataVersion) //if worldVersion is null, the world is in read-only mode which means we should only do minimal fixing
+                   : this.chunkFixer.decode(tag, dataVersion, this.worldVersion); //upgrade chunk to the same data version as the world itself
         } finally {
             if (tag != null) {
                 tag.release();
             }
         }
-        return null;
     }
 
     /**
@@ -159,6 +170,7 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
     @Override
     protected void doRelease() {
         try {
+            this.flush();
             this.regionCache.close();
         } catch (IOException e) {
             throw new RuntimeException();

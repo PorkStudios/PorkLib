@@ -18,28 +18,26 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.save.codec;
+package net.daporkchop.lib.minecraft.format.anvil.version;
 
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.nbt.tag.Tag;
-
-import static java.lang.Math.*;
+import net.daporkchop.lib.compat.datafix.DataCodec;
+import net.daporkchop.lib.minecraft.world.Chunk;
+import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
- * Wrapper around an encoded value, allowing codecs to specify the data version that an object was encoded with.
+ * Codec for serialization of chunks in the pre-flattening format used by Minecraft versions 1.12.2 and older.
  *
  * @author DaPorkchop_
  */
-@Getter
-@Accessors(fluent = true)
-public final class EncodedObject {
-    protected final Tag value;
-    protected final int dataVersion;
+public class AnvilChunkCodec1_12_2 implements DataCodec<Chunk, CompoundTag> {
+    @Override
+    public Chunk decode(@NonNull CompoundTag root) {
+        CompoundTag level = root.getCompound("Level");
+    }
 
-    public EncodedObject(@NonNull Tag value, int dataVersion) {
-        this.value = value;
-        this.dataVersion = max(dataVersion, 0);
+    @Override
+    public CompoundTag encode(@NonNull Chunk value) {
+        throw new UnsupportedOperationException(); //TODO
     }
 }

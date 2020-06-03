@@ -22,6 +22,7 @@ package net.daporkchop.lib.minecraft.world;
 
 import net.daporkchop.lib.common.misc.refcount.RefCounted;
 import net.daporkchop.lib.concurrent.PFuture;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.util.stream.Stream;
 
@@ -30,7 +31,7 @@ import java.util.stream.Stream;
  *
  * @author DaPorkchop_
  */
-public interface ChunkManager extends RefCounted {
+public interface SectionManager extends RefCounted {
     /**
      * @return a stream over all currently loaded chunks
      */
@@ -77,4 +78,13 @@ public interface ChunkManager extends RefCounted {
      *             and sections deemed to be "no longer needed" by the implementation will be unloaded.
      */
     void gc(boolean full);
+
+    @Override
+    int refCnt();
+
+    @Override
+    SectionManager retain() throws AlreadyReleasedException;
+
+    @Override
+    boolean release() throws AlreadyReleasedException;
 }

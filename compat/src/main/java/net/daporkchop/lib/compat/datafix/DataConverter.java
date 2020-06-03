@@ -21,6 +21,9 @@
 package net.daporkchop.lib.compat.datafix;
 
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+
+import static net.daporkchop.lib.common.util.PorkUtil.*;
 
 /**
  * A function which is able to convert encoded data from an older version to a newer one.
@@ -37,4 +40,38 @@ public interface DataConverter<D> {
      * @return the converted data. Implementations may modify and return the input data
      */
     D convert(@NonNull D data);
+
+    default DataConverter<D> andThen(@NonNull DataConverter<D> other) {
+        return new Multi<>(uncheckedCast(new DataConverter[]{
+                this,
+                other
+        }));
+    }
+
+    /**
+     * Executes a series of other {@link DataConverter}s.
+     *
+     * @author DaPorkchop_
+     */
+    @RequiredArgsConstructor
+    final class Multi<D> implements DataConverter<D> {
+        @NonNull
+        protected final DataConverter<D>[] converters;
+
+        @Override
+        public D convert(@NonNull D data) {
+            for (DataConverter<D> converter : this.converters) {
+                data = converter.convert(data);
+            }
+            return data;
+        }
+
+        @Override
+        public DataConverter<D> andThen(@NonNull DataConverter<D> other) {
+            DataConverter<D>[] converters = uncheckedCast(new DataConverter[this.converters.length + 1]);
+            System.arraycopy(this.converters, 0, converters, 0, this.converters.length);
+            converters[this.converters.length] = other;
+            return new Multi<>(converters);
+        }
+    }
 }

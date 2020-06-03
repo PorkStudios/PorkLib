@@ -22,6 +22,12 @@ package net.daporkchop.lib.compat.datafix;
 
 import lombok.NonNull;
 
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.TreeMap;
+
+import static net.daporkchop.lib.common.util.PValidation.*;
+
 /**
  * A completed datafix configuration.
  *
@@ -30,7 +36,19 @@ import lombok.NonNull;
  * @param <V> the type of version used to identify the processor chain required to handle data at a given version
  * @author DaPorkchop_
  */
-public final class DataFixer<D, O, V extends Comparable<V>> {
+public class DataFixer<D, O, V extends Comparable<V>> {
+    public static <D, O, V extends Comparable<V>> DataFixerBuilder<D, O, V> builder() {
+        return new DataFixerBuilder<>();
+    }
+
+    protected final NavigableMap<V, DataConverter<D>> converters;
+    protected final NavigableMap<V, DataCodec<D, O>> codecs;
+
+    protected DataFixer(@NonNull Map<V, DataConverter<D>> converters, @NonNull Map<V, DataCodec<D, O>> codecs) {
+        this.converters = new TreeMap<>(converters);
+        this.codecs = new TreeMap<>(codecs);
+    }
+
     /**
      * Decodes the given data.
      * <p>
@@ -41,7 +59,9 @@ public final class DataFixer<D, O, V extends Comparable<V>> {
      * @return the decoded value
      */
     public O decode(@NonNull D data, @NonNull V dataVersion) {
-        return null;
+        V targetVersion = this.codecs.ceilingKey(dataVersion);
+        checkArg(targetVersion != null, "unable to find codec to decode from dataVersion (%s)", dataVersion);
+        return this.decode(data, dataVersion, targetVersion);
     }
 
     /**
@@ -57,7 +77,9 @@ public final class DataFixer<D, O, V extends Comparable<V>> {
      * @throws IllegalArgumentException if no suitable codec for the given target version could be found
      */
     public O decode(@NonNull D data, @NonNull V dataVersion, @NonNull V targetVersion) {
-        return null;
+        DataCodec<D, O> codec = this.codecs.get(targetVersion);
+        checkArg(codec != null, "no codec registered for given targetVersion (%s)", targetVersion);
+        return codec.decode(this.upgrade(data, dataVersion, targetVersion));
     }
 
     /**
@@ -70,6 +92,26 @@ public final class DataFixer<D, O, V extends Comparable<V>> {
      * @throws IllegalArgumentException if the given data version is newer than the target version
      */
     public D upgrade(@NonNull D data, @NonNull V dataVersion, @NonNull V targetVersion) {
+        checkArg(dataVersion.compareTo(targetVersion) <= 0, "dataVersion (%s) may not be higher than targetVersion (%s)", dataVersion, targetVersion);
+        for (DataConverter<D> converter : this.converters.subMap(dataVersion, false, targetVersion, true).values()) {
+            data = converter.convert(data);
+        }
         return data;
+    }
+
+    /**
+     * Encodes the given value.
+     * <p>
+     * This will attempt to encode the value at exactly its current version.
+     *
+     * @param value        the value to encode. Will not be modified
+     * @param valueVersion the version that the value's data is currently at
+     * @return the encoded value
+     * @throws IllegalArgumentException if no suitable codec for the given target version could be found
+     */
+    public D encode(@NonNull O value, @NonNull V valueVersion) {
+        DataCodec<D, O> codec = this.codecs.get(valueVersion);
+        checkArg(codec != null, "no codec registered for given valueVersion (%s)", valueVersion);
+        return codec.encode(value);
     }
 }

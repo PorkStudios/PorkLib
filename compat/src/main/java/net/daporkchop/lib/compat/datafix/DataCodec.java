@@ -28,13 +28,20 @@ import lombok.NonNull;
  * @author DaPorkchop_
  * @see DataFixer
  */
-@FunctionalInterface
-public interface DataCodec<V, D> {
+public interface DataCodec<D, O> {
     /**
      * Decodes the given data.
      *
      * @param data the data to decode
      * @return the decoded value
      */
-    V decode(@NonNull D data);
+    O decode(@NonNull D data);
+
+    /**
+     * Encodes the given value.
+     *
+     * @param value the value to encode
+     * @return the encoded data
+     */
+    D encode(@NonNull O value);
 }

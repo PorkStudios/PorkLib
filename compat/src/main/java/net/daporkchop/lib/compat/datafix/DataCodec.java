@@ -18,45 +18,23 @@
  *
  */
 
-rootProject.name = 'PorkLib'
+package net.daporkchop.lib.compat.datafix;
 
-include 'binary'
-include 'collections'
-include 'common'
-include 'compat'
-include 'compression'
-include 'compression:zlib'
-include 'compression:zstd'
-include 'concurrent'
-include 'crypto'
-include 'encoding'
-include 'encoding:config'
-include 'encoding:nbt'
-include 'gui'
-include 'hash'
-include 'http'
-include 'http:http-netty'
-include 'imaging'
-include 'logging'
-include 'math'
-include 'minecraft'
-include 'minecraft:minecraft-text'
-include 'minecraft:minecraft-worldscanner'
-include 'natives'
-include 'netty'
-include 'noise'
-include 'primitive'
-include 'primitive:generator'
-include 'primitive:lambda'
-include 'random'
-include 'reflection'
-include 'unsafe'
+import lombok.NonNull;
 
-findProject(':compression:zlib')?.name = 'compression-zlib'
-findProject(':compression:zstd')?.name = 'compression-zstd'
-findProject(':encoding:config')?.name = 'config'
-findProject(':encoding:nbt')?.name = 'nbt'
-findProject(':http:http-netty')?.name = 'http-netty'
-findProject(':minecraft:minecraft-worldscanner')?.name = 'minecraft-worldscanner'
-findProject(':minecraft:minecraft-text')?.name = 'minecraft-text'
-findProject(':primitive:lambda')?.name = 'primitive-lambda'
+/**
+ * A function which is able to decode values at a specific version.
+ *
+ * @author DaPorkchop_
+ * @see DataFixer
+ */
+@FunctionalInterface
+public interface DataCodec<V, D> {
+    /**
+     * Decodes the given data.
+     *
+     * @param data the data to decode
+     * @return the decoded value
+     */
+    V decode(@NonNull D data);
+}

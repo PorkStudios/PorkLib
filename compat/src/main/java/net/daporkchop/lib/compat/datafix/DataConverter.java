@@ -18,10 +18,23 @@
  *
  */
 
-package net.daporkchop.lib.datafix;
+package net.daporkchop.lib.compat.datafix;
+
+import lombok.NonNull;
 
 /**
+ * A function which is able to convert encoded data from an older version to a newer one.
+ *
  * @author DaPorkchop_
+ * @see DataFixer
  */
-public final class DataFix {
+@FunctionalInterface
+public interface DataConverter<D> {
+    /**
+     * Converts the given data to a new version.
+     *
+     * @param data the data to convert
+     * @return the converted data. Implementations may modify and return the input data
+     */
+    D convert(@NonNull D data);
 }

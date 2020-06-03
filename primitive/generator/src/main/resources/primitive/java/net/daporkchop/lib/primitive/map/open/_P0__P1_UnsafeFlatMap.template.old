@@ -1,0 +1,441 @@
+$$$settings$$$
+{
+    "params": [
+        {
+            "genericName": "K",
+            "blacklist": [
+                "boolean",
+                "float",
+                "double",
+                "Object"
+            ]
+        },
+        {
+            "genericName": "V",
+            "blacklist": [
+                "Object"
+            ]
+        }
+    ]
+}
+_headers_
+
+import net.daporkchop.lib.primitive.collection._P1_Collection;
+import net.daporkchop.lib.primitive.lambda._P0__P1_Consumer;
+import net.daporkchop.lib.primitive.lambda._P0__P1_Function;
+import net.daporkchop.lib.primitive.lambda._P0__P1__P1_Function;
+import net.daporkchop.lib.primitive.lambda._P1__P1__P1_Function;
+import net.daporkchop.lib.primitive.map.Abstract_P0__P1_Map;
+import net.daporkchop.lib.primitive.map._P0__P1_Map;
+import net.daporkchop.lib.primitive.set._P0_Set;
+
+import static net.daporkchop.lib.common.system.PlatformInfo.*;
+
+/**
+ * Implementation of {@link _P0__P1_Map} backed by an open hash table.
+ * <p>
+ * The table implementation is similar to a <a href="https://abseil.io/blog/20180927-swisstables">Swiss Table</a>. Entries are stored
+ * in a flat representation packed into a {@code long[]}, which means that objects are not permitted for use as keys or values.
+ * <p>
+ * This implementation is likely to perform significantly better on systems that allow unaligned memory access.
+ *
+ * @author DaPorkchop_
+ */
+public class _P0__P1_UnsafeFlatMap extends Abstract_P0__P1_Map {
+    protected long[] table;
+    protected Set<Entry_G_> entrySet;
+    protected int size;
+    protected int threshold;
+    protected final float loadFactor;
+
+    public _P0__P1_UnsafeOpenHashMap(int initialCapacity, float loadFactor) {
+        initialCapacity = Math.min(notNegative(initialCapacity, "initialCapacity"), HashMapHelper.MAXIMUM_CAPACITY);
+        checkArg(loadFactor > 0.0f && !Float.isNaN(loadFactor), "Illegal load factor: " + loadFactor);
+        this.loadFactor = loadFactor;
+        this.threshold = HashMapHelper.tableSizeFor(initialCapacity);
+    }
+
+    public _P0__P1_UnsafeOpenHashMap(int initialCapacity) {
+        this(initialCapacity, HashMapHelper.DEFAULT_LOAD_FACTOR);
+    }
+
+    public _P0__P1_UnsafeOpenHashMap() {
+        this.loadFactor = HashMapHelper.DEFAULT_LOAD_FACTOR;
+    }
+
+    public _P0__P1_HashMap(@NonNull _P0__P1_Map_Gextends_ m)    {
+        this();
+        this.putMapEntries(m, false);
+    }
+
+    protected final void putMapEntries(_P0__P1_Map_Gextends_ m, boolean evict) {
+        int s = m.size();
+        if (s > 0) {
+            if (table == null) { // pre-size
+                float ft = ((float) s / loadFactor) + 1.0F;
+                int t = ft < HashMapHelper.MAXIMUM_CAPACITY ? (int) ft : HashMapHelper.MAXIMUM_CAPACITY;
+                if (t > threshold)  {
+                    threshold = tableSizeFor(t);
+                }
+            } else if (s > this.threshold)  {
+                this.resize();
+            }
+            for (Entry_Gextends_ e : m.entrySet()) {
+                _p0_ key = e.getKey();
+                _p1_ value = e.getValue();
+                this.putVal(hash(key), key, value, false, evict);
+            }
+        }
+    }
+
+    @Override
+    public int size()   {
+        return this.size;
+    }
+
+    @Override
+    public boolean isEmpty()    {
+        return this.size == 0;
+    }
+
+    @Override
+    public boolean containsKey(_nameP0_ key)    {
+        return this.getNode(hash(key), key) != null;
+    }
+
+    /**
+     * Checks if the map contains the given value.
+     * <p>
+     * This function checks for a value that is equal to the given value. What exactly constitutes equality
+     * between two values is up to the implementation to decide, although generally it will check using the
+     * {@code ==} operator or {@link Object#equals(Object)}.
+     * <p>
+     * This method will likely require iteration over the entire map.
+     *
+     * @param value the value to check for
+     * @return whether or not the map contains an equal value
+     */
+    boolean containsValue(_nameP1_ value);
+
+    @Override
+    public _p1_ get(_nameP0_ key)   {
+        Node_G_ node = this.getNode(hash(key), key);
+        return node == null ? <1!%this.defaultValue%><1%null%> : e.value;
+    }
+
+    @Override
+    public _p1_ getOrDefault(_nameP0_ key, _p1_ defaultValue)   {
+        Node_G_ node = this.getNode(hash(key), key);
+        return node == null ? defaultValue : e.value;
+    }
+
+    protected Node_G_ getNode(int hash, _nameP0_ key) {
+        Node_G_[] tab = this.table;
+        Node_G_ first, e;
+        int n;
+        if (tab != null && (n = tab.length) > 0 && (first = tab[hash & (n - 1)]) != null) {
+            if (first.hash == hash && eq(key, first.key))   {
+                return first;
+            } else if ((e = first.next) != null) {
+                if (first instanceof TreeNode)  {
+                    return ((TreeNode_G_) first).getTreeNode(hash, key);
+                }
+                do {
+                    if (e.hash == hash && eq(key, e.key))   {
+                        return e;
+                    }
+                } while ((e = e.next) != null);
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public _p1_ put(_p0_ key, _p1_ value)   {
+        return this.putVal(hash(key), key, value, false, true);
+    }
+
+    protected _p1_ putVal(int hash, _p0_ key, _p1_ value, boolean onlyIfAbsent, boolean evict) {
+        Node_G_[] tab = this.table;
+        Node_G_ p;
+        int n, i;
+        if (tab == null || n = tab.length == 0) {
+            n = (tab = this.resize()).length;
+        }
+        if ((p = tab[i = hash & (n - 1)]) == null)  {
+            tab[i] = this.newNode(hash, key, value, null);
+        } else {
+            Node_G_ e;
+            if (p.hash == hash && eq(key, p.key))   {
+                e = p;
+            } else if (p instanceof TreeNode)   {
+                e = ((TreeNode_G_) p).putTreeVal(this, tab, hash, key, value);
+            } else {
+                for (int binCount = 0;; binCount++) {
+                    if ((e = p.next) == null) {
+                        p.next = this.newNode(hash, key, value, null);
+                        if (binCount >= TREEIFY_THRESHOLD - 1) {
+                            this.treeifyBin(tab, hash);
+                        }
+                        break;
+                    } else if (e.hash == hash && eq(key, e.key))   {
+                        break;
+                    }
+                    p = e;
+                }
+            }
+            if (e != null) {
+                _p1_ oldValue = e.value;
+                if (!onlyIfAbsent)  {
+                    e.value = value;
+                }
+                this.afterNodeAccess(e);
+                return oldValue;
+            }
+        }
+        this.modCount++;
+        if (this.size++ > this.threshold)   {
+            this.resize();
+        }
+        this.afterNodeInsertion(evict);
+        return null;
+    }
+
+    /**
+     * Removes the mapping with the given key from this map.
+     *
+     * @return the value previously mapped to the given key, or <1!%{@link #defaultValue()}%><1%{@code null}%> if it did not exist
+     */
+    _p1_ remove(_nameP0_ key);
+
+    /**
+     * Copies all of the mappings from the specified map to this map.
+     * <p>
+     * The result is the same as if {@link #put(_nameP0_, _nameP1_)} were called individually for each mapping in the given map.
+     */
+    void putAll(@NonNull _P0__P1_Map_Gextends_ m);
+
+    /**
+     * Removes all of the mappings from this map.
+     */
+    void clear();
+
+    /**
+     * @return a {@link _P0_Set} view of the keys contained in this map
+     */
+    _P0_Set_GP0_ keySet();
+
+    /**
+     * @return a {@link _P1_Collection} view of the values contained in this map
+     */
+    _P1_Collection_GP1_ values();
+
+    /**
+     * @return a {@link _P0_Set} view of the entries contained in this map
+     */
+    Set<Entry_G_> entrySet();
+
+    interface Entry_G_ {
+        /**
+         * @return this entry's key
+         */
+        _p0_ getKey();
+
+        /**
+         * @return this entry's value
+         */
+        _p1_ getValue();
+
+        /**
+         * Replaces this entry's value with the given value.
+         *
+         * @param value the new value
+         * @return the old value
+         */
+        _p1_ setValue(_p1_ value);
+    }
+
+    /**
+     * Gets the value mapped to the given key.
+     *
+     * @param key the key to get the mapped value for
+     * @return the value, or the given default value if a matching entry could not be found
+     */
+    default _p1_ getOrDefault(_nameP0_ key, _p1_ defaultValue)  {
+        _p1_ v = this.get(key);
+        return v == <1!%this.defaultValue()%><1%null%> ? defaultValue : v;
+    }
+
+    /**
+     * Performs the given action for each entry in this map until all entries have been processed or the action throws an exception.
+     */
+    default void forEach(@NonNull _P0__P1_Consumer_Gsuper_ action)  {
+        for (Entry_G_ entry : this.entrySet()) {
+            _p0_ k;
+            _p1_ v;
+            try {
+                k = entry.getKey();
+                v = entry.getValue();
+            } catch (IllegalStateException e)   {
+                throw new ConcurrentModificationException(e);
+            }
+            action.accept(k, v);
+        }
+    }
+
+    /**
+     * Replaces each entry's value with the result of invoking the given function on that entry until all entries have been processed or the
+     * function throws an exception.
+     */
+    default void replaceAll(@NonNull _P0__P1__P1_Function_G0super1super1extends_ function) {
+        for (Entry_G_ entry : this.entrySet()) {
+            _p0_ k;
+            _p1_ v;
+            try {
+                k = entry.getKey();
+                v = entry.getValue();
+            } catch (IllegalStateException e)   {
+                throw new ConcurrentModificationException(e);
+            }
+            v = function.apply<1!%As_P1_%>(k, v);
+            try {
+                entry.setValue(v);
+            } catch (IllegalStateException e)   {
+                throw new ConcurrentModificationException(e);
+            }
+        }
+    }
+
+    /**
+     * Associates the given value with the given key in this map.
+     * <p>
+     * If the map previously contained a mapping for the key, the old value is returned and the map is not modified.
+     *
+     * @return the value previously mapped to the given key, or <1!%{@link #defaultValue()}%><1%{@code null}%> if it did not previously exist
+     */
+    default _p1_ putIfAbsent(_p0_ key, _p1_ value)  {
+        _p1_ v = this.get(key);
+        return v == <1!%this.defaultValue()%><1%null%> ? this.put(key, value) : v;
+    }
+
+    /**
+     * Removes the entry for the given key only if it is currently mapped to the given value.
+     *
+     * @return whether or not the entry was removed
+     */
+    default boolean remove(_nameP0_ key, _nameP1_ value)    {
+        _nameP1_ curValue = this.get(key);
+        if (!equals(value, curValue)) {
+            return false;
+        }
+        this.remove(key);
+        return true;
+    }
+
+    /**
+     * Removes the value for the given key only if it is currently mapped to the given value.
+     *
+     * @return whether or not the value was replaced
+     */
+    default boolean replace(_p0_ key, _p1_ oldValue, _p1_ newValue)  {
+        _p1_ curValue = this.get(key);
+        if (!equals(value, curValue)) {
+            return false;
+        }
+        this.put(key, newValue);
+        return true;
+    }
+
+    /**
+     * Replaces the value for the given key.
+     * <p>
+     * If the map did not previously contain a mapping for the key, the map is not modified.
+     *
+     * @return the value previously mapped to the given key, or <1!%{@link #defaultValue()}%><1%{@code null}%> if it did not previously exist
+     */
+    default _p1_ replace(_p0_ key, _p1_ value)  {
+        _p1_ curValue = this.get(key);
+        return curValue == <1!%this.defaultValue()%><1%null%> ? curValue : this.put(key, value);
+    }
+
+    /**
+     * Gets the value mapped to the given key, computing it using the given function and storing it in the map if absent.
+     *
+     * @return the value
+     */
+    default _p1_ computeIfAbsent(_p0_ key, @NonNull _P0__P1_Function_G0super1extends_ mappingFunction)  {
+        _p1_ v = this.get(key);
+        _p1_ defaultValue = <1!%this.defaultValue()%><1%null%>;
+        if (v == defaultValue && (v = mappingFunction.apply<1!%As_P1_%>(key)) != defaultValue)   {
+            this.put(key, v);
+        }
+        return v;
+    }
+
+    /**
+     * If the value for the specified key is present, attempts to compute a new mapping given the key and its current mapped value.
+     * <p>
+     * If the function returns <1!%{@link #defaultValue()}%><1%{@code null}%>, the mapping is removed.
+     *
+     * @return the new value, or <1!%{@link #defaultValue()}%><1%{@code null}%> if none
+     */
+    default _p1_ computeIfPresent(_p0_ key, @NonNull _P0__P1__P1_Function_G0super1super1extends_ remappingFunction) {
+        _p1_ oldValue = this.get(key);
+        _p1_ defaultValue = <1!%this.defaultValue()%><1%null%>;
+        if (oldValue != defaultValue)   {
+            _p1_ newValue = remappingFunction.apply<1!%As_P1_%>(key, oldValue);
+            if (newValue != defaultValue)   {
+                this.put(key, newValue);
+                return newValue;
+            } else {
+                this.remove(key);
+                return defaultValue;
+            }
+        } else {
+            return defaultValue;
+        }
+    }
+
+    /**
+     * Attempts to compute a mapping for the specified key and its current mapped value (or <1!%{@link #defaultValue()}%><1%{@code null}%> if
+     * there is no current mapping).
+     * <p>
+     * If the function returns <1!%{@link #defaultValue()}%><1%{@code null}%>, the mapping is removed.
+     *
+     * @return the new value, or <1!%{@link #defaultValue()}%><1%{@code null}%> if none
+     */
+    default _p1_ compute(_p0_ key, @NonNull _P0__P1__P1_Function_G0super1super1extends_ remappingFunction) {
+        _p1_ oldValue = this.get(key);
+        _p1_ newValue = remappingFunction.apply<1!%As_P1_%>(key, oldValue);
+
+        _p1_ defaultValue = <1!%this.defaultValue()%><1%null%>;
+        if (newValue == defaultValue)   {
+            if (oldValue != defaultValue)   {
+                this.remove(key);
+            }
+            return defaultValue;
+        } else {
+            this.put(key, newValue);
+            return newValue;
+        }
+    }
+
+    /**
+     * If the specified key is not already associated with a value, associates it with the given value. Otherwise, replaces the associated
+     * value with the results of the given remapping function, or removes it if the result is <1!%{@link #defaultValue()}%><1%{@code null}%>.
+     *
+     * @return the new value, or <1!%{@link #defaultValue()}%><1%{@code null}%> if none
+     */
+    default _p1_ merge(_p0_ key, _p1_ value, @NonNull _P1__P1__P1_Function_G1super1super1extends_ remappingFunction) {
+        _p1_ oldValue = this.get(key);
+
+        _p1_ defaultValue = <1!%this.defaultValue()%><1%null%>;
+        _p1_ newValue = oldValue == defaultValue ? value : remappingFunction.apply<1!%As_P1_%>(oldValue, value);
+        if (newValue == defaultValue)   {
+            this.remove(key);
+        } else {
+            this.put(key, newValue);
+        }
+        return newValue;
+    }
+}

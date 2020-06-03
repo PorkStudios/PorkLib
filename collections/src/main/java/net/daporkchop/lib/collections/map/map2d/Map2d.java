@@ -21,9 +21,9 @@
 package net.daporkchop.lib.collections.map.map2d;
 
 import lombok.NonNull;
-import net.daporkchop.lib.primitive.lambda.consumer.IntIntConsumer;
-import net.daporkchop.lib.primitive.lambda.consumer.IntIntObjConsumer;
-import net.daporkchop.lib.primitive.lambda.function.IntIntObjFunction;
+import net.daporkchop.lib.primitive.lambda.IntIntConsumer;
+import net.daporkchop.lib.primitive.lambda.IntIntObjConsumer;
+import net.daporkchop.lib.primitive.lambda.IntIntObjFunction;
 
 import java.util.function.Consumer;
 

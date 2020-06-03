@@ -1,0 +1,23 @@
+$$$settings$$$
+{
+    "params": [
+        {
+            "genericName": "T"
+        },
+        {
+            "genericName": "R"
+        }
+    ]
+}
+_headers_
+
+/**
+ * A function that accepts a single _nameP0_ and returns _nameP1_.
+ *
+ * @author DaPorkchop_
+ * @see java.util.function.Function
+ */
+@FunctionalInterface
+public interface _P0__P1_Function_G_ {
+    _p1_ apply<1!%As_P1_%>(_p0_ t);
+}

@@ -1,135 +1,143 @@
 $$$settings$$$
 {
-     "genericNames": {
-         "P0": "E"
-     }
+    "params": [
+        {
+            "genericName": "E",
+            "blacklist": [
+                "boolean"
+            ]
+        }
+    ]
 }
 _headers_
 
-import net.daporkchop.lib.common.math.BinMath;
-
-import net.daporkchop.lib.primitive.lambda.consumer._P0_Consumer;
+import net.daporkchop.lib.primitive.collection._P0_Collection;
+import net.daporkchop.lib.primitive.collection._P0_Iterator;
+import net.daporkchop.lib.primitive.lambda._P0_Consumer;
+import net.daporkchop.lib.primitive.lambda._P0_BoolFunction;
+import net.daporkchop.lib.primitive.lambda._P0__P0_Function;
+import net.daporkchop.lib.primitive.list.Abstract_P0_List;
 import net.daporkchop.lib.primitive.list._P0_List;
-import net.daporkchop.lib.primitive.list._P0_Listerator;
+import net.daporkchop.lib.primitive.list._P0_ListIterator;
 
 /**
- * A {@link _P0_List} backed by an array.
- * <p>
- * The array is doubled in size when the number of elements exceeds the size of the array, and is shrunken
- * when cleared or the number of elements is less than 1/4 the size of the array.
+ * Implementation of {@link _P0_List} backed by a resizable array.
  *
  * @author DaPorkchop_
  */
-public class _P0_ArrayList_gH_ implements _P0_List_gH_ {
-    protected _nameP0_[] arr;
+public class _P0_ArrayList extends Abstract_P0_List implements RandomAccess, Cloneable, java.io.Serializable {
+    protected static final int DEFAULT_CAPACITY = 10;
+    protected static final _p0_[] EMPTY_ELEMENTDATA = {};
+    protected static final _p0_[] DEFAULTCAPACITY_EMPTY_ELEMENTDATA = {};
+
+    protected transient _p0_[] elementData;
     protected int size;
-    protected final int minSize;
 
-    public _P0_ArrayList()  {
-        this(16);
+    public _P0_ArrayList() {
+        this.elementData = DEFAULTCAPACITY_EMPTY_ELEMENTDATA;
     }
 
-    public _P0_ArrayList(int minSize)  {
-        if (minSize <= 0)   {
-            throw new IllegalArgumentException("minSize must be at least 1!");
-        }
-        this.minSize = minSize;
-        this.clear();
-    }
-
-    @Override
-    public boolean add(_p0_ val)   {
-        this.checkGrow(1);
-        this.arr[this.size++] = val;
-        return true;
-    }
-
-    @Override
-    public void add(int i, _p0_ val) throws IndexOutOfBoundsException   {
-        if (i == this.size) {
-            this.add(val); //don't try to shift elements
-            return;
-        } else if (i < 0 || i > this.size)  {
-            throw new IndexOutOfBoundsException(String.valueOf(i));
+    public _P0_ArrayList(int initialCapacity) {
+        if (initialCapacity > 0) {
+            this.elementData = new _p0_[initialCapacity];
+        } else if (initialCapacity == 0) {
+            this.elementData = EMPTY_ELEMENTDATA;
         } else {
-            this.checkGrow(1);
-            System.arraycopy(this.arr, i, this.arr, i + 1, this.size++ - i); //use arraycopy instead of unsafe because i'm not certain about how it works with overlapping memory regions
-            this.arr[i] = val;
+            throw new IllegalArgumentException("Illegal Capacity: " + initialCapacity);
         }
     }
 
-    protected void checkGrow(int count) {
-        if (this.size + count > this.arr.length)    {
-            //we need to grow the array
-            _nameP0_[] big = new _nameP0_[BinMath.roundToNearestPowerOf2(this.size + count)];
-            PUnsafe.copyMemory(
-                this.arr,
-                _arrOffsetP0_,
-                big,
-                _arrOffsetP0_,
-                (long) this.size * _arrScaleP0_ //use size instead of array length to avoid copying too much stuff
-            );
-            this.arr = big; //old array is now eligible for garbage collection
+    public _P0_ArrayList(@NonNull _P0_Collection c) {
+        if ((this.size = (this.elementData = c.toArray()).length) == 0)  {
+            this.elementData = EMPTY_ELEMENTDATA;
         }
+    }
+
+    /**
+     * Trims the capacity of this {@link _P0_ArrayList} instance to be the list's current size.
+     */
+    public void trimToSize() {
+        this.modCount++;
+        if (this.size < this.elementData.length) {
+            this.elementData = this.size == 0 ? EMPTY_ELEMENTDATA : Arrays.copyOf(this.elementData, this.size);
+        }
+    }
+
+    /**
+     * Increases the capacity of this <tt>ArrayList</tt> instance, if
+     * necessary, to ensure that it can hold at least the number of elements
+     * specified by the minimum capacity argument.
+     *
+     * @param   minCapacity   the desired minimum capacity
+     */
+    public void ensureCapacity(int minCapacity) {
+        int minExpand = this.elementData != DEFAULTCAPACITY_EMPTY_ELEMENTDATA ? 0 : DEFAULT_CAPACITY;
+
+        if (minCapacity > minExpand) {
+            ensureExplicitCapacity(minCapacity);
+        }
+    }
+
+    private static int calculateCapacity(_p0_[] elementData, int minCapacity) {
+        if (elementData == DEFAULTCAPACITY_EMPTY_ELEMENTDATA) {
+            return Math.max(DEFAULT_CAPACITY, minCapacity);
+        }
+        return minCapacity;
+    }
+
+    private void ensureCapacityInternal(int minCapacity) {
+        ensureExplicitCapacity(calculateCapacity(this.elementData, minCapacity));
+    }
+
+    private void ensureExplicitCapacity(int minCapacity) {
+        this.modCount++;
+
+        if (minCapacity - this.elementData.length > 0) {
+            this.grow(minCapacity);
+        }
+    }
+
+    private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
+
+    private void grow(int minCapacity) {
+        // overflow-conscious code
+        int oldCapacity = this.elementData.length;
+        int newCapacity = oldCapacity + (oldCapacity >> 1);
+        if (newCapacity - minCapacity < 0)  {
+            newCapacity = minCapacity;
+        }
+        if (newCapacity - MAX_ARRAY_SIZE > 0)   {
+            newCapacity = hugeCapacity(minCapacity);
+        }
+        this.elementData = Arrays.copyOf(this.elementData, newCapacity);
+    }
+
+    private static int hugeCapacity(int minCapacity) {
+        if (minCapacity < 0) {
+            throw new OutOfMemoryError();
+        }
+        return minCapacity > MAX_ARRAY_SIZE ? Integer.MAX_VALUE : MAX_ARRAY_SIZE;
     }
 
     @Override
-    public boolean remove(_p0_ val)    {
-        int i = this.indexOf(val);
-        if (i != -1)    {
-            this.removeAt(i);
-            return true;
-        } else {
-            return false;
-        }
+    public int size() {
+        return this.size;
     }
 
     @Override
-    public _p0_ removeAt(int i) throws IndexOutOfBoundsException   {
-        if (i < 0 || i >= this.size)  {
-            throw new IndexOutOfBoundsException(String.valueOf(i));
-        } else {
-            <0%@SuppressWarnings("unchecked")%>
-            _p0_ old = _castP0_this.arr[i];
-            System.arraycopy(this.arr, i + 1, this.arr, i, this.size-- - i);
-            if (this.size < this.arr.length >> 2)   {
-                //we need to shrink the array
-                _nameP0_[] small = new _nameP0_[this.arr.length >> 1];
-                PUnsafe.copyMemory(this.arr, _arrOffsetP0_, small, _arrOffsetP0_, this.size * _arrScaleP0_);
-                this.arr = small;
-            }
-            return old;
-        }
+    public boolean isEmpty() {
+        return this.size == 0;
     }
 
     @Override
-    <0%@SuppressWarnings("unchecked")%>
-    public _p0_ get(int i) throws IndexOutOfBoundsException   {
-        if (i < 0 || i >= this.size)  {
-            throw new IndexOutOfBoundsException(String.valueOf(i));
-        } else {
-            return _castP0_this.arr[i];
-        }
+    public boolean contains(_p0_ o) {
+        return this.indexOf(o) >= 0;
     }
 
     @Override
-    public _p0_ set(int i, _p0_ val) throws IndexOutOfBoundsException  {
-        if (i < 0 || i >= this.size)  {
-            throw new IndexOutOfBoundsException(String.valueOf(i));
-        } else {
-            <0%@SuppressWarnings("unchecked")%>
-            _p0_ old = _castP0_this.arr[i];
-            this.arr[i] = val;
-            return old;
-        }
-    }
-
-    @Override
-    <0%@SuppressWarnings("unchecked")%>
-    public int indexOf(_p0_ val){
-        int size = this.size; //add as local variable to allow inlining into a register
-        for (int i = 0; i < size; i++)  { //as much as i'd like to iterate backwards here, that isn't an option :(
-            if (this.equals(val, _castP0_this.arr[i]))   {
+    public int indexOf(_p0_ o) {
+        for (int i = 0; i < this.size; i++)  {
+            if (this.elementData[i] == o)   {
                 return i;
             }
         }
@@ -137,40 +145,406 @@ public class _P0_ArrayList_gH_ implements _P0_List_gH_ {
     }
 
     @Override
-    <0%@SuppressWarnings("unchecked")%>
-    public void forEach(_P0_Consumer_gH_ consumer)  {
-        if (consumer == null)   {
-            throw new NullPointerException("consumer");
+    public int lastIndexOf(_p0_ o) {
+        for (int i = this.size - 1; i >= 0; i--)  {
+            if (this.elementData[i] == o)   {
+                return i;
+            }
         }
-        int size = this.size; //add as local variable to allow inlining into a register
-        for (int i = 0; i < size; i++)  {
-            consumer.accept(_castP0_this.arr[i]);
+        return -1;
+    }
+
+    @Override
+    public Object clone() {
+        try {
+            _P0_ArrayList v = (_P0_ArrayList) super.clone();
+            v.elementData = Arrays.copyOf(this.elementData, this.size);
+            v.modCount = 0;
+            return v;
+        } catch (CloneNotSupportedException e) {
+            // this shouldn't happen, since we are Cloneable
+            throw new InternalError(e);
         }
     }
 
     @Override
-    public int size()   {
-        return this.size;
+    public _p0_[] toArray() {
+        return Arrays.copyOf(this.elementData, this.size);
+    }
+
+    @Override
+    public _p0_[] toArray(_p0_[] a) {
+        if (a == null || a.length < this.size)  {
+            return this.toArray();
+        } else {
+            System.arraycopy(this.elementData, 0, a, 0, this.size);
+            if (a.length > this.size)   {
+                a[this.size] = _EP0_;
+            }
+            return a;
+        }
+    }
+
+    @Override
+    public _p0_ get(int index)  {
+        checkIndex(this.size, index);
+        return this.elementData[index];
+    }
+
+    @Override
+    public _p0_ set(int index, _p0_ element)    {
+        checkIndex(this.size, index);
+
+        _p0_ old = this.elementData[index];
+        this.elementData[index] = element;
+        return old;
+    }
+
+    @Override
+    public boolean add(_p0_ e) {
+        this.ensureCapacityInternal(this.size + 1);
+        this.elementData[this.size++] = e;
+        return true;
+    }
+
+    @Override
+    public void add(int index, _p0_ element) {
+        checkIndex(this.size, index);
+
+        this.ensureCapacityInternal(this.size + 1);
+        System.arraycopy(this.elementData, index, this.elementData, index + 1, this.size - index);
+        this.elementData[index] = element;
+        this.size++;
+    }
+
+    @Override
+    public _p0_ removeAt(int index) {
+        checkIndex(this.size, index);
+
+        this.modCount++;
+        _p0_ old = this.elementData[index];
+        int numMoved = this.size - index - 1;
+        if (numMoved > 0)   {
+            System.arraycopy(this.elementData, index + 1, this.elementData, index, numMoved);
+        }
+        this.size--;
+        return old;
+    }
+
+    @Override
+    public boolean remove(_p0_ o) {
+        for (int index = 0; index < this.size; index++)  {
+            if (this.elementData[index] == o) {
+                this.modCount++;
+                int numMoved = this.size - index - 1;
+                if (numMoved > 0)   {
+                    System.arraycopy(this.elementData, index + 1, this.elementData, index, numMoved);
+                }
+                this.size--;
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
     public void clear() {
-        this.arr = new _nameP0_[this.minSize]; //simply replace the array
+        this.modCount++;
         this.size = 0;
     }
 
     @Override
-    public void removeAll() {
-        PUnsafe.setMemory(this.arr, _arrOffsetP0_, (long) this.arr.length * _arrScaleP0_, (byte) 0); //overwrite memory with zeroes
-        this.size = 0;
+    public boolean addAll(@NonNull _P0_Collection c) {
+        _p0_[] a = c.toArray();
+        int numNew = a.length;
+        this.ensureCapacityInternal(this.size + numNew);
+        System.arraycopy(a, 0, this.elementData, this.size, numNew);
+        this.size += numNew;
+        return numNew != 0;
     }
 
     @Override
-    public void release()   {
-        this.arr = null; //array is now available for garbage collection
+    public boolean addAll(int index, @NonNull _P0_Collection c) {
+        checkIndex(this.size, index);
+
+        _p0_[] a = c.toArray();
+        int numNew = a.length;
+        this.ensureCapacityInternal(this.size + numNew);  // Increments modCount
+
+        int numMoved = this.size - index;
+        if (numMoved > 0)   {
+            System.arraycopy(this.elementData, index, this.elementData, index + numNew, numMoved);
+        }
+
+        System.arraycopy(a, 0, this.elementData, index, numNew);
+        this.size += numNew;
+        return numNew != 0;
     }
 
-    protected boolean equals(_p0_ a, _p0_ b)   {
-        return _equalsP0|a|b|_;
+    @Override
+    public boolean removeAll(@NonNull _P0_Collection c) {
+        return this.batchRemove(c, false);
+    }
+
+    @Override
+    public boolean retainAll(@NonNull _P0_Collection c) {
+        return this.batchRemove(c, true);
+    }
+
+    private boolean batchRemove(_P0_Collection c, boolean complement) {
+        final _p0_[] elementData = this.elementData;
+        int r = 0, w = 0;
+        boolean modified = false;
+        try {
+            for (; r < this.size; r++)   {
+                if (c.contains(elementData[r]) == complement)   {
+                    elementData[w++] = elementData[r];
+                }
+            }
+        } finally {
+            if (r != this.size) {
+                System.arraycopy(elementData, r, elementData, w, this.size - r);
+                w += this.size - r;
+            }
+            if (w != this.size) {
+                modCount += this.size - w;
+                this.size = w;
+                modified = true;
+            }
+        }
+        return modified;
+    }
+
+    private void writeObject(java.io.ObjectOutputStream s) throws java.io.IOException {
+        int expectedModCount = modCount;
+        s.defaultWriteObject();
+
+        s.writeInt(this.size);
+        for (int i = 0; i < size; i++) {
+            s.write_unsafeP0_(this.elementData[i]);
+        }
+
+        if (modCount != expectedModCount) {
+            throw new ConcurrentModificationException();
+        }
+    }
+
+    private void readObject(java.io.ObjectInputStream s) throws java.io.IOException, ClassNotFoundException {
+        this.elementData = EMPTY_ELEMENTDATA;
+
+        s.defaultReadObject();
+
+        s.readInt();
+
+        if (this.size > 0) {
+            int capacity = calculateCapacity(elementData, size);
+            this.ensureCapacityInternal(this.size);
+
+            // Read in all elements in the proper order.
+            for (int i = 0; i < this.size; i++) {
+                this.elementData[i] = s.read_unsafeP0_();
+            }
+        }
+    }
+
+    @Override
+    public _P0_ListIterator iterator(int index)  {
+        checkIndex(this.size + 1, index);
+        return new _P0_ListIterator()   {
+            int expectedModCount = modCount;
+            int cursor = index;
+            int lastRet = -1;
+
+            @Override
+            public boolean hasNext()    {
+                return this.cursor != _P0_ArrayList.this.size;
+            }
+
+            @Override
+            public _p0_ next_P0_()  {
+                this.checkForComodification();
+                int i = this.cursor;
+                if (i >= _P0_ArrayList.this.size) {
+                    throw new NoSuchElementException();
+                }
+                _p0_[] elementData = _P0_ArrayList.this.elementData;
+                if (i >= elementData.length)    {
+                    throw new ConcurrentModificationException();
+                }
+                this.cursor = i + 1;
+                return elementData[this.lastRet = i];
+            }
+
+            @Override
+            public void remove()    {
+                checkState(this.lastRet >= 0);
+                this.checkForComodification();
+
+                try {
+                    _P0_ArrayList.this.removeAt(this.lastRet);
+                    this.cursor = this.lastRet;
+                    this.lastRet = -1;
+                    this.expectedModCount = _P0_ArrayList.this.modCount;
+                } catch (IndexOutOfBoundsException e)   {
+                    throw new ConcurrentModificationException();
+                }
+            }
+
+            @Override
+            public void forEachRemaining(@NonNull _P0_Consumer consumer) {
+                final int size = _P0_ArrayList.this.size;
+                int i = this.cursor;
+                if (i >= size) {
+                    return;
+                }
+                final _p0_[] elementData = _P0_ArrayList.this.elementData;
+                if (i >= elementData.length) {
+                    throw new ConcurrentModificationException();
+                }
+                while (i != size && _P0_ArrayList.this.modCount == this.expectedModCount) {
+                    consumer.accept(elementData[i++]);
+                }
+                // update once at end of iteration to reduce heap write traffic
+                this.cursor = i;
+                this.lastRet = i - 1;
+                this.checkForComodification();
+            }
+
+            @Override
+            public boolean hasPrevious() {
+                return this.cursor != 0;
+            }
+
+            @Override
+            public int nextIndex() {
+                return this.cursor;
+            }
+
+            @Override
+            public int previousIndex() {
+                return cursor - 1;
+            }
+
+            @Override
+            public _p0_ previous_P0_() {
+                this.checkForComodification();
+                int i = this.cursor - 1;
+                if (i < 0)  {
+                    throw new NoSuchElementException();
+                }
+                _p0_[] elementData = _P0_ArrayList.this.elementData;
+                if (i >= elementData.length)    {
+                    throw new ConcurrentModificationException();
+                }
+                this.cursor = i;
+                return elementData[this.lastRet = i];
+            }
+
+            @Override
+            public void set_P0_(_p0_ e) {
+                checkState(this.lastRet >= 0);
+                this.checkForComodification();
+
+                try {
+                    _P0_ArrayList.this.set(this.lastRet, e);
+                } catch (IndexOutOfBoundsException ex) {
+                    throw new ConcurrentModificationException();
+                }
+            }
+
+            @Override
+            public void add_P0_(_p0_ e) {
+                this.checkForComodification();
+
+                try {
+                    int i = this.cursor;
+                    _P0_ArrayList.this.add(i, e);
+                    this.cursor = i + 1;
+                    this.lastRet = -1;
+                    this.expectedModCount = _P0_ArrayList.this.modCount;
+                } catch (IndexOutOfBoundsException ex) {
+                    throw new ConcurrentModificationException();
+                }
+            }
+
+            final void checkForComodification() {
+                if (this.expectedModCount != _P0_ArrayList.this.modCount)   {
+                    throw new ConcurrentModificationException();
+                }
+            }
+        };
+    }
+
+    @Override
+    public void forEach(@NonNull _P0_Consumer action) {
+        final int expectedModCount = this.modCount;
+        final _p0_[] elementData = this.elementData;
+        final int size = this.size;
+        for (int i = 0; this.modCount == expectedModCount && i < size; i++) {
+            action.accept(elementData[i]);
+        }
+        if (this.modCount != expectedModCount) {
+            throw new ConcurrentModificationException();
+        }
+    }
+
+    @Override
+    public boolean removeIf(@NonNull _P0_BoolFunction filter) {
+        // figure out which elements are to be removed
+        // any exception thrown from the filter predicate at this stage
+        // will leave the collection unmodified
+        int removeCount = 0;
+        final BitSet removeSet = new BitSet(this.size);
+        final int expectedModCount = this.modCount;
+        final int size = this.size;
+        for (int i = 0; this.modCount == expectedModCount && i < size; i++) {
+            if (filter.applyAsBool(this.elementData[i])) {
+                removeSet.set(i);
+                removeCount++;
+            }
+        }
+        if (this.modCount != expectedModCount) {
+            throw new ConcurrentModificationException();
+        }
+
+        // shift surviving elements left over the spaces left by removed elements
+        final boolean anyToRemove = removeCount > 0;
+        if (anyToRemove) {
+            final int newSize = this.size - removeCount;
+            for (int i = 0, j = 0; i < this.size && j < newSize; i++, j++) {
+                i = removeSet.nextClearBit(i);
+                this.elementData[j] = this.elementData[i];
+            }
+            this.size = newSize;
+            if (this.modCount != expectedModCount) {
+                throw new ConcurrentModificationException();
+            }
+            this.modCount++;
+        }
+
+        return anyToRemove;
+    }
+
+    @Override
+    public void replaceAll(@NonNull _P0__P0_Function operator) {
+        final int expectedModCount = this.modCount;
+        final int size = this.size;
+        for (int i = 0; this.modCount == expectedModCount && i < size; i++) {
+            this.elementData[i] = operator.applyAs_P0_(this.elementData[i]);
+        }
+        if (this.modCount != expectedModCount) {
+            throw new ConcurrentModificationException();
+        }
+        this.modCount++;
+    }
+
+    @Override
+    public void sort() {
+        final int expectedModCount = this.modCount;
+        Arrays.sort(this.elementData, 0, this.size);
+        if (this.modCount != expectedModCount) {
+            throw new ConcurrentModificationException();
+        }
+        this.modCount++;
     }
 }

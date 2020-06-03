@@ -1,0 +1,749 @@
+$$$settings$$$
+{
+    "params": [
+        {
+            "genericName": "K",
+            "blacklist": [
+                "boolean",
+                "float",
+                "double"
+            ]
+        },
+        {
+            "genericName": "V"
+        }
+    ]
+}
+_headers_
+
+import net.daporkchop.lib.primitive.collection.Abstract_P1_Collection;
+import net.daporkchop.lib.primitive.collection._P1_Collection;
+import net.daporkchop.lib.primitive.collection._P0_Iterator;
+import net.daporkchop.lib.primitive.collection._P1_Iterator;
+import net.daporkchop.lib.primitive.lambda._P0_Consumer;
+import net.daporkchop.lib.primitive.lambda._P1_Consumer;
+import net.daporkchop.lib.primitive.lambda._P0__P1_Consumer;
+import net.daporkchop.lib.primitive.lambda._P0__P1_Function;
+import net.daporkchop.lib.primitive.lambda._P0__P1__P1_Function;
+import net.daporkchop.lib.primitive.lambda._P1__P1__P1_Function;
+import net.daporkchop.lib.primitive.list.array.IntArrayList;
+import net.daporkchop.lib.primitive.map.Abstract_P0__P1_Map;
+import net.daporkchop.lib.primitive.map._P0__P1_Map;
+import net.daporkchop.lib.primitive.set.Abstract_P0_Set;
+import net.daporkchop.lib.primitive.set._P0_Set;
+
+import java.util.AbstractSet;
+import java.util.Iterator;
+import java.util.function.Consumer;
+
+import static net.daporkchop.lib.primitive.map.hash.HashMapHelper.*;
+
+/**
+ * Type-specific implementation of {@link _P0__P1_Map} backed by an open hash table.
+ * <p>
+ * The table implementation is inspired by a <a href="https://abseil.io/blog/20180927-swisstables">Swiss Table</a>. It makes use
+ * of three separate arrays: one array each for keys and values, and a third "index" array which contains a single 8-bit entry
+ * for each address in the hash table, enabling fast searches while attempting to minimize cache thrashing.
+ * <p>
+ * Implementation notes:
+ * <p>
+ * As there are no node objects present to represent entries in the map, all operations relating to {@link #entrySet()} will
+ * cause huge numbers of objects to be allocated.
+ * <p>
+ * The table will not be reduced in size, regardless of the number of entries removed.
+ *
+ * @author DaPorkchop_
+ */
+//TODO: add method to manually force table to shrink
+public class _P0__P1_OpenHashMap_G_ extends Abstract_P0__P1_Map_G_ implements _P0__P1_Consumer_G_ {
+    protected byte[] index;
+    protected _p0_[] keys;
+    protected _p1_[] values;
+
+    protected int size;
+    protected int threshold;
+    protected final float loadFactor;
+
+    protected transient Set<Entry_G_> entrySet;<0%<1%
+    protected transient _P0_Set_GP0_ keySet;
+    protected transient _P1_Collection_GP1_ valuesCollection;%>%>
+<%
+    @SuppressWarnings("unchecked")%>
+    public _P0__P1_OpenHashMap(int initialCapacity, float loadFactor) {
+        initialCapacity = tableSizeFor(Math.min(notNegative(initialCapacity, "initialCapacity"), MAXIMUM_CAPACITY));
+        checkArg(loadFactor > 0.0f && loadFactor < 1.0f, "Illegal load factor: " + loadFactor);
+        this.loadFactor = loadFactor;
+        this.threshold = thresholdFor(initialCapacity, this.loadFactor);
+        this.index = new byte[initialCapacity];
+        this.keys = <0%(_p0_[]) %>new _nameP0_[initialCapacity];
+        this.values = <1%(_p1_[]) %>new _nameP1_[initialCapacity];
+    }
+
+    public _P0__P1_OpenHashMap(int initialCapacity) {
+        this(initialCapacity, DEFAULT_LOAD_FACTOR);
+    }
+
+    public _P0__P1_OpenHashMap() {
+        this(DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR);
+    }
+
+    public _P0__P1_OpenHashMap(@NonNull _P0__P1_Map_Gextends_ m)    {
+        this(DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR);
+        this.putAll(m);
+    }
+
+    @Override
+    public int size()   {
+        return this.size;
+    }
+
+    @Override
+    public boolean isEmpty()    {
+        return this.size == 0;
+    }
+
+    @Override<0%
+    @SuppressWarnings("unchecked")%>
+    public boolean containsKey(_nameP0_ key)    {
+        return this.getOffset(this.hash0(_castP0_key), key) >= 0;
+    }
+
+    @Override
+    public boolean containsValue(_nameP1_ value)    {
+        if (this.isEmpty()) {
+            return false;
+        }
+        final byte[] index = this.index;
+        final _p1_[] values = this.values;
+        for (int offset = 0, length = index.length; offset < length; offset++)  { //iterate over whole table
+            if ((index[offset] & 0x80) != 0)    { //entry is present
+                if (eq(value, values[offset]))    {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    @Override<0%
+    @SuppressWarnings("unchecked")%>
+    public _p1_ get(_nameP0_ key)   {
+        int offset = this.getOffset(this.hash0(_castP0_key), key);
+        return offset >= 0 ? this.values[offset] : <1!%this.defaultValue%><1%null%>;
+    }
+
+    @Override<0%
+    @SuppressWarnings("unchecked")%>
+    public _p1_ getOrDefault(_nameP0_ key, _p1_ defaultValue)   {
+        int offset = this.getOffset(this.hash0(_castP0_key), key);
+        return offset >= 0 ? this.values[offset] : defaultValue;
+    }
+<0%
+    @SuppressWarnings("unchecked")%>
+    protected int getOffset(int hash, _nameP0_ key)  {
+        final byte[] index = this.index;
+        final _p0_[] keys = this.keys;
+        final int mask = index.length - 1; //assume table size is always a power of 2
+        int offset = hash & mask;
+        while (true)    {
+            byte ie = index[offset];
+            if ((ie & 0x80) != 0)   {
+                if ((ie & 0x7F) == (hash & 0x7F) //lowest 7 bits of hash match, check for key equality
+                    && this.equals0(_castP0_key, keys[offset]))   {
+                    return offset;
+                }
+            } else { //empty entry, key does not exist
+                return -1;
+            }
+            offset = (offset + 1) & mask;
+        }
+    }
+
+    @Override
+    public _p1_ put(_p0_ key, _p1_ value)   {
+        int offset = this.insert(this.hash0(key), key, value);
+        if (offset < 0) { //insert() already handled everything for us
+            return <1!%this.defaultValue%><1%null%>;
+        }
+        final _p1_[] values = this.values;
+        _p1_ oldValue = values[offset];
+        values[offset] = value;
+        return oldValue;
+    }
+
+    @Override
+    public _p1_ putIfAbsent(_p0_ key, _p1_ value)  {
+        int offset = this.insert(this.hash0(key), key, value);
+        return offset < 0 ? <1!%this.defaultValue%><1%null%> : this.values[offset];
+    }
+
+    /**
+     * Inserts the given entry into the map.
+     * <p>
+     * If the entry was already present, returns the entry's offset, otherwise the entry is inserted and {@code -1} is returned.
+     */
+    protected int insert(int hash, _p0_ key, _p1_ value)    {
+        final byte[] index = this.index;
+        final _p0_[] keys = this.keys;
+        final int mask = index.length - 1; //assume table size is always a power of 2
+        int offset = hash & mask;
+        while (true)    {
+            byte ie = index[offset];
+            if ((ie & 0x80) != 0)   {
+                if ((ie & 0x7F) == (hash & 0x7F) //lowest 7 bits of hash match, check for key equality
+                    && this.equals0(key, keys[offset]))   {
+                    return offset; //entry exists, do nothing
+                }
+            } else { //empty entry, insert value
+                index[offset] = (byte) (hash | 0x80);
+                keys[offset] = key;
+                this.values[offset] = value;
+                if (this.size++ >= this.threshold)    { //resize table if needed
+                    this.rehash((mask + 1) << 1);
+                }
+                return -1;
+            }
+            offset = (offset + 1) & mask;
+        }
+    }
+<%
+    @SuppressWarnings("unchecked")%>
+    protected void rehash(int capacity)  {
+        capacity = tableSizeFor(capacity);
+        final byte[] index = this.index; //old arrays
+        final _p0_[] keys = this.keys;
+        final _p1_[] values = this.values;
+        this.index = new byte[capacity];
+        this.keys = <0%(_p0_[]) %>new _nameP0_[capacity];
+        this.values = <1%(_p1_[]) %>new _nameP1_[capacity];
+        this.size = 0;
+        this.threshold = thresholdFor(capacity, this.loadFactor);
+        for (int offset = 0, length = index.length; offset < length; offset++)  {
+            if ((index[offset] & 0x80) != 0)    {
+                _p0_ key = keys[offset];
+                checkState(this.insert(this.hash0(key), key, values[offset]) < 0);
+            }
+        }
+    }
+
+    @Override
+    public void putAll(@NonNull _P0__P1_Map_Gextends_ m)    {
+        m.forEach(this);
+    }
+
+    @Override<0%
+    @SuppressWarnings("unchecked")%>
+    public _p1_ remove(_nameP0_ key)    {
+        int offset = this.getOffset(this.hash0(_castP0_key), key);
+        if (offset < 0) { //entry doesn't exist
+            return <1!%this.defaultValue%><1%null%>;
+        }
+        this.size--;
+        _p1_ oldValue = this.values[offset];
+        this.collapse(offset);
+        return oldValue;
+    }
+
+    @Override<0%
+    @SuppressWarnings("unchecked")%>
+    public boolean remove(_nameP0_ key, _nameP1_ value)    {
+        int offset = this.getOffset(this.hash0(_castP0_key), key);
+        if (offset < 0 //entry doesn't exist
+            || !eq(value, this.values[offset])) { //existing value doesn't match
+            return false;
+        }
+        this.size--;
+        this.collapse(offset);
+        return true;
+    }
+
+    protected void collapse(int offset) {
+        final byte[] index = this.index;
+        final _p0_[] keys = this.keys;
+        final _p1_[] values = this.values;
+        final int mask = index.length - 1; //assume table size is always a power of 2
+        while (true)    {
+            int prev = offset;
+            offset = (offset + 1) & mask;
+            byte ie;
+            while (true)    {
+                if (((ie = index[offset]) & 0x80) == 0)    { //next entry is empty
+                    index[prev] = (byte) 0;<0%
+                    keys[prev] = null;%><1%
+                    values[prev] = null;%>
+                    return;
+                }
+                int curr = this.hash0(_castP0_keys[offset]) & mask;
+                if (prev <= offset ? prev >= curr || curr > offset : prev >= curr && curr > offset)  { //next entry cannot be moved backwards
+                    break;
+                }
+                offset = (offset + 1) & mask;
+            }
+            index[prev] = ie;
+            keys[prev] = keys[offset];
+            values[prev] = values[offset];
+        }
+    }
+
+    @Override
+    public void clear() {
+        if (this.size == 0) {
+            return; //do nothing
+        }
+        final byte[] index = this.index;<0%
+        final _p0_[] keys = this.keys;%><1%
+        final _p1_[] values = this.values;%><!%
+        Arrays.fill(index, (byte) 0); //neither keys nor values need to be cleared as they are both primitive%><%
+        for (int offset = 0, length = index.length; offset < length; offset++)  {
+            if ((index[offset] & 0x80) != 0) {<0%
+                keys[offset] = null;%><1%
+                values[offset] = null;%>
+            }
+            index[offset] = (byte) 0;
+        }%>
+
+        this.size = 0;
+    }
+
+    @Override
+    public _P0_Set_GP0_ keySet()    {
+        _P0_Set_GP0_ keySet = this.keySet;
+        return keySet == null ? this.keySet = new Keys() : keySet;
+    }
+
+    @Override
+    public _P1_Collection_GP1_ values() {
+        _P1_Collection_GP1_ values = this.valuesCollection;
+        return values == null ? this.valuesCollection = new Values() : values;
+    }
+
+    @Override
+    public Set<Entry_G_> entrySet()    {
+        Set<Entry_G_> entrySet = this.entrySet;
+        return entrySet == null ? this.entrySet = new Entries() : entrySet;
+    }
+
+    @Override
+    public void forEach(@NonNull _P0__P1_Consumer_Gsuper_ action)  {
+        final byte[] index = this.index;
+        final _p0_[] keys = this.keys;
+        final _p1_[] values = this.values;
+        for (int offset = 0, length = index.length; offset < length; offset++)    {
+            if ((index[offset] & 0x80) != 0)    {
+                action.accept(keys[offset], values[offset]);
+            }
+        }
+    }
+
+    @Override
+    public void replaceAll(@NonNull _P0__P1__P1_Function_G0super1super1extends_ function) {
+        final byte[] index = this.index;
+        final _p0_[] keys = this.keys;
+        final _p1_[] values = this.values;
+        for (int offset = 0, length = index.length; offset < length; offset++)    {
+            if ((index[offset] & 0x80) != 0)    {
+                values[offset] = function.apply<1!%As_P1_%>(keys[offset], values[offset]);
+            }
+        }
+    }
+
+    @Override<1%
+    @SuppressWarnings("unchecked")%>
+    public boolean replace(_p0_ key, _p1_ oldValue, _p1_ newValue)  {
+        int offset = this.getOffset(this.hash0(key), key);
+        if (offset < 0) {
+            return false;
+        }
+        final _p1_[] values = this.values;
+        if (!eq(oldValue, values[offset])) {
+            return false;
+        }
+        values[offset] = newValue;
+        return true;
+    }
+
+    @Override
+    public _p1_ replace(_p0_ key, _p1_ value)  {
+        int offset = this.getOffset(this.hash0(key), key);
+        if (offset < 0) {
+            return <1!%this.defaultValue%><1%null%>;
+        }
+        final _p1_[] values = this.values;
+        _p1_ oldValue = values[offset];
+        values[offset] = value;
+        return oldValue;
+    }
+
+    @Override
+    public _p1_ computeIfAbsent(_p0_ key, @NonNull _P0__P1_Function_G0super1extends_ mappingFunction)  {
+        int hash = this.hash0(key);
+        int offset = this.getOffset(this.hash0(key), key);
+        if (offset < 0) { //key was absent, compute it
+            _p1_ value = mappingFunction.apply<1!%As_P1_%>(key);
+            if (value != <1!%this.defaultValue%><1%null%>)  {
+                this.insert(hash, key, value);
+            }
+            return value;
+        }
+        return this.values[offset];
+    }
+
+    @Override
+    public _p1_ computeIfPresent(_p0_ key, @NonNull _P0__P1__P1_Function_G0super1super1extends_ remappingFunction) {
+        int offset = this.getOffset(this.hash0(key), key);
+        if (offset < 0) { //key was absent, do nothing
+            return <1!%this.defaultValue%><1%null%>;
+        }
+        final _p1_[] values = this.values;
+        _p1_ oldValue = values[offset];
+        _p1_ newValue = remappingFunction.apply<1!%As_P1_%>(key, oldValue);
+        if (newValue != <1!%this.defaultValue%><1%null%>)   {
+            this.values[offset] = newValue; //re-use existing entry
+        } else {
+            this.collapse(offset);
+            this.size--;
+        }
+        return newValue;
+    }
+
+    @Override
+    public _p1_ compute(_p0_ key, @NonNull _P0__P1__P1_Function_G0super1super1extends_ remappingFunction) {
+        int hash = this.hash0(key);
+        int offset = this.getOffset(this.hash0(key), key);
+        final _p1_[] values = this.values;
+        _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;
+        _p1_ oldValue = offset < 0 ? defaultValue : values[offset];
+        _p1_ newValue = remappingFunction.apply<1!%As_P1_%>(key, oldValue);
+        if (offset < 0) { //key was absent, insert it
+            if (newValue != defaultValue)  {
+                this.insert(hash, key, newValue);
+            }
+        } else {
+            if (newValue != defaultValue)   {
+                this.values[offset] = newValue; //re-use existing entry
+            } else {
+                this.collapse(offset);
+                this.size--;
+            }
+        }
+        return newValue;
+    }
+
+    @Override
+    public _p1_ merge(_p0_ key, _p1_ value, @NonNull _P1__P1__P1_Function_G1super1super1extends_ remappingFunction) {
+        int hash = this.hash0(key);
+        int offset = this.getOffset(this.hash0(key), key);
+        final _p1_[] values = this.values;
+        _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;
+        _p1_ oldValue = offset < 0 ? defaultValue : values[offset];
+        _p1_ newValue = remappingFunction.apply<1!%As_P1_%>(oldValue, value);
+        if (offset < 0) { //key was absent, insert it
+            if (newValue != defaultValue)  {
+                this.insert(hash, key, newValue);
+            }
+        } else {
+            if (newValue != defaultValue)   {
+                this.values[offset] = newValue; //re-use existing entry
+            } else {
+                this.collapse(offset);
+                this.size--;
+            }
+        }
+        return newValue;
+    }
+
+    @Override
+    @Deprecated
+    public void accept(_p0_ key, _p1_ value) {
+        this.put(key, value);
+    }
+
+    protected int hash0(_p0_ key)    {
+        int hash = hash(key);
+        return (hash >>> 16) ^ hash; //the lowest 7 hash bits are the important ones, so smear entropy down
+    }
+
+    protected boolean equals0(_p0_ k1, _p0_ k2) {
+        return eq(k1, k2);
+    }<0%
+
+    /**
+     * Extension of {@link _P0__P1_OpenHashMap} which compares keys by identity.
+     *
+     * @author DaPorkchop_
+     */
+    public static final class Identity_G_ extends _P0__P1_OpenHashMap_G_ {
+        public Identity(int initialCapacity, float loadFactor) {
+            super(initialCapacity, loadFactor);
+        }
+
+        public Identity(int initialCapacity) {
+            super(initialCapacity);
+        }
+
+        public Identity() {
+            super();
+        }
+
+        public Identity(@NonNull _P0__P1_Map_Gextends_ m)    {
+            super(m);
+        }
+
+        @Override
+        protected int hash0(_p0_ key)    {
+            return key != null ? System.identityHashCode(key) : 0;
+        }
+
+        @Override
+        protected boolean equals0(_p0_ k1, _p0_ k2) {
+            return k1 == k2;
+        }
+    }%>
+
+    protected abstract class BaseIterator {
+        protected final byte[] index = _P0__P1_OpenHashMap.this.index;
+        protected int pos = this.index.length;
+        protected int last = -1;
+        protected int remaining = _P0__P1_OpenHashMap.this.size;
+        protected IntArrayList wrapped;
+
+        public boolean hasNext()    {
+            return this.remaining != 0;
+        }
+
+        public int nextOffset() {
+            if (this.remaining == 0) {
+                throw new NoSuchElementException();
+            }
+            this.remaining--;
+            final byte[] index = this.index;
+            while (true)    {
+                if (--this.pos < 0) {
+                    this.last = Integer.MIN_VALUE;
+                    return this.wrapped.get(-this.pos - 1);
+                }
+                if ((index[this.pos] & 0x80) != 0)  {
+                    return this.last = this.pos;
+                }
+            }
+        }
+
+        protected void collapse(int offset) {
+            final byte[] index = this.index;
+            final _p0_[] keys = _P0__P1_OpenHashMap.this.keys;
+            final _p1_[] values = _P0__P1_OpenHashMap.this.values;
+            final int mask = index.length - 1; //assume table size is always a power of 2
+            while (true)    {
+                int prev = offset;
+                offset = (offset + 1) & mask;
+                byte ie;
+                while (true)    {
+                    if (((ie = index[offset]) & 0x80) == 0)    { //next entry is empty
+                        index[prev] = (byte) 0;<0%
+                        keys[prev] = null;%><1%
+                        values[prev] = null;%>
+                        return;
+                    }
+                    int curr = _P0__P1_OpenHashMap.this.hash0(_castP0_keys[offset]) & mask;
+                    if (prev <= offset ? prev >= curr || curr > offset : prev >= curr && curr > offset)  { //next entry cannot be moved backwards
+                        break;
+                    }
+                    offset = (offset + 1) & mask;
+                }
+                if (offset < prev)  {
+                    if (this.wrapped == null)   {
+                        this.wrapped = new IntArrayList(2);
+                    }
+                    this.wrapped.add(offset);
+                }
+                index[prev] = ie;
+                keys[prev] = keys[offset];
+                values[prev] = values[offset];
+            }
+        }
+
+        public void remove()    {
+            checkState(this.last != -1);
+            if (this.pos >= 0) {
+                this.collapse(this.last);
+                _P0__P1_OpenHashMap.this.size--;
+            } else {
+                _P0__P1_OpenHashMap.this.remove(_P0__P1_OpenHashMap.this.keys[this.wrapped.get(-this.pos - 1)]);
+            }
+            this.last = -1;
+        }
+    }
+
+    protected class Entries extends AbstractSet<Entry_G_> {
+        @Override
+        public Iterator<Entry_G_> iterator() {
+            class EntryIterator extends BaseIterator implements Iterator<Entry_G_> {
+                protected final _p0_[] keys = _P0__P1_OpenHashMap.this.keys;
+                protected final _p1_[] values = _P0__P1_OpenHashMap.this.values;
+
+                @Override<%
+                @SuppressWarnings("unchecked")%>
+                public Entry_G_ next()  {
+                    int offset = this.nextOffset();
+                    return new SimpleImmutableEntry<%<>%>(this.keys[offset], this.values[offset]);
+                }
+            }
+            return new EntryIterator();
+        }
+
+        @Override
+        public int size()   {
+            return _P0__P1_OpenHashMap.this.size();
+        }
+
+        @Override
+        public boolean isEmpty()    {
+            return _P0__P1_OpenHashMap.this.isEmpty();
+        }
+
+        @Override
+        public void clear() {
+            _P0__P1_OpenHashMap.this.clear();
+        }
+
+        @Override
+        public boolean contains(@NonNull Object o)  {
+            if (o instanceof Entry) {<%
+                @SuppressWarnings("unchecked")%>
+                Entry_G_ entry = (Entry_G_) o;
+                _p0_ key = entry.getKey();
+                int offset = _P0__P1_OpenHashMap.this.getOffset(_P0__P1_OpenHashMap.this.hash0(key), key);
+                return offset >= 0 && eq(entry.getValue(), _P0__P1_OpenHashMap.this.values[offset]);
+            } else {
+                return false;
+            }
+        }
+
+        @Override
+        public boolean remove(@NonNull Object o)   {
+            if (o instanceof Entry) {<%
+                @SuppressWarnings("unchecked")%>
+                Entry_G_ entry = (Entry_G_) o;
+                return _P0__P1_OpenHashMap.this.remove(entry.getKey(), entry.getValue());
+            } else {
+                return false;
+            }
+        }
+
+        @Override
+        public void forEach(@NonNull Consumer<? super Entry_G_> action) {
+            final byte[] index = _P0__P1_OpenHashMap.this.index;
+            final _p0_[] keys = _P0__P1_OpenHashMap.this.keys;
+            final _p1_[] values = _P0__P1_OpenHashMap.this.values;
+            for (int offset = 0, length = index.length; offset < length; offset++)  {
+                if ((index[offset] & 0x80) != 0)    {
+                    action.accept(new SimpleImmutableEntry<%<>%>(keys[offset], values[offset]));
+                }
+            }
+        }
+    }
+
+    protected class Keys extends Abstract_P0_Set_GP0_ {
+        @Override
+        public _P0_Iterator_GP0_ iterator() {
+            class KeyIterator extends BaseIterator implements _P0_Iterator_GP0_ {
+                protected final _p0_[] keys = _P0__P1_OpenHashMap.this.keys;
+
+                @Override
+                public _p0_ next<0!%_P0_%>()  {
+                    return this.keys[this.nextOffset()];
+                }
+            }
+            return new KeyIterator();
+        }
+
+        @Override
+        public int size()   {
+            return _P0__P1_OpenHashMap.this.size();
+        }
+
+        @Override
+        public boolean isEmpty()    {
+            return _P0__P1_OpenHashMap.this.isEmpty();
+        }
+
+        @Override
+        public void clear() {
+            _P0__P1_OpenHashMap.this.clear();
+        }
+
+        @Override
+        public boolean contains(_nameP0_ key)  {
+            return _P0__P1_OpenHashMap.this.containsKey(key);
+        }
+
+        @Override<0%
+        @SuppressWarnings("unchecked")%>
+        public boolean remove(_nameP0_ key)   {
+            int offset = _P0__P1_OpenHashMap.this.getOffset(_P0__P1_OpenHashMap.this.hash0(_castP0_key), key);
+            if (offset < 0) { //entry doesn't exist
+                return false;
+            }
+            _P0__P1_OpenHashMap.this.size--;
+            _P0__P1_OpenHashMap.this.collapse(offset);
+            return true;
+        }
+
+        @Override
+        public void forEach(@NonNull _P0_Consumer_GsuperP0_ action) {
+            final byte[] index = _P0__P1_OpenHashMap.this.index;
+            final _p0_[] keys = _P0__P1_OpenHashMap.this.keys;
+            for (int offset = 0, length = index.length; offset < length; offset++)  {
+                if ((index[offset] & 0x80) != 0)    {
+                    action.accept(keys[offset]);
+                }
+            }
+        }
+    }
+
+    protected class Values extends Abstract_P1_Collection_GP1_ {
+        @Override
+        public _P1_Iterator_GP1_ iterator() {
+            class ValueIterator extends BaseIterator implements _P1_Iterator_GP1_ {
+                protected final _p1_[] values = _P0__P1_OpenHashMap.this.values;
+
+                @Override
+                public _p1_ next<1!%_P1_%>()  {
+                    return this.values[this.nextOffset()];
+                }
+            }
+            return new ValueIterator();
+        }
+
+        @Override
+        public int size()   {
+           return _P0__P1_OpenHashMap.this.size();
+        }
+
+        @Override
+        public boolean isEmpty()    {
+           return _P0__P1_OpenHashMap.this.isEmpty();
+        }
+
+        @Override
+        public void clear() {
+           _P0__P1_OpenHashMap.this.clear();
+        }
+
+        @Override
+        public boolean contains(_nameP1_ value)  {
+           return _P0__P1_OpenHashMap.this.containsValue(value);
+        }
+
+        @Override
+        public void forEach(@NonNull _P1_Consumer_GsuperP1_ action) {
+            final byte[] index = _P0__P1_OpenHashMap.this.index;
+            final _p1_[] values = _P0__P1_OpenHashMap.this.values;
+            for (int offset = 0, length = index.length; offset < length; offset++)  {
+                if ((index[offset] & 0x80) != 0)    {
+                    action.accept(values[offset]);
+                }
+            }
+        }
+    }
+}

@@ -21,7 +21,7 @@
 package net.daporkchop.lib.minecraft.registry;
 
 import lombok.NonNull;
-import net.daporkchop.lib.primitive.lambda.consumer.ObjIntConsumer;
+import net.daporkchop.lib.primitive.lambda.ObjIntConsumer;
 
 import java.util.function.Consumer;
 

@@ -1,0 +1,66 @@
+$$$settings$$$
+{
+    "params": [
+        {
+            "genericName": "E",
+            "blacklist": [
+                "boolean"
+            ]
+        }
+    ]
+}
+_headers_
+
+import net.daporkchop.lib.primitive.collection._P0_Iterator;
+
+import java.util.ListIterator;
+
+/**
+ * A {@link _P0_Iterator} over a {@link _P0_List} that allows iteration in either direction, modification of the list during iteration, and access
+ * to the iterator's current position in the list.
+ *
+ * @author DaPorkchop_
+ */
+public interface _P0_ListIterator_G_ extends ListIterator<_fullnameP0_>, _P0_Iterator_G_ {
+    /**
+     * Returns the previous {@code _p0_} element in the iteration.
+     *
+     * @return the previous {@code _p0_} element in the iteration
+     * @throws NoSuchElementException if the iteration has no more elements
+     */
+    _p0_ previous_P0_();
+
+    /**
+     * Replaces the last element returned by {@link #next} or {@link #previous} with the specified element.
+     */
+    void set_P0_(_p0_ e);
+
+    /**
+     * Inserts the specified element into the list.
+     */
+    void add_P0_(_p0_ e);
+
+    @Override
+    @Deprecated
+    default _fullnameP0_ next() {
+        return _P0_Iterator.super.next();
+    }
+
+    @Override
+    @Deprecated
+    default _fullnameP0_ previous() {
+        return this.previous_P0_();
+    }
+
+    @Override
+    @Deprecated
+    default void set(_fullnameP0_ e) {
+        this.set_P0_(e);
+    }
+
+    @Override
+    @Deprecated
+    default void add(_fullnameP0_ e) {
+        this.add_P0_(e);
+    }
+}

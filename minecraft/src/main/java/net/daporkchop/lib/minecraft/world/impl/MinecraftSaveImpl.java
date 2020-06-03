@@ -30,10 +30,11 @@ import net.daporkchop.lib.minecraft.world.MinecraftSave;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.format.SaveFormat;
 import net.daporkchop.lib.primitive.map.IntObjMap;
-import net.daporkchop.lib.primitive.map.hash.opennode.IntObjOpenNodeHashMap;
+import net.daporkchop.lib.primitive.map.open.IntObjOpenHashMap;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 
@@ -45,8 +46,8 @@ import java.util.Map;
 public class MinecraftSaveImpl implements MinecraftSave {
     private final SaveFormat          saveFormat;
     private final MinecraftSaveConfig config;
-    private final Map<ResourceLocation, IDRegistry> registries = new Hashtable<>();
-    private final IntObjMap<World>                  worlds     = new IntObjOpenNodeHashMap<>();
+    private final Map<ResourceLocation, IDRegistry> registries = new HashMap<>();
+    private final IntObjMap<World>                  worlds     = new IntObjOpenHashMap<>();
 
     public MinecraftSaveImpl(@NonNull SaveBuilder builder) {
         this.saveFormat = builder.getFormat();
@@ -63,7 +64,7 @@ public class MinecraftSaveImpl implements MinecraftSave {
 
     @Override
     public void close() throws IOException {
-        this.worlds.forEachValue(world -> {
+        this.worlds.forEach((id, world) -> {
             try {
                 this.saveFormat.closeWorld(world);
             } catch (IOException e) {

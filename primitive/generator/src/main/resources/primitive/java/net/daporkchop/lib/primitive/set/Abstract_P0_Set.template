@@ -1,0 +1,66 @@
+$$$settings$$$
+{
+    "params": [
+        {
+            "genericName": "E",
+            "blacklist": [
+                "boolean"
+            ]
+        }
+    ]
+}
+_headers_
+
+import net.daporkchop.lib.primitive.collection.Abstract_P0_Collection;
+import net.daporkchop.lib.primitive.collection._P0_Collection;
+import net.daporkchop.lib.primitive.collection._P0_Iterator;
+import net.daporkchop.lib.primitive.lambda._P0_Consumer;
+import net.daporkchop.lib.primitive.lambda._P0_BoolFunction;
+
+/**
+ * Base implementation of {@link _P0_Set}.
+ *
+ * @author DaPorkchop_
+ */
+public abstract class Abstract_P0_Set_G_ extends Abstract_P0_Collection_G_ implements _P0_Set_G_ {
+    @Override
+    public boolean equals(Object o) {
+        if (o == this)  {
+            return true;
+        } else if (o instanceof _P0_Set)    {
+            _P0_Set set = (_P0_Set) o;
+            try {
+                return this.size() == set.size() && this.containsAll(set);
+            } catch (ClassCastException | NullPointerException ignored) {
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode()   {
+        int hashCode = 0;
+        for (_P0_Iterator itr = this.iterator(); itr.hasNext();)    {
+            hashCode += itr.next_P0_();
+        }
+        return hashCode;
+    }
+
+    @Override
+    public boolean removeAll(@NonNull _P0_Collection c) {
+        boolean modified = false;
+        if (this.size() > c.size()) {
+            for (_P0_Iterator itr = c.iterator(); itr.hasNext();)    {
+                modified |= this.remove(itr.next_P0_());
+            }
+        } else {
+            for (_P0_Iterator itr = this.iterator(); itr.hasNext();)    {
+                if (c.contains(itr.next_P0_())) {
+                    itr.remove();
+                    modified = true;
+                }
+            }
+        }
+        return modified;
+    }
+}

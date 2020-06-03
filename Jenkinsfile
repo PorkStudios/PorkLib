@@ -49,12 +49,12 @@ pipeline {
     stages {
         stage("Natives") {
             steps {
-                sh "chmod +x gradlew && ./gradlew compileNatives --no-daemon"
+                sh "bash gradlew compileNatives"
             }
         }
         stage("Build") {
             steps {
-                sh "./gradlew build -x test -x publish --no-daemon"
+                sh "bash gradlew build -x test -x publish"
             }
         }
         stage("Test") {
@@ -65,7 +65,7 @@ pipeline {
                 }
             }
             steps {
-                sh "./gradlew test --no-daemon"
+                sh "bash gradlew test"
             }
             post {
                 success {
@@ -81,13 +81,14 @@ pipeline {
                 }
             }
             steps {
-                sh "./gradlew publish -x test -x publishToMavenLocal --no-daemon"
+                sh "bash gradlew publish -x test -x publishToMavenLocal"
             }
         }
     }
 
     post {
         always {
+            sh "bash gradlew --stop"
             deleteDir()
 
             withCredentials([string(credentialsId: "daporkchop_discord_webhook", variable: "discordWebhook")]) {

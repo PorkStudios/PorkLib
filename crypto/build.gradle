@@ -28,7 +28,3 @@ dependencies {
 
     testCompile project(":logging")
 }
-
-test {
-    maxParallelForks = Math.max(Runtime.runtime.availableProcessors() - 1, 2)
-}

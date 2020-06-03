@@ -26,7 +26,7 @@ import net.daporkchop.lib.minecraft.registry.ResourceLocation;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.MinecraftSave;
 import net.daporkchop.lib.minecraft.world.World;
-import net.daporkchop.lib.primitive.lambda.consumer.IntObjConsumer;
+import net.daporkchop.lib.primitive.lambda.IntObjConsumer;
 
 import java.io.Closeable;
 import java.io.IOException;

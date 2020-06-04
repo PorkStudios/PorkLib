@@ -1,0 +1,1197 @@
+//copied from https://minecraft.gamepedia.com/Data_version#List_of_data_versions
+//formatted using regex subsitution
+//regex: ^Java Edition (.*?)\s+(\d{2,})\s+(\d{3,})$
+{
+  "20w22a": {
+    "protocol": 719,
+    "data": 2555
+  },
+  "20w21a": {
+    "protocol": 718,
+    "data": 2554
+  },
+  "20w20b": {
+    "protocol": 717,
+    "data": 2537
+  },
+  "20w20a": {
+    "protocol": 716,
+    "data": 2536
+  },
+  "20w19a": {
+    "protocol": 715,
+    "data": 2534
+  },
+  "20w18a": {
+    "protocol": 714,
+    "data": 2532
+  },
+  "20w17a": {
+    "protocol": 713,
+    "data": 2529
+  },
+  "20w16a": {
+    "protocol": 712,
+    "data": 2526
+  },
+  "20w15a": {
+    "protocol": 711,
+    "data": 2525
+  },
+  "20w14a": {
+    "protocol": 710,
+    "data": 2524
+  },
+  "20w13b": {
+    "protocol": 709,
+    "data": 2521
+  },
+  "20w13a": {
+    "protocol": 708,
+    "data": 2520
+  },
+  "20w12a": {
+    "protocol": 707,
+    "data": 2515
+  },
+  "20w11a": {
+    "protocol": 706,
+    "data": 2513
+  },
+  "20w10a": {
+    "protocol": 705,
+    "data": 2512
+  },
+  "20w09a": {
+    "protocol": 704,
+    "data": 2510
+  },
+  "20w08a": {
+    "protocol": 703,
+    "data": 2507
+  },
+  "20w07a": {
+    "protocol": 702,
+    "data": 2506
+  },
+  "Snapshot 20w06a": {
+    "protocol": 701,
+    "data": 2504
+  },
+  "Combat Test 5": {
+    "protocol": 601,
+    "data": 2321
+  },
+  "Combat Test 4": {
+    "protocol": 600,
+    "data": 2320
+  },
+  "1.15.2": {
+    "protocol": 578,
+    "data": 2230
+  },
+  "1.15.2 Pre-release 2": {
+    "protocol": 577,
+    "data": 2229
+  },
+  "1.15.2 Pre-Release 1": {
+    "protocol": 576,
+    "data": 2228
+  },
+  "1.15.1": {
+    "protocol": 575,
+    "data": 2227
+  },
+  "1.15.1 Pre-release 1": {
+    "protocol": 574,
+    "data": 2226
+  },
+  "1.15": {
+    "protocol": 573,
+    "data": 2225
+  },
+  "1.15 Pre-release 7": {
+    "protocol": 572,
+    "data": 2224
+  },
+  "1.15 Pre-release 6": {
+    "protocol": 571,
+    "data": 2223
+  },
+  "1.15 Pre-release 5": {
+    "protocol": 570,
+    "data": 2222
+  },
+  "1.15 Pre-release 4": {
+    "protocol": 569,
+    "data": 2221
+  },
+  "1.15 Pre-release 3": {
+    "protocol": 567,
+    "data": 2220
+  },
+  "1.15 Pre-Release 2": {
+    "protocol": 566,
+    "data": 2219
+  },
+  "1.15 Pre-release 1": {
+    "protocol": 565,
+    "data": 2218
+  },
+  "19w46b": {
+    "protocol": 564,
+    "data": 2217
+  },
+  "19w46a": {
+    "protocol": 563,
+    "data": 2216
+  },
+  "19w45b": {
+    "protocol": 562,
+    "data": 2215
+  },
+  "19w45a": {
+    "protocol": 561,
+    "data": 2214
+  },
+  "19w44a": {
+    "protocol": 560,
+    "data": 2213
+  },
+  "19w42a": {
+    "protocol": 559,
+    "data": 2212
+  },
+  "19w41a": {
+    "protocol": 558,
+    "data": 2210
+  },
+  "19w40a": {
+    "protocol": 557,
+    "data": 2208
+  },
+  "19w39a": {
+    "protocol": 556,
+    "data": 2207
+  },
+  "19w38b": {
+    "protocol": 555,
+    "data": 2206
+  },
+  "19w38a": {
+    "protocol": 554,
+    "data": 2205
+  },
+  "19w37a": {
+    "protocol": 553,
+    "data": 2204
+  },
+  "19w36a": {
+    "protocol": 552,
+    "data": 2203
+  },
+  "19w35a": {
+    "protocol": 551,
+    "data": 2201
+  },
+  "19w34a": {
+    "protocol": 550,
+    "data": 2200
+  },
+  "Combat Test 3": {
+    "protocol": 502,
+    "data": 2069
+  },
+  "Combat Test 2": {
+    "protocol": 501,
+    "data": 2068
+  },
+  "1.14.3 - Combat Test": {
+    "protocol": 500,
+    "data": 2067
+  },
+  "1.14.4": {
+    "protocol": 498,
+    "data": 1976
+  },
+  "1.14.4 Pre-Release 7": {
+    "protocol": 497,
+    "data": 1975
+  },
+  "1.14.4 Pre-Release 6": {
+    "protocol": 496,
+    "data": 1974
+  },
+  "1.14.4 Pre-Release 5": {
+    "protocol": 495,
+    "data": 1973
+  },
+  "1.14.4 Pre-Release 4": {
+    "protocol": 494,
+    "data": 1972
+  },
+  "1.14.4 Pre-Release 3": {
+    "protocol": 493,
+    "data": 1971
+  },
+  "1.14.4 Pre-Release 2": {
+    "protocol": 492,
+    "data": 1970
+  },
+  "1.14.4 Pre-Release 1": {
+    "protocol": 491,
+    "data": 1969
+  },
+  "1.14.3": {
+    "protocol": 490,
+    "data": 1968
+  },
+  "1.14.3 Pre-Release 4": {
+    "protocol": 489,
+    "data": 1967
+  },
+  "1.14.3 Pre-Release 3": {
+    "protocol": 488,
+    "data": 1966
+  },
+  "1.14.3 Pre-Release 2": {
+    "protocol": 487,
+    "data": 1965
+  },
+  "1.14.3 Pre-Release 1": {
+    "protocol": 486,
+    "data": 1964
+  },
+  "1.14.2": {
+    "protocol": 485,
+    "data": 1963
+  },
+  "1.14.2 Pre-Release 4": {
+    "protocol": 484,
+    "data": 1962
+  },
+  "1.14.2 Pre-Release 3": {
+    "protocol": 483,
+    "data": 1960
+  },
+  "1.14.2 Pre-Release 2": {
+    "protocol": 482,
+    "data": 1959
+  },
+  "1.14.2 Pre-Release 1": {
+    "protocol": 481,
+    "data": 1958
+  },
+  "1.14.1": {
+    "protocol": 480,
+    "data": 1957
+  },
+  "1.14.1 Pre-Release 2": {
+    "protocol": 479,
+    "data": 1956
+  },
+  "1.14.1 Pre-Release 1": {
+    "protocol": 478,
+    "data": 1955
+  },
+  "1.14": {
+    "protocol": 477,
+    "data": 1952
+  },
+  "1.14 Pre-Release 5": {
+    "protocol": 476,
+    "data": 1951
+  },
+  "1.14 Pre-Release 4": {
+    "protocol": 475,
+    "data": 1950
+  },
+  "1.14 Pre-Release 3": {
+    "protocol": 474,
+    "data": 1949
+  },
+  "1.14 Pre-Release 2": {
+    "protocol": 473,
+    "data": 1948
+  },
+  "1.14 Pre-Release 1": {
+    "protocol": 472,
+    "data": 1947
+  },
+  "19w14b": {
+    "protocol": 471,
+    "data": 1945
+  },
+  "19w14a": {
+    "protocol": 470,
+    "data": 1944
+  },
+  "19w13b": {
+    "protocol": 469,
+    "data": 1943
+  },
+  "19w13a": {
+    "protocol": 468,
+    "data": 1942
+  },
+  "19w12b": {
+    "protocol": 467,
+    "data": 1941
+  },
+  "19w12a": {
+    "protocol": 466,
+    "data": 1940
+  },
+  "19w11b": {
+    "protocol": 465,
+    "data": 1938
+  },
+  "19w11a": {
+    "protocol": 464,
+    "data": 1937
+  },
+  "19w09a": {
+    "protocol": 463,
+    "data": 1935
+  },
+  "19w08b": {
+    "protocol": 462,
+    "data": 1934
+  },
+  "19w08a": {
+    "protocol": 461,
+    "data": 1933
+  },
+  "19w07a": {
+    "protocol": 460,
+    "data": 1932
+  },
+  "19w06a": {
+    "protocol": 459,
+    "data": 1931
+  },
+  "19w05a": {
+    "protocol": 458,
+    "data": 1930
+  },
+  "19w04b": {
+    "protocol": 457,
+    "data": 1927
+  },
+  "19w04a": {
+    "protocol": 456,
+    "data": 1926
+  },
+  "19w03c": {
+    "protocol": 455,
+    "data": 1924
+  },
+  "19w03b": {
+    "protocol": 454,
+    "data": 1923
+  },
+  "19w03a": {
+    "protocol": 453,
+    "data": 1922
+  },
+  "19w02a": {
+    "protocol": 452,
+    "data": 1921
+  },
+  "18w50a": {
+    "protocol": 451,
+    "data": 1919
+  },
+  "18w49a": {
+    "protocol": 450,
+    "data": 1916
+  },
+  "18w48b": {
+    "protocol": 449,
+    "data": 1915
+  },
+  "18w48a": {
+    "protocol": 448,
+    "data": 1914
+  },
+  "18w47b": {
+    "protocol": 447,
+    "data": 1913
+  },
+  "18w47a": {
+    "protocol": 446,
+    "data": 1912
+  },
+  "18w46a": {
+    "protocol": 445,
+    "data": 1910
+  },
+  "18w45a": {
+    "protocol": 444,
+    "data": 1908
+  },
+  "18w44a": {
+    "protocol": 443,
+    "data": 1907
+  },
+  "18w43c": {
+    "protocol": 442,
+    "data": 1903
+  },
+  "18w43b": {
+    "protocol": 441,
+    "data": 1902
+  },
+  "18w43a": {
+    "protocol": 440,
+    "data": 1901
+  },
+  "1.13.2": {
+    "protocol": 404,
+    "data": 1631
+  },
+  "1.13.2-pre2": {
+    "protocol": 403,
+    "data": 1630
+  },
+  "1.13.2-pre1": {
+    "protocol": 402,
+    "data": 1629
+  },
+  "1.13.1": {
+    "protocol": 401,
+    "data": 1628
+  },
+  "1.13.1-pre2": {
+    "protocol": 400,
+    "data": 1627
+  },
+  "1.13.1-pre1": {
+    "protocol": 399,
+    "data": 1626
+  },
+  "18w33a": {
+    "protocol": 398,
+    "data": 1625
+  },
+  "18w32a": {
+    "protocol": 397,
+    "data": 1623
+  },
+  "18w31a": {
+    "protocol": 396,
+    "data": 1622
+  },
+  "18w30b": {
+    "protocol": 395,
+    "data": 1621
+  },
+  "18w30a": {
+    "protocol": 394,
+    "data": 1620
+  },
+  "1.13": {
+    "protocol": 393,
+    "data": 1519
+  },
+  "1.13-pre10": {
+    "protocol": 392,
+    "data": 1518
+  },
+  "1.13-pre9": {
+    "protocol": 391,
+    "data": 1517
+  },
+  "1.13-pre8": {
+    "protocol": 390,
+    "data": 1516
+  },
+  "1.13-pre7": {
+    "protocol": 389,
+    "data": 1513
+  },
+  "1.13-pre6": {
+    "protocol": 388,
+    "data": 1512
+  },
+  "1.13-pre5": {
+    "protocol": 387,
+    "data": 1511
+  },
+  "1.13-pre4": {
+    "protocol": 386,
+    "data": 1504
+  },
+  "1.13-pre3": {
+    "protocol": 385,
+    "data": 1503
+  },
+  "1.13-pre2": {
+    "protocol": 384,
+    "data": 1502
+  },
+  "1.13-pre1": {
+    "protocol": 383,
+    "data": 1501
+  },
+  "18w22c": {
+    "protocol": 382,
+    "data": 1499
+  },
+  "18w22b": {
+    "protocol": 381,
+    "data": 1498
+  },
+  "18w22a": {
+    "protocol": 380,
+    "data": 1497
+  },
+  "18w21b": {
+    "protocol": 379,
+    "data": 1496
+  },
+  "18w21a": {
+    "protocol": 378,
+    "data": 1495
+  },
+  "18w20c": {
+    "protocol": 377,
+    "data": 1493
+  },
+  "18w20b": {
+    "protocol": 376,
+    "data": 1491
+  },
+  "18w20a": {
+    "protocol": 375,
+    "data": 1489
+  },
+  "18w19b": {
+    "protocol": 374,
+    "data": 1485
+  },
+  "18w19a": {
+    "protocol": 373,
+    "data": 1484
+  },
+  "18w16a": {
+    "protocol": 372,
+    "data": 1483
+  },
+  "18w15a": {
+    "protocol": 371,
+    "data": 1482
+  },
+  "18w14b": {
+    "protocol": 370,
+    "data": 1481
+  },
+  "18w14a": {
+    "protocol": 369,
+    "data": 1479
+  },
+  "18w11a": {
+    "protocol": 368,
+    "data": 1478
+  },
+  "18w10d": {
+    "protocol": 367,
+    "data": 1477
+  },
+  "18w10c": {
+    "protocol": 366,
+    "data": 1476
+  },
+  "18w10b": {
+    "protocol": 365,
+    "data": 1474
+  },
+  "18w10a": {
+    "protocol": 364,
+    "data": 1473
+  },
+  "18w09a": {
+    "protocol": 363,
+    "data": 1472
+  },
+  "18w08b": {
+    "protocol": 362,
+    "data": 1471
+  },
+  "18w08a": {
+    "protocol": 361,
+    "data": 1470
+  },
+  "18w07c": {
+    "protocol": 360,
+    "data": 1469
+  },
+  "18w07b": {
+    "protocol": 359,
+    "data": 1468
+  },
+  "18w07a": {
+    "protocol": 358,
+    "data": 1467
+  },
+  "18w06a": {
+    "protocol": 357,
+    "data": 1466
+  },
+  "18w05a": {
+    "protocol": 356,
+    "data": 1464
+  },
+  "18w03b": {
+    "protocol": 355,
+    "data": 1463
+  },
+  "18w03a": {
+    "protocol": 354,
+    "data": 1462
+  },
+  "18w02a": {
+    "protocol": 353,
+    "data": 1461
+  },
+  "18w01a": {
+    "protocol": 352,
+    "data": 1459
+  },
+  "17w50a": {
+    "protocol": 351,
+    "data": 1457
+  },
+  "17w49b": {
+    "protocol": 350,
+    "data": 1455
+  },
+  "17w49a": {
+    "protocol": 349,
+    "data": 1454
+  },
+  "17w48a": {
+    "protocol": 348,
+    "data": 1453
+  },
+  "17w47b": {
+    "protocol": 347,
+    "data": 1452
+  },
+  "17w47a": {
+    "protocol": 346,
+    "data": 1451
+  },
+  "17w46a": {
+    "protocol": 345,
+    "data": 1449
+  },
+  "17w45b": {
+    "protocol": 344,
+    "data": 1448
+  },
+  "17w45a": {
+    "protocol": 343,
+    "data": 1447
+  },
+  "17w43b": {
+    "protocol": 342,
+    "data": 1445
+  },
+  "17w43a": {
+    "protocol": 341,
+    "data": 1444
+  },
+  "1.12.2": {
+    "protocol": 340,
+    "data": 1343
+  },
+  "1.12.2-pre2": {
+    "protocol": 339,
+    "data": 1342
+  },
+  "1.12.2-pre1": {
+    "protocol": 339,
+    "data": 1341
+  },
+  "1.12.1": {
+    "protocol": 338,
+    "data": 1241
+  },
+  "1.12.1-pre1": {
+    "protocol": 337,
+    "data": 1240
+  },
+  "17w31a": {
+    "protocol": 336,
+    "data": 1239
+  },
+  "1.12": {
+    "protocol": 335,
+    "data": 1139
+  },
+  "1.12-pre7": {
+    "protocol": 334,
+    "data": 1138
+  },
+  "1.12-pre6": {
+    "protocol": 333,
+    "data": 1137
+  },
+  "1.12-pre5": {
+    "protocol": 332,
+    "data": 1136
+  },
+  "1.12-pre4": {
+    "protocol": 331,
+    "data": 1135
+  },
+  "1.12-pre3": {
+    "protocol": 330,
+    "data": 1134
+  },
+  "1.12-pre2": {
+    "protocol": 329,
+    "data": 1133
+  },
+  "1.12-pre1": {
+    "protocol": 328,
+    "data": 1132
+  },
+  "17w18b": {
+    "protocol": 327,
+    "data": 1131
+  },
+  "17w18a": {
+    "protocol": 326,
+    "data": 1130
+  },
+  "17w17b": {
+    "protocol": 325,
+    "data": 1129
+  },
+  "17w17a": {
+    "protocol": 324,
+    "data": 1128
+  },
+  "17w16b": {
+    "protocol": 323,
+    "data": 1127
+  },
+  "17w16a": {
+    "protocol": 322,
+    "data": 1126
+  },
+  "17w15a": {
+    "protocol": 321,
+    "data": 1125
+  },
+  "17w14a": {
+    "protocol": 320,
+    "data": 1124
+  },
+  "17w13b": {
+    "protocol": 319,
+    "data": 1123
+  },
+  "17w13a": {
+    "protocol": 318,
+    "data": 1122
+  },
+  "17w06a": {
+    "protocol": 317,
+    "data": 1022
+  },
+  "1.11.2": {
+    "protocol": 316,
+    "data": 922
+  },
+  "1.11.1": {
+    "protocol": 316,
+    "data": 921
+  },
+  "16w50a": {
+    "protocol": 316,
+    "data": 920
+  },
+  "1.11": {
+    "protocol": 315,
+    "data": 819
+  },
+  "1.11-pre1": {
+    "protocol": 314,
+    "data": 818
+  },
+  "16w44a": {
+    "protocol": 313,
+    "data": 817
+  },
+  "16w43a": {
+    "protocol": 313,
+    "data": 816
+  },
+  "16w42a": {
+    "protocol": 312,
+    "data": 815
+  },
+  "16w41a": {
+    "protocol": 311,
+    "data": 814
+  },
+  "16w40a": {
+    "protocol": 310,
+    "data": 813
+  },
+  "16w39c": {
+    "protocol": 309,
+    "data": 812
+  },
+  "16w39b": {
+    "protocol": 308,
+    "data": 811
+  },
+  "16w39a": {
+    "protocol": 307,
+    "data": 809
+  },
+  "16w38a": {
+    "protocol": 306,
+    "data": 807
+  },
+  "16w36a": {
+    "protocol": 305,
+    "data": 805
+  },
+  "16w35a": {
+    "protocol": 304,
+    "data": 803
+  },
+  "16w33a": {
+    "protocol": 303,
+    "data": 802
+  },
+  "16w32b": {
+    "protocol": 302,
+    "data": 801
+  },
+  "16w32a": {
+    "protocol": 301,
+    "data": 800
+  },
+  "1.10.2": {
+    "protocol": 210,
+    "data": 512
+  },
+  "1.10.1": {
+    "protocol": 210,
+    "data": 511
+  },
+  "1.10": {
+    "protocol": 210,
+    "data": 510
+  },
+  "1.10-pre2": {
+    "protocol": 205,
+    "data": 507
+  },
+  "1.10-pre1": {
+    "protocol": 204,
+    "data": 506
+  },
+  "16w21b": {
+    "protocol": 203,
+    "data": 504
+  },
+  "16w21a": {
+    "protocol": 202,
+    "data": 503
+  },
+  "16w20a": {
+    "protocol": 201,
+    "data": 501
+  },
+  "1.9.4": {
+    "protocol": 110,
+    "data": 184
+  },
+  "1.9.3": {
+    "protocol": 110,
+    "data": 183
+  },
+  "1.9.3-pre3": {
+    "protocol": 110,
+    "data": 182
+  },
+  "1.9.3-pre2": {
+    "protocol": 110,
+    "data": 181
+  },
+  "1.9.3-pre1": {
+    "protocol": 109,
+    "data": 180
+  },
+  "16w15b": {
+    "protocol": 109,
+    "data": 179
+  },
+  "16w15a": {
+    "protocol": 109,
+    "data": 178
+  },
+  "16w14a": {
+    "protocol": 109,
+    "data": 177
+  },
+  "1.9.2": {
+    "protocol": 109,
+    "data": 176
+  },
+  "1.9.1": {
+    "protocol": 108,
+    "data": 175
+  },
+  "1.9.1-pre3": {
+    "protocol": 108,
+    "data": 172
+  },
+  "1.9.1-pre2": {
+    "protocol": 108,
+    "data": 171
+  },
+  "1.9.1-pre1": {
+    "protocol": 107,
+    "data": 170
+  },
+  "1.9": {
+    "protocol": 107,
+    "data": 169
+  },
+  "1.9-pre4": {
+    "protocol": 106,
+    "data": 168
+  },
+  "1.9-pre3": {
+    "protocol": 105,
+    "data": 167
+  },
+  "1.9-pre2": {
+    "protocol": 104,
+    "data": 165
+  },
+  "1.9-pre1": {
+    "protocol": 103,
+    "data": 164
+  },
+  "16w07b": {
+    "protocol": 102,
+    "data": 163
+  },
+  "16w07a": {
+    "protocol": 101,
+    "data": 162
+  },
+  "16w06a": {
+    "protocol": 100,
+    "data": 161
+  },
+  "16w05b": {
+    "protocol": 99,
+    "data": 160
+  },
+  "16w05a": {
+    "protocol": 98,
+    "data": 159
+  },
+  "16w04a": {
+    "protocol": 97,
+    "data": 158
+  },
+  "16w03a": {
+    "protocol": 96,
+    "data": 157
+  },
+  "16w02a": {
+    "protocol": 95,
+    "data": 156
+  },
+  "15w51b": {
+    "protocol": 94,
+    "data": 155
+  },
+  "15w51a": {
+    "protocol": 93,
+    "data": 154
+  },
+  "15w50a": {
+    "protocol": 92,
+    "data": 153
+  },
+  "15w49b": {
+    "protocol": 91,
+    "data": 152
+  },
+  "15w49a": {
+    "protocol": 90,
+    "data": 151
+  },
+  "15w47c": {
+    "protocol": 89,
+    "data": 150
+  },
+  "15w47b": {
+    "protocol": 88,
+    "data": 149
+  },
+  "15w47a": {
+    "protocol": 87,
+    "data": 148
+  },
+  "15w46a": {
+    "protocol": 86,
+    "data": 146
+  },
+  "15w45a": {
+    "protocol": 85,
+    "data": 145
+  },
+  "15w44b": {
+    "protocol": 84,
+    "data": 143
+  },
+  "15w44a": {
+    "protocol": 83,
+    "data": 142
+  },
+  "15w43c": {
+    "protocol": 82,
+    "data": 141
+  },
+  "15w43b": {
+    "protocol": 81,
+    "data": 140
+  },
+  "15w43a": {
+    "protocol": 80,
+    "data": 139
+  },
+  "15w42a": {
+    "protocol": 79,
+    "data": 138
+  },
+  "15w41b": {
+    "protocol": 78,
+    "data": 137
+  },
+  "15w41a": {
+    "protocol": 77,
+    "data": 136
+  },
+  "15w40b": {
+    "protocol": 76,
+    "data": 134
+  },
+  "15w40a": {
+    "protocol": 75,
+    "data": 133
+  },
+  "15w39c": {
+    "protocol": 74,
+    "data": 132
+  },
+  "15w39b": {
+    "protocol": 74,
+    "data": 131
+  },
+  "15w39a": {
+    "protocol": 74,
+    "data": 130
+  },
+  "15w38b": {
+    "protocol": 73,
+    "data": 129
+  },
+  "15w38a": {
+    "protocol": 72,
+    "data": 128
+  },
+  "15w37a": {
+    "protocol": 71,
+    "data": 127
+  },
+  "15w36d": {
+    "protocol": 70,
+    "data": 126
+  },
+  "15w36c": {
+    "protocol": 69,
+    "data": 125
+  },
+  "15w36b": {
+    "protocol": 68,
+    "data": 124
+  },
+  "15w36a": {
+    "protocol": 67,
+    "data": 123
+  },
+  "15w35e": {
+    "protocol": 66,
+    "data": 122
+  },
+  "15w35d": {
+    "protocol": 65,
+    "data": 121
+  },
+  "15w35c": {
+    "protocol": 64,
+    "data": 120
+  },
+  "15w35b": {
+    "protocol": 63,
+    "data": 119
+  },
+  "15w35a": {
+    "protocol": 62,
+    "data": 118
+  },
+  "15w34d": {
+    "protocol": 61,
+    "data": 117
+  },
+  "15w34c": {
+    "protocol": 60,
+    "data": 116
+  },
+  "15w34b": {
+    "protocol": 59,
+    "data": 115
+  },
+  "15w34a": {
+    "protocol": 58,
+    "data": 114
+  },
+  "15w33c": {
+    "protocol": 57,
+    "data": 112
+  },
+  "15w33b": {
+    "protocol": 56,
+    "data": 111
+  },
+  "15w33a": {
+    "protocol": 55,
+    "data": 111
+  },
+  "15w32c": {
+    "protocol": 54,
+    "data": 104
+  },
+  "15w32b": {
+    "protocol": 53,
+    "data": 103
+  },
+  "15w32a": {
+    "protocol": 52,
+    "data": 100
+  }
+}

@@ -50,7 +50,7 @@ public class AnvilWorld extends AbstractWorld<AnvilSave, AnvilSaveOptions> imple
 
         //anvil is implemented in a way that makes it a real pain to have their dimension be abstracted away from the individual worlds
         File root = dimension.legacyId() == 0 ? parent.root() : new File(parent.root(), "DIM" + dimension.legacyId());
-        this.storage = new AnvilWorldStorage(root, options, parent.chunkNBTOptions());
+        this.storage = new AnvilWorldStorage(root, options, parent.chunkNBTOptions(), -1); //TODO
 
         this.manager = new VanillaWorldManager(this, this.storage, options.ioExecutor());
 

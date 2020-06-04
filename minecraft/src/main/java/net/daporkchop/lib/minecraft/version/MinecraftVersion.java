@@ -18,27 +18,13 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.anvil.version;
-
-import lombok.NonNull;
-import net.daporkchop.lib.compat.datafix.DataCodec;
-import net.daporkchop.lib.minecraft.world.Chunk;
-import net.daporkchop.lib.nbt.tag.CompoundTag;
+package net.daporkchop.lib.minecraft.version;
 
 /**
- * Codec for serialization of chunks in the pre-flattening format used by Minecraft versions 1.12.2 and older.
+ * Base class for a representation of a Minecraft version.
  *
  * @author DaPorkchop_
+ * @see net.daporkchop.lib.minecraft.version.java.JavaVersion
  */
-public class AnvilChunkCodec1_12_2 implements DataCodec<Chunk, CompoundTag> {
-    @Override
-    public Chunk decode(@NonNull CompoundTag root) {
-        CompoundTag level = root.getCompound("Level");
-        return null; //TODO
-    }
-
-    @Override
-    public CompoundTag encode(@NonNull Chunk value) {
-        throw new UnsupportedOperationException(); //TODO
-    }
+public class MinecraftVersion {
 }

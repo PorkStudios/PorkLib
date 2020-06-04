@@ -18,7 +18,7 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.common;
+package net.daporkchop.lib.minecraft.format.common.vanilla;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -27,8 +27,9 @@ import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
 import net.daporkchop.lib.concurrent.PFuture;
 import net.daporkchop.lib.concurrent.PFutures;
 import net.daporkchop.lib.minecraft.world.Chunk;
-import net.daporkchop.lib.minecraft.world.SectionManager;
+import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.minecraft.world.World;
+import net.daporkchop.lib.minecraft.world.WorldManager;
 import net.daporkchop.lib.minecraft.world.WorldStorage;
 import net.daporkchop.lib.primitive.map.LongObjMap;
 import net.daporkchop.lib.primitive.map.concurrent.LongObjConcurrentHashMap;
@@ -40,13 +41,13 @@ import java.util.function.LongFunction;
 import java.util.stream.Stream;
 
 /**
- * Helper class, manages chunks loaded by a {@link World}.
+ * Implementation of {@link WorldManager} which
  *
  * @author DaPorkchop_
  */
 //this could be improved by maintaining separate maps for loaded and loading chunks, but it'll become a race condition mess
 @RequiredArgsConstructor
-public class DefaultSectionManager extends AbstractRefCounted implements SectionManager {
+public class VanillaWorldManager extends AbstractRefCounted implements WorldManager {
     @NonNull
     protected final World world;
     @NonNull
@@ -69,6 +70,12 @@ public class DefaultSectionManager extends AbstractRefCounted implements Section
     }
 
     @Override
+    public Stream<Section> loadedSections() {
+        return this.loadedChunks()
+                .flatMap(Chunk::loadedSections); //assume that the returned stream is 16 long
+    }
+
+    @Override
     public Chunk getChunk(int x, int z) {
         PFuture<Chunk> future = this.chunks.get(BinMath.packXY(x, z));
         return future != null ? future.getNow() : null;
@@ -85,25 +92,50 @@ public class DefaultSectionManager extends AbstractRefCounted implements Section
     }
 
     @Override
+    public Section getSection(int x, int y, int z) {
+        if (y < 0 || y >= 16)   {
+            return null;
+        }
+        Chunk chunk = this.getChunk(x, z);
+        return chunk != null ? chunk.getSection(y) : null;
+    }
+
+    @Override
+    public Section getOrLoadSection(int x, int y, int z) {
+        if (y < 0 || y >= 16)   {
+            return null;
+        }
+        return this.getOrLoadChunk(x, z).getSection(y);
+    }
+
+    @Override
+    public PFuture<Section> loadSection(int x, int y, int z) {
+        if (y < 0 || y >= 16)   {
+            return PFutures.successful(null, this.ioExecutor);
+        }
+        return this.loadChunk(x, z).thenApply(chunk -> chunk.getSection(y)); //yeah, this is inefficient :(
+    }
+
+    @Override
     public void gc(boolean full) {
         this.ensureNotReleased();
-        if (full)   {
+        if (full) {
             this.fullGc();
         } else {
             this.partialGc();
         }
     }
 
-    protected void partialGc()    {
+    protected void partialGc() {
         //TODO
     }
 
-    protected void fullGc()    {
+    protected void fullGc() {
         //TODO
     }
 
     @Override
-    public SectionManager retain() throws AlreadyReleasedException {
+    public WorldManager retain() throws AlreadyReleasedException {
         super.retain();
         return this;
     }

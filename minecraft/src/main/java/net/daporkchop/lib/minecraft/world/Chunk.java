@@ -26,6 +26,9 @@ import net.daporkchop.lib.math.access.IntHolderXZ;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.util.Collection;
+import java.util.stream.Stream;
+
+import static net.daporkchop.lib.common.util.PValidation.checkIndex;
 
 /**
  * Representation of a Minecraft chunk, consisting of {@link Section}s identified by their integer Y coordinate.
@@ -38,6 +41,11 @@ import java.util.Collection;
  * @author DaPorkchop_
  */
 public interface Chunk extends BlockAccess, LightAccess, IntHolderXZ, RefCounted {
+    static void checkCoords(int x, int z)   {
+        checkIndex(x >= 0 && x < 16, "x (%d)", x);
+        checkIndex(z >= 0 && z < 16, "z (%d)", z);
+    }
+
     /**
      * @return the {@link World} that loaded this chunk
      */
@@ -56,9 +64,9 @@ public interface Chunk extends BlockAccess, LightAccess, IntHolderXZ, RefCounted
     int z();
 
     /**
-     * @return a view of all of the {@link Section}s currently loaded by this chunk
+     * @return a stream over all of the {@link Section}s currently loaded by this chunk
      */
-    Collection<Section> loadedSections();
+    Stream<Section> loadedSections();
 
     /**
      * Gets the already loaded {@link Section} at the given Y coordinate.

@@ -30,7 +30,7 @@ import net.daporkchop.lib.minecraft.save.Save;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
 import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.world.BlockState;
-import net.daporkchop.lib.minecraft.world.SectionManager;
+import net.daporkchop.lib.minecraft.world.WorldManager;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.WorldStorage;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
@@ -54,7 +54,7 @@ public abstract class AbstractWorld<S extends Save, O extends SaveOptions> exten
     protected final Identifier id;
 
     protected BlockRegistry blockRegistry;
-    protected SectionManager manager;
+    protected WorldManager manager;
     protected WorldStorage storage;
 
     /**
@@ -86,141 +86,141 @@ public abstract class AbstractWorld<S extends Save, O extends SaveOptions> exten
 
     @Override
     public BlockState getBlockState(int x, int y, int z) {
-        return this.manager.getOrLoadChunk(x >> 4, z >> 4).getOrLoadSection(y >> 4).getBlockState(x & 0xF, y, z & 0xF);
+        return this.manager.getOrLoadSection(x >> 4, y >> 4, z >> 4).getBlockState(x & 0xF, y & 0xF, z & 0xF);
     }
 
     @Override
     public BlockState getBlockState(int x, int y, int z, int layer) {
-        return this.manager.getOrLoadChunk(x >> 4, z >> 4).getOrLoadSection(y >> 4).getBlockState(x & 0xF, y, z & 0xF, layer);
+        return this.manager.getOrLoadSection(x >> 4, y >> 4, z >> 4).getBlockState(x & 0xF, y & 0xF, z & 0xF, layer);
     }
 
     @Override
     public Identifier getBlockId(int x, int y, int z) {
-        return this.manager.getOrLoadChunk(x >> 4, z >> 4).getOrLoadSection(y >> 4).getBlockId(x & 0xF, y, z & 0xF);
+        return this.manager.getOrLoadSection(x >> 4, y >> 4, z >> 4).getBlockId(x & 0xF, y & 0xF, z & 0xF);
     }
 
     @Override
     public Identifier getBlockId(int x, int y, int z, int layer) {
-        return this.manager.getOrLoadChunk(x >> 4, z >> 4).getOrLoadSection(y >> 4).getBlockId(x & 0xF, y, z & 0xF, layer);
+        return this.manager.getOrLoadSection(x >> 4, y >> 4, z >> 4).getBlockId(x & 0xF, y & 0xF, z & 0xF, layer);
     }
 
     @Override
     public int getBlockLegacyId(int x, int y, int z) {
-        return this.manager.getOrLoadChunk(x >> 4, z >> 4).getOrLoadSection(y >> 4).getBlockLegacyId(x & 0xF, y, z & 0xF);
+        return this.manager.getOrLoadSection(x >> 4, y >> 4, z >> 4).getBlockLegacyId(x & 0xF, y & 0xF, z & 0xF);
     }
 
     @Override
     public int getBlockLegacyId(int x, int y, int z, int layer) {
-        return this.manager.getOrLoadChunk(x >> 4, z >> 4).getOrLoadSection(y >> 4).getBlockLegacyId(x & 0xF, y, z & 0xF, layer);
+        return this.manager.getOrLoadSection(x >> 4, y >> 4, z >> 4).getBlockLegacyId(x & 0xF, y & 0xF, z & 0xF, layer);
     }
 
     @Override
     public int getBlockMeta(int x, int y, int z) {
-        return this.manager.getOrLoadChunk(x >> 4, z >> 4).getOrLoadSection(y >> 4).getBlockMeta(x & 0xF, y, z & 0xF);
+        return this.manager.getOrLoadSection(x >> 4, y >> 4, z >> 4).getBlockMeta(x & 0xF, y & 0xF, z & 0xF);
     }
 
     @Override
     public int getBlockMeta(int x, int y, int z, int layer) {
-        return this.manager.getOrLoadChunk(x >> 4, z >> 4).getOrLoadSection(y >> 4).getBlockMeta(x & 0xF, y, z & 0xF, layer);
+        return this.manager.getOrLoadSection(x >> 4, y >> 4, z >> 4).getBlockMeta(x & 0xF, y & 0xF, z & 0xF, layer);
     }
 
     @Override
     public int getBlockRuntimeId(int x, int y, int z) {
-        return this.manager.getOrLoadChunk(x >> 4, z >> 4).getOrLoadSection(y >> 4).getBlockRuntimeId(x & 0xF, y, z & 0xF);
+        return this.manager.getOrLoadSection(x >> 4, y >> 4, z >> 4).getBlockRuntimeId(x & 0xF, y & 0xF, z & 0xF);
     }
 
     @Override
     public int getBlockRuntimeId(int x, int y, int z, int layer) {
-        return this.manager.getOrLoadChunk(x >> 4, z >> 4).getOrLoadSection(y >> 4).getBlockRuntimeId(x & 0xF, y, z & 0xF, layer);
+        return this.manager.getOrLoadSection(x >> 4, y >> 4, z >> 4).getBlockRuntimeId(x & 0xF, y & 0xF, z & 0xF, layer);
     }
 
     @Override
     public void setBlockState(int x, int y, int z, @NonNull BlockState state) {
-        this.manager.getOrLoadChunk(x >> 4, z >> 4).getOrLoadSection(y >> 4).setBlockState(x & 0xF, y, z & 0xF, state);
+        this.manager.getOrLoadSection(x >> 4, y >> 4, z >> 4).setBlockState(x & 0xF, y & 0xF, z & 0xF, state);
     }
 
     @Override
     public void setBlockState(int x, int y, int z, int layer, @NonNull BlockState state) {
-        this.manager.getOrLoadChunk(x >> 4, z >> 4).getOrLoadSection(y >> 4).setBlockState(x & 0xF, y, z & 0xF, layer, state);
+        this.manager.getOrLoadSection(x >> 4, y >> 4, z >> 4).setBlockState(x & 0xF, y & 0xF, z & 0xF, layer, state);
     }
 
     @Override
     public void setBlockState(int x, int y, int z, @NonNull Identifier id, int meta) {
-        this.manager.getOrLoadChunk(x >> 4, z >> 4).getOrLoadSection(y >> 4).setBlockState(x & 0xF, y, z & 0xF, id, meta);
+        this.manager.getOrLoadSection(x >> 4, y >> 4, z >> 4).setBlockState(x & 0xF, y & 0xF, z & 0xF, id, meta);
     }
 
     @Override
     public void setBlockState(int x, int y, int z, int layer, @NonNull Identifier id, int meta) {
-        this.manager.getOrLoadChunk(x >> 4, z >> 4).getOrLoadSection(y >> 4).setBlockState(x & 0xF, y, z & 0xF, layer, id, meta);
+        this.manager.getOrLoadSection(x >> 4, y >> 4, z >> 4).setBlockState(x & 0xF, y & 0xF, z & 0xF, layer, id, meta);
     }
 
     @Override
     public void setBlockState(int x, int y, int z, int legacyId, int meta) {
-        this.manager.getOrLoadChunk(x >> 4, z >> 4).getOrLoadSection(y >> 4).setBlockState(x & 0xF, y, z & 0xF, legacyId, meta);
+        this.manager.getOrLoadSection(x >> 4, y >> 4, z >> 4).setBlockState(x & 0xF, y & 0xF, z & 0xF, legacyId, meta);
     }
 
     @Override
     public void setBlockState(int x, int y, int z, int layer, int legacyId, int meta) {
-        this.manager.getOrLoadChunk(x >> 4, z >> 4).getOrLoadSection(y >> 4).setBlockState(x & 0xF, y, z & 0xF, layer, legacyId, meta);
+        this.manager.getOrLoadSection(x >> 4, y >> 4, z >> 4).setBlockState(x & 0xF, y & 0xF, z & 0xF, layer, legacyId, meta);
     }
 
     @Override
     public void setBlockId(int x, int y, int z, @NonNull Identifier id) {
-        this.manager.getOrLoadChunk(x >> 4, z >> 4).getOrLoadSection(y >> 4).setBlockId(x & 0xF, y, z & 0xF, id);
+        this.manager.getOrLoadSection(x >> 4, y >> 4, z >> 4).setBlockId(x & 0xF, y & 0xF, z & 0xF, id);
     }
 
     @Override
     public void setBlockId(int x, int y, int z, int layer, @NonNull Identifier id) {
-        this.manager.getOrLoadChunk(x >> 4, z >> 4).getOrLoadSection(y >> 4).setBlockId(x & 0xF, y, z & 0xF, layer, id);
+        this.manager.getOrLoadSection(x >> 4, y >> 4, z >> 4).setBlockId(x & 0xF, y & 0xF, z & 0xF, layer, id);
     }
 
     @Override
     public void setBlockLegacyId(int x, int y, int z, int legacyId) {
-        this.manager.getOrLoadChunk(x >> 4, z >> 4).getOrLoadSection(y >> 4).setBlockLegacyId(x & 0xF, y, z & 0xF, legacyId);
+        this.manager.getOrLoadSection(x >> 4, y >> 4, z >> 4).setBlockLegacyId(x & 0xF, y & 0xF, z & 0xF, legacyId);
     }
 
     @Override
     public void setBlockLegacyId(int x, int y, int z, int layer, int legacyId) {
-        this.manager.getOrLoadChunk(x >> 4, z >> 4).getOrLoadSection(y >> 4).setBlockLegacyId(x & 0xF, y, z & 0xF, layer, legacyId);
+        this.manager.getOrLoadSection(x >> 4, y >> 4, z >> 4).setBlockLegacyId(x & 0xF, y & 0xF, z & 0xF, layer, legacyId);
     }
 
     @Override
     public void setBlockMeta(int x, int y, int z, int meta) {
-        this.manager.getOrLoadChunk(x >> 4, z >> 4).getOrLoadSection(y >> 4).setBlockMeta(x & 0xF, y, z & 0xF, meta);
+        this.manager.getOrLoadSection(x >> 4, y >> 4, z >> 4).setBlockMeta(x & 0xF, y & 0xF, z & 0xF, meta);
     }
 
     @Override
     public void setBlockMeta(int x, int y, int z, int layer, int meta) {
-        this.manager.getOrLoadChunk(x >> 4, z >> 4).getOrLoadSection(y >> 4).setBlockMeta(x & 0xF, y, z & 0xF, layer, meta);
+        this.manager.getOrLoadSection(x >> 4, y >> 4, z >> 4).setBlockMeta(x & 0xF, y & 0xF, z & 0xF, layer, meta);
     }
 
     @Override
     public void setBlockRuntimeId(int x, int y, int z, int runtimeId) {
-        this.manager.getOrLoadChunk(x >> 4, z >> 4).getOrLoadSection(y >> 4).setBlockRuntimeId(x & 0xF, y, z & 0xF, runtimeId);
+        this.manager.getOrLoadSection(x >> 4, y >> 4, z >> 4).setBlockRuntimeId(x & 0xF, y & 0xF, z & 0xF, runtimeId);
     }
 
     @Override
     public void setBlockRuntimeId(int x, int y, int z, int layer, int runtimeId) {
-        this.manager.getOrLoadChunk(x >> 4, z >> 4).getOrLoadSection(y >> 4).setBlockRuntimeId(x & 0xF, y, z & 0xF, layer, runtimeId);
+        this.manager.getOrLoadSection(x >> 4, y >> 4, z >> 4).setBlockRuntimeId(x & 0xF, y & 0xF, z & 0xF, layer, runtimeId);
     }
 
     @Override
     public int getBlockLight(int x, int y, int z) {
-        return this.manager.getOrLoadChunk(x >> 4, z >> 4).getOrLoadSection(y >> 4).getBlockLight(x & 0xF, y, z & 0xF);
+        return this.manager.getOrLoadSection(x >> 4, y >> 4, z >> 4).getBlockLight(x & 0xF, y & 0xF, z & 0xF);
     }
 
     @Override
     public int getSkyLight(int x, int y, int z) {
-        return this.manager.getOrLoadChunk(x >> 4, z >> 4).getOrLoadSection(y >> 4).getSkyLight(x & 0xF, y, z & 0xF);
+        return this.manager.getOrLoadSection(x >> 4, y >> 4, z >> 4).getSkyLight(x & 0xF, y & 0xF, z & 0xF);
     }
 
     @Override
     public void setBlockLight(int x, int y, int z, int level) {
-        this.manager.getOrLoadChunk(x >> 4, z >> 4).getOrLoadSection(y >> 4).setBlockLight(x & 0xF, y, z & 0xF, level);
+        this.manager.getOrLoadSection(x >> 4, y >> 4, z >> 4).setBlockLight(x & 0xF, y & 0xF, z & 0xF, level);
     }
 
     @Override
     public void setSkyLight(int x, int y, int z, int level) {
-        this.manager.getOrLoadChunk(x >> 4, z >> 4).getOrLoadSection(y >> 4).setSkyLight(x & 0xF, y, z & 0xF, level);
+        this.manager.getOrLoadSection(x >> 4, y >> 4, z >> 4).setSkyLight(x & 0xF, y & 0xF, z & 0xF, level);
     }
 }

@@ -31,7 +31,7 @@ import java.util.stream.Stream;
  *
  * @author DaPorkchop_
  */
-public interface SectionManager extends RefCounted {
+public interface WorldManager extends RefCounted {
     /**
      * @return a stream over all currently loaded chunks
      */
@@ -72,6 +72,48 @@ public interface SectionManager extends RefCounted {
     PFuture<Chunk> loadChunk(int x, int z);
 
     /**
+     * @return a stream over all currently loaded sections
+     */
+    Stream<Section> loadedSections();
+
+    /**
+     * Gets the already loaded {@link Section} at the given coordinates.
+     *
+     * @param x the X coordinate of the {@link Section}
+     * @param y the Y coordinate of the {@link Section}
+     * @param z the Z coordinate of the {@link Section}
+     * @return the {@link Section} at the given coordinates, or {@code null} if it wasn't loaded
+     */
+    Section getSection(int x, int y, int z);
+
+    /**
+     * Gets or loads the {@link Section} at the given coordinates.
+     * <p>
+     * If the {@link Section} wasn't already loaded, it will be loaded and the method will block until the load is complete.
+     *
+     * @param x the X coordinate of the {@link Section}
+     * @param y the Y coordinate of the {@link Section}
+     * @param z the Z coordinate of the {@link Section}
+     * @return the {@link Section} at the given coordinates, or {@code null} if it doesn't exist
+     */
+    default Section getOrLoadSection(int x, int y, int z) {
+        Section section = this.getSection(x, y, z);
+        return section != null ? section : this.loadSection(x, y, z).join();
+    }
+
+    /**
+     * Gets or loads the {@link Section} at the given coordinates.
+     * <p>
+     * If the {@link Section} was already loaded, the returned {@link PFuture} will be completed immediately.
+     *
+     * @param x the X coordinate of the {@link Section}
+     * @param y the Y coordinate of the {@link Section}
+     * @param z the Z coordinate of the {@link Section}
+     * @return a future which will be completed with the {@link Section} at the given coordinates (or {@code null} if it doesn't exist)
+     */
+    PFuture<Section> loadSection(int x, int y, int z);
+
+    /**
      * Unloads some chunks and/or sections.
      *
      * @param full whether or not do do a full GC. If {@code true}, all loaded chunks and sections will be unloaded. If {@code false}, only chunks
@@ -83,7 +125,7 @@ public interface SectionManager extends RefCounted {
     int refCnt();
 
     @Override
-    SectionManager retain() throws AlreadyReleasedException;
+    WorldManager retain() throws AlreadyReleasedException;
 
     @Override
     boolean release() throws AlreadyReleasedException;

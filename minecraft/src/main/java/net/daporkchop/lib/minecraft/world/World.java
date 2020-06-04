@@ -29,7 +29,7 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
  * Representation of a Minecraft world, consisting of {@link Chunk}s identified by their integer X, Z coordinates.
  * <p>
  * Every {@link Chunk} loaded by a world keeps a reference to the world which is not released until the {@link Chunk} itself is released. Additionally,
- * world instances keep references to their {@link WorldStorage} and {@link SectionManager} instances which are not released until the world is released.
+ * world instances keep references to their {@link WorldStorage} and {@link WorldManager} instances which are not released until the world is released.
  *
  * @author DaPorkchop_
  */
@@ -55,9 +55,9 @@ public interface World extends BlockAccess, LightAccess, RefCounted {
     WorldStorage storage();
 
     /**
-     * @return the {@link SectionManager} used for managing loaded chunks in memory
+     * @return the {@link WorldManager} used for managing loaded chunks in memory
      */
-    SectionManager chunkManager();
+    WorldManager manager();
 
     @Override
     int refCnt();

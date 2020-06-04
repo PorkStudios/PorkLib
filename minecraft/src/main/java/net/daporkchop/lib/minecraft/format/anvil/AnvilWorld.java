@@ -24,7 +24,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.minecraft.format.common.AbstractWorld;
-import net.daporkchop.lib.minecraft.format.common.DefaultSectionManager;
+import net.daporkchop.lib.minecraft.format.common.vanilla.VanillaWorldManager;
 import net.daporkchop.lib.minecraft.world.Dimension;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.WorldInfo;
@@ -52,7 +52,7 @@ public class AnvilWorld extends AbstractWorld<AnvilSave, AnvilSaveOptions> imple
         File root = dimension.legacyId() == 0 ? parent.root() : new File(parent.root(), "DIM" + dimension.legacyId());
         this.storage = new AnvilWorldStorage(root, options, parent.chunkNBTOptions());
 
-        this.manager = new DefaultSectionManager(this, this.storage, options.ioExecutor());
+        this.manager = new VanillaWorldManager(this, this.storage, options.ioExecutor());
 
         this.validateState();
     }

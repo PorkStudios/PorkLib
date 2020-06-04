@@ -30,6 +30,7 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.oio.appendable.PAppendable;
 import net.daporkchop.lib.binary.oio.writer.UTF8FileWriter;
+import net.daporkchop.lib.common.function.PFunctions;
 import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.common.misc.file.PFiles;
 
@@ -54,7 +55,7 @@ import java.util.stream.StreamSupport;
  */
 final class JavaVersionDumper {
     public static final String VERSION_MANIFEST_URL = "https://launchermeta.mojang.com/mc/game/version_manifest.json";
-    public static final File IN = new File("/media/daporkchop/TooMuchStuff/PortableIDE/PorkLib/minecraft/src/main/resources/net/daporkchop/lib/minecraft/version/java/versions_in.json");
+    public static final File IN = new File("/media/daporkchop/TooMuchStuff/PortableIDE/PorkLib/minecraft/src/main/resources/net/daporkchop/lib/minecraft/version/java_versions_in.json");
     public static final File OUT_ROOT = new File("/media/daporkchop/TooMuchStuff/PortableIDE/PorkLib/minecraft/src/main/resources/net/daporkchop/lib/minecraft/version/java");
     public static final JsonParser JSON_PARSER = new JsonParser();
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -62,20 +63,20 @@ final class JavaVersionDumper {
     public static void main(String... args) throws IOException {
         Map<String, ManifestVersion> manifest = getManifestVersions();
         Map<String, DataVersion> data = getDataVersions();
-        data.values().parallelStream()
-                .map(dataVersion -> {
-                    ManifestVersion manifestVersion = manifest.get(dataVersion.id);
-                    if (manifestVersion != null)    {
+        manifest.values().parallelStream()
+                .map(manifestVersion -> {
+                    DataVersion dataVersion = data.get(manifestVersion.id);
+                    if (dataVersion != null) {
                         return new MergedVersion(manifestVersion, dataVersion);
                     } else {
-                        System.out.printf("No version found for \"%s\"\n", dataVersion.id);
-                        return null;
+                        System.out.printf("No version found for \"%s\"\n", manifestVersion.id);
+                        return manifestVersion;
                     }
                 })
-                .filter(Objects::nonNull)
-                .forEach((IOConsumer<MergedVersion>) version -> {
-                    try (PAppendable out = new UTF8FileWriter(PFiles.ensureFileExists(new File(OUT_ROOT, version.id + ".json"))))   {
+                .forEach((IOConsumer<ManifestVersion>) version -> {
+                    try (PAppendable out = new UTF8FileWriter(PFiles.ensureFileExists(new File(OUT_ROOT, version.id + ".json")))) {
                         GSON.toJson(version, out);
+                        out.appendLn();
                     }
                 });
     }
@@ -87,7 +88,9 @@ final class JavaVersionDumper {
         }
         return StreamSupport.stream(versions.spliterator(), false)
                 .map(JsonElement::getAsJsonObject)
-                .collect(Collectors.toMap(obj -> obj.get("id").getAsString(), ManifestVersion::new));
+                .filter(obj -> !"snapshot".equals(obj.get("type").getAsString()))
+                .map(ManifestVersion::new)
+                .collect(Collectors.toMap(v -> v.id, PFunctions.identity()));
     }
 
     public static Map<String, DataVersion> getDataVersions() throws IOException {
@@ -98,21 +101,19 @@ final class JavaVersionDumper {
     }
 
     @AllArgsConstructor
-    private static final class ManifestVersion {
+    private static class ManifestVersion {
         @NonNull
-        private final String id;
+        private transient final String id;
         private final long releaseTime;
-        private final boolean snapshot;
 
         public ManifestVersion(@NonNull JsonObject obj) {
             this(obj.get("id").getAsString(),
-                    ZonedDateTime.parse(obj.get("releaseTime").getAsString()).toInstant().toEpochMilli(),
-                    "snapshot".equals(obj.get("type").getAsString()));
+                    ZonedDateTime.parse(obj.get("releaseTime").getAsString()).toInstant().toEpochMilli());
         }
     }
 
     @AllArgsConstructor
-    private static final class DataVersion {
+    private static class DataVersion {
         @NonNull
         private final String id;
         private final int protocol;
@@ -123,17 +124,15 @@ final class JavaVersionDumper {
         }
     }
 
-    @AllArgsConstructor
-    private static final class MergedVersion {
-        @NonNull
-        private transient final String id;
-        private final long releaseTime;
-        private final int protocol;
-        private final int data;
-        private final boolean snapshot;
+    private static class MergedVersion extends ManifestVersion {
+        private final int protocolVersion;
+        private final int dataVersion;
 
         public MergedVersion(@NonNull ManifestVersion manifest, @NonNull DataVersion data) {
-            this(data.id, manifest.releaseTime, data.protocol, data.data, manifest.snapshot);
+            super(manifest.id, manifest.releaseTime);
+
+            this.protocolVersion = data.protocol;
+            this.dataVersion = data.data;
         }
     }
 }

@@ -24,6 +24,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.common.misc.refcount.RefCounted;
 import net.daporkchop.lib.concurrent.PFuture;
 import net.daporkchop.lib.minecraft.util.Identifier;
+import net.daporkchop.lib.minecraft.version.MinecraftVersion;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
@@ -43,6 +44,11 @@ public interface Save extends RefCounted {
      * @return this save's root directory/file
      */
     File root();
+
+    /**
+     * @return the {@link MinecraftVersion} that this save was last accessed by
+     */
+    MinecraftVersion version();
 
     /**
      * @return the {@link Identifier}s of all of the worlds present in this save

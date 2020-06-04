@@ -20,11 +20,50 @@
 
 package net.daporkchop.lib.minecraft.version;
 
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+
 /**
  * Base class for a representation of a Minecraft version.
  *
  * @author DaPorkchop_
  * @see net.daporkchop.lib.minecraft.version.java.JavaVersion
  */
-public class MinecraftVersion {
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public abstract class MinecraftVersion implements Comparable<MinecraftVersion> {
+    @NonNull
+    protected final MinecraftEdition edition;
+    @NonNull
+    protected final String name;
+    protected final long releaseTime;
+
+    @Override
+    public int compareTo(MinecraftVersion o) {
+        int editionDelta = this.edition.compareTo(o.edition);
+        return editionDelta == 0 ? Long.compareUnsigned(this.releaseTime, o.releaseTime) : editionDelta;
+    }
+
+    @Override
+    public int hashCode() {
+        return this.edition.hashCode() ^ this.name.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        } else if (obj instanceof MinecraftVersion) {
+            MinecraftVersion version = (MinecraftVersion) obj;
+            return this.edition == version.edition && this.name.equals(version.name);
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public abstract String toString();
 }

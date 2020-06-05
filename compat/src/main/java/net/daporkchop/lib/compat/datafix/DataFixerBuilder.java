@@ -32,7 +32,7 @@ import java.util.TreeMap;
  *
  * @author DaPorkchop_
  */
-public class DataFixerBuilder<O, D, V extends Comparable<V>> {
+public class DataFixerBuilder<O, D, V extends Comparable<? super V>> {
     protected final Map<V, DataConverter<D>> converters = new TreeMap<>();
     protected final Map<V, DataCodec<O, D>> codecs = new TreeMap<>();
 

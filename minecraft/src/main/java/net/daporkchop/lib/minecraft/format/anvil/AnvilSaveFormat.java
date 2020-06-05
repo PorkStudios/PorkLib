@@ -46,15 +46,17 @@ public class AnvilSaveFormat implements SaveFormat {
             return null;
         }
 
-        CompoundTag levelDat;
+        CompoundTag nbt;
         try (PInflater inflater = Zlib.PROVIDER.inflater(Zlib.PROVIDER.inflateOptions().withMode(ZlibMode.GZIP));
              DataIn in = inflater.decompressionStream(DataIn.wrapBuffered(levelDatFile))) {
-            levelDat = NBTFormat.BIG_ENDIAN.readCompound(in);
+            nbt = NBTFormat.BIG_ENDIAN.readCompound(in);
         }
-        //System.out.println(levelDat);
-        if (levelDat.contains("Data"))  {
-            return new AnvilSave(options, levelDat, root);
+        try (CompoundTag levelDat = nbt) {
+            //System.out.println(levelDat);
+            if (levelDat.contains("Data")) {
+                return new AnvilSave(options, levelDat, root);
+            }
+            return null;
         }
-        return null;
     }
 }

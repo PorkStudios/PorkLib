@@ -36,6 +36,9 @@ import net.daporkchop.lib.concurrent.PFuture;
 import net.daporkchop.lib.minecraft.format.anvil.region.RawChunk;
 import net.daporkchop.lib.minecraft.format.anvil.region.RegionFile;
 import net.daporkchop.lib.minecraft.format.anvil.region.RegionFileCache;
+import net.daporkchop.lib.minecraft.version.DataVersion;
+import net.daporkchop.lib.minecraft.version.MinecraftVersion;
+import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.minecraft.world.World;
@@ -62,10 +65,10 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
 
     protected final RegionFile regionCache;
 
-    protected final Integer worldVersion;
-    protected final DataFixer<Chunk, CompoundTag, Integer> chunkFixer;
+    protected final DataFixer<Chunk, CompoundTag, JavaVersion> chunkFixer;
+    protected final JavaVersion worldVersion;
 
-    public AnvilWorldStorage(@NonNull File root, @NonNull AnvilSaveOptions options, @NonNull NBTOptions nbtOptions, Integer worldVersion) {
+    public AnvilWorldStorage(@NonNull File root, @NonNull AnvilSaveOptions options, @NonNull NBTOptions nbtOptions, JavaVersion worldVersion) {
         this.root = PFiles.ensureDirectoryExists(root);
         this.options = options;
         this.nbtOptions = nbtOptions;
@@ -73,7 +76,7 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
 
         this.regionCache = new RegionFileCache(options, new File(root, "region"));
 
-        this.chunkFixer = DataFixer.<Chunk, CompoundTag, Integer>builder()
+        this.chunkFixer = DataFixer.<Chunk, CompoundTag, JavaVersion>builder()
                 .build();
     }
 
@@ -99,9 +102,8 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
                 }
             }
             int dataVersion = tag.getInt("DataVersion", 0);
-            return this.worldVersion == null
-                   ? this.chunkFixer.decode(tag, dataVersion) //if worldVersion is null, the world is in read-only mode which means we should only do minimal fixing
-                   : this.chunkFixer.decode(tag, dataVersion, this.worldVersion); //upgrade chunk to the same data version as the world itself
+            JavaVersion version = dataVersion < DataVersion.DATA_15w32a ? JavaVersion.pre15w32a() : JavaVersion.fromDataVersion(dataVersion);
+            return this.chunkFixer.decode(tag, version, this.worldVersion); //upgrade chunk to the same data version as the world itself
         } finally {
             if (tag != null) {
                 tag.release();

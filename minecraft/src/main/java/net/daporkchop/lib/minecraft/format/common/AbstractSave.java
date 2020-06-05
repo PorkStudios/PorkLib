@@ -29,6 +29,7 @@ import net.daporkchop.lib.concurrent.PFuture;
 import net.daporkchop.lib.minecraft.save.Save;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
 import net.daporkchop.lib.minecraft.util.Identifier;
+import net.daporkchop.lib.minecraft.version.MinecraftVersion;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
@@ -54,12 +55,11 @@ public abstract class AbstractSave<O extends SaveOptions> extends AbstractRefCou
     @NonNull
     protected final O options;
     @NonNull
-    protected final CompoundTag levelData;
-    @NonNull
     protected final File root;
 
     protected final Map<Identifier, World> worlds = new HashMap<>();
     protected final Set<Identifier> worldIds = Collections.unmodifiableSet(this.worlds.keySet());
+    protected MinecraftVersion version;
 
     //protected final BlockRegistry blocks;
 
@@ -67,6 +67,7 @@ public abstract class AbstractSave<O extends SaveOptions> extends AbstractRefCou
      * Ensures that the implementation constructor has initialized all the required fields.
      */
     protected void validateState() {
+        checkState(this.version != null, "version must be set!");
     }
 
     @Override
@@ -89,7 +90,6 @@ public abstract class AbstractSave<O extends SaveOptions> extends AbstractRefCou
 
     @Override
     protected void doRelease() {
-        this.levelData.release();
         this.worlds.values().forEach(World::release);
         this.worlds.clear();
     }

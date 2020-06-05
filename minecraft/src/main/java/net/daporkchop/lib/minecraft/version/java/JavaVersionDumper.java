@@ -43,8 +43,9 @@ import java.io.Reader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
+import java.util.Collections;
 import java.util.Map;
-import java.util.Objects;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -63,6 +64,7 @@ final class JavaVersionDumper {
     public static void main(String... args) throws IOException {
         Map<String, ManifestVersion> manifest = getManifestVersions();
         Map<String, DataVersion> data = getDataVersions();
+        Map<Integer, String> dataToId = Collections.synchronizedMap(new TreeMap<>());
         manifest.values().parallelStream()
                 .map(manifestVersion -> {
                     DataVersion dataVersion = data.get(manifestVersion.id);
@@ -74,11 +76,18 @@ final class JavaVersionDumper {
                     }
                 })
                 .forEach((IOConsumer<ManifestVersion>) version -> {
-                    try (PAppendable out = new UTF8FileWriter(PFiles.ensureFileExists(new File(OUT_ROOT, version.id + ".json")))) {
+                    try (PAppendable out = new UTF8FileWriter(PFiles.ensureFileExists(new File(OUT_ROOT, "by_id/" + version.id + ".json")))) {
                         GSON.toJson(version, out);
                         out.appendLn();
                     }
+                    if (version instanceof MergedVersion) {
+                        dataToId.put(((MergedVersion) version).dataVersion, version.id);
+                    }
                 });
+        try (PAppendable out = new UTF8FileWriter(PFiles.ensureFileExists(new File(OUT_ROOT, "data_version_to_id.json")))) {
+            GSON.toJson(dataToId, out);
+            out.appendLn();
+        }
     }
 
     public static Map<String, ManifestVersion> getManifestVersions() throws IOException {

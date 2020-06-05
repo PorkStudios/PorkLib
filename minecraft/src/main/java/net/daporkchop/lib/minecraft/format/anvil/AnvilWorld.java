@@ -25,6 +25,8 @@ import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.minecraft.format.common.AbstractWorld;
 import net.daporkchop.lib.minecraft.format.common.vanilla.VanillaWorldManager;
+import net.daporkchop.lib.minecraft.util.WriteAccess;
+import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.minecraft.world.Dimension;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.WorldInfo;
@@ -50,7 +52,10 @@ public class AnvilWorld extends AbstractWorld<AnvilSave, AnvilSaveOptions> imple
 
         //anvil is implemented in a way that makes it a real pain to have their dimension be abstracted away from the individual worlds
         File root = dimension.legacyId() == 0 ? parent.root() : new File(parent.root(), "DIM" + dimension.legacyId());
-        this.storage = new AnvilWorldStorage(root, options, parent.chunkNBTOptions(), -1); //TODO
+        JavaVersion worldVersion = options.access() == WriteAccess.READ_ONLY
+                                   ? null //allow chunks in read-only worlds to be decoded using any implemented version for performance
+                                   : (JavaVersion) parent.version(); //force chunks in writable worlds to be upgraded to the world version
+        this.storage = new AnvilWorldStorage(root, options, parent.chunkNBTOptions(), worldVersion);
 
         this.manager = new VanillaWorldManager(this, this.storage, options.ioExecutor());
 

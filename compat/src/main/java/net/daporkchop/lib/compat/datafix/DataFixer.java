@@ -36,8 +36,8 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  * @param <V> the type of version used to identify the processor chain required to handle data at a given version
  * @author DaPorkchop_
  */
-public class DataFixer<O, D, V extends Comparable<V>> {
-    public static <O, D, V extends Comparable<V>> DataFixerBuilder<O, D, V> builder() {
+public class DataFixer<O, D, V extends Comparable<? super V>> {
+    public static <O, D, V extends Comparable<? super V>> DataFixerBuilder<O, D, V> builder() {
         return new DataFixerBuilder<>();
     }
 
@@ -67,7 +67,8 @@ public class DataFixer<O, D, V extends Comparable<V>> {
     /**
      * Decodes the given data.
      * <p>
-     * This will attempt to decode the data to exactly the target version, regardless of difficulty.
+     * If {@code targetVersion} is {@code null}, this method behaves exactly the same as {@link #decode(Object, Comparable)}. Otherwise, this will
+     * attempt to decode the data to exactly the target version, regardless of difficulty.
      *
      * @param data          the data to decode. May be modified
      * @param dataVersion   the version that the data was encoded at
@@ -76,7 +77,10 @@ public class DataFixer<O, D, V extends Comparable<V>> {
      * @throws IllegalArgumentException if the given data version is newer than the target version
      * @throws IllegalArgumentException if no suitable codec for the given target version could be found
      */
-    public O decode(@NonNull D data, @NonNull V dataVersion, @NonNull V targetVersion) {
+    public O decode(@NonNull D data, @NonNull V dataVersion, V targetVersion) {
+        if (targetVersion == null)  {
+            return this.decode(data, dataVersion);
+        }
         DataCodec<O, D> codec = this.codecs.get(targetVersion);
         checkArg(codec != null, "no codec registered for given targetVersion (%s)", targetVersion);
         return codec.decode(this.upgrade(data, dataVersion, targetVersion));

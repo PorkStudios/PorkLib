@@ -20,19 +20,27 @@
 
 package net.daporkchop.lib.minecraft.version.java;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
+import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.binary.oio.StreamUtil;
 import net.daporkchop.lib.collections.map.PMaps;
 import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.minecraft.version.DataVersion;
 import net.daporkchop.lib.minecraft.version.MinecraftEdition;
 import net.daporkchop.lib.minecraft.version.MinecraftVersion;
+import net.daporkchop.lib.primitive.map.IntObjMap;
+import net.daporkchop.lib.primitive.map.open.IntObjOpenHashMap;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -45,12 +53,39 @@ import java.util.Map;
 @Getter
 @Accessors(fluent = true)
 public final class JavaVersion extends MinecraftVersion {
+    @UtilityClass
+    private static class OldVersion {
+        private final JavaVersion OLD;
+
+        static {
+            JavaVersion v1_8_9 = fromName("1.8.9");
+            OLD = new JavaVersion("[unknown] (≤ 1.8.9)", v1_8_9.releaseTime + 1L, -1, -1);
+        }
+    }
+
+    @UtilityClass
+    private static class DataVersionToId {
+        private final IntObjMap<String> MAP = new IntObjOpenHashMap<>();
+
+        static {
+            JsonObject obj;
+            try (Reader reader = new BufferedReader(new InputStreamReader(JavaVersion.class.getResourceAsStream("data_version_to_id.json"), StandardCharsets.UTF_8))) {
+                obj = new JsonParser().parse(reader).getAsJsonObject();
+            } catch (IOException e) {
+                throw new AssertionError(e);
+            }
+            for (Map.Entry<String, JsonElement> entry : obj.entrySet()) {
+                MAP.put(Integer.parseUnsignedInt(entry.getKey()), entry.getValue().getAsString());
+            }
+        }
+    }
+
     private static final Map<String, JavaVersion> NAME_CACHE = PMaps.readWriteAuto(new HashMap<>());
 
     public static JavaVersion fromName(@NonNull String name) {
         JavaVersion version = NAME_CACHE.get(name);
         if (version == null) { //compute
-            try (InputStream in = JavaVersion.class.getResourceAsStream(name + ".json")) {
+            try (InputStream in = JavaVersion.class.getResourceAsStream("by_id/" + name + ".json")) {
                 if (in == null) { //file wasn't found on disk
                     version = new JavaVersion(name, -1L);
                 } else {
@@ -65,6 +100,15 @@ public final class JavaVersion extends MinecraftVersion {
             version = PorkUtil.fallbackIfNull(NAME_CACHE.putIfAbsent(name, version), version); //some shitty form of atomicity
         }
         return version;
+    }
+
+    public static JavaVersion fromDataVersion(int dataVersion) {
+        String name = DataVersionToId.MAP.get(dataVersion);
+        return name != null ? fromName(name) : new JavaVersion(null, -1L, -1, dataVersion);
+    }
+
+    public static JavaVersion pre15w32a() {
+        return OldVersion.OLD;
     }
 
     protected final int protocol;
@@ -90,5 +134,16 @@ public final class JavaVersion extends MinecraftVersion {
         } else {
             this.toString = "Java Edition [unknown]";
         }
+    }
+
+    @Override
+    public int compareTo(MinecraftVersion o) {
+        if (o instanceof JavaVersion) {
+            JavaVersion j = (JavaVersion) o;
+            if (this.data >= DataVersion.DATA_15w32a && j.data >= DataVersion.DATA_15w32a) { //compare by data version rather than by name
+                return this.data - j.data;
+            }
+        }
+        return super.compareTo(o);
     }
 }

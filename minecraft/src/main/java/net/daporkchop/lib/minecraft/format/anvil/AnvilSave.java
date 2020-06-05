@@ -27,6 +27,8 @@ import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.minecraft.format.common.AbstractSave;
 import net.daporkchop.lib.minecraft.format.common.SimpleDimension;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
+import net.daporkchop.lib.minecraft.version.MinecraftVersion;
+import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.minecraft.world.Dimension;
 import net.daporkchop.lib.nbt.NBTOptions;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
@@ -42,13 +44,15 @@ public class AnvilSave extends AbstractSave<AnvilSaveOptions> {
     protected final NBTOptions chunkNBTOptions;
 
     public AnvilSave(SaveOptions options, CompoundTag levelData, File root) {
-        super(new AnvilSaveOptions(options), levelData, root);
+        super(new AnvilSaveOptions(options), root);
 
         this.chunkNBTOptions = NBTOptions.DEFAULT
                 .withByteAlloc(options.byteAlloc())
                 .withIntAlloc(options.intAlloc())
                 .withLongAlloc(options.longAlloc());
                 //.withObjectParser(null); //TODO
+
+        this.version = this.extractVersion(levelData);
 
         //find worlds
         this.openWorld(new SimpleDimension(Dimension.ID_OVERWORLD, 0, true, true));
@@ -64,5 +68,13 @@ public class AnvilSave extends AbstractSave<AnvilSaveOptions> {
 
     protected void openWorld(@NonNull Dimension dimension)  {
         this.worlds.put(dimension.id(), new AnvilWorld(this, this.options, dimension));
+    }
+
+    protected MinecraftVersion extractVersion(@NonNull CompoundTag levelData)   {
+        CompoundTag versionTag = levelData.getCompound("Data").getCompound("Version", null);
+        if (versionTag == null) { //older than 15w32a
+            return JavaVersion.pre15w32a();
+        }
+        return JavaVersion.fromName(versionTag.getString("Name"));
     }
 }

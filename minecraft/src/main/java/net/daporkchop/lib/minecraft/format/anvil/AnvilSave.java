@@ -25,7 +25,7 @@ import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.minecraft.format.common.AbstractSave;
-import net.daporkchop.lib.minecraft.format.common.SimpleDimension;
+import net.daporkchop.lib.minecraft.format.common.DefaultDimension;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
 import net.daporkchop.lib.minecraft.version.MinecraftVersion;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
@@ -55,12 +55,12 @@ public class AnvilSave extends AbstractSave<AnvilSaveOptions> {
         this.version = this.extractVersion(levelData);
 
         //find worlds
-        this.openWorld(new SimpleDimension(Dimension.ID_OVERWORLD, 0, true, true));
+        this.openWorld(new DefaultDimension(Dimension.ID_OVERWORLD, 0, true, true));
         if (PFiles.checkDirectoryExists(new File(this.root, "DIM-1"))) {
-            this.openWorld(new SimpleDimension(Dimension.ID_NETHER, -1, false, false));
+            this.openWorld(new DefaultDimension(Dimension.ID_NETHER, -1, false, false));
         }
         if (PFiles.checkDirectoryExists(new File(this.root, "DIM1"))) {
-            this.openWorld(new SimpleDimension(Dimension.ID_END, 1, false, false));
+            this.openWorld(new DefaultDimension(Dimension.ID_END, 1, false, false));
         }
 
         this.validateState();

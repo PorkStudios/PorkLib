@@ -35,7 +35,7 @@ import net.daporkchop.lib.minecraft.world.Dimension;
 @AllArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public final class SimpleDimension implements Dimension {
+public final class DefaultDimension implements Dimension {
     @NonNull
     protected final Identifier id;
     protected final int legacyId;

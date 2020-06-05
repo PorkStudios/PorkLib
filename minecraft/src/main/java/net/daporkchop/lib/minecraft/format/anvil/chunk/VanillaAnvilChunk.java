@@ -20,8 +20,17 @@
 
 package net.daporkchop.lib.minecraft.format.anvil.chunk;
 
+import lombok.NonNull;
+import net.daporkchop.lib.minecraft.format.common.vanilla.VanillaChunk;
+import net.daporkchop.lib.minecraft.registry.BlockRegistry;
+import net.daporkchop.lib.minecraft.world.Section;
+import net.daporkchop.lib.minecraft.world.World;
+
 /**
  * @author DaPorkchop_
  */
-public class VanillaAnvilChunk {
+public class VanillaAnvilChunk extends VanillaChunk implements AnvilChunk {
+    public VanillaAnvilChunk(World parent, int x, int z, @NonNull Section[] sections) {
+        super(parent, x, z, sections);
+    }
 }

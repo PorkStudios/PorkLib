@@ -36,6 +36,7 @@ import net.daporkchop.lib.concurrent.PFuture;
 import net.daporkchop.lib.minecraft.format.anvil.region.RawChunk;
 import net.daporkchop.lib.minecraft.format.anvil.region.RegionFile;
 import net.daporkchop.lib.minecraft.format.anvil.region.RegionFileCache;
+import net.daporkchop.lib.minecraft.format.anvil.version.AnvilChunkCodec1_12_2;
 import net.daporkchop.lib.minecraft.version.DataVersion;
 import net.daporkchop.lib.minecraft.version.MinecraftVersion;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
@@ -68,15 +69,16 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
     protected final DataFixer<Chunk, CompoundTag, JavaVersion> chunkFixer;
     protected final JavaVersion worldVersion;
 
-    public AnvilWorldStorage(@NonNull File root, @NonNull AnvilSaveOptions options, @NonNull NBTOptions nbtOptions, JavaVersion worldVersion) {
+    public AnvilWorldStorage(@NonNull File root, @NonNull AnvilWorld world, @NonNull NBTOptions nbtOptions, JavaVersion worldVersion) {
         this.root = PFiles.ensureDirectoryExists(root);
-        this.options = options;
+        this.options = world.options();
         this.nbtOptions = nbtOptions;
         this.worldVersion = worldVersion;
 
-        this.regionCache = new RegionFileCache(options, new File(root, "region"));
+        this.regionCache = new RegionFileCache(world.options(), new File(root, "region"));
 
         this.chunkFixer = DataFixer.<Chunk, CompoundTag, JavaVersion>builder()
+                .addCodec(JavaVersion.fromName("1.12.2"), new AnvilChunkCodec1_12_2(world))
                 .build();
     }
 

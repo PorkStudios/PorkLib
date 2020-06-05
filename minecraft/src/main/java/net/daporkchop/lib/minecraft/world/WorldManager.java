@@ -20,6 +20,7 @@
 
 package net.daporkchop.lib.minecraft.world;
 
+import lombok.NonNull;
 import net.daporkchop.lib.common.misc.refcount.RefCounted;
 import net.daporkchop.lib.concurrent.PFuture;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
@@ -27,18 +28,24 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 import java.util.stream.Stream;
 
 /**
- * Handles loading and unloading of chunks for a {@link World}.
+ * Caches chunks and sections in memory for a {@link World}.
+ * <p>
+ * Note that usage of this class is not mandatory, it merely serves to help {@link World} and {@link Chunk} implement {@link BlockAccess} in an efficient
+ * manner without having to load and save chunks/sections on every method call. Users may also use {@link WorldStorage} directly to handle (un)loading of
+ * chunks/sections themselves.
  *
  * @author DaPorkchop_
  */
 public interface WorldManager extends RefCounted {
     /**
-     * @return a stream over all currently loaded chunks
+     * @return a stream over all currently loaded {@link Chunk}s
      */
     Stream<Chunk> loadedChunks();
 
     /**
      * Gets the already loaded {@link Chunk} at the given coordinates.
+     * <p>
+     * If present, the returned {@link Chunk} will be retained atomically.
      *
      * @param x the X coordinate of the {@link Chunk}
      * @param z the Z coordinate of the {@link Chunk}
@@ -50,6 +57,8 @@ public interface WorldManager extends RefCounted {
      * Gets or loads the {@link Chunk} at the given coordinates.
      * <p>
      * If the {@link Chunk} wasn't already loaded, it will be loaded and the method will block until the load is complete.
+     * <p>
+     * The returned {@link Chunk} will be retained atomically.
      *
      * @param x the X coordinate of the {@link Chunk}
      * @param z the Z coordinate of the {@link Chunk}
@@ -64,6 +73,8 @@ public interface WorldManager extends RefCounted {
      * Gets or loads the {@link Chunk} at the given coordinates.
      * <p>
      * If the {@link Chunk} was already loaded, the returned {@link PFuture} will be completed immediately.
+     * <p>
+     * If the {@link Chunk} could be loaded successfully, it will be retained atomically before the future is completed.
      *
      * @param x the X coordinate of the {@link Chunk}
      * @param z the Z coordinate of the {@link Chunk}
@@ -72,12 +83,20 @@ public interface WorldManager extends RefCounted {
     PFuture<Chunk> loadChunk(int x, int z);
 
     /**
-     * @return a stream over all currently loaded sections
+     * @return a stream over all currently loaded {@link Section}s
      */
     Stream<Section> loadedSections();
 
     /**
+     * @return a stream over all of the {@link Section}s currently loaded by the given {@link Chunk}
+     * @throws IllegalArgumentException if the given chunk does not belong to this world manager
+     */
+    Stream<Section> loadedSections(@NonNull Chunk chunk);
+
+    /**
      * Gets the already loaded {@link Section} at the given coordinates.
+     * <p>
+     * If present, the returned {@link Section} will be retained atomically.
      *
      * @param x the X coordinate of the {@link Section}
      * @param y the Y coordinate of the {@link Section}
@@ -90,6 +109,8 @@ public interface WorldManager extends RefCounted {
      * Gets or loads the {@link Section} at the given coordinates.
      * <p>
      * If the {@link Section} wasn't already loaded, it will be loaded and the method will block until the load is complete.
+     * <p>
+     * The returned {@link Section} will be retained atomically.
      *
      * @param x the X coordinate of the {@link Section}
      * @param y the Y coordinate of the {@link Section}
@@ -105,6 +126,8 @@ public interface WorldManager extends RefCounted {
      * Gets or loads the {@link Section} at the given coordinates.
      * <p>
      * If the {@link Section} was already loaded, the returned {@link PFuture} will be completed immediately.
+     * <p>
+     * If the {@link Section} could be loaded successfully, it will be retained atomically before the future is completed.
      *
      * @param x the X coordinate of the {@link Section}
      * @param y the Y coordinate of the {@link Section}

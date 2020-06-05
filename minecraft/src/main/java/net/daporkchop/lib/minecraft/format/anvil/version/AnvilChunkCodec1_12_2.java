@@ -21,8 +21,12 @@
 package net.daporkchop.lib.minecraft.format.anvil.version;
 
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.compat.datafix.DataCodec;
+import net.daporkchop.lib.minecraft.format.anvil.AnvilWorld;
+import net.daporkchop.lib.minecraft.format.anvil.chunk.VanillaAnvilChunk;
 import net.daporkchop.lib.minecraft.world.Chunk;
+import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
@@ -30,11 +34,21 @@ import net.daporkchop.lib.nbt.tag.CompoundTag;
  *
  * @author DaPorkchop_
  */
+@RequiredArgsConstructor
 public class AnvilChunkCodec1_12_2 implements DataCodec<Chunk, CompoundTag> {
+    @NonNull
+    protected final AnvilWorld world;
+
     @Override
     public Chunk decode(@NonNull CompoundTag root) {
         CompoundTag level = root.getCompound("Level");
-        return null; //TODO
+        int x = level.getInt("xPos");
+        int z = level.getInt("zPos");
+
+        Section[] sections = new Section[16];
+        Chunk chunk = new VanillaAnvilChunk(this.world.retain(), x, z, sections);
+        //TODO: actually set sections
+        return chunk;
     }
 
     @Override

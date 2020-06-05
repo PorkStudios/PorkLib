@@ -20,11 +20,14 @@
 
 package net.daporkchop.lib.minecraft.format.anvil.chunk;
 
-import net.daporkchop.lib.minecraft.format.common.AbstractChunk;
 import net.daporkchop.lib.minecraft.world.Chunk;
 
 /**
  * @author DaPorkchop_
  */
-public abstract class AnvilChunk extends AbstractChunk {
+public interface AnvilChunk extends Chunk {
+    @Override
+    default int layers() {
+        return 1;
+    }
 }

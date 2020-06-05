@@ -45,7 +45,7 @@ import java.util.stream.Stream;
  *
  * @author DaPorkchop_
  */
-//this could be improved by maintaining separate maps for loaded and loading chunks, but it'll become a race condition mess
+//TODO: this needs to be redone to conform to the new atomicity requirements in WorldManager
 @RequiredArgsConstructor
 public class VanillaWorldManager extends AbstractRefCounted implements WorldManager {
     @NonNull
@@ -71,8 +71,14 @@ public class VanillaWorldManager extends AbstractRefCounted implements WorldMana
 
     @Override
     public Stream<Section> loadedSections() {
-        return this.loadedChunks()
-                .flatMap(Chunk::loadedSections); //assume that the returned stream is 16 long
+        /*return this.loadedChunks()
+                .flatMap(Chunk::loadedSections);*/
+        return null;
+    }
+
+    @Override
+    public Stream<Section> loadedSections(@NonNull Chunk chunk) {
+        return null;
     }
 
     @Override

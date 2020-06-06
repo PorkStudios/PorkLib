@@ -20,15 +20,21 @@
 
 package net.daporkchop.lib.minecraft.block;
 
+import lombok.NonNull;
 import net.daporkchop.lib.minecraft.util.Identifier;
 
 /**
- * Represents a block state: the block's {@link Identifier} combined with a metadata value.
+ * Represents a block state: the storage's {@link Identifier} combined with a metadata value.
  *
  * @author DaPorkchop_
  * @see BlockRegistry for an explanation of what all the values mean
  */
 public interface BlockState {
+    /**
+     * @return the {@link BlockRegistry} that this block state belongs to
+     */
+    BlockRegistry registry();
+
     /**
      * @return the block's {@link Identifier}
      */
@@ -59,7 +65,37 @@ public interface BlockState {
     BlockState withMeta(int meta);
 
     /**
-     * @return the {@link BlockRegistry} that this block state belongs to
+     * Gets a {@link BlockState} with the same block {@link Identifier} and the given {@link Property} set to the given value.
+     *
+     * @param property the {@link Property} key to change
+     * @param value    the new property value
+     * @param <V>      the property's value type
+     * @return a {@link BlockState} with the given {@link Property} set to the given value
+     * @throws IllegalArgumentException if the given {@link Property} was not registered for the block
+     * @throws IllegalArgumentException if the given {@link Property} cannot store the given value
+     * @see #withProperty(Property.Int, int)
+     * @see #withProperty(Property.Boolean, boolean)
      */
-    BlockRegistry registry();
+    <V> BlockState withProperty(@NonNull Property<V> property, @NonNull V value);
+
+    /**
+     * Gets a {@link BlockState} with the same block {@link Identifier} and the given {@link Property.Int} set to the given value.
+     *
+     * @param property the {@link Property.Int} key to change
+     * @param value    the new property value
+     * @return a {@link BlockState} with the given {@link Property.Int} set to the given value
+     * @throws IllegalArgumentException if the given {@link Property.Int} was not registered for the block
+     * @throws IllegalArgumentException if the given {@link Property.Int} cannot store the given value
+     */
+    BlockState withProperty(@NonNull Property.Int property, int value);
+
+    /**
+     * Gets a {@link BlockState} with the same block {@link Identifier} and the given {@link Property.Boolean} set to the given value.
+     *
+     * @param property the {@link Property.Boolean} key to change
+     * @param value    the new property value
+     * @return a {@link BlockState} with the given {@link Property.Boolean} set to the given value
+     * @throws IllegalArgumentException if the given {@link Property.Boolean} was not registered for the block
+     */
+    BlockState withProperty(@NonNull Property.Boolean property, boolean value);
 }

@@ -25,7 +25,7 @@ import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
 import net.daporkchop.lib.minecraft.block.BlockAccess;
-import net.daporkchop.lib.minecraft.format.common.block.BlockStorage;
+import net.daporkchop.lib.minecraft.format.common.storage.BlockStorage;
 import net.daporkchop.lib.minecraft.format.common.nibble.NibbleArray;
 import net.daporkchop.lib.minecraft.block.BlockRegistry;
 import net.daporkchop.lib.minecraft.util.Identifier;

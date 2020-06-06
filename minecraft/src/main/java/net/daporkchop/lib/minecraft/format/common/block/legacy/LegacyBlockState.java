@@ -18,7 +18,7 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.anvil;
+package net.daporkchop.lib.minecraft.format.common.block.legacy;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -31,23 +31,23 @@ import net.daporkchop.lib.minecraft.block.BlockState;
 import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
- * Implementation of {@link BlockState} used by {@link AnvilBlockRegistry}.
+ * Implementation of {@link BlockState} used by {@link LegacyBlockRegistry}.
  *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 @Getter
 @Accessors(fluent = true)
-final class AnvilBlockState implements BlockState {
+final class LegacyBlockState implements BlockState {
     @NonNull
     protected final Identifier id;
     protected final int legacyId;
     protected final int meta;
     protected final int runtimeId;
     @NonNull
-    protected final AnvilBlockState[] states;
+    protected final LegacyBlockState[] states;
     @NonNull
-    protected final AnvilBlockRegistry registry;
+    protected final LegacyBlockRegistry registry;
 
     @Override
     public BlockState withMeta(int meta) {

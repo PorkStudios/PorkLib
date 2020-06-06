@@ -18,14 +18,14 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.anvil;
+package net.daporkchop.lib.minecraft.format.common.block.legacy;
 
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.minecraft.block.BlockRegistry;
-import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.block.BlockState;
+import net.daporkchop.lib.minecraft.util.Identifier;
 
 import java.util.HashMap;
 import java.util.IdentityHashMap;
@@ -38,20 +38,20 @@ import java.util.function.ObjIntConsumer;
 import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
- * Implementation of {@link BlockRegistry} used by implementations of the Anvil save format.
+ * Implementation of {@link BlockRegistry} which only supports 4-bit metadata values.
  *
  * @author DaPorkchop_
  */
 @Accessors(fluent = true)
-public class AnvilBlockRegistry implements BlockRegistry {
+public class LegacyBlockRegistry implements BlockRegistry {
     protected final Map<Identifier, Integer> blockToLegacy;
     protected final Identifier[] legacyToBlock;
-    protected final AnvilBlockState[] legacyToState;
+    protected final LegacyBlockState[] legacyToState;
 
     @Getter
     protected final int size;
 
-    protected AnvilBlockRegistry(@NonNull Builder builder) {
+    protected LegacyBlockRegistry(@NonNull Builder builder) {
         this.size = builder.toIds.size();
 
         this.blockToLegacy = new IdentityHashMap<>(this.size);
@@ -60,11 +60,11 @@ public class AnvilBlockRegistry implements BlockRegistry {
         this.legacyToBlock = new Identifier[this.blockToLegacy.values().stream().mapToInt(Integer::intValue).max().orElse(0)];
         this.blockToLegacy.forEach((blockId, legacyId) -> this.legacyToBlock[legacyId] = blockId);
 
-        this.legacyToState = new AnvilBlockState[this.legacyToBlock.length];
+        this.legacyToState = new LegacyBlockState[this.legacyToBlock.length];
         this.blockToLegacy.forEach((blockId, legacyId) -> {
-            AnvilBlockState[] states = new AnvilBlockState[16];
-            for (int meta = 0; meta < 16; meta++)   {
-                states[meta] = new AnvilBlockState(blockId, legacyId, meta, (legacyId << 4) | meta, states, this);
+            LegacyBlockState[] states = new LegacyBlockState[16];
+            for (int meta = 0; meta < 16; meta++) {
+                states[meta] = new LegacyBlockState(blockId, legacyId, meta, (legacyId << 4) | meta, states, this);
             }
             this.legacyToState[legacyId] = states[0];
         });
@@ -157,10 +157,10 @@ public class AnvilBlockRegistry implements BlockRegistry {
 
     @Override
     public void forEachState(@NonNull Consumer<? super BlockState> callback) {
-        for (AnvilBlockState defaultState : this.legacyToState)  {
-            if (defaultState != null)   {
-                AnvilBlockState[] states = defaultState.states;
-                for (AnvilBlockState state : states)    {
+        for (LegacyBlockState defaultState : this.legacyToState) {
+            if (defaultState != null) {
+                LegacyBlockState[] states = defaultState.states;
+                for (LegacyBlockState state : states) {
                     callback.accept(state);
                 }
             }
@@ -169,10 +169,10 @@ public class AnvilBlockRegistry implements BlockRegistry {
 
     @Override
     public void forEachRuntimeId(@NonNull IntConsumer callback) {
-        for (BlockState defaultState : this.legacyToState)  {
-            if (defaultState != null)   {
+        for (BlockState defaultState : this.legacyToState) {
+            if (defaultState != null) {
                 int baseId = defaultState.legacyId() << 4;
-                for (int meta = 0; meta < 16; meta++)   {
+                for (int meta = 0; meta < 16; meta++) {
                     callback.accept(baseId | meta);
                 }
             }
@@ -208,8 +208,8 @@ public class AnvilBlockRegistry implements BlockRegistry {
          *
          * @return the completed registry
          */
-        public synchronized AnvilBlockRegistry build() {
-            return new AnvilBlockRegistry(this);
+        public synchronized LegacyBlockRegistry build() {
+            return new LegacyBlockRegistry(this);
         }
     }
 }

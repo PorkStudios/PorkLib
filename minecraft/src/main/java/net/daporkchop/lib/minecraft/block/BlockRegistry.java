@@ -147,6 +147,22 @@ public interface BlockRegistry extends Registry {
     BlockState getState(int legacyId, int meta);
 
     /**
+     * Gets the default {@link BlockState} for to the given block ID.
+     *
+     * @param blockId the block ID of the block state to get
+     * @return the default {@link BlockState} for the given block ID
+     */
+    BlockState getDefaultState(@NonNull Identifier blockId);
+
+    /**
+     * Gets the default {@link BlockState} for to the given legacy block ID.
+     *
+     * @param legacyId the legacy ID of the block state to get
+     * @return the default {@link BlockState} for the given legacy block ID
+     */
+    BlockState getDefaultState(int legacyId);
+
+    /**
      * Gets the {@link BlockState} for to the given block state.
      *
      * @param runtimeId the runtime ID of the block state to get

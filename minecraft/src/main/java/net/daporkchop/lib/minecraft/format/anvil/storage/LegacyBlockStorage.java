@@ -18,11 +18,11 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.anvil.block;
+package net.daporkchop.lib.minecraft.format.anvil.storage;
 
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.format.common.block.AbstractBlockStorage;
-import net.daporkchop.lib.minecraft.format.common.block.BlockStorage;
+import net.daporkchop.lib.minecraft.format.common.storage.AbstractBlockStorage;
+import net.daporkchop.lib.minecraft.format.common.storage.BlockStorage;
 import net.daporkchop.lib.minecraft.block.BlockRegistry;
 
 import static net.daporkchop.lib.common.util.PValidation.*;

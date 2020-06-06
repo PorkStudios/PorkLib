@@ -70,9 +70,9 @@ public final class Identifier implements Comparable<Identifier> {
     private final transient int hashCode;
 
     private Identifier(String modid, String name, String fullName) {
-        this.modid = modid;
-        this.name = name;
-        this.fullName = fullName;
+        this.modid = modid.intern();
+        this.name = name.intern();
+        this.fullName = fullName.intern();
 
         //dig my epic hash distribution
         this.hashCode = PMath.mix32(fullName.chars().asLongStream().reduce(0L, (a, b) -> PMath.mix64(a + b)));
@@ -97,10 +97,10 @@ public final class Identifier implements Comparable<Identifier> {
 
         if (id == null) {
             String namespace = matcher.group(1);
-            String name = matcher.group(2).intern();
-            String fullName = (namespace == null && !identifier.startsWith("minecraft:") ? "minecraft:" + name : identifier).intern();
+            String name = matcher.group(2);
+            String fullName = (namespace == null && !identifier.startsWith("minecraft:") ? "minecraft:" + name : identifier);
             boolean defaultNamespace = namespace == null;
-            namespace = defaultNamespace ? "minecraft" : namespace.intern();
+            namespace = defaultNamespace ? "minecraft" : namespace;
 
             //create new identifier instance
             WRITE_LOCK.lock();

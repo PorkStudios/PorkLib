@@ -561,7 +561,12 @@ public class PUnsafe {
         UNSAFE.fullFence();
     }
 
-    //custom methods
+    //
+    //
+    // custom methods
+    //
+    //
+    
     public static long pork_getOffset(@NonNull Class clazz, @NonNull String fieldName) {
         try {
             return UNSAFE.objectFieldOffset(clazz.getDeclaredField(fieldName));
@@ -629,5 +634,96 @@ public class PUnsafe {
                 cleaner.clean();
             }
         }
+    }
+    
+    //
+    //
+    // custom array methods
+    //
+    //
+    
+    public static boolean getArrayVolatile(boolean[] a, int index)  {
+        return getBooleanVolatile(a, ARRAY_BOOLEAN_BASE_OFFSET + index * ARRAY_BOOLEAN_INDEX_SCALE);
+    }
+
+    public static byte getArrayVolatile(byte[] a, int index)  {
+        return getByteVolatile(a, ARRAY_BYTE_BASE_OFFSET + index * ARRAY_BYTE_INDEX_SCALE);
+    }
+
+    public static short getArrayVolatile(short[] a, int index)  {
+        return getShortVolatile(a, ARRAY_SHORT_BASE_OFFSET + index * ARRAY_SHORT_INDEX_SCALE);
+    }
+
+    public static char getArrayVolatile(char[] a, int index)  {
+        return getCharVolatile(a, ARRAY_CHAR_BASE_OFFSET + index * ARRAY_CHAR_INDEX_SCALE);
+    }
+
+    public static int getArrayVolatile(int[] a, int index)  {
+        return getIntVolatile(a, ARRAY_INT_BASE_OFFSET + index * ARRAY_INT_INDEX_SCALE);
+    }
+
+    public static long getArrayVolatile(long[] a, int index)  {
+        return getLongVolatile(a, ARRAY_LONG_BASE_OFFSET + index * ARRAY_LONG_INDEX_SCALE);
+    }
+
+    public static float getArrayVolatile(float[] a, int index)  {
+        return getFloatVolatile(a, ARRAY_FLOAT_BASE_OFFSET + index * ARRAY_FLOAT_INDEX_SCALE);
+    }
+
+    public static double getArrayVolatile(double[] a, int index)  {
+        return getDoubleVolatile(a, ARRAY_DOUBLE_BASE_OFFSET + index * ARRAY_DOUBLE_INDEX_SCALE);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> T getArrayVolatile(Object[] a, int index)  {
+        return (T) getObjectVolatile(a, ARRAY_OBJECT_BASE_OFFSET + index * ARRAY_OBJECT_INDEX_SCALE);
+    }
+
+    public static void putArrayVolatile(boolean[] a, int index, boolean value)  {
+        putBooleanVolatile(a, ARRAY_BOOLEAN_BASE_OFFSET + index * ARRAY_BOOLEAN_INDEX_SCALE, value);
+    }
+
+    public static void putArrayVolatile(byte[] a, int index, byte value)  {
+        putByteVolatile(a, ARRAY_BYTE_BASE_OFFSET + index * ARRAY_BYTE_INDEX_SCALE, value);
+    }
+
+    public static void putArrayVolatile(short[] a, int index, short value)  {
+        putShortVolatile(a, ARRAY_SHORT_BASE_OFFSET + index * ARRAY_SHORT_INDEX_SCALE, value);
+    }
+
+    public static void putArrayVolatile(char[] a, int index, char value)  {
+        putCharVolatile(a, ARRAY_CHAR_BASE_OFFSET + index * ARRAY_CHAR_INDEX_SCALE, value);
+    }
+
+    public static void putArrayVolatile(int[] a, int index, int value)  {
+        putIntVolatile(a, ARRAY_INT_BASE_OFFSET + index * ARRAY_INT_INDEX_SCALE, value);
+    }
+
+    public static void putArrayVolatile(long[] a, int index, long value)  {
+        putLongVolatile(a, ARRAY_LONG_BASE_OFFSET + index * ARRAY_LONG_INDEX_SCALE, value);
+    }
+
+    public static void putArrayVolatile(float[] a, int index, float value)  {
+        putFloatVolatile(a, ARRAY_FLOAT_BASE_OFFSET + index * ARRAY_FLOAT_INDEX_SCALE, value);
+    }
+
+    public static void putArrayVolatile(double[] a, int index, double value)  {
+        putDoubleVolatile(a, ARRAY_DOUBLE_BASE_OFFSET + index * ARRAY_DOUBLE_INDEX_SCALE, value);
+    }
+
+    public static void putArrayVolatile(Object[] a, int index, Object value)  {
+        putObjectVolatile(a, ARRAY_OBJECT_BASE_OFFSET + index * ARRAY_OBJECT_INDEX_SCALE, value);
+    }
+
+    public static boolean compareAndSwapArray(int[] a, int index, int expect, int value)    {
+        return compareAndSwapInt(a, ARRAY_INT_BASE_OFFSET + index * ARRAY_INT_INDEX_SCALE, expect, value);
+    }
+
+    public static boolean compareAndSwapArray(long[] a, int index, long expect, long value)    {
+        return compareAndSwapLong(a, ARRAY_LONG_BASE_OFFSET + index * ARRAY_LONG_INDEX_SCALE, expect, value);
+    }
+
+    public static boolean compareAndSwapArray(Object[] a, int index, Object expect, Object value)    {
+        return compareAndSwapObject(a, ARRAY_OBJECT_BASE_OFFSET + index * ARRAY_OBJECT_INDEX_SCALE, expect, value);
     }
 }

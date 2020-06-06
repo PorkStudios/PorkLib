@@ -23,7 +23,6 @@ package net.daporkchop.lib.minecraft.format.common;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
 import net.daporkchop.lib.concurrent.PFuture;
@@ -32,6 +31,7 @@ import net.daporkchop.lib.minecraft.registry.BlockRegistry;
 import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.world.BlockState;
 import net.daporkchop.lib.minecraft.world.Chunk;
+import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
@@ -53,7 +53,7 @@ public abstract class AbstractChunk extends AbstractRefCounted implements Chunk 
     protected final BlockRegistry blockRegistry;
     protected final boolean hasSkyLight;
 
-    public AbstractChunk(@NonNull World parent, int x, int z)   {
+    public AbstractChunk(@NonNull World parent, int x, int z) {
         this.parent = parent;
         this.x = x;
         this.z = z;
@@ -75,7 +75,7 @@ public abstract class AbstractChunk extends AbstractRefCounted implements Chunk 
     }
 
     @Override
-    protected void doRelease()  {
+    protected void doRelease() {
         this.parent.release();
     }
 
@@ -88,168 +88,224 @@ public abstract class AbstractChunk extends AbstractRefCounted implements Chunk 
     @Override
     public BlockState getBlockState(int x, int y, int z) {
         checkCoords(x, z);
-        return this.getOrLoadSection(y >> 4).getBlockState(x, y & 0xF, z);
+        try (Section section = this.getOrLoadSection(y >> 4)) {
+            return section.getBlockState(x, y & 0xF, z);
+        }
     }
 
     @Override
     public BlockState getBlockState(int x, int y, int z, int layer) {
         checkCoords(x, z);
-        return this.getOrLoadSection(y >> 4).getBlockState(x, y & 0xF, z, layer);
+        try (Section section = this.getOrLoadSection(y >> 4)) {
+            return section.getBlockState(x, y & 0xF, z, layer);
+        }
     }
 
     @Override
     public Identifier getBlockId(int x, int y, int z) {
         checkCoords(x, z);
-        return this.getOrLoadSection(y >> 4).getBlockId(x, y & 0xF, z);
+        try (Section section = this.getOrLoadSection(y >> 4)) {
+            return section.getBlockId(x, y & 0xF, z);
+        }
     }
 
     @Override
     public Identifier getBlockId(int x, int y, int z, int layer) {
         checkCoords(x, z);
-        return this.getOrLoadSection(y >> 4).getBlockId(x, y & 0xF, z, layer);
+        try (Section section = this.getOrLoadSection(y >> 4)) {
+            return section.getBlockId(x, y & 0xF, z, layer);
+        }
     }
 
     @Override
     public int getBlockLegacyId(int x, int y, int z) {
         checkCoords(x, z);
-        return this.getOrLoadSection(y >> 4).getBlockLegacyId(x, y & 0xF, z);
+        try (Section section = this.getOrLoadSection(y >> 4)) {
+            return section.getBlockLegacyId(x, y & 0xF, z);
+        }
     }
 
     @Override
     public int getBlockLegacyId(int x, int y, int z, int layer) {
         checkCoords(x, z);
-        return this.getOrLoadSection(y >> 4).getBlockLegacyId(x, y & 0xF, z, layer);
+        try (Section section = this.getOrLoadSection(y >> 4)) {
+            return section.getBlockLegacyId(x, y & 0xF, z, layer);
+        }
     }
 
     @Override
     public int getBlockMeta(int x, int y, int z) {
         checkCoords(x, z);
-        return this.getOrLoadSection(y >> 4).getBlockMeta(x, y & 0xF, z);
+        try (Section section = this.getOrLoadSection(y >> 4)) {
+            return section.getBlockMeta(x, y & 0xF, z);
+        }
     }
 
     @Override
     public int getBlockMeta(int x, int y, int z, int layer) {
         checkCoords(x, z);
-        return this.getOrLoadSection(y >> 4).getBlockMeta(x, y & 0xF, z, layer);
+        try (Section section = this.getOrLoadSection(y >> 4)) {
+            return section.getBlockMeta(x, y & 0xF, z, layer);
+        }
     }
 
     @Override
     public int getBlockRuntimeId(int x, int y, int z) {
         checkCoords(x, z);
-        return this.getOrLoadSection(y >> 4).getBlockRuntimeId(x, y & 0xF, z);
+        try (Section section = this.getOrLoadSection(y >> 4)) {
+            return section.getBlockRuntimeId(x, y & 0xF, z);
+        }
     }
 
     @Override
     public int getBlockRuntimeId(int x, int y, int z, int layer) {
         checkCoords(x, z);
-        return this.getOrLoadSection(y >> 4).getBlockRuntimeId(x, y & 0xF, z, layer);
+        try (Section section = this.getOrLoadSection(y >> 4)) {
+            return section.getBlockRuntimeId(x, y & 0xF, z, layer);
+        }
     }
 
     @Override
     public void setBlockState(int x, int y, int z, @NonNull BlockState state) {
         checkCoords(x, z);
-        this.getOrLoadSection(y >> 4).setBlockState(x, y & 0xF, z, state);
+        try (Section section = this.getOrLoadSection(y >> 4)) {
+            section.setBlockState(x, y & 0xF, z, state);
+        }
     }
 
     @Override
     public void setBlockState(int x, int y, int z, int layer, @NonNull BlockState state) {
         checkCoords(x, z);
-        this.getOrLoadSection(y >> 4).setBlockState(x, y & 0xF, z, layer, state);
+        try (Section section = this.getOrLoadSection(y >> 4)) {
+            section.setBlockState(x, y & 0xF, z, layer, state);
+        }
     }
 
     @Override
     public void setBlockState(int x, int y, int z, @NonNull Identifier id, int meta) {
         checkCoords(x, z);
-        this.getOrLoadSection(y >> 4).setBlockState(x, y & 0xF, z, id, meta);
+        try (Section section = this.getOrLoadSection(y >> 4)) {
+            section.setBlockState(x, y & 0xF, z, id, meta);
+        }
     }
 
     @Override
     public void setBlockState(int x, int y, int z, int layer, @NonNull Identifier id, int meta) {
         checkCoords(x, z);
-        this.getOrLoadSection(y >> 4).setBlockState(x, y & 0xF, z, layer, id, meta);
+        try (Section section = this.getOrLoadSection(y >> 4)) {
+            section.setBlockState(x, y & 0xF, z, layer, id, meta);
+        }
     }
 
     @Override
     public void setBlockState(int x, int y, int z, int legacyId, int meta) {
         checkCoords(x, z);
-        this.getOrLoadSection(y >> 4).setBlockState(x, y & 0xF, z, legacyId, meta);
+        try (Section section = this.getOrLoadSection(y >> 4)) {
+            section.setBlockState(x, y & 0xF, z, legacyId, meta);
+        }
     }
 
     @Override
     public void setBlockState(int x, int y, int z, int layer, int legacyId, int meta) {
         checkCoords(x, z);
-        this.getOrLoadSection(y >> 4).setBlockState(x, y & 0xF, z, layer, legacyId, meta);
+        try (Section section = this.getOrLoadSection(y >> 4)) {
+            section.setBlockState(x, y & 0xF, z, layer, legacyId, meta);
+        }
     }
 
     @Override
     public void setBlockId(int x, int y, int z, @NonNull Identifier id) {
         checkCoords(x, z);
-        this.getOrLoadSection(y >> 4).setBlockId(x, y & 0xF, z, id);
+        try (Section section = this.getOrLoadSection(y >> 4)) {
+            section.setBlockId(x, y & 0xF, z, id);
+        }
     }
 
     @Override
     public void setBlockId(int x, int y, int z, int layer, @NonNull Identifier id) {
         checkCoords(x, z);
-        this.getOrLoadSection(y >> 4).setBlockId(x, y & 0xF, z, layer, id);
+        try (Section section = this.getOrLoadSection(y >> 4)) {
+            section.setBlockId(x, y & 0xF, z, layer, id);
+        }
     }
 
     @Override
     public void setBlockLegacyId(int x, int y, int z, int legacyId) {
         checkCoords(x, z);
-        this.getOrLoadSection(y >> 4).setBlockLegacyId(x, y & 0xF, z, legacyId);
+        try (Section section = this.getOrLoadSection(y >> 4)) {
+            section.setBlockLegacyId(x, y & 0xF, z, legacyId);
+        }
     }
 
     @Override
     public void setBlockLegacyId(int x, int y, int z, int layer, int legacyId) {
         checkCoords(x, z);
-        this.getOrLoadSection(y >> 4).setBlockLegacyId(x, y & 0xF, z, layer, legacyId);
+        try (Section section = this.getOrLoadSection(y >> 4)) {
+            section.setBlockLegacyId(x, y & 0xF, z, layer, legacyId);
+        }
     }
 
     @Override
     public void setBlockMeta(int x, int y, int z, int meta) {
         checkCoords(x, z);
-        this.getOrLoadSection(y >> 4).setBlockMeta(x, y & 0xF, z, meta);
+        try (Section section = this.getOrLoadSection(y >> 4)) {
+            section.setBlockMeta(x, y & 0xF, z, meta);
+        }
     }
 
     @Override
     public void setBlockMeta(int x, int y, int z, int layer, int meta) {
         checkCoords(x, z);
-        this.getOrLoadSection(y >> 4).setBlockMeta(x, y & 0xF, z, layer, meta);
+        try (Section section = this.getOrLoadSection(y >> 4)) {
+            section.setBlockMeta(x, y & 0xF, z, layer, meta);
+        }
     }
 
     @Override
     public void setBlockRuntimeId(int x, int y, int z, int runtimeId) {
         checkCoords(x, z);
-        this.getOrLoadSection(y >> 4).setBlockRuntimeId(x, y & 0xF, z, runtimeId);
+        try (Section section = this.getOrLoadSection(y >> 4)) {
+            section.setBlockRuntimeId(x, y & 0xF, z, runtimeId);
+        }
     }
 
     @Override
     public void setBlockRuntimeId(int x, int y, int z, int layer, int runtimeId) {
         checkCoords(x, z);
-        this.getOrLoadSection(y >> 4).setBlockRuntimeId(x, y & 0xF, z, layer, runtimeId);
+        try (Section section = this.getOrLoadSection(y >> 4)) {
+            section.setBlockRuntimeId(x, y & 0xF, z, layer, runtimeId);
+        }
     }
 
     @Override
     public int getBlockLight(int x, int y, int z) {
         checkCoords(x, z);
-        return this.getOrLoadSection(y >> 4).getBlockLight(x, y & 0xF, z);
+        try (Section section = this.getOrLoadSection(y >> 4)) {
+            return section.getBlockLight(x, y & 0xF, z);
+        }
     }
 
     @Override
     public int getSkyLight(int x, int y, int z) {
         checkCoords(x, z);
-        return this.getOrLoadSection(y >> 4).getSkyLight(x, y & 0xF, z);
+        try (Section section = this.getOrLoadSection(y >> 4)) {
+            return section.getSkyLight(x, y & 0xF, z);
+        }
     }
 
     @Override
     public void setBlockLight(int x, int y, int z, int level) {
         checkCoords(x, z);
-        this.getOrLoadSection(y >> 4).setBlockLight(x, y & 0xF, z, level);
+        try (Section section = this.getOrLoadSection(y >> 4)) {
+            section.setBlockLight(x, y & 0xF, z, level);
+        }
     }
 
     @Override
     public void setSkyLight(int x, int y, int z, int level) {
         checkCoords(x, z);
-        this.getOrLoadSection(y >> 4).setSkyLight(x, y & 0xF, z, level);
+        try (Section section = this.getOrLoadSection(y >> 4)) {
+            section.setSkyLight(x, y & 0xF, z, level);
+        }
     }
 }

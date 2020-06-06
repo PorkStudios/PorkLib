@@ -21,68 +21,272 @@
 package net.daporkchop.lib.minecraft.format.common.vanilla;
 
 import lombok.NonNull;
-import net.daporkchop.lib.common.util.PArrays;
 import net.daporkchop.lib.concurrent.PFuture;
+import net.daporkchop.lib.concurrent.PFutures;
 import net.daporkchop.lib.minecraft.format.common.AbstractChunk;
+import net.daporkchop.lib.minecraft.util.Identifier;
+import net.daporkchop.lib.minecraft.world.BlockState;
 import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.minecraft.world.World;
-
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
+import static net.daporkchop.lib.common.util.PorkUtil.*;
 
 /**
  * Base implementation of {@link net.daporkchop.lib.minecraft.world.Chunk} for vanilla chunks with exactly 16 sections.
  *
  * @author DaPorkchop_
  */
+//this implementation is fast because we assume that each section that is loaded has a reference count of 1 and sections cannot be unloaded, thus
+//avoiding lots of otherwise expensive synchronization
 public abstract class VanillaChunk extends AbstractChunk {
+    protected static void checkCoords(int x, int y, int z) {
+        checkIndex(x >= 0 && x < 16, "x (%d)", x);
+        checkIndex(y >= 0 && y < 256, "y (%d)", x);
+        checkIndex(z >= 0 && z < 16, "z (%d)", z);
+    }
+
     protected final Section[] sections;
-    protected final Lock readLock;
-    protected final Lock writeLock;
+    protected final PFuture<Section>[] futures;
 
     public VanillaChunk(World parent, int x, int z, @NonNull Section[] sections) {
         super(parent, x, z);
 
         checkArg(sections.length == 16, "sections have be exactly 16 elements! (%d)", sections.length);
         this.sections = sections;
-
-        ReadWriteLock lock = new ReentrantReadWriteLock();
-        this.readLock = lock.readLock();
-        this.writeLock = lock.writeLock();
+        this.futures = uncheckedCast(new PFuture[16]);
     }
 
     @Override
     public Section getSection(int y) {
         checkIndex(y >= 0 && y < 16, "y (%d)", y);
-        this.readLock.lock();
-        try {
-            this.ensureNotReleased();
-            return this.sections[y].retain();
-        } finally {
-            this.readLock.unlock();
-        }
+        Section section = this.sections[y];
+        return section != null ? section.retain() : null;
     }
 
     @Override
     public Section getOrLoadSection(int y) {
-        return this.getSection(y);
+        checkIndex(y >= 0 && y < 16, "y (%d)", y);
+        Section section = PUnsafe.getArrayVolatile(this.sections, y);
+        if (section == null) {
+            section = this.createEmptySection(y); //create new section
+            if (!PUnsafe.compareAndSwapArray(this.sections, y, null, section)) { //section was created by another thread
+                section.release(); //release new section as it is not going to be used
+                section = PUnsafe.getArrayVolatile(this.sections, y); //use newly created one
+            }
+        }
+        return section.retain();
     }
 
     @Override
     public PFuture<Section> loadSection(int y) {
-        throw new UnsupportedOperationException(); //TODO
+        checkIndex(y >= 0 && y < 16, "y (%d)", y);
+        PFuture<Section> future = PUnsafe.getArrayVolatile(this.sections, y);
+        if (future == null) {
+            future = PFutures.computeAsync(() -> this.getOrLoadSection(y), this.parent.parent().options().ioExecutor()); //this doesn't actually need to be async, but whatever lol
+            if (!PUnsafe.compareAndSwapArray(this.futures, y, null, future)) {
+                //future was created by another thread, use the new one. we don't need to cancel the redundant future, getOrLoadSection is atomic
+                future = PUnsafe.getArrayVolatile(this.futures, y);
+            }
+        }
+        return future;
     }
 
     @Override
     protected void doRelease() {
-        this.writeLock.lock();
-        try {
-            super.doRelease();
-        } finally {
-            this.writeLock.unlock();
+        super.doRelease();
+        for (Section section : this.sections) {
+            if (section != null) {
+                section.release();
+            }
         }
+    }
+
+    protected void checkLayer(int layer) {
+        checkIndex(layer >= 0 && layer < this.layers(), "layer (%d)", layer);
+    }
+
+    protected abstract Section createEmptySection(int y);
+
+    //we assume that the calling thread holds a reference to this chunk, and therefore that each section has a reference count of at least 1
+
+    @Override
+    public BlockState getBlockState(int x, int y, int z) {
+        checkCoords(x, y, z);
+        Section section = this.getSection(y >> 4);
+        return section != null ? section.getBlockState(x, y & 0xF, z) : this.blockRegistry.air();
+    }
+
+    @Override
+    public BlockState getBlockState(int x, int y, int z, int layer) {
+        checkCoords(x, y, z);
+        Section section = this.getSection(y >> 4);
+        if (section != null) {
+            return section.getBlockState(x, y & 0xF, z, layer);
+        } else {
+            this.checkLayer(layer);
+            return this.blockRegistry.air();
+        }
+    }
+
+    @Override
+    public Identifier getBlockId(int x, int y, int z) {
+        checkCoords(x, y, z);
+        Section section = this.getSection(y >> 4);
+        return section != null ? section.getBlockId(x, y & 0xF, z) : this.blockRegistry.air().id();
+    }
+
+    @Override
+    public Identifier getBlockId(int x, int y, int z, int layer) {
+        checkCoords(x, y, z);
+        Section section = this.getSection(y >> 4);
+        if (section != null) {
+            return section.getBlockId(x, y & 0xF, z, layer);
+        } else {
+            this.checkLayer(layer);
+            return this.blockRegistry.air().id();
+        }
+    }
+
+    @Override
+    public int getBlockLegacyId(int x, int y, int z) {
+        checkCoords(x, y, z);
+        Section section = this.getSection(y >> 4);
+        return section != null ? section.getBlockLegacyId(x, y & 0xF, z) : this.blockRegistry.air().legacyId();
+    }
+
+    @Override
+    public int getBlockLegacyId(int x, int y, int z, int layer) {
+        checkCoords(x, y, z);
+        Section section = this.getSection(y >> 4);
+        if (section != null) {
+            return section.getBlockLegacyId(x, y & 0xF, z, layer);
+        } else {
+            this.checkLayer(layer);
+            return this.blockRegistry.air().legacyId();
+        }
+    }
+
+    @Override
+    public int getBlockMeta(int x, int y, int z) {
+        checkCoords(x, y, z);
+        Section section = this.getSection(y >> 4);
+        return section != null ? section.getBlockMeta(x, y & 0xF, z) : 0;
+    }
+
+    @Override
+    public int getBlockMeta(int x, int y, int z, int layer) {
+        checkCoords(x, y, z);
+        Section section = this.getSection(y >> 4);
+        if (section != null) {
+            return section.getBlockMeta(x, y & 0xF, z, layer);
+        } else {
+            this.checkLayer(layer);
+            return 0;
+        }
+    }
+
+    @Override
+    public int getBlockRuntimeId(int x, int y, int z) {
+        checkCoords(x, y, z);
+        Section section = this.getSection(y >> 4);
+        return section != null ? section.getBlockRuntimeId(x, y & 0xF, z) : 0;
+    }
+
+    @Override
+    public int getBlockRuntimeId(int x, int y, int z, int layer) {
+        checkCoords(x, y, z);
+        Section section = this.getSection(y >> 4);
+        if (section != null) {
+            return section.getBlockRuntimeId(x, y & 0xF, z, layer);
+        } else {
+            this.checkLayer(layer);
+            return 0;
+        }
+    }
+
+    @Override
+    public void setBlockState(int x, int y, int z, @NonNull BlockState state) {
+        checkCoords(x, y, z);
+        this.getOrLoadSection(y >> 4).setBlockState(x, y & 0xF, z, state);
+    }
+
+    @Override
+    public void setBlockState(int x, int y, int z, int layer, @NonNull BlockState state) {
+        checkCoords(x, y, z);
+        this.getOrLoadSection(y >> 4).setBlockState(x, y & 0xF, z, layer, state);
+    }
+
+    @Override
+    public void setBlockState(int x, int y, int z, @NonNull Identifier id, int meta) {
+        checkCoords(x, y, z);
+        this.getOrLoadSection(y >> 4).setBlockState(x, y & 0xF, z, id, meta);
+    }
+
+    @Override
+    public void setBlockState(int x, int y, int z, int layer, @NonNull Identifier id, int meta) {
+        checkCoords(x, y, z);
+        this.getOrLoadSection(y >> 4).setBlockState(x, y & 0xF, z, layer, id, meta);
+    }
+
+    @Override
+    public void setBlockState(int x, int y, int z, int legacyId, int meta) {
+        checkCoords(x, y, z);
+        this.getOrLoadSection(y >> 4).setBlockState(x, y & 0xF, z, legacyId, meta);
+    }
+
+    @Override
+    public void setBlockState(int x, int y, int z, int layer, int legacyId, int meta) {
+        checkCoords(x, y, z);
+        this.getOrLoadSection(y >> 4).setBlockState(x, y & 0xF, z, layer, legacyId, meta);
+    }
+
+    @Override
+    public void setBlockId(int x, int y, int z, @NonNull Identifier id) {
+        checkCoords(x, y, z);
+        this.getOrLoadSection(y >> 4).setBlockId(x, y & 0xF, z, id);
+    }
+
+    @Override
+    public void setBlockId(int x, int y, int z, int layer, @NonNull Identifier id) {
+        checkCoords(x, y, z);
+        this.getOrLoadSection(y >> 4).setBlockId(x, y & 0xF, z, layer, id);
+    }
+
+    @Override
+    public void setBlockLegacyId(int x, int y, int z, int legacyId) {
+        checkCoords(x, y, z);
+        this.getOrLoadSection(y >> 4).setBlockLegacyId(x, y & 0xF, z, legacyId);
+    }
+
+    @Override
+    public void setBlockLegacyId(int x, int y, int z, int layer, int legacyId) {
+        checkCoords(x, y, z);
+        this.getOrLoadSection(y >> 4).setBlockLegacyId(x, y & 0xF, z, layer, legacyId);
+    }
+
+    @Override
+    public void setBlockMeta(int x, int y, int z, int meta) {
+        checkCoords(x, y, z);
+        this.getOrLoadSection(y >> 4).setBlockMeta(x, y & 0xF, z, meta);
+    }
+
+    @Override
+    public void setBlockMeta(int x, int y, int z, int layer, int meta) {
+        checkCoords(x, y, z);
+        this.getOrLoadSection(y >> 4).setBlockMeta(x, y & 0xF, z, layer, meta);
+    }
+
+    @Override
+    public void setBlockRuntimeId(int x, int y, int z, int runtimeId) {
+        checkCoords(x, y, z);
+        this.getOrLoadSection(y >> 4).setBlockRuntimeId(x, y & 0xF, z, runtimeId);
+    }
+
+    @Override
+    public void setBlockRuntimeId(int x, int y, int z, int layer, int runtimeId) {
+        checkCoords(x, y, z);
+        this.getOrLoadSection(y >> 4).setBlockRuntimeId(x, y & 0xF, z, layer, runtimeId);
     }
 }

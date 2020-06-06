@@ -66,6 +66,11 @@ public interface BlockRegistry extends Registry {
     int size();
 
     /**
+     * @return the {@link BlockState} used to represent air
+     */
+    BlockState air();
+
+    /**
      * Checks whether or not the given block ID is registered.
      *
      * @param blockId the block ID to check for

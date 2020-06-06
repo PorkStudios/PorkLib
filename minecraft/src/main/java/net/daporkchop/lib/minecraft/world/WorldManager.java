@@ -23,6 +23,7 @@ package net.daporkchop.lib.minecraft.world;
 import lombok.NonNull;
 import net.daporkchop.lib.common.misc.refcount.RefCounted;
 import net.daporkchop.lib.concurrent.PFuture;
+import net.daporkchop.lib.minecraft.block.BlockAccess;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.util.stream.Stream;

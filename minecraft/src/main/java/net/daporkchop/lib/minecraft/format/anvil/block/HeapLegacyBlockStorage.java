@@ -26,7 +26,7 @@ import net.daporkchop.lib.common.pool.array.ArrayHandle;
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.minecraft.format.common.block.BlockStorage;
 import net.daporkchop.lib.minecraft.format.common.nibble.NibbleArray;
-import net.daporkchop.lib.minecraft.registry.BlockRegistry;
+import net.daporkchop.lib.minecraft.block.BlockRegistry;
 
 import java.util.Arrays;
 

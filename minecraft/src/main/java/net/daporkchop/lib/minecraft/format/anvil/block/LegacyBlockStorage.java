@@ -23,7 +23,7 @@ package net.daporkchop.lib.minecraft.format.anvil.block;
 import lombok.NonNull;
 import net.daporkchop.lib.minecraft.format.common.block.AbstractBlockStorage;
 import net.daporkchop.lib.minecraft.format.common.block.BlockStorage;
-import net.daporkchop.lib.minecraft.registry.BlockRegistry;
+import net.daporkchop.lib.minecraft.block.BlockRegistry;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 

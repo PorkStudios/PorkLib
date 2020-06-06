@@ -25,7 +25,7 @@ import net.daporkchop.lib.concurrent.PFuture;
 import net.daporkchop.lib.concurrent.PFutures;
 import net.daporkchop.lib.minecraft.format.common.AbstractChunk;
 import net.daporkchop.lib.minecraft.util.Identifier;
-import net.daporkchop.lib.minecraft.world.BlockState;
+import net.daporkchop.lib.minecraft.block.BlockState;
 import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.unsafe.PUnsafe;

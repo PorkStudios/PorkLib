@@ -22,7 +22,8 @@ package net.daporkchop.lib.minecraft.format.common.block;
 
 import net.daporkchop.lib.common.misc.Cloneable;
 import net.daporkchop.lib.common.misc.refcount.RefCounted;
-import net.daporkchop.lib.minecraft.world.BlockAccess;
+import net.daporkchop.lib.minecraft.block.BlockRegistry;
+import net.daporkchop.lib.minecraft.block.BlockAccess;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
@@ -31,7 +32,7 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  * A 16³ array of block states.
  *
  * @author DaPorkchop_
- * @see net.daporkchop.lib.minecraft.registry.BlockRegistry
+ * @see BlockRegistry
  */
 public interface BlockStorage extends BlockAccess, Cloneable<BlockStorage>, RefCounted {
     /**

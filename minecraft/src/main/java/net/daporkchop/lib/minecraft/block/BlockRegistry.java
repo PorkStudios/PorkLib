@@ -18,11 +18,11 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.registry;
+package net.daporkchop.lib.minecraft.block;
 
 import lombok.NonNull;
+import net.daporkchop.lib.minecraft.registry.Registry;
 import net.daporkchop.lib.minecraft.util.Identifier;
-import net.daporkchop.lib.minecraft.world.BlockState;
 
 import java.util.Iterator;
 import java.util.function.Consumer;

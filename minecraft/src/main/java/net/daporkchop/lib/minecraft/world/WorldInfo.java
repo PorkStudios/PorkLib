@@ -20,6 +20,8 @@
 
 package net.daporkchop.lib.minecraft.world;
 
+import net.daporkchop.lib.minecraft.block.BlockAccess;
+
 /**
  * Additional information used to describe a {@link World}.
  *

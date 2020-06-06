@@ -26,7 +26,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.minecraft.util.Identifier;
-import net.daporkchop.lib.minecraft.world.BlockState;
+import net.daporkchop.lib.minecraft.block.BlockState;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 

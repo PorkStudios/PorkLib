@@ -22,6 +22,7 @@ package net.daporkchop.lib.minecraft.world;
 
 import lombok.NonNull;
 import net.daporkchop.lib.math.vector.i.Vec3i;
+import net.daporkchop.lib.minecraft.block.BlockAccess;
 import net.daporkchop.lib.random.PRandom;
 
 import java.util.Collection;

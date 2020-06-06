@@ -18,10 +18,9 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.world;
+package net.daporkchop.lib.minecraft.block;
 
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.registry.BlockRegistry;
 import net.daporkchop.lib.minecraft.util.Identifier;
 
 /**

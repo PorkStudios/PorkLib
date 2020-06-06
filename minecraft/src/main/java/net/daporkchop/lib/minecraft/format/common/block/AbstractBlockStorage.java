@@ -24,9 +24,9 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
-import net.daporkchop.lib.minecraft.registry.BlockRegistry;
+import net.daporkchop.lib.minecraft.block.BlockRegistry;
 import net.daporkchop.lib.minecraft.util.Identifier;
-import net.daporkchop.lib.minecraft.world.BlockState;
+import net.daporkchop.lib.minecraft.block.BlockState;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 /**

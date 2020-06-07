@@ -38,10 +38,11 @@ import java.util.function.ObjIntConsumer;
  * A block registry consists of a number of different mappings to and from different types, making it a fair bit more complicated than most other
  * registries. A brief description of each type follows:
  * <p>
- * - "legacy IDs" are {@code int} IDs given to each block, for example 1 (Stone) or 56 (Diamond Ore)
- * <p>
  * - "block IDs" or "block {@link Identifier}s" are user-friendly {@link Identifier}s given to each block, for example {@code minecraft:stone} (Stone)
  * or {@code minecraft:diamond_ore} (Diamond Ore)
+ * <p>
+ * - "legacy IDs" are {@code int} IDs given to blocks, for example 1 (Stone) or 56 (Diamond Ore). However, as they are no longer used in modern
+ * versions of the game, newer blocks will not have one.
  * <p>
  * - "metadata" are {@code int} values, generally in range 0-15, which describe the a block state. For example, {@code minecraft:stone} uses metadata
  * to differentiate between the different stone varieties (Andesite, etc.), or {@code minecraft:redstone} uses 16 metadata values to store its current
@@ -62,8 +63,16 @@ public interface BlockRegistry extends Registry {
         return ID;
     }
 
+    /**
+     * @return the number of registered blocks
+     */
     @Override
     int size();
+
+    /**
+     * @return the number of registered block states
+     */
+    int states();
 
     /**
      * @return the {@link BlockState} used to represent air
@@ -113,6 +122,16 @@ public interface BlockRegistry extends Registry {
     boolean containsState(int runtimeId);
 
     /**
+     * Checks if the given block ID is registered and has an associated legacy ID.
+     * <p>
+     * As some blocks do not have a legacy ID, this will not always return {@code true}, even if the block ID is valid.
+     *
+     * @param blockId the block ID of the block
+     * @return whether or not the given block ID is registered and has an associated legacy ID
+     */
+    boolean hasLegacyId(@NonNull Identifier blockId);
+
+    /**
      * Gets the legacy ID belonging to the given block.
      *
      * @param blockId the block ID of the block
@@ -125,6 +144,7 @@ public interface BlockRegistry extends Registry {
      *
      * @param legacyId the legacy ID of the block
      * @return the block's ID
+     * @throws IllegalArgumentException if the given legacy ID is not registered
      */
     Identifier getBlockId(int legacyId);
 
@@ -134,6 +154,7 @@ public interface BlockRegistry extends Registry {
      * @param blockId the block ID of the block state to get
      * @param meta    the metadata of the block state to get
      * @return the {@link BlockState} for the given block state
+     * @throws IllegalArgumentException if the given block state is not registered
      */
     BlockState getState(@NonNull Identifier blockId, int meta);
 
@@ -143,6 +164,7 @@ public interface BlockRegistry extends Registry {
      * @param legacyId the legacy ID of the block state to get
      * @param meta     the metadata of the block state to get
      * @return the {@link BlockState} for the given block state
+     * @throws IllegalArgumentException if the given block state is not registered
      */
     BlockState getState(int legacyId, int meta);
 
@@ -151,6 +173,7 @@ public interface BlockRegistry extends Registry {
      *
      * @param blockId the block ID of the block state to get
      * @return the default {@link BlockState} for the given block ID
+     * @throws IllegalArgumentException if the given block ID is not registered
      */
     BlockState getDefaultState(@NonNull Identifier blockId);
 
@@ -159,6 +182,7 @@ public interface BlockRegistry extends Registry {
      *
      * @param legacyId the legacy ID of the block state to get
      * @return the default {@link BlockState} for the given legacy block ID
+     * @throws IllegalArgumentException if the given legacy ID is not registered
      */
     BlockState getDefaultState(int legacyId);
 
@@ -167,6 +191,7 @@ public interface BlockRegistry extends Registry {
      *
      * @param runtimeId the runtime ID of the block state to get
      * @return the {@link BlockState} for the given block state
+     * @throws IllegalArgumentException if the given runtime ID is not registered
      */
     BlockState getState(int runtimeId);
 
@@ -176,6 +201,7 @@ public interface BlockRegistry extends Registry {
      * @param blockId the block ID of the block state to get
      * @param meta    the metadata of the block state to get
      * @return the runtime ID for the given block state
+     * @throws IllegalArgumentException if the given block state is not registered
      */
     int getRuntimeId(@NonNull Identifier blockId, int meta);
 
@@ -185,18 +211,26 @@ public interface BlockRegistry extends Registry {
      * @param legacyId the legacy ID of the block state to get
      * @param meta     the metadata of the block state to get
      * @return the runtime ID for the given block state
+     * @throws IllegalArgumentException if the given block state is not registered
      */
     int getRuntimeId(int legacyId, int meta);
 
-    void forEachBlockId(@NonNull Consumer<? super Identifier> callback);
+    void forEachBlockId(@NonNull Consumer<? super Identifier> action);
 
-    void forEachLegacyId(@NonNull IntConsumer callback);
+    void forEachLegacyId(@NonNull IntConsumer action);
 
+    /**
+     * Performs the given action on each block in this registry.
+     * <p>
+     * The second parameter is the block's legacy ID. If the block does not have a legacy ID, it will always be {@code -1}.
+     *
+     * @param action the action to perform
+     */
     void forEachBlockId(@NonNull ObjIntConsumer<? super Identifier> action);
 
-    void forEachState(@NonNull Consumer<? super BlockState> callback);
+    void forEachState(@NonNull Consumer<? super BlockState> action);
 
-    void forEachRuntimeId(@NonNull IntConsumer callback);
+    void forEachRuntimeId(@NonNull IntConsumer action);
 
     @Override
     @Deprecated

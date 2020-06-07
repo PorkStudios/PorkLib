@@ -41,7 +41,14 @@ public interface BlockState {
     Identifier id();
 
     /**
-     * @return the block's legacy ID
+     * @return whether or not the block has a legacy ID
+     * @see #legacyId()
+     */
+    boolean hasLegacyId();
+
+    /**
+     * @return the block's legacy ID, or {@code -1} if the block does not have a legacy ID
+     * @see #hasLegacyId()
      */
     int legacyId();
 

@@ -24,14 +24,17 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.minecraft.block.BlockRegistry;
 import net.daporkchop.lib.minecraft.block.BlockState;
 import net.daporkchop.lib.minecraft.block.Property;
 import net.daporkchop.lib.minecraft.block.PropertyMap;
-import net.daporkchop.lib.minecraft.format.common.block.legacy.LegacyBlockRegistry;
 import net.daporkchop.lib.minecraft.util.Identifier;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static net.daporkchop.lib.common.util.PValidation.*;
+import static net.daporkchop.lib.common.util.PorkUtil.*;
 
 /**
  * Default implementation of {@link BlockState}, used by {@link AbstractBlockRegistry}.
@@ -43,32 +46,46 @@ import java.util.Map;
 @Accessors(fluent = true)
 public class DefaultBlockState implements BlockState {
     @NonNull
-    protected final LegacyBlockRegistry registry;
+    protected final BlockRegistry registry;
     @NonNull
     protected final Identifier id;
     protected final int legacyId;
     protected final int meta;
     protected final int runtimeId;
 
+    protected BlockState[] otherMeta;
     protected final Map<Property<?>, PropertyMap<?>> otherProperties = new HashMap<>(); //TODO: use a map that's better optimized for low entry counts
 
     @Override
+    public boolean hasLegacyId() {
+        return this.legacyId >= 0;
+    }
+
+    @Override
     public BlockState withMeta(int meta) {
-        return null;
+        BlockState[] otherMeta = this.otherMeta;
+        checkArg(meta >= 0 && meta < otherMeta.length, meta);
+        return otherMeta[meta];
     }
 
     @Override
     public <V> BlockState withProperty(@NonNull Property<V> property, @NonNull V value) {
-        return null;
+        PropertyMap<V> map = uncheckedCast(this.otherProperties.get(property));
+        checkArg(map != null, "Invalid property %s for block %s!", property, this.id);
+        return map.getState(value);
     }
 
     @Override
     public BlockState withProperty(@NonNull Property.Int property, int value) {
-        return null;
+        PropertyMap.Int map = uncheckedCast(this.otherProperties.get(property));
+        checkArg(map != null, "Invalid property %s for block %s!", property, this.id);
+        return map.getState(value);
     }
 
     @Override
     public BlockState withProperty(@NonNull Property.Boolean property, boolean value) {
-        return null;
+        PropertyMap.Boolean map = uncheckedCast(this.otherProperties.get(property));
+        checkArg(map != null, "Invalid property %s for block %s!", property, this.id);
+        return map.getState(value);
     }
 }

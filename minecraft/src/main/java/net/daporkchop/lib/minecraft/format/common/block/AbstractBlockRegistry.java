@@ -20,7 +20,7 @@
 
 package net.daporkchop.lib.minecraft.format.common.block;
 
-import jdk.nashorn.internal.ir.Block;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -29,16 +29,21 @@ import net.daporkchop.lib.minecraft.block.BlockRegistry;
 import net.daporkchop.lib.minecraft.block.BlockState;
 import net.daporkchop.lib.minecraft.block.Property;
 import net.daporkchop.lib.minecraft.util.Identifier;
+import net.daporkchop.lib.primitive.map.IntObjMap;
+import net.daporkchop.lib.primitive.map.open.IntObjOpenHashMap;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
+import java.util.function.IntConsumer;
+import java.util.function.ObjIntConsumer;
 import java.util.stream.Stream;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
@@ -50,21 +55,166 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
  * @author DaPorkchop_
  */
 //augh... this is super slow, but most of it only has to run once so it's no big deal
+@Getter
 @Accessors(fluent = true)
 public abstract class AbstractBlockRegistry implements BlockRegistry {
-    protected final Map<Identifier, BlockState> idToDefaultState = new HashMap<>();
-    @Getter
+    @Getter(AccessLevel.NONE)
+    protected final Map<Identifier, DefaultBlockState> idToDefaultState = new HashMap<>();
+    @Getter(AccessLevel.NONE)
+    protected final IntObjMap<DefaultBlockState> legacyIdToDefaultState = new IntObjOpenHashMap<>();
+
     protected final BlockState air;
+
+    protected final int size;
+    protected final int states;
 
     protected <I extends Builder<I, B, R>, B extends BlockBuilder<B, I, R>, R extends BlockRegistry> AbstractBlockRegistry(@NonNull I builder) {
         builder.blocks.forEach((id, block) -> this.idToDefaultState.put(id, block.bake(uncheckedCast(this))));
+        this.idToDefaultState.values().stream()
+                .filter(BlockState::hasLegacyId)
+                .forEach(state -> this.legacyIdToDefaultState.put(state.legacyId(), state));
 
         this.air = this.getDefaultState(Identifier.fromString("minecraft:air"));
+
+        this.size = this.idToDefaultState.size();
+        this.states = toInt(this.idToDefaultState.values().stream().map(DefaultBlockState::otherMeta).flatMap(Arrays::stream).count());
     }
 
     @Override
     public boolean containsBlockId(@NonNull Identifier blockId) {
         return this.idToDefaultState.containsKey(blockId);
+    }
+
+    @Override
+    public boolean containsLegacyId(int legacyId) {
+        return this.legacyIdToDefaultState.containsKey(legacyId);
+    }
+
+    @Override
+    public boolean containsState(@NonNull Identifier blockId, int meta) {
+        if (meta < 0)   {
+            return false;
+        }
+        DefaultBlockState state = this.idToDefaultState.get(blockId);
+        return state != null && meta < state.otherMeta.length;
+    }
+
+    @Override
+    public boolean containsState(int legacyId, int meta) {
+        if (meta < 0)   {
+            return false;
+        }
+        DefaultBlockState state = this.legacyIdToDefaultState.get(legacyId);
+        return state != null && meta < state.otherMeta.length;
+    }
+
+    @Override
+    public boolean containsState(int runtimeId) {
+        return this.idToDefaultState.values().stream()
+                .map(DefaultBlockState::otherMeta)
+                .flatMap(Arrays::stream)
+                .mapToInt(BlockState::runtimeId)
+                .anyMatch(i -> i == runtimeId);
+    }
+
+    @Override
+    public boolean hasLegacyId(@NonNull Identifier blockId) {
+        DefaultBlockState state = this.idToDefaultState.get(blockId);
+        return state != null && state.hasLegacyId();
+    }
+
+    @Override
+    public int getLegacyId(@NonNull Identifier blockId) {
+        return this.getDefaultState(blockId).legacyId();
+    }
+
+    @Override
+    public Identifier getBlockId(int legacyId) {
+        DefaultBlockState state = this.legacyIdToDefaultState.get(legacyId);
+        checkState(state != null, legacyId);
+        return state.id();
+    }
+
+    @Override
+    public BlockState getState(@NonNull Identifier blockId, int meta) {
+        return this.getDefaultState(blockId).withMeta(meta);
+    }
+
+    @Override
+    public BlockState getState(int legacyId, int meta) {
+        return this.getDefaultState(legacyId).withMeta(meta);
+    }
+
+    @Override
+    public BlockState getDefaultState(@NonNull Identifier blockId) {
+        BlockState state = this.idToDefaultState.get(blockId);
+        checkState(state != null, blockId);
+        return state;
+    }
+
+    @Override
+    public BlockState getDefaultState(int legacyId) {
+        BlockState state = this.legacyIdToDefaultState.get(legacyId);
+        checkState(state != null, legacyId);
+        return state;
+    }
+
+    @Override
+    public BlockState getState(int runtimeId) {
+        Optional<BlockState> optionalState = this.idToDefaultState.values().stream()
+                .map(DefaultBlockState::otherMeta)
+                .flatMap(Arrays::stream)
+                .filter(state -> state.runtimeId() == runtimeId).findAny();
+        checkArg(optionalState.isPresent(), runtimeId);
+        return optionalState.get();
+    }
+
+    @Override
+    public int getRuntimeId(@NonNull Identifier blockId, int meta) {
+        return this.getState(blockId, meta).runtimeId();
+    }
+
+    @Override
+    public int getRuntimeId(int legacyId, int meta) {
+        return this.getState(legacyId, meta).runtimeId();
+    }
+
+    @Override
+    public void forEachBlockId(@NonNull Consumer<? super Identifier> action) {
+        this.idToDefaultState.keySet().forEach(action);
+    }
+
+    @Override
+    public void forEachLegacyId(@NonNull IntConsumer action) {
+        this.idToDefaultState.values().forEach(state -> action.accept(state.legacyId()));
+    }
+
+    @Override
+    public void forEachBlockId(@NonNull ObjIntConsumer<? super Identifier> action) {
+        this.idToDefaultState.forEach((id, state) -> action.accept(id, state.legacyId()));
+    }
+
+    @Override
+    public void forEachState(@NonNull Consumer<? super BlockState> action) {
+        this.idToDefaultState.values().forEach(defaultState -> {
+            for (BlockState state : defaultState.otherMeta) {
+                action.accept(state);
+            }
+        });
+    }
+
+    @Override
+    public void forEachRuntimeId(@NonNull IntConsumer action) {
+        this.idToDefaultState.values().forEach(defaultState -> {
+            for (BlockState state : defaultState.otherMeta) {
+                action.accept(state.runtimeId());
+            }
+        });
+    }
+
+    @Override
+    public Iterator<Identifier> iterator() {
+        return this.idToDefaultState.keySet().iterator();
     }
 
     public static abstract class Builder<I extends Builder<I, B, R>, B extends BlockBuilder<B, I, R>, R extends BlockRegistry> {
@@ -94,11 +244,12 @@ public abstract class AbstractBlockRegistry implements BlockRegistry {
             return uncheckedCast(this);
         }
 
-        protected BlockState bake(@NonNull R registry) {
+        protected DefaultBlockState bake(@NonNull R registry) {
+            this.validateState();
             LinkedHashMap<Map<Property<?>, ?>, DefaultBlockState> propertiesToStates = new LinkedHashMap<>();
             this.allProperties().forEach(p -> propertiesToStates.put(p, this.makeState(registry, p)));
             propertiesToStates.forEach((p, state) -> {
-                for (Property<?> property : this.properties)    {
+                for (Property<?> property : this.properties) {
                     state.otherProperties.put(property, property.propertyMap(value -> {
                         Map<Property<?>, Object> p2 = new HashMap<>(p);
                         p2.put(property, value);
@@ -106,8 +257,18 @@ public abstract class AbstractBlockRegistry implements BlockRegistry {
                     }));
                 }
             });
-            return propertiesToStates.values().iterator().next();
+
+            BlockState[] metas = new BlockState[propertiesToStates.size()];
+            propertiesToStates.values().forEach(state -> {
+                int meta = state.meta();
+                checkState(metas[meta] != null, "duplicate meta value: %d", meta);
+                metas[meta] = state;
+                state.otherMeta = metas;
+            });
+            return (DefaultBlockState) metas[0];
         }
+
+        protected abstract void validateState();
 
         protected abstract DefaultBlockState makeState(@NonNull R registry, @NonNull Map<Property<?>, ?> properties);
 

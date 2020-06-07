@@ -35,7 +35,7 @@ public interface PropertyMap<V> {
      * @return the {@link BlockState} mapped to the given value
      * @throws IllegalArgumentException if the given {@link Property} cannot store the given value
      */
-    BlockState get(@NonNull V value);
+    BlockState getState(@NonNull V value);
 
     /**
      * Extension of {@link PropertyMap} for {@code int} values.
@@ -45,8 +45,8 @@ public interface PropertyMap<V> {
     interface Int extends PropertyMap<Integer> {
         @Override
         @Deprecated
-        default BlockState get(@NonNull Integer value) {
-            return this.get(value.intValue());
+        default BlockState getState(@NonNull Integer value) {
+            return this.getState(value.intValue());
         }
 
         /**
@@ -56,7 +56,7 @@ public interface PropertyMap<V> {
          * @return the {@link BlockState} mapped to the given value
          * @throws IllegalArgumentException if the given {@link Property} cannot store the given value
          */
-        BlockState get(int value);
+        BlockState getState(int value);
     }
 
     /**
@@ -67,8 +67,8 @@ public interface PropertyMap<V> {
     interface Boolean extends PropertyMap<java.lang.Boolean> {
         @Override
         @Deprecated
-        default BlockState get(@NonNull java.lang.Boolean value) {
-            return this.get(value.booleanValue());
+        default BlockState getState(@NonNull java.lang.Boolean value) {
+            return this.getState(value.booleanValue());
         }
 
         /**
@@ -78,6 +78,6 @@ public interface PropertyMap<V> {
          * @return the {@link BlockState} mapped to the given value
          * @throws IllegalArgumentException if the given {@link Property} cannot store the given value
          */
-        BlockState get(boolean value);
+        BlockState getState(boolean value);
     }
 }

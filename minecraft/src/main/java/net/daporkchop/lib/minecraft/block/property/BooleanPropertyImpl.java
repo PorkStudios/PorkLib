@@ -18,66 +18,56 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.block;
+package net.daporkchop.lib.minecraft.block.property;
 
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.minecraft.block.BlockState;
+import net.daporkchop.lib.minecraft.block.Property;
+import net.daporkchop.lib.minecraft.block.PropertyMap;
 
 import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static net.daporkchop.lib.common.util.PValidation.*;
+
 /**
- * A key used to define an attribute of a block state.
+ * Default implementation of {@link Property.Boolean}.
  *
  * @author DaPorkchop_
  */
-public interface Property<V> extends Comparable<Property<?>> {
-    /**
-     * @return this property's name
-     */
-    String name();
+@Accessors(fluent = true)
+public class BooleanPropertyImpl implements Property.Boolean {
+    @Getter
+    protected final String name;
 
-    /**
-     * @return a stream over all valid values for this property
-     */
-    Stream<V> values();
-
-    /**
-     * Creates a new {@link PropertyMap} populated with the return values of the given function.
-     *
-     * @param mappingFunction the function to use for computing the {@link BlockState}s for each value
-     * @return a new {@link PropertyMap} populated with the return values of the given function
-     */
-    PropertyMap<V> propertyMap(@NonNull Function<V, BlockState> mappingFunction);
+    public BooleanPropertyImpl(@NonNull String name) {
+        this.name = name.intern();
+    }
 
     @Override
-    default int compareTo(Property<?> o) {
-        return this.name().compareTo(o.name());
+    public Stream<java.lang.Boolean> values() {
+        return Stream.of(java.lang.Boolean.FALSE, java.lang.Boolean.TRUE);
     }
 
-    /**
-     * Extension of {@link Property} for {@code int} values.
-     *
-     * @author DaPorkchop_
-     */
-    interface Int extends Property<Integer> {
+    @Override
+    public PropertyMap<java.lang.Boolean> propertyMap(@NonNull Function<java.lang.Boolean, BlockState> mappingFunction) {
+        return new PropertyMapImpl(mappingFunction.apply(java.lang.Boolean.TRUE), mappingFunction.apply(java.lang.Boolean.FALSE));
+    }
+
+    @RequiredArgsConstructor
+    protected static class PropertyMapImpl implements PropertyMap.Boolean {
+        @NonNull
+        protected final BlockState trueState;
+        @NonNull
+        protected final BlockState falseState;
+
         @Override
-        @Deprecated
-        default Stream<Integer> values()    {
-            return this.intValues().boxed();
+        public BlockState getState(boolean value) {
+            return null;
         }
-
-        /**
-         * @return a stream over all valid values for this property
-         */
-        IntStream intValues();
-    }
-
-    /**
-     * Extension of {@link Property} for {@code boolean} values.
-     *
-     * @author DaPorkchop_
-     */
-    interface Boolean extends Property<java.lang.Boolean> {
     }
 }

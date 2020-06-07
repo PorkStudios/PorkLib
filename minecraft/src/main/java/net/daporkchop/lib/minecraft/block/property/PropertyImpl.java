@@ -18,45 +18,62 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.common.block.legacy;
+package net.daporkchop.lib.minecraft.block.property;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.block.BlockState;
+import net.daporkchop.lib.minecraft.block.Property;
+import net.daporkchop.lib.minecraft.block.PropertyMap;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
+import static net.daporkchop.lib.common.util.PorkUtil.*;
 
 /**
- * Implementation of {@link BlockState} used by {@link LegacyBlockRegistry}.
+ * Default implementation of {@link Property}.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
-@Getter
 @Accessors(fluent = true)
-final class LegacyBlockState implements BlockState {
-    @NonNull
-    protected final Identifier id;
-    protected final int legacyId;
-    protected final int meta;
-    protected final int runtimeId;
-    @NonNull
-    protected final LegacyBlockState[] states;
-    @NonNull
-    protected final LegacyBlockRegistry registry;
+public class PropertyImpl<V> implements Property<V> {
+    @Getter
+    protected final String name;
+    protected final V[] values;
 
-    @Override
-    public BlockState withMeta(int meta) {
-        checkArg(meta >= 0 && meta < 16, "meta (%d) must be in range 0-15!", meta);
-        return this.states[meta];
+    public PropertyImpl(@NonNull String name, @NonNull List<V> values) {
+        this.name = name.intern();
+        this.values = uncheckedCast(values.toArray());
     }
 
     @Override
-    public String toString() {
-        return this.id.toString() + '#' + this.meta;
+    public Stream<V> values() {
+        return Arrays.stream(this.values);
+    }
+
+    @Override
+    public PropertyMap<V> propertyMap(@NonNull Function<V, BlockState> mappingFunction) {
+        PropertyMapImpl<V> map = new PropertyMapImpl<>();
+        for (V value : this.values) {
+            BlockState state = mappingFunction.apply(value);
+            checkState(state != null, "state may not be null!");
+            map.put(value, state);
+        }
+        return map;
+    }
+
+    protected static class PropertyMapImpl<V> extends HashMap<V, BlockState> implements PropertyMap<V> {
+        @Override
+        public BlockState getState(@NonNull V value) {
+            BlockState state = this.get(value);
+            checkArg(state != null, value);
+            return state;
+        }
     }
 }

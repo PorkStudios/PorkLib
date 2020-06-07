@@ -20,20 +20,17 @@
 
 package net.daporkchop.lib.minecraft.format.common.block.legacy;
 
-import lombok.Getter;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.experimental.Accessors;
 import net.daporkchop.lib.minecraft.block.BlockRegistry;
-import net.daporkchop.lib.minecraft.block.BlockState;
+import net.daporkchop.lib.minecraft.block.Property;
+import net.daporkchop.lib.minecraft.format.common.block.AbstractBlockRegistry;
+import net.daporkchop.lib.minecraft.format.common.block.DefaultBlockState;
 import net.daporkchop.lib.minecraft.util.Identifier;
+import net.daporkchop.lib.primitive.map.ObjIntMap;
 
-import java.util.HashMap;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.function.Consumer;
-import java.util.function.IntConsumer;
-import java.util.function.ObjIntConsumer;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 
@@ -42,174 +39,52 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  *
  * @author DaPorkchop_
  */
-@Accessors(fluent = true)
-public class LegacyBlockRegistry implements BlockRegistry {
-    protected final Map<Identifier, Integer> blockToLegacy;
-    protected final Identifier[] legacyToBlock;
-    protected final LegacyBlockState[] legacyToState;
-
-    @Getter
-    protected final int size;
+public class LegacyBlockRegistry extends AbstractBlockRegistry {
+    public static Builder builder() {
+        return new Builder();
+    }
 
     protected LegacyBlockRegistry(@NonNull Builder builder) {
-        this.size = builder.toIds.size();
-
-        this.blockToLegacy = new IdentityHashMap<>(this.size);
-        this.blockToLegacy.putAll(builder.toIds);
-
-        this.legacyToBlock = new Identifier[this.blockToLegacy.values().stream().mapToInt(Integer::intValue).max().orElse(0)];
-        this.blockToLegacy.forEach((blockId, legacyId) -> this.legacyToBlock[legacyId] = blockId);
-
-        this.legacyToState = new LegacyBlockState[this.legacyToBlock.length];
-        this.blockToLegacy.forEach((blockId, legacyId) -> {
-            LegacyBlockState[] states = new LegacyBlockState[16];
-            for (int meta = 0; meta < 16; meta++) {
-                states[meta] = new LegacyBlockState(blockId, legacyId, meta, (legacyId << 4) | meta, states, this);
-            }
-            this.legacyToState[legacyId] = states[0];
-        });
+        super(builder);
     }
 
-    @Override
-    public boolean containsBlockId(@NonNull Identifier blockId) {
-        return this.blockToLegacy.containsKey(blockId);
-    }
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public static class Builder extends AbstractBlockRegistry.Builder<Builder, BlockBuilder, LegacyBlockRegistry> {
+        @Override
+        protected BlockBuilder blockBuilder(@NonNull Identifier id) {
+            return new BlockBuilder(this, id);
+        }
 
-    @Override
-    public boolean containsLegacyId(int legacyId) {
-        return legacyId >= 0 && legacyId < this.legacyToBlock.length && this.legacyToBlock[legacyId] != null;
-    }
-
-    @Override
-    public boolean containsState(@NonNull Identifier blockId, int meta) {
-        return meta >= 0 && meta < 16 && this.containsBlockId(blockId);
-    }
-
-    @Override
-    public boolean containsState(int legacyId, int meta) {
-        return meta >= 0 && meta < 16 && this.containsLegacyId(legacyId);
-    }
-
-    @Override
-    public boolean containsState(int runtimeId) {
-        return this.containsLegacyId(runtimeId >> 4);
-    }
-
-    @Override
-    public int getLegacyId(@NonNull Identifier blockId) {
-        Integer legacyId = this.blockToLegacy.get(blockId);
-        checkArg(legacyId != null, "unregistered block ID \"%s\"", blockId);
-        return legacyId;
-    }
-
-    @Override
-    public Identifier getBlockId(int legacyId) {
-        Identifier blockId = null;
-        checkArg(legacyId >= 0 && legacyId < this.legacyToBlock.length && (blockId = this.legacyToBlock[legacyId]) != null, "unregistered legacy ID %d", legacyId);
-        return blockId;
-    }
-
-    @Override
-    public BlockState getState(@NonNull Identifier blockId, int meta) {
-        BlockState state = this.legacyToState[this.getLegacyId(blockId)];
-        return meta == 0 ? state : state.withMeta(meta);
-    }
-
-    @Override
-    public BlockState getState(int legacyId, int meta) {
-        BlockState state = null;
-        checkArg(legacyId >= 0 && legacyId < this.legacyToState.length && (state = this.legacyToState[legacyId]) != null, "unregistered legacy ID %d", legacyId);
-        return meta == 0 ? state : state.withMeta(meta);
-    }
-
-    @Override
-    public BlockState getState(int runtimeId) {
-        return this.getState(runtimeId >> 4, runtimeId & 0xF);
-    }
-
-    @Override
-    public int getRuntimeId(@NonNull Identifier blockId, int meta) {
-        checkArg(meta >= 0 && meta < 16, "meta (%d) must be in range 0-15!", meta);
-        return (this.getLegacyId(blockId) << 4) | meta;
-    }
-
-    @Override
-    public int getRuntimeId(int legacyId, int meta) {
-        checkArg(meta >= 0 && meta < 16, "meta (%d) must be in range 0-15!", meta);
-        checkArg(this.containsLegacyId(legacyId), "unregistered legacy ID %d", legacyId);
-        return (legacyId << 4) | meta;
-    }
-
-    @Override
-    public void forEachBlockId(@NonNull Consumer<? super Identifier> callback) {
-        this.blockToLegacy.keySet().forEach(callback);
-    }
-
-    @Override
-    public void forEachLegacyId(@NonNull IntConsumer callback) {
-        this.blockToLegacy.values().forEach(callback::accept);
-    }
-
-    @Override
-    public void forEachBlockId(@NonNull ObjIntConsumer<? super Identifier> action) {
-        this.blockToLegacy.forEach(action::accept);
-    }
-
-    @Override
-    public void forEachState(@NonNull Consumer<? super BlockState> callback) {
-        for (LegacyBlockState defaultState : this.legacyToState) {
-            if (defaultState != null) {
-                LegacyBlockState[] states = defaultState.states;
-                for (LegacyBlockState state : states) {
-                    callback.accept(state);
-                }
-            }
+        @Override
+        public LegacyBlockRegistry build() {
+            return new LegacyBlockRegistry(this);
         }
     }
 
-    @Override
-    public void forEachRuntimeId(@NonNull IntConsumer callback) {
-        for (BlockState defaultState : this.legacyToState) {
-            if (defaultState != null) {
-                int baseId = defaultState.legacyId() << 4;
-                for (int meta = 0; meta < 16; meta++) {
-                    callback.accept(baseId | meta);
-                }
-            }
+    public static class BlockBuilder extends AbstractBlockRegistry.BlockBuilder<BlockBuilder, Builder, LegacyBlockRegistry> {
+        protected ObjIntMap<Map<Property<?>, ?>> stateToMeta = null;
+        protected int legacyId = -1;
+
+        protected BlockBuilder(Builder parent, Identifier id) {
+            super(parent, id);
         }
-    }
 
-    @Override
-    public Iterator<Identifier> iterator() {
-        return this.blockToLegacy.keySet().iterator();
-    }
-
-    public static class Builder {
-        protected final Map<Identifier, Integer> toIds = new IdentityHashMap<>();
-        protected final Map<Integer, Identifier> fromIds = new HashMap<>();
-
-        /**
-         * Registers the given {@link Identifier} to numeric ID pair.
-         *
-         * @param identifier the {@link Identifier}
-         * @param id         the numeric ID
-         * @return this builder
-         */
-        public synchronized Builder register(@NonNull Identifier identifier, int id) {
-            checkState(!this.toIds.containsKey(identifier), "ID %s is already registered!", identifier);
-            checkState(!this.fromIds.containsKey(id), "ID %s is already registered!", id); //use %s to avoid having a second string instance, the result should be the same
-            this.toIds.put(identifier, id);
-            this.fromIds.put(id, identifier);
+        public BlockBuilder legacyId(int legacyId)  {
+            this.legacyId = notNegative(legacyId, "legacyId");
             return this;
         }
 
-        /**
-         * Builds the completed registry.
-         *
-         * @return the completed registry
-         */
-        public synchronized LegacyBlockRegistry build() {
-            return new LegacyBlockRegistry(this);
+        @Override
+        protected void validateState() {
+            checkState(this.legacyId >= 0, "legacyId must be set! (block: %s)", this.id);
+            checkState(this.stateToMeta != null ^ this.properties.length == 0, "stateToMeta must be set for blocks with properties!");
+        }
+
+        @Override
+        protected DefaultBlockState makeState(@NonNull LegacyBlockRegistry registry, @NonNull Map<Property<?>, ?> properties) {
+            int meta = this.stateToMeta == null ? 0 : this.stateToMeta.get(properties);
+            checkState((meta & 0xF) == meta, "invalid meta (%d) for properties: %s", meta, properties);
+            return new DefaultBlockState(registry, this.id, this.legacyId, meta, (this.legacyId << 4) | meta);
         }
     }
 }

@@ -25,6 +25,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.function.PFunctions;
 import net.daporkchop.lib.minecraft.block.BlockRegistry;
 import net.daporkchop.lib.minecraft.block.BlockState;
 import net.daporkchop.lib.minecraft.block.Property;
@@ -34,6 +35,7 @@ import net.daporkchop.lib.primitive.map.open.IntObjOpenHashMap;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -44,6 +46,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 import java.util.function.ObjIntConsumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
@@ -254,6 +257,8 @@ public abstract class AbstractBlockRegistry implements BlockRegistry {
                 Map<Map<Property<?>, ?>, DefaultBlockState> propertiesToStates = new HashMap<>();
                 propertiesToStates.put(Collections.emptyMap(), state);
                 state.otherMeta = this.getMetaArray(propertiesToStates);
+                state.properties = Collections.emptyList();
+                state.propertiesByName = Collections.emptyMap();
                 return state;
             } else {
                 LinkedHashMap<Map<Property<?>, ?>, DefaultBlockState> propertiesToStates = new LinkedHashMap<>();
@@ -269,7 +274,13 @@ public abstract class AbstractBlockRegistry implements BlockRegistry {
                 });
 
                 BlockState[] metas = this.getMetaArray(propertiesToStates);
-                propertiesToStates.values().forEach(state -> state.otherMeta = metas);
+                Collection<Property<?>> properties = Arrays.asList(this.properties);
+                Map<String, Property<?>> propertiesByName = properties.stream().collect(Collectors.toMap(Property::name, PFunctions.identity()));
+                propertiesToStates.values().forEach(state -> {
+                    state.otherMeta = metas;
+                    state.properties = properties;
+                    state.propertiesByName = propertiesByName;
+                });
                 return this.getDefaultState(propertiesToStates, metas);
             }
         }

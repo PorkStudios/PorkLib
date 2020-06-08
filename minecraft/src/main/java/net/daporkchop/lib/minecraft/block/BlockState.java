@@ -23,6 +23,10 @@ package net.daporkchop.lib.minecraft.block;
 import lombok.NonNull;
 import net.daporkchop.lib.minecraft.util.Identifier;
 
+import java.util.Collection;
+
+import static net.daporkchop.lib.common.util.PorkUtil.*;
+
 /**
  * Represents a block state: the storage's {@link Identifier} combined with a metadata value.
  *
@@ -105,4 +109,43 @@ public interface BlockState {
      * @throws IllegalArgumentException if the given {@link Property.Boolean} was not registered for the block
      */
     BlockState withProperty(@NonNull Property.Boolean property, boolean value);
+
+    /**
+     * @return all properties supported by the block
+     */
+    Collection<Property<?>> properties();
+
+    /**
+     * Gets the {@link Property} with the given name.
+     *
+     * @param name the name of the property to get
+     * @param <T>  the property's value type
+     * @return the {@link Property} with the given name
+     * @throws IllegalArgumentException if the block does not have any properties with the given name
+     */
+    <T> Property<T> property(@NonNull String name);
+
+    /**
+     * Gets the {@link Property.Int} with the given name.
+     *
+     * @param name the name of the property to get
+     * @return the {@link Property.Int} with the given name
+     * @throws IllegalArgumentException if the block does not have any properties with the given name
+     * @throws ClassCastException       if the property is not a {@link Property.Int}
+     */
+    default Property.Int propertyInt(@NonNull String name) {
+        return uncheckedCast(this.property(name));
+    }
+
+    /**
+     * Gets the {@link Property.Boolean} with the given name.
+     *
+     * @param name the name of the property to get
+     * @return the {@link Property.Boolean} with the given name
+     * @throws IllegalArgumentException if the block does not have any properties with the given name
+     * @throws ClassCastException       if the property is not a {@link Property.Boolean}
+     */
+    default Property.Boolean propertyBoolean(@NonNull String name) {
+        return uncheckedCast(this.property(name));
+    }
 }

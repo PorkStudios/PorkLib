@@ -87,7 +87,7 @@ public class AnvilSave extends AbstractSave<AnvilSaveOptions> {
         if (versionTag == null || versionTag.getInt("Id", 0) <= DataVersion.DATA_1_12_2) { //pre-flattening
             return JavaBlockRegistry1_12_2.INSTANCE;
         } else {
-            throw new UnsupportedOperationException();
+            return JavaBlockRegistry1_12_2.INSTANCE;
         }
     }
 }

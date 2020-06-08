@@ -20,6 +20,7 @@
 
 package net.daporkchop.lib.minecraft.format.common.block;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,7 @@ import net.daporkchop.lib.minecraft.block.Property;
 import net.daporkchop.lib.minecraft.block.PropertyMap;
 import net.daporkchop.lib.minecraft.util.Identifier;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -53,8 +55,13 @@ public class DefaultBlockState implements BlockState {
     protected final int meta;
     protected final int runtimeId;
 
+    @Getter(AccessLevel.PROTECTED)
     protected BlockState[] otherMeta;
+    @Getter(AccessLevel.PROTECTED)
     protected final Map<Property<?>, PropertyMap<?>> otherProperties = new HashMap<>(); //TODO: use a map that's better optimized for low entry counts
+
+    protected Collection<Property<?>> properties;
+    protected Map<String, Property<?>> propertiesByName;
 
     @Override
     public boolean hasLegacyId() {
@@ -87,6 +94,13 @@ public class DefaultBlockState implements BlockState {
         PropertyMap.Boolean map = uncheckedCast(this.otherProperties.get(property));
         checkArg(map != null, "Invalid property %s for block %s!", property, this.id);
         return map.getState(value);
+    }
+
+    @Override
+    public <T> Property<T> property(@NonNull String name) {
+        Property<T> property = uncheckedCast(this.propertiesByName.get(name));
+        checkArg(property != null, "Invalid property %s for block %s!", name, this.id);
+        return property;
     }
 
     @Override

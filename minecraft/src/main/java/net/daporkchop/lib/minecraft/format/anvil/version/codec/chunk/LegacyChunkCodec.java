@@ -18,7 +18,7 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.anvil.version;
+package net.daporkchop.lib.minecraft.format.anvil.version.codec.chunk;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -44,7 +44,7 @@ import net.daporkchop.lib.nbt.tag.CompoundTag;
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-public class AnvilChunkCodec1_12_2 implements DataCodec<Chunk, CompoundTag> {
+public class LegacyChunkCodec implements DataCodec<Chunk, CompoundTag> {
     @NonNull
     protected final AnvilWorld world;
 

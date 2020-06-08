@@ -50,6 +50,22 @@ public interface Property<V> extends Comparable<Property<?>> {
      */
     PropertyMap<V> propertyMap(@NonNull Function<V, BlockState> mappingFunction);
 
+    /**
+     * Encodes a value to its {@link String} representation.
+     *
+     * @param value the value to encode
+     * @return the encoded value
+     */
+    String encodeValue(@NonNull V value);
+
+    /**
+     * Decodes a value from its {@link String} representation.
+     *
+     * @param encoded the encoded value
+     * @return the decoded value
+     */
+    V decodeValue(@NonNull String encoded);
+
     @Override
     default int compareTo(Property<?> o) {
         return this.name().compareTo(o.name());
@@ -63,7 +79,7 @@ public interface Property<V> extends Comparable<Property<?>> {
     interface Int extends Property<Integer> {
         @Override
         @Deprecated
-        default Stream<Integer> values()    {
+        default Stream<Integer> values() {
             return this.intValues().boxed();
         }
 

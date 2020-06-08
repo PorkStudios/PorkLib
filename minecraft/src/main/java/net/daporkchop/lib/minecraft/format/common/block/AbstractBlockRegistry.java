@@ -92,7 +92,7 @@ public abstract class AbstractBlockRegistry implements BlockRegistry {
 
     @Override
     public boolean containsState(@NonNull Identifier blockId, int meta) {
-        if (meta < 0)   {
+        if (meta < 0) {
             return false;
         }
         DefaultBlockState state = this.idToDefaultState.get(blockId);
@@ -101,7 +101,7 @@ public abstract class AbstractBlockRegistry implements BlockRegistry {
 
     @Override
     public boolean containsState(int legacyId, int meta) {
-        if (meta < 0)   {
+        if (meta < 0) {
             return false;
         }
         DefaultBlockState state = this.legacyIdToDefaultState.get(legacyId);
@@ -232,11 +232,14 @@ public abstract class AbstractBlockRegistry implements BlockRegistry {
     }
 
     @RequiredArgsConstructor
+    @Getter
+    @Accessors(fluent = true)
     public static abstract class BlockBuilder<I extends BlockBuilder<I, P, R>, P extends Builder<P, I, R>, R extends BlockRegistry> {
         @NonNull
         protected final P parent;
         @NonNull
         protected final Identifier id;
+        @Getter(AccessLevel.NONE)
         protected Property<?>[] properties = new Property[0];
 
         public I properties(@NonNull Property<?>... properties) {
@@ -246,31 +249,48 @@ public abstract class AbstractBlockRegistry implements BlockRegistry {
 
         protected DefaultBlockState bake(@NonNull R registry) {
             this.validateState();
-            LinkedHashMap<Map<Property<?>, ?>, DefaultBlockState> propertiesToStates = new LinkedHashMap<>();
-            this.allProperties().forEach(p -> propertiesToStates.put(p, this.makeState(registry, p)));
-            propertiesToStates.forEach((p, state) -> {
-                for (Property<?> property : this.properties) {
-                    state.otherProperties.put(property, property.propertyMap(value -> {
-                        Map<Property<?>, Object> p2 = new HashMap<>(p);
-                        p2.put(property, value);
-                        return propertiesToStates.get(p2);
-                    }));
-                }
-            });
+            if (this.properties.length == 0) {
+                DefaultBlockState state = this.makeState(registry, Collections.emptyMap());
+                Map<Map<Property<?>, ?>, DefaultBlockState> propertiesToStates = new HashMap<>();
+                propertiesToStates.put(Collections.emptyMap(), state);
+                state.otherMeta = this.getMetaArray(propertiesToStates);
+                return state;
+            } else {
+                LinkedHashMap<Map<Property<?>, ?>, DefaultBlockState> propertiesToStates = new LinkedHashMap<>();
+                this.allProperties().forEach(p -> propertiesToStates.put(p, this.makeState(registry, p)));
+                propertiesToStates.forEach((p, state) -> {
+                    for (Property<?> property : this.properties) {
+                        state.otherProperties.put(property, property.propertyMap(value -> {
+                            Map<Property<?>, Object> p2 = new HashMap<>(p);
+                            p2.put(property, value);
+                            return propertiesToStates.get(p2);
+                        }));
+                    }
+                });
 
-            BlockState[] metas = new BlockState[propertiesToStates.size()];
-            propertiesToStates.values().forEach(state -> {
-                int meta = state.meta();
-                checkState(metas[meta] != null, "duplicate meta value: %d", meta);
-                metas[meta] = state;
-                state.otherMeta = metas;
-            });
-            return (DefaultBlockState) metas[0];
+                BlockState[] metas = this.getMetaArray(propertiesToStates);
+                propertiesToStates.values().forEach(state -> state.otherMeta = metas);
+                return this.getDefaultState(propertiesToStates, metas);
+            }
         }
 
         protected abstract void validateState();
 
         protected abstract DefaultBlockState makeState(@NonNull R registry, @NonNull Map<Property<?>, ?> properties);
+
+        protected BlockState[] getMetaArray(@NonNull Map<Map<Property<?>, ?>, DefaultBlockState> propertiesToStates) {
+            BlockState[] metas = new BlockState[propertiesToStates.size()];
+            propertiesToStates.values().forEach(state -> {
+                int meta = state.meta();
+                checkState(metas[meta] != null, "duplicate meta value: %d", meta);
+                metas[meta] = state;
+            });
+            return metas;
+        }
+
+        protected DefaultBlockState getDefaultState(@NonNull Map<Map<Property<?>, ?>, DefaultBlockState> propertiesToStates, @NonNull BlockState[] metas) {
+            return (DefaultBlockState) metas[0];
+        }
 
         protected List<Map<Property<?>, ?>> allProperties() {
             if (this.properties.length == 0) {

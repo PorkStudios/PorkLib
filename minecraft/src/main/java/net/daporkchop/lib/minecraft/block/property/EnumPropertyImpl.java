@@ -30,11 +30,11 @@ import net.daporkchop.lib.minecraft.block.PropertyMap;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
-import static net.daporkchop.lib.common.util.PorkUtil.*;
 
 /**
  * Default implementation of {@link Property}.
@@ -42,25 +42,28 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
  * @author DaPorkchop_
  */
 @Accessors(fluent = true)
-public class PropertyImpl<V> implements Property<V> {
+public class EnumPropertyImpl implements Property<String> {
     @Getter
     protected final String name;
-    protected final V[] values;
+    protected final String[] values;
 
-    public PropertyImpl(@NonNull String name, @NonNull List<V> values) {
+    public EnumPropertyImpl(@NonNull String name, @NonNull List<String> values) {
         this.name = name.intern();
-        this.values = uncheckedCast(values.toArray());
+        this.values = values.stream()
+                .peek(Objects::requireNonNull)
+                .map(String::intern)
+                .toArray(String[]::new);
     }
 
     @Override
-    public Stream<V> values() {
+    public Stream<String> values() {
         return Arrays.stream(this.values);
     }
 
     @Override
-    public PropertyMap<V> propertyMap(@NonNull Function<V, BlockState> mappingFunction) {
-        PropertyMapImpl<V> map = new PropertyMapImpl<>();
-        for (V value : this.values) {
+    public PropertyMap<String> propertyMap(@NonNull Function<String, BlockState> mappingFunction) {
+        PropertyMapImpl map = new PropertyMapImpl();
+        for (String value : this.values) {
             BlockState state = mappingFunction.apply(value);
             checkState(state != null, "state may not be null!");
             map.put(value, state);
@@ -68,9 +71,24 @@ public class PropertyImpl<V> implements Property<V> {
         return map;
     }
 
-    protected static class PropertyMapImpl<V> extends HashMap<V, BlockState> implements PropertyMap<V> {
+    @Override
+    public String encodeValue(@NonNull String value) {
+        return value;
+    }
+
+    @Override
+    public String decodeValue(@NonNull String encoded) {
+        return encoded.intern();
+    }
+
+    @Override
+    public String toString() {
+        return this.name;
+    }
+
+    protected static class PropertyMapImpl extends HashMap<String, BlockState> implements PropertyMap<String> {
         @Override
-        public BlockState getState(@NonNull V value) {
+        public BlockState getState(@NonNull String value) {
             BlockState state = this.get(value);
             checkArg(state != null, value);
             return state;

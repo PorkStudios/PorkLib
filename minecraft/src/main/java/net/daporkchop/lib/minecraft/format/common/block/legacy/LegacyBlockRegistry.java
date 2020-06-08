@@ -21,16 +21,21 @@
 package net.daporkchop.lib.minecraft.format.common.block.legacy;
 
 import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.minecraft.block.BlockRegistry;
+import net.daporkchop.lib.minecraft.block.BlockState;
 import net.daporkchop.lib.minecraft.block.Property;
 import net.daporkchop.lib.minecraft.format.common.block.AbstractBlockRegistry;
 import net.daporkchop.lib.minecraft.format.common.block.DefaultBlockState;
 import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.primitive.map.ObjIntMap;
 
+import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 
@@ -61,23 +66,43 @@ public class LegacyBlockRegistry extends AbstractBlockRegistry {
         }
     }
 
+    @Getter
+    @Accessors(fluent = true)
     public static class BlockBuilder extends AbstractBlockRegistry.BlockBuilder<BlockBuilder, Builder, LegacyBlockRegistry> {
         protected ObjIntMap<Map<Property<?>, ?>> stateToMeta = null;
+        protected Map<Property<?>, ?>[] metaToState = null;
+        protected Map<Property<?>, ?> defaultState = null;
         protected int legacyId = -1;
 
         protected BlockBuilder(Builder parent, Identifier id) {
             super(parent, id);
         }
 
-        public BlockBuilder legacyId(int legacyId)  {
+        public BlockBuilder legacyId(int legacyId) {
             this.legacyId = notNegative(legacyId, "legacyId");
+            return this;
+        }
+
+        public BlockBuilder stateToMeta(@NonNull ObjIntMap<Map<Property<?>, ?>> stateToMeta) {
+            this.stateToMeta = stateToMeta;
+            return this;
+        }
+
+        @SuppressWarnings("unchecked")
+        public BlockBuilder metaToState(@NonNull Map<Property<?>, ?>[] metaToState) {
+            this.metaToState = Arrays.stream(metaToState).peek(Objects::requireNonNull).toArray(Map[]::new);
+            return this;
+        }
+
+        public BlockBuilder defaultState(@NonNull Map<Property<?>, ?> defaultState) {
+            this.defaultState = defaultState;
             return this;
         }
 
         @Override
         protected void validateState() {
             checkState(this.legacyId >= 0, "legacyId must be set! (block: %s)", this.id);
-            checkState(this.stateToMeta != null ^ this.properties.length == 0, "stateToMeta must be set for blocks with properties!");
+            checkState(this.properties.length == 0 || this.stateToMeta != null, "stateToMeta must be set for blocks with properties!");
         }
 
         @Override
@@ -85,6 +110,27 @@ public class LegacyBlockRegistry extends AbstractBlockRegistry {
             int meta = this.stateToMeta == null ? 0 : this.stateToMeta.get(properties);
             checkState((meta & 0xF) == meta, "invalid meta (%d) for properties: %s", meta, properties);
             return new DefaultBlockState(registry, this.id, this.legacyId, meta, (this.legacyId << 4) | meta);
+        }
+
+        @Override
+        protected BlockState[] getMetaArray(@NonNull Map<Map<Property<?>, ?>, DefaultBlockState> propertiesToStates) {
+            if (this.metaToState == null) {
+                return super.getMetaArray(propertiesToStates);
+            }
+            return Arrays.stream(this.metaToState)
+                    .map(propertiesToStates::get)
+                    .peek(Objects::requireNonNull)
+                    .toArray(BlockState[]::new);
+        }
+
+        @Override
+        protected DefaultBlockState getDefaultState(@NonNull Map<Map<Property<?>, ?>, DefaultBlockState> propertiesToStates, @NonNull BlockState[] metas) {
+            if (this.defaultState == null) {
+                return super.getDefaultState(propertiesToStates, metas);
+            }
+            DefaultBlockState state = propertiesToStates.get(this.defaultState);
+            checkState(state != null, this.defaultState);
+            return state;
         }
     }
 }

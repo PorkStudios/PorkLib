@@ -58,6 +58,21 @@ public class BooleanPropertyImpl implements Property.Boolean {
         return new PropertyMapImpl(mappingFunction.apply(java.lang.Boolean.TRUE), mappingFunction.apply(java.lang.Boolean.FALSE));
     }
 
+    @Override
+    public String encodeValue(@NonNull java.lang.Boolean value) {
+        return String.valueOf(value);
+    }
+
+    @Override
+    public java.lang.Boolean decodeValue(@NonNull String encoded) {
+        return java.lang.Boolean.parseBoolean(encoded);
+    }
+
+    @Override
+    public String toString() {
+        return this.name;
+    }
+
     @RequiredArgsConstructor
     protected static class PropertyMapImpl implements PropertyMap.Boolean {
         @NonNull

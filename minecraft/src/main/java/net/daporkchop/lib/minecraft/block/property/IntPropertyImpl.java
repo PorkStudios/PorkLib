@@ -47,34 +47,54 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
 public class IntPropertyImpl implements Property.Int {
     @Getter
     protected final String name;
+    protected final int min;
     protected final int max;
 
-    public IntPropertyImpl(@NonNull String name, int max) {
+    public IntPropertyImpl(@NonNull String name, int min, int max) {
         this.name = name.intern();
-        this.max = positive(max, "max");
+        this.min = notNegative(min, "min");
+        checkArg(min < max, "min (%d) must be less than max (%d)", min, max);
+        this.max = max;
     }
 
     @Override
     public IntStream intValues() {
-        return IntStream.range(0, this.max);
+        return IntStream.range(this.min, this.max);
     }
 
     @Override
     public PropertyMap<Integer> propertyMap(@NonNull Function<Integer, BlockState> mappingFunction) {
-        BlockState[] states = new BlockState[this.max];
-        for (int i = 0; i < this.max; i++)  {
-            checkState((states[i] = mappingFunction.apply(i)) != null, "state may not be null!");
+        BlockState[] states = new BlockState[this.max - this.min];
+        for (int i = this.min; i < this.max; i++)  {
+            checkState((states[i - this.min] = mappingFunction.apply(i)) != null, "state may not be null!");
         }
-        return new PropertyMapImpl(states);
+        return new PropertyMapImpl(states, this.min);
+    }
+
+    @Override
+    public String encodeValue(@NonNull Integer value) {
+        return String.valueOf(value);
+    }
+
+    @Override
+    public Integer decodeValue(@NonNull String encoded) {
+        return Integer.parseUnsignedInt(encoded);
+    }
+
+    @Override
+    public String toString() {
+        return this.name;
     }
 
     @RequiredArgsConstructor
     protected static class PropertyMapImpl implements PropertyMap.Int {
         @NonNull
         protected final BlockState[] states;
+        protected final int offset;
 
         @Override
         public BlockState getState(int value) {
+            value -= this.offset;
             checkArg(value >= 0 && value < this.states.length, value);
             return this.states[value];
         }

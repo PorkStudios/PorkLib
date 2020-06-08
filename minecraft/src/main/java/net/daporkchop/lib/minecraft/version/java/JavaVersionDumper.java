@@ -33,6 +33,7 @@ import net.daporkchop.lib.binary.oio.writer.UTF8FileWriter;
 import net.daporkchop.lib.common.function.PFunctions;
 import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.common.misc.file.PFiles;
+import net.daporkchop.lib.minecraft.block.java.JavaBlockRegistry1_12_2;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -62,6 +63,8 @@ final class JavaVersionDumper {
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     public static void main(String... args) throws IOException {
+        JavaBlockRegistry1_12_2.INSTANCE.air();
+
         Map<String, ManifestVersion> manifest = getManifestVersions();
         Map<String, DataVersion> data = getDataVersions();
         Map<Integer, String> dataToId = Collections.synchronizedMap(new TreeMap<>());

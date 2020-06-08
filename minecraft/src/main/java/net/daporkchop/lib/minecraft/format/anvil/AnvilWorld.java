@@ -55,7 +55,7 @@ public class AnvilWorld extends AbstractWorld<AnvilSave, AnvilSaveOptions> imple
         JavaVersion worldVersion = options.access() == WriteAccess.READ_ONLY
                                    ? null //allow chunks in read-only worlds to be decoded using any implemented version for performance
                                    : (JavaVersion) parent.version(); //force chunks in writable worlds to be upgraded to the world version
-        this.storage = new AnvilWorldStorage(root, options, parent.chunkNBTOptions(), worldVersion);
+        this.storage = new AnvilWorldStorage(root, this, parent.chunkNBTOptions(), worldVersion);
 
         this.manager = new VanillaWorldManager(this, this.storage, options.ioExecutor());
 

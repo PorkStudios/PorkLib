@@ -28,30 +28,22 @@ import lombok.NonNull;
  * @author DaPorkchop_
  * @see DataFixer
  */
-public interface DataCodec<O, D> extends ParameterizedDataCodec<O, D, Object> {
-    @Override
-    default O decode(@NonNull D data, Object param) {
-        return this.decode(data);
-    }
-
-    @Override
-    default D encode(@NonNull O value, Object param) {
-        return this.encode(value);
-    }
-
+public interface ParameterizedDataCodec<O, D, P> {
     /**
      * Decodes the given data.
      *
-     * @param data   the data to decode
+     * @param data  the data to decode
+     * @param param an additional parameter
      * @return the decoded value
      */
-    O decode(@NonNull D data);
+    O decode(@NonNull D data, P param);
 
     /**
      * Encodes the given value.
      *
      * @param value the value to encode
+     * @param param an additional parameter
      * @return the encoded data
      */
-    D encode(@NonNull O value);
+    D encode(@NonNull O value, P param);
 }

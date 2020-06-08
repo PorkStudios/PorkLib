@@ -25,6 +25,7 @@ import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.minecraft.block.BlockRegistry;
 import net.daporkchop.lib.minecraft.format.common.AbstractWorld;
+import net.daporkchop.lib.minecraft.format.common.vanilla.VanillaWorld;
 import net.daporkchop.lib.minecraft.format.common.vanilla.VanillaWorldManager;
 import net.daporkchop.lib.minecraft.util.WriteAccess;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
@@ -40,7 +41,7 @@ import java.io.File;
  * @author DaPorkchop_
  */
 @Accessors(fluent = true)
-public class AnvilWorld extends AbstractWorld<AnvilSave, AnvilSaveOptions> implements WorldInfo {
+public class AnvilWorld extends VanillaWorld<AnvilSave, AnvilSaveOptions> implements WorldInfo {
     @Getter
     protected final Dimension dimension;
 
@@ -70,7 +71,7 @@ public class AnvilWorld extends AbstractWorld<AnvilSave, AnvilSaveOptions> imple
 
     @Override
     public int layers() {
-        return 1;
+        return 1; //anvil only supports a single block layer
     }
 
     @Override

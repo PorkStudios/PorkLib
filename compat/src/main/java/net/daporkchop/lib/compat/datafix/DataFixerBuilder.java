@@ -20,8 +20,6 @@
 
 package net.daporkchop.lib.compat.datafix;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 import java.util.Map;
@@ -34,7 +32,7 @@ import java.util.TreeMap;
  */
 public class DataFixerBuilder<O, D, V extends Comparable<? super V>> {
     protected final Map<V, DataConverter<D>> converters = new TreeMap<>();
-    protected final Map<V, DataCodec<O, D>> codecs = new TreeMap<>();
+    protected final Map<V, ParameterizedDataCodec<O, D, ?>> codecs = new TreeMap<>();
 
     /**
      * Adds a new {@link DataConverter} which is required to convert data to the given version.
@@ -57,7 +55,7 @@ public class DataFixerBuilder<O, D, V extends Comparable<? super V>> {
      * @param codec   the {@link DataCodec} to use
      * @return this builder
      */
-    public synchronized DataFixerBuilder<O, D, V> addCodec(@NonNull V version, @NonNull DataCodec<O, D> codec) {
+    public synchronized DataFixerBuilder<O, D, V> addCodec(@NonNull V version, @NonNull ParameterizedDataCodec<O, D, ?> codec) {
         this.codecs.put(version, codec);
         return this;
     }

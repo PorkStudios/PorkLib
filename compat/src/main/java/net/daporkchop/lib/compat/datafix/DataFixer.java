@@ -27,6 +27,7 @@ import java.util.NavigableMap;
 import java.util.TreeMap;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
+import static net.daporkchop.lib.common.util.PorkUtil.*;
 
 /**
  * A completed datafix configuration.
@@ -42,9 +43,9 @@ public class DataFixer<O, D, V extends Comparable<? super V>> {
     }
 
     protected final NavigableMap<V, DataConverter<D>> converters;
-    protected final NavigableMap<V, DataCodec<O, D>> codecs;
+    protected final NavigableMap<V, ParameterizedDataCodec<O, D, ?>> codecs;
 
-    protected DataFixer(@NonNull Map<V, DataConverter<D>> converters, @NonNull Map<V, DataCodec<O, D>> codecs) {
+    protected DataFixer(@NonNull Map<V, DataConverter<D>> converters, @NonNull Map<V, ParameterizedDataCodec<O, D, ?>> codecs) {
         this.converters = new TreeMap<>(converters);
         this.codecs = new TreeMap<>(codecs);
     }
@@ -59,15 +60,22 @@ public class DataFixer<O, D, V extends Comparable<? super V>> {
      * @return the decoded value
      */
     public O decode(@NonNull D data, @NonNull V dataVersion) {
+        return this.decode(data, dataVersion, null);
+    }
+
+    /**
+     * Exactly the same as {@link #decode(Object, Comparable)}, but accepts a parameter that will be passed to the codec.
+     */
+    public O decode(@NonNull D data, @NonNull V dataVersion, Object param) {
         V targetVersion = this.codecs.ceilingKey(dataVersion);
         checkArg(targetVersion != null, "unable to find codec to decode from dataVersion (%s)", dataVersion);
-        return this.decode(data, dataVersion, targetVersion);
+        return this.decodeAt(data, dataVersion, targetVersion, param);
     }
 
     /**
      * Decodes the given data.
      * <p>
-     * If {@code targetVersion} is {@code null}, this method behaves exactly the same as {@link #decode(Object, Comparable)}. Otherwise, this will
+     * If {@code targetVersion} is {@code null}, this method behaves exactly the same as {@link #decode(Object, Comparable, Object)}. Otherwise, this will
      * attempt to decode the data to at least the target version, regardless of difficulty.
      *
      * @param data          the data to decode. May be modified
@@ -77,13 +85,21 @@ public class DataFixer<O, D, V extends Comparable<? super V>> {
      * @throws IllegalArgumentException if the given data version is newer than the target version
      * @throws IllegalArgumentException if no suitable codec for the given target version could be found
      */
-    public O decode(@NonNull D data, @NonNull V dataVersion, V targetVersion) {
-        if (targetVersion == null)  {
-            return this.decode(data, dataVersion);
+    public O decodeAt(@NonNull D data, @NonNull V dataVersion, V targetVersion) {
+        return this.decodeAt(data, dataVersion, targetVersion, null);
+    }
+
+    /**
+     * Exactly the same as {@link #decodeAt(Object, Comparable, Comparable)}, but accepts a parameter that will be passed to the codec.
+     */
+    public O decodeAt(@NonNull D data, @NonNull V dataVersion, V targetVersion, Object param) {
+        if (targetVersion == null) {
+            return this.decode(data, dataVersion, param);
         }
-        DataCodec<O, D> codec = this.codecs.get(this.codecs.ceilingKey(targetVersion));
-        checkArg(codec != null, "no codec registered for given targetVersion (%s)", targetVersion);
-        return codec.decode(this.upgrade(data, dataVersion, targetVersion));
+        V roundedTargetVersion = this.codecs.ceilingKey(targetVersion);
+        checkArg(roundedTargetVersion != null, "no codec registered for given targetVersion (%s)", targetVersion);
+        ParameterizedDataCodec<O, D, ?> codec = this.codecs.get(roundedTargetVersion);
+        return codec.decode(this.upgrade(data, dataVersion, targetVersion), uncheckedCast(param));
     }
 
     /**
@@ -114,8 +130,15 @@ public class DataFixer<O, D, V extends Comparable<? super V>> {
      * @throws IllegalArgumentException if no suitable codec for the given target version could be found
      */
     public D encode(@NonNull O value, @NonNull V valueVersion) {
-        DataCodec<O, D> codec = this.codecs.get(valueVersion);
+        return this.encode(value, valueVersion, null);
+    }
+
+    /**
+     * Exactly the same as {@link #encode(Object, Comparable)}, but accepts a parameter that will be passed to the codec.
+     */
+    public D encode(@NonNull O value, @NonNull V valueVersion, Object param) {
+        ParameterizedDataCodec<O, D, ?> codec = this.codecs.get(valueVersion);
         checkArg(codec != null, "no codec registered for given valueVersion (%s)", valueVersion);
-        return codec.encode(value);
+        return codec.encode(value, uncheckedCast(param));
     }
 }

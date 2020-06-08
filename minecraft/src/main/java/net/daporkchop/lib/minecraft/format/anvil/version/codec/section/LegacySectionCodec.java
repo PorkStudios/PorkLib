@@ -22,20 +22,61 @@ package net.daporkchop.lib.minecraft.format.anvil.version.codec.section;
 
 import lombok.NonNull;
 import net.daporkchop.lib.compat.datafix.DataCodec;
+import net.daporkchop.lib.compat.datafix.ParameterizedDataCodec;
+import net.daporkchop.lib.minecraft.format.anvil.storage.HeapLegacyBlockStorage;
+import net.daporkchop.lib.minecraft.format.common.DefaultSection;
+import net.daporkchop.lib.minecraft.format.common.nibble.HeapNibbleArray;
+import net.daporkchop.lib.minecraft.format.common.nibble.NibbleArray;
+import net.daporkchop.lib.minecraft.format.common.storage.BlockStorage;
+import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Section;
+import net.daporkchop.lib.nbt.tag.ByteArrayTag;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
  * @author DaPorkchop_
  */
-public class LegacySectionCodec implements DataCodec<Section, CompoundTag> {
+public class LegacySectionCodec implements ParameterizedDataCodec<Section, CompoundTag, Chunk> {
     @Override
-    public Section decode(@NonNull CompoundTag data) {
-        return null;
+    public Section decode(@NonNull CompoundTag tag, @NonNull Chunk param) {
+        int y = tag.getByte("Y") & 0xFF;
+        BlockStorage storage = this.parseBlockStorage(tag, param);
+        NibbleArray blockLight = this.parseNibbleArray(tag, "BlockLight");
+        NibbleArray skyLight = this.parseNibbleArray(tag, "SkyLight");
+        return new DefaultSection(param, y, storage, blockLight, skyLight);
+    }
+
+    protected BlockStorage parseBlockStorage(@NonNull CompoundTag tag, @NonNull Chunk chunk) {
+        ByteArrayTag blocksTag = tag.getTag("Blocks");
+        ByteArrayTag dataTag = tag.getTag("Data");
+        ByteArrayTag addTag = tag.getTag("Add", null);
+        if (addTag == null) {
+            if (blocksTag.handle() != null) { //assume that all tags have handles
+                return new HeapLegacyBlockStorage(chunk.blockRegistry(), blocksTag.handle(), dataTag.handle());
+            } else {
+                return new HeapLegacyBlockStorage(chunk.blockRegistry(), blocksTag.value(), 0, dataTag.value(), 0);
+            }
+        } else {
+            if (blocksTag.handle() != null) { //assume that all tags have handles
+                return new HeapLegacyBlockStorage.Add(chunk.blockRegistry(), blocksTag.handle(), dataTag.handle(), addTag.handle());
+            } else {
+                return new HeapLegacyBlockStorage.Add(chunk.blockRegistry(), blocksTag.value(), 0, dataTag.value(), 0, addTag.value(), 0);
+            }
+        }
+    }
+
+    protected NibbleArray parseNibbleArray(@NonNull CompoundTag tag, @NonNull String name) {
+        ByteArrayTag data = tag.getTag(name, null);
+        if (data == null) {
+            return null;
+        }
+        return data.handle() != null
+               ? new HeapNibbleArray.YZX(data.handle())
+               : new HeapNibbleArray.YZX(data.value(), 0);
     }
 
     @Override
-    public CompoundTag encode(@NonNull Section value) {
+    public CompoundTag encode(@NonNull Section value, @NonNull Chunk param) {
         throw new UnsupportedOperationException(); //TODO
     }
 }

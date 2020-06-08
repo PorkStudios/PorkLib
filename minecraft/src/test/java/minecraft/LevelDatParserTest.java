@@ -49,8 +49,8 @@ public class LevelDatParserTest {
     public static File ROOT;
 
     public static final String[] VERSIONS = {
-            //"1_8_9",
-            //"1_12_2",
+            "1_8_9",
+            "1_12_2",
             "1_13_2"
     };
 

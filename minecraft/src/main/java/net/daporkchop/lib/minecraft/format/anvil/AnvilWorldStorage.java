@@ -21,7 +21,9 @@
 package net.daporkchop.lib.minecraft.format.anvil;
 
 import io.netty.buffer.ByteBuf;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
@@ -36,7 +38,9 @@ import net.daporkchop.lib.concurrent.PFuture;
 import net.daporkchop.lib.minecraft.format.anvil.region.RawChunk;
 import net.daporkchop.lib.minecraft.format.anvil.region.RegionFile;
 import net.daporkchop.lib.minecraft.format.anvil.region.RegionFileCache;
+import net.daporkchop.lib.minecraft.format.anvil.version.codec.chunk.FlattenedChunkCodec;
 import net.daporkchop.lib.minecraft.format.anvil.version.codec.chunk.LegacyChunkCodec;
+import net.daporkchop.lib.minecraft.format.anvil.version.codec.section.LegacySectionCodec;
 import net.daporkchop.lib.minecraft.version.DataVersion;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.minecraft.world.Chunk;
@@ -55,6 +59,7 @@ import java.util.Spliterator;
 /**
  * @author DaPorkchop_
  */
+@Accessors(fluent = true)
 public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorage {
     protected static final ZlibInflaterOptions INFLATER_OPTIONS = Zlib.PROVIDER.inflateOptions().withMode(ZlibMode.AUTO);
     protected static final HandledPool<PInflater> INFLATER_CACHE = HandledPool.threadLocal(() -> Zlib.PROVIDER.inflater(INFLATER_OPTIONS), 1);
@@ -65,8 +70,11 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
 
     protected final RegionFile regionCache;
 
+    @Getter
     protected final DataFixer<Chunk, CompoundTag, JavaVersion> chunkFixer;
-    //protected final DataFixer<Section, CompoundTag, JavaVersion> sectionFixer;
+    @Getter
+    protected final DataFixer<Section, CompoundTag, JavaVersion> sectionFixer;
+    @Getter
     protected final JavaVersion worldVersion;
 
     public AnvilWorldStorage(@NonNull File root, @NonNull AnvilWorld world, @NonNull NBTOptions nbtOptions, JavaVersion worldVersion) {
@@ -78,7 +86,12 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
         this.regionCache = new RegionFileCache(world.options(), new File(root, "region"));
 
         this.chunkFixer = DataFixer.<Chunk, CompoundTag, JavaVersion>builder()
-                .addCodec(JavaVersion.fromName("1.12.2"), new LegacyChunkCodec(world))
+                .addCodec(LegacyChunkCodec.VERSION, new LegacyChunkCodec())
+                .addCodec(FlattenedChunkCodec.VERSION, new FlattenedChunkCodec())
+                .build();
+
+        this.sectionFixer = DataFixer.<Section, CompoundTag, JavaVersion>builder()
+                .addCodec(JavaVersion.fromName("1.12.2"), new LegacySectionCodec())
                 .build();
     }
 
@@ -105,7 +118,7 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
             }
             int dataVersion = tag.getInt("DataVersion", 0);
             JavaVersion version = dataVersion < DataVersion.DATA_15w32a ? JavaVersion.pre15w32a() : JavaVersion.fromDataVersion(dataVersion);
-            return this.chunkFixer.decode(tag, version, this.worldVersion); //upgrade chunk to the same data version as the world itself
+            return this.chunkFixer.decodeAt(tag, version, this.worldVersion, parent); //upgrade chunk to the same data version as the world itself
         } finally {
             if (tag != null) {
                 tag.release();

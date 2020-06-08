@@ -84,12 +84,12 @@ public class VanillaWorldManager extends AbstractRefCounted implements WorldMana
     @Override
     public Chunk getChunk(int x, int z) {
         PFuture<Chunk> future = this.chunks.get(BinMath.packXY(x, z));
-        return future != null ? future.getNow() : null;
+        return future != null ? future.getNow().retain() : null;
     }
 
     @Override
     public Chunk getOrLoadChunk(int x, int z) {
-        return this.chunks.computeIfAbsent(BinMath.packXY(x, z), this.computeChunkFunction).join();
+        return this.chunks.computeIfAbsent(BinMath.packXY(x, z), this.computeChunkFunction).join().retain();
     }
 
     @Override

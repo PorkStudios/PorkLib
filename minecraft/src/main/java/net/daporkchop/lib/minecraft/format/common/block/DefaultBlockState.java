@@ -88,4 +88,9 @@ public class DefaultBlockState implements BlockState {
         checkArg(map != null, "Invalid property %s for block %s!", property, this.id);
         return map.getState(value);
     }
+
+    @Override
+    public String toString() {
+        return this.id.toString() + '#' + this.meta;
+    }
 }

@@ -26,6 +26,8 @@ import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.minecraft.format.anvil.AnvilSaveFormat;
 import net.daporkchop.lib.minecraft.save.Save;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
+import net.daporkchop.lib.minecraft.util.Identifier;
+import net.daporkchop.lib.minecraft.world.World;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -34,8 +36,11 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
+import static net.daporkchop.lib.common.util.PValidation.checkState;
 
 /**
  * @author DaPorkchop_
@@ -45,8 +50,8 @@ public class LevelDatParserTest {
 
     public static final String[] VERSIONS = {
             "1_8_9",
-            "1_12_2",
-            "1_13_2"
+            "1_12_2"/*,
+            "1_13_2"*/
     };
 
     @BeforeClass
@@ -78,7 +83,12 @@ public class LevelDatParserTest {
         for (String version : VERSIONS) {
             System.out.printf("Opening minecraft world at %s...\n", new File(ROOT, version));
             try (Save save = new AnvilSaveFormat().tryOpen(new File(ROOT, version), new SaveOptions())) {
-                System.out.println(save.version());
+                System.out.println(save.version() + " " + save.worlds().map(World::id).map(Identifier::toString).collect(Collectors.toList()));
+
+                try (World world = save.world(Identifier.fromString("overworld")))  {
+                    checkState(world != null);
+                    System.out.println(world.getBlockState(0, 0, 0));
+                }
             }
         }
     }

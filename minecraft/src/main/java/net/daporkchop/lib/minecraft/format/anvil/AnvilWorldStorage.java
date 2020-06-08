@@ -37,8 +37,8 @@ import net.daporkchop.lib.minecraft.format.anvil.region.RawChunk;
 import net.daporkchop.lib.minecraft.format.anvil.region.RegionFile;
 import net.daporkchop.lib.minecraft.format.anvil.region.RegionFileCache;
 import net.daporkchop.lib.minecraft.format.anvil.version.AnvilChunkCodec1_12_2;
+import net.daporkchop.lib.minecraft.util.WriteAccess;
 import net.daporkchop.lib.minecraft.version.DataVersion;
-import net.daporkchop.lib.minecraft.version.MinecraftVersion;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Section;
@@ -94,7 +94,7 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
                     }
                     uncompressed = this.options.nettyAlloc().ioBuffer(1 << 18); //256 KiB
                     try (Handle<PInflater> handle = INFLATER_CACHE.get()) {
-                        handle.get().decompress(chunk.data(), uncompressed);
+                        handle.get().decompress(chunk.data().skipBytes(1), uncompressed);
                     }
                 } //release compressed chunk data before parsing NBT
                 tag = NBTFormat.BIG_ENDIAN.readCompound(DataIn.wrap(uncompressed, false), this.nbtOptions);

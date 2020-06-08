@@ -57,7 +57,7 @@ public class JavaBlockRegistry1_12_2 {
 
     static {
         JsonArray root;
-        try (Reader reader = new InputStreamReader(JavaBlockRegistry1_12_2.class.getResourceAsStream("blockstates/1.12.2.json"), StandardCharsets.UTF_8)) {
+        try (Reader reader = new InputStreamReader(JavaBlockRegistry1_12_2.class.getResourceAsStream("1.12.2.json"), StandardCharsets.UTF_8)) {
             root = new JsonParser().parse(reader).getAsJsonArray();
         } catch (IOException e) {
             throw new AssertionError(e);

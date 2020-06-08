@@ -68,7 +68,7 @@ public class DataFixer<O, D, V extends Comparable<? super V>> {
      * Decodes the given data.
      * <p>
      * If {@code targetVersion} is {@code null}, this method behaves exactly the same as {@link #decode(Object, Comparable)}. Otherwise, this will
-     * attempt to decode the data to exactly the target version, regardless of difficulty.
+     * attempt to decode the data to at least the target version, regardless of difficulty.
      *
      * @param data          the data to decode. May be modified
      * @param dataVersion   the version that the data was encoded at
@@ -81,7 +81,7 @@ public class DataFixer<O, D, V extends Comparable<? super V>> {
         if (targetVersion == null)  {
             return this.decode(data, dataVersion);
         }
-        DataCodec<O, D> codec = this.codecs.get(targetVersion);
+        DataCodec<O, D> codec = this.codecs.get(this.codecs.ceilingKey(targetVersion));
         checkArg(codec != null, "no codec registered for given targetVersion (%s)", targetVersion);
         return codec.decode(this.upgrade(data, dataVersion, targetVersion));
     }

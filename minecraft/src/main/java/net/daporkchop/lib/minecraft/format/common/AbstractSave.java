@@ -26,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
 import net.daporkchop.lib.concurrent.PFuture;
+import net.daporkchop.lib.minecraft.block.BlockRegistry;
 import net.daporkchop.lib.minecraft.save.Save;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
 import net.daporkchop.lib.minecraft.util.Identifier;
@@ -60,14 +61,14 @@ public abstract class AbstractSave<O extends SaveOptions> extends AbstractRefCou
     protected final Map<Identifier, World> worlds = new HashMap<>();
     protected final Set<Identifier> worldIds = Collections.unmodifiableSet(this.worlds.keySet());
     protected MinecraftVersion version;
-
-    //protected final BlockRegistry blocks;
+    protected BlockRegistry blockRegistry;
 
     /**
      * Ensures that the implementation constructor has initialized all the required fields.
      */
     protected void validateState() {
         checkState(this.version != null, "version must be set!");
+        checkState(this.blockRegistry != null, "blockRegistry must be set!");
     }
 
     @Override

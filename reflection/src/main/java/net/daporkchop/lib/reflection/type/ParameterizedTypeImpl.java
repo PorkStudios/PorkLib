@@ -18,17 +18,30 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":collections")
-    compile project(":compat")
-    compile project(":compression:compression-zlib")
-    compile project(":concurrent")
-    compile project(":encoding:nbt")
-    compile project(":minecraft:minecraft-text")
-    compile project(":primitive")
-    compile project(":random")
-    compile project(":reflection")
+package net.daporkchop.lib.reflection.type;
 
-    compile "com.google.code.gson:gson:$gsonVersion"
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NonNull;
+
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+
+/**
+ * Simple implementation of {@link ParameterizedType}.
+ *
+ * @author DaPorkchop_
+ */
+@AllArgsConstructor
+@Getter
+public final class ParameterizedTypeImpl implements ParameterizedType {
+    @NonNull
+    private final Type[] actualTypeArguments;
+    @NonNull
+    private final Type rawType;
+    private final Type ownerType;
+
+    public ParameterizedTypeImpl(Type[] actualTypeArguments, Type rawType) {
+        this(actualTypeArguments, rawType, null);
+    }
 }

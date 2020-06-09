@@ -18,17 +18,20 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":collections")
-    compile project(":compat")
-    compile project(":compression:compression-zlib")
-    compile project(":concurrent")
-    compile project(":encoding:nbt")
-    compile project(":minecraft:minecraft-text")
-    compile project(":primitive")
-    compile project(":random")
-    compile project(":reflection")
+package minecraft;
 
-    compile "com.google.code.gson:gson:$gsonVersion"
+import net.daporkchop.lib.minecraft.block.BlockRegistry;
+import net.daporkchop.lib.minecraft.block.java.JavaBlockRegistry;
+import net.daporkchop.lib.minecraft.version.java.JavaVersion;
+import org.junit.Test;
+
+/**
+ * @author DaPorkchop_
+ */
+public class JavaBlockRegistryLoadTest {
+    @Test
+    public void test()  {
+        BlockRegistry registry = JavaBlockRegistry.forVersion(JavaVersion.fromName("1.15.2"));
+        System.out.println(registry.size());
+    }
 }

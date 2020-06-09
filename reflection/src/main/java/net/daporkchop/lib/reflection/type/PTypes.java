@@ -18,17 +18,21 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":collections")
-    compile project(":compat")
-    compile project(":compression:compression-zlib")
-    compile project(":concurrent")
-    compile project(":encoding:nbt")
-    compile project(":minecraft:minecraft-text")
-    compile project(":primitive")
-    compile project(":random")
-    compile project(":reflection")
+package net.daporkchop.lib.reflection.type;
 
-    compile "com.google.code.gson:gson:$gsonVersion"
+import lombok.NonNull;
+import lombok.experimental.UtilityClass;
+
+import java.lang.reflect.Type;
+
+/**
+ * Helper class for dealing with {@link Type}.
+ *
+ * @author DaPorkchop_
+ */
+@UtilityClass
+public class PTypes {
+    public static Type parameterized(@NonNull Type base, @NonNull Type... params)    {
+        return params.length == 0 ? base : new ParameterizedTypeImpl(params, base);
+    }
 }

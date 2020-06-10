@@ -20,6 +20,8 @@
 
 package net.daporkchop.lib.nbt.tag;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
@@ -33,6 +35,7 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 import static net.daporkchop.lib.common.util.PorkUtil.*;
@@ -40,6 +43,7 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
 /**
  * @author DaPorkchop_
  */
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Accessors(fluent = true)
 public final class ListTag<T extends Tag<T>> extends Tag<ListTag<T>> {
     @Getter
@@ -97,6 +101,7 @@ public final class ListTag<T extends Tag<T>> extends Tag<ListTag<T>> {
     @Override
     public void release() throws AlreadyReleasedException {
         this.list.forEach(Tag::release);
+        this.list.clear();
     }
 
     @Override
@@ -107,6 +112,11 @@ public final class ListTag<T extends Tag<T>> extends Tag<ListTag<T>> {
     @Override
     public boolean equals(Object obj) {
         return obj instanceof ListTag && this.component == ((ListTag) obj).component && this.list.equals(((ListTag) obj).list);
+    }
+
+    @Override
+    public ListTag<T> clone() {
+        return new ListTag<>(this.list.stream().map(Tag::clone).collect(Collectors.toList()), this.name, this.component);
     }
 
     @Override

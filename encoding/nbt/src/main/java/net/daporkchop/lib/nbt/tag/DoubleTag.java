@@ -75,6 +75,11 @@ public final class DoubleTag extends Tag<DoubleTag> {
     }
 
     @Override
+    public DoubleTag clone() {
+        return this;
+    }
+
+    @Override
     protected void toString(StringBuilder builder, int depth, String name, int index) {
         super.toString(builder, depth, name, index);
         builder.append(this.value).append('\n');

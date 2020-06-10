@@ -34,6 +34,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 
 /**
+ * Helper methods for {@link Collection}.
+ *
  * @author DaPorkchop_
  */
 @UtilityClass

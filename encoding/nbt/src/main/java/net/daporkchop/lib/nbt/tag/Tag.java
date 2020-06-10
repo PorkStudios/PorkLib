@@ -45,7 +45,7 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
  *
  * @author DaPorkchop_
  */
-public abstract class Tag<T extends Tag<T>> implements Releasable {
+public abstract class Tag<T extends Tag<T>> implements Releasable, Cloneable {
     public static final Map<Class<? extends Tag>, Integer> CLASS_TO_ID;
 
     public static final int TAG_END = 0;
@@ -128,6 +128,12 @@ public abstract class Tag<T extends Tag<T>> implements Releasable {
 
     @Override
     public abstract boolean equals(Object obj);
+
+    /**
+     * Gets a snapshot of this tag and all of its children.
+     */
+    @Override
+    public abstract T clone();
 
     @Override
     public String toString() {

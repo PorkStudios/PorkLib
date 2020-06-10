@@ -124,6 +124,11 @@ public final class LongArrayTag extends Tag {
     }
 
     @Override
+    public Tag clone() {
+        return new LongArrayTag(this.value.clone());
+    }
+
+    @Override
     protected void toString(StringBuilder builder, int depth, String name, int index) {
         super.toString(builder, depth, name, index);
         builder.append('[').append(this.value.length).append(" longs]\n");

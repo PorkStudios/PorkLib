@@ -120,6 +120,11 @@ public final class ByteArrayTag extends Tag<ByteArrayTag> {
     }
 
     @Override
+    public ByteArrayTag clone() {
+        return new ByteArrayTag(this.value.clone());
+    }
+
+    @Override
     protected void toString(StringBuilder builder, int depth, String name, int index) {
         super.toString(builder, depth, name, index);
         builder.append('[').append(this.value.length).append(" bytes]\n");

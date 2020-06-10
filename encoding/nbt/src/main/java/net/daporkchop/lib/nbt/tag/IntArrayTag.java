@@ -36,7 +36,7 @@ import java.util.Arrays;
  */
 @Getter
 @Accessors(fluent = true)
-public final class IntArrayTag extends Tag {
+public final class IntArrayTag extends Tag<IntArrayTag> {
     protected final int[] value;
     protected final ArrayHandle<int[]> handle;
     protected final int length;
@@ -120,6 +120,11 @@ public final class IntArrayTag extends Tag {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public IntArrayTag clone() {
+        return new IntArrayTag(this.value.clone());
     }
 
     @Override

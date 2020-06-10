@@ -76,6 +76,11 @@ public final class StringTag extends Tag<StringTag> {
     }
 
     @Override
+    public StringTag clone() {
+        return this;
+    }
+
+    @Override
     protected void toString(StringBuilder builder, int depth, String name, int index) {
         super.toString(builder, depth, name, index);
         builder.append('"').append(this.value).append("\"\n");

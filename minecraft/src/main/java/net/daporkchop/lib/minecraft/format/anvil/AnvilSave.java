@@ -28,6 +28,7 @@ import net.daporkchop.lib.minecraft.block.BlockRegistry;
 import net.daporkchop.lib.minecraft.block.java.JavaBlockRegistry1_12_2;
 import net.daporkchop.lib.minecraft.format.common.AbstractSave;
 import net.daporkchop.lib.minecraft.format.common.DefaultDimension;
+import net.daporkchop.lib.minecraft.registry.java.JavaRegistries;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
 import net.daporkchop.lib.minecraft.version.DataVersion;
 import net.daporkchop.lib.minecraft.version.MinecraftVersion;
@@ -56,6 +57,7 @@ public class AnvilSave extends AbstractSave<AnvilSaveOptions> {
                 //.withObjectParser(null); //TODO
 
         this.version = this.extractVersion(levelData);
+        this.registries = JavaRegistries.forVersion((JavaVersion) this.version);
         this.blockRegistry = this.extractBlockRegistry(levelData);
 
         //find worlds

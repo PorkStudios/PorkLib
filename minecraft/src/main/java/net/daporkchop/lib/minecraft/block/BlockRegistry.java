@@ -56,7 +56,7 @@ import java.util.function.ObjIntConsumer;
  * @author DaPorkchop_
  */
 public interface BlockRegistry extends Registry {
-    Identifier ID = Identifier.fromString("minecraft:blocks");
+    Identifier ID = Identifier.fromString("minecraft:block");
 
     @Override
     default Identifier id() {

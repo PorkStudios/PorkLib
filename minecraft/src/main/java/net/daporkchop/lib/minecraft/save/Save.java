@@ -23,6 +23,7 @@ package net.daporkchop.lib.minecraft.save;
 import lombok.NonNull;
 import net.daporkchop.lib.common.misc.refcount.RefCounted;
 import net.daporkchop.lib.minecraft.block.BlockRegistry;
+import net.daporkchop.lib.minecraft.registry.Registries;
 import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.version.MinecraftVersion;
 import net.daporkchop.lib.minecraft.world.World;
@@ -54,6 +55,11 @@ public interface Save extends RefCounted {
      * @return the {@link SaveOptions} that this save was opened with
      */
     SaveOptions options();
+
+    /**
+     * @return any additional registries used by this save
+     */
+    Registries registries();
 
     /**
      * @return the {@link BlockRegistry} used by this save

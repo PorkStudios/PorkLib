@@ -48,7 +48,7 @@ import static net.daporkchop.lib.common.util.PValidation.*;
 public final class Identifier implements Comparable<Identifier> {
     public static final Identifier EMPTY = new Identifier("", "", ":");
 
-    protected static final Pattern VALIDATION_PATTERN = Pattern.compile("^(?>minecraft:|([a-zA-Z0-9_]*):)?([a-zA-Z0-9_]*)$");
+    protected static final Pattern VALIDATION_PATTERN = Pattern.compile("^(?>minecraft:|([a-zA-Z0-9_.]*):)?([a-zA-Z0-9_.]*)$");
     protected static final Ref<Matcher> MATCHER_CACHE = ThreadRef.regex(VALIDATION_PATTERN);
 
     private static final Lock READ_LOCK;

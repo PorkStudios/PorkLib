@@ -25,6 +25,10 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.minecraft.util.Identifier;
+import net.daporkchop.lib.primitive.map.IntObjMap;
+import net.daporkchop.lib.primitive.map.ObjIntMap;
+import net.daporkchop.lib.primitive.map.open.IntObjOpenHashMap;
+import net.daporkchop.lib.primitive.map.open.ObjIntOpenHashMap;
 
 import java.util.HashMap;
 import java.util.IdentityHashMap;
@@ -43,7 +47,7 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  */
 @Accessors(fluent = true)
 public abstract class AbstractRegistry implements Registry {
-    protected final Map<Identifier, Integer> toIds; //TODO: replace these, as well as the maps used by BlockRegistry implementations, with unboxed primitive maps
+    protected final ObjIntMap<Identifier> toIds;
     protected final Identifier[] fromIds;
 
     @Getter
@@ -51,9 +55,14 @@ public abstract class AbstractRegistry implements Registry {
 
     protected AbstractRegistry(@NonNull Builder builder, boolean toIds, boolean fromIds) {
         this.id = builder.id;
-        this.toIds = toIds ? new IdentityHashMap<>(builder.toIds) : null;
+        if (toIds)   {
+            this.toIds = new ObjIntOpenHashMap<>();
+            builder.toIds.forEach(this.toIds::put);
+        } else {
+            this.toIds = null;
+        }
         if (fromIds) {
-            this.fromIds = new Identifier[builder.highestId];
+            this.fromIds = new Identifier[builder.highestId + 1];
             builder.toIds.forEach((identifier, id) -> this.fromIds[id] = identifier);
         } else {
             this.fromIds = null;
@@ -71,15 +80,15 @@ public abstract class AbstractRegistry implements Registry {
     }
 
     @Override
-    public int get(@NonNull Identifier identifier) {
-        Integer id = this.toIds.get(identifier);
-        checkArg(id != null, "Unknown ID: %s", identifier);
-        return id;
+    public boolean contains(int id) {
+        return id >= 0 && id < this.fromIds.length && this.fromIds[id] != null;
     }
 
     @Override
-    public boolean contains(int id) {
-        return id >= 0 && id < this.fromIds.length && this.fromIds[id] != null;
+    public int get(@NonNull Identifier identifier) {
+        int id = this.toIds.getOrDefault(identifier, -1);
+        checkArg(id >= 0, "Unknown ID: %s", identifier);
+        return id;
     }
 
     @Override
@@ -118,8 +127,8 @@ public abstract class AbstractRegistry implements Registry {
         @NonNull
         protected final Identifier id;
 
-        protected final Map<Identifier, Integer> toIds = new IdentityHashMap<>();
-        protected final Map<Integer, Identifier> fromIds = new HashMap<>();
+        protected final ObjIntMap<Identifier> toIds = new ObjIntOpenHashMap<>();
+        protected final IntObjMap<Identifier> fromIds = new IntObjOpenHashMap<>();
 
         protected int highestId = 0;
 

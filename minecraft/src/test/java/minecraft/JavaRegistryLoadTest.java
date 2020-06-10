@@ -22,15 +22,23 @@ package minecraft;
 
 import net.daporkchop.lib.minecraft.block.BlockRegistry;
 import net.daporkchop.lib.minecraft.block.java.JavaBlockRegistry;
+import net.daporkchop.lib.minecraft.registry.Registries;
+import net.daporkchop.lib.minecraft.registry.java.JavaRegistries;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import org.junit.Test;
 
 /**
  * @author DaPorkchop_
  */
-public class JavaBlockRegistryLoadTest {
+public class JavaRegistryLoadTest {
     @Test
-    public void test()  {
+    public void testRegistries1_15_2() {
+        Registries registry = JavaRegistries.forVersion(JavaVersion.fromName("1.15.2"));
+        System.out.println(registry.size());
+    }
+
+    @Test
+    public void testBlockRegistry1_15_2() {
         BlockRegistry registry = JavaBlockRegistry.forVersion(JavaVersion.fromName("1.15.2"));
         System.out.println(registry.size());
     }

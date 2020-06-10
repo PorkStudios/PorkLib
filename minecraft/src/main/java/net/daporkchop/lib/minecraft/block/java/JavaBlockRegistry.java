@@ -30,6 +30,7 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.function.PFunctions;
 import net.daporkchop.lib.common.function.io.IOFunction;
 import net.daporkchop.lib.common.misc.InstancePool;
+import net.daporkchop.lib.minecraft.block.BlockRegistry;
 import net.daporkchop.lib.minecraft.block.BlockState;
 import net.daporkchop.lib.minecraft.block.Property;
 import net.daporkchop.lib.minecraft.block.property.BooleanPropertyImpl;
@@ -37,6 +38,8 @@ import net.daporkchop.lib.minecraft.block.property.EnumPropertyImpl;
 import net.daporkchop.lib.minecraft.block.property.IntPropertyImpl;
 import net.daporkchop.lib.minecraft.format.common.block.AbstractBlockRegistry;
 import net.daporkchop.lib.minecraft.format.common.block.DefaultBlockState;
+import net.daporkchop.lib.minecraft.registry.Registry;
+import net.daporkchop.lib.minecraft.registry.java.JavaRegistries;
 import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.version.DataVersion;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
@@ -47,11 +50,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
@@ -83,16 +84,20 @@ public class JavaBlockRegistry extends AbstractBlockRegistry {
                 map = InstancePool.getInstance(Gson.class).fromJson(new InputStreamReader(in, StandardCharsets.UTF_8), BLOCK_MAP_TYPE);
             }
 
+            Registry legacyBlockRegistry = JavaRegistries.forVersion(JavaVersion.fromName(version)).get(BlockRegistry.ID);
+
             Builder builder = builder();
-            map.forEach((id, block) -> {
-                BlockBuilder blockBuilder = builder.startBlock(Identifier.fromString(id));
+            map.forEach((name, block) -> {
+                Identifier id = Identifier.fromString(name);
+                BlockBuilder blockBuilder = builder.startBlock(id);
 
                 Map<String, Property<?>> propertyLookup = block.properties.entrySet().stream()
                         .map(e -> makeProperty(Identifier.fromString(e.getKey()), e.getValue()))
                         .collect(Collectors.toMap(Property::name, PFunctions.identity()));
 
                 blockBuilder.propertyLookup(propertyLookup)
-                        .states(block.states);
+                        .states(block.states)
+                        .legacyId(legacyBlockRegistry.get(id));
             });
             return builder.build();
         });
@@ -176,7 +181,7 @@ public class JavaBlockRegistry extends AbstractBlockRegistry {
 
         @Override
         protected void validateState() {
-            //checkState(this.legacyId >= 0, "legacyId must be set! (block: %s)", this.id);
+            checkState(this.legacyId >= 0, "legacyId must be set! (block: %s)", this.id);
             checkState(this.propertyLookup != null, "propertyLookup must be set! (block: %s)", this.id);
             checkState(this.statesList != null, "states must be set! (block: %s)", this.id);
 
@@ -191,7 +196,7 @@ public class JavaBlockRegistry extends AbstractBlockRegistry {
         protected DefaultBlockState makeState(@NonNull JavaBlockRegistry registry, @NonNull Map<Property<?>, ?> properties) {
             JsonState state = this.states.get(properties);
             int meta = state.id - this.firstRuntimeId;
-            return new DefaultBlockState(registry, this.id, -1, meta, state.id);
+            return new DefaultBlockState(registry, this.id, this.legacyId, meta, state.id);
         }
 
         @Override

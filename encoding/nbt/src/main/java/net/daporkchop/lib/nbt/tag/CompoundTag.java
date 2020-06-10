@@ -69,7 +69,7 @@ public final class CompoundTag extends Tag<CompoundTag> {
             if (id == TAG_END) {
                 break;
             }
-            String name = in.readUTF();
+            String name = options.internKeys() ? in.readUTF().intern() : in.readUTF();
             Tag tag = options.parser().read(in, options, id);
             if (options.allowDuplicates()) {
                 this.map.put(name, tag);

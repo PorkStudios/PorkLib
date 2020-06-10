@@ -80,7 +80,7 @@ public abstract class Tag<T extends Tag<T>> implements Releasable {
             case TAG_ARRAY_BYTE:
                 return new ByteArrayTag(in, options);
             case TAG_STRING:
-                return new StringTag(in);
+                return new StringTag(in, options);
             case TAG_LIST:
                 return new ListTag(in, options, null);
             case TAG_COMPOUND:

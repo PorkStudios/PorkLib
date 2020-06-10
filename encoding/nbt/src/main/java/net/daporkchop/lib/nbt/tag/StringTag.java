@@ -25,6 +25,7 @@ import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.nbt.NBTOptions;
 
 import java.io.IOException;
 
@@ -44,8 +45,9 @@ public final class StringTag extends Tag<StringTag> {
      * @deprecated Internal API, do not touch!
      */
     @Deprecated
-    public StringTag(@NonNull DataIn in) throws IOException {
-        this.value = in.readUTF();
+    public StringTag(@NonNull DataIn in, @NonNull NBTOptions options) throws IOException {
+        String value = in.readUTF();
+        this.value = options.internValues() ? value.intern() : value;
     }
 
     @Override

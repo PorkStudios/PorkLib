@@ -20,14 +20,18 @@
 
 package net.daporkchop.lib.nbt.tag;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.collections.collectors.PCollectors;
 import net.daporkchop.lib.common.misc.string.PStrings;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.nbt.NBTOptions;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -42,17 +46,20 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
  *
  * @author DaPorkchop_
  */
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Accessors(fluent = true)
 public final class CompoundTag extends Tag<CompoundTag> {
-    protected final Map<String, Tag> map = new LinkedHashMap<>();
+    protected final Map<String, Tag> map;
     @Getter
     protected final String name;
 
     public CompoundTag() {
+        this.map = new LinkedHashMap<>();
         this.name = null;
     }
 
     public CompoundTag(@NonNull String name) {
+        this.map = new LinkedHashMap<>();
         this.name = name;
     }
 
@@ -61,6 +68,7 @@ public final class CompoundTag extends Tag<CompoundTag> {
      */
     @Deprecated
     public CompoundTag(@NonNull DataIn in, @NonNull NBTOptions options, String selfName) throws IOException {
+        this.map = new LinkedHashMap<>();
         this.name = selfName;
 
         while (true) {
@@ -68,8 +76,8 @@ public final class CompoundTag extends Tag<CompoundTag> {
             if (id == TAG_END) {
                 break;
             }
-            String name = in.readUTF();
-            Tag tag = Tag.read(in, options, id);
+            String name = options.internKeys() ? in.readUTF().intern() : in.readUTF();
+            Tag tag = options.parser().read(in, options, id);
             if (options.allowDuplicates()) {
                 this.map.put(name, tag);
             } else {
@@ -109,6 +117,11 @@ public final class CompoundTag extends Tag<CompoundTag> {
     }
 
     @Override
+    public CompoundTag clone() {
+        return new CompoundTag(this.map.entrySet().stream().collect(PCollectors.toLinkedHashMap(Map.Entry::getKey, e -> e.getValue().clone())), this.name);
+    }
+
+    @Override
     protected void toString(StringBuilder builder, int depth, String name, int index) {
         super.toString(builder, depth, PorkUtil.fallbackIfNull(name, this.name), index);
         builder.append(this.map.size()).append(" entries\n");
@@ -122,8 +135,8 @@ public final class CompoundTag extends Tag<CompoundTag> {
     }
 
     @Override
-    protected void doRelease() {
-        this.map.forEach((key, value) -> value.release());
+    public void release() throws AlreadyReleasedException {
+        this.map.values().forEach(Tag::release);
         this.map.clear();
     }
 

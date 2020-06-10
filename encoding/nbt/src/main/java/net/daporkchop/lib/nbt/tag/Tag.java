@@ -28,7 +28,9 @@ import net.daporkchop.lib.common.misc.string.PStrings;
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.nbt.NBTOptions;
+import net.daporkchop.lib.nbt.util.NBTObjectParser;
 import net.daporkchop.lib.primitive.map.ObjByteMap;
+import net.daporkchop.lib.unsafe.capability.Releasable;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
@@ -43,7 +45,7 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
  *
  * @author DaPorkchop_
  */
-public abstract class Tag<T extends Tag<T>> extends AbstractRefCounted {
+public abstract class Tag<T extends Tag<T>> implements Releasable, Cloneable {
     public static final Map<Class<? extends Tag>, Integer> CLASS_TO_ID;
 
     public static final int TAG_END = 0;
@@ -59,6 +61,38 @@ public abstract class Tag<T extends Tag<T>> extends AbstractRefCounted {
     public static final int TAG_COMPOUND = 10;
     public static final int TAG_ARRAY_INT = 11;
     public static final int TAG_ARRAY_LONG = 12;
+
+    @SuppressWarnings("deprecation")
+    public static final NBTObjectParser DEFAULT_NBT_PARSER = (in, options, id) -> {
+        switch (id) {
+            case TAG_BYTE:
+                return new ByteTag(in);
+            case TAG_SHORT:
+                return new ShortTag(in);
+            case TAG_INT:
+                return new IntTag(in);
+            case TAG_LONG:
+                return new LongTag(in);
+            case TAG_FLOAT:
+                return new FloatTag(in);
+            case TAG_DOUBLE:
+                return new DoubleTag(in);
+            case TAG_ARRAY_BYTE:
+                return new ByteArrayTag(in, options);
+            case TAG_STRING:
+                return new StringTag(in, options);
+            case TAG_LIST:
+                return new ListTag(in, options, null);
+            case TAG_COMPOUND:
+                return new CompoundTag(in, options, null);
+            case TAG_ARRAY_INT:
+                return new IntArrayTag(in, options);
+            case TAG_ARRAY_LONG:
+                return new LongArrayTag(in, options);
+            default:
+                throw new IllegalArgumentException("Unknown tag id: " + id);
+        }
+    };
 
     static {
         Map<Class<? extends Tag>, Integer> map = new IdentityHashMap<>();
@@ -78,38 +112,6 @@ public abstract class Tag<T extends Tag<T>> extends AbstractRefCounted {
         CLASS_TO_ID = Collections.unmodifiableMap(map);
     }
 
-    @SuppressWarnings("deprecation")
-    static Tag read(DataIn in, NBTOptions options, int id) throws IOException {
-        switch (id) {
-            case TAG_BYTE:
-                return new ByteTag(in);
-            case TAG_SHORT:
-                return new ShortTag(in);
-            case TAG_INT:
-                return new IntTag(in);
-            case TAG_LONG:
-                return new LongTag(in);
-            case TAG_FLOAT:
-                return new FloatTag(in);
-            case TAG_DOUBLE:
-                return new DoubleTag(in);
-            case TAG_ARRAY_BYTE:
-                return new ByteArrayTag(in, options);
-            case TAG_STRING:
-                return new StringTag(in);
-            case TAG_LIST:
-                return new ListTag(in, options, null);
-            case TAG_COMPOUND:
-                return new CompoundTag(in, options, null);
-            case TAG_ARRAY_INT:
-                return new IntArrayTag(in, options);
-            case TAG_ARRAY_LONG:
-                return new LongArrayTag(in, options);
-            default:
-                throw new IllegalArgumentException("Unknown tag id: " + id);
-        }
-    }
-
     public abstract void write(@NonNull DataOut out) throws IOException;
 
     public abstract int id();
@@ -117,14 +119,8 @@ public abstract class Tag<T extends Tag<T>> extends AbstractRefCounted {
     public abstract String typeName();
 
     @Override
-    public T retain() throws AlreadyReleasedException {
-        super.retain();
-        return uncheckedCast(this);
-    }
-
-    @Override
-    protected void doRelease() {
-        //do nothing by default, only a few tags actually have any releasing to do
+    public void release() throws AlreadyReleasedException {
+        //do nothing by default
     }
 
     @Override
@@ -132,6 +128,12 @@ public abstract class Tag<T extends Tag<T>> extends AbstractRefCounted {
 
     @Override
     public abstract boolean equals(Object obj);
+
+    /**
+     * Gets a snapshot of this tag and all of its children.
+     */
+    @Override
+    public abstract T clone();
 
     @Override
     public String toString() {

@@ -18,69 +18,29 @@
  *
  */
 
-package net.daporkchop.lib.nbt.tag;
+package net.daporkchop.lib.nbt.util;
 
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.nbt.NBTOptions;
+import net.daporkchop.lib.nbt.tag.Tag;
 
 import java.io.IOException;
 
 /**
+ * Parses NBT {@link Tag} objects.
+ *
  * @author DaPorkchop_
  */
-@Getter
-@Accessors(fluent = true)
-public final class FloatTag extends Tag<FloatTag> {
-    protected final float value;
-
-    public FloatTag(float value)  {
-        this.value = value;
-    }
-
+@FunctionalInterface
+public interface NBTObjectParser {
     /**
-     * @deprecated Internal API, do not touch!
+     * Parses an NBT tag.
+     *
+     * @param in      the {@link DataIn} to read data from
+     * @param options additional options to use when reading NBT data
+     * @param id      the numeric ID of the tag to read
+     * @return the {@link Tag} object that was read
      */
-    @Deprecated
-    public FloatTag(@NonNull DataIn in) throws IOException {
-        this.value = in.readFloat();
-    }
-
-    @Override
-    public void write(@NonNull DataOut out) throws IOException {
-        out.writeFloat(this.value);
-    }
-
-    @Override
-    public int id() {
-        return TAG_FLOAT;
-    }
-
-    @Override
-    public String typeName() {
-        return "Float";
-    }
-
-    @Override
-    public int hashCode() {
-        return Float.floatToRawIntBits(this.value);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return obj instanceof FloatTag && this.value == ((FloatTag) obj).value;
-    }
-
-    @Override
-    public FloatTag clone() {
-        return this;
-    }
-
-    @Override
-    protected void toString(StringBuilder builder, int depth, String name, int index) {
-        super.toString(builder, depth, name, index);
-        builder.append(this.value).append('\n');
-    }
+    Tag read(@NonNull DataIn in, @NonNull NBTOptions options, int id) throws IOException;
 }

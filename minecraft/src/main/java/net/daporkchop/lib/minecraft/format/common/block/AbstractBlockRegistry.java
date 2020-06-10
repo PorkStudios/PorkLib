@@ -68,7 +68,7 @@ public abstract class AbstractBlockRegistry implements BlockRegistry {
 
     protected final BlockState air;
 
-    protected final int size;
+    protected final int blocks;
     protected final int states;
 
     protected <I extends Builder<I, B, R>, B extends BlockBuilder<B, I, R>, R extends BlockRegistry> AbstractBlockRegistry(@NonNull I builder) {
@@ -79,7 +79,7 @@ public abstract class AbstractBlockRegistry implements BlockRegistry {
 
         this.air = this.getDefaultState(Identifier.fromString("minecraft:air"));
 
-        this.size = this.idToDefaultState.size();
+        this.blocks = this.idToDefaultState.size();
         this.states = toInt(this.idToDefaultState.values().stream().map(DefaultBlockState::otherMeta).flatMap(Arrays::stream).count());
     }
 
@@ -213,11 +213,6 @@ public abstract class AbstractBlockRegistry implements BlockRegistry {
                 action.accept(state.runtimeId());
             }
         });
-    }
-
-    @Override
-    public Iterator<Identifier> iterator() {
-        return this.idToDefaultState.keySet().iterator();
     }
 
     public static abstract class Builder<I extends Builder<I, B, R>, B extends BlockBuilder<B, I, R>, R extends BlockRegistry> {

@@ -18,40 +18,42 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.block.java;
+package net.daporkchop.lib.collections.map;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import lombok.NonNull;
-import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.common.function.PFunctions;
-import net.daporkchop.lib.minecraft.block.BlockRegistry;
-import net.daporkchop.lib.minecraft.block.Property;
-import net.daporkchop.lib.minecraft.block.property.BooleanPropertyImpl;
-import net.daporkchop.lib.minecraft.block.property.EnumPropertyImpl;
-import net.daporkchop.lib.minecraft.block.property.IntPropertyImpl;
-import net.daporkchop.lib.minecraft.format.common.block.legacy.LegacyBlockRegistry;
-import net.daporkchop.lib.minecraft.util.Identifier;
-import net.daporkchop.lib.primitive.map.ObjIntMap;
-import net.daporkchop.lib.primitive.map.open.ObjIntOpenHashMap;
-
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-
-import static net.daporkchop.lib.common.util.PorkUtil.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 /**
+ * Fixes an issue in Java 8's implementation of {@link ConcurrentHashMap} where bins are locked even if the value is present, which causes poor
+ * performance when the map is used as a thread-safe cache and there are a lot of hits for a given key.
+ *
  * @author DaPorkchop_
  */
-@Deprecated
-public class JavaBlockRegistry1_12_2 {
-    public static final BlockRegistry INSTANCE = null;
+public class FastConcurrentHashMap<K, V> extends ConcurrentHashMap<K, V> {
+    public FastConcurrentHashMap() {
+        super();
+    }
+
+    public FastConcurrentHashMap(int initialCapacity) {
+        super(initialCapacity);
+    }
+
+    public FastConcurrentHashMap(Map<? extends K, ? extends V> m) {
+        super(m);
+    }
+
+    public FastConcurrentHashMap(int initialCapacity, float loadFactor) {
+        super(initialCapacity, loadFactor);
+    }
+
+    public FastConcurrentHashMap(int initialCapacity, float loadFactor, int concurrencyLevel) {
+        super(initialCapacity, loadFactor, concurrencyLevel);
+    }
+
+    @Override
+    public V computeIfAbsent(K key, Function<? super K, ? extends V> mappingFunction) {
+        V value = this.get(key);
+        return value != null ? value : super.computeIfAbsent(key, mappingFunction);
+    }
 }

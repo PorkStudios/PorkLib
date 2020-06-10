@@ -34,7 +34,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 
 /**
- * Helper methods for dealing with maps.
+ * Helper methods for {@link Map}.
  *
  * @author DaPorkchop_
  */

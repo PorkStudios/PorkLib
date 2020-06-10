@@ -24,13 +24,11 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.misc.file.PFiles;
-import net.daporkchop.lib.minecraft.block.BlockRegistry;
-import net.daporkchop.lib.minecraft.block.java.JavaBlockRegistry1_12_2;
+import net.daporkchop.lib.minecraft.block.java.JavaBlockRegistry;
 import net.daporkchop.lib.minecraft.format.common.AbstractSave;
 import net.daporkchop.lib.minecraft.format.common.DefaultDimension;
 import net.daporkchop.lib.minecraft.registry.java.JavaRegistries;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
-import net.daporkchop.lib.minecraft.version.DataVersion;
 import net.daporkchop.lib.minecraft.version.MinecraftVersion;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.minecraft.world.Dimension;
@@ -58,7 +56,7 @@ public class AnvilSave extends AbstractSave<AnvilSaveOptions> {
 
         this.version = this.extractVersion(levelData);
         this.registries = JavaRegistries.forVersion((JavaVersion) this.version);
-        this.blockRegistry = this.extractBlockRegistry(levelData);
+        this.blockRegistry = JavaBlockRegistry.forVersion((JavaVersion) this.version);
 
         //find worlds
         this.openWorld(new DefaultDimension(Dimension.ID_OVERWORLD, 0, true, true));
@@ -82,14 +80,5 @@ public class AnvilSave extends AbstractSave<AnvilSaveOptions> {
             return JavaVersion.pre15w32a();
         }
         return JavaVersion.fromName(versionTag.getString("Name"));
-    }
-
-    protected BlockRegistry extractBlockRegistry(@NonNull CompoundTag levelData)    {
-        CompoundTag versionTag = levelData.getCompound("Data").getCompound("Version", null);
-        if (versionTag == null || versionTag.getInt("Id", 0) <= DataVersion.DATA_1_12_2) { //pre-flattening
-            return JavaBlockRegistry1_12_2.INSTANCE;
-        } else {
-            return JavaBlockRegistry1_12_2.INSTANCE;
-        }
     }
 }

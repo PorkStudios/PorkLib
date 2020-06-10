@@ -28,12 +28,12 @@ import lombok.NonNull;
 import lombok.experimental.Accessors;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.binary.oio.StreamUtil;
-import net.daporkchop.lib.collections.map.PMaps;
-import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.common.misc.InstancePool;
 import net.daporkchop.lib.minecraft.version.DataVersion;
 import net.daporkchop.lib.minecraft.version.MinecraftEdition;
 import net.daporkchop.lib.minecraft.version.MinecraftVersion;
 import net.daporkchop.lib.primitive.map.IntObjMap;
+import net.daporkchop.lib.primitive.map.concurrent.ObjObjConcurrentHashMap;
 import net.daporkchop.lib.primitive.map.open.IntObjOpenHashMap;
 
 import java.io.BufferedReader;
@@ -42,7 +42,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -69,8 +68,8 @@ public final class JavaVersion extends MinecraftVersion {
 
         static {
             JsonObject obj;
-            try (Reader reader = new BufferedReader(new InputStreamReader(JavaVersion.class.getResourceAsStream("data_version_to_id.json"), StandardCharsets.UTF_8))) {
-                obj = new JsonParser().parse(reader).getAsJsonObject();
+            try (InputStream in = JavaVersion.class.getResourceAsStream("data_version_to_id.json")) {
+                obj = InstancePool.getInstance(JsonParser.class).parse(new InputStreamReader(in, StandardCharsets.UTF_8)).getAsJsonObject();
             } catch (IOException e) {
                 throw new AssertionError(e);
             }
@@ -80,26 +79,23 @@ public final class JavaVersion extends MinecraftVersion {
         }
     }
 
-    private static final Map<String, JavaVersion> NAME_CACHE = PMaps.readWriteAuto(new HashMap<>());
+    private static final Map<String, JavaVersion> NAME_CACHE = new ObjObjConcurrentHashMap<>(); //fast computeIfAbsent
 
-    public static JavaVersion fromName(@NonNull String name) {
-        JavaVersion version = NAME_CACHE.get(name);
-        if (version == null) { //compute
+    public static JavaVersion fromName(@NonNull String nameIn) {
+        return NAME_CACHE.computeIfAbsent(nameIn, name -> {
             try (InputStream in = JavaVersion.class.getResourceAsStream("by_id/" + name + ".json")) {
                 if (in == null) { //file wasn't found on disk
-                    version = new JavaVersion(name, -1L);
+                    return new JavaVersion(name, -1L);
                 } else {
-                    JsonObject obj = new JsonParser().parse(new String(StreamUtil.toByteArray(in), StandardCharsets.UTF_8)).getAsJsonObject();
+                    JsonObject obj = new JsonParser().parse(new InputStreamReader(in, StandardCharsets.UTF_8)).getAsJsonObject();
                     int protocol = obj.has("protocolVersion") ? obj.get("protocolVersion").getAsInt() : -1;
                     int data = obj.has("dataVersion") ? obj.get("dataVersion").getAsInt() : -1;
-                    version = new JavaVersion(name, obj.get("releaseTime").getAsLong(), protocol, data);
+                    return new JavaVersion(name, obj.get("releaseTime").getAsLong(), protocol, data);
                 }
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            version = PorkUtil.fallbackIfNull(NAME_CACHE.putIfAbsent(name, version), version); //some shitty form of atomicity
-        }
-        return version;
+        });
     }
 
     public static JavaVersion fromDataVersion(int dataVersion) {

@@ -70,14 +70,14 @@ public class JavaBlockRegistry extends AbstractBlockRegistry {
         super(builder);
     }
 
-    private static final Map<String, JavaBlockRegistry> CACHE = new ObjObjConcurrentHashMap<>(); //this has a faster computeIfAbsent implementation
+    private static final Map<String, BlockRegistry> CACHE = new ObjObjConcurrentHashMap<>(); //this has a faster computeIfAbsent implementation
     private static final Type BLOCK_MAP_TYPE = PTypes.parameterized(Map.class, String.class, JsonBlock.class);
 
-    public static JavaBlockRegistry forVersion(@NonNull JavaVersion versionIn) {
+    public static BlockRegistry forVersion(@NonNull JavaVersion versionIn) {
         if (versionIn.data() < DataVersion.DATA_1_12_2) {
-            versionIn = JavaVersion.fromName("1.12.2"); //1.12.2 is used as an intermediate translation point for all previous versions
+            versionIn = JavaVersion.fromName("1.12.2"); //1.12.2 is used as an intermediate translation point for all legacy versions
         }
-        return CACHE.computeIfAbsent(versionIn.name(), (IOFunction<String, JavaBlockRegistry>) version -> {
+        return CACHE.computeIfAbsent(versionIn.name(), (IOFunction<String, BlockRegistry>) version -> {
             Map<String, JsonBlock> map;
             try (InputStream in = JavaBlockRegistry.class.getResourceAsStream(version + "/blocks.json")) {
                 checkArg(in != null, "no registry stored for version: %s", version);

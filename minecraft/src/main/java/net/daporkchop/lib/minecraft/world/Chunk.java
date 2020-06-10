@@ -34,13 +34,6 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  * In vanilla Minecraft, a chunk has a fixed limit of 16 sections (with coordinates between 0 and 15), which are always loaded as long as the chunk
  * itself is loaded.
  * <p>
- * Semantics for (un)loading of chunks:
- * <p>
- * Although a chunk is loosely defined as a simple container for sections, possibly with some additional metadata, implementations of {@link WorldStorage}
- * may choose to load some or all contained sections when loading a chunk. This behavior is necessary as some vanilla-style formats store sections and
- * chunks together, and loading them individually would result in the same data being parsed multiple times. Sections which are loaded in this manner
- * will be loaded immediately, and will remain in memory for the entire lifetime of the chunk, as the chunk will hold a single reference to them.
- * <p>
  * Every {@link Section} loaded by a chunk keeps a reference to the chunk which is not released until the {@link Section} itself is released.
  *
  * @author DaPorkchop_

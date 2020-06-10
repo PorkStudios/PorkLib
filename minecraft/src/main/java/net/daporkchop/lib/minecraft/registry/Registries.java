@@ -32,9 +32,14 @@ import java.util.Iterator;
 /**
  * A group of multiple {@link Registry} instances identified by their ID.
  *
+ * All implementations must provide at least {@code minecraft:block} and {@code minecraft:item}.
+ *
  * @author DaPorkchop_
  */
 public interface Registries extends Iterable<Registry> {
+    Identifier BLOCK = Identifier.fromString("minecraft:block");
+    Identifier ITEM = Identifier.fromString("minecraft:item");
+
     /**
      * @return the number of registries in this instance
      */
@@ -58,32 +63,16 @@ public interface Registries extends Iterable<Registry> {
     Registry get(@NonNull Identifier id);
 
     /**
-     * Representation of an empty {@link Registries} instance.
-     *
-     * @author DaPorkchop_
+     * @return the {@link Registry} for {@code minecraft:block}
      */
-    @NoArgsConstructor(access = AccessLevel.PRIVATE)
-    final class Empty implements Registries {
-        public static final Empty INSTANCE = new Empty();
+    default Registry block()    {
+        return this.get(BLOCK);
+    }
 
-        @Override
-        public int size() {
-            return 0;
-        }
-
-        @Override
-        public boolean has(@NonNull Identifier id) {
-            return false;
-        }
-
-        @Override
-        public Registry get(@NonNull Identifier id) {
-            throw new IllegalArgumentException(PStrings.fastFormat("Unknown ID: %s", id));
-        }
-
-        @Override
-        public Iterator<Registry> iterator() {
-            return PIterators.empty();
-        }
+    /**
+     * @return the {@link Registry} for {@code minecraft:item}
+     */
+    default Registry item() {
+        return this.get(ITEM);
     }
 }

@@ -55,19 +55,13 @@ import java.util.function.ObjIntConsumer;
  *
  * @author DaPorkchop_
  */
-public interface BlockRegistry extends Registry {
+public interface BlockRegistry {
     Identifier ID = Identifier.fromString("minecraft:block");
-
-    @Override
-    default Identifier id() {
-        return ID;
-    }
 
     /**
      * @return the number of registered blocks
      */
-    @Override
-    int size();
+    int blocks();
 
     /**
      * @return the number of registered block states
@@ -231,50 +225,4 @@ public interface BlockRegistry extends Registry {
     void forEachState(@NonNull Consumer<? super BlockState> action);
 
     void forEachRuntimeId(@NonNull IntConsumer action);
-
-    @Override
-    @Deprecated
-    default boolean contains(@NonNull Identifier identifier) {
-        return this.containsBlockId(identifier);
-    }
-
-    @Override
-    @Deprecated
-    default int get(@NonNull Identifier identifier) {
-        return this.getLegacyId(identifier);
-    }
-
-    @Override
-    @Deprecated
-    default boolean contains(int id) {
-        return this.containsLegacyId(id);
-    }
-
-    @Override
-    @Deprecated
-    default Identifier get(int id) {
-        return this.getBlockId(id);
-    }
-
-    @Override
-    @Deprecated
-    Iterator<Identifier> iterator();
-
-    @Override
-    @Deprecated
-    default void forEach(@NonNull Consumer<? super Identifier> action) {
-        this.forEachBlockId(action);
-    }
-
-    @Override
-    @Deprecated
-    default void forEach(@NonNull IntConsumer action) {
-        this.forEachLegacyId(action);
-    }
-
-    @Override
-    @Deprecated
-    default void forEach(@NonNull ObjIntConsumer<? super Identifier> action) {
-        this.forEachBlockId(action);
-    }
 }

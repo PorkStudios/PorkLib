@@ -28,6 +28,7 @@ import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.misc.string.PStrings;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.nbt.NBTOptions;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -122,9 +123,8 @@ public final class CompoundTag extends Tag<CompoundTag> {
     }
 
     @Override
-    protected void doRelease() {
-        this.map.forEach((key, value) -> value.release());
-        this.map.clear();
+    public void release() throws AlreadyReleasedException {
+        this.map.values().forEach(Tag::release);
     }
 
     public boolean contains(@NonNull String name)    {

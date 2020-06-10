@@ -28,6 +28,7 @@ import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.misc.string.PStrings;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.nbt.NBTOptions;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -91,6 +92,11 @@ public final class ListTag<T extends Tag<T>> extends Tag<ListTag<T>> {
     @Override
     public String typeName() {
         return "List";
+    }
+
+    @Override
+    public void release() throws AlreadyReleasedException {
+        this.list.forEach(Tag::release);
     }
 
     @Override

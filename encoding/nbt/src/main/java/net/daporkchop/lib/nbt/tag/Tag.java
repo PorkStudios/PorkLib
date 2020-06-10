@@ -30,6 +30,7 @@ import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.nbt.NBTOptions;
 import net.daporkchop.lib.nbt.util.NBTObjectParser;
 import net.daporkchop.lib.primitive.map.ObjByteMap;
+import net.daporkchop.lib.unsafe.capability.Releasable;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
@@ -44,7 +45,7 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
  *
  * @author DaPorkchop_
  */
-public abstract class Tag<T extends Tag<T>> extends AbstractRefCounted {
+public abstract class Tag<T extends Tag<T>> implements Releasable {
     public static final Map<Class<? extends Tag>, Integer> CLASS_TO_ID;
 
     public static final int TAG_END = 0;
@@ -118,14 +119,8 @@ public abstract class Tag<T extends Tag<T>> extends AbstractRefCounted {
     public abstract String typeName();
 
     @Override
-    public T retain() throws AlreadyReleasedException {
-        super.retain();
-        return uncheckedCast(this);
-    }
-
-    @Override
-    protected void doRelease() {
-        //do nothing by default, only a few tags actually have any releasing to do
+    public void release() throws AlreadyReleasedException {
+        //do nothing by default
     }
 
     @Override

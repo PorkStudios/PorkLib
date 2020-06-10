@@ -87,6 +87,13 @@ public final class ByteArrayTag extends Tag<ByteArrayTag> {
     }
 
     @Override
+    public void release() {
+        if (this.handle != null)    {
+            this.handle.release();
+        }
+    }
+
+    @Override
     public int hashCode() {
         int hash = 0;
         for (int i = 0, length = this.length; i < length; i++)  {
@@ -116,12 +123,5 @@ public final class ByteArrayTag extends Tag<ByteArrayTag> {
     protected void toString(StringBuilder builder, int depth, String name, int index) {
         super.toString(builder, depth, name, index);
         builder.append('[').append(this.value.length).append(" bytes]\n");
-    }
-
-    @Override
-    protected void doRelease() {
-        if (this.handle != null)    {
-            this.handle.release();
-        }
     }
 }

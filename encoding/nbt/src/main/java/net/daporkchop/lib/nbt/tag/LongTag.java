@@ -74,6 +74,11 @@ public final class LongTag extends Tag<LongTag> {
     }
 
     @Override
+    public LongTag clone() {
+        return this;
+    }
+
+    @Override
     protected void toString(StringBuilder builder, int depth, String name, int index) {
         super.toString(builder, depth, name, index);
         builder.append(this.value).append('\n');

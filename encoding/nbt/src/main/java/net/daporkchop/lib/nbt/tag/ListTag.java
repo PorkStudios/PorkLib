@@ -20,23 +20,22 @@
 
 package net.daporkchop.lib.nbt.tag;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.common.misc.refcount.RefCounted;
 import net.daporkchop.lib.common.misc.string.PStrings;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.nbt.NBTOptions;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Spliterator;
-import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 import static net.daporkchop.lib.common.util.PorkUtil.*;
@@ -44,9 +43,9 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
 /**
  * @author DaPorkchop_
  */
-//TODO: this really needs some convenience methods
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Accessors(fluent = true)
-public final class ListTag<T extends Tag<T>> extends RefCountedTag<ListTag<T>> implements Iterable<T> {
+public final class ListTag<T extends Tag<T>> extends Tag<ListTag<T>> {
     @Getter
     protected final List<T> list;
     @Getter
@@ -74,13 +73,9 @@ public final class ListTag<T extends Tag<T>> extends RefCountedTag<ListTag<T>> i
 
         this.component = in.readUnsignedByte();
         int size = in.readInt();
-        if (size != 0) {
-            this.list = new ArrayList<>(size);
-            for (int i = 0; i < size; i++) {
-                this.list.add(uncheckedCast(options.parser().read(in, options, this.component)));
-            }
-        } else {
-            this.list = Collections.emptyList();
+        this.list = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) {
+            this.list.add(uncheckedCast(options.parser().read(in, options, this.component)));
         }
     }
 
@@ -104,6 +99,12 @@ public final class ListTag<T extends Tag<T>> extends RefCountedTag<ListTag<T>> i
     }
 
     @Override
+    public void release() throws AlreadyReleasedException {
+        this.list.forEach(Tag::release);
+        this.list.clear();
+    }
+
+    @Override
     public int hashCode() {
         return this.list.hashCode();
     }
@@ -111,6 +112,11 @@ public final class ListTag<T extends Tag<T>> extends RefCountedTag<ListTag<T>> i
     @Override
     public boolean equals(Object obj) {
         return obj instanceof ListTag && this.component == ((ListTag) obj).component && this.list.equals(((ListTag) obj).list);
+    }
+
+    @Override
+    public ListTag<T> clone() {
+        return new ListTag<>(this.list.stream().map(Tag::clone).collect(Collectors.toList()), this.name, this.component);
     }
 
     @Override
@@ -124,38 +130,5 @@ public final class ListTag<T extends Tag<T>> extends RefCountedTag<ListTag<T>> i
         }
         PStrings.appendMany(builder, ' ', depth << 1);
         builder.append("]\n");
-    }
-
-    @Override
-    protected void doRelease() {
-        this.list.forEach(value -> {
-            if (value instanceof RefCounted)    {
-                ((RefCounted) value).release();
-            }
-        });
-        this.list.clear();
-    }
-
-    @Override
-    public Iterator<T> iterator() {
-        return this.list.iterator();
-    }
-
-    @Override
-    public void forEach(Consumer<? super T> action) {
-        this.list.forEach(action);
-    }
-
-    @Override
-    public Spliterator<T> spliterator() {
-        return this.list.spliterator();
-    }
-
-    public int size()   {
-        return this.list.size();
-    }
-
-    public boolean isEmpty()    {
-        return this.list.isEmpty() || this.component == TAG_END;
     }
 }

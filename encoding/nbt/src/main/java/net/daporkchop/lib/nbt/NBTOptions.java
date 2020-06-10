@@ -37,7 +37,7 @@ import net.daporkchop.lib.nbt.util.NBTObjectParser;
 @Getter
 @Accessors(fluent = true)
 public final class NBTOptions {
-    public static final NBTOptions DEFAULT = new NBTOptions(Tag.DEFAULT_NBT_PARSER, null, null, null, true, false);
+    public static final NBTOptions DEFAULT = new NBTOptions(Tag.DEFAULT_NBT_PARSER, null, null, null, true, false, false, false);
 
     /**
      * The {@link NBTObjectParser} used for actually creating the NBT tag objects when reading an object tree.
@@ -84,45 +84,69 @@ public final class NBTOptions {
      */
     protected final boolean allowDuplicates;
 
+    /**
+     * Controls whether or not compound tag keys should be interned.
+     */
+    protected final boolean internKeys;
+
+    /**
+     * Controls whether {@link String} tag values should be interned.
+     */
+    protected final boolean internValues;
+
     public NBTOptions withObjectParser(@NonNull NBTObjectParser parser) {
         if (parser == this.parser) {
             return this;
         }
-        return new NBTOptions(parser, this.byteAlloc, this.intAlloc, this.longAlloc, this.exactArraySize, this.allowDuplicates);
+        return new NBTOptions(parser, this.byteAlloc, this.intAlloc, this.longAlloc, this.exactArraySize, this.allowDuplicates, this.internKeys, this.internValues);
     }
 
     public NBTOptions withByteAlloc(ArrayAllocator<byte[]> byteAlloc) {
         if (byteAlloc == this.byteAlloc) {
             return this;
         }
-        return new NBTOptions(this.parser, byteAlloc, this.intAlloc, this.longAlloc, this.exactArraySize, this.allowDuplicates);
+        return new NBTOptions(this.parser, byteAlloc, this.intAlloc, this.longAlloc, this.exactArraySize, this.allowDuplicates, this.internKeys, this.internValues);
     }
 
     public NBTOptions withIntAlloc(ArrayAllocator<int[]> intAlloc) {
         if (intAlloc == this.intAlloc) {
             return this;
         }
-        return new NBTOptions(this.parser, this.byteAlloc, intAlloc, this.longAlloc, this.exactArraySize, this.allowDuplicates);
+        return new NBTOptions(this.parser, this.byteAlloc, intAlloc, this.longAlloc, this.exactArraySize, this.allowDuplicates, this.internKeys, this.internValues);
     }
 
     public NBTOptions withLongAlloc(ArrayAllocator<long[]> longAlloc) {
         if (longAlloc == this.longAlloc) {
             return this;
         }
-        return new NBTOptions(this.parser, this.byteAlloc, this.intAlloc, longAlloc, this.exactArraySize, this.allowDuplicates);
+        return new NBTOptions(this.parser, this.byteAlloc, this.intAlloc, longAlloc, this.exactArraySize, this.allowDuplicates, this.internKeys, this.internValues);
     }
 
     public NBTOptions withExactArraySize(boolean exactArraySize) {
         if (exactArraySize == this.exactArraySize) {
             return this;
         }
-        return new NBTOptions(this.parser, this.byteAlloc, this.intAlloc, this.longAlloc, exactArraySize, this.allowDuplicates);
+        return new NBTOptions(this.parser, this.byteAlloc, this.intAlloc, this.longAlloc, exactArraySize, this.allowDuplicates, this.internKeys, this.internValues);
     }
 
     public NBTOptions withDuplicates(boolean allowDuplicates) {
         if (allowDuplicates == this.allowDuplicates) {
             return this;
         }
-        return new NBTOptions(this.parser, this.byteAlloc, this.intAlloc, this.longAlloc, this.exactArraySize, allowDuplicates);
+        return new NBTOptions(this.parser, this.byteAlloc, this.intAlloc, this.longAlloc, this.exactArraySize, allowDuplicates, this.internKeys, this.internValues);
+    }
+
+    public NBTOptions withInternedKeys(boolean internKeys) {
+        if (internKeys == this.internKeys) {
+            return this;
+        }
+        return new NBTOptions(this.parser, this.byteAlloc, this.intAlloc, this.longAlloc, this.exactArraySize, this.allowDuplicates, internKeys, this.internValues);
+    }
+
+    public NBTOptions withInternedValues(boolean internValues) {
+        if (internValues == this.internValues) {
+            return this;
+        }
+        return new NBTOptions(this.parser, this.byteAlloc, this.intAlloc, this.longAlloc, this.exactArraySize, this.allowDuplicates, this.internKeys, internValues);
     }
 }

@@ -30,6 +30,7 @@ import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.nbt.NBTOptions;
 import net.daporkchop.lib.nbt.util.NBTObjectParser;
 import net.daporkchop.lib.primitive.map.ObjByteMap;
+import net.daporkchop.lib.unsafe.capability.Releasable;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
@@ -44,7 +45,7 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
  *
  * @author DaPorkchop_
  */
-public abstract class Tag<T extends Tag<T>> {
+public abstract class Tag<T extends Tag<T>> implements Releasable, Cloneable {
     public static final Map<Class<? extends Tag>, Integer> CLASS_TO_ID;
 
     public static final int TAG_END = 0;
@@ -79,7 +80,7 @@ public abstract class Tag<T extends Tag<T>> {
             case TAG_ARRAY_BYTE:
                 return new ByteArrayTag(in, options);
             case TAG_STRING:
-                return new StringTag(in);
+                return new StringTag(in, options);
             case TAG_LIST:
                 return new ListTag(in, options, null);
             case TAG_COMPOUND:
@@ -118,10 +119,21 @@ public abstract class Tag<T extends Tag<T>> {
     public abstract String typeName();
 
     @Override
+    public void release() throws AlreadyReleasedException {
+        //do nothing by default
+    }
+
+    @Override
     public abstract int hashCode();
 
     @Override
     public abstract boolean equals(Object obj);
+
+    /**
+     * Gets a snapshot of this tag and all of its children.
+     */
+    @Override
+    public abstract T clone();
 
     @Override
     public String toString() {

@@ -36,7 +36,7 @@ import java.util.Arrays;
  */
 @Getter
 @Accessors(fluent = true)
-public final class IntArrayTag extends RefCountedTag<IntArrayTag> {
+public final class IntArrayTag extends Tag<IntArrayTag> {
     protected final int[] value;
     protected final ArrayHandle<int[]> handle;
     protected final int length;
@@ -90,6 +90,13 @@ public final class IntArrayTag extends RefCountedTag<IntArrayTag> {
     }
 
     @Override
+    public void release() {
+        if (this.handle != null)    {
+            this.handle.release();
+        }
+    }
+
+    @Override
     public int hashCode() {
         int hash = 0;
         for (int i = 0, length = this.length; i < length; i++)  {
@@ -116,15 +123,13 @@ public final class IntArrayTag extends RefCountedTag<IntArrayTag> {
     }
 
     @Override
-    protected void toString(StringBuilder builder, int depth, String name, int index) {
-        super.toString(builder, depth, name, index);
-        builder.append('[').append(this.value.length).append(" ints]\n");
+    public IntArrayTag clone() {
+        return new IntArrayTag(this.value.clone());
     }
 
     @Override
-    protected void doRelease() {
-        if (this.handle != null)    {
-            this.handle.release();
-        }
+    protected void toString(StringBuilder builder, int depth, String name, int index) {
+        super.toString(builder, depth, name, index);
+        builder.append('[').append(this.value.length).append(" ints]\n");
     }
 }

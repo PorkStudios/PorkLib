@@ -37,4 +37,9 @@ public interface WorldInfo {
      * @see BlockAccess#layers()
      */
     int layers();
+
+    /**
+     * @see LightAccess#hasSkyLight()
+     */
+    boolean hasSkyLight();
 }

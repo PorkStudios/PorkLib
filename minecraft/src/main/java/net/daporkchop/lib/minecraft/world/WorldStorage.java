@@ -26,14 +26,11 @@ import net.daporkchop.lib.concurrent.PFuture;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Spliterator;
 
 /**
- * Low-level interface for loading/saving chunks/sections.
- * <p>
- * Note that this is completely disconnected from the loaded chunk map used by {@link World}. All load methods in this class are likely to block for IO
- * operations, and all chunks/sections returned by this class, either directly or indirectly, will have been newly allocated. However, implementations
- * may choose to make save operations asynchronous.
+ * Interface for loading/saving chunks/sections.
  * <p>
  * Multiple save operations on the same chunks/section are ALWAYS guaranteed to be written to disk in order. If a chunk is saved, modified, and saved
  * again before the first save operation was completed, the implementation must ensure that, once both save operations are complete, it is the second
@@ -68,22 +65,42 @@ public interface WorldStorage extends RefCounted {
     Section loadSection(@NonNull Chunk parent, int x, int y, int z) throws IOException;
 
     /**
-     * Saves the given {@link Chunk}.
+     * Saves all of the {@link Chunk} in the given {@link Iterable}.
      * <p>
-     * This method will block until the given chunk has been completely written to disk.
+     * This method will block until all of the given chunks have been completely written to disk.
+     * <p>
+     * Chunks that are not dirty will be ignored.
      *
-     * @param chunk the {@link Chunk} to save
+     * @param chunks the {@link Chunk}s to save
+     * @see #save(Iterable, Iterable)
      */
-    void saveChunk(@NonNull Chunk chunk) throws IOException;
+    void saveChunks(@NonNull Iterable<Chunk> chunks) throws IOException;
 
     /**
-     * Saves the given {@link Section}.
+     * Saves all of the {@link Section} in the given {@link Iterable}.
      * <p>
-     * This method will block until the given section has been completely written to disk.
+     * This method will block until all of the given sections have been completely written to disk.
+     * <p>
+     * Sections that are not dirty will be ignored.
      *
-     * @param section the {@link Section} to save
+     * @param sections the {@link Section}s to save
+     * @see #save(Iterable, Iterable)
      */
-    void saveSection(@NonNull Section section) throws IOException;
+    void saveSections(@NonNull Iterable<Section> sections) throws IOException;
+
+    /**
+     * A merged version of {@link #saveChunks(Iterable)} and {@link #saveSections(Iterable)}.
+     * <p>
+     * Due to the fact that some implementations may save sections and chunks at the same time, this method may be significantly faster than
+     * calling both of the methods individually.
+     * <p>
+     * This method will block until all of the given chunks and sections have been completely written to disk.
+     *
+     * @param chunks   the {@link Chunk}s to save
+     * @param sections the {@link Section}s to save
+     * @throws IOException
+     */
+    void save(@NonNull Iterable<Chunk> chunks, @NonNull Iterable<Section> sections) throws IOException;
 
     /**
      * Saves the given {@link Chunk} asynchronously.

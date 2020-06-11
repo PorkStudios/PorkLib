@@ -21,9 +21,7 @@
 package net.daporkchop.lib.minecraft.world;
 
 import net.daporkchop.lib.common.misc.refcount.RefCounted;
-import net.daporkchop.lib.concurrent.PFuture;
 import net.daporkchop.lib.math.access.IntHolderXZ;
-import net.daporkchop.lib.minecraft.block.BlockAccess;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
@@ -33,21 +31,14 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  * <p>
  * In vanilla Minecraft, a chunk has a fixed limit of 16 sections (with coordinates between 0 and 15), which are always loaded as long as the chunk
  * itself is loaded.
- * <p>
- * Every {@link Section} loaded by a chunk keeps a reference to the chunk which is not released until the {@link Section} itself is released.
  *
  * @author DaPorkchop_
  */
-public interface Chunk extends BlockAccess, LightAccess, IntHolderXZ, RefCounted {
+public interface Chunk extends IntHolderXZ, RefCounted {
     static void checkCoords(int x, int z) {
         checkIndex(x >= 0 && x < 16, "x (%d)", x);
         checkIndex(z >= 0 && z < 16, "z (%d)", z);
     }
-
-    /**
-     * @return the {@link World} that loaded this chunk
-     */
-    World parent();
 
     /**
      * @return this chunk's X coordinate
@@ -60,42 +51,6 @@ public interface Chunk extends BlockAccess, LightAccess, IntHolderXZ, RefCounted
      */
     @Override
     int z();
-
-    /**
-     * Gets the already loaded {@link Section} at the given Y coordinate.
-     *
-     * @param y the Y coordinate of the {@link Section}
-     * @return the {@link Section} at the given Y coordinate, or {@code null} if it wasn't loaded
-     */
-    Section getSection(int y);
-
-    /**
-     * Gets or loads the {@link Section} at the given Y coordinate.
-     * <p>
-     * If the {@link Section} wasn't already loaded, it will be loaded and the method will block until the load is complete.
-     *
-     * @param y the Y coordinate of the {@link Section}
-     * @return the {@link Section} at the given Y coordinate
-     */
-    default Section getOrLoadSection(int y) {
-        Section section = this.getSection(y);
-        return section != null ? section : this.loadSection(y).join();
-    }
-
-    /**
-     * Gets or loads the {@link Section} at the given Y coordinate.
-     * <p>
-     * If the {@link Section} was already loaded, the returned {@link PFuture} will be completed immediately.
-     *
-     * @param y the Y coordinate of the {@link Section}
-     * @return a future which will be completed with the {@link Section} at the given Y coordinate
-     */
-    PFuture<Section> loadSection(int y);
-
-    /**
-     * @return a completed {@link PFuture} with this chunk, shared in order to minimize allocations
-     */
-    PFuture<Chunk> selfFuture();
 
     @Override
     int refCnt();

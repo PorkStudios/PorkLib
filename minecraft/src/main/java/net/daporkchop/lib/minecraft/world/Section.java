@@ -34,11 +34,6 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
  */
 public interface Section extends BlockAccess, LightAccess, IntHolderXYZ, RefCounted {
     /**
-     * @return the {@link Chunk} that loaded this section
-     */
-    Chunk parent();
-
-    /**
      * @return this section's X coordinate
      */
     @Override

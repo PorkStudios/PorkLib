@@ -48,17 +48,17 @@ import net.daporkchop.lib.nbt.tag.CompoundTag;
  *
  * @author DaPorkchop_
  */
-public class LegacyChunkCodec implements ParameterizedDataCodec<Chunk, CompoundTag, World> {
+public class LegacyChunkCodec implements DataCodec<Chunk, CompoundTag> {
     public static final JavaVersion VERSION = JavaVersion.fromName("1.12.2");
 
     @Override
-    public Chunk decode(@NonNull CompoundTag root, @NonNull World param) {
+    public Chunk decode(@NonNull CompoundTag root) {
         CompoundTag level = root.getCompound("Level");
         int x = level.getInt("xPos");
         int z = level.getInt("zPos");
 
         Section[] sections = new Section[16];
-        Chunk1_12_2 chunk = new Chunk1_12_2(param.retain(), x, z, sections);
+        Chunk1_12_2 chunk = new Chunk1_12_2(x, z, sections);
         DataFixer<Section, CompoundTag, JavaVersion> sectionFixer = ((AnvilWorldStorage) param.storage()).sectionFixer();
         for (CompoundTag sectionTag : level.getList("Sections", CompoundTag.class)) {
             Section section = sectionFixer.decode(sectionTag, VERSION, chunk);
@@ -68,22 +68,13 @@ public class LegacyChunkCodec implements ParameterizedDataCodec<Chunk, CompoundT
     }
 
     @Override
-    public CompoundTag encode(@NonNull Chunk value, @NonNull World param) {
+    public CompoundTag encode(@NonNull Chunk value) {
         throw new UnsupportedOperationException(); //TODO
     }
 
     protected static class Chunk1_12_2 extends VanillaChunk implements AnvilChunk {
-        public Chunk1_12_2(World parent, int x, int z, @NonNull Section[] sections) {
-            super(parent, x, z, sections);
-        }
-
-        @Override
-        protected Section createEmptySection(int y) {
-            ArrayAllocator<byte[]> alloc = this.parent.parent().options().byteAlloc();
-            return new DefaultSection(this, y,
-                    new HeapLegacyBlockStorage(this.blockRegistry, alloc.atLeast(4096), alloc.atLeast(2048)), //TODO: decide when to use the Add layer
-                    new HeapNibbleArray.YZX(alloc.atLeast(2048)),
-                    new HeapNibbleArray.YZX(alloc.atLeast(2048))); //TODO: only use sunlight when needed
+        public Chunk1_12_2(int x, int z, @NonNull Section[] sections) {
+            super(x, z, sections);
         }
     }
 }

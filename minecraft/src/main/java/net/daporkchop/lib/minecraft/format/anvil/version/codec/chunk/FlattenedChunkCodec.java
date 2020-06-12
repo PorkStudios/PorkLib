@@ -22,6 +22,7 @@ package net.daporkchop.lib.minecraft.format.anvil.version.codec.chunk;
 
 import lombok.NonNull;
 import net.daporkchop.lib.common.pool.array.ArrayAllocator;
+import net.daporkchop.lib.compat.datafix.DataCodec;
 import net.daporkchop.lib.compat.datafix.ParameterizedDataCodec;
 import net.daporkchop.lib.minecraft.format.anvil.chunk.AnvilChunk;
 import net.daporkchop.lib.minecraft.format.anvil.storage.HeapLegacyBlockStorage;
@@ -39,33 +40,28 @@ import net.daporkchop.lib.nbt.tag.CompoundTag;
  *
  * @author DaPorkchop_
  */
-public class FlattenedChunkCodec implements ParameterizedDataCodec<Chunk, CompoundTag, World> {
+public class FlattenedChunkCodec implements DataCodec<Chunk, CompoundTag> {
     public static final JavaVersion VERSION = JavaVersion.fromName("1.15.2");
 
     @Override
-    public Chunk decode(@NonNull CompoundTag root, @NonNull World param) {
+    public Chunk decode(@NonNull CompoundTag root) {
         CompoundTag level = root.getCompound("Level");
         int x = level.getInt("xPos");
         int z = level.getInt("zPos");
 
         Section[] sections = new Section[16];
-        FlattenedChunk chunk = new FlattenedChunk(param.retain(), x, z, sections);
+        FlattenedChunk chunk = new FlattenedChunk(x, z, sections);
         return chunk;
     }
 
     @Override
-    public CompoundTag encode(@NonNull Chunk value, @NonNull World param) {
+    public CompoundTag encode(@NonNull Chunk value) {
         throw new UnsupportedOperationException(); //TODO
     }
 
     protected static class FlattenedChunk extends VanillaChunk implements AnvilChunk {
-        public FlattenedChunk(World parent, int x, int z, @NonNull Section[] sections) {
-            super(parent, x, z, sections);
-        }
-
-        @Override
-        protected Section createEmptySection(int y) {
-            throw new UnsupportedOperationException(); //TODO
+        public FlattenedChunk(int x, int z, @NonNull Section[] sections) {
+            super(x, z, sections);
         }
     }
 }

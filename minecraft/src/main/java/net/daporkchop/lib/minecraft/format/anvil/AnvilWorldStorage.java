@@ -35,6 +35,7 @@ import net.daporkchop.lib.compression.zlib.Zlib;
 import net.daporkchop.lib.compression.zlib.ZlibMode;
 import net.daporkchop.lib.compression.zlib.options.ZlibInflaterOptions;
 import net.daporkchop.lib.concurrent.PFuture;
+import net.daporkchop.lib.concurrent.PFutures;
 import net.daporkchop.lib.minecraft.format.anvil.region.RawChunk;
 import net.daporkchop.lib.minecraft.format.anvil.region.RegionFile;
 import net.daporkchop.lib.minecraft.format.anvil.region.RegionFileCache;
@@ -96,7 +97,7 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
     }
 
     @Override
-    public Chunk loadChunk(@NonNull World parent, int x, int z) throws IOException {
+    public Chunk loadChunk(int x, int z) throws IOException {
         CompoundTag tag = null;
         try {
             ByteBuf uncompressed = null;
@@ -118,7 +119,7 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
             }
             int dataVersion = tag.getInt("DataVersion", 0);
             JavaVersion version = dataVersion < DataVersion.DATA_15w32a ? JavaVersion.pre15w32a() : JavaVersion.fromDataVersion(dataVersion);
-            return this.chunkFixer.decodeAt(tag, version, this.worldVersion, parent); //upgrade chunk to the same data version as the world itself
+            return this.chunkFixer.decodeAt(tag, version, this.worldVersion); //upgrade chunk to the same data version as the world itself
         } finally {
             if (tag != null) {
                 tag.release();
@@ -126,37 +127,28 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
         }
     }
 
-    /**
-     * @deprecated you shouldn't be reading/writing sections on a vanilla anvil world...
-     */
     @Override
-    @Deprecated
-    public Section loadSection(@NonNull Chunk parent, int x, int y, int z) throws IOException {
-        Section section = parent.getSection(y);
-        return section != null ? section.retain() : null;
-    }
-
-    @Override
-    public void saveChunk(@NonNull Chunk chunk) throws IOException {
-    }
-
-    /**
-     * @deprecated you shouldn't be reading/writing sections on a vanilla anvil world...
-     */
-    @Override
-    @Deprecated
-    public void saveSection(@NonNull Section section) throws IOException {
-        this.saveChunk(section.parent());
-    }
-
-    @Override
-    public PFuture<Void> saveChunkAsync(@NonNull Chunk chunk) {
+    public Section loadSection(@NonNull Chunk parent, int y) throws IOException {
         return null;
     }
 
     @Override
-    public PFuture<Void> saveSectionAsync(@NonNull Section section) {
-        return this.saveChunkAsync(section.parent());
+    public PFuture<Chunk> loadChunkAsync(int x, int z) {
+        return PFutures.computeThrowableAsync(() -> this.loadChunk(x, z), this.options.ioExecutor());
+    }
+
+    @Override
+    public PFuture<Section> loadSectionAsync(@NonNull Chunk parent, int y) {
+        return null;
+    }
+
+    @Override
+    public void save(@NonNull Iterable<Chunk> chunks, @NonNull Iterable<Section> sections) throws IOException {
+    }
+
+    @Override
+    public PFuture<Void> saveAsync(@NonNull Iterable<Chunk> chunks, @NonNull Iterable<Section> sections) {
+        return null;
     }
 
     @Override
@@ -192,5 +184,25 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
         } catch (IOException e) {
             throw new RuntimeException();
         }
+    }
+
+    //deprecation of inefficient methods
+
+    /**
+     * @deprecated you shouldn't be reading/writing sections on a vanilla anvil world...
+     */
+    @Override
+    @Deprecated
+    public void saveSections(@NonNull Iterable<Section> sections) throws IOException {
+        WorldStorage.super.saveSections(sections);
+    }
+
+    /**
+     * @deprecated you shouldn't be reading/writing sections on a vanilla anvil world...
+     */
+    @Override
+    @Deprecated
+    public PFuture<Void> saveSectionsAsync(@NonNull Iterable<Section> sections) {
+        return WorldStorage.super.saveSectionsAsync(sections);
     }
 }

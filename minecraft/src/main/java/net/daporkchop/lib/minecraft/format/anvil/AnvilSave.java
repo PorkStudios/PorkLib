@@ -46,7 +46,7 @@ public class AnvilSave extends AbstractSave<AnvilSaveOptions> {
     protected final NBTOptions chunkNBTOptions;
 
     public AnvilSave(SaveOptions options, CompoundTag levelData, File root) {
-        super(new AnvilSaveOptions(options), root);
+        super(new AnvilSaveOptions(options).lock(), root);
 
         this.chunkNBTOptions = NBTOptions.DEFAULT
                 .withByteAlloc(options.byteAlloc())

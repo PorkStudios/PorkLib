@@ -29,7 +29,7 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 /**
  * Representation of a Minecraft world, consisting of {@link Chunk}s identified by their integer X, Z coordinates.
  * <p>
- * Worlds keep a reference to their {@link WorldStorage} instances which is not released until the world is released.
+ * Worlds keep a reference to their {@link WorldStorage} instance which is not released until the world is released.
  *
  * @author DaPorkchop_
  */

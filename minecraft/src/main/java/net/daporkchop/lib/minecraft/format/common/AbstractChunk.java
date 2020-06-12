@@ -45,12 +45,10 @@ import static net.daporkchop.lib.minecraft.world.Chunk.*;
 @Getter
 @Accessors(fluent = true)
 public abstract class AbstractChunk extends AbstractRefCounted implements Chunk {
-    protected final World parent;
     protected final int x;
     protected final int z;
 
-    public AbstractChunk(@NonNull World parent, int x, int z) {
-        this.parent = parent;
+    public AbstractChunk(int x, int z) {
         this.x = x;
         this.z = z;
     }
@@ -62,7 +60,5 @@ public abstract class AbstractChunk extends AbstractRefCounted implements Chunk 
     }
 
     @Override
-    protected void doRelease() {
-        this.parent.release();
-    }
+    protected abstract void doRelease();
 }

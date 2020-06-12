@@ -35,11 +35,6 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  * @author DaPorkchop_
  */
 public interface Chunk extends IntHolderXZ, RefCounted {
-    static void checkCoords(int x, int z) {
-        checkIndex(x >= 0 && x < 16, "x (%d)", x);
-        checkIndex(z >= 0 && z < 16, "z (%d)", z);
-    }
-
     /**
      * @return this chunk's X coordinate
      */

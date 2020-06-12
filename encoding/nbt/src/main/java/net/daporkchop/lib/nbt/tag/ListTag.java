@@ -34,7 +34,10 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Spliterator;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
@@ -45,7 +48,7 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
  */
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Accessors(fluent = true)
-public final class ListTag<T extends Tag<T>> extends Tag<ListTag<T>> {
+public final class ListTag<T extends Tag<T>> extends Tag<ListTag<T>> implements Iterable<T> {
     @Getter
     protected final List<T> list;
     @Getter
@@ -86,6 +89,21 @@ public final class ListTag<T extends Tag<T>> extends Tag<ListTag<T>> {
         for (int i = 0, size = this.list.size(); i < size; i++) {
             this.list.get(i).write(out);
         }
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        return this.list.iterator();
+    }
+
+    @Override
+    public void forEach(Consumer<? super T> action) {
+        this.list.forEach(action);
+    }
+
+    @Override
+    public Spliterator<T> spliterator() {
+        return this.list.spliterator();
     }
 
     @Override

@@ -38,14 +38,12 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
  *
  * @author DaPorkchop_
  */
-//TODO
 public abstract class VanillaChunk extends AbstractChunk {
-    public VanillaChunk(World parent, int x, int z, @NonNull Section[] sections) {
-        super(parent, x, z);
+    public VanillaChunk(int x, int z, @NonNull Section[] sections) {
+        super(x, z);
     }
 
     @Override
     protected void doRelease() {
-        super.doRelease();
     }
 }

@@ -46,26 +46,42 @@ public interface WorldStorage extends RefCounted {
     /**
      * Loads the {@link Chunk} at the given coordinates.
      *
-     * @param parent the {@link World} that will be used as the chunk's parent
-     * @param x      the X coordinate of the chunk to load
-     * @param z      the Z coordinate of the chunk to load
+     * @param x the X coordinate of the chunk to load
+     * @param z the Z coordinate of the chunk to load
      * @return the loaded {@link Chunk}, or {@code null} if the chunk doesn't exist
      */
-    Chunk loadChunk(@NonNull World parent, int x, int z) throws IOException;
+    Chunk loadChunk(int x, int z) throws IOException;
 
     /**
      * Loads the {@link Section} at the given coordinates.
      *
-     * @param parent the {@link Chunk} that will be used as the section's parent
-     * @param x      the X coordinate of the section to load
+     * @param parent the {@link Chunk} that the section should be loaded in
      * @param y      the Y coordinate of the section to load
-     * @param z      the Z coordinate of the section to load
      * @return the loaded {@link Section}, or {@code null} if the section doesn't exist
+     * @throws IllegalArgumentException if the given {@link Chunk} does not belong to this storage
      */
-    Section loadSection(@NonNull Chunk parent, int x, int y, int z) throws IOException;
+    Section loadSection(@NonNull Chunk parent, int y) throws IOException;
 
     /**
-     * Saves all of the {@link Chunk} in the given {@link Iterable}.
+     * Loads the {@link Chunk} at the given coordinates asynchronously.
+     *
+     * @param x the X coordinate of the chunk to load
+     * @param z the Z coordinate of the chunk to load
+     * @return a {@link PFuture} which will be completed with the loaded chunk, or {@code null} if the chunk doesn't exist
+     */
+    PFuture<Chunk> loadChunkAsync(int x, int z);
+
+    /**
+     * Loads the {@link Section} at the given coordinates asynchronously.
+     *
+     * @param parent the {@link Chunk} that the section should be loaded in
+     * @param y      the Y coordinate of the section to load
+     * @return a {@link PFuture} which will be completed with the loaded section, or {@code null} if the section doesn't exist
+     */
+    PFuture<Section> loadSectionAsync(@NonNull Chunk parent, int y);
+
+    /**
+     * Saves all of the {@link Chunk}s in the given {@link Iterable}.
      * <p>
      * This method will block until all of the given chunks have been completely written to disk.
      * <p>
@@ -74,10 +90,12 @@ public interface WorldStorage extends RefCounted {
      * @param chunks the {@link Chunk}s to save
      * @see #save(Iterable, Iterable)
      */
-    void saveChunks(@NonNull Iterable<Chunk> chunks) throws IOException;
+    default void saveChunks(@NonNull Iterable<Chunk> chunks) throws IOException {
+        this.save(chunks, Collections.emptySet());
+    }
 
     /**
-     * Saves all of the {@link Section} in the given {@link Iterable}.
+     * Saves all of the {@link Section}s in the given {@link Iterable}.
      * <p>
      * This method will block until all of the given sections have been completely written to disk.
      * <p>
@@ -86,7 +104,9 @@ public interface WorldStorage extends RefCounted {
      * @param sections the {@link Section}s to save
      * @see #save(Iterable, Iterable)
      */
-    void saveSections(@NonNull Iterable<Section> sections) throws IOException;
+    default void saveSections(@NonNull Iterable<Section> sections) throws IOException   {
+        this.save(Collections.emptySet(), sections);
+    }
 
     /**
      * A merged version of {@link #saveChunks(Iterable)} and {@link #saveSections(Iterable)}.
@@ -95,36 +115,64 @@ public interface WorldStorage extends RefCounted {
      * calling both of the methods individually.
      * <p>
      * This method will block until all of the given chunks and sections have been completely written to disk.
+     * <p>
+     * Chunks and sections that are not dirty will be ignored.
      *
      * @param chunks   the {@link Chunk}s to save
      * @param sections the {@link Section}s to save
-     * @throws IOException
      */
     void save(@NonNull Iterable<Chunk> chunks, @NonNull Iterable<Section> sections) throws IOException;
 
     /**
-     * Saves the given {@link Chunk} asynchronously.
+     * Saves all of the {@link Chunk}s in the given {@link Iterable} asynchronously.
      * <p>
-     * Unlike {@link #saveChunk(Chunk)}, this method makes no guarantees as to when the chunk will be saved. An implementation may choose to make the
+     * Unlike {@link #saveChunks(Iterable)}, this method makes no guarantees as to when the chunks will be saved. An implementation may choose to make the
      * entire operation block, returning a completed {@link PFuture}, or it may do everything asynchronously, causing the chunk's dirty flag to be
      * reset at an unknown point in the future.
+     * <p>
+     * Chunks that are not dirty will be ignored.
      *
-     * @param chunk the {@link Chunk} to save
-     * @return a {@link PFuture} which will be completed after the chunk was written to disk
+     * @param chunks the {@link Chunk}s to save
+     * @return a {@link PFuture} which will be completed after the chunks were written to disk
+     * @see #saveAsync(Iterable, Iterable)
      */
-    PFuture<Void> saveChunkAsync(@NonNull Chunk chunk);
+    default PFuture<Void> saveChunksAsync(@NonNull Iterable<Chunk> chunks)  {
+        return this.saveAsync(chunks, Collections.emptySet());
+    }
 
     /**
-     * Saves the given {@link Section} asynchronously.
+     * Saves all of the {@link Section}s in the given {@link Iterable} asynchronously.
      * <p>
-     * Unlike {@link #saveSection(Section)}, this method makes no guarantees as to when the section will be saved. An implementation may choose to make
+     * Unlike {@link #saveSections(Iterable)}, this method makes no guarantees as to when the sections will be saved. An implementation may choose to make
      * the entire operation block, returning a completed {@link PFuture}, or it may do everything asynchronously, causing the section's dirty flag to be
      * reset at an unknown point in the future.
+     * <p>
+     * Sections that are not dirty will be ignored.
      *
-     * @param section the {@link Section} to save
-     * @return a {@link PFuture} which will be completed after the section was written to disk
+     * @param sections the {@link Section}s to save
+     * @return a {@link PFuture} which will be completed after the sections were written to disk
+     * @see #saveAsync(Iterable, Iterable)
      */
-    PFuture<Void> saveSectionAsync(@NonNull Section section);
+    default PFuture<Void> saveSectionsAsync(@NonNull Iterable<Section> sections)    {
+        return this.saveAsync(Collections.emptySet(), sections);
+    }
+
+    /**
+     * A merged version of {@link #saveChunksAsync(Iterable)} and {@link #saveSectionsAsync(Iterable)}.
+     * <p>
+     * Due to the fact that some implementations may save sections and chunks at the same time, this method may be significantly faster than
+     * calling both of the methods individually.
+     * <p>
+     * Unlike {@link #save(Iterable, Iterable)}, this method makes no guarantees as to when the sections will be saved. An implementation may choose to make
+     * the entire operation block, returning a completed {@link PFuture}, or it may do everything asynchronously, causing the section's dirty flag to be
+     * reset at an unknown point in the future.
+     * <p>
+     * Chunks and sections that are not dirty will be ignored.
+     *
+     * @param chunks   the {@link Chunk}s to save
+     * @param sections the {@link Section}s to save
+     */
+    PFuture<Void> saveAsync(@NonNull Iterable<Chunk> chunks, @NonNull Iterable<Section> sections);
 
     /**
      * Flushes any data that may be queued for writing to disk.

@@ -20,40 +20,51 @@
 
 package net.daporkchop.lib.minecraft.format.common;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
 import net.daporkchop.lib.minecraft.block.BlockAccess;
-import net.daporkchop.lib.minecraft.format.common.storage.BlockStorage;
-import net.daporkchop.lib.minecraft.format.common.nibble.NibbleArray;
 import net.daporkchop.lib.minecraft.block.BlockRegistry;
-import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.block.BlockState;
+import net.daporkchop.lib.minecraft.format.common.nibble.NibbleArray;
+import net.daporkchop.lib.minecraft.format.common.storage.BlockStorage;
+import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 /**
- * Default implementation of {@link Section}, as a combination of {@link BlockAccess} and
+ * Default implementation of {@link Section}, as a combination of {@link BlockAccess} and multiple {@link NibbleArray}s for block and sky light.
  *
  * @author DaPorkchop_
  */
 @Getter
 @Accessors(fluent = true)
 public class DefaultSection extends AbstractRefCounted implements Section {
-    protected final Chunk parent;
+    @Getter(AccessLevel.NONE)
     protected final BlockStorage blocks;
+    @Getter(AccessLevel.NONE)
     protected final NibbleArray blockLight;
+    @Getter(AccessLevel.NONE)
     protected final NibbleArray skyLight;
-    protected final int y;
 
-    public DefaultSection(@NonNull Chunk parent, int y, @NonNull BlockStorage blocks, @NonNull NibbleArray blockLight, NibbleArray skyLight) {
-        this.parent = parent;
-        this.y = y;
+    protected final Chunk parent;
+
+    protected final int x;
+    protected final int y;
+    protected final int z;
+
+    public DefaultSection(@NonNull Chunk parent, int y, @NonNull BlockStorage blocks, @NonNull NibbleArray blockLight, NibbleArray skyLight)    {
         this.blocks = blocks;
         this.blockLight = blockLight;
         this.skyLight = skyLight;
+        this.parent = parent.retain();
+        this.x = parent.x();
+        this.y = y;
+        this.z = parent.z();
     }
 
     @Override
@@ -64,19 +75,13 @@ public class DefaultSection extends AbstractRefCounted implements Section {
 
     @Override
     protected void doRelease() {
+        this.parent.retain();
+
         this.blocks.release();
         this.blockLight.release();
-        this.parent.release();
-    }
-
-    @Override
-    public int x() {
-        return this.parent.x();
-    }
-
-    @Override
-    public int z() {
-        return this.parent.x();
+        if (this.skyLight != null) {
+            this.skyLight.release();
+        }
     }
 
     @Override

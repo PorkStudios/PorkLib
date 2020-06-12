@@ -23,10 +23,7 @@ package net.daporkchop.lib.minecraft.format.anvil;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.minecraft.block.BlockRegistry;
-import net.daporkchop.lib.minecraft.format.common.AbstractWorld;
 import net.daporkchop.lib.minecraft.format.common.vanilla.VanillaWorld;
-import net.daporkchop.lib.minecraft.format.common.vanilla.VanillaWorldManager;
 import net.daporkchop.lib.minecraft.util.WriteAccess;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.minecraft.world.Dimension;
@@ -58,8 +55,6 @@ public class AnvilWorld extends VanillaWorld<AnvilSave, AnvilSaveOptions> implem
                                    ? null //allow chunks in read-only worlds to be decoded using any implemented version for performance
                                    : (JavaVersion) parent.version(); //force chunks in writable worlds to be upgraded to the world version
         this.storage = new AnvilWorldStorage(root, this, parent.chunkNBTOptions(), worldVersion);
-
-        this.manager = new VanillaWorldManager(this, this.storage.retain(), options.ioExecutor());
 
         this.validateState();
     }

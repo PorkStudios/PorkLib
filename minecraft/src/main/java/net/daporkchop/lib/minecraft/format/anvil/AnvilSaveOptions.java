@@ -24,7 +24,6 @@ import io.netty.buffer.ByteBufAllocator;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.pool.array.ArrayAllocator;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
@@ -41,8 +40,7 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  */
 @NoArgsConstructor
 @Getter
-@Setter
-@Accessors(fluent = true, chain = true)
+@Accessors(fluent = true)
 public class AnvilSaveOptions extends SaveOptions {
     /**
      * The maximum number of regions files that may be open at once.
@@ -75,13 +73,9 @@ public class AnvilSaveOptions extends SaveOptions {
         }
     }
 
-    public AnvilSaveOptions(@NonNull AnvilSaveOptions other) {
-        super(other);
-
-        this.copyFrom(other);
-    }
-
     private void copyFrom(@NonNull AnvilSaveOptions other) {
+        this.regionCacheSize = other.regionCacheSize;
+        this.mmappedRegions = other.mmappedRegions;
         this.prefetchRegions = other.prefetchRegions;
     }
 
@@ -121,13 +115,37 @@ public class AnvilSaveOptions extends SaveOptions {
         return this;
     }
 
+    public synchronized AnvilSaveOptions regionCacheSize(int regionCacheSize) {
+        this.ensureNotLocked();
+        this.regionCacheSize = positive(regionCacheSize, "regionCacheSize");
+        return this;
+    }
+
+    public synchronized AnvilSaveOptions mmappedRegions(boolean mmappedRegions) {
+        this.ensureNotLocked();
+        this.mmappedRegions = mmappedRegions;
+        return this;
+    }
+
+    public synchronized AnvilSaveOptions prefetchRegions(boolean prefetchRegions) {
+        this.ensureNotLocked();
+        this.prefetchRegions = prefetchRegions;
+        return this;
+    }
+
     @Override
     public AnvilSaveOptions clone() {
         return new AnvilSaveOptions(this);
     }
 
     @Override
-    public void validate() {
+    public AnvilSaveOptions lock() {
+        super.lock();
+        return this;
+    }
+
+    @Override
+    protected void validate() {
         super.validate();
 
         checkState(this.access == WriteAccess.READ_ONLY || !this.mmappedRegions, "mmappedRegions may only be used in read-only mode!");

@@ -27,10 +27,9 @@ import net.daporkchop.lib.minecraft.format.anvil.AnvilSaveFormat;
 import net.daporkchop.lib.minecraft.save.Save;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
 import net.daporkchop.lib.minecraft.util.Identifier;
+import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.minecraft.world.World;
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -39,8 +38,6 @@ import java.io.IOException;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
-import static net.daporkchop.lib.common.util.PValidation.checkState;
 
 /**
  * @author DaPorkchop_
@@ -60,9 +57,9 @@ public class LevelDatParserTest {
         ROOT.delete();
         ROOT = new File(ROOT.getParentFile(), "porklib-minecraft-tests" + System.nanoTime());
         for (String version : VERSIONS) {
-            try (ZipInputStream in = new ZipInputStream(LevelDatParserTest.class.getResourceAsStream('/' + version + ".zip")))  {
-                for (ZipEntry entry = in.getNextEntry(); entry != null; entry = in.getNextEntry())  {
-                    if (!entry.isDirectory())   {
+            try (ZipInputStream in = new ZipInputStream(LevelDatParserTest.class.getResourceAsStream('/' + version + ".zip"))) {
+                for (ZipEntry entry = in.getNextEntry(); entry != null; entry = in.getNextEntry()) {
+                    if (!entry.isDirectory()) {
                         try (DataOut out = DataOut.wrap(PFiles.ensureFileExists(new File(ROOT, entry.getName())))) {
                             out.transferFrom(DataIn.wrap(in));
                         }
@@ -74,7 +71,7 @@ public class LevelDatParserTest {
     }
 
     @AfterClass
-    public static void deleteSaves() throws IOException    {
+    public static void deleteSaves() throws IOException {
         PFiles.rm(ROOT);
     }
 
@@ -82,12 +79,17 @@ public class LevelDatParserTest {
     public void test() throws IOException {
         for (String version : VERSIONS) {
             System.out.printf("Opening minecraft world at %s...\n", new File(ROOT, version));
-            try (Save save = new AnvilSaveFormat().tryOpen(new File(ROOT, version), new SaveOptions())) {
+            try (Save save = new AnvilSaveFormat().open(new File(ROOT, version), SaveOptions.DEFAULT)) {
                 System.out.println(save.version() + " " + save.worlds().map(World::id).map(Identifier::toString).collect(Collectors.toList()));
 
-                try (World world = save.world(Identifier.fromString("overworld")))  {
-                    checkState(world != null);
-                    System.out.println(world.getBlockState(0, 0, 0));
+                try (World world = save.world(Identifier.fromString("overworld"))) {
+                    try (Section section = world.storage().loadSection(0, 0, 0)) {
+                        System.out.println(section.getBlockRuntimeId(0, 0, 0));
+                        System.out.println(section.getBlockState(0, 0, 0));
+                        System.out.println(section.blockRegistry()
+                                .getDefaultState(section.getBlockLegacyId(0, 0, 0))
+                                .withMeta(section.getBlockMeta(0, 0, 0)));
+                    }
                 }
             }
         }

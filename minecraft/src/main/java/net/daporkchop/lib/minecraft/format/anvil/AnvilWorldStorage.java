@@ -40,6 +40,7 @@ import net.daporkchop.lib.minecraft.format.anvil.region.RegionConstants;
 import net.daporkchop.lib.minecraft.format.anvil.region.RegionFile;
 import net.daporkchop.lib.minecraft.format.anvil.region.RegionFileCache;
 import net.daporkchop.lib.minecraft.format.java.JavaFixers;
+import net.daporkchop.lib.minecraft.format.java.section.JavaSection;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
 import net.daporkchop.lib.minecraft.version.DataVersion;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
@@ -53,6 +54,7 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
 import java.util.Spliterator;
 import java.util.concurrent.Executor;
 
@@ -144,8 +146,44 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
     }
 
     @Override
-    public Section loadSection(@NonNull Chunk parent, int y) throws IOException {
-        return null;
+    public Section loadSection(int x, int y, int z) throws IOException {
+        CompoundTag tag = null;
+        try {
+            ByteBuf uncompressed = null;
+            try {
+                try (RawChunk chunk = this.regionCache.read(x, z)) {
+                    if (chunk == null) { //chunk doesn't exist on disk
+                        return null;
+                    }
+                    uncompressed = this.options.get(SaveOptions.NETTY_ALLOC).ioBuffer(1 << 18); //256 KiB
+                    try (Handle<PInflater> handle = inflater(chunk.data().readByte() & 0xFF)) {
+                        handle.get().decompress(chunk.data(), uncompressed);
+                    }
+                } //release compressed chunk data before parsing NBT
+                tag = NBTFormat.BIG_ENDIAN.readCompound(DataIn.wrap(uncompressed, false), this.nbtOptions);
+            } finally { //release uncompressed chunk data before constructing chunk instance
+                if (uncompressed != null) {
+                    uncompressed.release();
+                }
+            }
+            int dataVersion = tag.getInt("DataVersion", 0);
+            JavaVersion version = dataVersion < DataVersion.DATA_15w32a ? JavaVersion.pre15w32a() : JavaVersion.fromDataVersion(dataVersion);
+
+            Optional<CompoundTag> sectionTag = tag.getCompound("Level").getList("Sections", CompoundTag.class).stream()
+                    .filter(section -> section.getByte("Y") == y)
+                    .findAny();
+            if (sectionTag.isPresent()) {
+                JavaSection section = this.fixers.section().decodeAt(sectionTag.get(), version, this.worldVersion);
+                section._setXZ(x, z);
+                return section;
+            } else {
+                return null;
+            }
+        } finally {
+            if (tag != null) {
+                tag.release();
+            }
+        }
     }
 
     @Override
@@ -154,7 +192,7 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
     }
 
     @Override
-    public PFuture<Section> loadSectionAsync(@NonNull Chunk parent, int y) {
+    public PFuture<Section> loadSectionAsync(int x, int y, int z) {
         return null;
     }
 

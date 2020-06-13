@@ -18,21 +18,16 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.java;
-
-import lombok.NonNull;
-import net.daporkchop.lib.compat.datafix.ParameterizedDataCodec;
-import net.daporkchop.lib.minecraft.save.SaveOptions;
-import net.daporkchop.lib.minecraft.version.java.JavaVersion;
-import net.daporkchop.lib.nbt.tag.CompoundTag;
+package net.daporkchop.lib.compat;
 
 /**
+ * A type that has a version.
+ *
  * @author DaPorkchop_
  */
-public interface JavaCodec<O> extends ParameterizedDataCodec<O, CompoundTag, SaveOptions> {
-    @Override
-    O decode(@NonNull CompoundTag tag, SaveOptions options);
-
-    @Override
-    CompoundTag encode(@NonNull O value, SaveOptions options);
+public interface Versioned<V> {
+    /**
+     * @return the version that this instance was loaded at
+     */
+    V version();
 }

@@ -55,12 +55,13 @@ public interface WorldStorage extends RefCounted {
     /**
      * Loads the {@link Section} at the given coordinates.
      *
-     * @param parent the {@link Chunk} that the section should be loaded in
-     * @param y      the Y coordinate of the section to load
+     * @param x the X coordinate of the section to load
+     * @param y the Y coordinate of the section to load
+     * @param z the Z coordinate of the section to load
      * @return the loaded {@link Section}, or {@code null} if the section doesn't exist
      * @throws IllegalArgumentException if the given {@link Chunk} does not belong to this storage
      */
-    Section loadSection(@NonNull Chunk parent, int y) throws IOException;
+    Section loadSection(int x, int y, int z) throws IOException;
 
     /**
      * Loads the {@link Chunk} at the given coordinates asynchronously.
@@ -74,11 +75,12 @@ public interface WorldStorage extends RefCounted {
     /**
      * Loads the {@link Section} at the given coordinates asynchronously.
      *
-     * @param parent the {@link Chunk} that the section should be loaded in
-     * @param y      the Y coordinate of the section to load
+     * @param x the X coordinate of the section to load
+     * @param y the Y coordinate of the section to load
+     * @param z the Z coordinate of the section to load
      * @return a {@link PFuture} which will be completed with the loaded section, or {@code null} if the section doesn't exist
      */
-    PFuture<Section> loadSectionAsync(@NonNull Chunk parent, int y);
+    PFuture<Section> loadSectionAsync(int x, int y, int z);
 
     /**
      * Saves all of the {@link Chunk}s in the given {@link Iterable}.
@@ -104,7 +106,7 @@ public interface WorldStorage extends RefCounted {
      * @param sections the {@link Section}s to save
      * @see #save(Iterable, Iterable)
      */
-    default void saveSections(@NonNull Iterable<Section> sections) throws IOException   {
+    default void saveSections(@NonNull Iterable<Section> sections) throws IOException {
         this.save(Collections.emptySet(), sections);
     }
 
@@ -136,7 +138,7 @@ public interface WorldStorage extends RefCounted {
      * @return a {@link PFuture} which will be completed after the chunks were written to disk
      * @see #saveAsync(Iterable, Iterable)
      */
-    default PFuture<Void> saveChunksAsync(@NonNull Iterable<Chunk> chunks)  {
+    default PFuture<Void> saveChunksAsync(@NonNull Iterable<Chunk> chunks) {
         return this.saveAsync(chunks, Collections.emptySet());
     }
 
@@ -153,7 +155,7 @@ public interface WorldStorage extends RefCounted {
      * @return a {@link PFuture} which will be completed after the sections were written to disk
      * @see #saveAsync(Iterable, Iterable)
      */
-    default PFuture<Void> saveSectionsAsync(@NonNull Iterable<Section> sections)    {
+    default PFuture<Void> saveSectionsAsync(@NonNull Iterable<Section> sections) {
         return this.saveAsync(Collections.emptySet(), sections);
     }
 

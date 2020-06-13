@@ -64,6 +64,8 @@ public abstract class AbstractBlockRegistry implements BlockRegistry {
     protected final Map<Identifier, DefaultBlockState> idToDefaultState = new HashMap<>();
     @Getter(AccessLevel.NONE)
     protected final IntObjMap<DefaultBlockState> legacyIdToDefaultState = new IntObjOpenHashMap<>();
+    @Getter(AccessLevel.NONE)
+    protected final IntObjMap<DefaultBlockState> runtimeIdToState = new IntObjOpenHashMap<>();
 
     protected final BlockState air;
 
@@ -74,7 +76,10 @@ public abstract class AbstractBlockRegistry implements BlockRegistry {
         builder.blocks.forEach((id, block) -> this.idToDefaultState.put(id, block.bake(uncheckedCast(this))));
         this.idToDefaultState.values().stream()
                 .filter(BlockState::hasLegacyId)
-                .forEach(state -> this.legacyIdToDefaultState.put(state.legacyId(), state));
+                .forEach(state -> {
+                    this.legacyIdToDefaultState.put(state.legacyId(), state);
+                    this.runtimeIdToState.put(state.runtimeId(), state);
+                });
 
         this.air = this.getDefaultState(Identifier.fromString("minecraft:air"));
 
@@ -112,11 +117,7 @@ public abstract class AbstractBlockRegistry implements BlockRegistry {
 
     @Override
     public boolean containsState(int runtimeId) {
-        return this.idToDefaultState.values().stream()
-                .map(DefaultBlockState::otherMeta)
-                .flatMap(Arrays::stream)
-                .mapToInt(BlockState::runtimeId)
-                .anyMatch(i -> i == runtimeId);
+        return this.runtimeIdToState.containsKey(runtimeId);
     }
 
     @Override
@@ -163,12 +164,9 @@ public abstract class AbstractBlockRegistry implements BlockRegistry {
 
     @Override
     public BlockState getState(int runtimeId) {
-        Optional<BlockState> optionalState = this.idToDefaultState.values().stream()
-                .map(DefaultBlockState::otherMeta)
-                .flatMap(Arrays::stream)
-                .filter(state -> state.runtimeId() == runtimeId).findAny();
-        checkArg(optionalState.isPresent(), runtimeId);
-        return optionalState.get();
+        BlockState state = this.runtimeIdToState.get(runtimeId);
+        checkState(state != null, runtimeId);
+        return state;
     }
 
     @Override

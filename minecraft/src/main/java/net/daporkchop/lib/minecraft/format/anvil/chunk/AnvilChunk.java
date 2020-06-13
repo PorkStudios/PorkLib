@@ -26,8 +26,4 @@ import net.daporkchop.lib.minecraft.world.Chunk;
  * @author DaPorkchop_
  */
 public interface AnvilChunk extends Chunk {
-    @Override
-    default int layers() {
-        return 1;
-    }
 }

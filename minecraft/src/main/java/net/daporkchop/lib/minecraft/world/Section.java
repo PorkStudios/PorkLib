@@ -21,10 +21,12 @@
 package net.daporkchop.lib.minecraft.world;
 
 import net.daporkchop.lib.common.misc.refcount.RefCounted;
+import net.daporkchop.lib.compat.Versioned;
 import net.daporkchop.lib.math.access.IntHolderXYZ;
 import net.daporkchop.lib.minecraft.block.BlockAccess;
 import net.daporkchop.lib.minecraft.format.common.nibble.NibbleArray;
 import net.daporkchop.lib.minecraft.format.common.storage.BlockStorage;
+import net.daporkchop.lib.minecraft.version.MinecraftVersion;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 /**
@@ -32,7 +34,7 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
  *
  * @author DaPorkchop_
  */
-public interface Section extends BlockAccess, LightAccess, IntHolderXYZ, RefCounted {
+public interface Section extends BlockAccess, LightAccess, IntHolderXYZ, RefCounted, Versioned<MinecraftVersion> {
     /**
      * @return this section's X coordinate
      */

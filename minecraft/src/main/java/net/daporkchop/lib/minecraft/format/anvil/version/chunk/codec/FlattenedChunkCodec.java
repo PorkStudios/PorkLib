@@ -22,7 +22,9 @@ package net.daporkchop.lib.minecraft.format.anvil.version.chunk.codec;
 
 import lombok.NonNull;
 import net.daporkchop.lib.compat.datafix.DataCodec;
+import net.daporkchop.lib.minecraft.format.java.JavaCodec;
 import net.daporkchop.lib.minecraft.format.vanilla.VanillaChunk;
+import net.daporkchop.lib.minecraft.save.SaveOptions;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
@@ -32,20 +34,20 @@ import net.daporkchop.lib.nbt.tag.CompoundTag;
  *
  * @author DaPorkchop_
  */
-public class FlattenedChunkCodec implements DataCodec<Chunk, CompoundTag> {
+public class FlattenedChunkCodec implements JavaCodec<Chunk> {
     public static final JavaVersion VERSION = JavaVersion.fromName("1.15.2");
 
     @Override
-    public Chunk decode(@NonNull CompoundTag root) {
-        CompoundTag level = root.getCompound("Level");
+    public Chunk decode(@NonNull CompoundTag tag, SaveOptions options) {
+        CompoundTag level = tag.getCompound("Level");
         int x = level.getInt("xPos");
         int z = level.getInt("zPos");
 
-        return new VanillaChunk(x, z);
+        return new VanillaChunk(VERSION, x, z);
     }
 
     @Override
-    public CompoundTag encode(@NonNull Chunk value) {
+    public CompoundTag encode(@NonNull Chunk value, SaveOptions options) {
         throw new UnsupportedOperationException(); //TODO
     }
 }

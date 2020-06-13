@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 import static net.daporkchop.lib.common.util.PorkUtil.*;
@@ -104,6 +105,10 @@ public final class ListTag<T extends Tag<T>> extends Tag<ListTag<T>> implements 
     @Override
     public Spliterator<T> spliterator() {
         return this.list.spliterator();
+    }
+
+    public Stream<T> stream() {
+        return this.list.stream();
     }
 
     @Override

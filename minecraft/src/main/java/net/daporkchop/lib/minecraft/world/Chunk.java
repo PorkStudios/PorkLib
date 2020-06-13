@@ -21,7 +21,9 @@
 package net.daporkchop.lib.minecraft.world;
 
 import net.daporkchop.lib.common.misc.refcount.RefCounted;
+import net.daporkchop.lib.compat.Versioned;
 import net.daporkchop.lib.math.access.IntHolderXZ;
+import net.daporkchop.lib.minecraft.version.MinecraftVersion;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
@@ -34,7 +36,7 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  *
  * @author DaPorkchop_
  */
-public interface Chunk extends IntHolderXZ, RefCounted {
+public interface Chunk extends IntHolderXZ, RefCounted, Versioned<MinecraftVersion> {
     /**
      * @return this chunk's X coordinate
      */

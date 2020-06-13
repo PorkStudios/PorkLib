@@ -18,37 +18,36 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.common;
+package net.daporkchop.lib.minecraft.format.java.section;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
+import net.daporkchop.lib.minecraft.format.common.DefaultSection;
+import net.daporkchop.lib.minecraft.format.common.nibble.NibbleArray;
+import net.daporkchop.lib.minecraft.format.common.storage.BlockStorage;
 import net.daporkchop.lib.minecraft.version.MinecraftVersion;
-import net.daporkchop.lib.minecraft.world.Chunk;
-import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
+import net.daporkchop.lib.unsafe.PUnsafe;
+
+import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
- * Base implementation of {@link Chunk}.
+ * Extension of {@link DefaultSection} to implement the {@link JavaSection} interface.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-public abstract class AbstractChunk extends AbstractRefCounted implements Chunk {
-    @NonNull
-    protected final MinecraftVersion version;
-    protected final int x;
-    protected final int z;
+public class DefaultJavaSection extends DefaultSection implements JavaSection {
+    protected static final long X_OFFSET = PUnsafe.pork_getOffset(DefaultSection.class, "x");
+    protected static final long Z_OFFSET = PUnsafe.pork_getOffset(DefaultSection.class, "z");
+    protected static final long XZ_STATUS_OFFSET = PUnsafe.pork_getOffset(DefaultJavaSection.class, "xzStatus");
 
-    @Override
-    public Chunk retain() throws AlreadyReleasedException {
-        super.retain();
-        return this;
+    protected volatile int xzStatus = 0;
+
+    public DefaultJavaSection(int y, BlockStorage blocks, NibbleArray blockLight, NibbleArray skyLight, MinecraftVersion version) {
+        super(0, y, 0, blocks, blockLight, skyLight, version);
     }
 
     @Override
-    protected abstract void doRelease();
+    public void _setXZ(int x, int z) {
+        checkState(PUnsafe.compareAndSwapInt(this, XZ_STATUS_OFFSET, 0, 1), "XZ coordinates already set!");
+        PUnsafe.putIntVolatile(this, X_OFFSET, x);
+        PUnsafe.putIntVolatile(this, Z_OFFSET, z);
+    }
 }

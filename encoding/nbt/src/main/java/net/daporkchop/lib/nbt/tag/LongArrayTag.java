@@ -36,7 +36,7 @@ import java.util.Arrays;
  */
 @Getter
 @Accessors(fluent = true)
-public final class LongArrayTag extends RefCountedTag<LongArrayTag> {
+public final class LongArrayTag extends Tag<LongArrayTag> {
     protected final long[] value;
     protected final ArrayHandle<long[]> handle;
     protected final int length;
@@ -124,7 +124,7 @@ public final class LongArrayTag extends RefCountedTag<LongArrayTag> {
     }
 
     @Override
-    public Tag clone() {
+    public LongArrayTag clone() {
         return new LongArrayTag(this.value.clone());
     }
 

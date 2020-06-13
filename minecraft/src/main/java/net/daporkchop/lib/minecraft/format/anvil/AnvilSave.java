@@ -41,17 +41,17 @@ import java.io.File;
  * @author DaPorkchop_
  */
 @Accessors(fluent = true)
-public class AnvilSave extends AbstractSave<AnvilSaveOptions> {
+public class AnvilSave extends AbstractSave {
     @Getter
     protected final NBTOptions chunkNBTOptions;
 
     public AnvilSave(SaveOptions options, CompoundTag levelData, File root) {
-        super(new AnvilSaveOptions(options).lock(), root);
+        super(options, root);
 
         this.chunkNBTOptions = NBTOptions.DEFAULT
-                .withByteAlloc(options.byteAlloc())
-                .withIntAlloc(options.intAlloc())
-                .withLongAlloc(options.longAlloc());
+                .withByteAlloc(options.get(SaveOptions.BYTE_ALLOC))
+                .withIntAlloc(options.get(SaveOptions.INT_ALLOC))
+                .withLongAlloc(options.get(SaveOptions.LONG_ALLOC));
                 //.withObjectParser(null); //TODO
 
         this.version = this.extractVersion(levelData);
@@ -71,7 +71,7 @@ public class AnvilSave extends AbstractSave<AnvilSaveOptions> {
     }
 
     protected void openWorld(@NonNull Dimension dimension)  {
-        this.worlds.put(dimension.id(), new AnvilWorld(this, this.options, dimension));
+        this.worlds.put(dimension.id(), new AnvilWorld(this, dimension));
     }
 
     protected MinecraftVersion extractVersion(@NonNull CompoundTag levelData)   {

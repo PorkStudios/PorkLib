@@ -18,21 +18,18 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.java;
+package net.daporkchop.lib.minecraft.format.java.section;
 
-import lombok.NonNull;
-import net.daporkchop.lib.compat.datafix.ParameterizedDataCodec;
-import net.daporkchop.lib.minecraft.save.SaveOptions;
-import net.daporkchop.lib.minecraft.version.java.JavaVersion;
-import net.daporkchop.lib.nbt.tag.CompoundTag;
+import net.daporkchop.lib.minecraft.world.Section;
 
 /**
+ * An extension of {@link Section} to work around the fact that section codecs don't know the X or Z coordinates of a section.
+ *
  * @author DaPorkchop_
  */
-public interface JavaCodec<O> extends ParameterizedDataCodec<O, CompoundTag, SaveOptions> {
-    @Override
-    O decode(@NonNull CompoundTag tag, SaveOptions options);
-
-    @Override
-    CompoundTag encode(@NonNull O value, SaveOptions options);
+public interface JavaSection extends Section {
+    /**
+     * Internal code, do not touch!
+     */
+    void _setXZ(int x, int z);
 }

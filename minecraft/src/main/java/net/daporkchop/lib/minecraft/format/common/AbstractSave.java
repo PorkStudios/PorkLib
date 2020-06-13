@@ -53,9 +53,9 @@ import static net.daporkchop.lib.common.util.PValidation.*;
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public abstract class AbstractSave<O extends SaveOptions> extends AbstractRefCounted implements Save {
+public abstract class AbstractSave extends AbstractRefCounted implements Save {
     @NonNull
-    protected final O options;
+    protected final SaveOptions options;
     @NonNull
     protected final File root;
 
@@ -83,7 +83,7 @@ public abstract class AbstractSave<O extends SaveOptions> extends AbstractRefCou
     public World world(@NonNull Identifier id) {
         World world = this.worlds.get(id);
         checkArg(world != null, id);
-        return world;
+        return world.retain();
     }
 
     @Override

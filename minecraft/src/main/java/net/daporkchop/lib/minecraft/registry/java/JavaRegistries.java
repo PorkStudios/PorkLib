@@ -65,7 +65,7 @@ public final class JavaRegistries implements Registries {
         }
         return CACHE.computeIfAbsent(versionIn.name(), (IOFunction<String, Registries>) version -> {
             Map<String, JsonRegistry> map;
-            try (InputStream in = JavaRegistries.class.getResourceAsStream(version + "/registries.json")) {
+            try (InputStream in = JavaRegistries.class.getResourceAsStream(version + ".json")) {
                 checkArg(in != null, "no registry stored for version: %s", version);
                 map = InstancePool.getInstance(Gson.class).fromJson(new InputStreamReader(in, StandardCharsets.UTF_8), REGISTRY_MAP_TYPE);
             }

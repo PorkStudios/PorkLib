@@ -21,50 +21,50 @@
 package net.daporkchop.lib.minecraft.format.java.version.section.codec;
 
 import lombok.NonNull;
-import net.daporkchop.lib.compat.datafix.ParameterizedDataCodec;
+import net.daporkchop.lib.minecraft.block.BlockRegistry;
+import net.daporkchop.lib.minecraft.block.java.JavaBlockRegistry;
 import net.daporkchop.lib.minecraft.format.anvil.storage.HeapLegacyBlockStorage;
-import net.daporkchop.lib.minecraft.format.common.DefaultSection;
 import net.daporkchop.lib.minecraft.format.common.nibble.HeapNibbleArray;
 import net.daporkchop.lib.minecraft.format.common.nibble.NibbleArray;
 import net.daporkchop.lib.minecraft.format.common.storage.BlockStorage;
 import net.daporkchop.lib.minecraft.format.java.JavaCodec;
+import net.daporkchop.lib.minecraft.format.java.section.DefaultJavaSection;
+import net.daporkchop.lib.minecraft.format.java.section.JavaSection;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
-import net.daporkchop.lib.minecraft.world.Chunk;
-import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.nbt.tag.ByteArrayTag;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
  * @author DaPorkchop_
  */
-public class LegacySectionCodec implements JavaCodec<Section> {
+public class LegacySectionCodec implements JavaCodec<JavaSection> {
     public static final JavaVersion VERSION = JavaVersion.fromName("1.12.2");
 
     @Override
-    public Section decode(@NonNull CompoundTag tag, SaveOptions options) {
+    public JavaSection decode(@NonNull CompoundTag tag, SaveOptions options) {
         int y = tag.getByte("Y") & 0xFF;
-        BlockStorage storage = this.parseBlockStorage(tag, param);
+        BlockStorage storage = this.parseBlockStorage(tag, JavaBlockRegistry.forVersion(VERSION));
         NibbleArray blockLight = this.parseNibbleArray(tag, "BlockLight");
         NibbleArray skyLight = this.parseNibbleArray(tag, "SkyLight");
-        return new DefaultSection(param, y, storage, blockLight, skyLight);
+        return new DefaultJavaSection(y, storage, blockLight, skyLight, VERSION);
     }
 
-    protected BlockStorage parseBlockStorage(@NonNull CompoundTag tag) {
+    protected BlockStorage parseBlockStorage(@NonNull CompoundTag tag, @NonNull BlockRegistry blockRegistry) {
         ByteArrayTag blocksTag = tag.getTag("Blocks");
         ByteArrayTag dataTag = tag.getTag("Data");
         ByteArrayTag addTag = tag.getTag("Add", null);
         if (addTag == null) {
             if (blocksTag.handle() != null) { //assume that all tags have handles
-                return new HeapLegacyBlockStorage(chunk.blockRegistry(), blocksTag.handle(), dataTag.handle());
+                return new HeapLegacyBlockStorage(blockRegistry, blocksTag.handle(), dataTag.handle());
             } else {
-                return new HeapLegacyBlockStorage(chunk.blockRegistry(), blocksTag.value(), 0, dataTag.value(), 0);
+                return new HeapLegacyBlockStorage(blockRegistry, blocksTag.value(), 0, dataTag.value(), 0);
             }
         } else {
             if (blocksTag.handle() != null) { //assume that all tags have handles
-                return new HeapLegacyBlockStorage.Add(chunk.blockRegistry(), blocksTag.handle(), dataTag.handle(), addTag.handle());
+                return new HeapLegacyBlockStorage.Add(blockRegistry, blocksTag.handle(), dataTag.handle(), addTag.handle());
             } else {
-                return new HeapLegacyBlockStorage.Add(chunk.blockRegistry(), blocksTag.value(), 0, dataTag.value(), 0, addTag.value(), 0);
+                return new HeapLegacyBlockStorage.Add(blockRegistry, blocksTag.value(), 0, dataTag.value(), 0, addTag.value(), 0);
             }
         }
     }
@@ -80,7 +80,7 @@ public class LegacySectionCodec implements JavaCodec<Section> {
     }
 
     @Override
-    public CompoundTag encode(@NonNull Section value, SaveOptions options) {
+    public CompoundTag encode(@NonNull JavaSection section, SaveOptions options) {
         throw new UnsupportedOperationException(); //TODO
     }
 }

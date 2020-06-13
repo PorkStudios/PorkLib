@@ -40,6 +40,6 @@ public class JavaRegistryLoadTest {
     @Test
     public void testBlockRegistry1_15_2() {
         BlockRegistry registry = JavaBlockRegistry.forVersion(JavaVersion.fromName("1.15.2"));
-        System.out.println(registry.size());
+        System.out.printf("blocks: %d, states: %d\n", registry.blocks(), registry.states());
     }
 }

@@ -21,6 +21,7 @@
 package net.daporkchop.lib.minecraft.format.vanilla;
 
 import net.daporkchop.lib.minecraft.format.common.AbstractChunk;
+import net.daporkchop.lib.minecraft.version.MinecraftVersion;
 
 /**
  * Base implementation of {@link net.daporkchop.lib.minecraft.world.Chunk} for vanilla chunks with exactly 16 sections.
@@ -28,8 +29,8 @@ import net.daporkchop.lib.minecraft.format.common.AbstractChunk;
  * @author DaPorkchop_
  */
 public class VanillaChunk extends AbstractChunk {
-    public VanillaChunk(int x, int z) {
-        super(x, z);
+    public VanillaChunk(MinecraftVersion version, int x, int z) {
+        super(version, x, z);
     }
 
     @Override

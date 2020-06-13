@@ -42,7 +42,7 @@ public class LegacyChunkCodec implements JavaCodec<Chunk> {
         int x = level.getInt("xPos");
         int z = level.getInt("zPos");
 
-        return new VanillaChunk(x, z);
+        return new VanillaChunk(VERSION, x, z);
     }
 
     @Override

@@ -23,7 +23,6 @@ package net.daporkchop.lib.minecraft.format.common;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
 import net.daporkchop.lib.minecraft.block.BlockAccess;
@@ -32,7 +31,7 @@ import net.daporkchop.lib.minecraft.block.BlockState;
 import net.daporkchop.lib.minecraft.format.common.nibble.NibbleArray;
 import net.daporkchop.lib.minecraft.format.common.storage.BlockStorage;
 import net.daporkchop.lib.minecraft.util.Identifier;
-import net.daporkchop.lib.minecraft.world.Chunk;
+import net.daporkchop.lib.minecraft.version.MinecraftVersion;
 import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
@@ -51,14 +50,17 @@ public class DefaultSection extends AbstractRefCounted implements Section {
     @Getter(AccessLevel.NONE)
     protected final NibbleArray skyLight;
 
+    protected final MinecraftVersion version;
+
     protected final int x;
     protected final int y;
     protected final int z;
 
-    public DefaultSection(int x, int y, int z, @NonNull BlockStorage blocks, @NonNull NibbleArray blockLight, NibbleArray skyLight)    {
+    public DefaultSection(int x, int y, int z, @NonNull BlockStorage blocks, @NonNull NibbleArray blockLight, NibbleArray skyLight, @NonNull MinecraftVersion version) {
         this.blocks = blocks;
         this.blockLight = blockLight;
         this.skyLight = skyLight;
+        this.version = version;
 
         this.x = x;
         this.y = y;

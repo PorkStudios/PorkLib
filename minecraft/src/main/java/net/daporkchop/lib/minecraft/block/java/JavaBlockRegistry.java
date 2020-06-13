@@ -79,7 +79,7 @@ public class JavaBlockRegistry extends AbstractBlockRegistry {
         }
         return CACHE.computeIfAbsent(versionIn.name(), (IOFunction<String, BlockRegistry>) version -> {
             Map<String, JsonBlock> map;
-            try (InputStream in = JavaBlockRegistry.class.getResourceAsStream(version + "/blocks.json")) {
+            try (InputStream in = JavaBlockRegistry.class.getResourceAsStream(version + ".json")) {
                 checkArg(in != null, "no registry stored for version: %s", version);
                 map = InstancePool.getInstance(Gson.class).fromJson(new InputStreamReader(in, StandardCharsets.UTF_8), BLOCK_MAP_TYPE);
             }
@@ -201,7 +201,7 @@ public class JavaBlockRegistry extends AbstractBlockRegistry {
 
         @Override
         protected BlockState[] getMetaArray(@NonNull Map<Map<Property<?>, ?>, DefaultBlockState> propertiesToStates) {
-            BlockState[] arr = new BlockState[propertiesToStates.size()];
+            BlockState[] arr = new BlockState[propertiesToStates.values().stream().mapToInt(DefaultBlockState::meta).max().orElse(-1) + 1];
             propertiesToStates.values().forEach(state -> arr[state.runtimeId() - this.firstRuntimeId] = state);
             return arr;
         }

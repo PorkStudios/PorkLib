@@ -31,6 +31,7 @@ import net.daporkchop.lib.common.misc.Cloneable;
 import net.daporkchop.lib.common.pool.array.ArrayAllocator;
 import net.daporkchop.lib.minecraft.util.WriteAccess;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -47,9 +48,12 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
  *
  * @author DaPorkchop_
  */
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Accessors(fluent = true)
 public final class SaveOptions implements Cloneable<SaveOptions.Builder> {
     private static final Map<String, Key<?>> KEY_LOOKUP = new ConcurrentHashMap<>();
+
+    public static final SaveOptions DEFAULT = new SaveOptions(Collections.emptyMap());
 
     /**
      * @return a new {@link Builder}
@@ -130,6 +134,7 @@ public final class SaveOptions implements Cloneable<SaveOptions.Builder> {
      */
     public static final Key<ArrayAllocator<long[]>> LONG_ALLOC = key("alloc_long", null);
 
+    @NonNull
     private final Map<Key<?>, ?> map;
 
     private SaveOptions(@NonNull Builder builder) {

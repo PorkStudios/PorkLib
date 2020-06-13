@@ -23,143 +23,194 @@ package net.daporkchop.lib.minecraft.save;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.misc.Cloneable;
 import net.daporkchop.lib.common.pool.array.ArrayAllocator;
 import net.daporkchop.lib.minecraft.util.WriteAccess;
-import net.daporkchop.lib.unsafe.PUnsafe;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Supplier;
+
+import static net.daporkchop.lib.common.util.PValidation.*;
+import static net.daporkchop.lib.common.util.PorkUtil.*;
 
 /**
  * Options used when opening a {@link Save}.
  *
  * @author DaPorkchop_
  */
-@NoArgsConstructor
-@Getter
 @Accessors(fluent = true)
-public class SaveOptions implements Cloneable<SaveOptions> {
-    @Getter(AccessLevel.NONE)
-    protected boolean locked = false;
+public final class SaveOptions implements Cloneable<SaveOptions.Builder> {
+    private static final Map<String, Key<?>> KEY_LOOKUP = new ConcurrentHashMap<>();
+
+    /**
+     * @return a new {@link Builder}
+     */
+    public static Builder builder() {
+        return new Builder(new HashMap<>());
+    }
+
+    /**
+     * Gets a new {@link Key} with the given name and default value.
+     *
+     * @param name         the name of the {@link Key}
+     * @param defaultValue the default value for the key
+     * @param <T>          the key's value type
+     * @return a new {@link Key} with the given name
+     * @throws IllegalStateException if another key with the same name already exists
+     */
+    public static <T> Key<T> key(@NonNull String name, T defaultValue) {
+        Key<T> key = new Key<>(name = name.intern(), null, defaultValue);
+        checkState(KEY_LOOKUP.putIfAbsent(name, key) == null, "duplicate key name: %s", name);
+        return key;
+    }
+
+    /**
+     * Gets a new {@link Key} with the given name and default value factory.
+     *
+     * @param name         the name of the {@link Key}
+     * @param defaultValue a {@link Supplier} for providing instances of the default value for the key
+     * @param <T>          the key's value type
+     * @return a new {@link Key} with the given name
+     * @throws IllegalStateException if another key with the same name already exists
+     */
+    public static <T> Key<T> keyLazy(@NonNull String name, @NonNull Supplier<T> defaultValue) {
+        Key<T> key = new Key<>(name = name.intern(), defaultValue, null);
+        checkState(KEY_LOOKUP.putIfAbsent(name, key) == null, "duplicate key name: %s", name);
+        return key;
+    }
 
     /**
      * The write access level that the save will be opened with.
      * <p>
      * Defaults to {@link WriteAccess#WRITE_REQUIRED}.
      */
-    protected WriteAccess access = WriteAccess.WRITE_REQUIRED;
+    public static final Key<WriteAccess> ACCESS = key("access", WriteAccess.WRITE_REQUIRED);
 
     /**
      * The {@link Executor} that will be used for executing async I/O operations.
      * <p>
      * Defaults to {@link ForkJoinPool#commonPool()}.
      */
-    protected Executor ioExecutor = ForkJoinPool.commonPool();
+    public static final Key<Executor> IO_EXECUTOR = keyLazy("executor_io", ForkJoinPool::commonPool);
 
     /**
      * The {@link ByteBufAllocator} used for allocating Netty {@link io.netty.buffer.ByteBuf}s.
      * <p>
      * Defaults to {@link PooledByteBufAllocator#DEFAULT}
      */
-    protected ByteBufAllocator nettyAlloc = PooledByteBufAllocator.DEFAULT;
+    public static final Key<ByteBufAllocator> NETTY_ALLOC = keyLazy("alloc_netty", () -> PooledByteBufAllocator.DEFAULT);
 
     /**
      * The {@link ArrayAllocator} used for allocating {@code byte[]}s.
      * <p>
      * If {@code null}, {@code byte[]}s will be allocated using {@code new}.
      */
-    protected ArrayAllocator<byte[]> byteAlloc;
+    public static final Key<ArrayAllocator<byte[]>> BYTE_ALLOC = key("alloc_byte", null);
 
     /**
      * The {@link ArrayAllocator} used for allocating {@code int[]}s.
      * <p>
      * If {@code null}, {@code int[]}s will be allocated using {@code new}.
      */
-    protected ArrayAllocator<int[]> intAlloc;
+    public static final Key<ArrayAllocator<int[]>> INT_ALLOC = key("alloc_int", null);
 
     /**
      * The {@link ArrayAllocator} used for allocating {@code long[]}s.
      * <p>
      * If {@code null}, {@code long[]}s will be allocated using {@code new}.
      */
-    protected ArrayAllocator<long[]> longAlloc;
+    public static final Key<ArrayAllocator<long[]>> LONG_ALLOC = key("alloc_long", null);
 
-    public SaveOptions(@NonNull SaveOptions other) {
-        this.access = other.access;
-        this.ioExecutor = other.ioExecutor;
-        this.nettyAlloc = other.nettyAlloc;
-        this.byteAlloc = other.byteAlloc;
-        this.intAlloc = other.intAlloc;
-        this.longAlloc = other.longAlloc;
+    private final Map<Key<?>, ?> map;
+
+    private SaveOptions(@NonNull Builder builder) {
+        this.map = new HashMap<>(builder.map);
     }
 
-    public synchronized SaveOptions access(@NonNull WriteAccess access) {
-        this.ensureNotLocked();
-        this.access = access;
-        return this;
-    }
-
-    public synchronized SaveOptions ioExecutor(@NonNull Executor ioExecutor) {
-        this.ensureNotLocked();
-        this.ioExecutor = ioExecutor;
-        return this;
-    }
-
-    public synchronized SaveOptions nettyAlloc(@NonNull ByteBufAllocator nettyAlloc) {
-        this.ensureNotLocked();
-        this.nettyAlloc = nettyAlloc;
-        return this;
-    }
-
-    public synchronized SaveOptions byteAlloc(ArrayAllocator<byte[]> byteAlloc) {
-        this.ensureNotLocked();
-        this.byteAlloc = byteAlloc;
-        return this;
-    }
-
-    public synchronized SaveOptions intAlloc(ArrayAllocator<int[]> intAlloc) {
-        this.ensureNotLocked();
-        this.intAlloc = intAlloc;
-        return this;
-    }
-
-    public synchronized SaveOptions longAlloc(ArrayAllocator<long[]> longAlloc) {
-        this.ensureNotLocked();
-        this.longAlloc = longAlloc;
-        return this;
+    /**
+     * Gets the value mapped to the given {@link Key}.
+     * <p>
+     * If the given key does not exist, returns the key's default value.
+     *
+     * @param key the key
+     * @param <T> the key's value type
+     * @return the value for the given {@link Key}
+     */
+    public <T> T get(@NonNull Key<T> key) {
+        T value = uncheckedCast(this.map.get(key));
+        return value != null ? value : key.defaultValue();
     }
 
     @Override
-    public SaveOptions clone() {
-        return new SaveOptions(this);
+    public Builder clone() {
+        return new Builder(new HashMap<>(this.map));
     }
 
     /**
-     * Locks this {@link SaveOptions} instance, ensuring that the values cannot be modified any further.
+     * A key, used by {@link SaveOptions}.
      *
-     * @return this instance
+     * @param <T> the type of value stored by this option key
+     * @author DaPorkchop_
      */
-    public synchronized SaveOptions lock() {
-        this.ensureNotLocked();
-        this.validate();
-        this.locked = false;
-        return this;
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    @Getter
+    public static final class Key<T> implements Comparable<Key<?>> {
+        @NonNull
+        private final String name;
+        private Supplier<T> defaultValueFactory;
+        private T defaultValue;
+        private final int hashCode = ThreadLocalRandom.current().nextInt();
+
+        @Override
+        public int compareTo(Key<?> o) {
+            return this.name.compareTo(o.name);
+        }
+
+        private T defaultValue() {
+            Supplier<T> defaultValueFactory = this.defaultValueFactory;
+            if (defaultValueFactory != null) { //not quite atomic, but it's unlikely to be super critical
+                this.defaultValue = defaultValueFactory.get();
+                this.defaultValueFactory = null;
+            }
+            return this.defaultValue;
+        }
     }
 
     /**
-     * Ensures that the currently configured options are valid.
+     * A builder for {@link SaveOptions}.
+     *
+     * @author DaPorkchop_
      */
-    protected void validate() {
-    }
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    public static final class Builder implements Cloneable<Builder> {
+        @NonNull
+        private final Map<Key<?>, ?> map;
 
-    protected void ensureNotLocked() {
-        if (this.locked) {
-            throw new IllegalStateException("locked");
+        /**
+         * Sets the given key to the given value.
+         *
+         * @param key   the key
+         * @param value the value
+         * @param <T>   the key's value type
+         * @return this builder
+         */
+        public <T> Builder set(@NonNull Key<T> key, T value) {
+            this.map.put(key, uncheckedCast(value));
+            return this;
+        }
+
+        @Override
+        public Builder clone() {
+            return new Builder(new HashMap<>(this.map));
         }
     }
 }

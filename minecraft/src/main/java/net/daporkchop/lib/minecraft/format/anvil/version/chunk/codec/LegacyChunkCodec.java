@@ -18,17 +18,14 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.anvil.version.codec.chunk;
+package net.daporkchop.lib.minecraft.format.anvil.version.chunk.codec;
 
 import lombok.NonNull;
-import net.daporkchop.lib.compat.datafix.DataCodec;
-import net.daporkchop.lib.compat.datafix.DataFixer;
-import net.daporkchop.lib.minecraft.format.anvil.AnvilWorldStorage;
-import net.daporkchop.lib.minecraft.format.anvil.chunk.AnvilChunk;
+import net.daporkchop.lib.minecraft.format.java.JavaCodec;
 import net.daporkchop.lib.minecraft.format.vanilla.VanillaChunk;
+import net.daporkchop.lib.minecraft.save.SaveOptions;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.minecraft.world.Chunk;
-import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
@@ -36,33 +33,20 @@ import net.daporkchop.lib.nbt.tag.CompoundTag;
  *
  * @author DaPorkchop_
  */
-public class LegacyChunkCodec implements DataCodec<Chunk, CompoundTag> {
+public class LegacyChunkCodec implements JavaCodec<Chunk> {
     public static final JavaVersion VERSION = JavaVersion.fromName("1.12.2");
 
     @Override
-    public Chunk decode(@NonNull CompoundTag root) {
-        CompoundTag level = root.getCompound("Level");
+    public Chunk decode(@NonNull CompoundTag tag, SaveOptions options) {
+        CompoundTag level = tag.getCompound("Level");
         int x = level.getInt("xPos");
         int z = level.getInt("zPos");
 
-        Section[] sections = new Section[16];
-        Chunk1_12_2 chunk = new Chunk1_12_2(x, z, sections);
-        DataFixer<Section, CompoundTag, JavaVersion> sectionFixer = ((AnvilWorldStorage) param.storage()).sectionFixer();
-        for (CompoundTag sectionTag : level.getList("Sections", CompoundTag.class)) {
-            Section section = sectionFixer.decode(sectionTag, VERSION, chunk);
-            sections[section.y()] = section;
-        }
-        return chunk;
+        return new VanillaChunk(x, z);
     }
 
     @Override
-    public CompoundTag encode(@NonNull Chunk value) {
+    public CompoundTag encode(@NonNull Chunk value, SaveOptions options) {
         throw new UnsupportedOperationException(); //TODO
-    }
-
-    protected static class Chunk1_12_2 extends VanillaChunk implements AnvilChunk {
-        public Chunk1_12_2(int x, int z, @NonNull Section[] sections) {
-            super(x, z, sections);
-        }
     }
 }

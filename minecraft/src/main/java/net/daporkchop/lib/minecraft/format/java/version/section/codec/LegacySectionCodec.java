@@ -18,16 +18,18 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.anvil.version.codec.section;
+package net.daporkchop.lib.minecraft.format.java.version.section.codec;
 
 import lombok.NonNull;
-import net.daporkchop.lib.compat.datafix.DataCodec;
 import net.daporkchop.lib.compat.datafix.ParameterizedDataCodec;
 import net.daporkchop.lib.minecraft.format.anvil.storage.HeapLegacyBlockStorage;
 import net.daporkchop.lib.minecraft.format.common.DefaultSection;
 import net.daporkchop.lib.minecraft.format.common.nibble.HeapNibbleArray;
 import net.daporkchop.lib.minecraft.format.common.nibble.NibbleArray;
 import net.daporkchop.lib.minecraft.format.common.storage.BlockStorage;
+import net.daporkchop.lib.minecraft.format.java.JavaCodec;
+import net.daporkchop.lib.minecraft.save.SaveOptions;
+import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.nbt.tag.ByteArrayTag;
@@ -36,9 +38,11 @@ import net.daporkchop.lib.nbt.tag.CompoundTag;
 /**
  * @author DaPorkchop_
  */
-public class LegacySectionCodec implements ParameterizedDataCodec<Section, CompoundTag, Chunk> {
+public class LegacySectionCodec implements JavaCodec<Section> {
+    public static final JavaVersion VERSION = JavaVersion.fromName("1.12.2");
+
     @Override
-    public Section decode(@NonNull CompoundTag tag, @NonNull Chunk param) {
+    public Section decode(@NonNull CompoundTag tag, SaveOptions options) {
         int y = tag.getByte("Y") & 0xFF;
         BlockStorage storage = this.parseBlockStorage(tag, param);
         NibbleArray blockLight = this.parseNibbleArray(tag, "BlockLight");
@@ -46,7 +50,7 @@ public class LegacySectionCodec implements ParameterizedDataCodec<Section, Compo
         return new DefaultSection(param, y, storage, blockLight, skyLight);
     }
 
-    protected BlockStorage parseBlockStorage(@NonNull CompoundTag tag, @NonNull Chunk chunk) {
+    protected BlockStorage parseBlockStorage(@NonNull CompoundTag tag) {
         ByteArrayTag blocksTag = tag.getTag("Blocks");
         ByteArrayTag dataTag = tag.getTag("Data");
         ByteArrayTag addTag = tag.getTag("Add", null);
@@ -76,7 +80,7 @@ public class LegacySectionCodec implements ParameterizedDataCodec<Section, Compo
     }
 
     @Override
-    public CompoundTag encode(@NonNull Section value, @NonNull Chunk param) {
+    public CompoundTag encode(@NonNull Section value, SaveOptions options) {
         throw new UnsupportedOperationException(); //TODO
     }
 }

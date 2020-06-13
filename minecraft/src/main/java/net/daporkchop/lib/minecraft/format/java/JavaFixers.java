@@ -25,6 +25,9 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.compat.datafix.DataFixer;
+import net.daporkchop.lib.minecraft.format.anvil.version.chunk.codec.FlattenedChunkCodec;
+import net.daporkchop.lib.minecraft.format.anvil.version.chunk.codec.LegacyChunkCodec;
+import net.daporkchop.lib.minecraft.format.java.version.section.codec.LegacySectionCodec;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Section;
@@ -39,6 +42,28 @@ import net.daporkchop.lib.nbt.tag.CompoundTag;
 @Getter
 @Accessors(fluent = true)
 public class JavaFixers {
+    private static final class Default {
+        private static final JavaFixers DEFAULT_JAVA_FIXERS;
+
+        static {
+            DEFAULT_JAVA_FIXERS = new JavaFixers(
+                    DataFixer.<Chunk, CompoundTag, JavaVersion>builder()
+                            .addCodec(LegacyChunkCodec.VERSION, new LegacyChunkCodec())
+                            .addCodec(FlattenedChunkCodec.VERSION, new FlattenedChunkCodec())
+                            .build(),
+                    DataFixer.<Section, CompoundTag, JavaVersion>builder()
+                            .addCodec(LegacySectionCodec.VERSION, new LegacySectionCodec())
+                            .build());
+        }
+    }
+
+    /**
+     * @return the default {@link JavaFixers}
+     */
+    public static JavaFixers defaultFixers() {
+        return Default.DEFAULT_JAVA_FIXERS;
+    }
+
     @NonNull
     protected final DataFixer<Chunk, CompoundTag, JavaVersion> chunk;
 

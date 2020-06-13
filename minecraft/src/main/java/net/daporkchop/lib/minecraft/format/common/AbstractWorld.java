@@ -40,16 +40,18 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public abstract class AbstractWorld<S extends Save, O extends SaveOptions> extends AbstractRefCounted implements World {
-    @NonNull
+public abstract class AbstractWorld<S extends Save> extends AbstractRefCounted implements World {
     protected final S parent;
-    @NonNull
-    protected final O options;
-    @NonNull
+    protected final SaveOptions options;
     protected final Identifier id;
+
+    public AbstractWorld(@NonNull S parent, @NonNull Identifier id) {
+        this.parent = parent;
+        this.options = parent.options();
+        this.id = id;
+    }
 
     protected BlockRegistry blockRegistry;
     protected WorldStorage storage;

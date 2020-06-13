@@ -18,22 +18,34 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.vanilla;
+package net.daporkchop.lib.minecraft.format.anvil.version.chunk.codec;
 
-import net.daporkchop.lib.minecraft.format.common.AbstractChunk;
+import lombok.NonNull;
+import net.daporkchop.lib.compat.datafix.DataCodec;
+import net.daporkchop.lib.minecraft.format.vanilla.VanillaChunk;
+import net.daporkchop.lib.minecraft.version.java.JavaVersion;
+import net.daporkchop.lib.minecraft.world.Chunk;
+import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
- * Base implementation of {@link net.daporkchop.lib.minecraft.world.Chunk} for vanilla chunks with exactly 16 sections.
+ * Codec for serialization of chunks in the post-flattening format.
  *
  * @author DaPorkchop_
  */
-public class VanillaChunk extends AbstractChunk {
-    public VanillaChunk(int x, int z) {
-        super(x, z);
+public class FlattenedChunkCodec implements DataCodec<Chunk, CompoundTag> {
+    public static final JavaVersion VERSION = JavaVersion.fromName("1.15.2");
+
+    @Override
+    public Chunk decode(@NonNull CompoundTag root) {
+        CompoundTag level = root.getCompound("Level");
+        int x = level.getInt("xPos");
+        int z = level.getInt("zPos");
+
+        return new VanillaChunk(x, z);
     }
 
     @Override
-    protected void doRelease() {
-        //literally just do nothing lol
+    public CompoundTag encode(@NonNull Chunk value) {
+        throw new UnsupportedOperationException(); //TODO
     }
 }

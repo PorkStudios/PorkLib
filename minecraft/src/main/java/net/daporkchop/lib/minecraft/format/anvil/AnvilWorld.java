@@ -24,6 +24,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.minecraft.format.vanilla.VanillaWorld;
+import net.daporkchop.lib.minecraft.save.SaveOptions;
 import net.daporkchop.lib.minecraft.util.WriteAccess;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.minecraft.world.Dimension;
@@ -38,12 +39,12 @@ import java.io.File;
  * @author DaPorkchop_
  */
 @Accessors(fluent = true)
-public class AnvilWorld extends VanillaWorld<AnvilSave, AnvilSaveOptions> implements WorldInfo {
+public class AnvilWorld extends VanillaWorld<AnvilSave> implements WorldInfo {
     @Getter
     protected final Dimension dimension;
 
-    public AnvilWorld(AnvilSave parent, AnvilSaveOptions options, @NonNull Dimension dimension) {
-        super(parent, options, dimension.id());
+    public AnvilWorld(AnvilSave parent, @NonNull Dimension dimension) {
+        super(parent, dimension.id());
 
         this.dimension = dimension;
 
@@ -51,7 +52,7 @@ public class AnvilWorld extends VanillaWorld<AnvilSave, AnvilSaveOptions> implem
 
         //anvil is implemented in a way that makes it a real pain to have their dimension be abstracted away from the individual worlds
         File root = dimension.legacyId() == 0 ? parent.root() : new File(parent.root(), "DIM" + dimension.legacyId());
-        JavaVersion worldVersion = options.access() == WriteAccess.READ_ONLY
+        JavaVersion worldVersion = this.options.get(SaveOptions.ACCESS) == WriteAccess.READ_ONLY
                                    ? null //allow chunks in read-only worlds to be decoded using any implemented version for performance
                                    : (JavaVersion) parent.version(); //force chunks in writable worlds to be upgraded to the world version
         this.storage = new AnvilWorldStorage(root, this, parent.chunkNBTOptions(), worldVersion);

@@ -37,4 +37,9 @@ public interface WorldInfo {
      * @see BlockAccess#layers()
      */
     int layers();
+
+    /**
+     * @return whether or not this dimension has sky light
+     */
+    boolean hasSkyLight();
 }

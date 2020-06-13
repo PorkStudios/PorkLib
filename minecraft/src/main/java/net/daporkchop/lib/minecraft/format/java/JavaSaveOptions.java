@@ -18,23 +18,45 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.anvil;
+package net.daporkchop.lib.minecraft.format.java;
 
 import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.minecraft.format.java.JavaFixers;
-import net.daporkchop.lib.minecraft.format.java.JavaSaveOptions;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
 
 /**
- * {@link SaveOptions} keys used by the Anvil save format.
+ * {@link SaveOptions} keys used by Java edition save formats.
  *
  * @author DaPorkchop_
- * @see net.daporkchop.lib.minecraft.format.java.JavaSaveOptions
  */
 @UtilityClass
-public class AnvilSaveOptions {
-    public static final SaveOptions.Key<Integer> REGION_CACHE_SIZE = JavaSaveOptions.REGION_CACHE_SIZE;
-    public static final SaveOptions.Key<Boolean> MMAP_REGIONS = JavaSaveOptions.MMAP_REGIONS;
-    public static final SaveOptions.Key<Boolean> PREFETCH_REGIONS = JavaSaveOptions.PREFETCH_REGIONS;
-    public static final SaveOptions.Key<JavaFixers> FIXERS = JavaSaveOptions.FIXERS;
+public class JavaSaveOptions {
+    /**
+     * The maximum number of regions files that may be open at once.
+     * <p>
+     * May not be negative.
+     */
+    public static final SaveOptions.Key<Integer> REGION_CACHE_SIZE = SaveOptions.key("java_region_cache_size", 1024);
+
+    /**
+     * Whether or not regions should be opened using memory-mapping rather than traditional read/write methods.
+     * <p>
+     * This is likely to improve performance when loading chunks, but could have negative effects on systems with low memory or slow read speeds.
+     * <p>
+     * May only be set if the world is read-only.
+     */
+    public static final SaveOptions.Key<Boolean> MMAP_REGIONS = SaveOptions.key("java_region_mmap", false);
+
+    /**
+     * Whether or not memory-mapped regions should be prefetched from disk when opened.
+     * <p>
+     * Will have no effect unless the world is set to read-only.
+     */
+    public static final SaveOptions.Key<Boolean> PREFETCH_REGIONS = SaveOptions.key("java_region_mmap_prefetch", false);
+
+    /**
+     * The {@link JavaFixers} to use when decoding things.
+     * <p>
+     * Defaults to {@link JavaFixers#defaultFixers()}.
+     */
+    public static final SaveOptions.Key<JavaFixers> FIXERS = SaveOptions.keyLazy("java_fixers", JavaFixers::defaultFixers);
 }

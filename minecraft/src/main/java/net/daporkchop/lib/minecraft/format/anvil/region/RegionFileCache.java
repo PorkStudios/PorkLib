@@ -21,6 +21,7 @@
 package net.daporkchop.lib.minecraft.format.anvil.region;
 
 import io.netty.buffer.ByteBuf;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.collections.map.MaxSizeLinkedHashMap;
@@ -34,6 +35,7 @@ import net.daporkchop.lib.minecraft.format.anvil.AnvilSaveOptions;
 import net.daporkchop.lib.minecraft.format.anvil.region.impl.EmptyRegionFile;
 import net.daporkchop.lib.minecraft.format.anvil.region.impl.MemoryMappedRegionFile;
 import net.daporkchop.lib.minecraft.format.anvil.region.impl.OverclockedRegionFile;
+import net.daporkchop.lib.minecraft.save.SaveOptions;
 import net.daporkchop.lib.minecraft.util.WriteAccess;
 
 import java.io.File;
@@ -55,15 +57,20 @@ public class RegionFileCache implements RegionFile, IOFunction<Vec2i, RegionFile
         return new Vec2i(chunkX >> 5, chunkZ >> 5);
     }
 
-    protected final AnvilSaveOptions options;
+    protected final SaveOptions options;
     protected final Map<Vec2i, RegionFile> internalCache;
     protected final File root;
 
+    @Getter
+    protected final boolean readOnly;
+
     protected boolean closed = false;
 
-    public RegionFileCache(@NonNull AnvilSaveOptions options, @NonNull File root) {
+    public RegionFileCache(@NonNull SaveOptions options, @NonNull File root) {
         this.options = options;
-        this.internalCache = new MaxSizeLinkedHashMap.Closing<>(options.regionCacheSize(), true);
+        this.readOnly = options.get(SaveOptions.ACCESS) == WriteAccess.READ_ONLY;
+
+        this.internalCache = new MaxSizeLinkedHashMap.Closing<>(options.get(AnvilSaveOptions.REGION_CACHE_SIZE), true);
         this.root = PFiles.ensureDirectoryExists(root);
     }
 
@@ -155,11 +162,6 @@ public class RegionFileCache implements RegionFile, IOFunction<Vec2i, RegionFile
     }
 
     @Override
-    public boolean readOnly() {
-        return this.options.access() == WriteAccess.READ_ONLY;
-    }
-
-    @Override
     public Lock readLock() {
         return NoopLock.INSTANCE;
     }
@@ -199,16 +201,16 @@ public class RegionFileCache implements RegionFile, IOFunction<Vec2i, RegionFile
         File file = new File(this.root, String.format("r.%d.%d.mca", pos.getX(), pos.getY()));
         if (this.readOnly()) {
             if (PFiles.checkFileExists(file)) {
-                if (this.options.mmappedRegions()) {
-                    return new MemoryMappedRegionFile(file, this.options.prefetchRegions());
+                if (this.options.get(AnvilSaveOptions.MMAP_REGIONS)) {
+                    return new MemoryMappedRegionFile(file, this.options.get(AnvilSaveOptions.PREFETCH_REGIONS));
                 } else {
-                    return new OverclockedRegionFile(file, this.options.nettyAlloc(), true);
+                    return new OverclockedRegionFile(file, this.options.get(SaveOptions.NETTY_ALLOC), true);
                 }
             } else {
                 return EmptyRegionFile.INSTANCE;
             }
         } else {
-            return new OverclockedRegionFile(file, this.options.nettyAlloc(), false);
+            return new OverclockedRegionFile(file, this.options.get(SaveOptions.NETTY_ALLOC), false);
         }
     }
 

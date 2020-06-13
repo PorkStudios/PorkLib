@@ -55,13 +55,14 @@ public class DefaultSection extends AbstractRefCounted implements Section {
     protected final int y;
     protected final int z;
 
-    public DefaultSection(@NonNull Chunk parent, int y, @NonNull BlockStorage blocks, @NonNull NibbleArray blockLight, NibbleArray skyLight)    {
+    public DefaultSection(int x, int y, int z, @NonNull BlockStorage blocks, @NonNull NibbleArray blockLight, NibbleArray skyLight)    {
         this.blocks = blocks;
         this.blockLight = blockLight;
         this.skyLight = skyLight;
-        this.x = parent.x();
+
+        this.x = x;
         this.y = y;
-        this.z = parent.z();
+        this.z = z;
     }
 
     @Override

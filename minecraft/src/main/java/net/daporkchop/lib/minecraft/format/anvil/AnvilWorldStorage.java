@@ -29,7 +29,6 @@ import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.pool.handle.HandledPool;
-import net.daporkchop.lib.compat.datafix.DataFixer;
 import net.daporkchop.lib.compression.context.PInflater;
 import net.daporkchop.lib.compression.zlib.Zlib;
 import net.daporkchop.lib.compression.zlib.ZlibMode;
@@ -37,11 +36,11 @@ import net.daporkchop.lib.compression.zlib.options.ZlibInflaterOptions;
 import net.daporkchop.lib.concurrent.PFuture;
 import net.daporkchop.lib.concurrent.PFutures;
 import net.daporkchop.lib.minecraft.format.anvil.region.RawChunk;
+import net.daporkchop.lib.minecraft.format.anvil.region.RegionConstants;
 import net.daporkchop.lib.minecraft.format.anvil.region.RegionFile;
 import net.daporkchop.lib.minecraft.format.anvil.region.RegionFileCache;
-import net.daporkchop.lib.minecraft.format.anvil.version.codec.chunk.FlattenedChunkCodec;
-import net.daporkchop.lib.minecraft.format.anvil.version.codec.chunk.LegacyChunkCodec;
-import net.daporkchop.lib.minecraft.format.anvil.version.codec.section.LegacySectionCodec;
+import net.daporkchop.lib.minecraft.format.java.JavaFixers;
+import net.daporkchop.lib.minecraft.save.SaveOptions;
 import net.daporkchop.lib.minecraft.version.DataVersion;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.minecraft.world.Chunk;
@@ -55,6 +54,7 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 import java.io.File;
 import java.io.IOException;
 import java.util.Spliterator;
+import java.util.concurrent.Executor;
 
 /**
  * Implementation of {@link WorldStorage} for the Anvil save format.
@@ -64,38 +64,52 @@ import java.util.Spliterator;
 //TODO: this needs to be optimized
 @Accessors(fluent = true)
 public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorage {
-    protected static final ZlibInflaterOptions INFLATER_OPTIONS = Zlib.PROVIDER.inflateOptions().withMode(ZlibMode.AUTO);
-    protected static final HandledPool<PInflater> INFLATER_CACHE = HandledPool.threadLocal(() -> Zlib.PROVIDER.inflater(INFLATER_OPTIONS), 1);
+    protected static final HandledPool<PInflater> ZLIB_INFLATER_CACHE;
+    protected static final HandledPool<PInflater> GZIP_INFLATER_CACHE;
+
+    static {
+        if (Zlib.PROVIDER.isNative()) {
+            ZlibInflaterOptions inflaterOptions = Zlib.PROVIDER.inflateOptions().withMode(ZlibMode.AUTO);
+            GZIP_INFLATER_CACHE = ZLIB_INFLATER_CACHE = HandledPool.threadLocal(() -> Zlib.PROVIDER.inflater(inflaterOptions), 1);
+        } else {
+            ZlibInflaterOptions zlibInflaterOptions = Zlib.PROVIDER.inflateOptions().withMode(ZlibMode.ZLIB);
+            ZLIB_INFLATER_CACHE = HandledPool.threadLocal(() -> Zlib.PROVIDER.inflater(zlibInflaterOptions), 1);
+
+            ZlibInflaterOptions gzipInflaterOptions = Zlib.PROVIDER.inflateOptions().withMode(ZlibMode.GZIP);
+            GZIP_INFLATER_CACHE = HandledPool.threadLocal(() -> Zlib.PROVIDER.inflater(gzipInflaterOptions), 1);
+        }
+    }
+
+    protected static Handle<PInflater> inflater(int version) {
+        switch (version) {
+            case RegionConstants.ID_ZLIB: //by far the more common one
+                return ZLIB_INFLATER_CACHE.get();
+            case RegionConstants.ID_GZIP:
+                return GZIP_INFLATER_CACHE.get();
+        }
+        throw new IllegalArgumentException("Unknown compression version: " + version);
+    }
 
     protected final File root;
-    protected final AnvilSaveOptions options;
-    protected final NBTOptions nbtOptions;
-
     protected final RegionFile regionCache;
 
-    @Getter
-    protected final DataFixer<Chunk, CompoundTag, JavaVersion> chunkFixer;
-    @Getter
-    protected final DataFixer<Section, CompoundTag, JavaVersion> sectionFixer;
+    protected final SaveOptions options;
+    protected final JavaFixers fixers;
+    protected final NBTOptions nbtOptions;
+    protected final Executor ioExecutor;
+
     @Getter
     protected final JavaVersion worldVersion;
 
     public AnvilWorldStorage(@NonNull File root, @NonNull AnvilWorld world, @NonNull NBTOptions nbtOptions, JavaVersion worldVersion) {
         this.root = PFiles.ensureDirectoryExists(root);
-        this.options = world.options();
-        this.nbtOptions = nbtOptions;
-        this.worldVersion = worldVersion;
-
         this.regionCache = new RegionFileCache(world.options(), new File(root, "region"));
 
-        this.chunkFixer = DataFixer.<Chunk, CompoundTag, JavaVersion>builder()
-                .addCodec(LegacyChunkCodec.VERSION, new LegacyChunkCodec())
-                .addCodec(FlattenedChunkCodec.VERSION, new FlattenedChunkCodec())
-                .build();
-
-        this.sectionFixer = DataFixer.<Section, CompoundTag, JavaVersion>builder()
-                .addCodec(JavaVersion.fromName("1.12.2"), new LegacySectionCodec())
-                .build();
+        this.options = world.options();
+        this.fixers = this.options.get(AnvilSaveOptions.FIXERS);
+        this.ioExecutor = this.options.get(SaveOptions.IO_EXECUTOR);
+        this.nbtOptions = nbtOptions;
+        this.worldVersion = worldVersion;
     }
 
     @Override
@@ -108,9 +122,9 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
                     if (chunk == null) { //chunk doesn't exist on disk
                         return null;
                     }
-                    uncompressed = this.options.nettyAlloc().ioBuffer(1 << 18); //256 KiB
-                    try (Handle<PInflater> handle = INFLATER_CACHE.get()) {
-                        handle.get().decompress(chunk.data().skipBytes(1), uncompressed);
+                    uncompressed = this.options.get(SaveOptions.NETTY_ALLOC).ioBuffer(1 << 18); //256 KiB
+                    try (Handle<PInflater> handle = inflater(chunk.data().readByte() & 0xFF)) {
+                        handle.get().decompress(chunk.data(), uncompressed);
                     }
                 } //release compressed chunk data before parsing NBT
                 tag = NBTFormat.BIG_ENDIAN.readCompound(DataIn.wrap(uncompressed, false), this.nbtOptions);
@@ -121,7 +135,7 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
             }
             int dataVersion = tag.getInt("DataVersion", 0);
             JavaVersion version = dataVersion < DataVersion.DATA_15w32a ? JavaVersion.pre15w32a() : JavaVersion.fromDataVersion(dataVersion);
-            return this.chunkFixer.decodeAt(tag, version, this.worldVersion); //upgrade chunk to the same data version as the world itself
+            return this.fixers.chunk().decodeAt(tag, version, this.worldVersion); //upgrade chunk to the same data version as the world itself
         } finally {
             if (tag != null) {
                 tag.release();
@@ -136,7 +150,7 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
 
     @Override
     public PFuture<Chunk> loadChunkAsync(int x, int z) {
-        return PFutures.computeThrowableAsync(() -> this.loadChunk(x, z), this.options.ioExecutor());
+        return PFutures.computeThrowableAsync(() -> this.loadChunk(x, z), this.ioExecutor);
     }
 
     @Override
@@ -160,7 +174,7 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
 
     @Override
     public PFuture<Void> flushAsync() {
-        return PFutures.successful(null, this.options.ioExecutor());
+        return PFutures.successful(null, this.ioExecutor);
     }
 
     @Override
@@ -187,25 +201,5 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
         } catch (IOException e) {
             throw new RuntimeException();
         }
-    }
-
-    //deprecation of inefficient methods
-
-    /**
-     * @deprecated you shouldn't be reading/writing sections on a vanilla anvil world...
-     */
-    @Override
-    @Deprecated
-    public void saveSections(@NonNull Iterable<Section> sections) throws IOException {
-        WorldStorage.super.saveSections(sections);
-    }
-
-    /**
-     * @deprecated you shouldn't be reading/writing sections on a vanilla anvil world...
-     */
-    @Override
-    @Deprecated
-    public PFuture<Void> saveSectionsAsync(@NonNull Iterable<Section> sections) {
-        return WorldStorage.super.saveSectionsAsync(sections);
     }
 }

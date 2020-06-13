@@ -18,20 +18,11 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.common.vanilla;
+package net.daporkchop.lib.minecraft.format.vanilla;
 
 import lombok.NonNull;
-import net.daporkchop.lib.concurrent.PFuture;
-import net.daporkchop.lib.concurrent.PFutures;
 import net.daporkchop.lib.minecraft.format.common.AbstractChunk;
-import net.daporkchop.lib.minecraft.util.Identifier;
-import net.daporkchop.lib.minecraft.block.BlockState;
 import net.daporkchop.lib.minecraft.world.Section;
-import net.daporkchop.lib.minecraft.world.World;
-import net.daporkchop.lib.unsafe.PUnsafe;
-
-import static net.daporkchop.lib.common.util.PValidation.*;
-import static net.daporkchop.lib.common.util.PorkUtil.*;
 
 /**
  * Base implementation of {@link net.daporkchop.lib.minecraft.world.Chunk} for vanilla chunks with exactly 16 sections.

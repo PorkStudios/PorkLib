@@ -46,7 +46,6 @@ import net.daporkchop.lib.minecraft.version.DataVersion;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Section;
-import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.WorldStorage;
 import net.daporkchop.lib.nbt.NBTFormat;
 import net.daporkchop.lib.nbt.NBTOptions;
@@ -58,8 +57,11 @@ import java.io.IOException;
 import java.util.Spliterator;
 
 /**
+ * Implementation of {@link WorldStorage} for the Anvil save format.
+ *
  * @author DaPorkchop_
  */
+//TODO: this needs to be optimized
 @Accessors(fluent = true)
 public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorage {
     protected static final ZlibInflaterOptions INFLATER_OPTIONS = Zlib.PROVIDER.inflateOptions().withMode(ZlibMode.AUTO);
@@ -144,11 +146,12 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
 
     @Override
     public void save(@NonNull Iterable<Chunk> chunks, @NonNull Iterable<Section> sections) throws IOException {
+        throw new UnsupportedOperationException(); //TODO
     }
 
     @Override
     public PFuture<Void> saveAsync(@NonNull Iterable<Chunk> chunks, @NonNull Iterable<Section> sections) {
-        return null;
+        throw new UnsupportedOperationException(); //TODO
     }
 
     @Override
@@ -157,7 +160,7 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
 
     @Override
     public PFuture<Void> flushAsync() {
-        return null;
+        return PFutures.successful(null, this.options.ioExecutor());
     }
 
     @Override

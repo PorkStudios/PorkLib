@@ -21,26 +21,14 @@
 package net.daporkchop.lib.minecraft.format.anvil.version.codec.chunk;
 
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.common.pool.array.ArrayAllocator;
 import net.daporkchop.lib.compat.datafix.DataCodec;
 import net.daporkchop.lib.compat.datafix.DataFixer;
-import net.daporkchop.lib.compat.datafix.ParameterizedDataCodec;
-import net.daporkchop.lib.minecraft.format.anvil.AnvilWorld;
 import net.daporkchop.lib.minecraft.format.anvil.AnvilWorldStorage;
-import net.daporkchop.lib.minecraft.format.anvil.storage.HeapLegacyBlockStorage;
 import net.daporkchop.lib.minecraft.format.anvil.chunk.AnvilChunk;
-import net.daporkchop.lib.minecraft.format.common.DefaultSection;
-import net.daporkchop.lib.minecraft.format.common.storage.BlockStorage;
-import net.daporkchop.lib.minecraft.format.common.nibble.HeapNibbleArray;
-import net.daporkchop.lib.minecraft.format.common.nibble.NibbleArray;
-import net.daporkchop.lib.minecraft.format.common.vanilla.VanillaChunk;
+import net.daporkchop.lib.minecraft.format.vanilla.VanillaChunk;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Section;
-import net.daporkchop.lib.minecraft.world.World;
-import net.daporkchop.lib.minecraft.world.WorldStorage;
-import net.daporkchop.lib.nbt.tag.ByteArrayTag;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**

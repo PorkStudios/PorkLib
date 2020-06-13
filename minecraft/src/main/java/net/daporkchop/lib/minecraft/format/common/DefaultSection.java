@@ -51,8 +51,6 @@ public class DefaultSection extends AbstractRefCounted implements Section {
     @Getter(AccessLevel.NONE)
     protected final NibbleArray skyLight;
 
-    protected final Chunk parent;
-
     protected final int x;
     protected final int y;
     protected final int z;
@@ -61,7 +59,6 @@ public class DefaultSection extends AbstractRefCounted implements Section {
         this.blocks = blocks;
         this.blockLight = blockLight;
         this.skyLight = skyLight;
-        this.parent = parent.retain();
         this.x = parent.x();
         this.y = y;
         this.z = parent.z();
@@ -75,8 +72,6 @@ public class DefaultSection extends AbstractRefCounted implements Section {
 
     @Override
     protected void doRelease() {
-        this.parent.retain();
-
         this.blocks.release();
         this.blockLight.release();
         if (this.skyLight != null) {

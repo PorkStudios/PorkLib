@@ -23,7 +23,7 @@ package net.daporkchop.lib.minecraft.format.anvil;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.minecraft.format.common.vanilla.VanillaWorld;
+import net.daporkchop.lib.minecraft.format.vanilla.VanillaWorld;
 import net.daporkchop.lib.minecraft.util.WriteAccess;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.minecraft.world.Dimension;

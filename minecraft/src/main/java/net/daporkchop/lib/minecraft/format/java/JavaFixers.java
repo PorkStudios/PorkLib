@@ -18,44 +18,30 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.anvil.version.codec.chunk;
+package net.daporkchop.lib.minecraft.format.java;
 
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.compat.datafix.DataCodec;
-import net.daporkchop.lib.minecraft.format.anvil.chunk.AnvilChunk;
-import net.daporkchop.lib.minecraft.format.vanilla.VanillaChunk;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.compat.datafix.DataFixer;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
- * Codec for serialization of chunks in the post-flattening format.
+ * A collection of multiple {@link DataFixer}s used by a Java edition save for NBT serialization of various things.
  *
  * @author DaPorkchop_
  */
-public class FlattenedChunkCodec implements DataCodec<Chunk, CompoundTag> {
-    public static final JavaVersion VERSION = JavaVersion.fromName("1.15.2");
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public class JavaFixers {
+    @NonNull
+    protected final DataFixer<Chunk, CompoundTag, JavaVersion> chunk;
 
-    @Override
-    public Chunk decode(@NonNull CompoundTag root) {
-        CompoundTag level = root.getCompound("Level");
-        int x = level.getInt("xPos");
-        int z = level.getInt("zPos");
-
-        Section[] sections = new Section[16];
-        FlattenedChunk chunk = new FlattenedChunk(x, z, sections);
-        return chunk;
-    }
-
-    @Override
-    public CompoundTag encode(@NonNull Chunk value) {
-        throw new UnsupportedOperationException(); //TODO
-    }
-
-    protected static class FlattenedChunk extends VanillaChunk implements AnvilChunk {
-        public FlattenedChunk(int x, int z, @NonNull Section[] sections) {
-            super(x, z, sections);
-        }
-    }
+    @NonNull
+    protected final DataFixer<Section, CompoundTag, JavaVersion> section;
 }

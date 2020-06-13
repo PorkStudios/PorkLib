@@ -18,7 +18,7 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.util;
+package net.daporkchop.lib.minecraft.format.java;
 
 import lombok.AccessLevel;
 import lombok.Getter;

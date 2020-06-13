@@ -18,7 +18,7 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.common.vanilla;
+package net.daporkchop.lib.minecraft.format.vanilla;
 
 import lombok.NonNull;
 import net.daporkchop.lib.minecraft.block.BlockState;

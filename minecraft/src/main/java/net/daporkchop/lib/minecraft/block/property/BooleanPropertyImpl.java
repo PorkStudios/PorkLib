@@ -82,7 +82,7 @@ public class BooleanPropertyImpl implements Property.Boolean {
 
         @Override
         public BlockState getState(boolean value) {
-            return null;
+            return value ? this.trueState : this.falseState;
         }
     }
 }

@@ -34,9 +34,12 @@ import net.daporkchop.lib.nbt.NBTOptions;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Spliterator;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 import static net.daporkchop.lib.common.util.PorkUtil.*;
@@ -48,7 +51,7 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
  */
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Accessors(fluent = true)
-public final class CompoundTag extends Tag<CompoundTag> {
+public final class CompoundTag extends Tag<CompoundTag> implements Iterable<Map.Entry<String, Tag>> {
     protected final Map<String, Tag> map;
     @Getter
     protected final String name;
@@ -94,6 +97,21 @@ public final class CompoundTag extends Tag<CompoundTag> {
             entry.getValue().write(out);
         }
         out.writeByte(TAG_END);
+    }
+
+    @Override
+    public Iterator<Map.Entry<String, Tag>> iterator() {
+        return this.map.entrySet().iterator();
+    }
+
+    @Override
+    public void forEach(Consumer<? super Map.Entry<String, Tag>> action) {
+        this.map.entrySet().forEach(action);
+    }
+
+    @Override
+    public Spliterator<Map.Entry<String, Tag>> spliterator() {
+        return this.map.entrySet().spliterator();
     }
 
     @Override

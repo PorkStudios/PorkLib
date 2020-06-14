@@ -92,6 +92,10 @@ public final class ListTag<T extends Tag<T>> extends Tag<ListTag<T>> implements 
         }
     }
 
+    public int size()   {
+        return this.list.size();
+    }
+
     @Override
     public Iterator<T> iterator() {
         return this.list.iterator();

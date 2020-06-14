@@ -42,7 +42,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 import java.util.function.ObjIntConsumer;
@@ -72,18 +71,23 @@ public abstract class AbstractBlockRegistry implements BlockRegistry {
 
     protected final int blocks;
     protected final int states;
+    protected final int maxRuntimeId;
 
     protected <I extends Builder<I, B, R>, B extends BlockBuilder<B, I, R>, R extends BlockRegistry> AbstractBlockRegistry(@NonNull I builder) {
         builder.blocks.forEach((id, block) -> this.idToDefaultState.put(id, block.bake(uncheckedCast(this))));
-        this.idToDefaultState.values().stream()
-                .filter(BlockState::hasLegacyId)
-                .forEach(state -> this.legacyIdToDefaultState.put(state.legacyId(), state));
 
-        this.idToDefaultState.values().stream()
+        this.maxRuntimeId = this.idToDefaultState.values().stream()
+                .peek(state -> {
+                    if (state.hasLegacyId()) {
+                        this.legacyIdToDefaultState.put(state.legacyId(), state);
+                    }
+                })
                 .map(DefaultBlockState::otherMeta)
                 .flatMap(Arrays::stream)
                 .filter(Objects::nonNull) //legacy anvil has unused meta values (which are null)
-                .forEach(state -> this.runtimeIdToState.put(state.runtimeId(), state));
+                .peek(state -> this.runtimeIdToState.put(state.runtimeId(), state))
+                .mapToInt(BlockState::runtimeId)
+                .max().orElseThrow(IllegalStateException::new);
 
         this.air = this.getDefaultState(Identifier.fromString("minecraft:air"));
 

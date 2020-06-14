@@ -20,48 +20,38 @@
 
 package net.daporkchop.lib.minecraft.util.palette;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 import java.util.function.IntBinaryOperator;
 
 /**
- * A mapping of arbitrary {@code int}s to sequential IDs.
+ * Trivial implementation of {@link Palette} which always returns the input value.
  *
  * @author DaPorkchop_
  */
-public interface Palette {
-    /**
-     * Checks whether or not this palette contains the given {@code int}.
-     *
-     * @param value the {@code int} to check for
-     * @return whether or not this palette contains the given {@code int}
-     */
-    boolean contains(int value);
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class IdentityPalette implements Palette {
+    public static final IdentityPalette INSTANCE = new IdentityPalette();
 
-    /**
-     * Gets the ID mapped to the given {@code int}.
-     * <p>
-     * If the given {@code int} is not known, it will be added and a new one computed.
-     *
-     * @param value the {@code int} to get the ID for
-     * @return the {@code int}'s ID
-     */
-    int get(int value);
+    @Override
+    public boolean contains(int value) {
+        return value >= 0;
+    }
 
-    /**
-     * Gets the {@code int} mapped to the given ID.
-     *
-     * @param id the ID to get the {@code int} for
-     * @return the ID's {@code int}, or {@code -1} if it is not known
-     */
-    int getReverse(int id);
+    @Override
+    public int get(int value) {
+        return value >= 0 ? value : -1;
+    }
 
-    /**
-     * Sets the function that will be called when the palette needs to be resized.
-     *
-     * @param resizeCallback the function that will be called when the palette needs to be resized
-     * @return this {@link Palette}
-     * @throws IllegalStateException if the resize callback has already been set
-     */
-    Palette setResizeCallback(@NonNull IntBinaryOperator resizeCallback);
+    @Override
+    public int getReverse(int id) {
+        return id >= 0 ? id : -1;
+    }
+
+    @Override
+    public Palette setResizeCallback(@NonNull IntBinaryOperator resizeCallback) {
+        return this; //no-op
+    }
 }

@@ -21,8 +21,9 @@
 package net.daporkchop.lib.minecraft.util.palette;
 
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.block.BlockRegistry;
-import net.daporkchop.lib.minecraft.block.BlockState;
+
+import java.util.Arrays;
+import java.util.function.IntBinaryOperator;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 
@@ -32,22 +33,26 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  * @author DaPorkchop_
  */
 public class ArrayPalette implements Palette {
-    protected final BlockRegistry registry;
-    protected final BlockState[] states;
+    protected IntBinaryOperator resizeCallback;
+    protected final int[] values;
     protected final int bits;
     protected int size;
 
-    public ArrayPalette(@NonNull BlockRegistry registry, int bits) {
-        this.registry = registry;
-        this.states = new BlockState[1 << positive(bits, "bits")];
+    public ArrayPalette(int bits) {
+        Arrays.fill(this.values = new int[1 << positive(bits, "bits")], -1);
         this.bits = bits;
     }
 
+    public ArrayPalette(@NonNull IntBinaryOperator resizeCallback, int bits) {
+        this(bits);
+        this.resizeCallback = resizeCallback;
+    }
+
     @Override
-    public boolean contains(@NonNull BlockState state) {
-        BlockState[] states = this.states;
+    public boolean contains(int value) {
+        int[] values = this.values;
         for (int i = 0, size = this.size; i < size; i++) {
-            if (states[i] == state) {
+            if (values[i] == value) {
                 return true;
             }
         }
@@ -55,27 +60,33 @@ public class ArrayPalette implements Palette {
     }
 
     @Override
-    public int get(@NonNull BlockState state) {
-        BlockState[] states = this.states;
+    public int get(int value) {
+        int[] values = this.values;
         int size = this.size;
         for (int i = 0; i < size; i++) {
-            if (states[i] == state) {
+            if (values[i] == value) {
                 return i;
             }
         }
 
-        if (size < states.length)   {
-            states[size] = state;
+        if (size < values.length) {
+            values[size] = value;
             this.size = size + 1;
             return size;
         } else {
-            //TODO: resize
-            return -1;
+            return this.resizeCallback.applyAsInt(this.bits + 1, value);
         }
     }
 
     @Override
-    public BlockState get(int id) {
-        return id >= 0 && id < this.size ? this.states[id] : null;
+    public int getReverse(int id) {
+        return id >= 0 && id < this.size ? this.values[id] : -1;
+    }
+
+    @Override
+    public Palette setResizeCallback(@NonNull IntBinaryOperator resizeCallback) {
+        checkState(this.resizeCallback == null, "resizeCallback was already set!");
+        this.resizeCallback = resizeCallback;
+        return this;
     }
 }

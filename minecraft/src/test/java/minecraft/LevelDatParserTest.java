@@ -85,6 +85,7 @@ public class LevelDatParserTest {
                 try (World world = save.world(Identifier.fromString("overworld"))) {
                     try (Section section = world.storage().loadSection(0, 0, 0)) {
                         System.out.println(section.getBlockRuntimeId(0, 0, 0));
+                        System.out.println(section.blockRegistry().getState(section.getBlockRuntimeId(0, 0, 0)));
                         System.out.println(section.getBlockState(0, 0, 0));
                         System.out.println(section.blockRegistry()
                                 .getDefaultState(section.getBlockLegacyId(0, 0, 0))

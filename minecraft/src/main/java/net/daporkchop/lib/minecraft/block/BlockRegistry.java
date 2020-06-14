@@ -69,6 +69,11 @@ public interface BlockRegistry {
     int states();
 
     /**
+     * @return the highest runtime ID registered
+     */
+    int maxRuntimeId();
+
+    /**
      * @return the {@link BlockState} used to represent air
      */
     BlockState air();

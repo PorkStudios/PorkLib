@@ -32,6 +32,11 @@ import net.daporkchop.lib.minecraft.util.Identifier;
 public interface TileEntitySign extends TileEntity {
     Identifier ID = Identifier.fromString("minecraft:sign");
 
+    @Override
+    default Identifier id() {
+        return ID;
+    }
+
     /**
      * @return an array containing the 4 lines of text displayed on the sign
      */
@@ -57,6 +62,7 @@ public interface TileEntitySign extends TileEntity {
      *
      * @param color the new color
      * @return this instance
+     * @throws IllegalArgumentException if the given {@link ChatFormat} is not a color
      */
     TileEntitySign color(@NonNull ChatFormat color);
 }

@@ -18,44 +18,31 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.tile;
+package net.daporkchop.lib.minecraft.format.java.version.tile.decoder;
 
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.minecraft.util.dirty.AbstractDirtiable;
-import net.daporkchop.lib.minecraft.version.MinecraftVersion;
+import net.daporkchop.lib.minecraft.format.java.version.JavaDecoder;
+import net.daporkchop.lib.minecraft.save.SaveOptions;
+import net.daporkchop.lib.minecraft.tile.TileEntitySign;
+import net.daporkchop.lib.minecraft.tile.impl.DefaultTileEntitySign;
+import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
- * Base implementation of {@link TileEntity}.
+ * Decodes signs for versions prior to 1.14.
  *
  * @author DaPorkchop_
  */
-@Getter
-@Accessors(fluent = true)
-public abstract class AbstractTileEntity extends AbstractDirtiable implements TileEntity {
-    protected final int x;
-    protected final int y;
-    protected final int z;
+public class SignDecoder1_13_2 implements JavaDecoder<TileEntitySign> {
+    public static final JavaVersion VERSION = JavaVersion.fromName("1.13.2");
 
-    protected final MinecraftVersion version;
-    protected final CompoundTag nbt;
-
-    public AbstractTileEntity(int x, int y, int z, @NonNull MinecraftVersion version, CompoundTag nbt) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.version = version;
-        this.nbt = nbt;
-    }
-
-    public AbstractTileEntity(@NonNull MinecraftVersion version, @NonNull CompoundTag nbt) {
-        this.x = nbt.getInt("x");
-        this.y = nbt.getInt("y");
-        this.z = nbt.getInt("z");
-
-        this.version = version;
-        this.nbt = nbt;
+    @Override
+    public TileEntitySign decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, SaveOptions options) {
+        TileEntitySign sign = new DefaultTileEntitySign(version, tag);
+        sign.line(0, tag.getString("Text1", ""));
+        sign.line(1, tag.getString("Text2", ""));
+        sign.line(2, tag.getString("Text3", ""));
+        sign.line(3, tag.getString("Text4", ""));
+        return sign;
     }
 }

@@ -34,7 +34,7 @@ import java.util.TreeMap;
  */
 public class DataFixerBuilder<O, D, V extends Comparable<? super V>> {
     protected final Map<V, DataConverter<D>> converters = new TreeMap<>();
-    protected final Map<V, ParameterizedDecoder<O, D, V, ?>> decoders = new TreeMap<>();
+    protected final Map<V, ParameterizedDecoder<? extends O, D, V, ?>> decoders = new TreeMap<>();
     protected final Map<V, ParameterizedEncoder<O, D, V, ?>> encoders = new TreeMap<>();
 
     /**
@@ -58,7 +58,7 @@ public class DataFixerBuilder<O, D, V extends Comparable<? super V>> {
      * @param codec   the {@link DataCodec} to use
      * @return this builder
      */
-    public synchronized DataFixerBuilder<O, D, V> addDecoder(@NonNull V version, @NonNull ParameterizedDecoder<O, D, V, ?> codec) {
+    public synchronized DataFixerBuilder<O, D, V> addDecoder(@NonNull V version, @NonNull ParameterizedDecoder<? extends O, D, V, ?> codec) {
         this.decoders.put(version, codec);
         return this;
     }

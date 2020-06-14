@@ -23,39 +23,23 @@ package net.daporkchop.lib.minecraft.tile;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.minecraft.util.dirty.AbstractDirtiable;
+import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.version.MinecraftVersion;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
- * Base implementation of {@link TileEntity}.
+ * Representation of a tile entity whose content is unknown. It is simply stored as an unprocessed NBT tag in memory.
  *
  * @author DaPorkchop_
  */
 @Getter
 @Accessors(fluent = true)
-public abstract class AbstractTileEntity extends AbstractDirtiable implements TileEntity {
-    protected final int x;
-    protected final int y;
-    protected final int z;
+public class UnknownTileEntity extends AbstractTileEntity {
+    protected final Identifier id;
 
-    protected final MinecraftVersion version;
-    protected final CompoundTag nbt;
+    public UnknownTileEntity(@NonNull MinecraftVersion version, @NonNull CompoundTag nbt) {
+        super(nbt.getInt("x"), nbt.getInt("y"), nbt.getInt("z"), version, nbt);
 
-    public AbstractTileEntity(int x, int y, int z, @NonNull MinecraftVersion version, CompoundTag nbt) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.version = version;
-        this.nbt = nbt;
-    }
-
-    public AbstractTileEntity(@NonNull MinecraftVersion version, @NonNull CompoundTag nbt) {
-        this.x = nbt.getInt("x");
-        this.y = nbt.getInt("y");
-        this.z = nbt.getInt("z");
-
-        this.version = version;
-        this.nbt = nbt;
+        this.id = Identifier.fromString(nbt.getString("id"));
     }
 }

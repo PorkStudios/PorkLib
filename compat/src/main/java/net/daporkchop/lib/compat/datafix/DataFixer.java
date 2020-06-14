@@ -45,10 +45,10 @@ public class DataFixer<O, D, V extends Comparable<? super V>> {
     }
 
     protected final NavigableMap<V, DataConverter<D>> converters;
-    protected final NavigableMap<V, ParameterizedDecoder<O, D, V, ?>> decoders;
+    protected final NavigableMap<V, ParameterizedDecoder<? extends O, D, V, ?>> decoders;
     protected final NavigableMap<V, ParameterizedEncoder<O, D, V, ?>> encoders;
 
-    protected DataFixer(@NonNull Map<V, DataConverter<D>> converters, @NonNull Map<V, ParameterizedDecoder<O, D, V, ?>> decoders, @NonNull Map<V, ParameterizedEncoder<O, D, V, ?>> encoders) {
+    protected DataFixer(@NonNull Map<V, DataConverter<D>> converters, @NonNull Map<V, ParameterizedDecoder<? extends O, D, V, ?>> decoders, @NonNull Map<V, ParameterizedEncoder<O, D, V, ?>> encoders) {
         this.converters = new TreeMap<>(converters);
         this.decoders = new TreeMap<>(decoders);
         this.encoders = new TreeMap<>(encoders);
@@ -102,7 +102,7 @@ public class DataFixer<O, D, V extends Comparable<? super V>> {
         }
         V roundedTargetVersion = this.decoders.ceilingKey(targetVersion);
         checkArg(roundedTargetVersion != null, "no codec registered for given targetVersion (%s)", targetVersion);
-        ParameterizedDecoder<O, D, V, ?> codec = this.decoders.get(roundedTargetVersion);
+        ParameterizedDecoder<? extends O, D, V, ?> codec = this.decoders.get(roundedTargetVersion);
         return codec.decode(this.upgrade(data, dataVersion, targetVersion), dataVersion, uncheckedCast(param));
     }
 

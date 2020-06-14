@@ -18,44 +18,22 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.tile;
+package net.daporkchop.lib.minecraft.format.java.version.tile.converter;
 
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.minecraft.util.dirty.AbstractDirtiable;
-import net.daporkchop.lib.minecraft.version.MinecraftVersion;
+import net.daporkchop.lib.compat.datafix.DataConverter;
+import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
- * Base implementation of {@link TileEntity}.
- *
  * @author DaPorkchop_
  */
-@Getter
-@Accessors(fluent = true)
-public abstract class AbstractTileEntity extends AbstractDirtiable implements TileEntity {
-    protected final int x;
-    protected final int y;
-    protected final int z;
+public class SignConverter1_14 implements DataConverter<CompoundTag> {
+    public static final JavaVersion VERSION = JavaVersion.fromName("1.14");
 
-    protected final MinecraftVersion version;
-    protected final CompoundTag nbt;
-
-    public AbstractTileEntity(int x, int y, int z, @NonNull MinecraftVersion version, CompoundTag nbt) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.version = version;
-        this.nbt = nbt;
-    }
-
-    public AbstractTileEntity(@NonNull MinecraftVersion version, @NonNull CompoundTag nbt) {
-        this.x = nbt.getInt("x");
-        this.y = nbt.getInt("y");
-        this.z = nbt.getInt("z");
-
-        this.version = version;
-        this.nbt = nbt;
+    @Override
+    public CompoundTag convert(@NonNull CompoundTag data) {
+        data.putString("Color", "black");
+        return data;
     }
 }

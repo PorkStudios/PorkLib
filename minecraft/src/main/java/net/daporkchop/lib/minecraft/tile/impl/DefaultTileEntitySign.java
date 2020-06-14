@@ -18,44 +18,46 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.tile;
+package net.daporkchop.lib.minecraft.tile.impl;
 
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.minecraft.util.dirty.AbstractDirtiable;
+import net.daporkchop.lib.common.util.PArrays;
+import net.daporkchop.lib.minecraft.text.ChatFormat;
+import net.daporkchop.lib.minecraft.tile.AbstractTileEntity;
+import net.daporkchop.lib.minecraft.tile.TileEntitySign;
 import net.daporkchop.lib.minecraft.version.MinecraftVersion;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
- * Base implementation of {@link TileEntity}.
- *
  * @author DaPorkchop_
  */
 @Getter
 @Accessors(fluent = true)
-public abstract class AbstractTileEntity extends AbstractDirtiable implements TileEntity {
-    protected final int x;
-    protected final int y;
-    protected final int z;
+public class DefaultTileEntitySign extends AbstractTileEntity implements TileEntitySign {
+    protected final String[] lines = PArrays.fill(new String[4], "");
+    protected ChatFormat color = ChatFormat.BLACK;
 
-    protected final MinecraftVersion version;
-    protected final CompoundTag nbt;
-
-    public AbstractTileEntity(int x, int y, int z, @NonNull MinecraftVersion version, CompoundTag nbt) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.version = version;
-        this.nbt = nbt;
+    public DefaultTileEntitySign(int x, int y, int z, MinecraftVersion version, CompoundTag nbt) {
+        super(x, y, z, version, nbt);
     }
 
-    public AbstractTileEntity(@NonNull MinecraftVersion version, @NonNull CompoundTag nbt) {
-        this.x = nbt.getInt("x");
-        this.y = nbt.getInt("y");
-        this.z = nbt.getInt("z");
+    public DefaultTileEntitySign(@NonNull MinecraftVersion version, @NonNull CompoundTag nbt) {
+        super(version, nbt);
+    }
 
-        this.version = version;
-        this.nbt = nbt;
+    @Override
+    public TileEntitySign line(int index, @NonNull String text) {
+        this.lines[index] = text;
+        this.markDirty();
+        return this;
+    }
+
+    @Override
+    public TileEntitySign color(@NonNull ChatFormat color) {
+        this.color = color;
+        this.markDirty();
+        return this;
     }
 }

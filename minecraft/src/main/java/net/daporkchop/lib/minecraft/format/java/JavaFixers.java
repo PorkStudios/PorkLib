@@ -30,9 +30,19 @@ import net.daporkchop.lib.minecraft.format.anvil.version.chunk.decoder.LegacyChu
 import net.daporkchop.lib.minecraft.format.java.section.JavaSection;
 import net.daporkchop.lib.minecraft.format.java.version.section.decoder.FlattenedSectionDecoder;
 import net.daporkchop.lib.minecraft.format.java.version.section.decoder.LegacySectionDecoder;
+import net.daporkchop.lib.minecraft.format.java.version.tile.converter.SignConverter1_14;
+import net.daporkchop.lib.minecraft.format.java.version.tile.decoder.SignDecoder1_13_2;
+import net.daporkchop.lib.minecraft.format.java.version.tile.decoder.SignDecoderLatest;
+import net.daporkchop.lib.minecraft.tile.TileEntity;
+import net.daporkchop.lib.minecraft.tile.TileEntitySign;
+import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A collection of multiple {@link DataFixer}s used by a Java edition save for NBT serialization of various things.
@@ -47,6 +57,13 @@ public class JavaFixers {
         private static final JavaFixers DEFAULT_JAVA_FIXERS;
 
         static {
+            Map<Identifier, DataFixer<TileEntity, CompoundTag, JavaVersion>> tileEntity = new HashMap<>();
+            tileEntity.put(TileEntitySign.ID, DataFixer.<TileEntity, CompoundTag, JavaVersion>builder()
+                    .addDecoder(SignDecoder1_13_2.VERSION, new SignDecoder1_13_2())
+                    .addDecoder(SignDecoderLatest.VERSION, new SignDecoderLatest())
+                    .addConverter(SignConverter1_14.VERSION, new SignConverter1_14())
+                    .build());
+
             DEFAULT_JAVA_FIXERS = new JavaFixers(
                     DataFixer.<Chunk, CompoundTag, JavaVersion>builder()
                             .addDecoder(LegacyChunkDecoder.VERSION, new LegacyChunkDecoder())
@@ -55,7 +72,8 @@ public class JavaFixers {
                     DataFixer.<JavaSection, CompoundTag, JavaVersion>builder()
                             .addDecoder(LegacySectionDecoder.VERSION, new LegacySectionDecoder())
                             .addDecoder(FlattenedSectionDecoder.VERSION, new FlattenedSectionDecoder())
-                            .build());
+                            .build(),
+                    Collections.unmodifiableMap(tileEntity));
         }
     }
 
@@ -71,4 +89,7 @@ public class JavaFixers {
 
     @NonNull
     protected final DataFixer<JavaSection, CompoundTag, JavaVersion> section;
+
+    @NonNull
+    protected final Map<Identifier, DataFixer<TileEntity, CompoundTag, JavaVersion>> tileEntity;
 }

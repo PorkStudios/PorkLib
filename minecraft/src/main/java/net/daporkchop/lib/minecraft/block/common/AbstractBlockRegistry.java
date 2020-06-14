@@ -257,7 +257,6 @@ public abstract class AbstractBlockRegistry implements BlockRegistry {
                 Map<Map<Property<?>, ?>, DefaultBlockState> propertiesToStates = new HashMap<>();
                 propertiesToStates.put(Collections.emptyMap(), state);
                 state.otherMeta = this.getMetaArray(propertiesToStates);
-                state.properties = Collections.emptyList();
                 state.propertiesByName = Collections.emptyMap();
                 return state;
             } else {
@@ -278,7 +277,6 @@ public abstract class AbstractBlockRegistry implements BlockRegistry {
                 Map<String, Property<?>> propertiesByName = properties.stream().collect(Collectors.toMap(Property::name, PFunctions.identity()));
                 propertiesToStates.values().forEach(state -> {
                     state.otherMeta = metas;
-                    state.properties = properties;
                     state.propertiesByName = propertiesByName;
                 });
                 return this.getDefaultState(propertiesToStates, metas);

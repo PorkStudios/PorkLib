@@ -18,30 +18,33 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.anvil.version.chunk.decoder;
+package net.daporkchop.lib.minecraft.util.dirty;
 
-import lombok.NonNull;
-import net.daporkchop.lib.minecraft.format.java.version.JavaDecoder;
-import net.daporkchop.lib.minecraft.format.vanilla.VanillaChunk;
-import net.daporkchop.lib.minecraft.save.SaveOptions;
-import net.daporkchop.lib.minecraft.version.java.JavaVersion;
-import net.daporkchop.lib.minecraft.world.Chunk;
-import net.daporkchop.lib.nbt.tag.CompoundTag;
+import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 /**
- * Codec for serialization of chunks in the post-flattening format.
+ * Abstract implementation of {@link Dirtiable} which also extends {@link AbstractRefCounted}.
  *
  * @author DaPorkchop_
  */
-public class FlattenedChunkDecoder implements JavaDecoder<Chunk> {
-    public static final JavaVersion VERSION = JavaVersion.latest();
+public abstract class AbstractRefCountedDirtiable extends AbstractRefCounted implements Dirtiable {
+    protected static final long DIRTY_OFFSET = PUnsafe.pork_getOffset(AbstractRefCountedDirtiable.class, "dirty");
+
+    protected volatile int dirty = 0;
 
     @Override
-    public Chunk decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, SaveOptions options) {
-        CompoundTag level = tag.getCompound("Level");
-        int x = level.getInt("xPos");
-        int z = level.getInt("zPos");
+    public boolean dirty() {
+        return this.dirty != 0;
+    }
 
-        return new VanillaChunk(version, x, z);
+    @Override
+    public void markDirty() {
+        this.dirty = 1;
+    }
+
+    @Override
+    public boolean clearDirty() {
+        return PUnsafe.compareAndSwapInt(this, DIRTY_OFFSET, 1, 0);
     }
 }

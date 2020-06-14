@@ -18,30 +18,45 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.anvil.version.chunk.decoder;
+package net.daporkchop.lib.minecraft.tile;
 
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.format.java.version.JavaDecoder;
-import net.daporkchop.lib.minecraft.format.vanilla.VanillaChunk;
-import net.daporkchop.lib.minecraft.save.SaveOptions;
-import net.daporkchop.lib.minecraft.version.java.JavaVersion;
-import net.daporkchop.lib.minecraft.world.Chunk;
-import net.daporkchop.lib.nbt.tag.CompoundTag;
+import net.daporkchop.lib.minecraft.text.ChatFormat;
+import net.daporkchop.lib.minecraft.util.Identifier;
 
 /**
- * Codec for serialization of chunks in the post-flattening format.
+ * Representation of a {@code "minecraft:sign"} tile entity.
  *
  * @author DaPorkchop_
  */
-public class FlattenedChunkDecoder implements JavaDecoder<Chunk> {
-    public static final JavaVersion VERSION = JavaVersion.latest();
+public interface TileEntitySign extends TileEntity {
+    Identifier ID = Identifier.fromString("minecraft:sign");
 
-    @Override
-    public Chunk decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, SaveOptions options) {
-        CompoundTag level = tag.getCompound("Level");
-        int x = level.getInt("xPos");
-        int z = level.getInt("zPos");
+    /**
+     * @return an array containing the 4 lines of text displayed on the sign
+     */
+    String[] lines();
 
-        return new VanillaChunk(version, x, z);
-    }
+    /**
+     * Sets the line of text at the given index.
+     *
+     * @param index the index of the line to set
+     * @param text  the new text to set
+     * @return this instance
+     * @throws IndexOutOfBoundsException if the given index is outside of the range {@code [0-4)}
+     */
+    TileEntitySign line(int index, @NonNull String text);
+
+    /**
+     * @return the color that has been used to dye the sign. The default value is {@link ChatFormat#BLACK}
+     */
+    ChatFormat color();
+
+    /**
+     * Sets the color that has been used to dye the sign.
+     *
+     * @param color the new color
+     * @return this instance
+     */
+    TileEntitySign color(@NonNull ChatFormat color);
 }

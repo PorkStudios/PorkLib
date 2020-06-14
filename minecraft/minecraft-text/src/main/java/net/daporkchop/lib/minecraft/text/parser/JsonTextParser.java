@@ -31,7 +31,7 @@ import net.daporkchop.lib.common.misc.InstancePool;
 import net.daporkchop.lib.logging.console.TextFormat;
 import net.daporkchop.lib.logging.format.TextStyle;
 import net.daporkchop.lib.logging.format.component.TextComponentString;
-import net.daporkchop.lib.minecraft.text.MCTextFormat;
+import net.daporkchop.lib.minecraft.text.ChatFormat;
 import net.daporkchop.lib.minecraft.text.MCTextType;
 import net.daporkchop.lib.minecraft.text.component.MCTextRoot;
 
@@ -47,8 +47,8 @@ import java.util.stream.Collectors;
 @UtilityClass
 public class JsonTextParser {
     protected final JsonParser                PARSER       = InstancePool.getInstance(JsonParser.class);
-    protected final Map<String, MCTextFormat> COLOR_LOOKUP = Arrays.stream(MCTextFormat.COLORS)
-            .collect(Collectors.toMap(MCTextFormat::name, PFunctions.identity()));
+    protected final Map<String, ChatFormat> COLOR_LOOKUP = Arrays.stream(ChatFormat.COLORS)
+            .collect(Collectors.toMap(ChatFormat::name, PFunctions.identity()));
 
     public MCTextRoot parse(@NonNull String raw) {
         try {
@@ -116,10 +116,10 @@ public class JsonTextParser {
         if (name == null)   {
             return null;
         }
-        MCTextFormat format = MCTextFormat.lookupColor(name);
+        ChatFormat format = ChatFormat.lookupColor(name);
         if (format == null) {
             if ("reset".equalsIgnoreCase(name)) {
-                format = MCTextFormat.RESET;
+                format = ChatFormat.RESET;
             } else {
                 throw new IllegalArgumentException("Unknown color code: \"" + name + '"');
             }

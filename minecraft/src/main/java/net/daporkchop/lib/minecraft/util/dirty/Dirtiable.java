@@ -18,30 +18,28 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.anvil.version.chunk.decoder;
-
-import lombok.NonNull;
-import net.daporkchop.lib.minecraft.format.java.version.JavaDecoder;
-import net.daporkchop.lib.minecraft.format.vanilla.VanillaChunk;
-import net.daporkchop.lib.minecraft.save.SaveOptions;
-import net.daporkchop.lib.minecraft.version.java.JavaVersion;
-import net.daporkchop.lib.minecraft.world.Chunk;
-import net.daporkchop.lib.nbt.tag.CompoundTag;
+package net.daporkchop.lib.minecraft.util.dirty;
 
 /**
- * Codec for serialization of chunks in the post-flattening format.
+ * A type with a "dirty" flag which indicates whether or not it has changed since last being written to disk.
  *
  * @author DaPorkchop_
  */
-public class FlattenedChunkDecoder implements JavaDecoder<Chunk> {
-    public static final JavaVersion VERSION = JavaVersion.latest();
+public interface Dirtiable {
+    /**
+     * @return whether or not this instance is dirty
+     */
+    boolean dirty();
 
-    @Override
-    public Chunk decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, SaveOptions options) {
-        CompoundTag level = tag.getCompound("Level");
-        int x = level.getInt("xPos");
-        int z = level.getInt("zPos");
+    /**
+     * Sets the dirty flag to {@code true}.
+     */
+    void markDirty();
 
-        return new VanillaChunk(version, x, z);
-    }
+    /**
+     * Atomically resets the dirty flag to {@code false}.
+     *
+     * @return the previous state of the dirty flag.
+     */
+    boolean clearDirty();
 }

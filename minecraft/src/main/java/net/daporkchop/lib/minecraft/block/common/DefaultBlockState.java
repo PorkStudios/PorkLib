@@ -32,7 +32,9 @@ import net.daporkchop.lib.minecraft.block.PropertyMap;
 import net.daporkchop.lib.minecraft.util.Identifier;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Map;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
@@ -58,9 +60,9 @@ public class DefaultBlockState implements BlockState {
     @Getter(AccessLevel.PROTECTED)
     protected BlockState[] otherMeta;
     @Getter(AccessLevel.PROTECTED)
-    protected final Map<Property<?>, PropertyMap<?>> otherProperties = new HashMap<>(); //TODO: use a map that's better optimized for low entry counts
+    protected final Map<Property<?>, PropertyMap<?>> otherProperties = new IdentityHashMap<>(); //TODO: use a map that's better optimized for low entry counts
 
-    protected Collection<Property<?>> properties;
+    @Getter(AccessLevel.PROTECTED)
     protected Map<String, Property<?>> propertiesByName;
 
     @Override
@@ -102,6 +104,11 @@ public class DefaultBlockState implements BlockState {
         Property<T> property = uncheckedCast(this.propertiesByName.get(name));
         checkArg(property != null, "Invalid property %s for block %s!", name, this.id);
         return property;
+    }
+
+    @Override
+    public Collection<Property<?>> properties() {
+        return uncheckedCast(Collections.unmodifiableSet(this.propertiesByName.keySet()));
     }
 
     @Override

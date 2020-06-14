@@ -63,6 +63,11 @@ public final class JavaVersion extends MinecraftVersion {
     }
 
     @UtilityClass
+    private static class LatestVersion {
+        private final JavaVersion LATEST = fromName("1.15.2");
+    }
+
+    @UtilityClass
     private static class DataVersionToId {
         private final IntObjMap<String> MAP = new IntObjOpenHashMap<>();
 
@@ -74,7 +79,7 @@ public final class JavaVersion extends MinecraftVersion {
                 throw new AssertionError(e);
             }
             for (Map.Entry<String, JsonElement> entry : obj.entrySet()) {
-                MAP.put(Integer.parseUnsignedInt(entry.getKey()), entry.getValue().getAsString());
+                MAP.put(Integer.parseUnsignedInt(entry.getKey()), entry.getValue().getAsString().intern());
             }
         }
     }
@@ -82,7 +87,7 @@ public final class JavaVersion extends MinecraftVersion {
     private static final Map<String, JavaVersion> NAME_CACHE = new ObjObjConcurrentHashMap<>(); //fast computeIfAbsent
 
     public static JavaVersion fromName(@NonNull String nameIn) {
-        return NAME_CACHE.computeIfAbsent(nameIn, name -> {
+        return NAME_CACHE.computeIfAbsent(nameIn.intern(), name -> {
             try (InputStream in = JavaVersion.class.getResourceAsStream("by_id/" + name + ".json")) {
                 if (in == null) { //file wasn't found on disk
                     return new JavaVersion(name, -1L);
@@ -103,6 +108,16 @@ public final class JavaVersion extends MinecraftVersion {
         return name != null ? fromName(name) : new JavaVersion(null, -1L, -1, dataVersion);
     }
 
+    /**
+     * @return the {@link JavaVersion} representing the latest version of the game supported by this library
+     */
+    public static JavaVersion latest() {
+        return LatestVersion.LATEST;
+    }
+
+    /**
+     * @return the {@link JavaVersion} used for all versions of Java edition prior to snapshot 15w32a, in which data versions were first added
+     */
     public static JavaVersion pre15w32a() {
         return OldVersion.OLD;
     }

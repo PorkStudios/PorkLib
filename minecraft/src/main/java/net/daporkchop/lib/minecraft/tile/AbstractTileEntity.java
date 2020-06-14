@@ -18,30 +18,30 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.anvil.version.chunk.decoder;
+package net.daporkchop.lib.minecraft.tile;
 
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.format.java.version.JavaDecoder;
-import net.daporkchop.lib.minecraft.format.vanilla.VanillaChunk;
-import net.daporkchop.lib.minecraft.save.SaveOptions;
-import net.daporkchop.lib.minecraft.version.java.JavaVersion;
-import net.daporkchop.lib.minecraft.world.Chunk;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.minecraft.util.dirty.AbstractDirtiable;
+import net.daporkchop.lib.minecraft.version.MinecraftVersion;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
- * Codec for serialization of chunks in the post-flattening format.
+ * Base implementation of {@link TileEntity}.
  *
  * @author DaPorkchop_
  */
-public class FlattenedChunkDecoder implements JavaDecoder<Chunk> {
-    public static final JavaVersion VERSION = JavaVersion.latest();
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public abstract class AbstractTileEntity extends AbstractDirtiable implements TileEntity {
+    protected final int x;
+    protected final int y;
+    protected final int z;
 
-    @Override
-    public Chunk decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, SaveOptions options) {
-        CompoundTag level = tag.getCompound("Level");
-        int x = level.getInt("xPos");
-        int z = level.getInt("zPos");
-
-        return new VanillaChunk(version, x, z);
-    }
+    @NonNull
+    protected final MinecraftVersion version;
+    protected final CompoundTag nbt;
 }

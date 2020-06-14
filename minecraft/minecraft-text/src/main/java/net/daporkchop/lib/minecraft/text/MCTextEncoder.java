@@ -28,7 +28,6 @@ import net.daporkchop.lib.logging.console.TextFormat;
 import net.daporkchop.lib.logging.format.component.TextComponent;
 import net.daporkchop.lib.minecraft.text.component.MCTextRoot;
 
-import java.awt.Color;
 import java.io.IOException;
 
 import static net.daporkchop.lib.logging.format.TextStyle.*;
@@ -64,7 +63,7 @@ public class MCTextEncoder {
 
         switch (type) {
             case LEGACY:
-                encodeLegacy(dst, component, new TextFormat().setTextColor(MCTextFormat.WHITE.awtColor()), MCTextFormat.RESET);
+                encodeLegacy(dst, component, new TextFormat().setTextColor(ChatFormat.WHITE.awtColor()), ChatFormat.RESET);
                 break;
             case JSON:
                 //TODO
@@ -74,7 +73,7 @@ public class MCTextEncoder {
         }
     }
 
-    protected MCTextFormat encodeLegacy(@NonNull Appendable dst, @NonNull TextComponent component, @NonNull TextFormat format, @NonNull MCTextFormat lastColor) throws IOException {
+    protected ChatFormat encodeLegacy(@NonNull Appendable dst, @NonNull TextComponent component, @NonNull TextFormat format, @NonNull ChatFormat lastColor) throws IOException {
         lastColor = writeLegacyFormatting(dst, component, format, lastColor);
 
         for (TextComponent child : component.getChildren()) {
@@ -83,17 +82,17 @@ public class MCTextEncoder {
         return lastColor;
     }
 
-    protected MCTextFormat writeLegacyFormatting(@NonNull Appendable dst, @NonNull TextComponent component, @NonNull TextFormat format, @NonNull MCTextFormat lastColor) throws IOException {
+    protected ChatFormat writeLegacyFormatting(@NonNull Appendable dst, @NonNull TextComponent component, @NonNull TextFormat format, @NonNull ChatFormat lastColor) throws IOException {
         String text = component.getText();
 
-        MCTextFormat newColor = PorkUtil.fallbackIfNull(MCTextFormat.closestTo(component.getColor()), lastColor);
+        ChatFormat newColor = PorkUtil.fallbackIfNull(ChatFormat.closestTo(component.getColor()), lastColor);
 
         int newStyle = component.getStyle();
         int oldStyle = format.getStyle();
 
         boolean colorChanged = newColor != lastColor;
         boolean styleRemoved = (~oldStyle & newStyle) != 0;
-        boolean rewriteStyle = colorChanged || styleRemoved || (lastColor != MCTextFormat.RESET && newStyle != 0);
+        boolean rewriteStyle = colorChanged || styleRemoved || (lastColor != ChatFormat.RESET && newStyle != 0);
 
         if (text != null) {
             if (rewriteStyle) {

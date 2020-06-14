@@ -25,7 +25,6 @@ import net.daporkchop.lib.binary.bit.packed.PackedBitArray;
 import net.daporkchop.lib.common.math.BinMath;
 import net.daporkchop.lib.minecraft.block.BlockRegistry;
 import net.daporkchop.lib.minecraft.block.BlockState;
-import net.daporkchop.lib.minecraft.block.Property;
 import net.daporkchop.lib.minecraft.format.common.storage.BlockStorage;
 import net.daporkchop.lib.minecraft.format.common.storage.palette.PalettedBlockStorage;
 import net.daporkchop.lib.minecraft.util.Identifier;
@@ -44,7 +43,7 @@ import java.util.Map;
  * @author DaPorkchop_
  */
 public class FlattenedSectionDecoder extends LegacySectionDecoder {
-    public static final JavaVersion VERSION = JavaVersion.fromName("1.15.2");
+    public static final JavaVersion VERSION = JavaVersion.latest();
 
     @Override
     protected BlockStorage parseBlockStorage(@NonNull CompoundTag tag, @NonNull BlockRegistry blockRegistry) {
@@ -63,22 +62,19 @@ public class FlattenedSectionDecoder extends LegacySectionDecoder {
 
     protected Palette parseBlockPalette(int bits, @NonNull ListTag<CompoundTag> paletteTag, @NonNull BlockRegistry blockRegistry) {
         Palette palette = new ArrayPalette(bits);
-        for (CompoundTag tag : paletteTag)  {
+        for (CompoundTag tag : paletteTag) {
             BlockState state = blockRegistry.getDefaultState(Identifier.fromString(tag.getString("Name")));
 
             CompoundTag properties = tag.getCompound("Properties", null);
             if (properties != null) {
                 //set properties
                 for (Map.Entry<String, Tag> entry : properties) {
-                    Property<Object> property = state.property(entry.getKey());
-                    state = state.withProperty(property, property.decodeValue(((StringTag) entry.getValue()).value()));
+                    state = state.withProperty(entry.getKey(), ((StringTag) entry.getValue()).value());
                 }
             }
 
             palette.get(state.runtimeId());
         }
-        //System.out.println(paletteTag);
-        //System.exit(1);
         return palette;
     }
 }

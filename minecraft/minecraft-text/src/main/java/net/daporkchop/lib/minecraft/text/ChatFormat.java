@@ -44,7 +44,7 @@ import java.util.regex.Pattern;
  */
 @Getter
 @Accessors(fluent = true)
-public enum MCTextFormat {
+public enum ChatFormat {
     // color codes
     BLACK('0', Color.BLACK, Color.BLACK),
     DARK_BLUE('1', 0x0000AA, 0x00002A),
@@ -73,17 +73,17 @@ public enum MCTextFormat {
     public static final  Pattern      CLEAN_PATTERN       = Pattern.compile("§[0-9a-fk-or]", Pattern.CASE_INSENSITIVE);
     private static final Ref<Matcher> CLEAN_MATCHER_CACHE = ThreadRef.soft(() -> CLEAN_PATTERN.matcher(""));
 
-    public static final MCTextFormat[] VALUES = values();
-    public static final MCTextFormat[] COLORS = Arrays.copyOfRange(VALUES, 0, WHITE.ordinal() + 1);
+    public static final ChatFormat[] VALUES = values();
+    public static final ChatFormat[] COLORS = Arrays.copyOfRange(VALUES, 0, WHITE.ordinal() + 1);
 
-    private static final MCTextFormat[] CODE_LOOKUP       = new MCTextFormat['r' + 1];
-    private static final MCTextFormat[] CODE_COLOR_LOOKUP = new MCTextFormat['r' + 1];
+    private static final ChatFormat[] CODE_LOOKUP       = new ChatFormat['r' + 1];
+    private static final ChatFormat[] CODE_COLOR_LOOKUP = new ChatFormat['r' + 1];
 
-    private static final Map<String, MCTextFormat> NAME_LOOKUP       = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-    private static final Map<String, MCTextFormat> NAME_COLOR_LOOKUP = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    private static final Map<String, ChatFormat> NAME_LOOKUP       = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    private static final Map<String, ChatFormat> NAME_COLOR_LOOKUP = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
     static {
-        for (MCTextFormat format : VALUES) {
+        for (ChatFormat format : VALUES) {
             CODE_LOOKUP[Character.toLowerCase(format.code)] = format;
             CODE_LOOKUP[Character.toUpperCase(format.code)] = format;
 
@@ -113,30 +113,30 @@ public enum MCTextFormat {
     }
 
     /**
-     * Gets the {@link MCTextFormat} whose color is most similar to the given {@link Color}.
+     * Gets the {@link ChatFormat} whose color is most similar to the given {@link Color}.
      *
      * @param color the {@link Color} to find a match for
-     * @return the {@link MCTextFormat} whose color is most similar to the given {@link Color}
+     * @return the {@link ChatFormat} whose color is most similar to the given {@link Color}
      */
-    public static MCTextFormat closestTo(Color color) {
+    public static ChatFormat closestTo(Color color) {
         return color == null ? null : closestTo(color, color.getRGB());
     }
 
     /**
-     * Gets the {@link MCTextFormat} whose color is most similar to the given RGB color.
+     * Gets the {@link ChatFormat} whose color is most similar to the given RGB color.
      *
      * @param rgb the RGB color to find a match for
-     * @return the {@link MCTextFormat} whose color is most similar to the given color
+     * @return the {@link ChatFormat} whose color is most similar to the given color
      */
-    public static MCTextFormat closestTo(int rgb) {
+    public static ChatFormat closestTo(int rgb) {
         return closestTo(null, rgb);
     }
 
-    private static MCTextFormat closestTo(final Color color, final int rgb) {
-        MCTextFormat closest = null;
+    private static ChatFormat closestTo(final Color color, final int rgb) {
+        ChatFormat closest = null;
         int closestDist = 1 << 30;
 
-        for (MCTextFormat format : COLORS) {
+        for (ChatFormat format : COLORS) {
             if (color == format.awtColor) {
                 //if the colors match at an identity level, blindly accept it
                 return format;
@@ -157,33 +157,33 @@ public enum MCTextFormat {
     }
 
     /**
-     * Finds the {@link MCTextFormat} with the given formatting code.
+     * Finds the {@link ChatFormat} with the given formatting code.
      *
      * @param code the formatting code to search for
-     * @return the {@link MCTextFormat} with the given formatting code, or {@code null} if none could be found
+     * @return the {@link ChatFormat} with the given formatting code, or {@code null} if none could be found
      */
-    public static MCTextFormat lookup(char code) {
+    public static ChatFormat lookup(char code) {
         return code <= 'r' ? CODE_LOOKUP[code] : null;
     }
 
     /**
-     * Finds the {@link MCTextFormat} with the given color (not formatting!) code.
+     * Finds the {@link ChatFormat} with the given color (not formatting!) code.
      *
      * @param code the color code to search for
-     * @return the {@link MCTextFormat} with the given color code, or {@code null} if none could be found
+     * @return the {@link ChatFormat} with the given color code, or {@code null} if none could be found
      */
-    public static MCTextFormat lookupColor(char code) {
+    public static ChatFormat lookupColor(char code) {
         return code <= 'r' ? CODE_COLOR_LOOKUP[code] : null;
     }
 
     /**
-     * Finds the {@link MCTextFormat} with the given name.
+     * Finds the {@link ChatFormat} with the given name.
      *
      * @param name the name of the formatting code to search for
-     * @return the {@link MCTextFormat} with the given name, or {@code null} if none could be found
+     * @return the {@link ChatFormat} with the given name, or {@code null} if none could be found
      */
-    public static MCTextFormat lookup(@NonNull String name) {
-        MCTextFormat format;
+    public static ChatFormat lookup(@NonNull String name) {
+        ChatFormat format;
         if (name.length() == 1 && (format = lookup(name.charAt(0))) != null)    {
             return format;
         }
@@ -191,13 +191,13 @@ public enum MCTextFormat {
     }
 
     /**
-     * Finds the {@link MCTextFormat} with the given name.
+     * Finds the {@link ChatFormat} with the given name.
      *
      * @param name the name of the color code to search for
-     * @return the {@link MCTextFormat} with the given name, or {@code null} if none could be found
+     * @return the {@link ChatFormat} with the given name, or {@code null} if none could be found
      */
-    public static MCTextFormat lookupColor(@NonNull String name) {
-        MCTextFormat format;
+    public static ChatFormat lookupColor(@NonNull String name) {
+        ChatFormat format;
         if (name.length() == 1 && (format = lookupColor(name.charAt(0))) != null)    {
             return format;
         }
@@ -245,7 +245,7 @@ public enum MCTextFormat {
      */
     protected final char code;
 
-    MCTextFormat(char code, Color color, Color bgColor) {
+    ChatFormat(char code, Color color, Color bgColor) {
         this.color = (this.awtColor = color) != null ? (color.getRGB() | 0xFF000000) : 0;
         this.bgColor = (this.awtBgColor = bgColor) != null ? (color.getRGB() | 0xFF000000) : 0;
         this.code = code;
@@ -253,11 +253,11 @@ public enum MCTextFormat {
         PUnsafeStrings.setEnumName(this, this.name().toLowerCase());
     }
 
-    MCTextFormat(char code, int color, int bgColor) {
+    ChatFormat(char code, int color, int bgColor) {
         this(code, new Color(color), new Color(bgColor));
     }
 
-    MCTextFormat(char code) {
+    ChatFormat(char code) {
         this(code, null, null);
     }
 

@@ -111,6 +111,20 @@ public interface BlockState {
     BlockState withProperty(@NonNull Property.Boolean property, boolean value);
 
     /**
+     * Convenience method, gets a {@link BlockState} with the same block {@link Identifier} and the property with the given name set to the given value.
+     *
+     * @param property the property name
+     * @param value    the {@link String} representation of the new property value
+     * @return a {@link BlockState} with the same block {@link Identifier} and the property with the given name set to the given value
+     * @throws IllegalArgumentException if the a property with the given name was not registered for the block
+     * @throws IllegalArgumentException if the property with the given name cannot parse or store the given value
+     */
+    default BlockState withProperty(@NonNull String property, @NonNull String value) {
+        Property<?> prop = this.property(property);
+        return this.withProperty(prop, uncheckedCast(prop.decodeValue(value)));
+    }
+
+    /**
      * @return all properties supported by the block
      */
     Collection<Property<?>> properties();

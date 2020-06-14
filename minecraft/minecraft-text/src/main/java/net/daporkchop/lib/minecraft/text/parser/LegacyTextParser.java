@@ -20,8 +20,6 @@
 
 package net.daporkchop.lib.minecraft.text.parser;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.pool.handle.Handle;
@@ -29,11 +27,10 @@ import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.logging.console.TextFormat;
 import net.daporkchop.lib.logging.format.TextStyle;
 import net.daporkchop.lib.logging.format.component.TextComponentString;
-import net.daporkchop.lib.minecraft.text.MCTextFormat;
+import net.daporkchop.lib.minecraft.text.ChatFormat;
 import net.daporkchop.lib.minecraft.text.MCTextType;
 import net.daporkchop.lib.minecraft.text.component.MCTextRoot;
 
-import java.awt.Color;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
@@ -69,7 +66,7 @@ public class LegacyTextParser {
             int nextChar;
             while ((nextChar = reader.read()) != -1)    {
                 if (expectingCode)  {
-                    MCTextFormat code = MCTextFormat.lookup((char) nextChar);
+                    ChatFormat code = ChatFormat.lookup((char) nextChar);
                     if (code == null)   {
                         throw new IllegalArgumentException(String.format("Invalid formatting code: %c", (char) nextChar));
                     }

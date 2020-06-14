@@ -18,30 +18,52 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.anvil.version.chunk.decoder;
+package net.daporkchop.lib.minecraft.tile;
 
-import lombok.NonNull;
-import net.daporkchop.lib.minecraft.format.java.version.JavaDecoder;
-import net.daporkchop.lib.minecraft.format.vanilla.VanillaChunk;
-import net.daporkchop.lib.minecraft.save.SaveOptions;
-import net.daporkchop.lib.minecraft.version.java.JavaVersion;
-import net.daporkchop.lib.minecraft.world.Chunk;
+import net.daporkchop.lib.compat.Versioned;
+import net.daporkchop.lib.math.access.IntHolderXYZ;
+import net.daporkchop.lib.minecraft.util.Identifier;
+import net.daporkchop.lib.minecraft.util.dirty.Dirtiable;
+import net.daporkchop.lib.minecraft.version.MinecraftVersion;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
- * Codec for serialization of chunks in the post-flattening format.
+ * Base representation of a tile entity.
+ * <p>
+ * All setters for all subinterfaces of this class must also set the dirty flag.
  *
  * @author DaPorkchop_
  */
-public class FlattenedChunkDecoder implements JavaDecoder<Chunk> {
-    public static final JavaVersion VERSION = JavaVersion.latest();
-
+public interface TileEntity extends IntHolderXYZ, Dirtiable, Versioned<MinecraftVersion> {
+    /**
+     * @return this tile entity's X coordinate
+     */
     @Override
-    public Chunk decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, SaveOptions options) {
-        CompoundTag level = tag.getCompound("Level");
-        int x = level.getInt("xPos");
-        int z = level.getInt("zPos");
+    int x();
 
-        return new VanillaChunk(version, x, z);
-    }
+    /**
+     * @return this tile entity's Y coordinate
+     */
+    @Override
+    int y();
+
+    /**
+     * @return this tile entity's Z coordinate
+     */
+    @Override
+    int z();
+
+    /**
+     * @return this entity's ID (e.g. {@code "minecraft:ender_chest"})
+     */
+    Identifier id();
+
+    /**
+     * Gets the NBT compound tag that this tile entity was loaded from.
+     * <p>
+     * This is only guaranteed to be valid when used for the exact same version as this instance (see {@link #version()}), and may not be set at all.
+     *
+     * @return the NBT compound tag that this tile entity was loaded from
+     */
+    CompoundTag nbt();
 }

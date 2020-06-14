@@ -18,8 +18,8 @@
  *
  */
 
-package binary;import net.daporkchop.lib.binary.bits.BitIn;
-import net.daporkchop.lib.binary.bits.BitOut;
+package binary;
+
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import org.junit.Test;
@@ -67,29 +67,5 @@ public class TestMain {
             in.close();
             baos.reset();
         }
-    }
-
-    @Test
-    public void a() throws IOException {
-        ByteArrayInputStream bais = new ByteArrayInputStream(new byte[1024]);
-        BitIn bis = new BitIn(bais);
-        bis.read();
-        bis.readBits(1);
-        bis.readBits(2);
-        bis.read();
-        bis.padToNextByte();
-        bis.close();
-    }
-
-    @Test
-    public void b() throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        BitOut bos = new BitOut(baos);
-        bos.writeBits(3, 0);
-        bos.writeBits(1, 0);
-        bos.write(0);
-        bos.writeBits(3, 0);
-        bos.padToNextByte();
-        bos.close();
     }
 }

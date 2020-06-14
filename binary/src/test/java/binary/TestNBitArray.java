@@ -18,10 +18,15 @@
  *
  */
 
-package binary;import net.daporkchop.lib.binary.bits.NBitArray;
+package binary;
+
+import net.daporkchop.lib.binary.bit.BitArray;
+import net.daporkchop.lib.binary.bit.packed.PackedBitArray;
 import org.junit.Test;
 
 import java.util.concurrent.ThreadLocalRandom;
+
+import static net.daporkchop.lib.common.util.PValidation.checkState;
 
 /**
  * @author DaPorkchop_
@@ -36,15 +41,14 @@ public class TestNBitArray {
 
         for (int i = 1; i < 32; i++) {
             int mask = (1 << i) - 1;
-            NBitArray array = new NBitArray(1024, i);
-            for (int j = 0; j < reference.length; j++) {
-                array.set(j, reference[j] & mask);
-            }
-            for (int j = 0; j < reference.length; j++) {
-                int a = array.get(j);
-                int b = reference[j] & mask;
-                if (a != b) {
-                    throw new IllegalStateException();
+            try (BitArray array = new PackedBitArray(i, reference.length)) {
+                for (int j = 0; j < reference.length; j++) {
+                    array.set(j, reference[j] & mask);
+                }
+                for (int j = 0; j < reference.length; j++) {
+                    int a = array.get(j);
+                    int b = reference[j] & mask;
+                    checkState(a == b, "%d != %d @ %d bits", a, b, i);
                 }
             }
         }

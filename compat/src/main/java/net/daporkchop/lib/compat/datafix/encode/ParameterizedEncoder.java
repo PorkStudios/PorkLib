@@ -18,35 +18,14 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.anvil.version.chunk.codec;
+package net.daporkchop.lib.compat.datafix.encode;
 
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.format.java.JavaCodec;
-import net.daporkchop.lib.minecraft.format.vanilla.VanillaChunk;
-import net.daporkchop.lib.minecraft.save.SaveOptions;
-import net.daporkchop.lib.minecraft.version.java.JavaVersion;
-import net.daporkchop.lib.minecraft.world.Chunk;
-import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
- * Codec for serialization of chunks in the pre-flattening format used by Minecraft versions 1.12.2 and older.
- *
  * @author DaPorkchop_
  */
-public class LegacyChunkCodec implements JavaCodec<Chunk> {
-    public static final JavaVersion VERSION = JavaVersion.fromName("1.12.2");
-
-    @Override
-    public Chunk decode(@NonNull CompoundTag tag, SaveOptions options) {
-        CompoundTag level = tag.getCompound("Level");
-        int x = level.getInt("xPos");
-        int z = level.getInt("zPos");
-
-        return new VanillaChunk(VERSION, x, z);
-    }
-
-    @Override
-    public CompoundTag encode(@NonNull Chunk value, SaveOptions options) {
-        throw new UnsupportedOperationException(); //TODO
-    }
+@FunctionalInterface
+public interface ParameterizedEncoder<O, D, V extends Comparable<? super V>, P> {
+    D encode(@NonNull O value, @NonNull V version, P param);
 }

@@ -18,40 +18,18 @@
  *
  */
 
-package net.daporkchop.lib.compat.datafix;
+package net.daporkchop.lib.minecraft.format.java.version;
 
 import lombok.NonNull;
+import net.daporkchop.lib.compat.datafix.decode.ParameterizedDecoder;
+import net.daporkchop.lib.minecraft.save.SaveOptions;
+import net.daporkchop.lib.minecraft.version.java.JavaVersion;
+import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
- * A function which is able to decode values at a specific version.
- *
  * @author DaPorkchop_
- * @see DataFixer
  */
-public interface DataCodec<O, D> extends ParameterizedDataCodec<O, D, Object> {
+public interface JavaDecoder<O> extends ParameterizedDecoder<O, CompoundTag, JavaVersion, SaveOptions> {
     @Override
-    default O decode(@NonNull D data, Object param) {
-        return this.decode(data);
-    }
-
-    @Override
-    default D encode(@NonNull O value, Object param) {
-        return this.encode(value);
-    }
-
-    /**
-     * Decodes the given data.
-     *
-     * @param data   the data to decode
-     * @return the decoded value
-     */
-    O decode(@NonNull D data);
-
-    /**
-     * Encodes the given value.
-     *
-     * @param value the value to encode
-     * @return the encoded data
-     */
-    D encode(@NonNull O value);
+    O decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, SaveOptions options);
 }

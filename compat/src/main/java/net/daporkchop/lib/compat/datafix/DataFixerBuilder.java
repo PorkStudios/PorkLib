@@ -21,6 +21,8 @@
 package net.daporkchop.lib.compat.datafix;
 
 import lombok.NonNull;
+import net.daporkchop.lib.compat.datafix.decode.ParameterizedDecoder;
+import net.daporkchop.lib.compat.datafix.encode.ParameterizedEncoder;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -32,7 +34,8 @@ import java.util.TreeMap;
  */
 public class DataFixerBuilder<O, D, V extends Comparable<? super V>> {
     protected final Map<V, DataConverter<D>> converters = new TreeMap<>();
-    protected final Map<V, ParameterizedDataCodec<O, D, ?>> codecs = new TreeMap<>();
+    protected final Map<V, ParameterizedDecoder<O, D, V, ?>> decoders = new TreeMap<>();
+    protected final Map<V, ParameterizedEncoder<O, D, V, ?>> encoders = new TreeMap<>();
 
     /**
      * Adds a new {@link DataConverter} which is required to convert data to the given version.
@@ -55,12 +58,26 @@ public class DataFixerBuilder<O, D, V extends Comparable<? super V>> {
      * @param codec   the {@link DataCodec} to use
      * @return this builder
      */
-    public synchronized DataFixerBuilder<O, D, V> addCodec(@NonNull V version, @NonNull ParameterizedDataCodec<O, D, ?> codec) {
-        this.codecs.put(version, codec);
+    public synchronized DataFixerBuilder<O, D, V> addDecoder(@NonNull V version, @NonNull ParameterizedDecoder<O, D, V, ?> codec) {
+        this.decoders.put(version, codec);
+        return this;
+    }
+
+    /**
+     * Sets the {@link DataCodec} to use for the given version.
+     * <p>
+     * If a different {@link DataCodec} is already registered for the given version, it will be silently replaced.
+     *
+     * @param version the version to use the codec for
+     * @param codec   the {@link DataCodec} to use
+     * @return this builder
+     */
+    public synchronized DataFixerBuilder<O, D, V> addEncoder(@NonNull V version, @NonNull ParameterizedEncoder<O, D, V, ?> codec) {
+        this.encoders.put(version, codec);
         return this;
     }
 
     public synchronized DataFixer<O, D, V> build() {
-        return new DataFixer<>(this.converters, this.codecs);
+        return new DataFixer<>(this.converters, this.decoders, this.encoders);
     }
 }

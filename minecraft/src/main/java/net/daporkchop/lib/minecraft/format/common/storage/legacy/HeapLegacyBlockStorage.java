@@ -18,7 +18,7 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.anvil.storage;
+package net.daporkchop.lib.minecraft.format.common.storage.legacy;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;

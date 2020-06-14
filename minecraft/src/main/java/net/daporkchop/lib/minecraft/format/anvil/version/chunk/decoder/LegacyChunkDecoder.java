@@ -18,11 +18,10 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.anvil.version.chunk.codec;
+package net.daporkchop.lib.minecraft.format.anvil.version.chunk.decoder;
 
 import lombok.NonNull;
-import net.daporkchop.lib.compat.datafix.DataCodec;
-import net.daporkchop.lib.minecraft.format.java.JavaCodec;
+import net.daporkchop.lib.minecraft.format.java.version.JavaDecoder;
 import net.daporkchop.lib.minecraft.format.vanilla.VanillaChunk;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
@@ -30,24 +29,19 @@ import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
- * Codec for serialization of chunks in the post-flattening format.
+ * Codec for serialization of chunks in the pre-flattening format used by Minecraft versions 1.12.2 and older.
  *
  * @author DaPorkchop_
  */
-public class FlattenedChunkCodec implements JavaCodec<Chunk> {
-    public static final JavaVersion VERSION = JavaVersion.fromName("1.15.2");
+public class LegacyChunkDecoder implements JavaDecoder<Chunk> {
+    public static final JavaVersion VERSION = JavaVersion.fromName("1.12.2");
 
     @Override
-    public Chunk decode(@NonNull CompoundTag tag, SaveOptions options) {
+    public Chunk decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, SaveOptions options) {
         CompoundTag level = tag.getCompound("Level");
         int x = level.getInt("xPos");
         int z = level.getInt("zPos");
 
-        return new VanillaChunk(VERSION, x, z);
-    }
-
-    @Override
-    public CompoundTag encode(@NonNull Chunk value, SaveOptions options) {
-        throw new UnsupportedOperationException(); //TODO
+        return new VanillaChunk(version, x, z);
     }
 }

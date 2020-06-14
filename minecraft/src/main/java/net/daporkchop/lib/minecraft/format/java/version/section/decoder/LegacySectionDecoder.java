@@ -18,16 +18,16 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.java.version.section.codec;
+package net.daporkchop.lib.minecraft.format.java.version.section.decoder;
 
 import lombok.NonNull;
 import net.daporkchop.lib.minecraft.block.BlockRegistry;
 import net.daporkchop.lib.minecraft.block.java.JavaBlockRegistry;
-import net.daporkchop.lib.minecraft.format.anvil.storage.HeapLegacyBlockStorage;
+import net.daporkchop.lib.minecraft.format.common.storage.legacy.HeapLegacyBlockStorage;
 import net.daporkchop.lib.minecraft.format.common.nibble.HeapNibbleArray;
 import net.daporkchop.lib.minecraft.format.common.nibble.NibbleArray;
 import net.daporkchop.lib.minecraft.format.common.storage.BlockStorage;
-import net.daporkchop.lib.minecraft.format.java.JavaCodec;
+import net.daporkchop.lib.minecraft.format.java.version.JavaDecoder;
 import net.daporkchop.lib.minecraft.format.java.section.DefaultJavaSection;
 import net.daporkchop.lib.minecraft.format.java.section.JavaSection;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
@@ -38,16 +38,16 @@ import net.daporkchop.lib.nbt.tag.CompoundTag;
 /**
  * @author DaPorkchop_
  */
-public class LegacySectionCodec implements JavaCodec<JavaSection> {
+public class LegacySectionDecoder implements JavaDecoder<JavaSection> {
     public static final JavaVersion VERSION = JavaVersion.fromName("1.12.2");
 
     @Override
-    public JavaSection decode(@NonNull CompoundTag tag, SaveOptions options) {
+    public JavaSection decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, SaveOptions options) {
         int y = tag.getByte("Y") & 0xFF;
-        BlockStorage storage = this.parseBlockStorage(tag, JavaBlockRegistry.forVersion(VERSION));
+        BlockStorage storage = this.parseBlockStorage(tag, JavaBlockRegistry.forVersion(version));
         NibbleArray blockLight = this.parseNibbleArray(tag, "BlockLight");
         NibbleArray skyLight = this.parseNibbleArray(tag, "SkyLight");
-        return new DefaultJavaSection(y, storage, blockLight, skyLight, VERSION);
+        return new DefaultJavaSection(y, storage, blockLight, skyLight, version);
     }
 
     protected BlockStorage parseBlockStorage(@NonNull CompoundTag tag, @NonNull BlockRegistry blockRegistry) {
@@ -77,10 +77,5 @@ public class LegacySectionCodec implements JavaCodec<JavaSection> {
         return data.handle() != null
                ? new HeapNibbleArray.YZX(data.handle())
                : new HeapNibbleArray.YZX(data.value(), 0);
-    }
-
-    @Override
-    public CompoundTag encode(@NonNull JavaSection section, SaveOptions options) {
-        throw new UnsupportedOperationException(); //TODO
     }
 }

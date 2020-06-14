@@ -18,7 +18,7 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.anvil.storage;
+package net.daporkchop.lib.minecraft.format.common.storage.legacy;
 
 import lombok.NonNull;
 import net.daporkchop.lib.minecraft.format.common.storage.AbstractBlockStorage;

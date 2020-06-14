@@ -18,32 +18,30 @@
  *
  */
 
-package net.daporkchop.lib.compat.datafix;
+package net.daporkchop.lib.minecraft.format.anvil.version.chunk.decoder;
 
 import lombok.NonNull;
+import net.daporkchop.lib.minecraft.format.java.version.JavaDecoder;
+import net.daporkchop.lib.minecraft.format.vanilla.VanillaChunk;
+import net.daporkchop.lib.minecraft.save.SaveOptions;
+import net.daporkchop.lib.minecraft.version.java.JavaVersion;
+import net.daporkchop.lib.minecraft.world.Chunk;
+import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
- * A function which is able to decode values at a specific version.
+ * Codec for serialization of chunks in the post-flattening format.
  *
  * @author DaPorkchop_
- * @see DataFixer
  */
-public interface ParameterizedDataCodec<O, D, P> {
-    /**
-     * Decodes the given data.
-     *
-     * @param data  the data to decode
-     * @param param an additional parameter
-     * @return the decoded value
-     */
-    O decode(@NonNull D data, P param);
+public class FlattenedChunkDecoder implements JavaDecoder<Chunk> {
+    public static final JavaVersion VERSION = JavaVersion.fromName("1.15.2");
 
-    /**
-     * Encodes the given value.
-     *
-     * @param value the value to encode
-     * @param param an additional parameter
-     * @return the encoded data
-     */
-    D encode(@NonNull O value, P param);
+    @Override
+    public Chunk decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, SaveOptions options) {
+        CompoundTag level = tag.getCompound("Level");
+        int x = level.getInt("xPos");
+        int z = level.getInt("zPos");
+
+        return new VanillaChunk(version, x, z);
+    }
 }

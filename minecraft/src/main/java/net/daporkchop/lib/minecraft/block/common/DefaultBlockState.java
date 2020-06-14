@@ -71,8 +71,9 @@ public class DefaultBlockState implements BlockState {
     @Override
     public BlockState withMeta(int meta) {
         BlockState[] otherMeta = this.otherMeta;
-        checkArg(meta >= 0 && meta < otherMeta.length, meta);
-        return otherMeta[meta];
+        BlockState state = null;
+        checkArg(meta >= 0 && meta < otherMeta.length && (state = otherMeta[meta]) != null, meta);
+        return state;
     }
 
     @Override

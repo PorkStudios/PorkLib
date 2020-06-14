@@ -25,13 +25,11 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.compat.datafix.DataFixer;
-import net.daporkchop.lib.minecraft.format.anvil.version.chunk.codec.FlattenedChunkCodec;
-import net.daporkchop.lib.minecraft.format.anvil.version.chunk.codec.LegacyChunkCodec;
+import net.daporkchop.lib.minecraft.format.anvil.version.chunk.decoder.FlattenedChunkDecoder;
 import net.daporkchop.lib.minecraft.format.java.section.JavaSection;
-import net.daporkchop.lib.minecraft.format.java.version.section.codec.LegacySectionCodec;
+import net.daporkchop.lib.minecraft.format.java.version.section.decoder.LegacySectionDecoder;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.minecraft.world.Chunk;
-import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
@@ -49,11 +47,11 @@ public class JavaFixers {
         static {
             DEFAULT_JAVA_FIXERS = new JavaFixers(
                     DataFixer.<Chunk, CompoundTag, JavaVersion>builder()
-                            .addCodec(LegacyChunkCodec.VERSION, new LegacyChunkCodec())
-                            .addCodec(FlattenedChunkCodec.VERSION, new FlattenedChunkCodec())
+                            //.addDecoder(LegacyChunkDecoder.VERSION, new LegacyChunkDecoder())
+                            .addDecoder(FlattenedChunkDecoder.VERSION, new FlattenedChunkDecoder())
                             .build(),
                     DataFixer.<JavaSection, CompoundTag, JavaVersion>builder()
-                            .addCodec(LegacySectionCodec.VERSION, new LegacySectionCodec())
+                            .addDecoder(LegacySectionDecoder.VERSION, new LegacySectionDecoder())
                             .build());
         }
     }

@@ -21,6 +21,8 @@
 package net.daporkchop.lib.compat.datafix;
 
 import lombok.NonNull;
+import net.daporkchop.lib.compat.datafix.decode.ParameterizedDecoder;
+import net.daporkchop.lib.compat.datafix.encode.ParameterizedEncoder;
 
 import java.util.Map;
 import java.util.NavigableMap;
@@ -43,11 +45,13 @@ public class DataFixer<O, D, V extends Comparable<? super V>> {
     }
 
     protected final NavigableMap<V, DataConverter<D>> converters;
-    protected final NavigableMap<V, ParameterizedDataCodec<O, D, ?>> codecs;
+    protected final NavigableMap<V, ParameterizedDecoder<O, D, V, ?>> decoders;
+    protected final NavigableMap<V, ParameterizedEncoder<O, D, V, ?>> encoders;
 
-    protected DataFixer(@NonNull Map<V, DataConverter<D>> converters, @NonNull Map<V, ParameterizedDataCodec<O, D, ?>> codecs) {
+    protected DataFixer(@NonNull Map<V, DataConverter<D>> converters, @NonNull Map<V, ParameterizedDecoder<O, D, V, ?>> decoders, @NonNull Map<V, ParameterizedEncoder<O, D, V, ?>> encoders) {
         this.converters = new TreeMap<>(converters);
-        this.codecs = new TreeMap<>(codecs);
+        this.decoders = new TreeMap<>(decoders);
+        this.encoders = new TreeMap<>(encoders);
     }
 
     /**
@@ -67,7 +71,7 @@ public class DataFixer<O, D, V extends Comparable<? super V>> {
      * Exactly the same as {@link #decode(Object, Comparable)}, but accepts a parameter that will be passed to the codec.
      */
     public O decode(@NonNull D data, @NonNull V dataVersion, Object param) {
-        V targetVersion = this.codecs.ceilingKey(dataVersion);
+        V targetVersion = this.decoders.ceilingKey(dataVersion);
         checkArg(targetVersion != null, "unable to find codec to decode from dataVersion (%s)", dataVersion);
         return this.decodeAt(data, dataVersion, targetVersion, param);
     }
@@ -96,10 +100,10 @@ public class DataFixer<O, D, V extends Comparable<? super V>> {
         if (targetVersion == null) {
             return this.decode(data, dataVersion, param);
         }
-        V roundedTargetVersion = this.codecs.ceilingKey(targetVersion);
+        V roundedTargetVersion = this.decoders.ceilingKey(targetVersion);
         checkArg(roundedTargetVersion != null, "no codec registered for given targetVersion (%s)", targetVersion);
-        ParameterizedDataCodec<O, D, ?> codec = this.codecs.get(roundedTargetVersion);
-        return codec.decode(this.upgrade(data, dataVersion, targetVersion), uncheckedCast(param));
+        ParameterizedDecoder<O, D, V, ?> codec = this.decoders.get(roundedTargetVersion);
+        return codec.decode(this.upgrade(data, dataVersion, targetVersion), dataVersion, uncheckedCast(param));
     }
 
     /**
@@ -137,8 +141,8 @@ public class DataFixer<O, D, V extends Comparable<? super V>> {
      * Exactly the same as {@link #encode(Object, Comparable)}, but accepts a parameter that will be passed to the codec.
      */
     public D encode(@NonNull O value, @NonNull V valueVersion, Object param) {
-        ParameterizedDataCodec<O, D, ?> codec = this.codecs.get(valueVersion);
-        checkArg(codec != null, "no codec registered for given valueVersion (%s)", valueVersion);
-        return codec.encode(value, uncheckedCast(param));
+        ParameterizedEncoder<O, D, V, ?> encoder = this.encoders.get(valueVersion);
+        checkArg(encoder != null, "no codec registered for given valueVersion (%s)", valueVersion);
+        return encoder.encode(value, valueVersion, uncheckedCast(param));
     }
 }

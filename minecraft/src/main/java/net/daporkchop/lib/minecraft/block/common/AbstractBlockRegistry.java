@@ -41,6 +41,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
@@ -65,7 +66,7 @@ public abstract class AbstractBlockRegistry implements BlockRegistry {
     @Getter(AccessLevel.NONE)
     protected final IntObjMap<DefaultBlockState> legacyIdToDefaultState = new IntObjOpenHashMap<>();
     @Getter(AccessLevel.NONE)
-    protected final IntObjMap<DefaultBlockState> runtimeIdToState = new IntObjOpenHashMap<>();
+    protected final IntObjMap<BlockState> runtimeIdToState = new IntObjOpenHashMap<>();
 
     protected final BlockState air;
 
@@ -76,10 +77,13 @@ public abstract class AbstractBlockRegistry implements BlockRegistry {
         builder.blocks.forEach((id, block) -> this.idToDefaultState.put(id, block.bake(uncheckedCast(this))));
         this.idToDefaultState.values().stream()
                 .filter(BlockState::hasLegacyId)
-                .forEach(state -> {
-                    this.legacyIdToDefaultState.put(state.legacyId(), state);
-                    this.runtimeIdToState.put(state.runtimeId(), state);
-                });
+                .forEach(state -> this.legacyIdToDefaultState.put(state.legacyId(), state));
+
+        this.idToDefaultState.values().stream()
+                .map(DefaultBlockState::otherMeta)
+                .flatMap(Arrays::stream)
+                .filter(Objects::nonNull) //legacy anvil has unused meta values (which are null)
+                .forEach(state -> this.runtimeIdToState.put(state.runtimeId(), state));
 
         this.air = this.getDefaultState(Identifier.fromString("minecraft:air"));
 

@@ -18,7 +18,7 @@
  *
  */
 
-package net.daporkchop.lib.compat;
+package net.daporkchop.lib.common.misc;
 
 /**
  * A type that has a version.

@@ -20,11 +20,10 @@
 
 package net.daporkchop.lib.minecraft.tile;
 
-import net.daporkchop.lib.compat.Versioned;
+import net.daporkchop.lib.common.misc.Versioned;
 import net.daporkchop.lib.math.access.IntHolderXYZ;
 import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.version.MinecraftVersion;
-import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
  * Base representation of a tile entity.

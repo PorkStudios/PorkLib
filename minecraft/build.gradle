@@ -21,7 +21,6 @@
 dependencies {
     compile project(":binary")
     compile project(":collections")
-    compile project(":compat")
     compile project(":compression:compression-zlib")
     compile project(":concurrent")
     compile project(":encoding:nbt")

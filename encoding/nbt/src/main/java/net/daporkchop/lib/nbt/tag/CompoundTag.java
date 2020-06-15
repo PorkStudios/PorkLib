@@ -391,4 +391,11 @@ public final class CompoundTag extends Tag<CompoundTag> implements Iterable<Map.
         LongArrayTag tag = (LongArrayTag) this.map.get(name);
         return tag != null ? tag.value() : fallback;
     }
+
+    public <T extends Tag<T>> T remove(@NonNull String name)    {
+        @SuppressWarnings("unchecked")
+        T tag = (T) this.map.remove(name);
+        checkArg(tag != null, "No tag with name \"%s\" found!", name);
+        return tag;
+    }
 }

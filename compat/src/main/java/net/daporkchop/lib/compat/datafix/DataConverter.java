@@ -27,6 +27,8 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
 
 /**
  * A function which is able to convert encoded data from an older version to a newer one.
+ * <p>
+ * Converters may modify the data instance which is passed to them.
  *
  * @author DaPorkchop_
  * @see DataFixer

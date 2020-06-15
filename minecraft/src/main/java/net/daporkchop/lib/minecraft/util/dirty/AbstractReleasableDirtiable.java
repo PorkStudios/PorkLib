@@ -18,18 +18,33 @@
  *
  */
 
-package net.daporkchop.lib.compat.datafix.decode;
+package net.daporkchop.lib.minecraft.util.dirty;
 
-import lombok.NonNull;
+import net.daporkchop.lib.unsafe.PUnsafe;
+import net.daporkchop.lib.unsafe.util.AbstractReleasable;
 
 /**
- * Decodes data into an object.
- * <p>
- * Decoders may not modify the data object passed to them.
+ * Abstract implementation of {@link Dirtiable} which also extends {@link AbstractReleasable}.
  *
  * @author DaPorkchop_
  */
-@FunctionalInterface
-public interface ParameterizedDecoder<O, D, V extends Comparable<? super V>, P> {
-    O decode(@NonNull D data, @NonNull V version, P param);
+public abstract class AbstractReleasableDirtiable extends AbstractReleasable implements Dirtiable {
+    protected static final long DIRTY_OFFSET = PUnsafe.pork_getOffset(AbstractReleasableDirtiable.class, "dirty");
+
+    protected volatile int dirty = 0;
+
+    @Override
+    public boolean dirty() {
+        return this.dirty != 0;
+    }
+
+    @Override
+    public void markDirty() {
+        this.dirty = 1;
+    }
+
+    @Override
+    public boolean clearDirty() {
+        return PUnsafe.compareAndSwapInt(this, DIRTY_OFFSET, 1, 0);
+    }
 }

@@ -28,6 +28,7 @@ import net.daporkchop.lib.collections.map.MaxSizeLinkedHashMap;
 import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.common.function.io.IOFunction;
 import net.daporkchop.lib.common.misc.file.PFiles;
+import net.daporkchop.lib.common.misc.string.PStrings;
 import net.daporkchop.lib.common.util.exception.ReadOnlyException;
 import net.daporkchop.lib.concurrent.lock.NoopLock;
 import net.daporkchop.lib.math.vector.i.Vec2i;
@@ -198,7 +199,7 @@ public class RegionFileCache implements RegionFile, IOFunction<Vec2i, RegionFile
     @Override
     @Deprecated
     public RegionFile applyThrowing(Vec2i pos) throws IOException {
-        File file = new File(this.root, String.format("r.%d.%d.mca", pos.getX(), pos.getY()));
+        File file = new File(this.root, PStrings.fastFormat("r.%d.%d.mca", pos.getX(), pos.getY()));
         if (this.readOnly()) {
             if (PFiles.checkFileExists(file)) {
                 if (this.options.get(AnvilSaveOptions.MMAP_REGIONS)) {

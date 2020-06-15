@@ -18,18 +18,26 @@
  *
  */
 
-package net.daporkchop.lib.compat.datafix.decode;
+package net.daporkchop.lib.minecraft.format.java.version.tile.decoder;
 
 import lombok.NonNull;
+import net.daporkchop.lib.minecraft.format.java.version.JavaDecoder;
+import net.daporkchop.lib.minecraft.save.SaveOptions;
+import net.daporkchop.lib.minecraft.tile.TileEntity;
+import net.daporkchop.lib.minecraft.tile.UnknownTileEntity;
+import net.daporkchop.lib.minecraft.version.java.JavaVersion;
+import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
- * Decodes data into an object.
- * <p>
- * Decoders may not modify the data object passed to them.
+ * Decodes tile entities whose type is unknown.
  *
  * @author DaPorkchop_
  */
-@FunctionalInterface
-public interface ParameterizedDecoder<O, D, V extends Comparable<? super V>, P> {
-    O decode(@NonNull D data, @NonNull V version, P param);
+public class UnknownTileDecoder implements JavaDecoder<TileEntity> {
+    public static final JavaVersion VERSION = JavaVersion.latest();
+
+    @Override
+    public TileEntity decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, SaveOptions options) {
+        return new UnknownTileEntity(version, tag); //TODO: retain tag
+    }
 }

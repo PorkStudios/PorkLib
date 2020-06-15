@@ -39,6 +39,12 @@ import java.util.Spliterator;
  * When a world storage is released, it must block until all queued write operations are completed.
  * <p>
  * Implementations of this class are expected to be safely usable from multiple threads.
+ * <p>
+ * An instance of a world storage operating in read-only mode may choose to apply a variety of optimizations for the sake of performance. Chunks/sections
+ * loaded by a read-only world storage are not guaranteed to be distinct objects, and may share object identity or be distinct objects sharing a
+ * reference the same data. This behavior is permitted under the reasonable assumption that a world opened in read-only mode will not be modified in
+ * memory either. On the other hand, a read-write world storage must always return distinct chunk/section instances that do not share any
+ * references to mutable data.
  *
  * @author DaPorkchop_
  */

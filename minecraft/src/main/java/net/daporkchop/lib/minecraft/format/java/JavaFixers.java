@@ -33,6 +33,7 @@ import net.daporkchop.lib.minecraft.format.java.version.section.decoder.LegacySe
 import net.daporkchop.lib.minecraft.format.java.version.tile.converter.SignConverter1_14;
 import net.daporkchop.lib.minecraft.format.java.version.tile.decoder.SignDecoder1_13_2;
 import net.daporkchop.lib.minecraft.format.java.version.tile.decoder.SignDecoderLatest;
+import net.daporkchop.lib.minecraft.format.java.version.tile.decoder.UnknownTileDecoder;
 import net.daporkchop.lib.minecraft.tile.TileEntity;
 import net.daporkchop.lib.minecraft.tile.TileEntitySign;
 import net.daporkchop.lib.minecraft.util.Identifier;
@@ -73,7 +74,10 @@ public class JavaFixers {
                             .addDecoder(LegacySectionDecoder.VERSION, new LegacySectionDecoder())
                             .addDecoder(FlattenedSectionDecoder.VERSION, new FlattenedSectionDecoder())
                             .build(),
-                    Collections.unmodifiableMap(tileEntity));
+                    Collections.unmodifiableMap(tileEntity),
+                    DataFixer.<TileEntity, CompoundTag, JavaVersion>builder()
+                            .addDecoder(UnknownTileDecoder.VERSION, new UnknownTileDecoder())
+                            .build());
         }
     }
 
@@ -92,4 +96,17 @@ public class JavaFixers {
 
     @NonNull
     protected final Map<Identifier, DataFixer<TileEntity, CompoundTag, JavaVersion>> tileEntity;
+
+    @NonNull
+    protected final DataFixer<TileEntity, CompoundTag, JavaVersion> unknownTileEntity;
+
+    /**
+     * Gets the {@link DataFixer} that should be used for decoding a tile entity with the given ID.
+     *
+     * @param id the {@link Identifier} of the tile entity to decode
+     * @return the {@link DataFixer} that should be used for decoding a tile entity with the given ID
+     */
+    public DataFixer<TileEntity, CompoundTag, JavaVersion> tileEntity(@NonNull Identifier id) {
+        return this.tileEntity.getOrDefault(id, this.unknownTileEntity);
+    }
 }

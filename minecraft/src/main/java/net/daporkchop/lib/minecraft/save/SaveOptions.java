@@ -213,6 +213,13 @@ public final class SaveOptions implements Cloneable<SaveOptions.Builder> {
             return this;
         }
 
+        /**
+         * @return a new {@link SaveOptions} with the options configured in this builder
+         */
+        public SaveOptions build() {
+            return new SaveOptions(this);
+        }
+
         @Override
         public Builder clone() {
             return new Builder(new HashMap<>(this.map));

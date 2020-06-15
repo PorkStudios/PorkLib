@@ -18,18 +18,34 @@
  *
  */
 
-package net.daporkchop.lib.compat.datafix.decode;
+package net.daporkchop.lib.minecraft.format.vanilla;
 
-import lombok.NonNull;
+import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.minecraft.save.SaveOptions;
+
+import java.util.concurrent.TimeUnit;
 
 /**
- * Decodes data into an object.
- * <p>
- * Decoders may not modify the data object passed to them.
+ * {@link SaveOptions} keys used by vanilla-style save formats.
  *
  * @author DaPorkchop_
  */
-@FunctionalInterface
-public interface ParameterizedDecoder<O, D, V extends Comparable<? super V>, P> {
-    O decode(@NonNull D data, @NonNull V version, P param);
+@UtilityClass
+public class VanillaSaveOptions {
+    /**
+     * The maximum number chunks whose data may be cached in memory at once.
+     * <p>
+     * May not be negative.
+     */
+    public static final SaveOptions.Key<Integer> CHUNK_CACHE_SIZE = SaveOptions.key("vanilla_chunk_cache_size", 1024);
+
+    /**
+     * The maximum time (in milliseconds) that chunk data may remain cached in memory before eviction.
+     * <p>
+     * This does not guarantee that chunks cached longer than this duration will be immediately evicted. Generally, whenever the cache fills up, all chunks
+     * older than this duration will be evicted, and if no chunks match, the oldest ones will be evicted regardless of this value.
+     * <p>
+     * May not be negative.
+     */
+    public static final SaveOptions.Key<Long> MAX_CHUNK_CACHE_TIME = SaveOptions.key("vanilla_chunk_cache_time", TimeUnit.MINUTES.toMillis(15L));
 }

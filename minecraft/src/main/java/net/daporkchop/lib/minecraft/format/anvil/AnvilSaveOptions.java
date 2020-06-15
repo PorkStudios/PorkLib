@@ -23,13 +23,15 @@ package net.daporkchop.lib.minecraft.format.anvil;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.minecraft.format.java.JavaFixers;
 import net.daporkchop.lib.minecraft.format.java.JavaSaveOptions;
+import net.daporkchop.lib.minecraft.format.vanilla.VanillaSaveOptions;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
 
 /**
  * {@link SaveOptions} keys used by the Anvil save format.
  *
  * @author DaPorkchop_
- * @see net.daporkchop.lib.minecraft.format.java.JavaSaveOptions
+ * @see JavaSaveOptions
+ * @see VanillaSaveOptions
  */
 @UtilityClass
 public class AnvilSaveOptions {
@@ -37,4 +39,7 @@ public class AnvilSaveOptions {
     public static final SaveOptions.Key<Boolean> MMAP_REGIONS = JavaSaveOptions.MMAP_REGIONS;
     public static final SaveOptions.Key<Boolean> PREFETCH_REGIONS = JavaSaveOptions.PREFETCH_REGIONS;
     public static final SaveOptions.Key<JavaFixers> FIXERS = JavaSaveOptions.FIXERS;
+
+    public static final SaveOptions.Key<Integer> CHUNK_CACHE_SIZE = VanillaSaveOptions.CHUNK_CACHE_SIZE;
+    public static final SaveOptions.Key<Long> MAX_CHUNK_CACHE_TIME = VanillaSaveOptions.MAX_CHUNK_CACHE_TIME;
 }

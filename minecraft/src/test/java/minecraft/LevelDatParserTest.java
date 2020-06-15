@@ -27,6 +27,7 @@ import net.daporkchop.lib.minecraft.format.anvil.AnvilSaveFormat;
 import net.daporkchop.lib.minecraft.save.Save;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
 import net.daporkchop.lib.minecraft.util.Identifier;
+import net.daporkchop.lib.minecraft.util.WriteAccess;
 import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.minecraft.world.World;
 import org.junit.AfterClass;
@@ -79,7 +80,9 @@ public class LevelDatParserTest {
     public void test() throws IOException {
         for (String version : VERSIONS) {
             System.out.printf("Opening minecraft world at %s...\n", new File(ROOT, version));
-            try (Save save = new AnvilSaveFormat().open(new File(ROOT, version), SaveOptions.DEFAULT)) {
+            try (Save save = new AnvilSaveFormat().open(new File(ROOT, version), SaveOptions.DEFAULT.clone()
+                    .set(SaveOptions.ACCESS, WriteAccess.READ_ONLY)
+                    .build())) {
                 System.out.println(save.version() + " " + save.worlds().map(World::id).map(Identifier::toString).collect(Collectors.toList()));
 
                 try (World world = save.world(Identifier.fromString("overworld"))) {

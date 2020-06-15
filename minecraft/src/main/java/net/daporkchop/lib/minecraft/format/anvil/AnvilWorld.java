@@ -23,6 +23,7 @@ package net.daporkchop.lib.minecraft.format.anvil;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.minecraft.format.anvil.storage.AnvilWorldStorage;
 import net.daporkchop.lib.minecraft.format.vanilla.VanillaWorld;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
 import net.daporkchop.lib.minecraft.util.WriteAccess;

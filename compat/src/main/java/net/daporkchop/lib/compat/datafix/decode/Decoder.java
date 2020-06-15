@@ -24,6 +24,7 @@ import lombok.NonNull;
 
 /**
  * @author DaPorkchop_
+ * @see ParameterizedDecoder
  */
 @FunctionalInterface
 public interface Decoder<O, D, V extends Comparable<? super V>> extends ParameterizedDecoder<O, D, V, Object> {

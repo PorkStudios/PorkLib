@@ -23,11 +23,16 @@ package net.daporkchop.lib.compat.update;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.misc.Tuple;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.TreeMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+
+import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
  * Builder for {@link DataUpdater}.
@@ -37,7 +42,7 @@ import java.util.function.Function;
 @Setter
 @Accessors(fluent = true, chain = true)
 public class DataUpdaterBuilder<D, V extends Comparable<? super V>, P> {
-    protected final Map<V, BiFunction<D, P, D>> updaters = new TreeMap<>();
+    protected final Map<String, Tuple<V, BiFunction<D, P, D>>> names = new HashMap<>();
 
     @NonNull
     protected Function<D, V> versionExtractor = data -> {
@@ -48,7 +53,24 @@ public class DataUpdaterBuilder<D, V extends Comparable<? super V>, P> {
         throw new UnsupportedOperationException();
     };
 
+    public DataUpdaterBuilder<D, V, P> add(@NonNull String name, @NonNull V version, @NonNull BiFunction<D, P, D> updater) {
+        checkState(this.names.putIfAbsent(name, new Tuple<>(version, updater)) == null, "duplicate updater name: %s", name);
+        return this;
+    }
+
+    public DataUpdaterBuilder<D, V, P> replace(@NonNull String name, @NonNull BiFunction<D, P, D> updater) {
+        checkState(this.names.computeIfPresent(name, (n, t) -> new Tuple<>(t.getA(), updater)) != null, "unknown updater name: %s", name);
+        return this;
+    }
+
+    public DataUpdaterBuilder<D, V, P> remove(@NonNull String name) {
+        checkState(this.names.remove(name) != null, "unknown updater name: %s", name);
+        return this;
+    }
+
     public DataUpdater<D, V, P> build() {
-        return new ImplDataUpdater<>(new TreeMap<>(this.updaters), this.versionExtractor, this.versionReplacer);
+        NavigableMap<V, BiFunction<D, P, D>> updaters = new TreeMap<>();
+        this.names.forEach((name, tuple) -> updaters.put(tuple.getA(), tuple.getB()));
+        return new ImplDataUpdater<>(updaters, this.versionExtractor, this.versionReplacer);
     }
 }

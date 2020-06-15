@@ -18,30 +18,37 @@
  *
  */
 
-package net.daporkchop.lib.compat.datafix;
+package net.daporkchop.lib.compat.update;
 
 import lombok.NonNull;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 /**
- * A function which is able to decode values at a specific version.
+ * Builder for {@link DataUpdater}.
  *
  * @author DaPorkchop_
- * @see DataFixer
  */
-public interface DataCodec<O, D> {
-    /**
-     * Decodes the given data.
-     *
-     * @param data the data to decode
-     * @return the decoded value
-     */
-    O decode(@NonNull D data);
+@Setter
+@Accessors(fluent = true, chain = true)
+public class DataUpdaterBuilder<D, V extends Comparable<? super V>, P> {
+    protected final Map<V, BiFunction<D, P, D>> updaters = new TreeMap<>();
 
-    /**
-     * Encodes the given value.
-     *
-     * @param value the value to encode
-     * @return the encoded data
-     */
-    D encode(@NonNull O value);
+    @NonNull
+    protected Function<D, V> versionExtractor = data -> {
+        throw new UnsupportedOperationException();
+    };
+    @NonNull
+    protected BiFunction<D, V, D> versionReplacer = (data, version) -> {
+        throw new UnsupportedOperationException();
+    };
+
+    public DataUpdater<D, V, P> build() {
+        return new ImplDataUpdater<>(new TreeMap<>(this.updaters), this.versionExtractor, this.versionReplacer);
+    }
 }

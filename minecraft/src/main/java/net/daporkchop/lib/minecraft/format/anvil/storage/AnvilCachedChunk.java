@@ -65,13 +65,13 @@ public abstract class AnvilCachedChunk extends AbstractReleasableDirtiable {
                 for (CompoundTag tileEntityTag : tileEntityTags) {
                     TileEntity tileEntity = fixers.tileEntity(Identifier.fromString(tileEntityTag.getString("id")))
                             .decode(tileEntityTag, version, options);
-                    //TODO: add tile entity to chunk
+                    //TODO: add tile entity to something
                 }
             }
 
             //TODO: entities
 
-            this.chunk = fixers.chunk().decode(tag, version, options);
+            this.chunk = fixers.chunkUpdater();
         }
 
         @Override

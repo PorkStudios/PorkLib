@@ -32,13 +32,14 @@ import net.daporkchop.lib.minecraft.format.java.section.DefaultJavaSection;
 import net.daporkchop.lib.minecraft.format.java.section.JavaSection;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
+import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.nbt.tag.ByteArrayTag;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
  * @author DaPorkchop_
  */
-public class LegacySectionDecoder implements JavaDecoder<JavaSection> {
+public class LegacySectionDecoder implements JavaDecoder<Section> {
     public static final JavaVersion VERSION = JavaVersion.fromName("1.12.2");
 
     @Override

@@ -21,7 +21,6 @@
 package net.daporkchop.lib.minecraft.format.java.version.tile.converter;
 
 import lombok.NonNull;
-import net.daporkchop.lib.compat.datafix.DataConverter;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 

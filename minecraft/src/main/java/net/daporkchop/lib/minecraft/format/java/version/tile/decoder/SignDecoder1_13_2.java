@@ -23,6 +23,7 @@ package net.daporkchop.lib.minecraft.format.java.version.tile.decoder;
 import lombok.NonNull;
 import net.daporkchop.lib.minecraft.format.java.version.JavaDecoder;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
+import net.daporkchop.lib.minecraft.tile.TileEntity;
 import net.daporkchop.lib.minecraft.tile.TileEntitySign;
 import net.daporkchop.lib.minecraft.tile.impl.DefaultTileEntitySign;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
@@ -33,7 +34,7 @@ import net.daporkchop.lib.nbt.tag.CompoundTag;
  *
  * @author DaPorkchop_
  */
-public class SignDecoder1_13_2 implements JavaDecoder<TileEntitySign> {
+public class SignDecoder1_13_2 implements JavaDecoder<TileEntity> {
     public static final JavaVersion VERSION = JavaVersion.fromName("1.13.2");
 
     @Override

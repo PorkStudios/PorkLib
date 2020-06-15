@@ -18,18 +18,44 @@
  *
  */
 
-package net.daporkchop.lib.compat.datafix.decode;
+package net.daporkchop.lib.minecraft.text.format;
 
-import lombok.NonNull;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
 
 /**
- * Decodes data into an object.
+ * All format codes from the legacy formatting system.
  * <p>
- * Decoders may not modify the data object passed to them.
- *
+ * See https://minecraft.gamepedia.com/Formatting_codes for more information.
  * @author DaPorkchop_
+ * @see ChatColor
+ * @see FormattingCode
  */
-@FunctionalInterface
-public interface ParameterizedDecoder<O, D, V extends Comparable<? super V>, P> {
-    O decode(@NonNull D data, @NonNull V version, P param);
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public enum ChatFormat implements FormattingCode {
+    OBFUSCATED('k'),
+    BOLD('l'),
+    STRIKETHROUGH('m'),
+    UNDERLINE('n'),
+    ITALIC('o'),
+    RESET('r');
+
+    static final ChatFormat[] VALUES = values();
+
+    static {
+        for (ChatFormat format : VALUES)  {
+            PUnsafeStrings.setEnumName(format, format.name().toLowerCase().intern());
+        }
+    }
+
+    private final char code;
+
+    @Override
+    public boolean isColor() {
+        return false;
+    }
 }

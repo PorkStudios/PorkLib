@@ -22,6 +22,7 @@ package net.daporkchop.lib.minecraft.format.anvil.storage;
 
 import lombok.NonNull;
 import net.daporkchop.lib.minecraft.format.java.JavaFixers;
+import net.daporkchop.lib.minecraft.format.java.decoder.JavaDecoder;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
 import net.daporkchop.lib.minecraft.tile.TileEntity;
 import net.daporkchop.lib.minecraft.util.Identifier;
@@ -30,9 +31,8 @@ import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
-import net.daporkchop.lib.nbt.tag.ListTag;
 
-import static net.daporkchop.lib.common.util.PValidation.checkState;
+import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
  * In-memory representation of a chunk cached by {@link AnvilWorldStorage}.
@@ -51,27 +51,26 @@ public abstract class AnvilCachedChunk extends AbstractReleasableDirtiable {
         protected final Section[] sections = new Section[16];
 
         public ReadOnly(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull JavaFixers fixers, @NonNull SaveOptions options) {
+            this.chunk = fixers.chunkDecoder().ceilingEntry(version).getValue()
+                    .decode(tag, version, options);
+
             CompoundTag levelTag = tag.getCompound("Level");
 
-            try (ListTag<CompoundTag> sectionTags = levelTag.remove("Sections")) { //remove tag to ensure that it's not accessed by the chunk decoder
-                for (CompoundTag sectionTag : sectionTags) {
-                    Section section = fixers.section().decode(sectionTag, version, options);
-                    checkState(this.sections[section.y()] == null, "duplicate section at y=%d!", section.y());
-                    this.sections[section.y()] = section;
-                }
+            JavaDecoder.Section sectionDecoder = fixers.sectionDecoder().ceilingEntry(version).getValue();
+            for (CompoundTag sectionTag : levelTag.getList("Sections", CompoundTag.class)) {
+                Section section = sectionDecoder.decode(sectionTag, version, options, this.chunk.x(), this.chunk.z());
+                checkState(this.sections[section.y()] == null, "duplicate section at y=%d!", section.y());
+                this.sections[section.y()] = section;
             }
 
-            try (ListTag<CompoundTag> tileEntityTags = levelTag.remove("TileEntities")) { //remove tag to ensure that it's not accessed by the chunk decoder
-                for (CompoundTag tileEntityTag : tileEntityTags) {
-                    TileEntity tileEntity = fixers.tileEntity(Identifier.fromString(tileEntityTag.getString("id")))
-                            .decode(tileEntityTag, version, options);
-                    //TODO: add tile entity to something
-                }
+            for (CompoundTag tileEntityTag : levelTag.getList("TileEntities", CompoundTag.class)) {
+                TileEntity tileEntity = fixers.tileEntity(Identifier.fromString(tileEntityTag.getString("id")), version)
+                        .decode(tileEntityTag, version, options);
+                System.out.println(tileEntity.id());
+                //TODO: add tile entity to something
             }
 
             //TODO: entities
-
-            this.chunk = fixers.chunkUpdater();
         }
 
         @Override
@@ -87,7 +86,7 @@ public abstract class AnvilCachedChunk extends AbstractReleasableDirtiable {
         @Override
         protected void doRelease() {
             this.chunk.release();
-            for (Section section : this.sections)   {
+            for (Section section : this.sections) {
                 section.release();
             }
         }

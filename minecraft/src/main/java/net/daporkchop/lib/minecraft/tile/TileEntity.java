@@ -23,18 +23,15 @@ package net.daporkchop.lib.minecraft.tile;
 import net.daporkchop.lib.compat.Versioned;
 import net.daporkchop.lib.math.access.IntHolderXYZ;
 import net.daporkchop.lib.minecraft.util.Identifier;
-import net.daporkchop.lib.minecraft.util.dirty.Dirtiable;
 import net.daporkchop.lib.minecraft.version.MinecraftVersion;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
  * Base representation of a tile entity.
- * <p>
- * All setters for all subinterfaces of this class must also set the dirty flag.
  *
  * @author DaPorkchop_
  */
-public interface TileEntity extends IntHolderXYZ, Dirtiable, Versioned<MinecraftVersion> {
+public interface TileEntity extends IntHolderXYZ, Versioned<MinecraftVersion> {
     /**
      * @return this tile entity's X coordinate
      */
@@ -57,13 +54,4 @@ public interface TileEntity extends IntHolderXYZ, Dirtiable, Versioned<Minecraft
      * @return this entity's ID (e.g. {@code "minecraft:ender_chest"})
      */
     Identifier id();
-
-    /**
-     * Gets the NBT compound tag that this tile entity was loaded from.
-     * <p>
-     * This is only guaranteed to be valid when used for the exact same version as this instance (see {@link #version()}), and may not be set at all.
-     *
-     * @return the NBT compound tag that this tile entity was loaded from
-     */
-    CompoundTag nbt();
 }

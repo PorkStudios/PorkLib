@@ -18,7 +18,7 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.java.version.section.decoder;
+package net.daporkchop.lib.minecraft.format.java.decoder.section;
 
 import lombok.NonNull;
 import net.daporkchop.lib.binary.bit.packed.PackedBitArray;

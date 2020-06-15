@@ -24,31 +24,22 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.compat.update.DataUpdater;
-import net.daporkchop.lib.compat.update.DataUpdaterBuilder;
 import net.daporkchop.lib.minecraft.format.anvil.version.chunk.decoder.FlattenedChunkDecoder;
 import net.daporkchop.lib.minecraft.format.anvil.version.chunk.decoder.LegacyChunkDecoder;
-import net.daporkchop.lib.minecraft.format.java.version.JavaDecoder;
-import net.daporkchop.lib.minecraft.format.java.version.section.decoder.FlattenedSectionDecoder;
-import net.daporkchop.lib.minecraft.format.java.version.section.decoder.LegacySectionDecoder;
-import net.daporkchop.lib.minecraft.format.java.version.tile.decoder.SignDecoder1_13_2;
-import net.daporkchop.lib.minecraft.format.java.version.tile.decoder.SignDecoderLatest;
-import net.daporkchop.lib.minecraft.format.java.version.tile.decoder.UnknownTileDecoder;
-import net.daporkchop.lib.minecraft.save.SaveOptions;
-import net.daporkchop.lib.minecraft.tile.TileEntity;
+import net.daporkchop.lib.minecraft.format.java.decoder.JavaDecoder;
+import net.daporkchop.lib.minecraft.format.java.decoder.section.FlattenedSectionDecoder;
+import net.daporkchop.lib.minecraft.format.java.decoder.section.LegacySectionDecoder;
+import net.daporkchop.lib.minecraft.format.java.decoder.tile.SignDecoder1_13_2;
+import net.daporkchop.lib.minecraft.format.java.decoder.tile.SignDecoderLatest;
+import net.daporkchop.lib.minecraft.format.java.decoder.tile.UnknownTileDecoder;
 import net.daporkchop.lib.minecraft.tile.TileEntitySign;
 import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
-import net.daporkchop.lib.minecraft.world.Chunk;
-import net.daporkchop.lib.minecraft.world.Section;
-import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
-
-import static net.daporkchop.lib.common.util.PValidation.checkState;
 
 /**
  * @author DaPorkchop_
@@ -74,22 +65,16 @@ public class JavaFixers {
 
     private static final class Default {
         private static final JavaFixers DEFAULT_JAVA_FIXERS = new JavaFixers(
-                new DataUpdaterBuilder<CompoundTag, JavaVersion, SaveOptions>()
-                        .build(),
-                new MapBuilder<>(new TreeMap<JavaVersion, JavaDecoder<Chunk>>())
+                new MapBuilder<>(new TreeMap<JavaVersion, JavaDecoder.Chunk>())
                         .put(LegacyChunkDecoder.VERSION, new LegacyChunkDecoder())
                         .put(FlattenedChunkDecoder.VERSION, new FlattenedChunkDecoder())
                         .build(),
-                new DataUpdaterBuilder<CompoundTag, JavaVersion, SaveOptions>()
-                        .build(),
-                new MapBuilder<>(new TreeMap<JavaVersion, JavaDecoder<Section>>())
+                new MapBuilder<>(new TreeMap<JavaVersion, JavaDecoder.Section>())
                         .put(LegacySectionDecoder.VERSION, new LegacySectionDecoder())
                         .put(FlattenedSectionDecoder.VERSION, new FlattenedSectionDecoder())
                         .build(),
-                new DataUpdaterBuilder<CompoundTag, JavaVersion, SaveOptions>()
-                        .build(),
-                new MapBuilder<>(new HashMap<Identifier, NavigableMap<JavaVersion, JavaDecoder<TileEntity>>>())
-                        .put(TileEntitySign.ID, new MapBuilder<>(new TreeMap<JavaVersion, JavaDecoder<TileEntity>>())
+                new MapBuilder<>(new HashMap<Identifier, NavigableMap<JavaVersion, JavaDecoder.TileEntity>>())
+                        .put(TileEntitySign.ID, new MapBuilder<>(new TreeMap<JavaVersion, JavaDecoder.TileEntity>())
                                 .put(SignDecoder1_13_2.VERSION, new SignDecoder1_13_2())
                                 .put(SignDecoderLatest.VERSION, new SignDecoderLatest())
                                 .build())
@@ -105,41 +90,19 @@ public class JavaFixers {
     }
 
     @NonNull
-    protected final DataUpdater<CompoundTag, JavaVersion, SaveOptions> chunkUpdater;
+    protected final NavigableMap<JavaVersion, JavaDecoder.Chunk> chunkDecoder;
 
     @NonNull
-    protected final NavigableMap<JavaVersion, JavaDecoder<Chunk>> chunkDecoder;
+    protected final NavigableMap<JavaVersion, JavaDecoder.Section> sectionDecoder;
 
     @NonNull
-    protected final DataUpdater<CompoundTag, JavaVersion, SaveOptions> sectionUpdater;
+    protected final Map<Identifier, NavigableMap<JavaVersion, JavaDecoder.TileEntity>> tileEntityDecoder;
 
     @NonNull
-    protected final NavigableMap<JavaVersion, JavaDecoder<Section>> sectionDecoder;
+    protected final JavaDecoder.TileEntity tileEntityDecoderUnknown;
 
-    @NonNull
-    protected final DataUpdater<CompoundTag, JavaVersion, SaveOptions> tileEntityUpdater;
-
-    @NonNull
-    protected final Map<Identifier, NavigableMap<JavaVersion, JavaDecoder<TileEntity>>> tileEntityDecoder;
-
-    @NonNull
-    protected final JavaDecoder<TileEntity> tileEntityDecoderUnknown;
-
-    /**
-     * Decodes a chunk with minimal conversion.
-     */
-    public Chunk decodeChunkLazy(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull SaveOptions options) {
-        JavaVersion targetVersion = this.chunkDecoder.ceilingKey(version);
-        tag = this.chunkUpdater.update(version, targetVersion).apply(tag, options);
-        return this.chunkDecoder.get(targetVersion).decode(tag, targetVersion, options);
-    }
-
-    /**
-     * Decodes a chunk to exactly the given version.
-     */
-    public Chunk decodeChunk(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull JavaVersion targetVersion, @NonNull SaveOptions options) {
-        checkState(this.chunkDecoder.containsKey(targetVersion), "no decoder for version: %s", targetVersion);
-        tag = this.chunkUpdater.update(version, targetVersion).apply(tag, options);
-        return this.chunkDecoder.get(targetVersion).decode(tag, targetVersion, options);
+    public JavaDecoder.TileEntity tileEntity(@NonNull Identifier id, @NonNull JavaVersion version) {
+        NavigableMap<JavaVersion, JavaDecoder.TileEntity> tileEntity = this.tileEntityDecoder.get(id);
+        return tileEntity != null ? tileEntity.ceilingEntry(version).getValue() : this.tileEntityDecoderUnknown;
     }
 }

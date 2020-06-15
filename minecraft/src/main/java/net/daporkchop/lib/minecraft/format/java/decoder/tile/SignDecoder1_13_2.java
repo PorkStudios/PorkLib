@@ -18,18 +18,29 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.java.version;
+package net.daporkchop.lib.minecraft.format.java.decoder.tile;
 
 import lombok.NonNull;
-import net.daporkchop.lib.compat.datafix.decode.ParameterizedDecoder;
+import net.daporkchop.lib.minecraft.format.java.decoder.JavaDecoder;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
+import net.daporkchop.lib.minecraft.tile.TileEntitySign;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
+ * Decodes signs for versions prior to 1.14.
+ *
  * @author DaPorkchop_
  */
-public interface JavaDecoder<O> extends ParameterizedDecoder<O, CompoundTag, JavaVersion, SaveOptions> {
+public class SignDecoder1_13_2 implements JavaDecoder.TileEntity {
+    public static final JavaVersion VERSION = JavaVersion.fromName("1.13.2");
+
     @Override
-    O decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, SaveOptions options);
+    public TileEntitySign decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull SaveOptions options) {
+        return new TileEntitySign(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"), version)
+                .line1(tag.getString("Text1", ""))
+                .line2(tag.getString("Text2", ""))
+                .line3(tag.getString("Text3", ""))
+                .line4(tag.getString("Text4", ""));
+    }
 }

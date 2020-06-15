@@ -21,8 +21,6 @@
 package net.daporkchop.lib.minecraft.format.anvil.version.chunk.decoder;
 
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.format.java.version.JavaDecoder;
-import net.daporkchop.lib.minecraft.format.vanilla.VanillaChunk;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.minecraft.world.Chunk;
@@ -33,15 +31,11 @@ import net.daporkchop.lib.nbt.tag.CompoundTag;
  *
  * @author DaPorkchop_
  */
-public class FlattenedChunkDecoder implements JavaDecoder<Chunk> {
+public class FlattenedChunkDecoder extends LegacyChunkDecoder {
     public static final JavaVersion VERSION = JavaVersion.latest();
 
     @Override
-    public Chunk decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, SaveOptions options) {
-        CompoundTag level = tag.getCompound("Level");
-        int x = level.getInt("xPos");
-        int z = level.getInt("zPos");
-
-        return new VanillaChunk(version, x, z);
+    public Chunk decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull SaveOptions options) {
+        return super.decode(tag, version, options);
     }
 }

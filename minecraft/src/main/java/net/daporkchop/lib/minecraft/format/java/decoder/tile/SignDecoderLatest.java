@@ -18,18 +18,26 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.java.section;
+package net.daporkchop.lib.minecraft.format.java.decoder.tile;
 
-import net.daporkchop.lib.minecraft.world.Section;
+import lombok.NonNull;
+import net.daporkchop.lib.minecraft.save.SaveOptions;
+import net.daporkchop.lib.minecraft.text.format.FormattingCode;
+import net.daporkchop.lib.minecraft.tile.TileEntitySign;
+import net.daporkchop.lib.minecraft.version.java.JavaVersion;
+import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
- * An extension of {@link Section} to work around the fact that section codecs don't know the X or Z coordinates of a section.
+ * Decodes signs for versions 1.14+.
  *
  * @author DaPorkchop_
  */
-public interface JavaSection extends Section {
-    /**
-     * Internal code, do not touch!
-     */
-    void _setXZ(int x, int z);
+public class SignDecoderLatest extends SignDecoder1_13_2 {
+    public static final JavaVersion VERSION = JavaVersion.latest();
+
+    @Override
+    public TileEntitySign decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull SaveOptions options) {
+        return super.decode(tag, version, options)
+                .color(FormattingCode.lookupColor(tag.getString("Color", "black")));
+    }
 }

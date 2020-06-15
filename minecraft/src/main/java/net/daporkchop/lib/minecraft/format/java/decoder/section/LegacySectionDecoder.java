@@ -18,18 +18,17 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.java.version.section.decoder;
+package net.daporkchop.lib.minecraft.format.java.decoder.section;
 
 import lombok.NonNull;
 import net.daporkchop.lib.minecraft.block.BlockRegistry;
 import net.daporkchop.lib.minecraft.block.java.JavaBlockRegistry;
-import net.daporkchop.lib.minecraft.format.common.storage.legacy.HeapLegacyBlockStorage;
+import net.daporkchop.lib.minecraft.format.common.DefaultSection;
 import net.daporkchop.lib.minecraft.format.common.nibble.HeapNibbleArray;
 import net.daporkchop.lib.minecraft.format.common.nibble.NibbleArray;
 import net.daporkchop.lib.minecraft.format.common.storage.BlockStorage;
-import net.daporkchop.lib.minecraft.format.java.version.JavaDecoder;
-import net.daporkchop.lib.minecraft.format.java.section.DefaultJavaSection;
-import net.daporkchop.lib.minecraft.format.java.section.JavaSection;
+import net.daporkchop.lib.minecraft.format.common.storage.legacy.HeapLegacyBlockStorage;
+import net.daporkchop.lib.minecraft.format.java.decoder.JavaDecoder;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.minecraft.world.Section;
@@ -39,16 +38,16 @@ import net.daporkchop.lib.nbt.tag.CompoundTag;
 /**
  * @author DaPorkchop_
  */
-public class LegacySectionDecoder implements JavaDecoder<Section> {
+public class LegacySectionDecoder implements JavaDecoder.Section {
     public static final JavaVersion VERSION = JavaVersion.fromName("1.12.2");
 
     @Override
-    public JavaSection decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, SaveOptions options) {
+    public Section decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull SaveOptions options, int x, int z) {
         int y = tag.getByte("Y") & 0xFF;
         BlockStorage storage = this.parseBlockStorage(tag, JavaBlockRegistry.forVersion(version));
         NibbleArray blockLight = this.parseNibbleArray(tag, "BlockLight");
         NibbleArray skyLight = this.parseNibbleArray(tag, "SkyLight");
-        return new DefaultJavaSection(y, storage, blockLight, skyLight, version);
+        return new DefaultSection(x, y, z, storage, blockLight, skyLight, version);
     }
 
     protected BlockStorage parseBlockStorage(@NonNull CompoundTag tag, @NonNull BlockRegistry blockRegistry) {

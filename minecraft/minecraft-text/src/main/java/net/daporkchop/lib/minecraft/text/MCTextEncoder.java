@@ -27,6 +27,9 @@ import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.logging.console.TextFormat;
 import net.daporkchop.lib.logging.format.component.TextComponent;
 import net.daporkchop.lib.minecraft.text.component.MCTextRoot;
+import net.daporkchop.lib.minecraft.text.format.ChatColor;
+import net.daporkchop.lib.minecraft.text.format.ChatFormat;
+import net.daporkchop.lib.minecraft.text.format.FormattingCode;
 
 import java.io.IOException;
 
@@ -63,7 +66,7 @@ public class MCTextEncoder {
 
         switch (type) {
             case LEGACY:
-                encodeLegacy(dst, component, new TextFormat().setTextColor(ChatFormat.WHITE.awtColor()), ChatFormat.RESET);
+                encodeLegacy(dst, component, new TextFormat().setTextColor(ChatColor.WHITE.awtColor()), ChatFormat.RESET);
                 break;
             case JSON:
                 //TODO
@@ -73,7 +76,7 @@ public class MCTextEncoder {
         }
     }
 
-    protected ChatFormat encodeLegacy(@NonNull Appendable dst, @NonNull TextComponent component, @NonNull TextFormat format, @NonNull ChatFormat lastColor) throws IOException {
+    protected FormattingCode encodeLegacy(@NonNull Appendable dst, @NonNull TextComponent component, @NonNull TextFormat format, @NonNull FormattingCode lastColor) throws IOException {
         lastColor = writeLegacyFormatting(dst, component, format, lastColor);
 
         for (TextComponent child : component.getChildren()) {
@@ -82,10 +85,10 @@ public class MCTextEncoder {
         return lastColor;
     }
 
-    protected ChatFormat writeLegacyFormatting(@NonNull Appendable dst, @NonNull TextComponent component, @NonNull TextFormat format, @NonNull ChatFormat lastColor) throws IOException {
+    protected ChatColor writeLegacyFormatting(@NonNull Appendable dst, @NonNull TextComponent component, @NonNull TextFormat format, @NonNull FormattingCode lastColor) throws IOException {
         String text = component.getText();
 
-        ChatFormat newColor = PorkUtil.fallbackIfNull(ChatFormat.closestTo(component.getColor()), lastColor);
+        ChatColor newColor = PorkUtil.fallbackIfNull(FormattingCode.closestTo(component.getColor()), lastColor);
 
         int newStyle = component.getStyle();
         int oldStyle = format.getStyle();

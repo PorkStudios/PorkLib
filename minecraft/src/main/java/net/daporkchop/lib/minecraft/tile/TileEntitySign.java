@@ -20,49 +20,41 @@
 
 package net.daporkchop.lib.minecraft.tile;
 
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.text.ChatFormat;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.minecraft.text.format.ChatColor;
 import net.daporkchop.lib.minecraft.util.Identifier;
+import net.daporkchop.lib.minecraft.version.MinecraftVersion;
+import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
- * Representation of a {@code "minecraft:sign"} tile entity.
- *
  * @author DaPorkchop_
  */
-public interface TileEntitySign extends TileEntity {
-    Identifier ID = Identifier.fromString("minecraft:sign");
+@Setter
+@Getter
+@Accessors(fluent = true, chain = true)
+public class TileEntitySign extends AbstractTileEntity {
+    public static final Identifier ID = Identifier.fromString("minecraft:sign");
 
-    @Override
-    default Identifier id() {
-        return ID;
+    @NonNull
+    protected ChatColor color = ChatColor.BLACK;
+    @NonNull
+    protected String line1 = "";
+    @NonNull
+    protected String line2 = "";
+    @NonNull
+    protected String line3 = "";
+    @NonNull
+    protected String line4 = "";
+
+    public TileEntitySign(int x, int y, int z, MinecraftVersion version) {
+        super(x, y, z, version);
     }
 
-    /**
-     * @return an array containing the 4 lines of text displayed on the sign
-     */
-    String[] lines();
-
-    /**
-     * Sets the line of text at the given index.
-     *
-     * @param index the index of the line to set
-     * @param text  the new text to set
-     * @return this instance
-     * @throws IndexOutOfBoundsException if the given index is outside of the range {@code [0-4)}
-     */
-    TileEntitySign line(int index, @NonNull String text);
-
-    /**
-     * @return the color that has been used to dye the sign. The default value is {@link ChatFormat#BLACK}
-     */
-    ChatFormat color();
-
-    /**
-     * Sets the color that has been used to dye the sign.
-     *
-     * @param color the new color
-     * @return this instance
-     * @throws IllegalArgumentException if the given {@link ChatFormat} is not a color
-     */
-    TileEntitySign color(@NonNull ChatFormat color);
+    @Override
+    public Identifier id() {
+        return ID;
+    }
 }

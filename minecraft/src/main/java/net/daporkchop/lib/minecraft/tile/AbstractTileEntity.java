@@ -34,28 +34,17 @@ import net.daporkchop.lib.nbt.tag.CompoundTag;
  */
 @Getter
 @Accessors(fluent = true)
-public abstract class AbstractTileEntity extends AbstractDirtiable implements TileEntity {
+public abstract class AbstractTileEntity implements TileEntity {
     protected final int x;
     protected final int y;
     protected final int z;
 
     protected final MinecraftVersion version;
-    protected final CompoundTag nbt;
 
-    public AbstractTileEntity(int x, int y, int z, @NonNull MinecraftVersion version, CompoundTag nbt) {
+    public AbstractTileEntity(int x, int y, int z, @NonNull MinecraftVersion version) {
         this.x = x;
         this.y = y;
         this.z = z;
         this.version = version;
-        this.nbt = nbt;
-    }
-
-    public AbstractTileEntity(@NonNull MinecraftVersion version, @NonNull CompoundTag nbt) {
-        this.x = nbt.getInt("x");
-        this.y = nbt.getInt("y");
-        this.z = nbt.getInt("z");
-
-        this.version = version;
-        this.nbt = nbt;
     }
 }

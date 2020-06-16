@@ -21,8 +21,8 @@
 package net.daporkchop.lib.minecraft.format.java.decoder.tile;
 
 import lombok.NonNull;
+import net.daporkchop.lib.minecraft.format.java.JavaFixers;
 import net.daporkchop.lib.minecraft.format.java.decoder.JavaTileEntityDecoder;
-import net.daporkchop.lib.minecraft.save.SaveOptions;
 import net.daporkchop.lib.minecraft.tileentity.TileEntity;
 import net.daporkchop.lib.minecraft.tileentity.UnknownTileEntity;
 import net.daporkchop.lib.minecraft.util.Identifier;
@@ -35,10 +35,8 @@ import net.daporkchop.lib.nbt.tag.CompoundTag;
  * @author DaPorkchop_
  */
 public class UnknownTileDecoder implements JavaTileEntityDecoder {
-    public static final JavaVersion VERSION = JavaVersion.latest();
-
     @Override
-    public TileEntity decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull SaveOptions options) {
+    public TileEntity decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull JavaFixers fixers) {
         return new UnknownTileEntity(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"), version)
                 .id(Identifier.fromString(tag.getString("id", "unknown")))
                 .nbt(tag.clone());

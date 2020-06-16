@@ -18,54 +18,41 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.item;
+package net.daporkchop.lib.minecraft.item.inventory;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.misc.Cloneable;
-import net.daporkchop.lib.minecraft.util.Identifier;
-import net.daporkchop.lib.nbt.tag.CompoundTag;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
+import net.daporkchop.lib.minecraft.item.ItemStack;
 
 /**
- * Representation of an item stack.
+ * A default implementation of an inventory backed by a simple array.
  *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-@Getter
-@Setter
-@Accessors(fluent = true, chain = true)
-public class ItemStack implements Cloneable<ItemStack> {
+@RequiredArgsConstructor(onConstructor_ = {@Deprecated})
+@ToString
+public class DefaultInventory implements Inventory {
     @NonNull
-    protected Identifier id;
+    protected final ItemStack[] slots;
 
-    protected int size;
-    protected int damage;
-
-    protected CompoundTag tag;
-
-    public ItemStack(@NonNull Identifier id)    {
-        this(id, 0, 0, null);
-    }
-
-    public ItemStack(@NonNull Identifier id, int size)    {
-        this(id, size, 0, null);
-    }
-
-    public ItemStack(@NonNull Identifier id, int size, int damage)    {
-        this(id, size, damage, null);
+    public DefaultInventory(int slots) {
+        this.slots = new ItemStack[slots];
     }
 
     @Override
-    public ItemStack clone() {
-        return new ItemStack(this.id, this.size, this.damage, this.tag);
+    public int size() {
+        return this.slots.length;
     }
 
     @Override
-    public String toString() {
-        return this.id.toString() + '#' + this.damage + " * " + this.size + (this.tag == null ? "" : " " + this.tag);
+    public ItemStack get(int slot) {
+        return this.slots[slot];
+    }
+
+    @Override
+    public Inventory set(int slot, @NonNull ItemStack stack) {
+        this.slots[slot] = stack;
+        return this;
     }
 }

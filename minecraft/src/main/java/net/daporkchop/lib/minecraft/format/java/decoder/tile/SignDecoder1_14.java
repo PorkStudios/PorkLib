@@ -21,7 +21,7 @@
 package net.daporkchop.lib.minecraft.format.java.decoder.tile;
 
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.save.SaveOptions;
+import net.daporkchop.lib.minecraft.format.java.JavaFixers;
 import net.daporkchop.lib.minecraft.text.format.FormattingCode;
 import net.daporkchop.lib.minecraft.tileentity.TileEntitySign;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
@@ -34,8 +34,8 @@ import net.daporkchop.lib.nbt.tag.CompoundTag;
  */
 public class SignDecoder1_14 extends SignDecoder1_8 {
     @Override
-    public TileEntitySign decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull SaveOptions options) {
-        return super.decode(tag, version, options)
+    public TileEntitySign decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull JavaFixers fixers) {
+        return super.decode(tag, version, fixers)
                 .color(FormattingCode.lookupColor(tag.getString("Color", "black")));
     }
 }

@@ -21,11 +21,9 @@
 package net.daporkchop.lib.minecraft.format.java.decoder.tile;
 
 import lombok.NonNull;
+import net.daporkchop.lib.minecraft.format.java.JavaFixers;
 import net.daporkchop.lib.minecraft.format.java.decoder.JavaTileEntityDecoder;
-import net.daporkchop.lib.minecraft.save.SaveOptions;
-import net.daporkchop.lib.minecraft.tileentity.TileEntity;
 import net.daporkchop.lib.minecraft.tileentity.TileEntitySign;
-import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
@@ -36,7 +34,7 @@ import net.daporkchop.lib.nbt.tag.CompoundTag;
  */
 public class SignDecoder1_8 implements JavaTileEntityDecoder {
     @Override
-    public TileEntitySign decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull SaveOptions options) {
+    public TileEntitySign decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull JavaFixers fixers) {
         return new TileEntitySign(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"), version)
                 .line1(tag.getString("Text1", ""))
                 .line2(tag.getString("Text2", ""))

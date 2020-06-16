@@ -27,13 +27,17 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.minecraft.format.anvil.decoder.chunk.FlattenedChunkDecoder;
 import net.daporkchop.lib.minecraft.format.anvil.decoder.chunk.LegacyChunkDecoder;
 import net.daporkchop.lib.minecraft.format.java.decoder.JavaChunkDecoder;
+import net.daporkchop.lib.minecraft.format.java.decoder.JavaItemDecoder;
 import net.daporkchop.lib.minecraft.format.java.decoder.JavaSectionDecoder;
 import net.daporkchop.lib.minecraft.format.java.decoder.JavaTileEntityDecoder;
+import net.daporkchop.lib.minecraft.format.java.decoder.item.ItemDecoder1_9;
 import net.daporkchop.lib.minecraft.format.java.decoder.section.FlattenedSectionDecoder;
 import net.daporkchop.lib.minecraft.format.java.decoder.section.LegacySectionDecoder;
+import net.daporkchop.lib.minecraft.format.java.decoder.tile.ChestDecoder1_8;
 import net.daporkchop.lib.minecraft.format.java.decoder.tile.SignDecoder1_8;
 import net.daporkchop.lib.minecraft.format.java.decoder.tile.SignDecoder1_14;
 import net.daporkchop.lib.minecraft.format.java.decoder.tile.UnknownTileDecoder;
+import net.daporkchop.lib.minecraft.tileentity.TileEntityChest;
 import net.daporkchop.lib.minecraft.tileentity.TileEntitySign;
 import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
@@ -103,6 +107,7 @@ public class JavaFixers {
                         .putAlias("Structure", Identifier.fromString("minecraft:structure_block"))
                         .putAlias("Trap", Identifier.fromString("minecraft:dispenser"))
                         //legacy tile entities
+                        .putDecoder(TileEntityChest.ID, new ChestDecoder1_8())
                         .putDecoder(TileEntitySign.ID, new SignDecoder1_8())
 
                         //
@@ -116,6 +121,9 @@ public class JavaFixers {
                         //
                         .begin(JavaVersion.latest())
                         .putDecoder(TileEntitySign.ID, new SignDecoder1_14())
+                        .build(),
+                new MapBuilder<>(new TreeMap<JavaVersion, JavaItemDecoder>())
+                        .put(JavaVersion.latest(), new ItemDecoder1_9())
                         .build());
     }
 
@@ -127,11 +135,14 @@ public class JavaFixers {
     }
 
     @NonNull
-    protected final NavigableMap<JavaVersion, JavaChunkDecoder> chunkDecoder;
+    protected final NavigableMap<JavaVersion, JavaChunkDecoder> chunk;
 
     @NonNull
-    protected final NavigableMap<JavaVersion, JavaSectionDecoder> sectionDecoder;
+    protected final NavigableMap<JavaVersion, JavaSectionDecoder> section;
 
     @NonNull
-    protected final NavigableMap<JavaVersion, JavaTileEntityDecoder> tileEntityDecoder;
+    protected final NavigableMap<JavaVersion, JavaTileEntityDecoder> tileEntity;
+
+    @NonNull
+    protected final NavigableMap<JavaVersion, JavaItemDecoder> item;
 }

@@ -18,54 +18,37 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.item;
+package net.daporkchop.lib.minecraft.item.inventory;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.misc.Cloneable;
-import net.daporkchop.lib.minecraft.util.Identifier;
-import net.daporkchop.lib.nbt.tag.CompoundTag;
+import net.daporkchop.lib.minecraft.item.ItemStack;
 
 /**
- * Representation of an item stack.
+ * Base representation of an inventory.
  *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-@Getter
-@Setter
-@Accessors(fluent = true, chain = true)
-public class ItemStack implements Cloneable<ItemStack> {
-    @NonNull
-    protected Identifier id;
+public interface Inventory {
+    /**
+     * @return the number of slots in this inventory
+     */
+    int size();
 
-    protected int size;
-    protected int damage;
+    /**
+     * Gets the {@link ItemStack} at the given slot index.
+     *
+     * @param slot the slot index
+     * @return the {@link ItemStack} at the given slot index
+     * @throws IndexOutOfBoundsException if the given slot index is out of bounds
+     */
+    ItemStack get(int slot);
 
-    protected CompoundTag tag;
-
-    public ItemStack(@NonNull Identifier id)    {
-        this(id, 0, 0, null);
-    }
-
-    public ItemStack(@NonNull Identifier id, int size)    {
-        this(id, size, 0, null);
-    }
-
-    public ItemStack(@NonNull Identifier id, int size, int damage)    {
-        this(id, size, damage, null);
-    }
-
-    @Override
-    public ItemStack clone() {
-        return new ItemStack(this.id, this.size, this.damage, this.tag);
-    }
-
-    @Override
-    public String toString() {
-        return this.id.toString() + '#' + this.damage + " * " + this.size + (this.tag == null ? "" : " " + this.tag);
-    }
+    /**
+     * Sets the {@link ItemStack} at the given slot index.
+     *
+     * @param slot  the slot index
+     * @param stack the new {@link ItemStack}
+     * @return this inventory
+     */
+    Inventory set(int slot, ItemStack stack);
 }

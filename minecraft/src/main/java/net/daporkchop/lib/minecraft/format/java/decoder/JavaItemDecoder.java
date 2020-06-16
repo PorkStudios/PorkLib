@@ -18,54 +18,20 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.item;
+package net.daporkchop.lib.minecraft.format.java.decoder;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.misc.Cloneable;
-import net.daporkchop.lib.minecraft.util.Identifier;
+import net.daporkchop.lib.minecraft.format.java.JavaFixers;
+import net.daporkchop.lib.minecraft.item.ItemStack;
+import net.daporkchop.lib.minecraft.save.SaveOptions;
+import net.daporkchop.lib.minecraft.version.java.JavaVersion;
+import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
- * Representation of an item stack.
- *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-@Getter
-@Setter
-@Accessors(fluent = true, chain = true)
-public class ItemStack implements Cloneable<ItemStack> {
-    @NonNull
-    protected Identifier id;
-
-    protected int size;
-    protected int damage;
-
-    protected CompoundTag tag;
-
-    public ItemStack(@NonNull Identifier id)    {
-        this(id, 0, 0, null);
-    }
-
-    public ItemStack(@NonNull Identifier id, int size)    {
-        this(id, size, 0, null);
-    }
-
-    public ItemStack(@NonNull Identifier id, int size, int damage)    {
-        this(id, size, damage, null);
-    }
-
-    @Override
-    public ItemStack clone() {
-        return new ItemStack(this.id, this.size, this.damage, this.tag);
-    }
-
-    @Override
-    public String toString() {
-        return this.id.toString() + '#' + this.damage + " * " + this.size + (this.tag == null ? "" : " " + this.tag);
-    }
+@FunctionalInterface
+public interface JavaItemDecoder {
+    ItemStack decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull JavaFixers fixers);
 }

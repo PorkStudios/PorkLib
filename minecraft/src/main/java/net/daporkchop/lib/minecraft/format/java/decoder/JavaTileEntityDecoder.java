@@ -24,8 +24,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.minecraft.save.SaveOptions;
+import net.daporkchop.lib.minecraft.format.java.JavaFixers;
 import net.daporkchop.lib.minecraft.tileentity.TileEntity;
 import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
@@ -45,11 +44,8 @@ import static net.daporkchop.lib.common.util.PValidation.checkState;
  */
 @FunctionalInterface
 public interface JavaTileEntityDecoder {
-    TileEntity decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull SaveOptions options);
+    TileEntity decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull JavaFixers fixers);
 
-    /**
-     *
-     */
     @RequiredArgsConstructor
     @Accessors(fluent = true, chain = true)
     class Builder {
@@ -111,7 +107,7 @@ public interface JavaTileEntityDecoder {
             protected final JavaTileEntityDecoder unknownDecoder;
 
             @Override
-            public TileEntity decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull SaveOptions options) {
+            public TileEntity decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull JavaFixers fixers) {
                 String idText = tag.getString("id", "unknown");
                 Identifier id = this.aliases.get(idText);
                 if (id == null) {
@@ -119,7 +115,7 @@ public interface JavaTileEntityDecoder {
                 } else {
                     tag.putString("id", id.toString());
                 }
-                return this.delegates.getOrDefault(id, this.unknownDecoder).decode(tag, version, options);
+                return this.delegates.getOrDefault(id, this.unknownDecoder).decode(tag, version, fixers);
             }
         }
     }

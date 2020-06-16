@@ -18,54 +18,41 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.item;
+package net.daporkchop.lib.minecraft.tileentity;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.misc.Cloneable;
+import net.daporkchop.lib.logging.format.component.TextComponent;
+import net.daporkchop.lib.minecraft.item.inventory.DefaultInventory;
+import net.daporkchop.lib.minecraft.item.inventory.Inventory;
+import net.daporkchop.lib.minecraft.item.inventory.InventoryHolder;
+import net.daporkchop.lib.minecraft.text.format.ChatColor;
 import net.daporkchop.lib.minecraft.util.Identifier;
-import net.daporkchop.lib.nbt.tag.CompoundTag;
+import net.daporkchop.lib.minecraft.version.MinecraftVersion;
 
 /**
- * Representation of an item stack.
- *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
+@ToString
 @Getter
 @Setter
 @Accessors(fluent = true, chain = true)
-public class ItemStack implements Cloneable<ItemStack> {
-    @NonNull
-    protected Identifier id;
+public class TileEntityChest extends AbstractTileEntity implements InventoryHolder {
+    public static final Identifier ID = Identifier.fromString("minecraft:chest");
 
-    protected int size;
-    protected int damage;
+    protected final Inventory inventory = new DefaultInventory(27);
 
-    protected CompoundTag tag;
+    protected TextComponent customName;
 
-    public ItemStack(@NonNull Identifier id)    {
-        this(id, 0, 0, null);
-    }
-
-    public ItemStack(@NonNull Identifier id, int size)    {
-        this(id, size, 0, null);
-    }
-
-    public ItemStack(@NonNull Identifier id, int size, int damage)    {
-        this(id, size, damage, null);
+    public TileEntityChest(int x, int y, int z, MinecraftVersion version) {
+        super(x, y, z, version);
     }
 
     @Override
-    public ItemStack clone() {
-        return new ItemStack(this.id, this.size, this.damage, this.tag);
-    }
-
-    @Override
-    public String toString() {
-        return this.id.toString() + '#' + this.damage + " * " + this.size + (this.tag == null ? "" : " " + this.tag);
+    public Identifier id() {
+        return ID;
     }
 }

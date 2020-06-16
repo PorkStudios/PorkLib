@@ -51,21 +51,21 @@ public abstract class AnvilCachedChunk extends AbstractReleasableDirtiable {
         protected final Section[] sections = new Section[16];
 
         public ReadOnly(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull JavaFixers fixers, @NonNull SaveOptions options) {
-            this.chunk = fixers.chunkDecoder().ceilingEntry(version).getValue()
+            this.chunk = fixers.chunk().ceilingEntry(version).getValue()
                     .decode(tag, version, options);
 
             CompoundTag levelTag = tag.getCompound("Level");
 
-            JavaSectionDecoder sectionDecoder = fixers.sectionDecoder().ceilingEntry(version).getValue();
+            JavaSectionDecoder sectionDecoder = fixers.section().ceilingEntry(version).getValue();
             for (CompoundTag sectionTag : levelTag.getList("Sections", CompoundTag.class)) {
                 Section section = sectionDecoder.decode(sectionTag, version, options, this.chunk.x(), this.chunk.z());
                 checkState(this.sections[section.y()] == null, "duplicate section at y=%d!", section.y());
                 this.sections[section.y()] = section;
             }
 
-            JavaTileEntityDecoder tileEntityDecoder = fixers.tileEntityDecoder().ceilingEntry(version).getValue();
+            JavaTileEntityDecoder tileEntityDecoder = fixers.tileEntity().ceilingEntry(version).getValue();
             for (CompoundTag tileEntityTag : levelTag.getList("TileEntities", CompoundTag.class)) {
-                TileEntity tileEntity = tileEntityDecoder.decode(tileEntityTag, version, options);
+                TileEntity tileEntity = tileEntityDecoder.decode(tileEntityTag, version, fixers);
                 System.out.println(tileEntity.id());
                 this.sections[tileEntity.y() >> 4].setTileEntity(tileEntity.x() & 0xF, tileEntity.y() & 0xF, tileEntity.z() & 0xF, tileEntity);
             }

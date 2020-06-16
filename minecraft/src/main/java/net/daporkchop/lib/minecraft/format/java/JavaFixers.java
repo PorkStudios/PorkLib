@@ -26,17 +26,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.minecraft.format.anvil.decoder.chunk.FlattenedChunkDecoder;
 import net.daporkchop.lib.minecraft.format.anvil.decoder.chunk.LegacyChunkDecoder;
-import net.daporkchop.lib.minecraft.format.java.decoder.JavaDecoder;
+import net.daporkchop.lib.minecraft.format.java.decoder.JavaChunkDecoder;
+import net.daporkchop.lib.minecraft.format.java.decoder.JavaSectionDecoder;
+import net.daporkchop.lib.minecraft.format.java.decoder.JavaTileEntityDecoder;
 import net.daporkchop.lib.minecraft.format.java.decoder.section.FlattenedSectionDecoder;
 import net.daporkchop.lib.minecraft.format.java.decoder.section.LegacySectionDecoder;
-import net.daporkchop.lib.minecraft.format.java.decoder.tile.SignDecoder1_13_2;
-import net.daporkchop.lib.minecraft.format.java.decoder.tile.SignDecoderLatest;
+import net.daporkchop.lib.minecraft.format.java.decoder.tile.SignDecoder1_8;
+import net.daporkchop.lib.minecraft.format.java.decoder.tile.SignDecoder1_14;
 import net.daporkchop.lib.minecraft.format.java.decoder.tile.UnknownTileDecoder;
 import net.daporkchop.lib.minecraft.tileentity.TileEntitySign;
 import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
@@ -65,21 +66,57 @@ public class JavaFixers {
 
     private static final class Default {
         private static final JavaFixers DEFAULT_JAVA_FIXERS = new JavaFixers(
-                new MapBuilder<>(new TreeMap<JavaVersion, JavaDecoder.Chunk>())
+                new MapBuilder<>(new TreeMap<JavaVersion, JavaChunkDecoder>())
                         .put(LegacyChunkDecoder.VERSION, new LegacyChunkDecoder())
                         .put(FlattenedChunkDecoder.VERSION, new FlattenedChunkDecoder())
                         .build(),
-                new MapBuilder<>(new TreeMap<JavaVersion, JavaDecoder.Section>())
+                new MapBuilder<>(new TreeMap<JavaVersion, JavaSectionDecoder>())
                         .put(LegacySectionDecoder.VERSION, new LegacySectionDecoder())
                         .put(FlattenedSectionDecoder.VERSION, new FlattenedSectionDecoder())
                         .build(),
-                new MapBuilder<>(new HashMap<Identifier, NavigableMap<JavaVersion, JavaDecoder.TileEntity>>())
-                        .put(TileEntitySign.ID, new MapBuilder<>(new TreeMap<JavaVersion, JavaDecoder.TileEntity>())
-                                .put(SignDecoder1_13_2.VERSION, new SignDecoder1_13_2())
-                                .put(SignDecoderLatest.VERSION, new SignDecoderLatest())
-                                .build())
-                        .build(),
-                new UnknownTileDecoder());
+                new JavaTileEntityDecoder.Builder(new UnknownTileDecoder())
+                        //
+                        // these apply to all pre-DataVersion versions
+                        //
+                        .begin(JavaVersion.pre15w32a()) //legacy tile entity IDs
+                        .putAlias("Airportal", Identifier.fromString("minecraft:end_portal"))
+                        .putAlias("Banner", Identifier.fromString("minecraft:banner"))
+                        .putAlias("Beacon", Identifier.fromString("minecraft:beacon"))
+                        .putAlias("Cauldron", Identifier.fromString("minecraft:brewing_stand"))
+                        .putAlias("Chest", Identifier.fromString("minecraft:chest"))
+                        .putAlias("Comparator", Identifier.fromString("minecraft:comparator"))
+                        .putAlias("Control", Identifier.fromString("minecraft:command_block"))
+                        .putAlias("DLDetector", Identifier.fromString("minecraft:daylight_detector"))
+                        .putAlias("Dropper", Identifier.fromString("minecraft:dropper"))
+                        .putAlias("EnchantTable", Identifier.fromString("minecraft:enchanting_table"))
+                        .putAlias("EndGateway", Identifier.fromString("minecraft:end_gateway"))
+                        .putAlias("EnderChest", Identifier.fromString("minecraft:ender_chest"))
+                        .putAlias("FlowerPot", Identifier.fromString("minecraft:flower_pot"))
+                        .putAlias("Furnace", Identifier.fromString("minecraft:furnace"))
+                        .putAlias("Hopper", Identifier.fromString("minecraft:hopper"))
+                        .putAlias("MobSpawner", Identifier.fromString("minecraft:mob_spawner"))
+                        .putAlias("Music", Identifier.fromString("minecraft:noteblock"))
+                        .putAlias("Piston", Identifier.fromString("minecraft:piston"))
+                        .putAlias("RecordPlayer", Identifier.fromString("minecraft:jukebox"))
+                        .putAlias("Sign", Identifier.fromString("minecraft:sign"))
+                        .putAlias("Skull", Identifier.fromString("minecraft:skull"))
+                        .putAlias("Structure", Identifier.fromString("minecraft:structure_block"))
+                        .putAlias("Trap", Identifier.fromString("minecraft:dispenser"))
+                        //legacy tile entities
+                        .putDecoder(TileEntitySign.ID, new SignDecoder1_8())
+
+                        //
+                        // 1.11+
+                        //
+                        .begin(JavaVersion.fromName("1.11"))
+                        .purgeAliases() //1.11+ doesn't have legacy tile entity IDs
+
+                        //
+                        // 1.14+
+                        //
+                        .begin(JavaVersion.latest())
+                        .putDecoder(TileEntitySign.ID, new SignDecoder1_14())
+                        .build());
     }
 
     /**
@@ -90,19 +127,11 @@ public class JavaFixers {
     }
 
     @NonNull
-    protected final NavigableMap<JavaVersion, JavaDecoder.Chunk> chunkDecoder;
+    protected final NavigableMap<JavaVersion, JavaChunkDecoder> chunkDecoder;
 
     @NonNull
-    protected final NavigableMap<JavaVersion, JavaDecoder.Section> sectionDecoder;
+    protected final NavigableMap<JavaVersion, JavaSectionDecoder> sectionDecoder;
 
     @NonNull
-    protected final Map<Identifier, NavigableMap<JavaVersion, JavaDecoder.TileEntity>> tileEntityDecoder;
-
-    @NonNull
-    protected final JavaDecoder.TileEntity tileEntityDecoderUnknown;
-
-    public JavaDecoder.TileEntity tileEntity(@NonNull Identifier id, @NonNull JavaVersion version) {
-        NavigableMap<JavaVersion, JavaDecoder.TileEntity> tileEntity = this.tileEntityDecoder.get(id);
-        return tileEntity != null ? tileEntity.ceilingEntry(version).getValue() : this.tileEntityDecoderUnknown;
-    }
+    protected final NavigableMap<JavaVersion, JavaTileEntityDecoder> tileEntityDecoder;
 }

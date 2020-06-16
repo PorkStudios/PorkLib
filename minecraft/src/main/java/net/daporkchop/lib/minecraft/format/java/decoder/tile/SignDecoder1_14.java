@@ -21,26 +21,21 @@
 package net.daporkchop.lib.minecraft.format.java.decoder.tile;
 
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.format.java.decoder.JavaDecoder;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
+import net.daporkchop.lib.minecraft.text.format.FormattingCode;
 import net.daporkchop.lib.minecraft.tileentity.TileEntitySign;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
- * Decodes signs for versions prior to 1.14.
+ * Decodes signs for versions 1.14+.
  *
  * @author DaPorkchop_
  */
-public class SignDecoder1_13_2 implements JavaDecoder.TileEntity {
-    public static final JavaVersion VERSION = JavaVersion.fromName("1.13.2");
-
+public class SignDecoder1_14 extends SignDecoder1_8 {
     @Override
     public TileEntitySign decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull SaveOptions options) {
-        return new TileEntitySign(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"), version)
-                .line1(tag.getString("Text1", ""))
-                .line2(tag.getString("Text2", ""))
-                .line3(tag.getString("Text3", ""))
-                .line4(tag.getString("Text4", ""));
+        return super.decode(tag, version, options)
+                .color(FormattingCode.lookupColor(tag.getString("Color", "black")));
     }
 }

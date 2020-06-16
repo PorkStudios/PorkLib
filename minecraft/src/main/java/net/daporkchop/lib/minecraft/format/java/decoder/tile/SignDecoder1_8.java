@@ -18,30 +18,29 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.anvil.decoder.chunk;
+package net.daporkchop.lib.minecraft.format.java.decoder.tile;
 
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.format.java.decoder.JavaChunkDecoder;
-import net.daporkchop.lib.minecraft.format.vanilla.VanillaChunk;
+import net.daporkchop.lib.minecraft.format.java.decoder.JavaTileEntityDecoder;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
+import net.daporkchop.lib.minecraft.tileentity.TileEntity;
+import net.daporkchop.lib.minecraft.tileentity.TileEntitySign;
+import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
-import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
- * Codec for serialization of chunks in the pre-flattening format used by Minecraft versions 1.12.2 and older.
+ * Decodes signs for versions prior to 1.14.
  *
  * @author DaPorkchop_
  */
-public class LegacyChunkDecoder implements JavaChunkDecoder {
-    public static final JavaVersion VERSION = JavaVersion.fromName("1.12.2");
-
+public class SignDecoder1_8 implements JavaTileEntityDecoder {
     @Override
-    public Chunk decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull SaveOptions options) {
-        CompoundTag level = tag.getCompound("Level");
-        int x = level.getInt("xPos");
-        int z = level.getInt("zPos");
-
-        return new VanillaChunk(version, x, z);
+    public TileEntitySign decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull SaveOptions options) {
+        return new TileEntitySign(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"), version)
+                .line1(tag.getString("Text1", ""))
+                .line2(tag.getString("Text2", ""))
+                .line3(tag.getString("Text3", ""))
+                .line4(tag.getString("Text4", ""));
     }
 }

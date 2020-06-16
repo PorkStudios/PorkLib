@@ -21,7 +21,7 @@
 package net.daporkchop.lib.minecraft.format.java.decoder.tile;
 
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.format.java.decoder.JavaDecoder;
+import net.daporkchop.lib.minecraft.format.java.decoder.JavaTileEntityDecoder;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
 import net.daporkchop.lib.minecraft.tileentity.TileEntity;
 import net.daporkchop.lib.minecraft.tileentity.UnknownTileEntity;
@@ -34,7 +34,7 @@ import net.daporkchop.lib.nbt.tag.CompoundTag;
  *
  * @author DaPorkchop_
  */
-public class UnknownTileDecoder implements JavaDecoder.TileEntity {
+public class UnknownTileDecoder implements JavaTileEntityDecoder {
     public static final JavaVersion VERSION = JavaVersion.latest();
 
     @Override

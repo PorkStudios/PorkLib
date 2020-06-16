@@ -21,30 +21,15 @@
 package net.daporkchop.lib.minecraft.format.java.decoder;
 
 import lombok.NonNull;
-import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
+import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
- * Interfaces used for decoding things for Java edition save formats.
- *
  * @author DaPorkchop_
  */
-@UtilityClass
-public class JavaDecoder {
-    @FunctionalInterface
-    public interface Chunk {
-        net.daporkchop.lib.minecraft.world.Chunk decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull SaveOptions options);
-    }
-
-    @FunctionalInterface
-    public interface Section {
-        net.daporkchop.lib.minecraft.world.Section decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull SaveOptions options, int x, int z);
-    }
-
-    @FunctionalInterface
-    public interface TileEntity {
-        net.daporkchop.lib.minecraft.tileentity.TileEntity decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull SaveOptions options);
-    }
+@FunctionalInterface
+public interface JavaSectionDecoder {
+    Section decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull SaveOptions options, int x, int z);
 }

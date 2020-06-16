@@ -22,10 +22,10 @@ package net.daporkchop.lib.minecraft.format.anvil.storage;
 
 import lombok.NonNull;
 import net.daporkchop.lib.minecraft.format.java.JavaFixers;
-import net.daporkchop.lib.minecraft.format.java.decoder.JavaDecoder;
+import net.daporkchop.lib.minecraft.format.java.decoder.JavaSectionDecoder;
+import net.daporkchop.lib.minecraft.format.java.decoder.JavaTileEntityDecoder;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
 import net.daporkchop.lib.minecraft.tileentity.TileEntity;
-import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.util.dirty.AbstractReleasableDirtiable;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.minecraft.world.Chunk;
@@ -56,16 +56,17 @@ public abstract class AnvilCachedChunk extends AbstractReleasableDirtiable {
 
             CompoundTag levelTag = tag.getCompound("Level");
 
-            JavaDecoder.Section sectionDecoder = fixers.sectionDecoder().ceilingEntry(version).getValue();
+            JavaSectionDecoder sectionDecoder = fixers.sectionDecoder().ceilingEntry(version).getValue();
             for (CompoundTag sectionTag : levelTag.getList("Sections", CompoundTag.class)) {
                 Section section = sectionDecoder.decode(sectionTag, version, options, this.chunk.x(), this.chunk.z());
                 checkState(this.sections[section.y()] == null, "duplicate section at y=%d!", section.y());
                 this.sections[section.y()] = section;
             }
 
+            JavaTileEntityDecoder tileEntityDecoder = fixers.tileEntityDecoder().ceilingEntry(version).getValue();
             for (CompoundTag tileEntityTag : levelTag.getList("TileEntities", CompoundTag.class)) {
-                TileEntity tileEntity = fixers.tileEntity(Identifier.fromString(tileEntityTag.getString("id")), version)
-                        .decode(tileEntityTag, version, options);
+                TileEntity tileEntity = tileEntityDecoder.decode(tileEntityTag, version, options);
+                System.out.println(tileEntity.id());
                 this.sections[tileEntity.y() >> 4].setTileEntity(tileEntity.x() & 0xF, tileEntity.y() & 0xF, tileEntity.z() & 0xF, tileEntity);
             }
         }

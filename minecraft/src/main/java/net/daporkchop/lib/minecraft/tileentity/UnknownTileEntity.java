@@ -18,33 +18,33 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.java.decoder;
+package net.daporkchop.lib.minecraft.tileentity;
 
+import lombok.Getter;
 import lombok.NonNull;
-import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.minecraft.save.SaveOptions;
-import net.daporkchop.lib.minecraft.version.java.JavaVersion;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.minecraft.util.Identifier;
+import net.daporkchop.lib.minecraft.version.MinecraftVersion;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
- * Interfaces used for decoding things for Java edition save formats.
+ * Representation of a tile entity whose content is unknown. It is simply stored as an unprocessed NBT tag in memory.
  *
  * @author DaPorkchop_
  */
-@UtilityClass
-public class JavaDecoder {
-    @FunctionalInterface
-    public interface Chunk {
-        net.daporkchop.lib.minecraft.world.Chunk decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull SaveOptions options);
-    }
+@ToString
+@Setter
+@Getter
+@Accessors(fluent = true, chain = true)
+public class UnknownTileEntity extends AbstractTileEntity {
+    @NonNull
+    protected Identifier id;
+    @NonNull
+    protected CompoundTag nbt;
 
-    @FunctionalInterface
-    public interface Section {
-        net.daporkchop.lib.minecraft.world.Section decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull SaveOptions options, int x, int z);
-    }
-
-    @FunctionalInterface
-    public interface TileEntity {
-        net.daporkchop.lib.minecraft.tileentity.TileEntity decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull SaveOptions options);
+    public UnknownTileEntity(int x, int y, int z, MinecraftVersion version) {
+        super(x, y, z, version);
     }
 }

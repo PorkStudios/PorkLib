@@ -23,7 +23,7 @@ package net.daporkchop.lib.minecraft.format.java.decoder.tile;
 import lombok.NonNull;
 import net.daporkchop.lib.minecraft.format.java.decoder.JavaDecoder;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
-import net.daporkchop.lib.minecraft.tile.TileEntitySign;
+import net.daporkchop.lib.minecraft.tileentity.TileEntitySign;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 

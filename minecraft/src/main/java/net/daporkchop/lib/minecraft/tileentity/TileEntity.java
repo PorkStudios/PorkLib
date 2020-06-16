@@ -18,29 +18,39 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.tile;
+package net.daporkchop.lib.minecraft.tileentity;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.minecraft.util.dirty.AbstractDirtiable;
+import net.daporkchop.lib.common.misc.Versioned;
+import net.daporkchop.lib.math.access.IntHolderXYZ;
+import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.version.MinecraftVersion;
-import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
- * Base implementation of {@link TileEntity}.
+ * Base representation of a tile entity.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-public abstract class AbstractTileEntity implements TileEntity {
-    protected final int x;
-    protected final int y;
-    protected final int z;
-    @NonNull
-    protected final MinecraftVersion version;
+public interface TileEntity extends IntHolderXYZ, Versioned<MinecraftVersion> {
+    /**
+     * @return this tile entity's X coordinate
+     */
+    @Override
+    int x();
+
+    /**
+     * @return this tile entity's Y coordinate
+     */
+    @Override
+    int y();
+
+    /**
+     * @return this tile entity's Z coordinate
+     */
+    @Override
+    int z();
+
+    /**
+     * @return this entity's ID (e.g. {@code "minecraft:ender_chest"})
+     */
+    Identifier id();
 }

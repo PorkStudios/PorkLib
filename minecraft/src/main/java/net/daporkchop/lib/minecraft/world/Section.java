@@ -26,7 +26,7 @@ import net.daporkchop.lib.math.access.IntHolderXYZ;
 import net.daporkchop.lib.minecraft.block.BlockAccess;
 import net.daporkchop.lib.minecraft.format.common.nibble.NibbleArray;
 import net.daporkchop.lib.minecraft.format.common.storage.BlockStorage;
-import net.daporkchop.lib.minecraft.tile.TileEntity;
+import net.daporkchop.lib.minecraft.tileentity.TileEntity;
 import net.daporkchop.lib.minecraft.version.MinecraftVersion;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 

@@ -32,7 +32,7 @@ import net.daporkchop.lib.minecraft.format.java.decoder.section.LegacySectionDec
 import net.daporkchop.lib.minecraft.format.java.decoder.tile.SignDecoder1_13_2;
 import net.daporkchop.lib.minecraft.format.java.decoder.tile.SignDecoderLatest;
 import net.daporkchop.lib.minecraft.format.java.decoder.tile.UnknownTileDecoder;
-import net.daporkchop.lib.minecraft.tile.TileEntitySign;
+import net.daporkchop.lib.minecraft.tileentity.TileEntitySign;
 import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 

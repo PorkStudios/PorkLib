@@ -23,7 +23,9 @@ package minecraft;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.misc.file.PFiles;
+import net.daporkchop.lib.common.pool.array.ArrayAllocator;
 import net.daporkchop.lib.minecraft.format.anvil.AnvilSaveFormat;
+import net.daporkchop.lib.minecraft.format.java.AnvilPooledArrayAllocator;
 import net.daporkchop.lib.minecraft.save.Save;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
 import net.daporkchop.lib.minecraft.util.Identifier;
@@ -103,6 +105,7 @@ public class LevelDatParserTest {
     public void test1_8_9_SignTE() throws IOException {
         try (Save save = new AnvilSaveFormat().open(new File(ROOT, "1_8_9"), SaveOptions.DEFAULT.clone()
                 .set(SaveOptions.ACCESS, WriteAccess.READ_ONLY)
+                .set(SaveOptions.BYTE_ALLOC, new AnvilPooledArrayAllocator(ArrayAllocator.unpooled(byte.class), 32, 32))
                 .build())) {
             try (World world = save.world(Identifier.fromString("overworld"))) {
                 try (Section section = world.storage().loadSection(0, 4, 0)) {

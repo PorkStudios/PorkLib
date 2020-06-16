@@ -18,17 +18,15 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.tile;
+package net.daporkchop.lib.minecraft.tileentity;
 
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import lombok.ToString;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.minecraft.text.format.ChatColor;
 import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.version.MinecraftVersion;
-import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
  * @author DaPorkchop_

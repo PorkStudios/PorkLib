@@ -18,33 +18,26 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.tile;
+package net.daporkchop.lib.minecraft.tileentity;
 
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.version.MinecraftVersion;
-import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
- * Representation of a tile entity whose content is unknown. It is simply stored as an unprocessed NBT tag in memory.
+ * Base implementation of {@link TileEntity}.
  *
  * @author DaPorkchop_
  */
-@ToString
-@Setter
+@RequiredArgsConstructor
 @Getter
-@Accessors(fluent = true, chain = true)
-public class UnknownTileEntity extends AbstractTileEntity {
+@Accessors(fluent = true)
+public abstract class AbstractTileEntity implements TileEntity {
+    protected final int x;
+    protected final int y;
+    protected final int z;
     @NonNull
-    protected Identifier id;
-    @NonNull
-    protected CompoundTag nbt;
-
-    public UnknownTileEntity(int x, int y, int z, MinecraftVersion version) {
-        super(x, y, z, version);
-    }
+    protected final MinecraftVersion version;
 }

@@ -187,6 +187,8 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
     protected void doRelease() {
         try {
             this.flush();
+            this.cachedChunks.forEach((l, cached) -> cached.release());
+            this.cachedChunks.clear();
             this.regionCache.close();
         } catch (IOException e) {
             throw new RuntimeException();

@@ -18,39 +18,18 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.tile;
+package net.daporkchop.lib.minecraft.item;
 
-import net.daporkchop.lib.common.misc.Versioned;
-import net.daporkchop.lib.math.access.IntHolderXYZ;
 import net.daporkchop.lib.minecraft.util.Identifier;
-import net.daporkchop.lib.minecraft.version.MinecraftVersion;
 
 /**
- * Base representation of a tile entity.
+ * Representation of an item stack.
  *
  * @author DaPorkchop_
  */
-public interface TileEntity extends IntHolderXYZ, Versioned<MinecraftVersion> {
+public interface ItemStack {
     /**
-     * @return this tile entity's X coordinate
+     * @return the {@link Identifier} of the item stored
      */
-    @Override
-    int x();
-
-    /**
-     * @return this tile entity's Y coordinate
-     */
-    @Override
-    int y();
-
-    /**
-     * @return this tile entity's Z coordinate
-     */
-    @Override
-    int z();
-
-    /**
-     * @return this entity's ID (e.g. {@code "minecraft:ender_chest"})
-     */
-    Identifier id();
+    Identifier item();
 }

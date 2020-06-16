@@ -24,7 +24,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.minecraft.format.java.JavaFixers;
 import net.daporkchop.lib.minecraft.format.java.decoder.JavaDecoder;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
-import net.daporkchop.lib.minecraft.tile.TileEntity;
+import net.daporkchop.lib.minecraft.tileentity.TileEntity;
 import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.util.dirty.AbstractReleasableDirtiable;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
@@ -84,7 +84,9 @@ public abstract class AnvilCachedChunk extends AbstractReleasableDirtiable {
         protected void doRelease() {
             this.chunk.release();
             for (Section section : this.sections) {
-                section.release();
+                if (section != null) {
+                    section.release();
+                }
             }
         }
     }

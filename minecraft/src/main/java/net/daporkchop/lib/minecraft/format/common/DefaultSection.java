@@ -30,7 +30,7 @@ import net.daporkchop.lib.minecraft.block.BlockRegistry;
 import net.daporkchop.lib.minecraft.block.BlockState;
 import net.daporkchop.lib.minecraft.format.common.nibble.NibbleArray;
 import net.daporkchop.lib.minecraft.format.common.storage.BlockStorage;
-import net.daporkchop.lib.minecraft.tile.TileEntity;
+import net.daporkchop.lib.minecraft.tileentity.TileEntity;
 import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.version.MinecraftVersion;
 import net.daporkchop.lib.minecraft.world.Section;
@@ -121,6 +121,7 @@ public class DefaultSection extends AbstractRefCounted implements Section {
     public NibbleArray blockLightStorage() {
         return this.blockLight;
     }
+
     //
     //
     // blockaccess methods

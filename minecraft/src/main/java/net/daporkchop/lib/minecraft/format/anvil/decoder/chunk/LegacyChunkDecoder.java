@@ -18,7 +18,7 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.anvil.version.chunk.decoder;
+package net.daporkchop.lib.minecraft.format.anvil.decoder.chunk;
 
 import lombok.NonNull;
 import net.daporkchop.lib.minecraft.format.java.decoder.JavaDecoder;

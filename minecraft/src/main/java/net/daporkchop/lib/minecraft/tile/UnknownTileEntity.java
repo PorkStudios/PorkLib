@@ -23,6 +23,7 @@ package net.daporkchop.lib.minecraft.tile;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.version.MinecraftVersion;
@@ -33,6 +34,7 @@ import net.daporkchop.lib.nbt.tag.CompoundTag;
  *
  * @author DaPorkchop_
  */
+@ToString
 @Setter
 @Getter
 @Accessors(fluent = true, chain = true)
@@ -42,7 +44,7 @@ public class UnknownTileEntity extends AbstractTileEntity {
     @NonNull
     protected CompoundTag nbt;
 
-    public UnknownTileEntity(int x, int y, int z, @NonNull MinecraftVersion version) {
+    public UnknownTileEntity(int x, int y, int z, MinecraftVersion version) {
         super(x, y, z, version);
     }
 }

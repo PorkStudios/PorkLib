@@ -30,10 +30,17 @@ import net.daporkchop.lib.minecraft.block.BlockRegistry;
 import net.daporkchop.lib.minecraft.block.BlockState;
 import net.daporkchop.lib.minecraft.format.common.nibble.NibbleArray;
 import net.daporkchop.lib.minecraft.format.common.storage.BlockStorage;
+import net.daporkchop.lib.minecraft.tile.TileEntity;
 import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.version.MinecraftVersion;
 import net.daporkchop.lib.minecraft.world.Section;
+import net.daporkchop.lib.primitive.map.IntObjMap;
+import net.daporkchop.lib.primitive.map.open.IntObjOpenHashMap;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
+
+import java.util.Collection;
+
+import static net.daporkchop.lib.common.util.PorkUtil.uncheckedCast;
 
 /**
  * Default implementation of {@link Section}, as a combination of {@link BlockAccess} and multiple {@link NibbleArray}s for block and sky light.
@@ -49,6 +56,8 @@ public class DefaultSection extends AbstractRefCounted implements Section {
     protected final NibbleArray blockLight;
     @Getter(AccessLevel.NONE)
     protected final NibbleArray skyLight;
+
+    protected final IntObjMap<TileEntity> tileEntities = new IntObjOpenHashMap<>();
 
     protected final MinecraftVersion version;
 
@@ -83,6 +92,27 @@ public class DefaultSection extends AbstractRefCounted implements Section {
     }
 
     @Override
+    public <T extends TileEntity> T getTileEntity(int x, int y, int z) {
+        BlockStorage.checkCoords(x, y, z);
+        return uncheckedCast(this.tileEntities.get((x << 8) | (y << 4) | z));
+    }
+
+    @Override
+    public void setTileEntity(int x, int y, int z, TileEntity tileEntity) {
+        BlockStorage.checkCoords(x, y, z);
+        if (tileEntity == null) {
+            this.tileEntities.remove((x << 8) | (y << 4) | z);
+        } else {
+            this.tileEntities.put((x << 8) | (y << 4) | z, tileEntity);
+        }
+    }
+
+    @Override
+    public Collection<TileEntity> tileEntities() {
+        return this.tileEntities.values();
+    }
+
+    @Override
     public BlockStorage blockStorage() {
         return this.blocks;
     }
@@ -91,6 +121,11 @@ public class DefaultSection extends AbstractRefCounted implements Section {
     public NibbleArray blockLightStorage() {
         return this.blockLight;
     }
+    //
+    //
+    // blockaccess methods
+    //
+    //
 
     @Override
     public BlockRegistry blockRegistry() {

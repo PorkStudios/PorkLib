@@ -66,11 +66,8 @@ public abstract class AnvilCachedChunk extends AbstractReleasableDirtiable {
             for (CompoundTag tileEntityTag : levelTag.getList("TileEntities", CompoundTag.class)) {
                 TileEntity tileEntity = fixers.tileEntity(Identifier.fromString(tileEntityTag.getString("id")), version)
                         .decode(tileEntityTag, version, options);
-                System.out.println(tileEntity.id());
-                //TODO: add tile entity to something
+                this.sections[tileEntity.y() >> 4].setTileEntity(tileEntity.x() & 0xF, tileEntity.y() & 0xF, tileEntity.z() & 0xF, tileEntity);
             }
-
-            //TODO: entities
         }
 
         @Override

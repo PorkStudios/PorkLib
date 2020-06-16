@@ -20,14 +20,17 @@
 
 package net.daporkchop.lib.minecraft.world;
 
-import net.daporkchop.lib.common.misc.refcount.RefCounted;
 import net.daporkchop.lib.common.misc.Versioned;
+import net.daporkchop.lib.common.misc.refcount.RefCounted;
 import net.daporkchop.lib.math.access.IntHolderXYZ;
 import net.daporkchop.lib.minecraft.block.BlockAccess;
 import net.daporkchop.lib.minecraft.format.common.nibble.NibbleArray;
 import net.daporkchop.lib.minecraft.format.common.storage.BlockStorage;
+import net.daporkchop.lib.minecraft.tile.TileEntity;
 import net.daporkchop.lib.minecraft.version.MinecraftVersion;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
+
+import java.util.Collection;
 
 /**
  * Representation of a Minecraft chunk section, consisting of a 16³ volume of blocks, along with light levels for block and (optionally) sky light.
@@ -68,6 +71,32 @@ public interface Section extends BlockAccess, LightAccess, IntHolderXYZ, RefCoun
      * @throws UnsupportedOperationException if this section does not have sky light (see {@link #hasSkyLight()})
      */
     NibbleArray skyLightStorage();
+
+    /**
+     * Gets the tile entity at the given coordinates.
+     *
+     * @param x   the X coordinate of the tile entity to get
+     * @param y   the Y coordinate of the tile entity to get
+     * @param z   the Z coordinate of the tile entity to get
+     * @param <T> the type of the tile entity to get
+     * @return the tile entity at the given coordinates, or {@code null} if there is none present
+     */
+    <T extends TileEntity> T getTileEntity(int x, int y, int z);
+
+    /**
+     * Sets the tile entity at the given coordinates.
+     *
+     * @param x          the X coordinate of the tile entity to set
+     * @param y          the Y coordinate of the tile entity to set
+     * @param z          the Z coordinate of the tile entity to set
+     * @param tileEntity the new tile entity. If {@code null}, the tile entity will be removed
+     */
+    void setTileEntity(int x, int y, int z, TileEntity tileEntity);
+
+    /**
+     * @return a view of the tile entities in this section
+     */
+    Collection<TileEntity> tileEntities();
 
     @Override
     int refCnt();

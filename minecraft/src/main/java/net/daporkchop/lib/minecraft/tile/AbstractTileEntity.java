@@ -22,6 +22,8 @@ package net.daporkchop.lib.minecraft.tile;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.minecraft.util.dirty.AbstractDirtiable;
 import net.daporkchop.lib.minecraft.version.MinecraftVersion;
@@ -32,19 +34,13 @@ import net.daporkchop.lib.nbt.tag.CompoundTag;
  *
  * @author DaPorkchop_
  */
+@RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
 public abstract class AbstractTileEntity implements TileEntity {
     protected final int x;
     protected final int y;
     protected final int z;
-
+    @NonNull
     protected final MinecraftVersion version;
-
-    public AbstractTileEntity(int x, int y, int z, @NonNull MinecraftVersion version) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.version = version;
-    }
 }

@@ -66,8 +66,10 @@ public class ItemMeta implements Cloneable<ItemMeta> {
 
     /**
      * A value used in the {@code custom_model_data} item tag in the overrides of item models.
+     * <p>
+     * {@code null} values will be treated as unset.
      */
-    protected float customModelData;
+    protected Integer customModelData = null;
 
     // block
 

@@ -22,7 +22,9 @@ package net.daporkchop.lib.minecraft.format.java.decoder.item;
 
 import lombok.NonNull;
 import net.daporkchop.lib.minecraft.format.java.JavaFixers;
+import net.daporkchop.lib.minecraft.format.java.decoder.JavaItemDecoder;
 import net.daporkchop.lib.minecraft.item.ItemMeta;
+import net.daporkchop.lib.minecraft.item.ItemStack;
 import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
@@ -34,8 +36,53 @@ import java.util.stream.Collectors;
 /**
  * @author DaPorkchop_
  */
-public class ItemDecoder1_9 extends ItemDecoder1_8 {
+public class ItemDecoder1_8 implements JavaItemDecoder {
     @Override
+    public ItemStack decode(@NonNull CompoundTag root, @NonNull JavaVersion version, @NonNull JavaFixers fixers) {
+        CompoundTag tag = root.getCompound("tag", null);
+        return new ItemStack(this.getId(root, tag), this.getCount(root, tag), this.getDamage(root, tag), this.getMeta(root, tag, version, fixers));
+    }
+
+    protected Identifier getId(@NonNull CompoundTag root, CompoundTag tag) {
+        return Identifier.fromString(root.getString("id", "stone"));
+    }
+
+    protected int getCount(@NonNull CompoundTag root, CompoundTag tag) {
+        return root.getByte("Count", (byte) 1);
+    }
+
+    protected int getDamage(@NonNull CompoundTag root, CompoundTag tag) {
+        int damage = root.getShort("Damage", (short) -1);
+        if (damage < 0 && tag != null) {
+            damage = tag.getShort("Damage", (short) -1);
+        }
+        return Math.max(damage, 0);
+    }
+
+    protected ItemMeta getMeta(@NonNull CompoundTag root, CompoundTag tag, @NonNull JavaVersion version, @NonNull JavaFixers fixers) {
+        if (this.hasMeta(tag)) {
+            ItemMeta meta = new ItemMeta();
+            this.getGeneralMeta(tag, meta, version, fixers);
+            this.getBlocksMeta(tag, meta, version, fixers);
+            return meta;
+        } else {
+            return null;
+        }
+    }
+
+    protected void getGeneralMeta(@NonNull CompoundTag tag, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull JavaFixers fixers) {
+        meta.unbreakable(tag.getBoolean("Unbreakable", false));
+
+        ListTag<StringTag> canDestroy = tag.getList("CanDestroy", StringTag.class, null);
+        if (canDestroy != null) {
+            meta.canDestroy(canDestroy.stream().map(StringTag::value).map(Identifier::fromString).collect(Collectors.toSet()));
+        }
+
+        if (tag.contains("CustomModelData")) {
+            meta.customModelData(tag.getInt("CustomModelData"));
+        }
+    }
+
     protected void getBlocksMeta(@NonNull CompoundTag tag, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull JavaFixers fixers) {
         ListTag<StringTag> canPlaceOn = tag.getList("CanPlaceOn", StringTag.class, null);
         if (canPlaceOn != null) {
@@ -47,9 +94,10 @@ public class ItemDecoder1_9 extends ItemDecoder1_8 {
             meta.tileEntity(fixers.tileEntity().ceilingEntry(version).getValue().decode(blockEntityTag, version, fixers));
         }
 
-        CompoundTag blockStateTag = tag.getCompound("BlockStateTag", null);
-        if (blockEntityTag != null) {
-            //TODO
-        }
+        //TODO: 1.8 uses the item damage to pick the block state
+    }
+
+    protected boolean hasMeta(CompoundTag tag) {
+        return tag != null && tag.size() > 0 && (tag.size() > 1 || !tag.contains("Damage"));
     }
 }

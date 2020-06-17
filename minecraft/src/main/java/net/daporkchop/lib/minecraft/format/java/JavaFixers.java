@@ -30,6 +30,7 @@ import net.daporkchop.lib.minecraft.format.java.decoder.JavaChunkDecoder;
 import net.daporkchop.lib.minecraft.format.java.decoder.JavaItemDecoder;
 import net.daporkchop.lib.minecraft.format.java.decoder.JavaSectionDecoder;
 import net.daporkchop.lib.minecraft.format.java.decoder.JavaTileEntityDecoder;
+import net.daporkchop.lib.minecraft.format.java.decoder.item.ItemDecoder1_8;
 import net.daporkchop.lib.minecraft.format.java.decoder.item.ItemDecoder1_9;
 import net.daporkchop.lib.minecraft.format.java.decoder.section.FlattenedSectionDecoder;
 import net.daporkchop.lib.minecraft.format.java.decoder.section.LegacySectionDecoder;
@@ -123,6 +124,7 @@ public class JavaFixers {
                         .putDecoder(TileEntitySign.ID, new SignDecoder1_14())
                         .build(),
                 new MapBuilder<>(new TreeMap<JavaVersion, JavaItemDecoder>())
+                        .put(JavaVersion.pre15w32a(), new ItemDecoder1_8())
                         .put(JavaVersion.latest(), new ItemDecoder1_9())
                         .build());
     }

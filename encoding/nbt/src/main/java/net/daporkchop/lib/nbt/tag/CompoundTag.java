@@ -99,6 +99,10 @@ public final class CompoundTag extends Tag<CompoundTag> implements Iterable<Map.
         out.writeByte(TAG_END);
     }
 
+    public int size() {
+        return this.map.size();
+    }
+
     @Override
     public Iterator<Map.Entry<String, Tag>> iterator() {
         return this.map.entrySet().iterator();
@@ -158,7 +162,7 @@ public final class CompoundTag extends Tag<CompoundTag> implements Iterable<Map.
         this.map.clear();
     }
 
-    public boolean contains(@NonNull String name)    {
+    public boolean contains(@NonNull String name) {
         return this.map.containsKey(name);
     }
 
@@ -176,6 +180,11 @@ public final class CompoundTag extends Tag<CompoundTag> implements Iterable<Map.
 
     public CompoundTag putTag(@NonNull String name, @NonNull Tag<?> value) {
         this.map.put(name, value);
+        return this;
+    }
+
+    public CompoundTag putBoolean(@NonNull String name, boolean value) {
+        this.map.put(name, new ByteTag(value ? (byte) 1 : 0));
         return this;
     }
 
@@ -246,6 +255,17 @@ public final class CompoundTag extends Tag<CompoundTag> implements Iterable<Map.
         @SuppressWarnings("unchecked")
         T tag = (T) this.map.get(name);
         return tag != null ? tag : fallback;
+    }
+
+    public boolean getBoolean(@NonNull String name) {
+        ByteTag tag = (ByteTag) this.map.get(name);
+        checkArg(tag != null, "No tag with name \"%s\" found!", name);
+        return tag.value() != 0;
+    }
+
+    public boolean getBoolean(@NonNull String name, boolean fallback) {
+        ByteTag tag = (ByteTag) this.map.get(name);
+        return tag != null ? tag.value() != 0 : fallback;
     }
 
     public byte getByte(@NonNull String name) {
@@ -392,7 +412,7 @@ public final class CompoundTag extends Tag<CompoundTag> implements Iterable<Map.
         return tag != null ? tag.value() : fallback;
     }
 
-    public <T extends Tag<T>> T remove(@NonNull String name)    {
+    public <T extends Tag<T>> T remove(@NonNull String name) {
         @SuppressWarnings("unchecked")
         T tag = (T) this.map.remove(name);
         checkArg(tag != null, "No tag with name \"%s\" found!", name);

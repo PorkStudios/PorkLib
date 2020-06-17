@@ -20,52 +20,56 @@
 
 package net.daporkchop.lib.minecraft.item;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.misc.Cloneable;
-import net.daporkchop.lib.minecraft.util.Identifier;
-import net.daporkchop.lib.nbt.tag.CompoundTag;
+
+import java.awt.Color;
+import java.util.List;
 
 /**
- * Representation of an item stack.
+ * Representation of a firework explosion.
  *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
 @Getter
 @Setter
 @Accessors(fluent = true, chain = true)
-public class ItemStack implements Cloneable<ItemStack> {
-    @NonNull
-    protected Identifier id;
+public class FireworkExplosion {
+    /**
+     * Whether or not this firework explosion has the "flicker" effect.
+     */
+    protected boolean flicker = false;
 
-    protected int size;
-    protected int damage;
+    /**
+     * Whether or not this firework explosion has the "trail" effect.
+     */
+    protected boolean trail = false;
 
-    protected ItemMeta meta;
+    /**
+     * The type of firework explosion effect to use.
+     */
+    protected int type = 0;
 
-    public ItemStack(@NonNull Identifier id)    {
-        this(id, 0, 0, null);
-    }
+    /**
+     * The primary colors of this firework explosion.
+     * <p>
+     * {@code null} values will be treated as unset.
+     * <p>
+     * {@code null} elements will be ignored.
+     * <p>
+     * Every color's alpha channel will be ignored.
+     */
+    protected List<Color> colors = null;
 
-    public ItemStack(@NonNull Identifier id, int size)    {
-        this(id, size, 0, null);
-    }
-
-    public ItemStack(@NonNull Identifier id, int size, int damage)    {
-        this(id, size, damage, null);
-    }
-
-    @Override
-    public ItemStack clone() {
-        return new ItemStack(this.id, this.size, this.damage, this.meta == null ? null : this.meta.clone());
-    }
-
-    @Override
-    public String toString() {
-        return this.id.toString() + '#' + this.damage + " * " + this.size + (this.meta == null ? "" : " " + this.meta);
-    }
+    /**
+     * The fade colors of this firework explosion.
+     * <p>
+     * {@code null} values will be treated as unset.
+     * <p>
+     * {@code null} elements will be ignored.
+     * <p>
+     * Every color's alpha channel will be ignored.
+     */
+    protected List<Color> fadeColors = null;
 }

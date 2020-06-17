@@ -20,52 +20,57 @@
 
 package net.daporkchop.lib.minecraft.item;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.misc.Cloneable;
 import net.daporkchop.lib.minecraft.util.Identifier;
-import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
- * Representation of an item stack.
+ * Representation of a potion effect.
  *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Getter
 @Setter
 @Accessors(fluent = true, chain = true)
-public class ItemStack implements Cloneable<ItemStack> {
+public class PotionEffect {
+    public static final Identifier EMPTY_EFFECT_ID = Identifier.fromString("minecraft:empty");
+
+    /**
+     * The ID of the potion effect.
+     */
     @NonNull
     protected Identifier id;
 
-    protected int size;
-    protected int damage;
+    /**
+     * The amplifier of the effect.
+     * <p>
+     * Values less than {@code 1} are treated as {@code 1}.
+     */
+    protected int amplifier = 1;
 
-    protected ItemMeta meta;
+    /**
+     * The duration of the effect in ticks.
+     * <p>
+     * Values less than {@code 1} are treated as {@code 1}.
+     */
+    protected int duration = 1;
 
-    public ItemStack(@NonNull Identifier id)    {
-        this(id, 0, 0, null);
-    }
+    /**
+     * Whether or not this potion effect was produced by a beacon.
+     */
+    protected boolean ambient = false;
 
-    public ItemStack(@NonNull Identifier id, int size)    {
-        this(id, size, 0, null);
-    }
+    /**
+     * Whether or not this potion effect should show particles while active.
+     */
+    protected boolean showParticles = true;
 
-    public ItemStack(@NonNull Identifier id, int size, int damage)    {
-        this(id, size, damage, null);
-    }
-
-    @Override
-    public ItemStack clone() {
-        return new ItemStack(this.id, this.size, this.damage, this.meta == null ? null : this.meta.clone());
-    }
-
-    @Override
-    public String toString() {
-        return this.id.toString() + '#' + this.damage + " * " + this.size + (this.meta == null ? "" : " " + this.meta);
-    }
+    /**
+     * Whether or not the potion effect's icon should be shown on-screen.
+     */
+    protected boolean showIcon = true;
 }

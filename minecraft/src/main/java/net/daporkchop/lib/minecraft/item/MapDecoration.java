@@ -20,52 +20,45 @@
 
 package net.daporkchop.lib.minecraft.item;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.misc.Cloneable;
-import net.daporkchop.lib.minecraft.util.Identifier;
-import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
- * Representation of an item stack.
+ * Representation of a map decoration.
  *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Getter
 @Setter
 @Accessors(fluent = true, chain = true)
-public class ItemStack implements Cloneable<ItemStack> {
+public class MapDecoration {
+    /**
+     * An arbitrary string used to identify this decoration.
+     */
     @NonNull
-    protected Identifier id;
+    protected String id;
 
-    protected int size;
-    protected int damage;
+    /**
+     * The ID of the map icon to display.
+     */
+    protected byte type;
 
-    protected ItemMeta meta;
+    /**
+     * The decoration's X position.
+     */
+    protected double x;
 
-    public ItemStack(@NonNull Identifier id)    {
-        this(id, 0, 0, null);
-    }
+    /**
+     * The decoration's Z position.
+     */
+    protected double z;
 
-    public ItemStack(@NonNull Identifier id, int size)    {
-        this(id, size, 0, null);
-    }
-
-    public ItemStack(@NonNull Identifier id, int size, int damage)    {
-        this(id, size, damage, null);
-    }
-
-    @Override
-    public ItemStack clone() {
-        return new ItemStack(this.id, this.size, this.damage, this.meta == null ? null : this.meta.clone());
-    }
-
-    @Override
-    public String toString() {
-        return this.id.toString() + '#' + this.damage + " * " + this.size + (this.meta == null ? "" : " " + this.meta);
-    }
+    /**
+     * The decoration's rotation, in degrees (clockwise).
+     */
+    protected double rotation;
 }

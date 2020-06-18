@@ -65,9 +65,11 @@ public abstract class AnvilCachedChunk extends AbstractReleasableDirtiable {
 
             JavaTileEntityDecoder tileEntityDecoder = fixers.tileEntity().ceilingEntry(version).getValue();
             for (CompoundTag tileEntityTag : levelTag.getList("TileEntities", CompoundTag.class)) {
+                int x = tileEntityTag.getInt("x");
+                int y = tileEntityTag.getInt("y");
+                int z = tileEntityTag.getInt("z");
                 TileEntity tileEntity = tileEntityDecoder.decode(tileEntityTag, version, fixers);
-                System.out.println(tileEntity.id());
-                this.sections[tileEntity.y() >> 4].setTileEntity(tileEntity.x() & 0xF, tileEntity.y() & 0xF, tileEntity.z() & 0xF, tileEntity);
+                this.sections[y >> 4].setTileEntity(x & 0xF, y & 0xF, z & 0xF, tileEntity);
             }
         }
 

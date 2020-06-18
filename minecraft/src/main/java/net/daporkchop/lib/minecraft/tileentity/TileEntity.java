@@ -30,25 +30,7 @@ import net.daporkchop.lib.minecraft.version.MinecraftVersion;
  *
  * @author DaPorkchop_
  */
-public interface TileEntity extends IntHolderXYZ, Versioned<MinecraftVersion> {
-    /**
-     * @return this tile entity's X coordinate
-     */
-    @Override
-    int x();
-
-    /**
-     * @return this tile entity's Y coordinate
-     */
-    @Override
-    int y();
-
-    /**
-     * @return this tile entity's Z coordinate
-     */
-    @Override
-    int z();
-
+public interface TileEntity {
     /**
      * @return this entity's ID (e.g. {@code "minecraft:ender_chest"})
      */

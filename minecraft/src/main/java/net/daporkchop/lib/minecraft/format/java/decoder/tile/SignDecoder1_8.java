@@ -35,7 +35,7 @@ import net.daporkchop.lib.nbt.tag.CompoundTag;
 public class SignDecoder1_8 implements JavaTileEntityDecoder {
     @Override
     public TileEntitySign decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull JavaFixers fixers) {
-        return new TileEntitySign(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"), version)
+        return new TileEntitySign()
                 .line1(tag.getString("Text1", ""))
                 .line2(tag.getString("Text2", ""))
                 .line3(tag.getString("Text3", ""))

@@ -40,16 +40,12 @@ import net.daporkchop.lib.minecraft.version.MinecraftVersion;
 @Getter
 @Setter
 @Accessors(fluent = true, chain = true)
-public class TileEntityChest extends AbstractTileEntity implements InventoryHolder {
+public class TileEntityChest implements TileEntity, InventoryHolder {
     public static final Identifier ID = Identifier.fromString("minecraft:chest");
 
     protected final Inventory inventory = new DefaultInventory(27);
 
     protected TextComponent customName;
-
-    public TileEntityChest(int x, int y, int z, MinecraftVersion version) {
-        super(x, y, z, version);
-    }
 
     @Override
     public Identifier id() {

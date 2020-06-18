@@ -30,6 +30,8 @@ import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 import net.daporkchop.lib.nbt.tag.ListTag;
 import net.daporkchop.lib.nbt.tag.StringTag;
+import net.daporkchop.lib.primitive.map.ObjIntMap;
+import net.daporkchop.lib.primitive.map.open.ObjIntOpenHashMap;
 
 import java.util.stream.Collectors;
 
@@ -52,11 +54,7 @@ public class ItemDecoder1_8 implements JavaItemDecoder {
     }
 
     protected int getDamage(@NonNull CompoundTag root, CompoundTag tag) {
-        int damage = root.getShort("Damage", (short) -1);
-        if (damage < 0 && tag != null) {
-            damage = tag.getShort("Damage", (short) -1);
-        }
-        return Math.max(damage, 0);
+        return root.getShort("Damage", (short) 0);
     }
 
     protected ItemMeta getMeta(@NonNull CompoundTag root, CompoundTag tag, @NonNull JavaVersion version, @NonNull JavaFixers fixers) {
@@ -64,10 +62,15 @@ public class ItemDecoder1_8 implements JavaItemDecoder {
             ItemMeta meta = new ItemMeta();
             this.getGeneralMeta(tag, meta, version, fixers);
             this.getBlocksMeta(tag, meta, version, fixers);
+            this.getEnchantmentsMeta(tag, meta, version, fixers);
             return meta;
         } else {
             return null;
         }
+    }
+
+    protected boolean hasMeta(CompoundTag tag) {
+        return tag != null && tag.size() > 0 && (tag.size() > 1 || !tag.contains("Damage"));
     }
 
     protected void getGeneralMeta(@NonNull CompoundTag tag, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull JavaFixers fixers) {
@@ -94,10 +97,24 @@ public class ItemDecoder1_8 implements JavaItemDecoder {
             meta.tileEntity(fixers.tileEntity().ceilingEntry(version).getValue().decode(blockEntityTag, version, fixers));
         }
 
-        //TODO: 1.8 uses the item damage to pick the block state
+        //TODO: 1.8 uses the item damage to select the block state
     }
 
-    protected boolean hasMeta(CompoundTag tag) {
-        return tag != null && tag.size() > 0 && (tag.size() > 1 || !tag.contains("Damage"));
+    protected void getEnchantmentsMeta(@NonNull CompoundTag tag, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull JavaFixers fixers) {
+        ListTag<CompoundTag> enchantments = tag.getList("Enchantments", CompoundTag.class, null);
+        if (enchantments != null) {
+            ObjIntMap<Identifier> map = new ObjIntOpenHashMap<>();
+            enchantments.forEach(enchantment -> map.put(Identifier.fromString(enchantment.getString("id")), enchantment.getInt("lvl")));
+            meta.enchantments(map);
+        }
+
+        enchantments = tag.getList("StoredEnchantments", CompoundTag.class, null);
+        if (enchantments != null) {
+            ObjIntMap<Identifier> map = new ObjIntOpenHashMap<>();
+            enchantments.forEach(enchantment -> map.put(Identifier.fromString(enchantment.getString("id")), enchantment.getInt("lvl")));
+            meta.storedEnchantments(map);
+        }
+
+        meta.repairCost(tag.getInt("RepairCost", 0));
     }
 }

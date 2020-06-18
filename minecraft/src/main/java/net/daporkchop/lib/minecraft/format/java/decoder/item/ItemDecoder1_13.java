@@ -18,29 +18,43 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.tileentity;
+package net.daporkchop.lib.minecraft.format.java.decoder.item;
 
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
-import lombok.ToString;
-import lombok.experimental.Accessors;
+import net.daporkchop.lib.minecraft.format.java.JavaFixers;
+import net.daporkchop.lib.minecraft.item.ItemMeta;
 import net.daporkchop.lib.minecraft.util.Identifier;
-import net.daporkchop.lib.minecraft.version.MinecraftVersion;
+import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
+import net.daporkchop.lib.nbt.tag.ListTag;
+import net.daporkchop.lib.nbt.tag.StringTag;
+
+import java.util.stream.Collectors;
 
 /**
- * Representation of a tile entity whose content is unknown. It is simply stored as an unprocessed NBT tag in memory.
- *
  * @author DaPorkchop_
  */
-@ToString
-@Setter
-@Getter
-@Accessors(fluent = true, chain = true)
-public class UnknownTileEntity implements TileEntity {
-    @NonNull
-    protected Identifier id;
-    @NonNull
-    protected CompoundTag nbt;
+public class ItemDecoder1_13 extends ItemDecoder1_9 {
+    @Override
+    protected int getDamage(@NonNull CompoundTag root, CompoundTag tag) {
+        return tag == null ? 0 : tag.getShort("Damage", (short) 0);
+    }
+
+    @Override
+    protected void getBlocksMeta(@NonNull CompoundTag tag, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull JavaFixers fixers) {
+        ListTag<StringTag> canPlaceOn = tag.getList("CanPlaceOn", StringTag.class, null);
+        if (canPlaceOn != null) {
+            meta.canDestroy(canPlaceOn.stream().map(StringTag::value).map(Identifier::fromString).collect(Collectors.toSet()));
+        }
+
+        CompoundTag blockEntityTag = tag.getCompound("BlockEntityTag", null);
+        if (blockEntityTag != null) {
+            meta.tileEntity(fixers.tileEntity().ceilingEntry(version).getValue().decode(blockEntityTag, version, fixers));
+        }
+
+        CompoundTag blockStateTag = tag.getCompound("BlockStateTag", null);
+        if (blockEntityTag != null) {
+            //TODO
+        }
+    }
 }

@@ -35,7 +35,7 @@ import net.daporkchop.lib.nbt.tag.CompoundTag;
 public class ChestDecoder1_8 implements JavaTileEntityDecoder {
     @Override
     public TileEntity decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull JavaFixers fixers) {
-        TileEntityChest chest = new TileEntityChest(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"), version);
+        TileEntityChest chest = new TileEntityChest();
 
         //items
         for (CompoundTag item : tag.getList("Items", CompoundTag.class))    {

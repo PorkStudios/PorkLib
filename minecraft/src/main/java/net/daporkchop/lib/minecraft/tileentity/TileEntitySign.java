@@ -36,7 +36,7 @@ import net.daporkchop.lib.minecraft.version.MinecraftVersion;
 @Setter
 @Getter
 @Accessors(fluent = true, chain = true)
-public class TileEntitySign extends AbstractTileEntity {
+public class TileEntitySign implements TileEntity {
     public static final Identifier ID = Identifier.fromString("minecraft:sign");
 
     @NonNull
@@ -49,10 +49,6 @@ public class TileEntitySign extends AbstractTileEntity {
     protected String line3 = "";
     @NonNull
     protected String line4 = "";
-
-    public TileEntitySign(int x, int y, int z, MinecraftVersion version) {
-        super(x, y, z, version);
-    }
 
     @Override
     public Identifier id() {

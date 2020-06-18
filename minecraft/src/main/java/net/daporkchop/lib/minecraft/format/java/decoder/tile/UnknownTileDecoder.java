@@ -37,7 +37,7 @@ import net.daporkchop.lib.nbt.tag.CompoundTag;
 public class UnknownTileDecoder implements JavaTileEntityDecoder {
     @Override
     public TileEntity decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull JavaFixers fixers) {
-        return new UnknownTileEntity(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"), version)
+        return new UnknownTileEntity()
                 .id(Identifier.fromString(tag.getString("id", "unknown")))
                 .nbt(tag.clone());
     }

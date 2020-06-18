@@ -23,6 +23,7 @@ package net.daporkchop.lib.nbt.tag;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
+import lombok.val;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 
@@ -33,7 +34,7 @@ import java.io.IOException;
  */
 @Getter
 @Accessors(fluent = true)
-public final class ByteTag extends Tag<ByteTag> {
+public final class ByteTag extends NumberTag<ByteTag> {
     protected final byte value;
 
     public ByteTag(byte value)  {
@@ -82,5 +83,37 @@ public final class ByteTag extends Tag<ByteTag> {
     protected void toString(StringBuilder builder, int depth, String name, int index) {
         super.toString(builder, depth, name, index);
         builder.append(this.value).append('\n');
+    }
+
+    // NumberTag stuff
+
+    @Override
+    public byte byteValue() {
+        return this.value;
+    }
+
+    @Override
+    public short shortValue() {
+        return this.value;
+    }
+
+    @Override
+    public int intValue() {
+        return this.value;
+    }
+
+    @Override
+    public long longValue() {
+        return this.value;
+    }
+
+    @Override
+    public float floatValue() {
+        return this.value;
+    }
+
+    @Override
+    public double doubleValue() {
+        return this.value;
     }
 }

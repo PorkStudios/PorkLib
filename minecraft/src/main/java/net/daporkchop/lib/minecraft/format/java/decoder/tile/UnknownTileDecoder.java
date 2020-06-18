@@ -27,6 +27,7 @@ import net.daporkchop.lib.minecraft.tileentity.TileEntity;
 import net.daporkchop.lib.minecraft.tileentity.UnknownTileEntity;
 import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
+import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
@@ -36,7 +37,7 @@ import net.daporkchop.lib.nbt.tag.CompoundTag;
  */
 public class UnknownTileDecoder implements JavaTileEntityDecoder {
     @Override
-    public TileEntity decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull JavaFixers fixers) {
+    public TileEntity decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull World world) {
         return new UnknownTileEntity()
                 .id(Identifier.fromString(tag.getString("id", "unknown")))
                 .nbt(tag.clone());

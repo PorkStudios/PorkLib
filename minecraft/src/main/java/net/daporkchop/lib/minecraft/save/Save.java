@@ -67,6 +67,22 @@ public interface Save extends RefCounted {
     BlockRegistry blockRegistry();
 
     /**
+     * Gets any additional registries used by this save when reading data at the given version.
+     *
+     * @param version the {@link MinecraftVersion} of the additional registries to get
+     * @return any additional registries used by this save when reading data at the given version
+     */
+    Registries registriesFor(@NonNull MinecraftVersion version);
+
+    /**
+     * Gets the {@link BlockRegistry} used by this save when reading data at the given version.
+     *
+     * @param version the {@link MinecraftVersion} of the {@link BlockRegistry} to get
+     * @return the {@link BlockRegistry} used by this save when reading data at the given version
+     */
+    BlockRegistry blockRegistryFor(@NonNull MinecraftVersion version);
+
+    /**
      * @return the {@link Identifier}s of all of the worlds present in this save
      */
     Set<Identifier> worldIds();

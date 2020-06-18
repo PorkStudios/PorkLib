@@ -18,7 +18,7 @@
  *
  */
 
-package minecraft;
+package minecraft.java;
 
 import net.daporkchop.lib.minecraft.block.BlockRegistry;
 import net.daporkchop.lib.minecraft.block.java.JavaBlockRegistry;

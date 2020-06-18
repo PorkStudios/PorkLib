@@ -30,6 +30,7 @@ import net.daporkchop.lib.minecraft.util.dirty.AbstractReleasableDirtiable;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Section;
+import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
@@ -50,15 +51,15 @@ public abstract class AnvilCachedChunk extends AbstractReleasableDirtiable {
         protected final Chunk chunk;
         protected final Section[] sections = new Section[16];
 
-        public ReadOnly(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull JavaFixers fixers, @NonNull SaveOptions options) {
+        public ReadOnly(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull JavaFixers fixers, @NonNull World world) {
             this.chunk = fixers.chunk().ceilingEntry(version).getValue()
-                    .decode(tag, version, options);
+                    .decode(tag, version, world);
 
             CompoundTag levelTag = tag.getCompound("Level");
 
             JavaSectionDecoder sectionDecoder = fixers.section().ceilingEntry(version).getValue();
             for (CompoundTag sectionTag : levelTag.getList("Sections", CompoundTag.class)) {
-                Section section = sectionDecoder.decode(sectionTag, version, options, this.chunk.x(), this.chunk.z());
+                Section section = sectionDecoder.decode(sectionTag, version, world, this.chunk.x(), this.chunk.z());
                 checkState(this.sections[section.y()] == null, "duplicate section at y=%d!", section.y());
                 this.sections[section.y()] = section;
             }
@@ -68,7 +69,7 @@ public abstract class AnvilCachedChunk extends AbstractReleasableDirtiable {
                 int x = tileEntityTag.getInt("x");
                 int y = tileEntityTag.getInt("y");
                 int z = tileEntityTag.getInt("z");
-                TileEntity tileEntity = tileEntityDecoder.decode(tileEntityTag, version, fixers);
+                TileEntity tileEntity = tileEntityDecoder.decode(tileEntityTag, version, world);
                 this.sections[y >> 4].setTileEntity(x & 0xF, y & 0xF, z & 0xF, tileEntity);
             }
         }

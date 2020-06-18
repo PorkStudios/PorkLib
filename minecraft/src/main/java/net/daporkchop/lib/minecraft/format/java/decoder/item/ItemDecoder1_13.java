@@ -22,12 +22,16 @@ package net.daporkchop.lib.minecraft.format.java.decoder.item;
 
 import lombok.NonNull;
 import net.daporkchop.lib.minecraft.format.java.JavaFixers;
+import net.daporkchop.lib.minecraft.format.java.JavaSaveOptions;
 import net.daporkchop.lib.minecraft.item.ItemMeta;
 import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
+import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 import net.daporkchop.lib.nbt.tag.ListTag;
 import net.daporkchop.lib.nbt.tag.StringTag;
+import net.daporkchop.lib.primitive.map.ObjIntMap;
+import net.daporkchop.lib.primitive.map.open.ObjIntOpenHashMap;
 
 import java.util.stream.Collectors;
 
@@ -41,7 +45,7 @@ public class ItemDecoder1_13 extends ItemDecoder1_9 {
     }
 
     @Override
-    protected void getBlocksMeta(@NonNull CompoundTag tag, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull JavaFixers fixers) {
+    protected void getBlocksMeta(@NonNull CompoundTag tag, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull World world) {
         ListTag<StringTag> canPlaceOn = tag.getList("CanPlaceOn", StringTag.class, null);
         if (canPlaceOn != null) {
             meta.canDestroy(canPlaceOn.stream().map(StringTag::value).map(Identifier::fromString).collect(Collectors.toSet()));
@@ -49,12 +53,32 @@ public class ItemDecoder1_13 extends ItemDecoder1_9 {
 
         CompoundTag blockEntityTag = tag.getCompound("BlockEntityTag", null);
         if (blockEntityTag != null) {
-            meta.tileEntity(fixers.tileEntity().ceilingEntry(version).getValue().decode(blockEntityTag, version, fixers));
+            meta.tileEntity(world.parent().options().get(JavaSaveOptions.FIXERS)
+                    .tileEntity().ceilingEntry(version).getValue().decode(blockEntityTag, version, world));
         }
 
         CompoundTag blockStateTag = tag.getCompound("BlockStateTag", null);
         if (blockEntityTag != null) {
             //TODO
         }
+    }
+
+    @Override
+    protected void getEnchantmentsMeta(@NonNull CompoundTag tag, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull World world) {
+        ListTag<CompoundTag> enchantments = tag.getList("Enchantments", CompoundTag.class, null);
+        if (enchantments != null) {
+            ObjIntMap<Identifier> map = new ObjIntOpenHashMap<>();
+            enchantments.forEach(enchantment -> map.put(Identifier.fromString(enchantment.getString("id")), enchantment.getInt("lvl")));
+            meta.enchantments(map);
+        }
+
+        enchantments = tag.getList("StoredEnchantments", CompoundTag.class, null);
+        if (enchantments != null) {
+            ObjIntMap<Identifier> map = new ObjIntOpenHashMap<>();
+            enchantments.forEach(enchantment -> map.put(Identifier.fromString(enchantment.getString("id")), enchantment.getInt("lvl")));
+            meta.storedEnchantments(map);
+        }
+
+        meta.repairCost(tag.getInt("RepairCost", 0));
     }
 }

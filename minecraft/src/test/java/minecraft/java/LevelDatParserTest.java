@@ -18,7 +18,7 @@
  *
  */
 
-package minecraft;
+package minecraft.java;
 
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
@@ -60,7 +60,7 @@ public class LevelDatParserTest {
         ROOT.delete();
         ROOT = new File(ROOT.getParentFile(), "porklib-minecraft-tests" + System.nanoTime());
         for (String version : VERSIONS) {
-            try (ZipInputStream in = new ZipInputStream(LevelDatParserTest.class.getResourceAsStream('/' + version + ".zip"))) {
+            try (ZipInputStream in = new ZipInputStream(LevelDatParserTest.class.getResourceAsStream(version + ".zip"))) {
                 for (ZipEntry entry = in.getNextEntry(); entry != null; entry = in.getNextEntry()) {
                     if (!entry.isDirectory()) {
                         try (DataOut out = DataOut.wrap(PFiles.ensureFileExists(new File(ROOT, entry.getName())))) {

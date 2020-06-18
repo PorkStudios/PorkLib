@@ -49,6 +49,7 @@ import net.daporkchop.lib.minecraft.version.DataVersion;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Section;
+import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.WorldStorage;
 import net.daporkchop.lib.nbt.NBTFormat;
 import net.daporkchop.lib.nbt.NBTOptions;
@@ -95,6 +96,7 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
     protected final JavaFixers fixers;
     protected final NBTOptions nbtOptions;
     protected final Executor ioExecutor;
+    protected final AnvilWorld world;
 
     @Getter
     protected final JavaVersion worldVersion;
@@ -110,6 +112,7 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
         this.ioExecutor = this.options.get(SaveOptions.IO_EXECUTOR);
         this.nbtOptions = nbtOptions;
         this.worldVersion = worldVersion;
+        this.world = world;
     }
 
     @Override
@@ -227,7 +230,7 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
             int dataVersion = tag.getInt("DataVersion", 0);
             JavaVersion version = dataVersion < DataVersion.DATA_15w32a ? JavaVersion.pre15w32a() : JavaVersion.fromDataVersion(dataVersion);
             return this.readOnly
-                   ? new AnvilCachedChunk.ReadOnly(tag, version, this.fixers, this.options)
+                   ? new AnvilCachedChunk.ReadOnly(tag, version, this.fixers, this.world)
                    : null; //TODO
         } finally {
             if (tag != null) {

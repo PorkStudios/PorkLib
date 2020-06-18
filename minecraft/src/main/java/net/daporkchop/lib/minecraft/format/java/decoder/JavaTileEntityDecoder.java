@@ -28,6 +28,7 @@ import net.daporkchop.lib.minecraft.format.java.JavaFixers;
 import net.daporkchop.lib.minecraft.tileentity.TileEntity;
 import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
+import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 import java.util.Collections;
@@ -37,14 +38,24 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 
-import static net.daporkchop.lib.common.util.PValidation.checkState;
+import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
+ * A function for decoding a tile entity from NBT data.
+ *
  * @author DaPorkchop_
  */
 @FunctionalInterface
 public interface JavaTileEntityDecoder {
-    TileEntity decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull JavaFixers fixers);
+    /**
+     * Decodes a tile entity.
+     *
+     * @param tag     the {@link CompoundTag} containing the tile entity data
+     * @param version the version of the tile entity data
+     * @param world   the {@link World} that the tile entity is in
+     * @return the decoded tile entity
+     */
+    TileEntity decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull World world);
 
     @RequiredArgsConstructor
     @Accessors(fluent = true, chain = true)
@@ -59,8 +70,8 @@ public interface JavaTileEntityDecoder {
 
         protected final NavigableMap<JavaVersion, JavaTileEntityDecoder> result = new TreeMap<>();
 
-        public Builder begin(@NonNull JavaVersion version)   {
-            if (this.currentVersion != null)    {
+        public Builder begin(@NonNull JavaVersion version) {
+            if (this.currentVersion != null) {
                 checkState(version.compareTo(this.currentVersion) > 0, "version (%s) must be greater than previous version (%s)", version, this.currentVersion);
                 this.finishVersion();
             }
@@ -68,29 +79,29 @@ public interface JavaTileEntityDecoder {
             return this;
         }
 
-        public Builder putDecoder(@NonNull Identifier id, @NonNull JavaTileEntityDecoder decoder)   {
+        public Builder putDecoder(@NonNull Identifier id, @NonNull JavaTileEntityDecoder decoder) {
             this.currentVersionDecoders.put(id, decoder);
             return this;
         }
 
-        public Builder putAlias(@NonNull String from, @NonNull Identifier to)   {
+        public Builder putAlias(@NonNull String from, @NonNull Identifier to) {
             this.aliases.put(from, to);
             return this;
         }
 
-        public Builder purgeAliases()   {
+        public Builder purgeAliases() {
             this.aliases.clear();
             return this;
         }
 
         public NavigableMap<JavaVersion, JavaTileEntityDecoder> build() {
-            if (this.currentVersion != null)    {
+            if (this.currentVersion != null) {
                 this.finishVersion();
             }
             return this.result;
         }
 
-        protected void finishVersion()  {
+        protected void finishVersion() {
             this.result.put(this.currentVersion, new MappedDecoder(
                     this.aliases.isEmpty() ? Collections.emptyMap() : new HashMap<>(this.aliases),
                     new IdentityHashMap<>(this.currentVersionDecoders),
@@ -98,7 +109,7 @@ public interface JavaTileEntityDecoder {
         }
 
         @RequiredArgsConstructor
-        protected static class MappedDecoder implements JavaTileEntityDecoder   {
+        protected static class MappedDecoder implements JavaTileEntityDecoder {
             @NonNull
             protected final Map<String, Identifier> aliases;
             @NonNull
@@ -107,7 +118,7 @@ public interface JavaTileEntityDecoder {
             protected final JavaTileEntityDecoder unknownDecoder;
 
             @Override
-            public TileEntity decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull JavaFixers fixers) {
+            public TileEntity decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull World world) {
                 String idText = tag.getString("id", "unknown");
                 Identifier id = this.aliases.get(idText);
                 if (id == null) {
@@ -115,7 +126,7 @@ public interface JavaTileEntityDecoder {
                 } else {
                     tag.putString("id", id.toString());
                 }
-                return this.delegates.getOrDefault(id, this.unknownDecoder).decode(tag, version, fixers);
+                return this.delegates.getOrDefault(id, this.unknownDecoder).decode(tag, version, world);
             }
         }
     }

@@ -53,7 +53,7 @@ import static net.daporkchop.lib.common.util.PValidation.*;
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public abstract class AbstractSave extends AbstractRefCounted implements Save {
+public abstract class AbstractSave<V extends MinecraftVersion> extends AbstractRefCounted implements Save {
     @NonNull
     protected final SaveOptions options;
     @NonNull
@@ -61,7 +61,7 @@ public abstract class AbstractSave extends AbstractRefCounted implements Save {
 
     protected final Map<Identifier, World> worlds = new HashMap<>();
     protected final Set<Identifier> worldIds = Collections.unmodifiableSet(this.worlds.keySet());
-    protected MinecraftVersion version;
+    protected V version;
     protected Registries registries;
     protected BlockRegistry blockRegistry;
 

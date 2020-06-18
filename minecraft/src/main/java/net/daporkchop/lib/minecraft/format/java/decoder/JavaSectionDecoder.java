@@ -21,15 +21,27 @@
 package net.daporkchop.lib.minecraft.format.java.decoder;
 
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.save.SaveOptions;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.minecraft.world.Section;
+import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
+ * A function for decoding a section from NBT data.
+ *
  * @author DaPorkchop_
  */
 @FunctionalInterface
 public interface JavaSectionDecoder {
-    Section decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull SaveOptions options, int x, int z);
+    /**
+     * Decodes a section.
+     *
+     * @param tag     the {@link CompoundTag} containing the section data
+     * @param version the version of the section data
+     * @param world   the {@link World} that the section is in
+     * @param x       the X coordinate of the section
+     * @param z       the Z coordinate of the section
+     * @return the decoded section
+     */
+    Section decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull World world, int x, int z);
 }

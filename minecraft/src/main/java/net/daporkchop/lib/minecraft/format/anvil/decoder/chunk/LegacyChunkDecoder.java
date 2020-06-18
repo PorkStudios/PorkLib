@@ -26,6 +26,7 @@ import net.daporkchop.lib.minecraft.format.vanilla.VanillaChunk;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.minecraft.world.Chunk;
+import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
@@ -37,7 +38,7 @@ public class LegacyChunkDecoder implements JavaChunkDecoder {
     public static final JavaVersion VERSION = JavaVersion.fromName("1.12.2");
 
     @Override
-    public Chunk decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull SaveOptions options) {
+    public Chunk decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull World world) {
         CompoundTag level = tag.getCompound("Level");
         int x = level.getInt("xPos");
         int z = level.getInt("zPos");

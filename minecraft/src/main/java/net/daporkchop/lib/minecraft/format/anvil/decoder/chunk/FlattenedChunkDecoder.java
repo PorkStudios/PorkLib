@@ -24,6 +24,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.minecraft.world.Chunk;
+import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
@@ -35,7 +36,7 @@ public class FlattenedChunkDecoder extends LegacyChunkDecoder {
     public static final JavaVersion VERSION = JavaVersion.latest();
 
     @Override
-    public Chunk decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull SaveOptions options) {
-        return super.decode(tag, version, options);
+    public Chunk decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull World world) {
+        return super.decode(tag, version, world);
     }
 }

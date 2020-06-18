@@ -21,15 +21,25 @@
 package net.daporkchop.lib.minecraft.format.java.decoder;
 
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.save.SaveOptions;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.minecraft.world.Chunk;
+import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
+ * A function for decoding a chunk from NBT data.
+ *
  * @author DaPorkchop_
  */
 @FunctionalInterface
 public interface JavaChunkDecoder {
-    Chunk decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull SaveOptions options);
+    /**
+     * Decodes a chunk.
+     *
+     * @param tag     the {@link CompoundTag} containing the chunk data
+     * @param version the version of the chunk data
+     * @param world   the {@link World} that the chunk is in
+     * @return the decoded chunk
+     */
+    Chunk decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull World world);
 }

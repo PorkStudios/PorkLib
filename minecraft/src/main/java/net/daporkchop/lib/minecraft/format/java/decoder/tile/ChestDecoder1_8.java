@@ -22,11 +22,13 @@ package net.daporkchop.lib.minecraft.format.java.decoder.tile;
 
 import lombok.NonNull;
 import net.daporkchop.lib.minecraft.format.java.JavaFixers;
+import net.daporkchop.lib.minecraft.format.java.JavaSaveOptions;
 import net.daporkchop.lib.minecraft.format.java.decoder.JavaTileEntityDecoder;
 import net.daporkchop.lib.minecraft.text.parser.MCFormatParser;
 import net.daporkchop.lib.minecraft.tileentity.TileEntity;
 import net.daporkchop.lib.minecraft.tileentity.TileEntityChest;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
+import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
@@ -34,12 +36,13 @@ import net.daporkchop.lib.nbt.tag.CompoundTag;
  */
 public class ChestDecoder1_8 implements JavaTileEntityDecoder {
     @Override
-    public TileEntity decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull JavaFixers fixers) {
+    public TileEntity decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull World world) {
         TileEntityChest chest = new TileEntityChest();
 
         //items
         for (CompoundTag item : tag.getList("Items", CompoundTag.class))    {
-            chest.inventory().set(item.getByte("Slot"), fixers.item().ceilingEntry(version).getValue().decode(item, version, fixers));
+            chest.inventory().set(item.getByte("Slot"), world.parent().options().get(JavaSaveOptions.FIXERS)
+                    .item().ceilingEntry(version).getValue().decode(item, version, world));
         }
 
         //custom name

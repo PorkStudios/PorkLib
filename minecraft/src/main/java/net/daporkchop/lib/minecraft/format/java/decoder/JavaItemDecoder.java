@@ -21,17 +21,25 @@
 package net.daporkchop.lib.minecraft.format.java.decoder;
 
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.format.java.JavaFixers;
 import net.daporkchop.lib.minecraft.item.ItemStack;
-import net.daporkchop.lib.minecraft.save.SaveOptions;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
-import net.daporkchop.lib.minecraft.world.Chunk;
+import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
+ * A function for decoding an item stack from NBT data.
+ *
  * @author DaPorkchop_
  */
 @FunctionalInterface
 public interface JavaItemDecoder {
-    ItemStack decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull JavaFixers fixers);
+    /**
+     * Decodes an item stack.
+     *
+     * @param tag     the {@link CompoundTag} containing the item data
+     * @param version the version of the item data
+     * @param world   the {@link World} that the item is in
+     * @return the decoded item stack
+     */
+    ItemStack decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull World world);
 }

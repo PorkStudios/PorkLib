@@ -22,11 +22,14 @@ package net.daporkchop.lib.minecraft.format.java.decoder.item;
 
 import lombok.NonNull;
 import net.daporkchop.lib.minecraft.format.java.JavaFixers;
+import net.daporkchop.lib.minecraft.format.java.JavaSaveOptions;
 import net.daporkchop.lib.minecraft.format.java.decoder.JavaItemDecoder;
 import net.daporkchop.lib.minecraft.item.ItemMeta;
 import net.daporkchop.lib.minecraft.item.ItemStack;
+import net.daporkchop.lib.minecraft.registry.Registry;
 import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
+import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 import net.daporkchop.lib.nbt.tag.ListTag;
 import net.daporkchop.lib.nbt.tag.StringTag;
@@ -40,9 +43,9 @@ import java.util.stream.Collectors;
  */
 public class ItemDecoder1_8 implements JavaItemDecoder {
     @Override
-    public ItemStack decode(@NonNull CompoundTag root, @NonNull JavaVersion version, @NonNull JavaFixers fixers) {
+    public ItemStack decode(@NonNull CompoundTag root, @NonNull JavaVersion version, @NonNull World world) {
         CompoundTag tag = root.getCompound("tag", null);
-        return new ItemStack(this.getId(root, tag), this.getCount(root, tag), this.getDamage(root, tag), this.getMeta(root, tag, version, fixers));
+        return new ItemStack(this.getId(root, tag), this.getCount(root, tag), this.getDamage(root, tag), this.getMeta(root, tag, version, world));
     }
 
     protected Identifier getId(@NonNull CompoundTag root, CompoundTag tag) {
@@ -57,12 +60,12 @@ public class ItemDecoder1_8 implements JavaItemDecoder {
         return root.getShort("Damage", (short) 0);
     }
 
-    protected ItemMeta getMeta(@NonNull CompoundTag root, CompoundTag tag, @NonNull JavaVersion version, @NonNull JavaFixers fixers) {
+    protected ItemMeta getMeta(@NonNull CompoundTag root, CompoundTag tag, @NonNull JavaVersion version, @NonNull World world) {
         if (this.hasMeta(tag)) {
             ItemMeta meta = new ItemMeta();
-            this.getGeneralMeta(tag, meta, version, fixers);
-            this.getBlocksMeta(tag, meta, version, fixers);
-            this.getEnchantmentsMeta(tag, meta, version, fixers);
+            this.getGeneralMeta(tag, meta, version, world);
+            this.getBlocksMeta(tag, meta, version, world);
+            this.getEnchantmentsMeta(tag, meta, version, world);
             return meta;
         } else {
             return null;
@@ -73,7 +76,7 @@ public class ItemDecoder1_8 implements JavaItemDecoder {
         return tag != null && tag.size() > 0 && (tag.size() > 1 || !tag.contains("Damage"));
     }
 
-    protected void getGeneralMeta(@NonNull CompoundTag tag, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull JavaFixers fixers) {
+    protected void getGeneralMeta(@NonNull CompoundTag tag, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull World world) {
         meta.unbreakable(tag.getBoolean("Unbreakable", false));
 
         ListTag<StringTag> canDestroy = tag.getList("CanDestroy", StringTag.class, null);
@@ -86,7 +89,7 @@ public class ItemDecoder1_8 implements JavaItemDecoder {
         }
     }
 
-    protected void getBlocksMeta(@NonNull CompoundTag tag, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull JavaFixers fixers) {
+    protected void getBlocksMeta(@NonNull CompoundTag tag, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull World world) {
         ListTag<StringTag> canPlaceOn = tag.getList("CanPlaceOn", StringTag.class, null);
         if (canPlaceOn != null) {
             meta.canDestroy(canPlaceOn.stream().map(StringTag::value).map(Identifier::fromString).collect(Collectors.toSet()));
@@ -94,17 +97,19 @@ public class ItemDecoder1_8 implements JavaItemDecoder {
 
         CompoundTag blockEntityTag = tag.getCompound("BlockEntityTag", null);
         if (blockEntityTag != null) {
-            meta.tileEntity(fixers.tileEntity().ceilingEntry(version).getValue().decode(blockEntityTag, version, fixers));
+            meta.tileEntity(world.parent().options().get(JavaSaveOptions.FIXERS)
+                    .tileEntity().ceilingEntry(version).getValue().decode(blockEntityTag, version, world));
         }
 
         //TODO: 1.8 uses the item damage to select the block state
     }
 
-    protected void getEnchantmentsMeta(@NonNull CompoundTag tag, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull JavaFixers fixers) {
-        ListTag<CompoundTag> enchantments = tag.getList("Enchantments", CompoundTag.class, null);
+    protected void getEnchantmentsMeta(@NonNull CompoundTag tag, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull World world) {
+        ListTag<CompoundTag> enchantments = tag.getList("ench", CompoundTag.class, null);
         if (enchantments != null) {
             ObjIntMap<Identifier> map = new ObjIntOpenHashMap<>();
-            enchantments.forEach(enchantment -> map.put(Identifier.fromString(enchantment.getString("id")), enchantment.getInt("lvl")));
+            Registry enchantmentRegistry = world.parent().registriesFor(version).get(Identifier.fromString("minecraft:enchantment"));
+            enchantments.forEach(enchantment -> map.put(enchantmentRegistry.get(enchantment.getShort("id")), enchantment.getShort("lvl")));
             meta.enchantments(map);
         }
 

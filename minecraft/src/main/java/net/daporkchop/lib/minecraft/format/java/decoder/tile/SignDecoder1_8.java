@@ -25,6 +25,7 @@ import net.daporkchop.lib.minecraft.format.java.JavaFixers;
 import net.daporkchop.lib.minecraft.format.java.decoder.JavaTileEntityDecoder;
 import net.daporkchop.lib.minecraft.tileentity.TileEntitySign;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
+import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
@@ -34,7 +35,7 @@ import net.daporkchop.lib.nbt.tag.CompoundTag;
  */
 public class SignDecoder1_8 implements JavaTileEntityDecoder {
     @Override
-    public TileEntitySign decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull JavaFixers fixers) {
+    public TileEntitySign decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull World world) {
         return new TileEntitySign()
                 .line1(tag.getString("Text1", ""))
                 .line2(tag.getString("Text2", ""))

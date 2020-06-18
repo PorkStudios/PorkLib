@@ -32,6 +32,7 @@ import net.daporkchop.lib.minecraft.format.java.decoder.JavaSectionDecoder;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.minecraft.world.Section;
+import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.nbt.tag.ByteArrayTag;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
@@ -42,9 +43,9 @@ public class LegacySectionDecoder implements JavaSectionDecoder {
     public static final JavaVersion VERSION = JavaVersion.fromName("1.12.2");
 
     @Override
-    public Section decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull SaveOptions options, int x, int z) {
+    public Section decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull World world, int x, int z) {
         int y = tag.getByte("Y") & 0xFF;
-        BlockStorage storage = this.parseBlockStorage(tag, JavaBlockRegistry.forVersion(version));
+        BlockStorage storage = this.parseBlockStorage(tag, world.parent().blockRegistryFor(version));
         NibbleArray blockLight = this.parseNibbleArray(tag, "BlockLight");
         NibbleArray skyLight = this.parseNibbleArray(tag, "SkyLight");
         return new DefaultSection(x, y, z, storage, blockLight, skyLight, version);

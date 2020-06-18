@@ -36,10 +36,14 @@ import net.daporkchop.lib.minecraft.format.java.decoder.item.ItemDecoder1_9;
 import net.daporkchop.lib.minecraft.format.java.decoder.section.FlattenedSectionDecoder;
 import net.daporkchop.lib.minecraft.format.java.decoder.section.LegacySectionDecoder;
 import net.daporkchop.lib.minecraft.format.java.decoder.tile.ChestDecoder1_8;
+import net.daporkchop.lib.minecraft.format.java.decoder.tile.FurnaceDecoder1_8;
+import net.daporkchop.lib.minecraft.format.java.decoder.tile.JukeboxDecoder1_8;
 import net.daporkchop.lib.minecraft.format.java.decoder.tile.SignDecoder1_8;
 import net.daporkchop.lib.minecraft.format.java.decoder.tile.SignDecoder1_14;
 import net.daporkchop.lib.minecraft.format.java.decoder.tile.UnknownTileDecoder;
 import net.daporkchop.lib.minecraft.tileentity.TileEntityChest;
+import net.daporkchop.lib.minecraft.tileentity.TileEntityFurnace;
+import net.daporkchop.lib.minecraft.tileentity.TileEntityJukebox;
 import net.daporkchop.lib.minecraft.tileentity.TileEntitySign;
 import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
@@ -110,6 +114,8 @@ public class JavaFixers {
                         .putAlias("Trap", Identifier.fromString("minecraft:dispenser"))
                         //legacy tile entities
                         .putDecoder(TileEntityChest.ID, new ChestDecoder1_8())
+                        .putDecoder(TileEntityFurnace.ID, new FurnaceDecoder1_8())
+                        .putDecoder(TileEntityJukebox.ID, new JukeboxDecoder1_8())
                         .putDecoder(TileEntitySign.ID, new SignDecoder1_8())
 
                         //

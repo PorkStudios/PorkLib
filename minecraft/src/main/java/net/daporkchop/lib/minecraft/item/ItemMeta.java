@@ -404,10 +404,10 @@ public class ItemMeta implements Cloneable<ItemMeta> {
             builder.append("Charged, ");
         }
         if (this.name != null) {
-            builder.append("Name=").append(this.name).append(", ");
+            builder.append("Name=\"").append(this.name.toRawString()).append("\", ");
         }
         if (this.lore != null && !this.lore.isEmpty()) {
-            builder.append("Lore=").append(this.lore).append(", ");
+            builder.append("Lore=").append(this.lore.stream().map(TextComponent::toRawString).collect(Collectors.joining("\", \"", "[\"", "\"]"))).append(", ");
         }
         if (this.armorColor != null) {
             builder.append("ArmorColor=").append(PStrings.fastFormat("0x%06x", this.armorColor.getRGB() & 0xFFFFFF)).append(", ");

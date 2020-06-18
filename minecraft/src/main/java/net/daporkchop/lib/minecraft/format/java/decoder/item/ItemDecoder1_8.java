@@ -88,7 +88,7 @@ public class ItemDecoder1_8 implements JavaItemDecoder {
     }
 
     protected boolean hasMeta(@NonNull CompoundTag root, CompoundTag tag) {
-        return root.contains("Damage") || (tag != null && tag.size() > 0);
+        return root.getShort("Damage", (short) 0) != 0 || (tag != null && tag.size() > 0);
     }
 
     protected void getOtherMeta(@NonNull ItemStack stack, @NonNull CompoundTag root, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull World world) {
@@ -180,18 +180,18 @@ public class ItemDecoder1_8 implements JavaItemDecoder {
     protected void getDisplayMeta(@NonNull ItemStack stack, @NonNull CompoundTag tag, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull World world) {
         CompoundTag display = tag.getCompound("display", null);
         if (display != null) {
-            String name = tag.getString("Name", null);
+            String name = display.getString("Name", null);
             if (name != null) {
                 meta.name(MCFormatParser.DEFAULT.parse(name));
             }
 
-            ListTag<StringTag> lore = tag.getList("Lore", StringTag.class, null);
+            ListTag<StringTag> lore = display.getList("Lore", StringTag.class, null);
             if (lore != null) {
                 meta.lore(lore.stream().map(StringTag::value).map(MCFormatParser.DEFAULT::parse).collect(Collectors.toList()));
             }
 
-            if (tag.contains("color")) {
-                meta.armorColor(new Color(tag.getInt("color")));
+            if (display.contains("color")) {
+                meta.armorColor(new Color(display.getInt("color")));
             }
         }
 

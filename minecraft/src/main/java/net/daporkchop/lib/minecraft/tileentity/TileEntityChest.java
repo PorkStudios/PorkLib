@@ -36,11 +36,10 @@ import net.daporkchop.lib.minecraft.version.MinecraftVersion;
 /**
  * @author DaPorkchop_
  */
-@ToString
 @Getter
 @Setter
 @Accessors(fluent = true, chain = true)
-public class TileEntityChest implements TileEntity, InventoryHolder {
+public class TileEntityChest extends BaseTileEntity implements InventoryHolder {
     public static final Identifier ID = Identifier.fromString("minecraft:chest");
 
     protected final Inventory inventory = new DefaultInventory(27);
@@ -50,5 +49,13 @@ public class TileEntityChest implements TileEntity, InventoryHolder {
     @Override
     public Identifier id() {
         return ID;
+    }
+
+    @Override
+    protected void doToString(@NonNull StringBuilder builder) {
+        builder.append("Inventory=").append(this.inventory).append(", ");
+        if (this.customName != null)    {
+            builder.append("CustomName=").append(this.customName).append(", ");
+        }
     }
 }

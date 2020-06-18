@@ -1,0 +1,23 @@
+Contents of each test world:
+
+All blocks are placed in the chunk section (0,4,0). Setup is done with the following commands:
+
+/fill 0 64 0 15 64 15 stone
+/fill 0 65 0 15 79 15 air
+
+The chunk section contains at least the following:
+
+1.8+:
+- Active Furnace with items in all three slots
+- Sign with at least 1 non-empty line and at least 1 empty line
+- Chest with unbreakable Wooden Axe
+- Chest with Chest+NBT with Written Book (at least 2 pages) and Book and Quill (identical contents)
+- Chest with named+enchanted Diamond Sword
+- Chest with Sign+NBT with at least 1 non-empty line and at least 1 empty line
+- Chest with Andesite
+- Chest with Enchanted Book
+- Chest with Potion of Strength
+- Chest with named Dirt with at least 2 lines of lore
+- Chest with Leather Tunic dyed with color 16711680 (0xFF0000)
+- Chest with decoration named "a" of type 3 at (16,16) rotated by 90°
+- Jukebox playing "cat"

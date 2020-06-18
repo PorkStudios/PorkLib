@@ -20,8 +20,26 @@
 
 package net.daporkchop.lib.minecraft.format.java.decoder.item;
 
+import lombok.NonNull;
+import net.daporkchop.lib.minecraft.block.BlockRegistry;
+import net.daporkchop.lib.minecraft.item.ItemMeta;
+import net.daporkchop.lib.minecraft.item.ItemStack;
+import net.daporkchop.lib.minecraft.version.java.JavaVersion;
+import net.daporkchop.lib.minecraft.world.World;
+import net.daporkchop.lib.nbt.tag.CompoundTag;
+
 /**
  * @author DaPorkchop_
  */
 public class ItemDecoder1_9 extends ItemDecoder1_8 {
+    @Override
+    protected void getOtherMeta(@NonNull ItemStack stack, @NonNull CompoundTag root, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull World world)  {
+        meta.damage(root.getShort("Damage", (short) 0));
+
+        BlockRegistry blockRegistry = world.parent().blockRegistryFor(version);
+        if (blockRegistry.containsBlockId(stack.id()))  {
+            meta.blockState(blockRegistry.getState(stack.id(), meta.damage()));
+            meta.damage(0);
+        }
+    }
 }

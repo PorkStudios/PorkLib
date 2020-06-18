@@ -21,37 +21,35 @@
 package net.daporkchop.lib.minecraft.item.inventory;
 
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
+import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.minecraft.item.ItemStack;
 
 /**
- * A default implementation of an inventory backed by a simple array.
+ * Base implementation of {@link Inventory}.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor(onConstructor_ = {@Deprecated})
-public class DefaultInventory extends BaseInventory {
-    @NonNull
-    protected final ItemStack[] slots;
-
-    public DefaultInventory(int slots) {
-        this.slots = new ItemStack[slots];
+public abstract class BaseInventory implements Inventory {
+    @Override
+    public String toString() {
+        try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get()) {
+            StringBuilder builder = handle.get();
+            builder.setLength(0);
+            this.doToString(builder.append('['));
+            if (builder.length() > 2) {
+                builder.setLength(builder.length() - 2);
+            }
+            return builder.append(']').toString();
+        }
     }
 
-    @Override
-    public int size() {
-        return this.slots.length;
-    }
-
-    @Override
-    public ItemStack get(int slot) {
-        return this.slots[slot];
-    }
-
-    @Override
-    public Inventory set(int slot, @NonNull ItemStack stack) {
-        this.slots[slot] = stack;
-        return this;
+    protected void doToString(@NonNull StringBuilder builder) {
+        for (int i = 0, size = this.size(); i < size; i++) {
+            ItemStack stack = this.get(i);
+            if (stack != null) {
+                builder.append(i).append('=').append(stack).append(", ");
+            }
+        }
     }
 }

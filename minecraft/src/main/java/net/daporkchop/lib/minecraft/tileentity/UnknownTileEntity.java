@@ -34,13 +34,17 @@ import net.daporkchop.lib.nbt.tag.CompoundTag;
  *
  * @author DaPorkchop_
  */
-@ToString
 @Setter
 @Getter
 @Accessors(fluent = true, chain = true)
-public class UnknownTileEntity implements TileEntity {
+public class UnknownTileEntity extends BaseTileEntity {
     @NonNull
     protected Identifier id;
     @NonNull
     protected CompoundTag nbt;
+
+    @Override
+    protected void doToString(@NonNull StringBuilder builder) {
+        builder.append(this.nbt);
+    }
 }

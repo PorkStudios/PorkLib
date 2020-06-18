@@ -26,6 +26,8 @@ import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.misc.Cloneable;
+import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
@@ -43,29 +45,36 @@ public class ItemStack implements Cloneable<ItemStack> {
     protected Identifier id;
 
     protected int size;
-    protected int damage;
 
     protected ItemMeta meta;
 
     public ItemStack(@NonNull Identifier id)    {
-        this(id, 0, 0, null);
+        this(id, 0, null);
     }
 
     public ItemStack(@NonNull Identifier id, int size)    {
-        this(id, size, 0, null);
-    }
-
-    public ItemStack(@NonNull Identifier id, int size, int damage)    {
-        this(id, size, damage, null);
+        this(id, size, null);
     }
 
     @Override
     public ItemStack clone() {
-        return new ItemStack(this.id, this.size, this.damage, this.meta == null ? null : this.meta.clone());
+        return new ItemStack(this.id, this.size, this.meta == null ? null : this.meta.clone());
     }
 
     @Override
     public String toString() {
-        return this.id.toString() + '#' + this.damage + " * " + this.size + (this.meta == null ? "" : " " + this.meta);
+        try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get()) {
+            StringBuilder builder = handle.get();
+            builder.setLength(0);
+
+            builder.append(this.id);
+            if (this.size != 1) {
+                builder.append('*').append(this.size);
+            }
+            if (this.meta != null)  {
+                builder.append(" with meta ").append(this.meta);
+            }
+            return builder.toString();
+        }
     }
 }

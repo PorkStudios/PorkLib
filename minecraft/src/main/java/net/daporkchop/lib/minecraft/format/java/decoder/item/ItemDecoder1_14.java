@@ -33,29 +33,14 @@ import net.daporkchop.lib.nbt.tag.StringTag;
 import net.daporkchop.lib.primitive.map.ObjIntMap;
 import net.daporkchop.lib.primitive.map.open.ObjIntOpenHashMap;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
  * @author DaPorkchop_
  */
-public class ItemDecoder1_13 extends ItemDecoder1_9 {
-    @Override
-    protected boolean hasMeta(@NonNull CompoundTag root, CompoundTag tag) {
-        return tag != null && tag.size() > 0;
-    }
-
-    @Override
-    protected void getOtherMeta(@NonNull ItemStack stack, @NonNull CompoundTag root, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull World world) {
-        //no-op
-    }
-
-    @Override
-    protected void getGeneralMeta(@NonNull ItemStack stack, @NonNull CompoundTag tag, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull World world) {
-        meta.damage(tag.getInt("Damage", 0));
-
-        super.getGeneralMeta(stack, tag, meta, version, world);
-    }
-
+public class ItemDecoder1_14 extends ItemDecoder1_13 {
     @Override
     protected void getBlocksMeta(@NonNull ItemStack stack, @NonNull CompoundTag tag, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull World world) {
         ListTag<StringTag> canPlaceOn = tag.getList("CanPlaceOn", StringTag.class, null);
@@ -68,24 +53,20 @@ public class ItemDecoder1_13 extends ItemDecoder1_9 {
             meta.tileEntity(world.parent().options().get(JavaSaveOptions.FIXERS)
                     .tileEntity().ceilingEntry(version).getValue().decode(blockEntityTag, version, world));
         }
+
+        CompoundTag blockStateTag = tag.getCompound("BlockStateTag", null);
+        if (blockEntityTag != null) {
+            //TODO
+        }
     }
 
     @Override
-    protected void getEnchantmentsMeta(@NonNull ItemStack stack, @NonNull CompoundTag tag, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull World world) {
-        ListTag<CompoundTag> enchantments = tag.getList("Enchantments", CompoundTag.class, null);
-        if (enchantments != null) {
-            ObjIntMap<Identifier> map = new ObjIntOpenHashMap<>();
-            enchantments.forEach(enchantment -> map.put(Identifier.fromString(enchantment.getString("id")), enchantment.getInt("lvl")));
-            meta.enchantments(map);
+    protected void getCrossbowMeta(@NonNull ItemStack stack, @NonNull CompoundTag tag, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull World world) {
+        ListTag<CompoundTag> chargedProjectiles = tag.getList("ChargedProjectiles", CompoundTag.class, null);
+        if (chargedProjectiles != null) {
+            meta.chargedProjectiles(chargedProjectiles.stream().map(projectile -> this.decode(projectile, version, world)).collect(Collectors.toList()));
         }
 
-        enchantments = tag.getList("StoredEnchantments", CompoundTag.class, null);
-        if (enchantments != null) {
-            ObjIntMap<Identifier> map = new ObjIntOpenHashMap<>();
-            enchantments.forEach(enchantment -> map.put(Identifier.fromString(enchantment.getString("id")), enchantment.getInt("lvl")));
-            meta.storedEnchantments(map);
-        }
-
-        meta.repairCost(tag.getInt("RepairCost", 0));
+        meta.charged(tag.getBoolean("Charged", false));
     }
 }

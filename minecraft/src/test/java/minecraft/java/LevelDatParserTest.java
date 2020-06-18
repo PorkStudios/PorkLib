@@ -20,6 +20,7 @@
 
 package minecraft.java;
 
+import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.misc.file.PFiles;
@@ -102,22 +103,17 @@ public class LevelDatParserTest {
     }
 
     @Test
-    public void test1_8_9_SignTE() throws IOException {
-        try (Save save = new AnvilSaveFormat().open(new File(ROOT, "1_8_9"), SaveOptions.DEFAULT.clone()
-                .set(SaveOptions.ACCESS, WriteAccess.READ_ONLY)
-                .set(SaveOptions.BYTE_ALLOC, new AnvilPooledArrayAllocator(ArrayAllocator.unpooled(byte.class), 32, 32))
-                .build())) {
-            try (World world = save.world(Identifier.fromString("overworld"))) {
-                try (Section section = world.storage().loadSection(0, 4, 0)) {
-                    section.tileEntities().forEach(System.out::println);
-                }
-            }
-        }
+    public void loadTestWorld1_8_9() throws IOException {
+        this.loadTestWorld("1_8_9");
     }
 
     @Test
-    public void test1_12_2_SignTE() throws IOException {
-        try (Save save = new AnvilSaveFormat().open(new File(ROOT, "1_12_2"), SaveOptions.DEFAULT.clone()
+    public void loadTestWorld1_12_2() throws IOException {
+        this.loadTestWorld("1_12_2");
+    }
+
+    private void loadTestWorld(@NonNull String name)   throws IOException {
+        try (Save save = new AnvilSaveFormat().open(new File(ROOT, name), SaveOptions.DEFAULT.clone()
                 .set(SaveOptions.ACCESS, WriteAccess.READ_ONLY)
                 .set(SaveOptions.BYTE_ALLOC, new AnvilPooledArrayAllocator(ArrayAllocator.unpooled(byte.class), 32, 32))
                 .build())) {

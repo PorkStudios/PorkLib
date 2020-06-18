@@ -24,6 +24,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
 /**
@@ -32,6 +33,7 @@ import lombok.experimental.Accessors;
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
+@ToString
 @Getter
 @Setter
 @Accessors(fluent = true, chain = true)

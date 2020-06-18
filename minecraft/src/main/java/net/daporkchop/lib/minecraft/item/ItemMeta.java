@@ -20,11 +20,15 @@
 
 package net.daporkchop.lib.minecraft.item;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
-import lombok.ToString;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.misc.Cloneable;
+import net.daporkchop.lib.common.misc.string.PStrings;
+import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.logging.format.component.TextComponent;
 import net.daporkchop.lib.minecraft.block.BlockState;
 import net.daporkchop.lib.minecraft.tileentity.TileEntity;
@@ -35,6 +39,7 @@ import net.daporkchop.lib.primitive.map.ObjIntMap;
 import java.awt.Color;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Optional additional information used to describe an item.
@@ -45,12 +50,19 @@ import java.util.Set;
  *
  * @author DaPorkchop_
  */
-@ToString
+@EqualsAndHashCode
 @Getter
 @Setter
 @Accessors(fluent = true, chain = true)
 public class ItemMeta implements Cloneable<ItemMeta> {
     // general
+
+    /**
+     * The damage value of this item.
+     * <p>
+     * Negative values will be treated as {@code 0}.
+     */
+    protected int damage = 0;
 
     /**
      * If {@code true}, the item will not lose durability when used in survival mode.
@@ -67,9 +79,9 @@ public class ItemMeta implements Cloneable<ItemMeta> {
     /**
      * A value used in the {@code custom_model_data} item tag in the overrides of item models.
      * <p>
-     * {@code null} values will be treated as unset.
+     * {@code NaN} values will be treated as unset.
      */
-    protected Integer customModelData = null;
+    protected float customModelData = Float.NaN;
 
     // block
 
@@ -119,11 +131,11 @@ public class ItemMeta implements Cloneable<ItemMeta> {
     // potion
 
     /**
-     * The {@link Identifier} of the default potion effect to apply.
+     * The {@link Identifier} of the default potion to apply.
      * <p>
      * {@code null} values will be treated as unset.
      */
-    protected Identifier defaultEffect = null;
+    protected Identifier potion = null;
 
     /**
      * Additional, custom potion effects applied by this item.
@@ -167,9 +179,9 @@ public class ItemMeta implements Cloneable<ItemMeta> {
     /**
      * The lines of text to display as this item's lore.
      * <p>
-     * Empty or {@code null} values will be treated as unset.
+     * {@code null} values will be treated as unset.
      */
-    protected List<String> lore = null;
+    protected List<TextComponent> lore = null;
 
     /**
      * The color that the leather armor was dyed with.
@@ -251,8 +263,10 @@ public class ItemMeta implements Cloneable<ItemMeta> {
 
     /**
      * The number of gunpowder used to craft this firework rocket.
+     * <p>
+     * Negative values will be treated as unset.
      */
-    protected int fireworkFlight = 0;
+    protected int fireworkFlight = -1;
 
     /**
      * All of the firework explosions that belong to this firework rocket.
@@ -297,6 +311,7 @@ public class ItemMeta implements Cloneable<ItemMeta> {
     @Override
     public ItemMeta clone() {
         return new ItemMeta()
+                .damage(this.damage)
                 .unbreakable(this.unbreakable)
                 .canDestroy(this.canDestroy)
                 .customModelData(this.customModelData)
@@ -306,7 +321,7 @@ public class ItemMeta implements Cloneable<ItemMeta> {
                 .enchantments(this.enchantments)
                 .storedEnchantments(this.storedEnchantments)
                 .repairCost(this.repairCost)
-                .defaultEffect(this.defaultEffect)
+                .potion(this.potion)
                 .customEffects(this.customEffects)
                 .customPotionColor(this.customPotionColor)
                 .chargedProjectiles(this.chargedProjectiles)
@@ -327,5 +342,112 @@ public class ItemMeta implements Cloneable<ItemMeta> {
                 .mapId(this.mapId)
                 .mapDecorations(this.mapDecorations)
                 .stewEffects(this.stewEffects);
+    }
+
+    @Override
+    public String toString() {
+        try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get()) {
+            StringBuilder builder = handle.get();
+            builder.setLength(0);
+            this.doToString(builder.append('{'));
+            if (builder.length() > 2) {
+                builder.setLength(builder.length() - 2);
+            }
+            return builder.append('}').toString();
+        }
+    }
+
+    protected void doToString(@NonNull StringBuilder builder) {
+        if (this.damage > 0)   {
+            builder.append("Damage=").append(this.damage).append(", ");
+        }
+        if (this.unbreakable) {
+            builder.append("Unbreakable, ");
+        }
+        if (this.canDestroy != null && !this.canDestroy.isEmpty()) {
+            builder.append("CanDestroy=").append(this.canDestroy).append(", ");
+        }
+        if (!Float.isNaN(this.customModelData)) {
+            builder.append("custom_model_data=").append(this.customModelData).append(", ");
+        }
+        if (this.canPlaceOn != null && !this.canPlaceOn.isEmpty()) {
+            builder.append("CanPlaceOn=").append(this.canPlaceOn).append(", ");
+        }
+        if (this.tileEntity != null) {
+            builder.append("TileEntity=").append(this.tileEntity).append(", ");
+        }
+        if (this.blockState != null) {
+            builder.append("BlockState=").append(this.blockState).append(", ");
+        }
+        if (this.enchantments != null && !this.enchantments.isEmpty()) {
+            builder.append("Enchantments=").append(this.enchantments).append(", ");
+        }
+        if (this.storedEnchantments != null && !this.storedEnchantments.isEmpty()) {
+            builder.append("StoredEnchantments=").append(this.storedEnchantments).append(", ");
+        }
+        if (this.repairCost > 0) {
+            builder.append("RepairCost=").append(this.repairCost).append(", ");
+        }
+        if (this.potion != null) {
+            builder.append("DefaultEffect=").append(this.potion).append(", ");
+        }
+        if (this.customEffects != null && !this.customEffects.isEmpty()) {
+            builder.append("CustomEffects=").append(this.customEffects).append(", ");
+        }
+        if (this.customPotionColor != null) {
+            builder.append("CustomPotionColor=").append(PStrings.fastFormat("0x%06x", this.customPotionColor.getRGB() & 0xFFFFFF)).append(", ");
+        }
+        if (this.chargedProjectiles != null && !this.chargedProjectiles.isEmpty()) {
+            builder.append("ChargedProjectiles=").append(this.chargedProjectiles).append(", ");
+        }
+        if (this.charged) {
+            builder.append("Charged, ");
+        }
+        if (this.name != null) {
+            builder.append("Name=").append(this.name).append(", ");
+        }
+        if (this.lore != null && !this.lore.isEmpty()) {
+            builder.append("Lore=").append(this.lore).append(", ");
+        }
+        if (this.armorColor != null) {
+            builder.append("ArmorColor=").append(PStrings.fastFormat("0x%06x", this.armorColor.getRGB() & 0xFFFFFF)).append(", ");
+        }
+        if (this.hideFlags != 0) {
+            builder.append("HideFlags=").append(Integer.toBinaryString(this.hideFlags)).append(", ");
+        }
+        if (this.bookPages != null && !this.bookPages.isEmpty()) {
+            if (this.bookAuthor != null) {
+                builder.append("Author=\"").append(this.bookAuthor).append("\", ");
+            }
+            if (this.bookTitle != null) {
+                builder.append("Title=\"").append(this.bookTitle).append("\", ");
+            }
+            builder.append("BookGeneration=").append(this.bookGeneration).append(", ");
+            if (this.bookResolved) {
+                builder.append("Resolved, ");
+            }
+            builder.append("Pages=").append(this.bookPages.stream().map(TextComponent::toRawString).collect(Collectors.joining("\", \"", "[\"", "\"]"))).append(", ");
+        }
+        if (this.bookPagesEditable != null && !this.bookPagesEditable.isEmpty()) {
+            builder.append("EditablePages=").append(this.bookPagesEditable.stream().collect(Collectors.joining("\", \"", "[\"", "\"]"))).append(", ");
+        }
+        if (this.fireworkExplosion != null) {
+            builder.append("FireworkExplosion=").append(this.fireworkExplosion).append(", ");
+        }
+        if (this.fireworkExplosions != null && !this.fireworkExplosions.isEmpty()) {
+            builder.append("FireworkExplosions=").append(this.fireworkExplosions).append(", ");
+        }
+        if (this.fireworkFlight >= 0) {
+            builder.append("FireworkFlight=").append(this.fireworkFlight).append(", ");
+        }
+        if (this.mapId >= 0) {
+            builder.append("Map #").append(this.mapId).append(", ");
+        }
+        if (this.mapDecorations != null && !this.mapDecorations.isEmpty()) {
+            builder.append("MapDecorations=").append(this.mapDecorations).append(", ");
+        }
+        if (this.stewEffects != null && !this.stewEffects.isEmpty()) {
+            builder.append("StewEffects=").append(this.stewEffects).append(", ");
+        }
     }
 }

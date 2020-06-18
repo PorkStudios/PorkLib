@@ -25,6 +25,8 @@ import lombok.NonNull;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.logging.format.component.EmptyTextComponent;
+import net.daporkchop.lib.logging.format.component.TextComponent;
 import net.daporkchop.lib.minecraft.text.format.ChatColor;
 import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.version.MinecraftVersion;
@@ -32,26 +34,37 @@ import net.daporkchop.lib.minecraft.version.MinecraftVersion;
 /**
  * @author DaPorkchop_
  */
-@ToString
 @Setter
 @Getter
 @Accessors(fluent = true, chain = true)
-public class TileEntitySign implements TileEntity {
+public class TileEntitySign extends BaseTileEntity {
     public static final Identifier ID = Identifier.fromString("minecraft:sign");
 
     @NonNull
     protected ChatColor color = ChatColor.BLACK;
     @NonNull
-    protected String line1 = "";
+    protected TextComponent line1 = EmptyTextComponent.INSTANCE;
     @NonNull
-    protected String line2 = "";
+    protected TextComponent line2 = EmptyTextComponent.INSTANCE;
     @NonNull
-    protected String line3 = "";
+    protected TextComponent line3 = EmptyTextComponent.INSTANCE;
     @NonNull
-    protected String line4 = "";
+    protected TextComponent line4 = EmptyTextComponent.INSTANCE;
 
     @Override
     public Identifier id() {
         return ID;
+    }
+
+    @Override
+    protected void doToString(@NonNull StringBuilder builder) {
+        builder.append("Text=[\"")
+                .append(this.line1.toRawString()).append("\", \"")
+                .append(this.line2.toRawString()).append("\", \"")
+                .append(this.line3.toRawString()).append("\", \"")
+                .append(this.line4.toRawString()).append("\"], ");
+        if (this.color != ChatColor.BLACK)  {
+            builder.append("Color=").append(this.color).append(", ");
+        }
     }
 }

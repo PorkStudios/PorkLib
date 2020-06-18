@@ -18,40 +18,37 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.item.inventory;
+package net.daporkchop.lib.minecraft.tileentity;
 
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-import net.daporkchop.lib.minecraft.item.ItemStack;
+import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.util.PorkUtil;
 
 /**
- * A default implementation of an inventory backed by a simple array.
+ * Base implementation of {@link TileEntity}.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor(onConstructor_ = {@Deprecated})
-public class DefaultInventory extends BaseInventory {
-    @NonNull
-    protected final ItemStack[] slots;
-
-    public DefaultInventory(int slots) {
-        this.slots = new ItemStack[slots];
-    }
-
+public abstract class BaseTileEntity implements TileEntity {
     @Override
-    public int size() {
-        return this.slots.length;
+    public String toString() {
+        try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get()) {
+            StringBuilder builder = handle.get();
+            builder.setLength(0);
+
+            builder.append(this.id());
+            int idLength = builder.length();
+
+            this.doToString(builder.append('{'));
+            if (builder.length() == idLength + 1) {
+                builder.setLength(idLength);
+            } else {
+                builder.setLength(builder.length() - 2);
+                builder.append('}');
+            }
+            return builder.toString();
+        }
     }
 
-    @Override
-    public ItemStack get(int slot) {
-        return this.slots[slot];
-    }
-
-    @Override
-    public Inventory set(int slot, @NonNull ItemStack stack) {
-        this.slots[slot] = stack;
-        return this;
-    }
+    protected abstract void doToString(@NonNull StringBuilder builder);
 }

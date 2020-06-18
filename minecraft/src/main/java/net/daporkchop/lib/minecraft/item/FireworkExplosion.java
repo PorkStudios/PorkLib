@@ -22,6 +22,7 @@ package net.daporkchop.lib.minecraft.item;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
 import java.awt.Color;
@@ -32,6 +33,7 @@ import java.util.List;
  *
  * @author DaPorkchop_
  */
+@ToString
 @Getter
 @Setter
 @Accessors(fluent = true, chain = true)

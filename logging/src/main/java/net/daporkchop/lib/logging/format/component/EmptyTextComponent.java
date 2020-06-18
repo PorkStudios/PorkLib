@@ -18,40 +18,67 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.item.inventory;
+package net.daporkchop.lib.logging.format.component;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-import net.daporkchop.lib.minecraft.item.ItemStack;
+
+import java.awt.Color;
+import java.util.Collections;
+import java.util.List;
 
 /**
- * A default implementation of an inventory backed by a simple array.
+ * Implementation of an empty {@link TextComponent}.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor(onConstructor_ = {@Deprecated})
-public class DefaultInventory extends BaseInventory {
-    @NonNull
-    protected final ItemStack[] slots;
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class EmptyTextComponent implements TextComponent {
+    public static final EmptyTextComponent INSTANCE = new EmptyTextComponent();
 
-    public DefaultInventory(int slots) {
-        this.slots = new ItemStack[slots];
+    @Override
+    public String getText() {
+        return "";
     }
 
     @Override
-    public int size() {
-        return this.slots.length;
+    public List<TextComponent> getChildren() {
+        return Collections.emptyList();
     }
 
     @Override
-    public ItemStack get(int slot) {
-        return this.slots[slot];
+    public void addChild(@NonNull TextComponent child) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public Inventory set(int slot, @NonNull ItemStack stack) {
-        this.slots[slot] = stack;
-        return this;
+    public Color getColor() {
+        return null;
+    }
+
+    @Override
+    public Color getBackgroundColor() {
+        return null;
+    }
+
+    @Override
+    public int getStyle() {
+        return 0;
+    }
+
+    @Override
+    public String toRawString() {
+        return "";
+    }
+
+    @Override
+    public boolean hasNewline() {
+        return false;
+    }
+
+    @Override
+    public List<TextComponent> splitOnNewlines() {
+        return Collections.singletonList(this);
     }
 }

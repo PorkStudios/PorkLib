@@ -24,6 +24,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.minecraft.util.Identifier;
 
@@ -33,12 +34,11 @@ import net.daporkchop.lib.minecraft.util.Identifier;
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
+@ToString
 @Getter
 @Setter
 @Accessors(fluent = true, chain = true)
 public class PotionEffect {
-    public static final Identifier EMPTY_EFFECT_ID = Identifier.fromString("minecraft:empty");
-
     /**
      * The ID of the potion effect.
      */

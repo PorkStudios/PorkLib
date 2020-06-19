@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
  * @author DaPorkchop_
  */
 public class ItemDecoder1_13 extends ItemDecoder1_9 {
-    @Override
+    /*@Override
     protected boolean hasMeta(@NonNull CompoundTag root, CompoundTag tag) {
         return tag != null && tag.size() > 0;
     }
@@ -87,5 +87,5 @@ public class ItemDecoder1_13 extends ItemDecoder1_9 {
         }
 
         meta.repairCost(tag.getInt("RepairCost", 0));
-    }
+    }*/
 }

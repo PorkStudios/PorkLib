@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
  * @author DaPorkchop_
  */
 public class ItemDecoder1_14 extends ItemDecoder1_13 {
-    @Override
+    /*@Override
     protected void getBlocksMeta(@NonNull ItemStack stack, @NonNull CompoundTag tag, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull World world) {
         ListTag<StringTag> canPlaceOn = tag.getList("CanPlaceOn", StringTag.class, null);
         if (canPlaceOn != null) {
@@ -68,5 +68,5 @@ public class ItemDecoder1_14 extends ItemDecoder1_13 {
         }
 
         meta.charged(tag.getBoolean("Charged", false));
-    }
+    }*/
 }

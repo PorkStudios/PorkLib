@@ -23,10 +23,10 @@ package net.daporkchop.lib.minecraft.item;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.misc.Cloneable;
-import net.daporkchop.lib.common.misc.string.PStrings;
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.logging.format.component.TextComponent;
@@ -37,9 +37,17 @@ import net.daporkchop.lib.primitive.map.IntIntMap;
 import net.daporkchop.lib.primitive.map.ObjIntMap;
 
 import java.awt.Color;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
+
+import static net.daporkchop.lib.common.util.PValidation.*;
+import static net.daporkchop.lib.common.util.PorkUtil.*;
 
 /**
  * Optional additional information used to describe an item.
@@ -54,7 +62,15 @@ import java.util.stream.Collectors;
 @Getter
 @Setter
 @Accessors(fluent = true, chain = true)
-public class ItemMeta implements Cloneable<ItemMeta> {
+public final class ItemMeta implements Cloneable<ItemMeta> {
+    private static final Map<String, Key<?>> KEY_LOOKUP = new ConcurrentHashMap<>();
+
+    public static <T> Key<T> key(@NonNull Key<T> key) {
+        String name = key.name();
+        checkState(KEY_LOOKUP.putIfAbsent(name, key) == null, "duplicate key name: %s", name);
+        return key;
+    }
+
     // general
 
     /**
@@ -62,26 +78,24 @@ public class ItemMeta implements Cloneable<ItemMeta> {
      * <p>
      * Negative values will be treated as {@code 0}.
      */
-    protected int damage = 0;
+    public static final Key<Integer> DAMAGE = key(new PositiveIntKey("damage"));
 
     /**
      * If {@code true}, the item will not lose durability when used in survival mode.
      */
-    protected boolean unbreakable = false;
+    public static final Key<Boolean> UNBREAKABLE = key(new BooleanKey("unbreakable"));
 
     /**
      * A {@link Set} of the block IDs that may be destroyed by this item in adventure mode.
      * <p>
      * Empty or {@code null} values will be treated as unset.
      */
-    protected Set<Identifier> canDestroy = null;
+    public static final Key<Set<Identifier>> CAN_DESTROY = key(new CollectionKey<>("can_destroy", Collections.emptySet()));
 
     /**
      * A value used in the {@code custom_model_data} item tag in the overrides of item models.
-     * <p>
-     * {@code NaN} values will be treated as unset.
      */
-    protected float customModelData = Float.NaN;
+    public static final Key<Integer> CUSTOM_MODEL_DATA = key(new AnyIntKey("custom_model_data"));
 
     // block
 
@@ -90,13 +104,13 @@ public class ItemMeta implements Cloneable<ItemMeta> {
      * <p>
      * Empty or {@code null} values will be treated as unset.
      */
-    protected Set<Identifier> canPlaceOn = null;
+    public static final Key<Set<Identifier>> CAN_PLACE_ON = key(new CollectionKey<>("can_place_on", Collections.emptySet()));
 
     /**
      * Contains the {@link TileEntity} data attached to this item, for example banner data or blocks with tile entities that were Ctrl+picked in
      * creative mode.
      */
-    protected TileEntity tileEntity = null;
+    public static final Key<TileEntity> TILE_ENTITY = key(new ObjectKey<>("tile_entity"));
 
     /**
      * A custom {@link BlockState} which should be used in favor of the default state for this item's ID.
@@ -105,7 +119,7 @@ public class ItemMeta implements Cloneable<ItemMeta> {
      * <p>
      * Values that do not correspond to this item's ID will be silently serialized, and may cause unexpected behavior when loaded.
      */
-    protected BlockState blockState = null;
+    public static final Key<BlockState> BLOCK_STATE = key(new ObjectKey<>("block_state"));
 
     // enchantment
 
@@ -114,19 +128,19 @@ public class ItemMeta implements Cloneable<ItemMeta> {
      * <p>
      * Empty or {@code null} values will be treated as unset.
      */
-    protected ObjIntMap<Identifier> enchantments = null;
+    public static final Key<ObjIntMap<Identifier>> ENCHANTMENTS = key(new ObjectKey<>("enchantments"));
 
     /**
-     * Exactly the same as {@link #enchantments}, but used for enchantments stored in an enchanted book.
+     * Exactly the same as {@link #ENCHANTMENTS}, but used for enchantments stored in an enchanted book.
      */
-    protected ObjIntMap<Identifier> storedEnchantments = null;
+    public static final Key<ObjIntMap<Identifier>> STORED_ENCHANTMENTS = key(new ObjectKey<>("enchantments_stored"));
 
     /**
      * The number of additional XP levels required to process this item in an anvil.
      * <p>
      * Negative values will be treated as {@code 0}.
      */
-    protected int repairCost = 0;
+    public static final Key<Integer> REPAIR_COST = key(new PositiveIntKey("repair_cost"));
 
     // potion
 
@@ -135,14 +149,14 @@ public class ItemMeta implements Cloneable<ItemMeta> {
      * <p>
      * {@code null} values will be treated as unset.
      */
-    protected Identifier potion = null;
+    public static final Key<Identifier> POTION = key(new ObjectKey<>("potion"));
 
     /**
      * Additional, custom potion effects applied by this item.
      * <p>
      * Empty or {@code null} values will be treated as unset.
      */
-    protected List<PotionEffect> customEffects = null;
+    public static final Key<List<PotionEffect>> POTION_CUSTOM_EFFECTS = key(new CollectionKey<>("potion_custom_effects", Collections.emptyList()));
 
     /**
      * A custom {@link Color} to be used by the potion.
@@ -151,7 +165,7 @@ public class ItemMeta implements Cloneable<ItemMeta> {
      * <p>
      * The color's alpha channel will be ignored.
      */
-    protected Color customPotionColor = null;
+    public static final Key<Color> POTION_CUSTOM_COLOR = key(new ObjectKey<>("potion_custom_color"));
 
     // crossbow
 
@@ -160,12 +174,12 @@ public class ItemMeta implements Cloneable<ItemMeta> {
      * <p>
      * Empty or {@code null} values will be treated as unset.
      */
-    protected List<ItemStack> chargedProjectiles = null;
+    public static final Key<List<ItemStack>> CROSSBOW_CHARGED_PROJECTILES = key(new CollectionKey<>("crossbow_charged_projectiles", Collections.emptyList()));
 
     /**
      * Whether or not this crossbow is charged.
      */
-    protected boolean charged = false;
+    public static final Key<Boolean> CROSSBOW_CHARGED = key(new BooleanKey("crossbow_charged"));
 
     //display
 
@@ -174,14 +188,14 @@ public class ItemMeta implements Cloneable<ItemMeta> {
      * <p>
      * {@code null} values will be treated as unset.
      */
-    protected TextComponent name = null;
+    public static final Key<TextComponent> DISPLAY_NAME = key(new ObjectKey<>("display_name"));
 
     /**
      * The lines of text to display as this item's lore.
      * <p>
      * {@code null} values will be treated as unset.
      */
-    protected List<TextComponent> lore = null;
+    public static final Key<List<TextComponent>> DISPLAY_LORE = key(new CollectionKey<>("display_lore", Collections.emptyList()));
 
     /**
      * The color that the leather armor was dyed with.
@@ -190,58 +204,49 @@ public class ItemMeta implements Cloneable<ItemMeta> {
      * <p>
      * The color's alpha channel will be ignored.
      */
-    protected Color armorColor = null;
-
-    /**
-     * The map color.
-     * <p>
-     * Negative values will be treated as unset.
-     */
-    protected int mapColor = -1;
+    public static final Key<Color> DISPLAY_ARMOR_COLOR = key(new ObjectKey<>("display_armor_color"));
 
     /**
      * A bitmask indicating which parts of an item tooltip should not be rendered.
      * <p>
      * See the Minecraft Wiki page for more information on this field.
-     * <p>
-     * {@code 0} values will be treated as unset.
      */
-    protected int hideFlags = 0;
+    public static final Key<Integer> DISPLAY_HIDE_FLAGS = key(new AnyIntKey("display_hide_flags"));
 
     // book
 
     /**
      * Whether or not the book has been opened.
      */
-    protected boolean bookResolved = false;
+    public static final Key<Boolean> BOOK_RESOLVED = key(new BooleanKey("book_resolved"));
 
     /**
      * The copy tier of this book.
      * <p>
      * {@code 0} values will be treated as unset.
      */
-    protected int bookGeneration = 0;
+    public static final Key<Integer> BOOK_GENERATION = key(new AnyIntKey("book_generation"));
 
     /**
      * The name of the author of this book.
      * <p>
      * {@code null} values will be treated as unset.
      */
-    protected String bookAuthor = null;
+    public static final Key<String> BOOK_AUTHOR = key(new ObjectKey<>("book_author"));
 
     /**
      * The title of this book.
      * <p>
      * {@code null} values will be treated as unset.
      */
-    protected String bookTitle = null;
+    public static final Key<String> BOOK_TITLE = key(new ObjectKey<>("book_title"));
 
     /**
      * The pages in the book. Each {@link TextComponent} represents a single page.
      * <p>
      * Empty or {@code null} values will be treated as unset.
      */
-    protected List<TextComponent> bookPages = null;
+    public static final Key<List<TextComponent>> BOOK_PAGES = key(new CollectionKey<>("book_pages", Collections.emptyList()));
 
     /**
      * The pages in the book. Each {@link String} represents a single page.
@@ -250,7 +255,7 @@ public class ItemMeta implements Cloneable<ItemMeta> {
      * <p>
      * Empty or {@code null} values will be treated as unset.
      */
-    protected List<String> bookPagesEditable = null;
+    public static final Key<List<String>> BOOK_PAGES_EDITABLE = key(new CollectionKey<>("book_pages_editable", Collections.emptyList()));
 
     // firework
 
@@ -259,21 +264,19 @@ public class ItemMeta implements Cloneable<ItemMeta> {
      * <p>
      * {@code null} values will be treated as unset.
      */
-    protected FireworkExplosion fireworkExplosion = null;
+    public static final Key<FireworkExplosion> FIREWORK_STAR_EXPLOSION = key(new ObjectKey<>("firework_star_explosion"));
 
     /**
      * The number of gunpowder used to craft this firework rocket.
-     * <p>
-     * Negative values will be treated as unset.
      */
-    protected int fireworkFlight = -1;
+    public static final Key<Integer> FIREWORK_FLIGHT = key(new AnyIntKey("firework_flight"));
 
     /**
      * All of the firework explosions that belong to this firework rocket.
      * <p>
      * Empty or {@code null} values will be treated as unset.
      */
-    protected List<FireworkExplosion> fireworkExplosions = null;
+    public static final Key<List<FireworkExplosion>> FIREWORK_EXPLOSIONS = key(new CollectionKey<>("firework_explosions", Collections.emptyList()));
 
     // map
 
@@ -282,14 +285,21 @@ public class ItemMeta implements Cloneable<ItemMeta> {
      * <p>
      * Negative values will be treated as unset.
      */
-    protected int mapId = -1;
+    public static final Key<Integer> MAP_ID = key(new PositiveOrZeroIntKey("map_id"));
 
     /**
      * All of the decorations to display on this map.
      * <p>
      * Empty or {@code null} values will be treated as unset.
      */
-    protected List<MapDecoration> mapDecorations = null;
+    public static final Key<List<MapDecoration>> MAP_DECORATIONS = key(new CollectionKey<>("map_decorations", Collections.emptyList()));
+
+    /**
+     * The map color.
+     * <p>
+     * Negative values will be treated as unset.
+     */
+    public static final Key<Integer> MAP_COLOR = key(new AnyIntKey("map_color"));
 
     // suspicious stew
 
@@ -298,7 +308,7 @@ public class ItemMeta implements Cloneable<ItemMeta> {
      * <p>
      * Empty or {@code null} values will be treated as unset.
      */
-    protected IntIntMap stewEffects = null;
+    public static final Key<IntIntMap> STEW_EFFECTS = key(new ObjectKey<>("stew_effects"));
 
     //TODO: attribute modifiers
 
@@ -308,40 +318,35 @@ public class ItemMeta implements Cloneable<ItemMeta> {
 
     //TODO: compasses track the position of their lodestone block
 
+    protected final Map<Key<?>, ?> map;
+
+    public ItemMeta() {
+        this.map = new IdentityHashMap<>();
+    }
+
+    private ItemMeta(@NonNull Map<Key<?>, ?> map) {
+        this.map = new IdentityHashMap<>(map);
+    }
+
+    /**
+     * @return whether or not this {@link ItemMeta} is empty (contains no explicitly set values)
+     */
+    public boolean isEmpty() {
+        return this.map.isEmpty();
+    }
+
+    public <T> ItemMeta put(@NonNull Key<T> key, T value)   {
+        if ((value = key.process(value)) != null)   {
+            this.map.put(key, uncheckedCast(value));
+        } else {
+            this.map.remove(key);
+        }
+        return this;
+    }
+
     @Override
     public ItemMeta clone() {
-        return new ItemMeta()
-                .damage(this.damage)
-                .unbreakable(this.unbreakable)
-                .canDestroy(this.canDestroy)
-                .customModelData(this.customModelData)
-                .canPlaceOn(this.canPlaceOn)
-                .tileEntity(this.tileEntity)
-                .blockState(this.blockState)
-                .enchantments(this.enchantments)
-                .storedEnchantments(this.storedEnchantments)
-                .repairCost(this.repairCost)
-                .potion(this.potion)
-                .customEffects(this.customEffects)
-                .customPotionColor(this.customPotionColor)
-                .chargedProjectiles(this.chargedProjectiles)
-                .charged(this.charged)
-                .name(this.name)
-                .lore(this.lore)
-                .armorColor(this.armorColor)
-                .mapColor(this.mapColor)
-                .hideFlags(this.hideFlags)
-                .bookResolved(this.bookResolved)
-                .bookAuthor(this.bookAuthor)
-                .bookTitle(this.bookTitle)
-                .bookPages(this.bookPages)
-                .bookPagesEditable(this.bookPagesEditable)
-                .fireworkExplosion(this.fireworkExplosion)
-                .fireworkFlight(this.fireworkFlight)
-                .fireworkExplosions(this.fireworkExplosions)
-                .mapId(this.mapId)
-                .mapDecorations(this.mapDecorations)
-                .stewEffects(this.stewEffects);
+        return new ItemMeta(this.map);
     }
 
     @Override
@@ -349,7 +354,12 @@ public class ItemMeta implements Cloneable<ItemMeta> {
         try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get()) {
             StringBuilder builder = handle.get();
             builder.setLength(0);
-            this.doToString(builder.append('{'));
+            builder.append('{');
+            this.map.forEach((key, value) -> {
+                if (key.isSet(uncheckedCast(value))) {
+                    key.append(builder, uncheckedCast(value));
+                }
+            });
             if (builder.length() > 2) {
                 builder.setLength(builder.length() - 2);
             }
@@ -357,97 +367,192 @@ public class ItemMeta implements Cloneable<ItemMeta> {
         }
     }
 
-    protected void doToString(@NonNull StringBuilder builder) {
-        if (this.damage > 0)   {
-            builder.append("Damage=").append(this.damage).append(", ");
+    /**
+     * A key used to identify an {@link ItemMeta} value.
+     *
+     * @param <T> the type of value referenced by this key
+     * @author DaPorkchop_
+     */
+    @RequiredArgsConstructor
+    @Getter
+    @Accessors(fluent = true)
+    public static abstract class Key<T> implements Comparable<Key<?>> {
+        @NonNull
+        protected final String name;
+        protected final T defaultValue;
+        protected final int hashCode = ThreadLocalRandom.current().nextInt();
+
+        @Override
+        public int compareTo(Key<?> o) {
+            return this.name.compareTo(o.name);
         }
-        if (this.unbreakable) {
-            builder.append("Unbreakable, ");
+
+        /**
+         * Checks whether or not the given value is considered to be unset.
+         *
+         * @param value the value to check
+         * @return whether or not the given value is considered to be unset
+         */
+        protected abstract boolean isSet(T value);
+
+        /**
+         * Pre-processes a value that is about to be set.
+         * <p>
+         * This allows a key to e.g. clamp a value to a specified range.
+         *
+         * @param value the value to process
+         * @return the processed value. If {@code null}, the key will be removed
+         */
+        protected T process(T value) {
+            return this.isSet(value) ? value : null;
         }
-        if (this.canDestroy != null && !this.canDestroy.isEmpty()) {
-            builder.append("CanDestroy=").append(this.canDestroy).append(", ");
+
+        /**
+         * Appends the given value as an entry to the given {@link StringBuilder}.
+         * <p>
+         * The value is guaranteed to be considered "set" as defined by {@link #isSet(Object)}.
+         *
+         * @param builder the {@link StringBuilder} to append to
+         * @param value   the value to append
+         */
+        protected void append(@NonNull StringBuilder builder, @NonNull T value) {
+            builder.append(this.name).append('=').append(value).append(',').append(' ');
         }
-        if (!Float.isNaN(this.customModelData)) {
-            builder.append("custom_model_data=").append(this.customModelData).append(", ");
+    }
+
+    /**
+     * A {@link Key} which stores an {@code int}. No values are considered unset.
+     *
+     * @author DaPorkchop_
+     */
+    public static final class AnyIntKey extends Key<Integer> {
+        public AnyIntKey(String name) {
+            super(name, 0);
         }
-        if (this.canPlaceOn != null && !this.canPlaceOn.isEmpty()) {
-            builder.append("CanPlaceOn=").append(this.canPlaceOn).append(", ");
+
+        public AnyIntKey(String name, Integer defaultValue) {
+            super(name, defaultValue);
         }
-        if (this.tileEntity != null) {
-            builder.append("TileEntity=").append(this.tileEntity).append(", ");
+
+        @Override
+        protected boolean isSet(Integer value) {
+            return value != null;
         }
-        if (this.blockState != null) {
-            builder.append("BlockState=").append(this.blockState).append(", ");
+
+        @Override
+        protected void append(@NonNull StringBuilder builder, @NonNull Integer value) {
+            builder.append(this.name).append('=').append(value.intValue()).append(',').append(' ');
         }
-        if (this.enchantments != null && !this.enchantments.isEmpty()) {
-            builder.append("Enchantments=").append(this.enchantments).append(", ");
+    }
+
+    /**
+     * A {@link Key} which stores a positive {@code int}. All non-positive values are considered unset and removed, defaulting to {@code 0}.
+     *
+     * @author DaPorkchop_
+     */
+    public static final class PositiveIntKey extends Key<Integer> {
+        public PositiveIntKey(String name) {
+            super(name, 0);
         }
-        if (this.storedEnchantments != null && !this.storedEnchantments.isEmpty()) {
-            builder.append("StoredEnchantments=").append(this.storedEnchantments).append(", ");
+
+        public PositiveIntKey(String name, Integer defaultValue) {
+            super(name, defaultValue);
         }
-        if (this.repairCost > 0) {
-            builder.append("RepairCost=").append(this.repairCost).append(", ");
+
+        @Override
+        protected boolean isSet(Integer value) {
+            return value != null && value > 0;
         }
-        if (this.potion != null) {
-            builder.append("DefaultEffect=").append(this.potion).append(", ");
+
+        @Override
+        protected void append(@NonNull StringBuilder builder, @NonNull Integer value) {
+            builder.append(this.name).append('=').append(value.intValue()).append(',').append(' ');
         }
-        if (this.customEffects != null && !this.customEffects.isEmpty()) {
-            builder.append("CustomEffects=").append(this.customEffects).append(", ");
+    }
+
+    /**
+     * A {@link Key} which stores a positive {@code int}. All negative values are considered unset and removed, defaulting to {@code 0}.
+     *
+     * @author DaPorkchop_
+     */
+    public static final class PositiveOrZeroIntKey extends Key<Integer> {
+        public PositiveOrZeroIntKey(String name) {
+            super(name, 0);
         }
-        if (this.customPotionColor != null) {
-            builder.append("CustomPotionColor=").append(PStrings.fastFormat("0x%06x", this.customPotionColor.getRGB() & 0xFFFFFF)).append(", ");
+
+        public PositiveOrZeroIntKey(String name, Integer defaultValue) {
+            super(name, defaultValue);
         }
-        if (this.chargedProjectiles != null && !this.chargedProjectiles.isEmpty()) {
-            builder.append("ChargedProjectiles=").append(this.chargedProjectiles).append(", ");
+
+        @Override
+        protected boolean isSet(Integer value) {
+            return value != null && value >= 0;
         }
-        if (this.charged) {
-            builder.append("Charged, ");
+
+        @Override
+        protected void append(@NonNull StringBuilder builder, @NonNull Integer value) {
+            builder.append(this.name).append('=').append(value.intValue()).append(',').append(' ');
         }
-        if (this.name != null) {
-            builder.append("Name=\"").append(this.name.toRawString()).append("\", ");
+    }
+
+    /**
+     * A {@link Key} which stores a {@code boolean}. Default values are considered unset and removed.
+     *
+     * @author DaPorkchop_
+     */
+    public static final class BooleanKey extends Key<Boolean> {
+        public BooleanKey(String name) {
+            super(name, Boolean.FALSE);
         }
-        if (this.lore != null && !this.lore.isEmpty()) {
-            builder.append("Lore=").append(this.lore.stream().map(TextComponent::toRawString).collect(Collectors.joining("\", \"", "[\"", "\"]"))).append(", ");
+
+        public BooleanKey(String name, Boolean defaultValue) {
+            super(name, defaultValue);
         }
-        if (this.armorColor != null) {
-            builder.append("ArmorColor=").append(PStrings.fastFormat("0x%06x", this.armorColor.getRGB() & 0xFFFFFF)).append(", ");
+
+        @Override
+        protected boolean isSet(Boolean value) {
+            return value != null && value != this.defaultValue;
         }
-        if (this.hideFlags != 0) {
-            builder.append("HideFlags=").append(Integer.toBinaryString(this.hideFlags)).append(", ");
+
+        @Override
+        protected void append(@NonNull StringBuilder builder, @NonNull Boolean value) {
+            builder.append(this.name).append('=').append(value.booleanValue()).append(',').append(' ');
         }
-        if (this.bookPages != null && !this.bookPages.isEmpty()) {
-            if (this.bookAuthor != null) {
-                builder.append("Author=\"").append(this.bookAuthor).append("\", ");
-            }
-            if (this.bookTitle != null) {
-                builder.append("Title=\"").append(this.bookTitle).append("\", ");
-            }
-            builder.append("BookGeneration=").append(this.bookGeneration).append(", ");
-            if (this.bookResolved) {
-                builder.append("Resolved, ");
-            }
-            builder.append("Pages=").append(this.bookPages.stream().map(TextComponent::toRawString).collect(Collectors.joining("\", \"", "[\"", "\"]"))).append(", ");
+    }
+
+    /**
+     * A {@link Key} which stores a {@link Collection}. All empty values are considered unset and removed.
+     *
+     * @author DaPorkchop_
+     */
+    public static final class CollectionKey<C extends Collection> extends Key<C> {
+        public CollectionKey(String name, C defaultValue) {
+            super(name, defaultValue);
         }
-        if (this.bookPagesEditable != null && !this.bookPagesEditable.isEmpty()) {
-            builder.append("EditablePages=").append(this.bookPagesEditable.stream().collect(Collectors.joining("\", \"", "[\"", "\"]"))).append(", ");
+
+        @Override
+        protected boolean isSet(C value) {
+            return value != null && !value.isEmpty();
         }
-        if (this.fireworkExplosion != null) {
-            builder.append("FireworkExplosion=").append(this.fireworkExplosion).append(", ");
+    }
+
+    /**
+     * A {@link Key} which stores an arbitrary {@link Object}. All {@code null} values are considered unset and removed.
+     *
+     * @author DaPorkchop_
+     */
+    public static final class ObjectKey<V> extends Key<V> {
+        public ObjectKey(String name) {
+            super(name, null);
         }
-        if (this.fireworkExplosions != null && !this.fireworkExplosions.isEmpty()) {
-            builder.append("FireworkExplosions=").append(this.fireworkExplosions).append(", ");
+
+        public ObjectKey(String name, V defaultValue) {
+            super(name, defaultValue);
         }
-        if (this.fireworkFlight >= 0) {
-            builder.append("FireworkFlight=").append(this.fireworkFlight).append(", ");
-        }
-        if (this.mapId >= 0) {
-            builder.append("Map #").append(this.mapId).append(", ");
-        }
-        if (this.mapDecorations != null && !this.mapDecorations.isEmpty()) {
-            builder.append("MapDecorations=").append(this.mapDecorations).append(", ");
-        }
-        if (this.stewEffects != null && !this.stewEffects.isEmpty()) {
-            builder.append("StewEffects=").append(this.stewEffects).append(", ");
+
+        @Override
+        protected boolean isSet(V value) {
+            return value != null;
         }
     }
 }

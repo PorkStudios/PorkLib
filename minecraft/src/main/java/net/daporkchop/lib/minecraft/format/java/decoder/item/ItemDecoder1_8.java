@@ -42,189 +42,98 @@ import net.daporkchop.lib.primitive.map.ObjIntMap;
 import net.daporkchop.lib.primitive.map.open.ObjIntOpenHashMap;
 
 import java.awt.Color;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
+
+import static net.daporkchop.lib.minecraft.item.ItemMeta.*;
 
 /**
  * @author DaPorkchop_
  */
 public class ItemDecoder1_8 implements JavaItemDecoder {
-    @Override
-    public ItemStack decode(@NonNull CompoundTag root, @NonNull JavaVersion version, @NonNull World world) {
-        CompoundTag tag = root.getCompound("tag", null);
-        ItemStack stack = new ItemStack(this.getId(root, tag), this.getCount(root, tag));
-        return stack.meta(this.getMeta(stack, root, tag, version, world));
-    }
+    protected final Map<String, ItemMetaDecoder> map = new HashMap<>();
 
-    protected Identifier getId(@NonNull CompoundTag root, CompoundTag tag) {
-        return Identifier.fromString(root.getString("id", "stone"));
-    }
+    public ItemDecoder1_8() {
+        this.map.put("Unbreakable", (meta, tag) -> meta.put(UNBREAKABLE, tag.getBoolean("Unbreakable")));
+        this.map.put("CustomModelData", (meta, tag) -> meta.put(CUSTOM_MODEL_DATA, tag.getInt("CustomModelData")));
 
-    protected int getCount(@NonNull CompoundTag root, CompoundTag tag) {
-        return root.getByte("Count", (byte) 1);
-    }
+        this.map.put("CanDestroy", (meta, tag) -> meta.put(CAN_DESTROY,
+                tag.getList("CanDestroy", StringTag.class).stream().map(StringTag::value).map(Identifier::fromString).collect(Collectors.toSet())));
+        this.map.put("CanPlaceOn", (meta, tag) -> meta.put(CAN_PLACE_ON,
+                tag.getList("CanPlaceOn", StringTag.class).stream().map(StringTag::value).map(Identifier::fromString).collect(Collectors.toSet())));
 
-    protected ItemMeta getMeta(@NonNull ItemStack stack, @NonNull CompoundTag root, CompoundTag tag, @NonNull JavaVersion version, @NonNull World world) {
-        if (this.hasMeta(root, tag)) {
-            ItemMeta meta = new ItemMeta();
-            if (tag != null) {
-                this.getGeneralMeta(stack, tag, meta, version, world);
-                this.getBlocksMeta(stack, tag, meta, version, world);
-                this.getEnchantmentsMeta(stack, tag, meta, version, world);
-                this.getPotionsMeta(stack, tag, meta, version, world);
-                this.getCrossbowMeta(stack, tag, meta, version, world);
-                this.getDisplayMeta(stack, tag, meta, version, world);
-                this.getBookMeta(stack, tag, meta, version, world);
-                this.getFireworkMeta(stack, tag, meta, version, world);
-                this.getMapMeta(stack, tag, meta, version, world);
-                this.getStewMeta(stack, tag, meta, version, world);
-            }
-            this.getOtherMeta(stack, root, meta, version, world);
-            return meta;
-        } else {
-            return null;
-        }
-    }
+        this.map.put("BlockEntityTag", (AdvancedItemMetaDecoder) (meta, tag, stack, version, world) -> meta.put(TILE_ENTITY,
+                world.parent().options().get(JavaSaveOptions.FIXERS).tileEntity().ceilingEntry(version).getValue()
+                        .decode(tag.getCompound("BlockEntityTag"), version, world)));
 
-    protected boolean hasMeta(@NonNull CompoundTag root, CompoundTag tag) {
-        return root.getShort("Damage", (short) 0) != 0 || (tag != null && tag.size() > 0);
-    }
-
-    protected void getOtherMeta(@NonNull ItemStack stack, @NonNull CompoundTag root, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull World world) {
-        int damage = root.getShort("Damage", (short) 0);
-
-        BlockRegistry blockRegistry = world.parent().blockRegistryFor(version);
-        if (blockRegistry.containsBlockId(stack.id())) {
-            meta.blockState(blockRegistry.getState(stack.id(), damage));
-        } else if (stack.id().toString() == "minecraft:potion") { //decode legacy potion damage
-            String potionId = LegacyPotionConversion.IDS[damage & 0x7F];
-            meta.potion(Identifier.fromString(potionId != null ? potionId : "minecraft:water"));
-            if ((damage & 0x4000) != 0) {
-                stack.id(Identifier.fromString("minecraft:splash_potion"));
-            }
-        } else if (stack.id().toString() == "minecraft:filled_map") { //decode legacy map id
-            meta.mapId(damage);
-        } else {
-            meta.damage(damage);
-        }
-    }
-
-    protected void getGeneralMeta(@NonNull ItemStack stack, @NonNull CompoundTag tag, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull World world) {
-        meta.unbreakable(tag.getBoolean("Unbreakable", false));
-
-        ListTag<StringTag> canDestroy = tag.getList("CanDestroy", StringTag.class, null);
-        if (canDestroy != null) {
-            meta.canDestroy(canDestroy.stream().map(StringTag::value).map(Identifier::fromString).collect(Collectors.toSet()));
-        }
-
-        meta.customModelData(tag.getFloat("CustomModelData", Float.NaN)); //this field is actually an int
-    }
-
-    protected void getBlocksMeta(@NonNull ItemStack stack, @NonNull CompoundTag tag, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull World world) {
-        ListTag<StringTag> canPlaceOn = tag.getList("CanPlaceOn", StringTag.class, null);
-        if (canPlaceOn != null) {
-            meta.canDestroy(canPlaceOn.stream().map(StringTag::value).map(Identifier::fromString).collect(Collectors.toSet()));
-        }
-
-        CompoundTag blockEntityTag = tag.getCompound("BlockEntityTag", null);
-        if (blockEntityTag != null) {
-            meta.tileEntity(world.parent().options().get(JavaSaveOptions.FIXERS)
-                    .tileEntity().ceilingEntry(version).getValue().decode(blockEntityTag, version, world));
-        }
-    }
-
-    protected void getEnchantmentsMeta(@NonNull ItemStack stack, @NonNull CompoundTag tag, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull World world) {
-        ListTag<CompoundTag> enchantments = tag.getList("ench", CompoundTag.class, null);
-        if (enchantments != null) {
+        this.map.put("ench", (AdvancedItemMetaDecoder) (meta, tag, stack, version, world) -> {
             ObjIntMap<Identifier> map = new ObjIntOpenHashMap<>();
             Registry enchantmentRegistry = world.parent().registriesFor(version).get(Identifier.fromString("minecraft:enchantment"));
-            enchantments.forEach(enchantment -> map.put(enchantmentRegistry.get(enchantment.getShort("id")), enchantment.getShort("lvl")));
-            meta.enchantments(map);
-        }
-
-        enchantments = tag.getList("StoredEnchantments", CompoundTag.class, null);
-        if (enchantments != null) {
+            tag.getList("ench", CompoundTag.class).forEach(enchantment -> map.put(enchantmentRegistry.get(enchantment.getShort("id")), enchantment.getShort("lvl")));
+            meta.put(ENCHANTMENTS, map);
+        });
+        this.map.put("StoredEnchantments", (AdvancedItemMetaDecoder) (meta, tag, stack, version, world) -> {
             ObjIntMap<Identifier> map = new ObjIntOpenHashMap<>();
             Registry enchantmentRegistry = world.parent().registriesFor(version).get(Identifier.fromString("minecraft:enchantment"));
-            enchantments.forEach(enchantment -> map.put(enchantmentRegistry.get(enchantment.getShort("id")), enchantment.getShort("lvl")));
-            meta.storedEnchantments(map);
-        }
+            tag.getList("StoredEnchantments", CompoundTag.class).forEach(enchantment -> map.put(enchantmentRegistry.get(enchantment.getShort("id")), enchantment.getShort("lvl")));
+            meta.put(STORED_ENCHANTMENTS, map);
+        });
+        this.map.put("RepairCost", (meta, tag) -> meta.put(REPAIR_COST, tag.getInt("RepairCost")));
 
-        meta.repairCost(tag.getInt("RepairCost", 0));
-    }
-
-    protected void getPotionsMeta(@NonNull ItemStack stack, @NonNull CompoundTag tag, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull World world) {
-        ListTag<CompoundTag> customPotionEffects = tag.getList("CustomPotionEffects", CompoundTag.class, null);
-        if (customPotionEffects != null) {
-            List<PotionEffect> list = new ArrayList<>(customPotionEffects.size());
+        this.map.put("CustomPotionEffects", (AdvancedItemMetaDecoder) (meta, tag, stack, version, world) -> {
             Registry potionEffectRegistry = world.parent().registriesFor(version).get(Identifier.fromString("minecraft:mob_effect"));
-            customPotionEffects.forEach(potionEffect -> list.add(new PotionEffect(potionEffectRegistry.get(potionEffect.getByte("Id")))
-                    .amplifier(potionEffect.getByte("Amplifier", (byte) 1))
-                    .duration(potionEffect.getInt("Duration", 1))
-                    .ambient(potionEffect.getBoolean("Ambient", false))
-                    .showParticles(potionEffect.getBoolean("ShowParticles", true))
-                    .showIcon(potionEffect.getBoolean("ShowIcon", true))));
-            meta.customEffects(list);
-        }
+            meta.put(POTION_CUSTOM_EFFECTS, tag.getList("CustomPotionEffects", CompoundTag.class).stream()
+                    .map(potionEffect -> new PotionEffect(potionEffectRegistry.get(potionEffect.getByte("Id")))
+                            .amplifier(potionEffect.getByte("Amplifier", (byte) 1))
+                            .duration(potionEffect.getInt("Duration", 1))
+                            .ambient(potionEffect.getBoolean("Ambient", false))
+                            .showParticles(potionEffect.getBoolean("ShowParticles", true))
+                            .showIcon(potionEffect.getBoolean("ShowIcon", true)))
+                    .collect(Collectors.toList()));
+        });
+        this.map.put("CustomPotionColor", (meta, tag) -> meta.put(POTION_CUSTOM_COLOR, new Color(tag.getInt("CustomPotionColor"))));
 
-        if (tag.contains("CustomPotionColor")) {
-            meta.customPotionColor(new Color(tag.getInt("CustomPotionColor")));
-        }
-    }
-
-    protected void getCrossbowMeta(@NonNull ItemStack stack, @NonNull CompoundTag tag, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull World world) {
-        //no-op
-    }
-
-    protected void getDisplayMeta(@NonNull ItemStack stack, @NonNull CompoundTag tag, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull World world) {
-        CompoundTag display = tag.getCompound("display", null);
-        if (display != null) {
+        this.map.put("display", (meta, tag) -> {
+            CompoundTag display = tag.getCompound("display");
             String name = display.getString("Name", null);
             if (name != null) {
-                meta.name(MCFormatParser.DEFAULT.parse(name));
+                meta.put(DISPLAY_NAME, MCFormatParser.DEFAULT.parse(name));
             }
 
             ListTag<StringTag> lore = display.getList("Lore", StringTag.class, null);
             if (lore != null) {
-                meta.lore(lore.stream().map(StringTag::value).map(MCFormatParser.DEFAULT::parse).collect(Collectors.toList()));
+                meta.put(DISPLAY_LORE, lore.stream().map(StringTag::value).map(MCFormatParser.DEFAULT::parse).collect(Collectors.toList()));
             }
 
             if (display.contains("color")) {
-                meta.armorColor(new Color(display.getInt("color")));
+                meta.put(DISPLAY_ARMOR_COLOR, new Color(display.getInt("color")));
             }
-        }
+        });
+        this.map.put("HideFlags", (meta, tag) -> meta.put(DISPLAY_HIDE_FLAGS, tag.getInt("HideFlags")));
 
-        meta.hideFlags(tag.getInt("HideFlags", 0));
-    }
-
-    protected void getBookMeta(@NonNull ItemStack stack, @NonNull CompoundTag tag, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull World world) {
-        meta.bookResolved(tag.getBoolean("resolved", false))
-                .bookGeneration(tag.getInt("generation", 0))
-                .bookAuthor(tag.getString("author", null))
-                .bookTitle(tag.getString("title", null));
-
-        ListTag<StringTag> pages = tag.getList("pages", StringTag.class, null);
-        if (pages != null) {
-            switch (stack.id().toString()) {
-                case "minecraft:written_book":
-                    meta.bookPages(pages.stream().map(StringTag::value).map(MCFormatParser.DEFAULT::parse).collect(Collectors.toList()));
-                    break;
-                case "minecraft:writable_book":
-                    meta.bookPagesEditable(pages.stream().map(StringTag::value).collect(Collectors.toList()));
-                    break;
+        this.map.put("resolved", (meta, tag) -> meta.put(BOOK_RESOLVED, tag.getBoolean("resolved")));
+        this.map.put("generation", (meta, tag) -> meta.put(BOOK_GENERATION, tag.getInt("generation")));
+        this.map.put("author", (meta, tag) -> meta.put(BOOK_AUTHOR, tag.getString("author")));
+        this.map.put("title", (meta, tag) -> meta.put(BOOK_TITLE, tag.getString("title")));
+        this.map.put("pages", (AdvancedItemMetaDecoder) (meta, tag, stack, version, world) -> {
+            if (stack.id().toString() == "minecraft:written_book") {
+                meta.put(BOOK_PAGES, tag.getList("pages", StringTag.class).stream().map(StringTag::value).map(MCFormatParser.DEFAULT::parse).collect(Collectors.toList()));
+            } else if (stack.id().toString() == "minecraft:writable_book") {
+                meta.put(BOOK_PAGES_EDITABLE, tag.getList("pages", StringTag.class).stream().map(StringTag::value).collect(Collectors.toList()));
             }
-        }
-    }
+        });
 
-    protected void getFireworkMeta(@NonNull ItemStack stack, @NonNull CompoundTag tag, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull World world) {
-        CompoundTag fireworks = tag.getCompound("Fireworks", null);
-        if (fireworks != null) {
-            meta.fireworkFlight(fireworks.getByte("Flight", (byte) 0));
+        this.map.put("Fireworks", (meta, tag) -> {
+            CompoundTag fireworks = tag.getCompound("Fireworks");
+
+            if (fireworks.contains("Flight")) {
+                meta.put(FIREWORK_FLIGHT, (int) fireworks.getByte("Flight"));
+            }
 
             ListTag<CompoundTag> explosions = fireworks.getList("Explosions", CompoundTag.class, null);
             if (explosions != null) {
-                meta.fireworkExplosions(explosions.stream()
+                meta.put(FIREWORK_EXPLOSIONS, explosions.stream()
                         .map(explosion -> {
                             FireworkExplosion e = new FireworkExplosion()
                                     .flicker(explosion.getBoolean("Flicker", false))
@@ -244,10 +153,9 @@ public class ItemDecoder1_8 implements JavaItemDecoder {
                         })
                         .collect(Collectors.toList()));
             }
-        }
-
-        CompoundTag explosion = tag.getCompound("Explosion", null);
-        if (explosion != null) {
+        });
+        this.map.put("Explosion", (meta, tag) -> {
+            CompoundTag explosion = tag.getCompound("Explosion");
             FireworkExplosion e = new FireworkExplosion()
                     .flicker(explosion.getBoolean("Flicker", false))
                     .trail(explosion.getBoolean("Trail", false))
@@ -262,25 +170,83 @@ public class ItemDecoder1_8 implements JavaItemDecoder {
             if (fadeColors != null) {
                 e.fadeColors(fadeColors.stream().mapToInt(IntTag::value).mapToObj(Color::new).collect(Collectors.toList()));
             }
-            meta.fireworkExplosion(e);
+            meta.put(FIREWORK_STAR_EXPLOSION, e);
+        });
+
+        this.map.put("Decorations", (meta, tag) -> meta.put(MAP_DECORATIONS, tag.getList("Decorations", CompoundTag.class).stream()
+                .map(decoration -> new MapDecoration(decoration.getString("id"))
+                        .type(decoration.getByte("type", (byte) 0))
+                        .x(decoration.getDouble("x", 0.0d))
+                        .z(decoration.getDouble("z", 0.0d))
+                        .rotation(decoration.getDouble("rot", 0.0d)))
+                .collect(Collectors.toList())));
+    }
+
+    @Override
+    public ItemStack decode(@NonNull CompoundTag root, @NonNull JavaVersion version, @NonNull World world) {
+        CompoundTag tag = root.getCompound("tag", null);
+        ItemStack stack = new ItemStack(Identifier.fromString(root.getString("id", "stone")), root.getByte("Count", (byte) 1));
+        ItemMeta meta = new ItemMeta();
+
+        this.initialDecode(stack, meta, root, tag, version, world);
+        this.mainDecode(stack, meta, root, tag, version, world);
+
+        if (!meta.isEmpty()) {
+            stack.meta(meta);
+        }
+        return stack;
+    }
+
+    protected void initialDecode(@NonNull ItemStack stack, @NonNull ItemMeta meta, @NonNull CompoundTag root, CompoundTag tag, @NonNull JavaVersion version, @NonNull World world) {
+        int damage = root.getShort("Damage", (short) 0);
+
+        BlockRegistry blockRegistry = world.parent().blockRegistryFor(version);
+        if (blockRegistry.containsBlockId(stack.id())) {
+            meta.put(BLOCK_STATE, blockRegistry.getState(stack.id(), damage));
+        } else if (stack.id().toString() == "minecraft:potion") { //decode legacy potion damage
+            String potionId = LegacyPotionConversion.IDS[damage & 0x7F];
+            meta.put(POTION, Identifier.fromString(potionId != null ? potionId : "minecraft:water"));
+            if ((damage & 0x4000) != 0) {
+                stack.id(Identifier.fromString("minecraft:splash_potion"));
+            }
+        } else if (stack.id().toString() == "minecraft:filled_map") { //decode legacy map id
+            meta.put(MAP_ID, damage);
+        } else {
+            meta.put(DAMAGE, damage);
         }
     }
 
-    protected void getMapMeta(@NonNull ItemStack stack, @NonNull CompoundTag tag, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull World world) {
-        ListTag<CompoundTag> decorations = tag.getList("Decorations", CompoundTag.class, null);
-        if (decorations != null) {
-            meta.mapDecorations(decorations.stream()
-                    .map(decoration -> new MapDecoration(decoration.getString("id"))
-                            .type(decoration.getByte("type", (byte) 0))
-                            .x(decoration.getDouble("x", 0.0d))
-                            .z(decoration.getDouble("z", 0.0d))
-                            .rotation(decoration.getDouble("rot", 0.0d)))
-                    .collect(Collectors.toList()));
+    protected void mainDecode(@NonNull ItemStack stack, @NonNull ItemMeta meta, @NonNull CompoundTag root, CompoundTag tag, @NonNull JavaVersion version, @NonNull World world) {
+        if (tag != null) {
+            tag.forEach((key, value) -> {
+                ItemMetaDecoder decoder = this.map.get(key);
+                if (decoder != null) {
+                    decoder.decode(meta, tag, stack, version, world);
+                } else {
+                    System.err.printf("No decoder for item NBT: \"%s\": %s\n", key, value);
+                }
+            });
         }
     }
 
-    protected void getStewMeta(@NonNull ItemStack stack, @NonNull CompoundTag tag, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull World world) {
-        //no-op
+    @FunctionalInterface
+    public interface ItemMetaDecoder {
+        default void decode(@NonNull ItemMeta meta, @NonNull CompoundTag tag, ItemStack stack, @NonNull JavaVersion version, @NonNull World world) {
+            this.decode(meta, tag);
+        }
+
+        void decode(@NonNull ItemMeta meta, @NonNull CompoundTag tag);
+    }
+
+    @FunctionalInterface
+    public interface AdvancedItemMetaDecoder extends ItemMetaDecoder {
+        @Override
+        void decode(@NonNull ItemMeta meta, @NonNull CompoundTag tag, ItemStack stack, @NonNull JavaVersion version, @NonNull World world);
+
+        @Override
+        default void decode(@NonNull ItemMeta meta, @NonNull CompoundTag tag) {
+            throw new UnsupportedOperationException();
+        }
     }
 
     protected static final class LegacyPotionConversion {

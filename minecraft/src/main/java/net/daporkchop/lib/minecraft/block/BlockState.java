@@ -51,7 +51,7 @@ public interface BlockState {
     boolean hasLegacyId();
 
     /**
-     * @return the block's legacy ID, or {@code -1} if the block does not have a legacy ID
+     * @return the block's legacy ID, or {@code -1} if the block does not have a legacy ID_CHEST
      * @see #hasLegacyId()
      */
     int legacyId();

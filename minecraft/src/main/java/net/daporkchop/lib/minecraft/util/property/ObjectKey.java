@@ -18,44 +18,24 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.tileentity;
-
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
-import lombok.ToString;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.logging.format.component.TextComponent;
-import net.daporkchop.lib.minecraft.item.inventory.DefaultInventory;
-import net.daporkchop.lib.minecraft.item.inventory.Inventory;
-import net.daporkchop.lib.minecraft.item.inventory.InventoryHolder;
-import net.daporkchop.lib.minecraft.text.format.ChatColor;
-import net.daporkchop.lib.minecraft.util.Identifier;
-import net.daporkchop.lib.minecraft.version.MinecraftVersion;
+package net.daporkchop.lib.minecraft.util.property;
 
 /**
+ * A {@link PropertyKey} which stores an arbitrary {@link Object}. All {@code null} values are considered unset and removed.
+ *
  * @author DaPorkchop_
  */
-@Getter
-@Setter
-@Accessors(fluent = true, chain = true)
-public class TileEntityChest extends BaseTileEntity implements InventoryHolder {
-    public static final Identifier ID = Identifier.fromString("minecraft:chest");
+public final class ObjectKey<V> extends PropertyKey<V> {
+    public ObjectKey(String name) {
+        super(name, null);
+    }
 
-    protected final Inventory inventory = new DefaultInventory(27);
-
-    protected TextComponent customName;
-
-    @Override
-    public Identifier id() {
-        return ID;
+    public ObjectKey(String name, V defaultValue) {
+        super(name, defaultValue);
     }
 
     @Override
-    protected void doToString(@NonNull StringBuilder builder) {
-        builder.append("Inventory=").append(this.inventory).append(", ");
-        if (this.customName != null)    {
-            builder.append("CustomName=").append(this.customName).append(", ");
-        }
+    public boolean isSet(V value) {
+        return value != null;
     }
 }

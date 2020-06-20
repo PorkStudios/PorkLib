@@ -43,11 +43,7 @@ import net.daporkchop.lib.minecraft.format.java.decoder.tile.JukeboxDecoder1_8;
 import net.daporkchop.lib.minecraft.format.java.decoder.tile.SignDecoder1_14;
 import net.daporkchop.lib.minecraft.format.java.decoder.tile.SignDecoder1_8;
 import net.daporkchop.lib.minecraft.format.java.decoder.tile.UnknownTileDecoder;
-import net.daporkchop.lib.minecraft.tileentity.TileEntityChest;
-import net.daporkchop.lib.minecraft.tileentity.TileEntityCommandBlock;
-import net.daporkchop.lib.minecraft.tileentity.TileEntityFurnace;
-import net.daporkchop.lib.minecraft.tileentity.TileEntityJukebox;
-import net.daporkchop.lib.minecraft.tileentity.TileEntitySign;
+import net.daporkchop.lib.minecraft.tileentity.TileEntity;
 import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 
@@ -116,11 +112,11 @@ public class JavaFixers {
                         .putAlias("Structure", Identifier.fromString("minecraft:structure_block"))
                         .putAlias("Trap", Identifier.fromString("minecraft:dispenser"))
                         //legacy tile entities
-                        .putDecoder(TileEntityChest.ID, new ChestDecoder1_8())
-                        .putDecoder(TileEntityCommandBlock.ID, new CommandBlockDecoder1_8())
-                        .putDecoder(TileEntityFurnace.ID, new FurnaceDecoder1_8())
-                        .putDecoder(TileEntityJukebox.ID, new JukeboxDecoder1_8())
-                        .putDecoder(TileEntitySign.ID, new SignDecoder1_8())
+                        .putDecoder(TileEntity.ID_CHEST, new ChestDecoder1_8())
+                        .putDecoder(TileEntity.ID_COMMAND_BLOCK, new CommandBlockDecoder1_8())
+                        .putDecoder(TileEntity.ID_FURNACE, new FurnaceDecoder1_8())
+                        .putDecoder(TileEntity.ID_JUKEBOX, new JukeboxDecoder1_8())
+                        .putDecoder(TileEntity.ID_SIGN, new SignDecoder1_8())
 
                         //
                         // 1.11+
@@ -132,7 +128,7 @@ public class JavaFixers {
                         // 1.14+
                         //
                         .begin(JavaVersion.latest())
-                        .putDecoder(TileEntitySign.ID, new SignDecoder1_14())
+                        .putDecoder(TileEntity.ID_SIGN, new SignDecoder1_14())
                         .build(),
                 new MapBuilder<>(new TreeMap<JavaVersion, JavaItemDecoder>())
                         .put(JavaVersion.pre15w32a(), new ItemDecoder1_8())

@@ -20,16 +20,57 @@
 
 package net.daporkchop.lib.minecraft.tileentity;
 
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.minecraft.util.Identifier;
+import net.daporkchop.lib.minecraft.util.property.PropertyKey;
+
+import java.util.IdentityHashMap;
+
+import static net.daporkchop.lib.common.util.PorkUtil.*;
 
 /**
- * Base implementation of {@link TileEntity}.
+ * Default implementation of {@link TileEntity}.
  *
  * @author DaPorkchop_
  */
-public abstract class BaseTileEntity implements TileEntity {
+@RequiredArgsConstructor
+@Accessors(fluent = true)
+public class DefaultTileEntity extends IdentityHashMap<PropertyKey<?>, Object> implements TileEntity {
+    @Getter
+    @NonNull
+    protected final Identifier id;
+
+    @Override
+    public boolean has(@NonNull PropertyKey<?> key) {
+        return super.containsKey(key);
+    }
+
+    @Override
+    public <T> T get(@NonNull PropertyKey<T> key) {
+        return uncheckedCast(super.getOrDefault(key, key.defaultValue()));
+    }
+
+    @Override
+    public TileEntity remove(@NonNull PropertyKey<?> key) {
+        super.remove(key);
+        return this;
+    }
+
+    @Override
+    public <T> TileEntity put(@NonNull PropertyKey<T> key, T value) {
+        if ((value = key.process(value)) != null) {
+            super.put(key, uncheckedCast(value));
+        } else {
+            super.remove(key);
+        }
+        return this;
+    }
+
     @Override
     public String toString() {
         try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get()) {
@@ -39,7 +80,15 @@ public abstract class BaseTileEntity implements TileEntity {
             builder.append(this.id());
             int idLength = builder.length();
 
-            this.doToString(builder.append('{'));
+            builder.append('{');
+            this.forEach((key, value) -> {
+                if (key.isSet(uncheckedCast(value))) {
+                    key.append(builder, uncheckedCast(value));
+                }
+            });
+            if (builder.length() > 2) {
+                builder.setLength(builder.length() - 2);
+            }
             if (builder.length() == idLength + 1) {
                 builder.setLength(idLength);
             } else {
@@ -49,6 +98,4 @@ public abstract class BaseTileEntity implements TileEntity {
             return builder.toString();
         }
     }
-
-    protected abstract void doToString(@NonNull StringBuilder builder);
 }

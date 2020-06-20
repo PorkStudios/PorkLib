@@ -18,33 +18,31 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.tileentity;
+package net.daporkchop.lib.minecraft.util.property;
 
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
-import lombok.ToString;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.minecraft.util.Identifier;
-import net.daporkchop.lib.minecraft.version.MinecraftVersion;
-import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
- * Representation of a tile entity whose content is unknown. It is simply stored as an unprocessed NBT tag in memory.
+ * A {@link PropertyKey} which stores a positive {@code int}. All non-positive values are considered unset and removed, defaulting to {@code 0}.
  *
  * @author DaPorkchop_
  */
-@Setter
-@Getter
-@Accessors(fluent = true, chain = true)
-public class UnknownTileEntity extends BaseTileEntity {
-    @NonNull
-    protected Identifier id;
-    @NonNull
-    protected CompoundTag nbt;
+public final class PositiveIntKey extends PropertyKey<Integer> {
+    public PositiveIntKey(String name) {
+        super(name, 0);
+    }
+
+    public PositiveIntKey(String name, Integer defaultValue) {
+        super(name, defaultValue);
+    }
 
     @Override
-    protected void doToString(@NonNull StringBuilder builder) {
-        builder.append(this.nbt);
+    public boolean isSet(Integer value) {
+        return value != null && value > 0;
+    }
+
+    @Override
+    public void append(@NonNull StringBuilder builder, @NonNull Integer value) {
+        builder.append(this.name).append('=').append(value.intValue()).append(',').append(' ');
     }
 }

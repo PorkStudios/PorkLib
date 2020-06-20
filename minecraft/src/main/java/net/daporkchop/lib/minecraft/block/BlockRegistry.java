@@ -121,12 +121,12 @@ public interface BlockRegistry {
     boolean containsState(int runtimeId);
 
     /**
-     * Checks if the given block ID is registered and has an associated legacy ID.
+     * Checks if the given block ID is registered and has an associated legacy ID_CHEST.
      * <p>
-     * As some blocks do not have a legacy ID, this will not always return {@code true}, even if the block ID is valid.
+     * As some blocks do not have a legacy ID, this will not always return {@code true}, even if the block ID_CHEST is valid.
      *
      * @param blockId the block ID of the block
-     * @return whether or not the given block ID is registered and has an associated legacy ID
+     * @return whether or not the given block ID is registered and has an associated legacy ID_CHEST
      */
     boolean hasLegacyId(@NonNull Identifier blockId);
 
@@ -221,7 +221,7 @@ public interface BlockRegistry {
     /**
      * Performs the given action on each block in this registry.
      * <p>
-     * The second parameter is the block's legacy ID. If the block does not have a legacy ID, it will always be {@code -1}.
+     * The second parameter is the block's legacy ID. If the block does not have a legacy ID_CHEST, it will always be {@code -1}.
      *
      * @param action the action to perform
      */

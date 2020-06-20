@@ -18,35 +18,31 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.tileentity;
+package net.daporkchop.lib.minecraft.util.property;
 
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.minecraft.item.ItemStack;
-import net.daporkchop.lib.minecraft.util.Identifier;
 
 /**
+ * A {@link PropertyKey} which stores a positive {@code int}. All negative values are considered unset and removed, defaulting to {@code 0}.
+ *
  * @author DaPorkchop_
  */
-@Setter
-@Getter
-@Accessors(fluent = true, chain = true)
-public class TileEntityJukebox extends BaseTileEntity {
-    public static final Identifier ID = Identifier.fromString("minecraft:jukebox");
+public final class PositiveOrZeroIntKey extends PropertyKey<Integer> {
+    public PositiveOrZeroIntKey(String name) {
+        super(name, 0);
+    }
 
-    protected ItemStack record;
-
-    @Override
-    public Identifier id() {
-        return ID;
+    public PositiveOrZeroIntKey(String name, Integer defaultValue) {
+        super(name, defaultValue);
     }
 
     @Override
-    protected void doToString(@NonNull StringBuilder builder) {
-        if (this.record != null) {
-            builder.append("Record=").append(this.record).append(", ");
-        }
+    public boolean isSet(Integer value) {
+        return value != null && value >= 0;
+    }
+
+    @Override
+    public void append(@NonNull StringBuilder builder, @NonNull Integer value) {
+        builder.append(this.name).append('=').append(value.intValue()).append(',').append(' ');
     }
 }

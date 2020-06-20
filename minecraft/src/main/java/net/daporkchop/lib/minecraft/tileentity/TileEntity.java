@@ -20,19 +20,76 @@
 
 package net.daporkchop.lib.minecraft.tileentity;
 
-import net.daporkchop.lib.common.misc.Versioned;
-import net.daporkchop.lib.math.access.IntHolderXYZ;
+import lombok.NonNull;
+import net.daporkchop.lib.logging.format.component.TextComponent;
+import net.daporkchop.lib.minecraft.item.ItemMeta;
+import net.daporkchop.lib.minecraft.item.inventory.Inventory;
 import net.daporkchop.lib.minecraft.util.Identifier;
-import net.daporkchop.lib.minecraft.version.MinecraftVersion;
+import net.daporkchop.lib.minecraft.util.property.ObjectKey;
+import net.daporkchop.lib.minecraft.util.property.Properties;
+import net.daporkchop.lib.minecraft.util.property.PropertyKey;
+import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
  * Base representation of a tile entity.
  *
  * @author DaPorkchop_
  */
-public interface TileEntity {
+public interface TileEntity extends Properties<TileEntity> {
+    Identifier ID_CHEST = Identifier.fromString("minecraft:chest");
+    Identifier ID_COMMAND_BLOCK = Identifier.fromString("minecraft:command_block");
+    Identifier ID_FURNACE = Identifier.fromString("minecraft:furnace");
+    Identifier ID_JUKEBOX = Identifier.fromString("minecraft:jukebox");
+    Identifier ID_SIGN = Identifier.fromString("minecraft:sign");
+
+    /**
+     * Any additional NBT tags attached to a tile entity that are not known by this library.
+     */
+    PropertyKey<CompoundTag> UNKNOWN_NBT = new ObjectKey<>("nbt_unknown");
+
+    //general
+
+    /**
+     * The custom name of the tile entity.
+     */
+    PropertyKey<TextComponent> CUSTOM_NAME = new ObjectKey<>("custom_name");
+
+    /**
+     * The inventory stored by the tile entity.
+     */
+    PropertyKey<Inventory> INVENTORY = new ObjectKey<>("inventory");
+
+    /**
+     * Prevents the container from being opened unless the opener is holding an item whose name matches this string.
+     *
+     * Empty or {@code null} values will be treated as unset.
+     */
+    PropertyKey<String> LOCK = new PropertyKey<String>("lock", null) {
+        @Override
+        public boolean isSet(String value) {
+            return value != null && !value.isEmpty();
+        }
+    };
+
+    //actual methods
+
     /**
      * @return this entity's ID (e.g. {@code "minecraft:ender_chest"})
      */
     Identifier id();
+
+    @Override
+    boolean isEmpty();
+
+    @Override
+    boolean has(@NonNull PropertyKey<?> key);
+
+    @Override
+    <T> T get(@NonNull PropertyKey<T> key);
+
+    @Override
+    TileEntity remove(@NonNull PropertyKey<?> key);
+
+    @Override
+    <T> TileEntity put(@NonNull PropertyKey<T> key, T value);
 }

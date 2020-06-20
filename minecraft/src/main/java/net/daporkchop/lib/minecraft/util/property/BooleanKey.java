@@ -18,45 +18,31 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.tileentity;
+package net.daporkchop.lib.minecraft.util.property;
 
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.logging.format.component.TextComponent;
-import net.daporkchop.lib.minecraft.item.inventory.DefaultInventory;
-import net.daporkchop.lib.minecraft.item.inventory.Inventory;
-import net.daporkchop.lib.minecraft.item.inventory.InventoryHolder;
-import net.daporkchop.lib.minecraft.util.Identifier;
 
 /**
+ * A {@link PropertyKey} which stores a {@code boolean}. Default values are considered unset and removed.
+ *
  * @author DaPorkchop_
  */
-@Getter
-@Setter
-@Accessors(fluent = true, chain = true)
-public class TileEntityFurnace extends BaseTileEntity implements InventoryHolder {
-    public static final Identifier ID = Identifier.fromString("minecraft:furnace");
+public final class BooleanKey extends PropertyKey<Boolean> {
+    public BooleanKey(String name) {
+        super(name, Boolean.FALSE);
+    }
 
-    protected final Inventory inventory = new DefaultInventory(3);
-
-    protected int burnTime;
-    protected int cookTime;
-    protected int cookTimeTotal;
-
-    protected TextComponent customName;
-
-    @Override
-    public Identifier id() {
-        return ID;
+    public BooleanKey(String name, Boolean defaultValue) {
+        super(name, defaultValue);
     }
 
     @Override
-    protected void doToString(@NonNull StringBuilder builder) {
-        builder.append("Inventory=").append(this.inventory).append(", ");
-        if (this.customName != null)    {
-            builder.append("CustomName=").append(this.customName).append(", ");
-        }
+    public boolean isSet(Boolean value) {
+        return value != null && value != this.defaultValue;
+    }
+
+    @Override
+    public void append(@NonNull StringBuilder builder, @NonNull Boolean value) {
+        builder.append(this.name).append('=').append(value.booleanValue()).append(',').append(' ');
     }
 }

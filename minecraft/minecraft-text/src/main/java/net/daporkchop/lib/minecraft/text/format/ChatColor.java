@@ -112,6 +112,10 @@ public enum ChatColor implements FormattingCode {
         return closest;
     }
 
+    public static ChatColor fromIndex(int index)    {
+        return VALUES[index];
+    }
+
     /**
      * The in-game color of this formatting code, as an AWT {@link Color}.
      * <p>

@@ -23,3 +23,8 @@ The chunk section contains at least the following:
 - Chest with Map #0, Map #0 + decoration named "a" of type 3 at (16,16) rotated by 90°, Map #1
 - Chest with Firework Star, Firework Star with any explosion, Firework Rocket, Firework Rocket with at least 2 different explosions
 - Chest with Creeper Skull, Player Skull (default), Player Skull (Notch)
+- Banner with Pepsi logo
+- Beacon with Speed
+- Brewing Stand with fuel and all potion slots filled
+
+- Barrel with Dirt

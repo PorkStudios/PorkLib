@@ -21,71 +21,47 @@
 package net.daporkchop.lib.minecraft.format.java.decoder.item;
 
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.format.java.JavaSaveOptions;
 import net.daporkchop.lib.minecraft.item.ItemMeta;
 import net.daporkchop.lib.minecraft.item.ItemStack;
 import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
-import net.daporkchop.lib.nbt.tag.ListTag;
-import net.daporkchop.lib.nbt.tag.StringTag;
 import net.daporkchop.lib.primitive.map.ObjIntMap;
 import net.daporkchop.lib.primitive.map.open.ObjIntOpenHashMap;
 
-import java.util.stream.Collectors;
+import static net.daporkchop.lib.minecraft.item.ItemMeta.*;
 
 /**
  * @author DaPorkchop_
  */
 public class ItemDecoder1_13 extends ItemDecoder1_9 {
-    /*@Override
-    protected boolean hasMeta(@NonNull CompoundTag root, CompoundTag tag) {
-        return tag != null && tag.size() > 0;
+    public ItemDecoder1_13() {
+        this(new ItemDecoder1_9());
     }
 
-    @Override
-    protected void getOtherMeta(@NonNull ItemStack stack, @NonNull CompoundTag root, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull World world) {
-        //no-op
-    }
+    public ItemDecoder1_13(@NonNull ItemDecoder1_9 parent) {
+        super(parent);
 
-    @Override
-    protected void getGeneralMeta(@NonNull ItemStack stack, @NonNull CompoundTag tag, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull World world) {
-        meta.damage(tag.getInt("Damage", 0));
-
-        super.getGeneralMeta(stack, tag, meta, version, world);
-    }
-
-    @Override
-    protected void getBlocksMeta(@NonNull ItemStack stack, @NonNull CompoundTag tag, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull World world) {
-        ListTag<StringTag> canPlaceOn = tag.getList("CanPlaceOn", StringTag.class, null);
-        if (canPlaceOn != null) {
-            meta.canDestroy(canPlaceOn.stream().map(StringTag::value).map(Identifier::fromString).collect(Collectors.toSet()));
-        }
-
-        CompoundTag blockEntityTag = tag.getCompound("BlockEntityTag", null);
-        if (blockEntityTag != null) {
-            meta.tileEntity(world.parent().options().get(JavaSaveOptions.FIXERS)
-                    .tileEntity().ceilingEntry(version).getValue().decode(blockEntityTag, version, world));
-        }
-    }
-
-    @Override
-    protected void getEnchantmentsMeta(@NonNull ItemStack stack, @NonNull CompoundTag tag, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull World world) {
-        ListTag<CompoundTag> enchantments = tag.getList("Enchantments", CompoundTag.class, null);
-        if (enchantments != null) {
+        this.map.remove("ench"); //1.13 uses a different format for enchantments
+        this.map.put("Enchantments", (meta, tag) -> {
             ObjIntMap<Identifier> map = new ObjIntOpenHashMap<>();
-            enchantments.forEach(enchantment -> map.put(Identifier.fromString(enchantment.getString("id")), enchantment.getInt("lvl")));
-            meta.enchantments(map);
-        }
-
-        enchantments = tag.getList("StoredEnchantments", CompoundTag.class, null);
-        if (enchantments != null) {
+            tag.getList("Enchantments", CompoundTag.class)
+                    .forEach(enchantment -> map.put(Identifier.fromString(enchantment.getString("id")), enchantment.getInt("lvl")));
+            meta.put(ENCHANTMENTS, map);
+        });
+        this.map.put("StoredEnchantments", (meta, tag) -> {
             ObjIntMap<Identifier> map = new ObjIntOpenHashMap<>();
-            enchantments.forEach(enchantment -> map.put(Identifier.fromString(enchantment.getString("id")), enchantment.getInt("lvl")));
-            meta.storedEnchantments(map);
-        }
+            tag.getList("StoredEnchantments", CompoundTag.class)
+                    .forEach(enchantment -> map.put(Identifier.fromString(enchantment.getString("id")), enchantment.getInt("lvl")));
+            meta.put(ENCHANTMENTS, map);
+        });
+    }
 
-        meta.repairCost(tag.getInt("RepairCost", 0));
-    }*/
+    @Override
+    protected void initialDecode(@NonNull ItemStack stack, @NonNull Cache cache, @NonNull CompoundTag root, CompoundTag tag, @NonNull JavaVersion version, @NonNull World world) {
+        if (tag != null) {
+            cache.meta.put(ItemMeta.DAMAGE, tag.getInt("Damage", 0));
+        }
+    }
 }

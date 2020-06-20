@@ -33,6 +33,7 @@ import net.daporkchop.lib.logging.format.component.TextComponent;
 import net.daporkchop.lib.minecraft.block.BlockState;
 import net.daporkchop.lib.minecraft.tileentity.TileEntity;
 import net.daporkchop.lib.minecraft.util.Identifier;
+import net.daporkchop.lib.nbt.tag.CompoundTag;
 import net.daporkchop.lib.primitive.map.IntIntMap;
 import net.daporkchop.lib.primitive.map.ObjIntMap;
 
@@ -70,6 +71,11 @@ public final class ItemMeta implements Cloneable<ItemMeta> {
         checkState(KEY_LOOKUP.putIfAbsent(name, key) == null, "duplicate key name: %s", name);
         return key;
     }
+
+    /**
+     * Any additional NBT tags attached to an item that are not known by this library.
+     */
+    public static final Key<CompoundTag> UNKNOWN_NBT = key(new ObjectKey<>("nbt_unknown"));
 
     // general
 
@@ -335,8 +341,21 @@ public final class ItemMeta implements Cloneable<ItemMeta> {
         return this.map.isEmpty();
     }
 
-    public <T> ItemMeta put(@NonNull Key<T> key, T value)   {
-        if ((value = key.process(value)) != null)   {
+    public boolean has(@NonNull Key<?> key) {
+        return this.map.containsKey(key);
+    }
+
+    public <T> T get(@NonNull Key<T> key) {
+        return uncheckedCast(this.map.getOrDefault(key, uncheckedCast(key.defaultValue())));
+    }
+
+    public ItemMeta remove(@NonNull Key<?> key) {
+        this.map.remove(key);
+        return this;
+    }
+
+    public <T> ItemMeta put(@NonNull Key<T> key, T value) {
+        if ((value = key.process(value)) != null) {
             this.map.put(key, uncheckedCast(value));
         } else {
             this.map.remove(key);

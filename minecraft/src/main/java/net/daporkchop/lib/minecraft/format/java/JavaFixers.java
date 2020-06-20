@@ -31,17 +31,20 @@ import net.daporkchop.lib.minecraft.format.java.decoder.JavaItemDecoder;
 import net.daporkchop.lib.minecraft.format.java.decoder.JavaSectionDecoder;
 import net.daporkchop.lib.minecraft.format.java.decoder.JavaTileEntityDecoder;
 import net.daporkchop.lib.minecraft.format.java.decoder.item.ItemDecoder1_13;
+import net.daporkchop.lib.minecraft.format.java.decoder.item.ItemDecoder1_14;
 import net.daporkchop.lib.minecraft.format.java.decoder.item.ItemDecoder1_8;
 import net.daporkchop.lib.minecraft.format.java.decoder.item.ItemDecoder1_9;
 import net.daporkchop.lib.minecraft.format.java.decoder.section.FlattenedSectionDecoder;
 import net.daporkchop.lib.minecraft.format.java.decoder.section.LegacySectionDecoder;
 import net.daporkchop.lib.minecraft.format.java.decoder.tile.ChestDecoder1_8;
+import net.daporkchop.lib.minecraft.format.java.decoder.tile.CommandBlockDecoder1_8;
 import net.daporkchop.lib.minecraft.format.java.decoder.tile.FurnaceDecoder1_8;
 import net.daporkchop.lib.minecraft.format.java.decoder.tile.JukeboxDecoder1_8;
-import net.daporkchop.lib.minecraft.format.java.decoder.tile.SignDecoder1_8;
 import net.daporkchop.lib.minecraft.format.java.decoder.tile.SignDecoder1_14;
+import net.daporkchop.lib.minecraft.format.java.decoder.tile.SignDecoder1_8;
 import net.daporkchop.lib.minecraft.format.java.decoder.tile.UnknownTileDecoder;
 import net.daporkchop.lib.minecraft.tileentity.TileEntityChest;
+import net.daporkchop.lib.minecraft.tileentity.TileEntityCommandBlock;
 import net.daporkchop.lib.minecraft.tileentity.TileEntityFurnace;
 import net.daporkchop.lib.minecraft.tileentity.TileEntityJukebox;
 import net.daporkchop.lib.minecraft.tileentity.TileEntitySign;
@@ -114,6 +117,7 @@ public class JavaFixers {
                         .putAlias("Trap", Identifier.fromString("minecraft:dispenser"))
                         //legacy tile entities
                         .putDecoder(TileEntityChest.ID, new ChestDecoder1_8())
+                        .putDecoder(TileEntityCommandBlock.ID, new CommandBlockDecoder1_8())
                         .putDecoder(TileEntityFurnace.ID, new FurnaceDecoder1_8())
                         .putDecoder(TileEntityJukebox.ID, new JukeboxDecoder1_8())
                         .putDecoder(TileEntitySign.ID, new SignDecoder1_8())
@@ -133,7 +137,8 @@ public class JavaFixers {
                 new MapBuilder<>(new TreeMap<JavaVersion, JavaItemDecoder>())
                         .put(JavaVersion.pre15w32a(), new ItemDecoder1_8())
                         .put(JavaVersion.fromName("1.12.2"), new ItemDecoder1_9())
-                        .put(JavaVersion.latest(), new ItemDecoder1_13())
+                        .put(JavaVersion.fromName("1.14.4"), new ItemDecoder1_13())
+                        .put(JavaVersion.latest(), new ItemDecoder1_14())
                         .build());
     }
 

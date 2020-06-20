@@ -21,52 +21,39 @@
 package net.daporkchop.lib.minecraft.format.java.decoder.item;
 
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.format.java.JavaSaveOptions;
-import net.daporkchop.lib.minecraft.item.ItemMeta;
-import net.daporkchop.lib.minecraft.item.ItemStack;
-import net.daporkchop.lib.minecraft.util.Identifier;
-import net.daporkchop.lib.minecraft.version.java.JavaVersion;
-import net.daporkchop.lib.minecraft.world.World;
+import net.daporkchop.lib.minecraft.block.BlockState;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
-import net.daporkchop.lib.nbt.tag.ListTag;
 import net.daporkchop.lib.nbt.tag.StringTag;
-import net.daporkchop.lib.primitive.map.ObjIntMap;
-import net.daporkchop.lib.primitive.map.open.ObjIntOpenHashMap;
+import net.daporkchop.lib.nbt.tag.Tag;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+
+import static net.daporkchop.lib.minecraft.item.ItemMeta.*;
 
 /**
  * @author DaPorkchop_
  */
 public class ItemDecoder1_14 extends ItemDecoder1_13 {
-    /*@Override
-    protected void getBlocksMeta(@NonNull ItemStack stack, @NonNull CompoundTag tag, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull World world) {
-        ListTag<StringTag> canPlaceOn = tag.getList("CanPlaceOn", StringTag.class, null);
-        if (canPlaceOn != null) {
-            meta.canDestroy(canPlaceOn.stream().map(StringTag::value).map(Identifier::fromString).collect(Collectors.toSet()));
-        }
-
-        CompoundTag blockEntityTag = tag.getCompound("BlockEntityTag", null);
-        if (blockEntityTag != null) {
-            meta.tileEntity(world.parent().options().get(JavaSaveOptions.FIXERS)
-                    .tileEntity().ceilingEntry(version).getValue().decode(blockEntityTag, version, world));
-        }
-
-        CompoundTag blockStateTag = tag.getCompound("BlockStateTag", null);
-        if (blockEntityTag != null) {
-            //TODO
-        }
+    public ItemDecoder1_14() {
+        this(new ItemDecoder1_13());
     }
 
-    @Override
-    protected void getCrossbowMeta(@NonNull ItemStack stack, @NonNull CompoundTag tag, @NonNull ItemMeta meta, @NonNull JavaVersion version, @NonNull World world) {
-        ListTag<CompoundTag> chargedProjectiles = tag.getList("ChargedProjectiles", CompoundTag.class, null);
-        if (chargedProjectiles != null) {
-            meta.chargedProjectiles(chargedProjectiles.stream().map(projectile -> this.decode(projectile, version, world)).collect(Collectors.toList()));
-        }
+    public ItemDecoder1_14(@NonNull ItemDecoder1_13 parent) {
+        super(parent);
 
-        meta.charged(tag.getBoolean("Charged", false));
-    }*/
+        this.map.put("BlockStateTag", (AdvancedItemMetaDecoder) (meta, tag, stack, version, world) -> {
+            BlockState state = world.parent().blockRegistryFor(version).getDefaultState(stack.id());
+            for (Map.Entry<String, Tag> entry : tag.getCompound("BlockStateTag")) {
+                state = state.withProperty(entry.getKey(), ((StringTag) entry.getValue()).value());
+            }
+            meta.put(BLOCK_STATE, state);
+        });
+
+        this.map.put("ChargedProjectiles", (AdvancedItemMetaDecoder) (meta, tag, stack, version, world) -> meta.put(
+                CROSSBOW_CHARGED_PROJECTILES,
+                tag.getList("ChargedProjectiles", CompoundTag.class).stream()
+                        .map(projectile -> this.decode(projectile, version, world)).collect(Collectors.toList())));
+        this.map.put("Charged", (meta, tag) -> meta.put(CROSSBOW_CHARGED, tag.getBoolean("Charged")));
+    }
 }

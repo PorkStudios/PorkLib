@@ -9,15 +9,17 @@ The chunk section contains at least the following:
 
 1.8+:
 - Active Furnace with items in all three slots
+- Jukebox playing "cat"
 - Sign with at least 1 non-empty line and at least 1 empty line
+- Chest with Dirt, Apple, Andesite
 - Chest with unbreakable Wooden Axe
-- Chest with Chest+NBT with Written Book (at least 2 pages) and Book and Quill (identical contents)
+- Chest with Chest+NBT with Written Book (at least 2 pages), Book and Quill (same contents as Written Book)
 - Chest with named+enchanted Diamond Sword
 - Chest with Sign+NBT with at least 1 non-empty line and at least 1 empty line
-- Chest with Andesite
-- Chest with Enchanted Book
-- Chest with Potion of Strength
+- Chest with Enchanted Book (Looting III)
+- Chest with Water Bottle, Potion of Strength, Potion of Strength (1 minute) and infinite Regeneration II (single item) (custom color if possible)
 - Chest with named Dirt with at least 2 lines of lore
 - Chest with Leather Tunic dyed with color 16711680 (0xFF0000)
-- Chest with decoration named "a" of type 3 at (16,16) rotated by 90°
-- Jukebox playing "cat"
+- Chest with Map #0, Map #0 + decoration named "a" of type 3 at (16,16) rotated by 90°, Map #1
+- Chest with Firework Star, Firework Star with any explosion, Firework Rocket, Firework Rocket with at least 2 different explosions
+- Chest with Creeper Skull, Player Skull (default), Player Skull (Notch)

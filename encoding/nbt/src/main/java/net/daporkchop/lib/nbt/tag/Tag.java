@@ -23,6 +23,7 @@ package net.daporkchop.lib.nbt.tag;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.common.misc.Cloneable;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
 import net.daporkchop.lib.common.misc.string.PStrings;
 import net.daporkchop.lib.common.pool.handle.Handle;
@@ -45,7 +46,7 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
  *
  * @author DaPorkchop_
  */
-public abstract class Tag<T extends Tag<T>> implements Releasable, Cloneable {
+public abstract class Tag<T extends Tag<T>> implements Releasable, Cloneable<T> {
     public static final Map<Class<? extends Tag>, Integer> CLASS_TO_ID;
 
     public static final int TAG_END = 0;

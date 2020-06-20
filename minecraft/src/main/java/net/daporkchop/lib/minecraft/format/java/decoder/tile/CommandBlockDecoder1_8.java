@@ -18,39 +18,41 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.java.decoder.item;
+package net.daporkchop.lib.minecraft.format.java.decoder.tile;
 
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.block.BlockRegistry;
-import net.daporkchop.lib.minecraft.item.ItemMeta;
-import net.daporkchop.lib.minecraft.item.ItemStack;
+import net.daporkchop.lib.minecraft.format.java.JavaSaveOptions;
+import net.daporkchop.lib.minecraft.format.java.decoder.JavaTileEntityDecoder;
+import net.daporkchop.lib.minecraft.text.parser.MCFormatParser;
+import net.daporkchop.lib.minecraft.tileentity.TileEntity;
+import net.daporkchop.lib.minecraft.tileentity.TileEntityChest;
+import net.daporkchop.lib.minecraft.tileentity.TileEntityCommandBlock;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
-import static net.daporkchop.lib.minecraft.item.ItemMeta.*;
-
 /**
  * @author DaPorkchop_
  */
-public class ItemDecoder1_9 extends ItemDecoder1_8 {
-    public ItemDecoder1_9() {
-        this(new ItemDecoder1_8());
-    }
-
-    public ItemDecoder1_9(@NonNull ItemDecoder1_8 parent) {
-        super(parent);
-    }
-
+public class CommandBlockDecoder1_8 implements JavaTileEntityDecoder {
     @Override
-    protected void initialDecode(@NonNull ItemStack stack, @NonNull Cache cache, @NonNull CompoundTag root, CompoundTag tag, @NonNull JavaVersion version, @NonNull World world) {
-        int damage = root.getShort("Damage", (short) 0);
+    public TileEntity decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull World world) {
+        TileEntityCommandBlock commandBlock = new TileEntityCommandBlock();
 
-        BlockRegistry blockRegistry = world.parent().blockRegistryFor(version);
-        if (blockRegistry.containsBlockId(stack.id())) {
-            cache.meta.put(BLOCK_STATE, blockRegistry.getState(stack.id(), damage));
-        } else {
-            cache.meta.put(DAMAGE, damage);
+        String customName = tag.getString("CustomName", null);
+        if (customName != null) {
+            commandBlock.customName(MCFormatParser.DEFAULT.parse(customName));
         }
+
+        commandBlock.command(tag.getString("Command", null))
+                .successCount(tag.getInt("SuccessCount", 0))
+                .trackOutput(tag.getBoolean("TrackOutput", true));
+
+        String lastOutput;
+        if (commandBlock.trackOutput() && (lastOutput = tag.getString("LastOutput", null)) != null) {
+            commandBlock.lastOutput(MCFormatParser.DEFAULT.parse(lastOutput));
+        }
+
+        return commandBlock;
     }
 }

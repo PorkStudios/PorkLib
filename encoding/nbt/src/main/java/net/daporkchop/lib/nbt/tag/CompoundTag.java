@@ -103,6 +103,10 @@ public final class CompoundTag extends Tag<CompoundTag> implements Iterable<Map.
         return this.map.size();
     }
 
+    public boolean isEmpty()    {
+        return this.map.isEmpty();
+    }
+
     @Override
     public Iterator<Map.Entry<String, Tag>> iterator() {
         return this.map.entrySet().iterator();

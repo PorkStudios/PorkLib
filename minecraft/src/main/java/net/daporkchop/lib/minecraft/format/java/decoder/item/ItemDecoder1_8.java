@@ -35,13 +35,18 @@ import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
+import net.daporkchop.lib.nbt.tag.IntArrayTag;
 import net.daporkchop.lib.nbt.tag.IntTag;
 import net.daporkchop.lib.nbt.tag.ListTag;
 import net.daporkchop.lib.nbt.tag.StringTag;
+import net.daporkchop.lib.nbt.tag.Tag;
 import net.daporkchop.lib.primitive.map.ObjIntMap;
 import net.daporkchop.lib.primitive.map.open.ObjIntOpenHashMap;
 
 import java.awt.Color;
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -53,6 +58,7 @@ import static net.daporkchop.lib.minecraft.item.ItemMeta.*;
  */
 public class ItemDecoder1_8 implements JavaItemDecoder {
     protected final Map<String, ItemMetaDecoder> map = new HashMap<>();
+    protected final ThreadLocal<Deque<Cache>> cache = ThreadLocal.withInitial(ArrayDeque::new);
 
     public ItemDecoder1_8() {
         this.map.put("Unbreakable", (meta, tag) -> meta.put(UNBREAKABLE, tag.getBoolean("Unbreakable")));
@@ -119,7 +125,7 @@ public class ItemDecoder1_8 implements JavaItemDecoder {
         this.map.put("pages", (AdvancedItemMetaDecoder) (meta, tag, stack, version, world) -> {
             if (stack.id().toString() == "minecraft:written_book") {
                 meta.put(BOOK_PAGES, tag.getList("pages", StringTag.class).stream().map(StringTag::value).map(MCFormatParser.DEFAULT::parse).collect(Collectors.toList()));
-            } else if (stack.id().toString() == "minecraft:writable_book") {
+            } else/* if (stack.id().toString() == "minecraft:writable_book")*/ { //actually just do this for all items
                 meta.put(BOOK_PAGES_EDITABLE, tag.getList("pages", StringTag.class).stream().map(StringTag::value).collect(Collectors.toList()));
             }
         });
@@ -140,14 +146,14 @@ public class ItemDecoder1_8 implements JavaItemDecoder {
                                     .trail(explosion.getBoolean("Trail", false))
                                     .type(explosion.getByte("Type", (byte) 0));
 
-                            ListTag<IntTag> colors = explosion.getList("Colors", IntTag.class, null);
+                            int[] colors = explosion.getIntArray("Colors", null);
                             if (colors != null) {
-                                e.colors(colors.stream().mapToInt(IntTag::value).mapToObj(Color::new).collect(Collectors.toList()));
+                                e.colors(Arrays.stream(colors).mapToObj(Color::new).collect(Collectors.toList()));
                             }
 
-                            ListTag<IntTag> fadeColors = explosion.getList("FadeColors", IntTag.class, null);
+                            int[] fadeColors = explosion.getIntArray("FadeColors", null);
                             if (fadeColors != null) {
-                                e.fadeColors(fadeColors.stream().mapToInt(IntTag::value).mapToObj(Color::new).collect(Collectors.toList()));
+                                e.fadeColors(Arrays.stream(fadeColors).mapToObj(Color::new).collect(Collectors.toList()));
                             }
                             return e;
                         })
@@ -161,14 +167,14 @@ public class ItemDecoder1_8 implements JavaItemDecoder {
                     .trail(explosion.getBoolean("Trail", false))
                     .type(explosion.getByte("Type", (byte) 0));
 
-            ListTag<IntTag> colors = explosion.getList("Colors", IntTag.class, null);
+            int[] colors = explosion.getIntArray("Colors", null);
             if (colors != null) {
-                e.colors(colors.stream().mapToInt(IntTag::value).mapToObj(Color::new).collect(Collectors.toList()));
+                e.colors(Arrays.stream(colors).mapToObj(Color::new).collect(Collectors.toList()));
             }
 
-            ListTag<IntTag> fadeColors = explosion.getList("FadeColors", IntTag.class, null);
+            int[] fadeColors = explosion.getIntArray("FadeColors", null);
             if (fadeColors != null) {
-                e.fadeColors(fadeColors.stream().mapToInt(IntTag::value).mapToObj(Color::new).collect(Collectors.toList()));
+                e.fadeColors(Arrays.stream(fadeColors).mapToObj(Color::new).collect(Collectors.toList()));
             }
             meta.put(FIREWORK_STAR_EXPLOSION, e);
         });
@@ -182,48 +188,60 @@ public class ItemDecoder1_8 implements JavaItemDecoder {
                 .collect(Collectors.toList())));
     }
 
+    protected ItemDecoder1_8(@NonNull ItemDecoder1_8 parent) {
+        this.map.putAll(parent.map);
+    }
+
     @Override
     public ItemStack decode(@NonNull CompoundTag root, @NonNull JavaVersion version, @NonNull World world) {
         CompoundTag tag = root.getCompound("tag", null);
         ItemStack stack = new ItemStack(Identifier.fromString(root.getString("id", "stone")), root.getByte("Count", (byte) 1));
-        ItemMeta meta = new ItemMeta();
+        Deque<Cache> cacheQueue = this.cache.get();
+        Cache cache = cacheQueue.isEmpty() ? new Cache() : cacheQueue.pop();
 
-        this.initialDecode(stack, meta, root, tag, version, world);
-        this.mainDecode(stack, meta, root, tag, version, world);
+        this.initialDecode(stack, cache, root, tag, version, world);
+        this.mainDecode(stack, cache, root, tag, version, world);
 
-        if (!meta.isEmpty()) {
-            stack.meta(meta);
+        cacheQueue.push(cache); //return cache to stack so it can be re-used
+
+        if (!cache.compound.isEmpty()) { //unknown NBT tags were found, store them
+            cache.meta.put(ItemMeta.UNKNOWN_NBT, cache.compound);
+            cache.compound = new CompoundTag();
+        }
+        if (!cache.meta.isEmpty()) { //ItemMeta instance was modified
+            stack.meta(cache.meta);
+            cache.meta = new ItemMeta();
         }
         return stack;
     }
 
-    protected void initialDecode(@NonNull ItemStack stack, @NonNull ItemMeta meta, @NonNull CompoundTag root, CompoundTag tag, @NonNull JavaVersion version, @NonNull World world) {
+    protected void initialDecode(@NonNull ItemStack stack, @NonNull Cache cache, @NonNull CompoundTag root, CompoundTag tag, @NonNull JavaVersion version, @NonNull World world) {
         int damage = root.getShort("Damage", (short) 0);
 
         BlockRegistry blockRegistry = world.parent().blockRegistryFor(version);
         if (blockRegistry.containsBlockId(stack.id())) {
-            meta.put(BLOCK_STATE, blockRegistry.getState(stack.id(), damage));
+            cache.meta.put(BLOCK_STATE, blockRegistry.getState(stack.id(), damage));
         } else if (stack.id().toString() == "minecraft:potion") { //decode legacy potion damage
-            String potionId = LegacyPotionConversion.IDS[damage & 0x7F];
-            meta.put(POTION, Identifier.fromString(potionId != null ? potionId : "minecraft:water"));
+            String potionId = tag != null && tag.contains("CustomPotionEffects") ? "minecraft:water" : LegacyPotionConversion.IDS[damage & 0x7F];
+            cache.meta.put(POTION, Identifier.fromString(potionId != null ? potionId : "minecraft:water"));
             if ((damage & 0x4000) != 0) {
                 stack.id(Identifier.fromString("minecraft:splash_potion"));
             }
         } else if (stack.id().toString() == "minecraft:filled_map") { //decode legacy map id
-            meta.put(MAP_ID, damage);
+            cache.meta.put(MAP_ID, damage);
         } else {
-            meta.put(DAMAGE, damage);
+            cache.meta.put(DAMAGE, damage);
         }
     }
 
-    protected void mainDecode(@NonNull ItemStack stack, @NonNull ItemMeta meta, @NonNull CompoundTag root, CompoundTag tag, @NonNull JavaVersion version, @NonNull World world) {
+    protected void mainDecode(@NonNull ItemStack stack, @NonNull Cache cache, @NonNull CompoundTag root, CompoundTag tag, @NonNull JavaVersion version, @NonNull World world) {
         if (tag != null) {
             tag.forEach((key, value) -> {
                 ItemMetaDecoder decoder = this.map.get(key);
                 if (decoder != null) {
-                    decoder.decode(meta, tag, stack, version, world);
+                    decoder.decode(cache.meta, tag, stack, version, world);
                 } else {
-                    System.err.printf("No decoder for item NBT: \"%s\": %s\n", key, value);
+                    cache.compound.putTag(key, ((Tag) value).clone());
                 }
             });
         }
@@ -247,6 +265,11 @@ public class ItemDecoder1_8 implements JavaItemDecoder {
         default void decode(@NonNull ItemMeta meta, @NonNull CompoundTag tag) {
             throw new UnsupportedOperationException();
         }
+    }
+
+    protected static class Cache {
+        public ItemMeta meta = new ItemMeta();
+        public CompoundTag compound = new CompoundTag();
     }
 
     protected static final class LegacyPotionConversion {

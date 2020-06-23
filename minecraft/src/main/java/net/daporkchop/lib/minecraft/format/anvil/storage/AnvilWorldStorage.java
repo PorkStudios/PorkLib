@@ -172,7 +172,7 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
 
     @Override
     public Spliterator<Chunk> allChunks() throws IOException {
-        return null;
+        return new AnvilChunkSpliterator(this);
     }
 
     @Override
@@ -198,6 +198,10 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
         }
     }
 
+    protected File[] listRegions()  {
+        return this.regionCache.file().listFiles(f -> f.isFile() && RegionConstants.REGION_PATTERN.matcher(f.getName()).matches());
+    }
+
     /**
      * Loads an entire chunk from disk for caching.
      * <p>
@@ -208,11 +212,15 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
      * @return the cached chunk, or {@code null} if the chunk doesn't exist
      */
     protected AnvilCachedChunk load(int x, int z) throws IOException {
+        return this.load(this.regionCache, x, z);
+    }
+
+    protected AnvilCachedChunk load(@NonNull RegionFile region, int x, int z) throws IOException  {
         CompoundTag tag = null;
         try {
             ByteBuf uncompressed = null;
             try {
-                try (RawChunk chunk = this.regionCache.read(x, z)) {
+                try (RawChunk chunk = region.read(x, z)) {
                     if (chunk == null) { //chunk doesn't exist on disk
                         return null;
                     }

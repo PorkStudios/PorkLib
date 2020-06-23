@@ -22,7 +22,9 @@ package net.daporkchop.lib.minecraft.format.anvil.region;
 
 import lombok.experimental.UtilityClass;
 
-import static net.daporkchop.lib.common.util.PValidation.checkIndex;
+import java.util.regex.Pattern;
+
+import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
  * Shared constants used for interacting with Anvil region files.
@@ -46,8 +48,13 @@ public class RegionConstants {
      */
     public static final int HEADER_BYTES = SECTOR_BYTES * HEADER_SECTORS;
 
-    public static final byte ID_GZIP  = 1; //official, no longer used by vanilla
-    public static final byte ID_ZLIB  = 2; //official
+    /**
+     * A {@link Pattern} for matching region file names.
+     */
+    public static final Pattern REGION_PATTERN = Pattern.compile("^r\\.(-?\\d+)\\.(-?\\d+)\\.mca$");
+
+    public static final byte ID_GZIP = 1; //official, no longer used by vanilla
+    public static final byte ID_ZLIB = 2; //official
 
     public static void checkCoords(int x, int z) {
         checkIndex(x >= 0 && x < 32, "x");

@@ -40,6 +40,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -112,15 +113,19 @@ public class LevelDatParserTest {
         this.loadTestWorld("1_12_2");
     }
 
-    private void loadTestWorld(@NonNull String name)   throws IOException {
+    private void loadTestWorld(@NonNull String name) throws IOException {
         try (Save save = new AnvilSaveFormat().open(new File(ROOT, name), SaveOptions.DEFAULT.clone()
                 .set(SaveOptions.ACCESS, WriteAccess.READ_ONLY)
                 .set(SaveOptions.BYTE_ALLOC, new AnvilPooledArrayAllocator(ArrayAllocator.unpooled(byte.class), 32, 32))
                 .build())) {
-            try (World world = save.world(Identifier.fromString("overworld"))) {
+            try (World world = save.world(Identifier.fromString("minecraft:overworld"))) {
                 try (Section section = world.storage().loadSection(0, 4, 0)) {
                     section.tileEntities().forEach(System.out::println);
                 }
+
+                System.out.println(StreamSupport.stream(world.storage().allChunks(), true)
+                        .peek(chunk -> System.out.printf("(%d, %d)\n", chunk.x(), chunk.z()))
+                        .count());
             }
         }
     }

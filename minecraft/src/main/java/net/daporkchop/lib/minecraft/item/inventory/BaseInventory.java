@@ -45,11 +45,6 @@ public abstract class BaseInventory implements Inventory {
     }
 
     protected void doToString(@NonNull StringBuilder builder) {
-        for (int i = 0, size = this.size(); i < size; i++) {
-            ItemStack stack = this.get(i);
-            if (stack != null) {
-                builder.append(i).append('=').append(stack).append(", ");
-            }
-        }
+        this.forEach((index, stack) -> builder.append(index).append('=').append(stack).append(',').append(' '));
     }
 }

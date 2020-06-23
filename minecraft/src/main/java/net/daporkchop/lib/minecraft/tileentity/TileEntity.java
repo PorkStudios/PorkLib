@@ -22,10 +22,14 @@ package net.daporkchop.lib.minecraft.tileentity;
 
 import lombok.NonNull;
 import net.daporkchop.lib.logging.format.component.TextComponent;
-import net.daporkchop.lib.minecraft.item.ItemMeta;
+import net.daporkchop.lib.minecraft.item.ItemStack;
 import net.daporkchop.lib.minecraft.item.inventory.Inventory;
+import net.daporkchop.lib.minecraft.text.MCTextType;
+import net.daporkchop.lib.minecraft.text.component.MCTextRoot;
 import net.daporkchop.lib.minecraft.util.Identifier;
+import net.daporkchop.lib.minecraft.util.property.BooleanKey;
 import net.daporkchop.lib.minecraft.util.property.ObjectKey;
+import net.daporkchop.lib.minecraft.util.property.PositiveOrZeroIntKey;
 import net.daporkchop.lib.minecraft.util.property.Properties;
 import net.daporkchop.lib.minecraft.util.property.PropertyKey;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
@@ -47,7 +51,14 @@ public interface TileEntity extends Properties<TileEntity> {
      */
     PropertyKey<CompoundTag> UNKNOWN_NBT = new ObjectKey<>("nbt_unknown");
 
-    //general
+    /**
+     * Whether or not the tile entity should be kept as an unprocessed NBT tag in memory.
+     * <p>
+     * This library does not respect this value, but it does store it so that it can be written again when saving the tile entity.
+     */
+    PropertyKey<Boolean> KEEP_PACKED = new BooleanKey("keep_packed");
+
+    //containers
 
     /**
      * The custom name of the tile entity.
@@ -61,7 +72,7 @@ public interface TileEntity extends Properties<TileEntity> {
 
     /**
      * Prevents the container from being opened unless the opener is holding an item whose name matches this string.
-     *
+     * <p>
      * Empty or {@code null} values will be treated as unset.
      */
     PropertyKey<String> LOCK = new PropertyKey<String>("lock", null) {
@@ -70,6 +81,83 @@ public interface TileEntity extends Properties<TileEntity> {
             return value != null && !value.isEmpty();
         }
     };
+
+    //furnace
+
+    /**
+     * The number of ticks that the current furnace recipe has been cooking for.
+     * <p>
+     * Negative values will be treated as {@code 0}.
+     */
+    PropertyKey<Integer> FURNACE_COOK_TIME = new PositiveOrZeroIntKey("furnace_cook_time");
+
+    /**
+     * The number of ticks that the current furnace recipe takes in total.
+     * <p>
+     * Negative values will be treated as {@code 0}.
+     */
+    PropertyKey<Integer> FURNACE_TOTAL_TIME = new PositiveOrZeroIntKey("furnace_cook_time_total");
+
+    /**
+     * The number of ticks that the current furnace fuel has left to burn.
+     * <p>
+     * Negative values will be treated as {@code 0}.
+     */
+    PropertyKey<Integer> FURNACE_BURN_TIME = new PositiveOrZeroIntKey("furnace_burn_time");
+
+    //various
+
+    /**
+     * An array containing 4 text components with the text on a sign.
+     * <p>
+     * Arrays with more than 4 elements will be truncated, less than 4 values will be expanded with empty lines.
+     * <p>
+     * {@code null} values will be treated as unset.
+     */
+    PropertyKey<TextComponent[]> SIGN_TEXT = new PropertyKey<TextComponent[]>("sign_text", null) {
+        @Override
+        public boolean isSet(TextComponent[] value) {
+            return value != null && value.length == 4;
+        }
+
+        @Override
+        public TextComponent[] process(TextComponent[] value) {
+            if (value == null || value.length != 4) {
+                TextComponent[] arr = new TextComponent[4];
+                int i = 0;
+                for (int len = value == null ? 0 : value.length; i < len; i++) {
+                    arr[i] = value[i];
+                }
+                for (; i < 4; i++) {
+                    arr[i] = new MCTextRoot(MCTextType.JSON, "\"\"");
+                }
+                return arr;
+            }
+            return value;
+        }
+
+        @Override
+        public void append(@NonNull StringBuilder builder, @NonNull TextComponent[] value) {
+            builder.append(this.name).append('=').append('[')
+                    .append(value[0]).append(',').append(' ')
+                    .append(value[1]).append(',').append(' ')
+                    .append(value[2]).append(',').append(' ')
+                    .append(value[3]).append(']')
+                    .append(',').append(' ');
+        }
+    };
+
+    /**
+     * The number of ticks the potions have to brew.
+     * <p>
+     * Negative values will be treated as {@code 0}.
+     */
+    PropertyKey<Integer> BREW_TIME = new PositiveOrZeroIntKey("brew_time");
+
+    /**
+     * The currently playing record.
+     */
+    PropertyKey<ItemStack> JUKEBOX_RECORD = new ObjectKey<>("jukebox_record");
 
     //actual methods
 

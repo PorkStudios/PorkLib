@@ -42,6 +42,11 @@ public final class PositiveOrZeroIntKey extends PropertyKey<Integer> {
     }
 
     @Override
+    public Integer process(Integer value) {
+        return value != null ? value >= 0 ? value : 0 : null;
+    }
+
+    @Override
     public void append(@NonNull StringBuilder builder, @NonNull Integer value) {
         builder.append(this.name).append('=').append(value.intValue()).append(',').append(' ');
     }

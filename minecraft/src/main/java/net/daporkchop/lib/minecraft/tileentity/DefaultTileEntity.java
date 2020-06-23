@@ -86,9 +86,6 @@ public class DefaultTileEntity extends IdentityHashMap<PropertyKey<?>, Object> i
                     key.append(builder, uncheckedCast(value));
                 }
             });
-            if (builder.length() > 2) {
-                builder.setLength(builder.length() - 2);
-            }
             if (builder.length() == idLength + 1) {
                 builder.setLength(idLength);
             } else {

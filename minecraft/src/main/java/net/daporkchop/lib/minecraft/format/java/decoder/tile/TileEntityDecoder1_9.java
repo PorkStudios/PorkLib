@@ -21,38 +21,23 @@
 package net.daporkchop.lib.minecraft.format.java.decoder.tile;
 
 import lombok.NonNull;
-import net.daporkchop.lib.minecraft.format.java.JavaSaveOptions;
-import net.daporkchop.lib.minecraft.format.java.decoder.JavaTileEntityDecoder;
-import net.daporkchop.lib.minecraft.text.parser.MCFormatParser;
-import net.daporkchop.lib.minecraft.tileentity.TileEntity;
-import net.daporkchop.lib.minecraft.tileentity.TileEntityFurnace;
-import net.daporkchop.lib.minecraft.version.java.JavaVersion;
-import net.daporkchop.lib.minecraft.world.World;
+import net.daporkchop.lib.minecraft.util.Identifier;
 import net.daporkchop.lib.nbt.tag.CompoundTag;
 
 /**
  * @author DaPorkchop_
  */
-public class FurnaceDecoder1_8 implements JavaTileEntityDecoder {
+public class TileEntityDecoder1_9 extends TileEntityDecoder1_8 {
+    public TileEntityDecoder1_9() {
+        this(new TileEntityDecoder1_8());
+    }
+
+    protected TileEntityDecoder1_9(@NonNull TileEntityDecoder1_8 parent) {
+        super(parent);
+    }
+
     @Override
-    public TileEntity decode(@NonNull CompoundTag tag, @NonNull JavaVersion version, @NonNull World world) {
-        TileEntityFurnace furnace = new TileEntityFurnace();
-
-        //items
-        for (CompoundTag item : tag.getList("Items", CompoundTag.class)) {
-            furnace.inventory().set(item.getByte("Slot"), world.parent().options().get(JavaSaveOptions.FIXERS)
-                    .item().ceilingEntry(version).getValue().decode(item, version, world));
-        }
-
-        furnace.burnTime(tag.getShort("BurnTime", (short) 0))
-                .cookTime(tag.getShort("CookTime", (short) 0))
-                .cookTimeTotal(tag.getShort("CookTimeTotal", (short) 0));
-
-        //custom name
-        String customName = tag.getString("CustomName", null);
-        if (customName != null) {
-            furnace.customName(MCFormatParser.DEFAULT.parse(customName));
-        }
-        return furnace;
+    protected Identifier getId(@NonNull CompoundTag root) {
+        return Identifier.fromString(root.getString("id"));
     }
 }

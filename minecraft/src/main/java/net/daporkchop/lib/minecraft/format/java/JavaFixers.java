@@ -36,15 +36,8 @@ import net.daporkchop.lib.minecraft.format.java.decoder.item.ItemDecoder1_8;
 import net.daporkchop.lib.minecraft.format.java.decoder.item.ItemDecoder1_9;
 import net.daporkchop.lib.minecraft.format.java.decoder.section.FlattenedSectionDecoder;
 import net.daporkchop.lib.minecraft.format.java.decoder.section.LegacySectionDecoder;
-import net.daporkchop.lib.minecraft.format.java.decoder.tile.ChestDecoder1_8;
-import net.daporkchop.lib.minecraft.format.java.decoder.tile.CommandBlockDecoder1_8;
-import net.daporkchop.lib.minecraft.format.java.decoder.tile.FurnaceDecoder1_8;
-import net.daporkchop.lib.minecraft.format.java.decoder.tile.JukeboxDecoder1_8;
-import net.daporkchop.lib.minecraft.format.java.decoder.tile.SignDecoder1_14;
-import net.daporkchop.lib.minecraft.format.java.decoder.tile.SignDecoder1_8;
-import net.daporkchop.lib.minecraft.format.java.decoder.tile.UnknownTileDecoder;
-import net.daporkchop.lib.minecraft.tileentity.TileEntity;
-import net.daporkchop.lib.minecraft.util.Identifier;
+import net.daporkchop.lib.minecraft.format.java.decoder.tile.TileEntityDecoder1_8;
+import net.daporkchop.lib.minecraft.format.java.decoder.tile.TileEntityDecoder1_9;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 
 import java.util.Map;
@@ -83,52 +76,9 @@ public class JavaFixers {
                         .put(LegacySectionDecoder.VERSION, new LegacySectionDecoder())
                         .put(FlattenedSectionDecoder.VERSION, new FlattenedSectionDecoder())
                         .build(),
-                new JavaTileEntityDecoder.Builder(new UnknownTileDecoder())
-                        //
-                        // these apply to all pre-DataVersion versions
-                        //
-                        .begin(JavaVersion.pre15w32a()) //legacy tile entity IDs
-                        .putAlias("Airportal", Identifier.fromString("minecraft:end_portal"))
-                        .putAlias("Banner", Identifier.fromString("minecraft:banner"))
-                        .putAlias("Beacon", Identifier.fromString("minecraft:beacon"))
-                        .putAlias("Cauldron", Identifier.fromString("minecraft:brewing_stand"))
-                        .putAlias("Chest", Identifier.fromString("minecraft:chest"))
-                        .putAlias("Comparator", Identifier.fromString("minecraft:comparator"))
-                        .putAlias("Control", Identifier.fromString("minecraft:command_block"))
-                        .putAlias("DLDetector", Identifier.fromString("minecraft:daylight_detector"))
-                        .putAlias("Dropper", Identifier.fromString("minecraft:dropper"))
-                        .putAlias("EnchantTable", Identifier.fromString("minecraft:enchanting_table"))
-                        .putAlias("EndGateway", Identifier.fromString("minecraft:end_gateway"))
-                        .putAlias("EnderChest", Identifier.fromString("minecraft:ender_chest"))
-                        .putAlias("FlowerPot", Identifier.fromString("minecraft:flower_pot"))
-                        .putAlias("Furnace", Identifier.fromString("minecraft:furnace"))
-                        .putAlias("Hopper", Identifier.fromString("minecraft:hopper"))
-                        .putAlias("MobSpawner", Identifier.fromString("minecraft:mob_spawner"))
-                        .putAlias("Music", Identifier.fromString("minecraft:noteblock"))
-                        .putAlias("Piston", Identifier.fromString("minecraft:piston"))
-                        .putAlias("RecordPlayer", Identifier.fromString("minecraft:jukebox"))
-                        .putAlias("Sign", Identifier.fromString("minecraft:sign"))
-                        .putAlias("Skull", Identifier.fromString("minecraft:skull"))
-                        .putAlias("Structure", Identifier.fromString("minecraft:structure_block"))
-                        .putAlias("Trap", Identifier.fromString("minecraft:dispenser"))
-                        //legacy tile entities
-                        .putDecoder(TileEntity.ID_CHEST, new ChestDecoder1_8())
-                        .putDecoder(TileEntity.ID_COMMAND_BLOCK, new CommandBlockDecoder1_8())
-                        .putDecoder(TileEntity.ID_FURNACE, new FurnaceDecoder1_8())
-                        .putDecoder(TileEntity.ID_JUKEBOX, new JukeboxDecoder1_8())
-                        .putDecoder(TileEntity.ID_SIGN, new SignDecoder1_8())
-
-                        //
-                        // 1.11+
-                        //
-                        .begin(JavaVersion.fromName("1.11"))
-                        .purgeAliases() //1.11+ doesn't have legacy tile entity IDs
-
-                        //
-                        // 1.14+
-                        //
-                        .begin(JavaVersion.latest())
-                        .putDecoder(TileEntity.ID_SIGN, new SignDecoder1_14())
+                new MapBuilder<>(new TreeMap<JavaVersion, JavaTileEntityDecoder>())
+                        .put(JavaVersion.pre15w32a(), new TileEntityDecoder1_8())
+                        .put(JavaVersion.latest(), new TileEntityDecoder1_9())
                         .build(),
                 new MapBuilder<>(new TreeMap<JavaVersion, JavaItemDecoder>())
                         .put(JavaVersion.pre15w32a(), new ItemDecoder1_8())

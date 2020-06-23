@@ -22,6 +22,7 @@ package net.daporkchop.lib.minecraft.item.inventory;
 
 import lombok.NonNull;
 import net.daporkchop.lib.minecraft.item.ItemStack;
+import net.daporkchop.lib.primitive.lambda.IntObjConsumer;
 
 /**
  * Base representation of an inventory.
@@ -30,9 +31,9 @@ import net.daporkchop.lib.minecraft.item.ItemStack;
  */
 public interface Inventory {
     /**
-     * @return the number of slots in this inventory
+     * @return the number of non-empty slots in this inventory
      */
-    int size();
+    int count();
 
     /**
      * Gets the {@link ItemStack} at the given slot index.
@@ -51,4 +52,13 @@ public interface Inventory {
      * @return this inventory
      */
     Inventory set(int slot, ItemStack stack);
+
+    /**
+     * Executes the given function for every non-empty slot in this inventory.
+     * <p>
+     * The first parameter is the slot index, the second one is the item at the slot.
+     *
+     * @param action the function to run
+     */
+    void forEach(@NonNull IntObjConsumer<ItemStack> action);
 }

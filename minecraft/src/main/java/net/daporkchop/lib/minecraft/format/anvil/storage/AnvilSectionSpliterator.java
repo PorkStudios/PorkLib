@@ -22,49 +22,78 @@ package net.daporkchop.lib.minecraft.format.anvil.storage;
 
 import lombok.NonNull;
 import net.daporkchop.lib.minecraft.world.Chunk;
+import net.daporkchop.lib.minecraft.world.Section;
 
 import java.io.File;
 import java.util.Spliterator;
 import java.util.function.Consumer;
+
+import static net.daporkchop.lib.common.util.PValidation.checkState;
 
 /**
  * Implementation of a {@link Spliterator} over the chunks in an Anvil world.
  *
  * @author DaPorkchop_
  */
-public class AnvilChunkSpliterator extends AbstractAnvilSpliterator<Chunk> {
-    public AnvilChunkSpliterator(@NonNull AnvilWorldStorage storage) {
+public class AnvilSectionSpliterator extends AbstractAnvilSpliterator<Section> {
+    protected AnvilCachedChunk chunk;
+    protected int sectionY;
+
+    public AnvilSectionSpliterator(@NonNull AnvilWorldStorage storage) {
         super(storage);
     }
 
-    protected AnvilChunkSpliterator(@NonNull AnvilWorldStorage storage, @NonNull File[] regions, int index, int fence) {
+    protected AnvilSectionSpliterator(@NonNull AnvilWorldStorage storage, @NonNull File[] regions, int index, int fence) {
         super(storage, regions, index, fence);
     }
 
-    @Override
-    public boolean tryAdvance(@NonNull Consumer<? super Chunk> action) {
-        try (AnvilCachedChunk cachedChunk = this.next())  {
-            if (cachedChunk == null)  {
-                return false;
-            }
-            try (Chunk chunk = cachedChunk.chunk()) {
-                action.accept(chunk);
-            }
+    protected boolean nextChunk() {
+        checkState(this.chunk == null);
+        if ((this.chunk = this.next()) != null)  {
+            this.sectionY = 0;
             return true;
+        } else {
+            return false;
         }
     }
 
     @Override
-    public void forEachRemaining(@NonNull Consumer<? super Chunk> action) {
+    public boolean tryAdvance(@NonNull Consumer<? super Section> action) {
+        while (this.chunk != null || this.nextChunk())    {
+            while (this.sectionY < 16)  {
+                try (Section section = this.chunk.section(this.sectionY++)) {
+                    if (section != null)    {
+                        action.accept(section);
+                        return true;
+                    }
+                }
+            }
+
+            //if we get this far the chunk is complete
+            try {
+                this.chunk.release();
+            } finally {
+                this.chunk = null;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public void forEachRemaining(@NonNull Consumer<? super Section> action) {
         this.doForEach(cachedChunk -> {
-            try (Chunk chunk = cachedChunk.chunk()) {
-                action.accept(chunk);
+            for (int y = 0; y < 16; y++)    {
+                try (Section section = cachedChunk.section(y))  {
+                    if (section != null)    {
+                        action.accept(section);
+                    }
+                }
             }
         });
     }
 
     @Override
-    protected Spliterator<Chunk> sub(@NonNull AnvilWorldStorage storage, @NonNull File[] regions, int index, int fence) {
-        return new AnvilChunkSpliterator(storage, regions, index, fence);
+    protected Spliterator<Section> sub(@NonNull AnvilWorldStorage storage, @NonNull File[] regions, int index, int fence) {
+        return new AnvilSectionSpliterator(storage, regions, index, fence);
     }
 }

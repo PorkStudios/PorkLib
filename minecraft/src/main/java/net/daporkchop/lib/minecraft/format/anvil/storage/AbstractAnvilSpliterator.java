@@ -22,7 +22,6 @@ package net.daporkchop.lib.minecraft.format.anvil.storage;
 
 import lombok.NonNull;
 import net.daporkchop.lib.minecraft.format.anvil.AnvilSaveOptions;
-import net.daporkchop.lib.minecraft.format.anvil.region.RawChunk;
 import net.daporkchop.lib.minecraft.format.anvil.region.RegionFile;
 import net.daporkchop.lib.minecraft.format.anvil.region.impl.MemoryMappedRegionFile;
 import net.daporkchop.lib.minecraft.format.anvil.region.impl.OverclockedRegionFile;
@@ -33,6 +32,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Spliterator;
 import java.util.function.Consumer;
+
+import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
  * Base implementation of a {@link Spliterator} over the contents of an Anvil world.
@@ -65,26 +66,27 @@ public abstract class AbstractAnvilSpliterator<T> implements Spliterator<T> {
         this.fence = fence;
     }
 
+    protected boolean nextRegion() throws IOException {
+        checkState(this.region == null);
+        if (this.index < this.fence) {
+            File file = this.regions[this.index++];
+            this.region = this.storage.options.get(AnvilSaveOptions.MMAP_REGIONS)
+                          ? new MemoryMappedRegionFile(file, this.storage.options.get(AnvilSaveOptions.PREFETCH_REGIONS))
+                          : new OverclockedRegionFile(file, this.storage.options.get(SaveOptions.NETTY_ALLOC), true);
+            this.chunkX = this.chunkZ = 0; //reset chunk positions
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     protected AnvilCachedChunk next() {
         try {
-            MAIN:
-            do {
-                while (this.region == null) { //region is unset, open a new one
-                    if (this.index < this.fence) {
-                        File file = this.regions[this.index++];
-                        this.region = this.storage.options.get(AnvilSaveOptions.MMAP_REGIONS)
-                                      ? new MemoryMappedRegionFile(file, this.storage.options.get(AnvilSaveOptions.PREFETCH_REGIONS))
-                                      : new OverclockedRegionFile(file, this.storage.options.get(SaveOptions.NETTY_ALLOC), true);
-                        this.chunkX = this.chunkZ = 0; //reset chunk positions
-                    } else {
-                        break MAIN;
-                    }
-                }
-
+            while (this.region != null || this.nextRegion()) {
                 for (; this.chunkX < 32; this.chunkX++, this.chunkZ = 0) { //try to find the next chunk
                     while (this.chunkZ < 32) {
                         AnvilCachedChunk chunk = this.storage.load(this.region, this.chunkX, this.chunkZ++);
-                        if (chunk != null)  {
+                        if (chunk != null) {
                             return chunk;
                         }
                     }
@@ -96,11 +98,44 @@ public abstract class AbstractAnvilSpliterator<T> implements Spliterator<T> {
                 } finally {
                     this.region = null;
                 }
-            } while (this.index < this.fence);
+            }
 
             //there is nothing left, release storage
             this.storage.release();
             return null;
+        } catch (IOException e) {
+            try {
+                this.storage.release(); //make sure that storage is released again in case of exception
+            } finally {
+                PUnsafe.throwException(e);
+                throw new RuntimeException(e); //unreachable
+            }
+        }
+    }
+
+    protected void doForEach(@NonNull Consumer<AnvilCachedChunk> action)    {
+        try {
+            while (this.region != null || this.nextRegion()) {
+                for (; this.chunkX < 32; this.chunkX++, this.chunkZ = 0) { //try to find the next chunk
+                    while (this.chunkZ < 32) {
+                        try (AnvilCachedChunk chunk = this.storage.load(this.region, this.chunkX, this.chunkZ++)) {
+                            if (chunk != null) {
+                                action.accept(chunk);
+                            }
+                        }
+                    }
+                }
+
+                //if we got this far, the region has been completed, so close it
+                try {
+                    this.region.close();
+                } finally {
+                    this.region = null;
+                }
+            }
+
+            //there is nothing left, release storage
+            this.storage.release();
         } catch (IOException e) {
             try {
                 this.storage.release(); //make sure that storage is released again in case of exception

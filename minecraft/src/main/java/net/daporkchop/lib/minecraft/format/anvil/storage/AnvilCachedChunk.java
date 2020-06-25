@@ -81,7 +81,8 @@ public abstract class AnvilCachedChunk extends AbstractReleasableDirtiable {
 
         @Override
         public Section section(int y) {
-            return this.sections[y].retain();
+            Section section = this.sections[y];
+            return section != null ? section.retain() : null;
         }
 
         @Override

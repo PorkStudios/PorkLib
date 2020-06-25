@@ -124,8 +124,9 @@ public class LevelDatParserTest {
                 }
 
                 System.out.println(StreamSupport.stream(world.storage().allChunks(), true)
-                        .peek(chunk -> System.out.printf("(%d, %d)\n", chunk.x(), chunk.z()))
-                        .count());
+                        .count() + " chunks");
+                System.out.println(StreamSupport.stream(world.storage().allSections(), true)
+                        .count() + " sections");
             }
         }
     }

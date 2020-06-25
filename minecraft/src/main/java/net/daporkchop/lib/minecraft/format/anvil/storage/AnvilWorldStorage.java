@@ -177,7 +177,7 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
 
     @Override
     public Spliterator<Section> allSections() throws IOException {
-        return null;
+        return new AnvilSectionSpliterator(this);
     }
 
     @Override

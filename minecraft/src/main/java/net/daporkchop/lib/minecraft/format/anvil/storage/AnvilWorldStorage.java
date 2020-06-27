@@ -49,7 +49,6 @@ import net.daporkchop.lib.minecraft.version.DataVersion;
 import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.Section;
-import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.minecraft.world.WorldStorage;
 import net.daporkchop.lib.nbt.NBTFormat;
 import net.daporkchop.lib.nbt.NBTOptions;
@@ -172,12 +171,16 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
 
     @Override
     public Spliterator<Chunk> allChunks() throws IOException {
-        return new AnvilChunkSpliterator(this);
+        return this.readOnly && this.options.get(SaveOptions.SPLITERATOR_CACHE)
+        ? new CachedAnvilSpliterator.OfChunk(this)
+        : new UncachedAnvilSpliterator.OfChunk(this);
     }
 
     @Override
     public Spliterator<Section> allSections() throws IOException {
-        return new AnvilSectionSpliterator(this);
+        return this.readOnly && this.options.get(SaveOptions.SPLITERATOR_CACHE)
+               ? new CachedAnvilSpliterator.OfSection(this)
+               : new UncachedAnvilSpliterator.OfSection(this);
     }
 
     @Override
@@ -198,7 +201,7 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
         }
     }
 
-    protected File[] listRegions()  {
+    protected File[] listRegions() {
         return this.regionCache.file().listFiles(f -> f.isFile() && RegionConstants.REGION_PATTERN.matcher(f.getName()).matches());
     }
 
@@ -215,7 +218,18 @@ public class AnvilWorldStorage extends AbstractRefCounted implements WorldStorag
         return this.load(this.regionCache, x, z);
     }
 
-    protected AnvilCachedChunk load(@NonNull RegionFile region, int x, int z) throws IOException  {
+    protected boolean prefetch(int x, int z) throws IOException  {
+        return this.cachedChunks.computeIfAbsent(BinMath.packXY(x, z), l -> {
+            try {
+                return this.load(BinMath.unpackX(l), BinMath.unpackY(l));
+            } catch (IOException e) {
+                PUnsafe.throwException(e);
+                throw new RuntimeException(e); //unreachable
+            }
+        }) != null;
+    }
+
+    protected AnvilCachedChunk load(@NonNull RegionFile region, int x, int z) throws IOException {
         CompoundTag tag = null;
         try {
             ByteBuf uncompressed = null;

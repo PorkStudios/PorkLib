@@ -23,6 +23,8 @@ package net.daporkchop.lib.minecraft.world;
 import lombok.NonNull;
 import net.daporkchop.lib.common.misc.refcount.RefCounted;
 import net.daporkchop.lib.concurrent.PFuture;
+import net.daporkchop.lib.math.vector.i.Vec2i;
+import net.daporkchop.lib.math.vector.i.Vec3i;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;

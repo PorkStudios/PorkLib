@@ -26,6 +26,8 @@ import net.daporkchop.lib.minecraft.format.anvil.region.RegionFile;
 import net.daporkchop.lib.minecraft.format.anvil.region.impl.MemoryMappedRegionFile;
 import net.daporkchop.lib.minecraft.format.anvil.region.impl.OverclockedRegionFile;
 import net.daporkchop.lib.minecraft.save.SaveOptions;
+import net.daporkchop.lib.minecraft.world.Chunk;
+import net.daporkchop.lib.minecraft.world.Section;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.File;
@@ -40,7 +42,7 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  *
  * @author DaPorkchop_
  */
-public abstract class AbstractAnvilSpliterator<T> implements Spliterator<T> {
+public abstract class UncachedAnvilSpliterator<T> implements Spliterator<T> {
     protected final AnvilWorldStorage storage;
     protected final File[] regions;
     protected int index;
@@ -50,7 +52,7 @@ public abstract class AbstractAnvilSpliterator<T> implements Spliterator<T> {
     protected int chunkX;
     protected int chunkZ;
 
-    public AbstractAnvilSpliterator(@NonNull AnvilWorldStorage storage) {
+    public UncachedAnvilSpliterator(@NonNull AnvilWorldStorage storage) {
         storage.retain();
         this.storage = storage;
         this.regions = storage.listRegions();
@@ -58,7 +60,7 @@ public abstract class AbstractAnvilSpliterator<T> implements Spliterator<T> {
         this.fence = this.regions.length;
     }
 
-    protected AbstractAnvilSpliterator(@NonNull AnvilWorldStorage storage, @NonNull File[] regions, int index, int fence) {
+    protected UncachedAnvilSpliterator(@NonNull AnvilWorldStorage storage, @NonNull File[] regions, int index, int fence) {
         storage.retain();
         this.storage = storage;
         this.regions = regions;
@@ -113,39 +115,6 @@ public abstract class AbstractAnvilSpliterator<T> implements Spliterator<T> {
         }
     }
 
-    protected void doForEach(@NonNull Consumer<AnvilCachedChunk> action)    {
-        try {
-            while (this.region != null || this.nextRegion()) {
-                for (; this.chunkX < 32; this.chunkX++, this.chunkZ = 0) { //try to find the next chunk
-                    while (this.chunkZ < 32) {
-                        try (AnvilCachedChunk chunk = this.storage.load(this.region, this.chunkX, this.chunkZ++)) {
-                            if (chunk != null) {
-                                action.accept(chunk);
-                            }
-                        }
-                    }
-                }
-
-                //if we got this far, the region has been completed, so close it
-                try {
-                    this.region.close();
-                } finally {
-                    this.region = null;
-                }
-            }
-
-            //there is nothing left, release storage
-            this.storage.release();
-        } catch (IOException e) {
-            try {
-                this.storage.release(); //make sure that storage is released again in case of exception
-            } finally {
-                PUnsafe.throwException(e);
-                throw new RuntimeException(e); //unreachable
-            }
-        }
-    }
-
     @Override
     public Spliterator<T> trySplit() {
         int low = this.index;
@@ -168,4 +137,92 @@ public abstract class AbstractAnvilSpliterator<T> implements Spliterator<T> {
     public abstract boolean tryAdvance(Consumer<? super T> action);
 
     protected abstract Spliterator<T> sub(@NonNull AnvilWorldStorage storage, @NonNull File[] regions, int index, int fence);
+
+    /**
+     * Implementation of a {@link Spliterator} over the chunks in an Anvil world.
+     *
+     * @author DaPorkchop_
+     */
+    public static class OfChunk extends UncachedAnvilSpliterator<Chunk> {
+        public OfChunk(@NonNull AnvilWorldStorage storage) {
+            super(storage);
+        }
+
+        protected OfChunk(@NonNull AnvilWorldStorage storage, @NonNull File[] regions, int index, int fence) {
+            super(storage, regions, index, fence);
+        }
+
+        @Override
+        public boolean tryAdvance(@NonNull Consumer<? super Chunk> action) {
+            try (AnvilCachedChunk cachedChunk = this.next())  {
+                if (cachedChunk == null)  {
+                    return false;
+                }
+                try (Chunk chunk = cachedChunk.chunk()) {
+                    action.accept(chunk);
+                }
+                return true;
+            }
+        }
+
+        @Override
+        protected Spliterator<Chunk> sub(@NonNull AnvilWorldStorage storage, @NonNull File[] regions, int index, int fence) {
+            return new OfChunk(storage, regions, index, fence);
+        }
+    }
+
+    /**
+     * Implementation of a {@link Spliterator} over the chunks in an Anvil world.
+     *
+     * @author DaPorkchop_
+     */
+    public static class OfSection extends UncachedAnvilSpliterator<Section> {
+        protected AnvilCachedChunk chunk;
+        protected int sectionY;
+
+        public OfSection(@NonNull AnvilWorldStorage storage) {
+            super(storage);
+        }
+
+        protected OfSection(@NonNull AnvilWorldStorage storage, @NonNull File[] regions, int index, int fence) {
+            super(storage, regions, index, fence);
+        }
+
+        protected boolean nextChunk() {
+            checkState(this.chunk == null);
+            if ((this.chunk = this.next()) != null)  {
+                this.sectionY = 0;
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        @Override
+        public boolean tryAdvance(@NonNull Consumer<? super Section> action) {
+            while (this.chunk != null || this.nextChunk())    {
+                while (this.sectionY < 16)  {
+                    try (Section section = this.chunk.section(this.sectionY++)) {
+                        if (section != null)    {
+                            action.accept(section);
+                            return true;
+                        }
+                    }
+                }
+
+                //if we get this far the chunk is complete
+                try {
+                    this.chunk.release();
+                } finally {
+                    this.chunk = null;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        protected Spliterator<Section> sub(@NonNull AnvilWorldStorage storage, @NonNull File[] regions, int index, int fence) {
+            return new OfSection(storage, regions, index, fence);
+        }
+    }
 }

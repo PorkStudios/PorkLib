@@ -117,6 +117,7 @@ public class LevelDatParserTest {
         try (Save save = new AnvilSaveFormat().open(new File(ROOT, name), SaveOptions.DEFAULT.clone()
                 .set(SaveOptions.ACCESS, WriteAccess.READ_ONLY)
                 .set(SaveOptions.BYTE_ALLOC, new AnvilPooledArrayAllocator(ArrayAllocator.unpooled(byte.class), 32, 32))
+                //.set(SaveOptions.SPLITERATOR_CACHE, true)
                 .build())) {
             try (World world = save.world(Identifier.fromString("minecraft:overworld"))) {
                 try (Section section = world.storage().loadSection(0, 4, 0)) {

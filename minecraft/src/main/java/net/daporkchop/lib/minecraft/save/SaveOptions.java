@@ -30,6 +30,7 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.misc.Cloneable;
 import net.daporkchop.lib.common.pool.array.ArrayAllocator;
 import net.daporkchop.lib.minecraft.util.WriteAccess;
+import net.daporkchop.lib.minecraft.world.WorldStorage;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -109,7 +110,7 @@ public final class SaveOptions implements Cloneable<SaveOptions.Builder> {
     /**
      * The {@link ByteBufAllocator} used for allocating Netty {@link io.netty.buffer.ByteBuf}s.
      * <p>
-     * Defaults to {@link PooledByteBufAllocator#DEFAULT}
+     * Defaults to {@link PooledByteBufAllocator#DEFAULT}.
      */
     public static final Key<ByteBufAllocator> NETTY_ALLOC = keyLazy("alloc_netty", () -> PooledByteBufAllocator.DEFAULT);
 
@@ -133,6 +134,15 @@ public final class SaveOptions implements Cloneable<SaveOptions.Builder> {
      * If {@code null}, {@code long[]}s will be allocated using {@code new}.
      */
     public static final Key<ArrayAllocator<long[]>> LONG_ALLOC = key("alloc_long", null);
+
+    /**
+     * Whether or not the values provided by {@link WorldStorage#allChunks()} and {@link WorldStorage#allSections()} will be served from the
+     * cache.
+     * <p>
+     * This is only guaranteed to affect read-only worlds, implementations may choose whether or not to respect this option for worlds opened
+     * in read-write mode.
+     */
+    public static final Key<Boolean> SPLITERATOR_CACHE = key("spliterator_cache", Boolean.FALSE);
 
     @NonNull
     private final Map<Key<?>, ?> map;

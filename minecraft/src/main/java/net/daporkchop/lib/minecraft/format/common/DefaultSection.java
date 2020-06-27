@@ -129,11 +129,6 @@ public class DefaultSection extends AbstractRefCounted implements Section {
     //
 
     @Override
-    public BlockRegistry blockRegistry() {
-        return this.blocks.blockRegistry();
-    }
-
-    @Override
     public int layers() {
         return this.blocks.layers();
     }

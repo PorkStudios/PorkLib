@@ -21,10 +21,11 @@
 package net.daporkchop.lib.minecraft.block;
 
 import lombok.NonNull;
+import net.daporkchop.lib.minecraft.block.java.JavaBlockRegistry;
 import net.daporkchop.lib.minecraft.registry.Registry;
 import net.daporkchop.lib.minecraft.util.Identifier;
+import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 
-import java.util.Iterator;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 import java.util.function.ObjIntConsumer;
@@ -59,6 +60,13 @@ public interface BlockRegistry {
     Identifier ID = Identifier.fromString("minecraft:block");
 
     /**
+     * @return the {@link BlockRegistry} used globally for cross-version compatibility
+     */
+    static BlockRegistry global() {
+        return GlobalBlockRegistry.GLOBAL_REGISTRY;
+    }
+
+    /**
      * @return the number of registered blocks
      */
     int blocks();
@@ -77,6 +85,18 @@ public interface BlockRegistry {
      * @return the {@link BlockState} used to represent air
      */
     BlockState air();
+
+    /**
+     * @return whether or not this is the global block registry
+     */
+    default boolean isGlobal()  {
+        return this == global();
+    }
+
+    /**
+     * @return a {@link RegistryConverter} for converting this registry's runtime IDs to the global block registry
+     */
+    RegistryConverter toGlobal();
 
     /**
      * Checks whether or not the given block ID is registered.

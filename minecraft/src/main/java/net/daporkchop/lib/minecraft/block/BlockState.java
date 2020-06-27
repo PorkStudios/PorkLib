@@ -130,6 +130,16 @@ public interface BlockState {
     Collection<Property<?>> properties();
 
     /**
+     * Gets the value associated with the given property.
+     *
+     * @param property the property to get the value for
+     * @param <T>      the property's value type
+     * @return the property's value
+     * @throws IllegalArgumentException if the given {@link Property} was not registered for the block
+     */
+    <T> T propertyValue(@NonNull Property<T> property);
+
+    /**
      * Gets the {@link Property} with the given name.
      *
      * @param name the name of the property to get

@@ -18,47 +18,34 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.common.storage;
+package net.daporkchop.lib.minecraft.block.common;
 
-import net.daporkchop.lib.common.misc.Cloneable;
-import net.daporkchop.lib.common.misc.refcount.RefCounted;
-import net.daporkchop.lib.minecraft.block.BlockAccess;
-import net.daporkchop.lib.minecraft.block.BlockRegistry;
-import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
-
-import static net.daporkchop.lib.common.util.PValidation.*;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.minecraft.block.RegistryConverter;
+import net.daporkchop.lib.primitive.map.IntIntMap;
 
 /**
- * A 16³ array of block states.
- * <p>
- * All IDs used by all methods use the local block registry.
+ * Default implementation of {@link RegistryConverter}.
  *
  * @author DaPorkchop_
- * @see BlockRegistry
  */
-public interface BlockStorage extends BlockAccess, Cloneable<BlockStorage>, RefCounted {
-    /**
-     * The number of blocks in a single block storage.
-     */
-    int NUM_BLOCKS = 16 * 16 * 16;
+@RequiredArgsConstructor
+@Accessors(fluent = true)
+public class DefaultRegistryConverter implements RegistryConverter {
+    @NonNull
+    protected final IntIntMap toGlobal;
+    @NonNull
+    protected final IntIntMap fromGlobal;
 
-    static void checkCoords(int x, int y, int z) {
-        checkIndex(x >= 0 && x < 16, "x");
-        checkIndex(y >= 0 && y < 16, "y");
-        checkIndex(z >= 0 && z < 16, "z");
+    @Override
+    public int toGlobal(int id) {
+        return this.toGlobal.getOrDefault(id, 0);
     }
 
-    /**
-     * @return the {@link BlockRegistry} that this {@link BlockStorage} uses
-     */
-    BlockRegistry localRegistry();
-
     @Override
-    int refCnt();
-
-    @Override
-    BlockStorage retain() throws AlreadyReleasedException;
-
-    @Override
-    boolean release() throws AlreadyReleasedException;
+    public int fromGlobal(int id) {
+        return this.fromGlobal.getOrDefault(id, 0);
+    }
 }

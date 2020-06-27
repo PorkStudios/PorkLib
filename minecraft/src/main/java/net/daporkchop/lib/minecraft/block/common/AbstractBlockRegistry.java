@@ -275,9 +275,10 @@ public abstract class AbstractBlockRegistry implements BlockRegistry {
                 BlockState[] metas = this.getMetaArray(propertiesToStates);
                 Collection<Property<?>> properties = Arrays.asList(this.properties);
                 Map<String, Property<?>> propertiesByName = properties.stream().collect(Collectors.toMap(Property::name, PFunctions.identity()));
-                propertiesToStates.values().forEach(state -> {
+                propertiesToStates.forEach((map, state) -> {
                     state.otherMeta = metas;
                     state.propertiesByName = propertiesByName;
+                    state.propertyValues = map;
                 });
                 return this.getDefaultState(propertiesToStates, metas);
             }

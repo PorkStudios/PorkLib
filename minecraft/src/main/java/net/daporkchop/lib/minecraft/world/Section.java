@@ -34,6 +34,8 @@ import java.util.Collection;
 
 /**
  * Representation of a Minecraft chunk section, consisting of a 16³ volume of blocks, along with light levels for block and (optionally) sky light.
+ * <p>
+ * Transparently handles conversion of IDs between the block storage's local block registry and the global block registry.
  *
  * @author DaPorkchop_
  */

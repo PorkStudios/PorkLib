@@ -30,11 +30,6 @@ import net.daporkchop.lib.minecraft.util.Identifier;
  */
 public interface BlockAccess {
     /**
-     * @return the {@link BlockRegistry} used for converting block IDs
-     */
-    BlockRegistry blockRegistry();
-
-    /**
      * Gets the number of block layers that can be accessed.
      * <p>
      * Attempting to access a block layer outside of the range inclusive range {@code 0} to {@code layers() - 1} will throw {@link IndexOutOfBoundsException}.

@@ -18,47 +18,16 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.format.common.storage;
+package net.daporkchop.lib.minecraft.block;
 
-import net.daporkchop.lib.common.misc.Cloneable;
-import net.daporkchop.lib.common.misc.refcount.RefCounted;
-import net.daporkchop.lib.minecraft.block.BlockAccess;
-import net.daporkchop.lib.minecraft.block.BlockRegistry;
-import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
-
-import static net.daporkchop.lib.common.util.PValidation.*;
+import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.minecraft.block.java.JavaBlockRegistry;
+import net.daporkchop.lib.minecraft.version.java.JavaVersion;
 
 /**
- * A 16³ array of block states.
- * <p>
- * All IDs used by all methods use the local block registry.
- *
  * @author DaPorkchop_
- * @see BlockRegistry
  */
-public interface BlockStorage extends BlockAccess, Cloneable<BlockStorage>, RefCounted {
-    /**
-     * The number of blocks in a single block storage.
-     */
-    int NUM_BLOCKS = 16 * 16 * 16;
-
-    static void checkCoords(int x, int y, int z) {
-        checkIndex(x >= 0 && x < 16, "x");
-        checkIndex(y >= 0 && y < 16, "y");
-        checkIndex(z >= 0 && z < 16, "z");
-    }
-
-    /**
-     * @return the {@link BlockRegistry} that this {@link BlockStorage} uses
-     */
-    BlockRegistry localRegistry();
-
-    @Override
-    int refCnt();
-
-    @Override
-    BlockStorage retain() throws AlreadyReleasedException;
-
-    @Override
-    boolean release() throws AlreadyReleasedException;
+@UtilityClass
+class GlobalBlockRegistry {
+    public static final BlockRegistry GLOBAL_REGISTRY = JavaBlockRegistry.forVersion(JavaVersion.latest());
 }

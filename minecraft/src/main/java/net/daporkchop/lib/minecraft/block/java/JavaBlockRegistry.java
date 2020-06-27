@@ -26,6 +26,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.function.PFunctions;
 import net.daporkchop.lib.common.function.io.IOFunction;
@@ -33,6 +34,8 @@ import net.daporkchop.lib.common.misc.InstancePool;
 import net.daporkchop.lib.minecraft.block.BlockRegistry;
 import net.daporkchop.lib.minecraft.block.BlockState;
 import net.daporkchop.lib.minecraft.block.Property;
+import net.daporkchop.lib.minecraft.block.RegistryConverter;
+import net.daporkchop.lib.minecraft.block.common.GlobalRegistryConverter;
 import net.daporkchop.lib.minecraft.block.property.BooleanPropertyImpl;
 import net.daporkchop.lib.minecraft.block.property.EnumPropertyImpl;
 import net.daporkchop.lib.minecraft.block.property.IntPropertyImpl;
@@ -62,14 +65,6 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  */
 @Accessors(fluent = true)
 public class JavaBlockRegistry extends AbstractBlockRegistry {
-    public static JavaBlockRegistry.Builder builder() {
-        return new Builder();
-    }
-
-    protected JavaBlockRegistry(@NonNull Builder builder) {
-        super(builder);
-    }
-
     private static final Map<String, BlockRegistry> CACHE = new ObjObjConcurrentHashMap<>(); //this has a faster computeIfAbsent implementation
     private static final Type BLOCK_MAP_TYPE = PTypes.parameterized(Map.class, String.class, JsonBlock.class);
 
@@ -84,9 +79,10 @@ public class JavaBlockRegistry extends AbstractBlockRegistry {
                 map = InstancePool.getInstance(Gson.class).fromJson(new InputStreamReader(in, StandardCharsets.UTF_8), BLOCK_MAP_TYPE);
             }
 
-            Registry legacyBlockRegistry = JavaRegistries.forVersion(JavaVersion.fromName(version)).get(BlockRegistry.ID);
+            JavaVersion javaVersion = JavaVersion.fromName(version);
+            Registry legacyBlockRegistry = JavaRegistries.forVersion(javaVersion).get(BlockRegistry.ID);
 
-            Builder builder = builder();
+            Builder builder = new JavaBlockRegistry.Builder(converter(javaVersion));
             map.forEach((name, block) -> {
                 Identifier id = Identifier.fromString(name);
                 BlockBuilder blockBuilder = builder.startBlock(id);
@@ -103,6 +99,14 @@ public class JavaBlockRegistry extends AbstractBlockRegistry {
         });
     }
 
+    private static RegistryConverter converter(@NonNull JavaVersion version)    {
+        if (version == JavaVersion.latest())    {
+            return new GlobalRegistryConverter();
+        }
+        //TODO: something
+        return new GlobalRegistryConverter();
+    }
+
     private static Property<?> makeProperty(@NonNull Identifier name, @NonNull List<String> values) {
         try {
             int min = values.stream().mapToInt(Integer::parseUnsignedInt).min().orElse(0);
@@ -116,6 +120,15 @@ public class JavaBlockRegistry extends AbstractBlockRegistry {
         } else {
             return new EnumPropertyImpl(name.getName(), values);
         }
+    }
+
+    @Getter
+    protected final RegistryConverter toGlobal;
+
+    protected JavaBlockRegistry(@NonNull Builder builder, @NonNull RegistryConverter toGlobal) {
+        super(builder);
+
+        this.toGlobal = toGlobal;
     }
 
     @Getter
@@ -136,8 +149,11 @@ public class JavaBlockRegistry extends AbstractBlockRegistry {
         public boolean isVirtual = false;
     }
 
-    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
     public static class Builder extends AbstractBlockRegistry.Builder<JavaBlockRegistry.Builder, JavaBlockRegistry.BlockBuilder, JavaBlockRegistry> {
+        @NonNull
+        protected final RegistryConverter toGlobal;
+
         @Override
         protected JavaBlockRegistry.BlockBuilder blockBuilder(@NonNull Identifier id) {
             return new JavaBlockRegistry.BlockBuilder(this, id);
@@ -145,7 +161,7 @@ public class JavaBlockRegistry extends AbstractBlockRegistry {
 
         @Override
         public JavaBlockRegistry build() {
-            return new JavaBlockRegistry(this);
+            return new JavaBlockRegistry(this, this.toGlobal);
         }
     }
 

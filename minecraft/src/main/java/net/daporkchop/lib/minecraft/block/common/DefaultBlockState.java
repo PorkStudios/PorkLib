@@ -64,6 +64,8 @@ public class DefaultBlockState implements BlockState {
 
     @Getter(AccessLevel.PROTECTED)
     protected Map<String, Property<?>> propertiesByName;
+    @Getter(AccessLevel.PROTECTED)
+    protected Map<Property<?>, ?> propertyValues;
 
     @Override
     public boolean hasLegacyId() {
@@ -109,6 +111,13 @@ public class DefaultBlockState implements BlockState {
     @Override
     public Collection<Property<?>> properties() {
         return uncheckedCast(Collections.unmodifiableSet(this.propertiesByName.keySet()));
+    }
+
+    @Override
+    public <T> T propertyValue(@NonNull Property<T> property) {
+        Object value = this.propertyValues.get(property);
+        checkArg(value != null, "Invalid property %s for block %s!", property, this.id);
+        return uncheckedCast(value);
     }
 
     @Override

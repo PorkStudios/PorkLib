@@ -33,6 +33,7 @@ import net.daporkchop.lib.minecraft.version.DataVersion;
 import net.daporkchop.lib.minecraft.version.MinecraftEdition;
 import net.daporkchop.lib.minecraft.version.MinecraftVersion;
 import net.daporkchop.lib.primitive.map.IntObjMap;
+import net.daporkchop.lib.primitive.map.concurrent.IntObjConcurrentHashMap;
 import net.daporkchop.lib.primitive.map.concurrent.ObjObjConcurrentHashMap;
 import net.daporkchop.lib.primitive.map.open.IntObjOpenHashMap;
 
@@ -64,7 +65,7 @@ public final class JavaVersion extends MinecraftVersion {
 
     @UtilityClass
     private static class LatestVersion {
-        private final JavaVersion LATEST = fromName("1.15.2");
+        private final JavaVersion LATEST = fromName("1.16.1");
     }
 
     @UtilityClass
@@ -85,6 +86,7 @@ public final class JavaVersion extends MinecraftVersion {
     }
 
     private static final Map<String, JavaVersion> NAME_CACHE = new ObjObjConcurrentHashMap<>(); //fast computeIfAbsent
+    private static final IntObjMap<JavaVersion> DATA_VERSION_CACHE = new IntObjConcurrentHashMap<>();
 
     public static JavaVersion fromName(@NonNull String nameIn) {
         return NAME_CACHE.computeIfAbsent(nameIn.intern(), name -> {
@@ -103,9 +105,11 @@ public final class JavaVersion extends MinecraftVersion {
         });
     }
 
-    public static JavaVersion fromDataVersion(int dataVersion) {
-        String name = DataVersionToId.MAP.get(dataVersion);
-        return name != null ? fromName(name) : new JavaVersion(null, -1L, -1, dataVersion);
+    public static JavaVersion fromDataVersion(int _dataVersion) {
+        return DATA_VERSION_CACHE.computeIfAbsent(_dataVersion, dataVersion -> {
+            String name = DataVersionToId.MAP.get(dataVersion);
+            return name != null ? fromName(name) : new JavaVersion(null, -1L, -1, dataVersion);
+        });
     }
 
     /**

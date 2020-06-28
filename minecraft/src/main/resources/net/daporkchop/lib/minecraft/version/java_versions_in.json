@@ -2,6 +2,50 @@
 //formatted using regex subsitution
 //regex: ^Java Edition (.*?)\s+(\d{2,})\s+(\d{3,})$
 {
+  "1.16.1": {
+    "protocol": 736,
+    "data": 2567
+  },
+  "1.16": {
+    "protocol": 735,
+    "data": 2566
+  },
+  "1.16 Release Candidate 1": {
+    "protocol": 734,
+    "data": 2565
+  },
+  "1.16 Pre-release 8": {
+    "protocol": 733,
+    "data": 2564
+  },
+  "1.16 Pre-release 7": {
+    "protocol": 732,
+    "data": 2563
+  },
+  "1.16 Pre-release 6": {
+    "protocol": 730,
+    "data": 2562
+  },
+  "1.16 Pre-release 5": {
+    "protocol": 729,
+    "data": 2561
+  },
+  "1.16 Pre-release 4": {
+    "protocol": 727,
+    "data": 2560
+  },
+  "1.16 Pre-release 3": {
+    "protocol": 725,
+    "data": 2559
+  },
+  "1.16 Pre-release 2": {
+    "protocol": 722,
+    "data": 2557
+  },
+  "1.16 Pre-release 1": {
+    "protocol": 721,
+    "data": 2556
+  },
   "20w22a": {
     "protocol": 719,
     "data": 2555

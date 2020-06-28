@@ -47,6 +47,11 @@ public abstract class AbstractBlockStorage extends AbstractRefCounted implements
     public abstract int layers();
 
     @Override
+    public BlockRegistry localRegistry() {
+        return null; //TODO
+    }
+
+    @Override
     public BlockState getBlockState(int x, int y, int z) {
         return this.blockRegistry.getState(this.getBlockRuntimeId(x, y, z));
     }

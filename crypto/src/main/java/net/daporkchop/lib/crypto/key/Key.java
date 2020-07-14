@@ -18,35 +18,33 @@
  *
  */
 
-package net.daporkchop.lib.crypto.cipher.block;
+package net.daporkchop.lib.crypto.key;
 
-import org.bouncycastle.crypto.paddings.BlockCipherPadding;
-import org.bouncycastle.crypto.paddings.ISO10126d2Padding;
-import org.bouncycastle.crypto.paddings.ISO7816d4Padding;
-import org.bouncycastle.crypto.paddings.PKCS7Padding;
-import org.bouncycastle.crypto.paddings.TBCPadding;
-import org.bouncycastle.crypto.paddings.X923Padding;
-import org.bouncycastle.crypto.paddings.ZeroBytePadding;
+import io.netty.buffer.ByteBuf;
+import net.daporkchop.lib.common.misc.refcount.RefCounted;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
-import java.util.function.Supplier;
+/**
+ * Base representation of a key.
+ *
+ * @author DaPorkchop_
+ */
+public interface Key extends RefCounted {
+    /**
+     * Gets the binary-encoded form of this key.
+     * <p>
+     * The returned buffer may be read-only. Modification of the buffer contents will result in undefined behavior.
+     *
+     * @return the binary-encoded form of this key
+     */
+    ByteBuf encoded();
 
-public enum CipherPadding {
-    PKCS7("PKCS7Padding", PKCS7Padding::new),
-    ISO10126_2("ISO10126-2Padding", ISO10126d2Padding::new),
-    ISO7816_4("ISO7816-4Padding", ISO7816d4Padding::new),
-    X9_23("X9.23Padding", X923Padding::new),
-    TBC("TBCPadding", TBCPadding::new),
-    ZERO_BYTE("ZeroBytePadding", ZeroBytePadding::new);
+    @Override
+    int refCnt();
 
-    public final String name;
-    private final Supplier<BlockCipherPadding> supplier;
+    @Override
+    Key retain() throws AlreadyReleasedException;
 
-    CipherPadding(String name, Supplier<BlockCipherPadding> supplier) {
-        this.name = name.intern();
-        this.supplier = supplier;
-    }
-
-    public BlockCipherPadding create() {
-        return this.supplier.get();
-    }
+    @Override
+    boolean release() throws AlreadyReleasedException;
 }

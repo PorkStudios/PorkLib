@@ -18,36 +18,22 @@
  *
  */
 
-package net.daporkchop.lib.crypto.cipher.block;
+package net.daporkchop.lib.crypto;
 
+import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.common.ref.ThreadRef;
-import net.daporkchop.lib.hash.util.Digest;
-
-import java.util.function.Consumer;
+import net.daporkchop.lib.crypto.key.Key;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 /**
- * A function that updates a block cipher's IV (initialization vector) before initialization
+ * Representation of a symmetric cipher.
+ * <p>
+ * Symmetric ciphers use the same key for encryption and decryption. Plaintext and ciphertext are generally exactly
+ * the same size, although some padding may be applied at the end during encryption.
  *
  * @author DaPorkchop_
  */
-public interface IVUpdater extends Consumer<byte[]> {
-    IVUpdater SHA_256 = ofHash(Digest.SHA_256);
-    IVUpdater SHA3_256 = ofHash(Digest.SHA3_256);
-
-    static IVUpdater ofHash(@NonNull Digest digest) {
-        ThreadRef<byte[]> cache = ThreadRef.soft(() -> new byte[digest.getHashSize()]);
-        return iv -> {
-            byte[] buf = cache.get();
-            for (int i = 0; i < iv.length; i += buf.length) {
-                digest.start(buf).append(iv).hash();
-                for (int j = 0; j < buf.length && j + i < iv.length; j++) {
-                    iv[i + j] = buf[j];
-                }
-            }
-        };
-    }
-
+public interface SymmetricCipher extends Cipher {
     @Override
-    void accept(byte[] iv);
+    SymmetricCipher retain() throws AlreadyReleasedException;
 }

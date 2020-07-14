@@ -18,21 +18,29 @@
  *
  */
 
-package net.daporkchop.lib.crypto.sig;
+package net.daporkchop.lib.crypto;
 
-import org.bouncycastle.crypto.DSA;
-import org.bouncycastle.crypto.signers.ECDSASigner;
+import io.netty.buffer.ByteBuf;
+import lombok.NonNull;
+import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
-import java.util.function.Supplier;
+/**
+ * Representation of a block cipher.
+ * <p>
+ * Block ciphers are symmetric ciphers which process data in fixed-size blocks. Plaintext and ciphertext are always
+ * exactly the same length, and data is only accepted in a size multiple of the block size.
+ *
+ * @author DaPorkchop_
+ */
+public interface BlockCipher extends SymmetricCipher {
+    @Override
+    void process(@NonNull ByteBuf src, @NonNull ByteBuf dst);
 
-public enum SignatureAlgorithms {
-    ECDSA("ECDSA", ECDSASigner::new);
+    /**
+     * @return the size of the blocks used by this cipher, in bytes
+     */
+    int blockSize();
 
-    public final Supplier<DSA> supplier;
-    public final String name;
-
-    SignatureAlgorithms(String name, Supplier<DSA> supplier) {
-        this.name = name.intern();
-        this.supplier = supplier;
-    }
+    @Override
+    BlockCipher retain() throws AlreadyReleasedException;
 }

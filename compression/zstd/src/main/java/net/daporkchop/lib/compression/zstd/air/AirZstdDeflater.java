@@ -20,6 +20,7 @@
 
 package net.daporkchop.lib.compression.zstd.air;
 
+import io.airlift.compress.MalformedInputException;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import lombok.Getter;
@@ -36,6 +37,7 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import static java.lang.Math.*;
 import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
@@ -70,8 +72,8 @@ final class AirZstdDeflater extends AbstractRefCounted implements ZstdDeflater {
             src.skipBytes(src.readableBytes());
             dst.writerIndex(dst.writerIndex() + dstBuf.flip().remaining());
             return true;
-        } catch (IllegalArgumentException e) {
-            if (e.getMessage() == "Output buffer too small") {
+        } catch (IllegalArgumentException | MalformedInputException e) {
+            if (e.getMessage().contains("Output buffer too small")) {
                 return false;
             } else {
                 throw e;
@@ -81,20 +83,48 @@ final class AirZstdDeflater extends AbstractRefCounted implements ZstdDeflater {
 
     @Override
     public void compressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict, int level) throws IndexOutOfBoundsException {
+        checkArg(dict == null, "dictionary not supported!");
+        this.compressGrowing0(src, dst);
     }
 
     @Override
     public void compressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdDeflateDictionary dict) throws IndexOutOfBoundsException {
+        checkArg(dict == null, "dictionary not supported!");
+        this.compressGrowing0(src, dst);
+    }
+
+    protected void compressGrowing0(@NonNull ByteBuf src, @NonNull ByteBuf dst) {
+        int bound = this.provider.compressBound(src.readableBytes());
+        int curr = min(256, bound);
+
+        ByteBuffer srcBuf = src.nioBuffer();
+
+        while (true) {
+            dst.ensureWritable(curr); //grow dst buffer as needed
+            ByteBuffer dstBuf = dst.nioBuffer(dst.writerIndex(), dst.writableBytes());
+            try {
+                this.provider.compressor.compress(srcBuf, dstBuf);
+                src.skipBytes(src.readableBytes());
+                dst.writerIndex(dst.writerIndex() + dstBuf.flip().remaining());
+                return;
+            } catch (IllegalArgumentException | MalformedInputException e) {
+                if (!e.getMessage().contains("Output buffer too small") && curr < bound) {
+                    throw e;
+                }
+            }
+
+            curr = min(curr << 1, bound);
+        }
     }
 
     @Override
     public DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, int bufferSize, ByteBuf dict, int level) throws IOException {
-        return null;
+        throw new UnsupportedOperationException("stream");
     }
 
     @Override
     public DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, int bufferSize, ZstdDeflateDictionary dict) throws IOException {
-        return null;
+        throw new UnsupportedOperationException("stream");
     }
 
     @Override

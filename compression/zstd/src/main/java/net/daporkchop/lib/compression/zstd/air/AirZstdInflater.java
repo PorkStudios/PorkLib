@@ -20,6 +20,7 @@
 
 package net.daporkchop.lib.compression.zstd.air;
 
+import io.airlift.compress.MalformedInputException;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import lombok.Getter;
@@ -31,11 +32,13 @@ import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
 import net.daporkchop.lib.compression.zstd.ZstdInflateDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdInflater;
 import net.daporkchop.lib.compression.zstd.options.ZstdInflaterOptions;
+import net.daporkchop.lib.compression.zstd.util.exception.ContentSizeUnknownException;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import static java.lang.Math.min;
 import static net.daporkchop.lib.common.util.PValidation.checkArg;
 
 /**
@@ -70,8 +73,8 @@ final class AirZstdInflater extends AbstractRefCounted implements ZstdInflater {
             src.skipBytes(src.readableBytes());
             dst.writerIndex(dst.writerIndex() + dstBuf.flip().remaining());
             return true;
-        } catch (IllegalArgumentException e) {
-            if (e.getMessage() == "Output buffer too small") {
+        } catch (IllegalArgumentException | MalformedInputException e) {
+            if (e.getMessage().contains("Output buffer too small")) {
                 return false;
             } else {
                 throw e;
@@ -81,20 +84,52 @@ final class AirZstdInflater extends AbstractRefCounted implements ZstdInflater {
 
     @Override
     public void decompressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) throws IndexOutOfBoundsException {
+        checkArg(dict == null, "dictionary not supported!");
+        this.decompressGrowing0(src, dst);
     }
 
     @Override
     public void decompressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdInflateDictionary dict) throws IndexOutOfBoundsException {
+        checkArg(dict == null, "dictionary not supported!");
+        this.decompressGrowing0(src, dst);
+    }
+
+    protected void decompressGrowing0(@NonNull ByteBuf src, @NonNull ByteBuf dst) {
+        int curr = 256;
+        try {
+            curr = this.provider.frameContentSize(src);
+        } catch (ContentSizeUnknownException e) {
+            //ignore
+        }
+
+        ByteBuffer srcBuf = src.nioBuffer();
+
+        while (true) {
+            dst.ensureWritable(curr); //grow dst buffer as needed
+            ByteBuffer dstBuf = dst.nioBuffer(dst.writerIndex(), dst.writableBytes());
+            try {
+                this.provider.decompressor.decompress(srcBuf, dstBuf);
+                src.skipBytes(src.readableBytes());
+                dst.writerIndex(dst.writerIndex() + dstBuf.flip().remaining());
+                return;
+            } catch (IllegalArgumentException | MalformedInputException e) {
+                if (!e.getMessage().contains("Output buffer too small")) {
+                    throw e;
+                }
+            }
+
+            curr <<= 1;
+        }
     }
 
     @Override
     public DataIn decompressionStream(@NonNull DataIn in, ByteBufAllocator bufferAlloc, int bufferSize, ByteBuf dict) throws IOException {
-        return null;
+        throw new UnsupportedOperationException("stream");
     }
 
     @Override
     public DataIn decompressionStream(@NonNull DataIn in, ByteBufAllocator bufferAlloc, int bufferSize, ZstdInflateDictionary dict) throws IOException {
-        return null;
+        throw new UnsupportedOperationException("stream");
     }
 
     @Override

@@ -35,9 +35,6 @@ import net.daporkchop.lib.compression.zstd.options.ZstdDeflaterOptions;
 import net.daporkchop.lib.compression.zstd.options.ZstdInflaterOptions;
 import net.daporkchop.lib.compression.zstd.util.exception.ContentSizeUnknownException;
 import net.daporkchop.lib.natives.NativeException;
-import net.daporkchop.lib.unsafe.PUnsafe;
-
-import java.lang.reflect.Method;
 
 import static java.lang.Math.*;
 import static net.daporkchop.lib.common.util.PValidation.*;
@@ -84,8 +81,13 @@ final class AirZstd implements ZstdProvider {
     }
 
     @Override
+    public int compressBound(int srcSize) {
+        return this.compressor.maxCompressedLength(srcSize);
+    }
+
+    @Override
     public long compressBoundLong(long srcSize) {
-        return this.compressor.maxCompressedLength(toInt(srcSize, "srcSize"));
+        return this.compressBound(toInt(srcSize, "srcSize"));
     }
 
     @Override

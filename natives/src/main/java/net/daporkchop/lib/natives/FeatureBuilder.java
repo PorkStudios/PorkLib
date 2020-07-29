@@ -90,13 +90,20 @@ public final class FeatureBuilder<F extends Feature<F>> {
         return this;
     }
 
-    public synchronized F build() {
+    public F build() {
+        return this.build(false);
+    }
+
+    public synchronized F build(boolean printStackTraces) {
         Collection<FeatureImplementationLoadException> errors = new ArrayList<>();
         for (FeatureImplementation<F> implementation : this.implementations) {
             try {
                 return Objects.requireNonNull(implementation.create(), "instance was null!");
             } catch (OutOfMemoryError ignored) {
             } catch (Throwable t) {
+                if (printStackTraces)   {
+                    t.printStackTrace();
+                }
                 errors.add(new FeatureImplementationLoadException(implementation.toString(), t));
             }
         }

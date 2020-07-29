@@ -23,7 +23,8 @@ package net.daporkchop.lib.minecraft.block;
 /**
  * Bi-directional lookup for converting block runtime IDs between a given block registry and the global block registry.
  * <p>
- * Note that the conversion operation may be lossy.
+ * Note that the conversion operation may be lossy. Generally, a lookup for an unknown ID or an ID with no decent equivalent in the other version
+ * will return {@code 0} (air).
  *
  * @author DaPorkchop_
  */

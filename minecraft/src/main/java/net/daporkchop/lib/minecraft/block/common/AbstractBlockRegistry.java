@@ -258,6 +258,7 @@ public abstract class AbstractBlockRegistry implements BlockRegistry {
                 propertiesToStates.put(Collections.emptyMap(), state);
                 state.otherMeta = this.getMetaArray(propertiesToStates);
                 state.propertiesByName = Collections.emptyMap();
+                state.propertyValues = Collections.emptyMap();
                 return state;
             } else {
                 LinkedHashMap<Map<Property<?>, ?>, DefaultBlockState> propertiesToStates = new LinkedHashMap<>();

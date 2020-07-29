@@ -18,9 +18,41 @@
  *
  */
 
-dependencies {
-    compile project(":compression")
-    compile project(":natives")
+package net.daporkchop.lib.natives.impl;
 
-    compile "io.airlift:aircompressor:$aircompressorVersion"
+import lombok.NonNull;
+import net.daporkchop.lib.natives.Feature;
+
+import static net.daporkchop.lib.common.util.PValidation.*;
+
+/**
+ * @author DaPorkchop_
+ */
+public class CheckedFeatureWrapper<F extends Feature<F>> extends FeatureImplementation<F> {
+    protected final FeatureImplementation<F> delegate;
+    protected final Runnable[] checks;
+
+    public CheckedFeatureWrapper(@NonNull FeatureImplementation<F> delegate, @NonNull Runnable... checks) {
+        super(delegate.className);
+
+        this.delegate = delegate;
+
+        this.checks = checks.clone();
+        for (Runnable check : this.checks) {
+            checkArg(check != null, "no checks may be null!");
+        }
+    }
+
+    @Override
+    public F create() throws Throwable {
+        for (Runnable check : this.checks) {
+            check.run();
+        }
+        return this.delegate.create();
+    }
+
+    @Override
+    public String toString() {
+        return this.delegate.toString();
+    }
 }

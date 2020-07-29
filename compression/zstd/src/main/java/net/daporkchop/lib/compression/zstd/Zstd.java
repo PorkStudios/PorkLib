@@ -21,7 +21,10 @@
 package net.daporkchop.lib.compression.zstd;
 
 import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.common.system.PlatformInfo;
 import net.daporkchop.lib.natives.FeatureBuilder;
+import net.daporkchop.lib.natives.impl.CheckedFeatureWrapper;
+import net.daporkchop.lib.natives.impl.JavaFeatureImplementation;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 
@@ -32,6 +35,10 @@ import static net.daporkchop.lib.common.util.PValidation.*;
 public class Zstd {
     public final ZstdProvider PROVIDER = FeatureBuilder.<ZstdProvider>create(Zstd.class)
             .addNative("net.daporkchop.lib.compression.zstd.natives.NativeZstd")
+            .add(new CheckedFeatureWrapper<>(
+                    new JavaFeatureImplementation<>("net.daporkchop.lib.compression.zstd.air.AirZstdProvider", Zstd.class.getClassLoader()),
+                    () -> checkState(PlatformInfo.IS_LITTLE_ENDIAN, "aircompressor only works on little-endian systems!"),
+                    () -> checkState(PlatformInfo.UNALIGNED, "aircompressor requires unaligned memory access!")))
             .build();
 
     public final int LEVEL_DEFAULT = 0;

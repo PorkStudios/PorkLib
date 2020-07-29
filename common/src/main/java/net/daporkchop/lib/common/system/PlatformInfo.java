@@ -20,6 +20,7 @@
 
 package net.daporkchop.lib.common.system;
 
+import io.netty.util.internal.PlatformDependent;
 import lombok.experimental.UtilityClass;
 
 import java.nio.ByteOrder;
@@ -120,18 +121,7 @@ public class PlatformInfo {
     public final boolean IS_32BIT = ARCHITECTURE.bits() == 32;
     public final boolean IS_64BIT = ARCHITECTURE.bits() == 64;
 
-    public final boolean UNALIGNED;
-
-    static {
-        boolean unaligned = ARCHITECTURE == Architecture.x86 || ARCHITECTURE == Architecture.x86_64;
-        if (!unaligned) {
-            try {
-                //TODO
-            } finally {
-            }
-        }
-        UNALIGNED = unaligned;
-    }
+    public final boolean UNALIGNED = PlatformDependent.isUnaligned();
 
     public final ByteOrder BYTE_ORDER = ByteOrder.nativeOrder();
     public final boolean IS_LITTLE_ENDIAN = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN;

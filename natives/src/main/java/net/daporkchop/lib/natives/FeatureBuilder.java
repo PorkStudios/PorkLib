@@ -33,7 +33,9 @@ import net.daporkchop.lib.unsafe.PUnsafe;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 
@@ -52,10 +54,12 @@ public final class FeatureBuilder<F extends Feature<F>> {
         return new FeatureBuilder<>(currentClass);
     }
 
-    private final Collection<FeatureImplementation<F>> implementations = new LinkedHashSet<>();
+    private final List<FeatureImplementation<F>> implementations = new ArrayList<>();
 
     @NonNull
     private final Class<?> currentClass;
+
+    //native
 
     public FeatureBuilder<F> addNative(@NonNull String className) {
         return this.add(new NativeFeatureImplementation<>(className, className.replace('.', '_'), this.currentClass.getClassLoader()));
@@ -73,6 +77,8 @@ public final class FeatureBuilder<F extends Feature<F>> {
         return this.add(new NativeFeatureImplementation<>(className, libName, loader));
     }
 
+    //java
+
     public FeatureBuilder<F> addJava(@NonNull String className) {
         return this.add(new JavaFeatureImplementation<>(className, this.currentClass.getClassLoader()));
     }
@@ -86,12 +92,12 @@ public final class FeatureBuilder<F extends Feature<F>> {
     }
 
     public synchronized FeatureBuilder<F> add(@NonNull FeatureImplementation<F> implementation) {
-        checkState(this.implementations.add(implementation), "implementation (%s) was already added!", implementation);
+        this.implementations.add(implementation);
         return this;
     }
 
     public F build() {
-        return this.build(false);
+        return this.build(Boolean.parseBoolean(System.getProperty("porklib.native.printStackTraces", "false")));
     }
 
     public synchronized F build(boolean printStackTraces) {

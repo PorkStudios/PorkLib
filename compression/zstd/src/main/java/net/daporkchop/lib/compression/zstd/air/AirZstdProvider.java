@@ -18,9 +18,16 @@
  *
  */
 
-dependencies {
-    compile project(":compression")
-    compile project(":natives")
+package net.daporkchop.lib.compression.zstd.air;
 
-    compile "io.airlift:aircompressor:$aircompressorVersion"
+import lombok.Getter;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.compression.zstd.ZstdProvider;
+
+/**
+ * @author DaPorkchop_
+ */
+@Getter
+@Accessors(fluent = true)
+final class AirZstdProvider implements ZstdProvider {
 }

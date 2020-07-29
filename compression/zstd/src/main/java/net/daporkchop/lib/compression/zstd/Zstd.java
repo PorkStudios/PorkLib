@@ -34,9 +34,9 @@ import static net.daporkchop.lib.common.util.PValidation.*;
 @UtilityClass
 public class Zstd {
     public final ZstdProvider PROVIDER = FeatureBuilder.<ZstdProvider>create(Zstd.class)
-            .addNative("net.daporkchop.lib.compression.zstd.natives.NativeZstd")
-            .add(new CheckedFeatureWrapper<>(
-                    new JavaFeatureImplementation<>("net.daporkchop.lib.compression.zstd.air.AirZstdProvider", Zstd.class.getClassLoader()),
+            //.addNative("net.daporkchop.lib.compression.zstd.natives.NativeZstd")
+            .add(new CheckedFeatureWrapper<ZstdProvider>(
+                    new JavaFeatureImplementation<ZstdProvider>("net.daporkchop.lib.compression.zstd.air.AirZstd", Zstd.class.getClassLoader()),
                     () -> checkState(PlatformInfo.IS_LITTLE_ENDIAN, "aircompressor only works on little-endian systems!"),
                     () -> checkState(PlatformInfo.UNALIGNED, "aircompressor requires unaligned memory access!")))
             .build();

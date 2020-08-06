@@ -566,6 +566,13 @@ public class PUnsafe {
         try {
             return UNSAFE.objectFieldOffset(clazz.getDeclaredField(fieldName));
         } catch (NoSuchFieldException e) {
+            while ((clazz = clazz.getSuperclass()) != null)   {
+                try {
+                    return UNSAFE.objectFieldOffset(clazz.getDeclaredField(fieldName));
+                } catch (NoSuchFieldException e1)   {
+                    //ignore
+                }
+            }
             UNSAFE.throwException(e);
             throw new RuntimeException(e);
         }

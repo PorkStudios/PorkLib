@@ -20,24 +20,30 @@
 
 package net.daporkchop.lib.binary.netty.buf;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.buffer.UnpooledUnsafeDirectByteBuf;
-import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.nio.ByteBuffer;
 
 /**
- * Wraps a {@link ByteBuffer}, without being able to release it.
- *
  * @author DaPorkchop_
  */
-public class NotFreeingWrappedUnpooledUnsafeDirectByteBuf extends WrappedUnpooledUnsafeDirectByteBuf {
-    public NotFreeingWrappedUnpooledUnsafeDirectByteBuf(ByteBuffer buffer, int size) {
-        super(buffer, size);
+public abstract class WrappedUnpooledUnsafeDirectByteBuf extends UnpooledUnsafeDirectByteBuf {
+    public WrappedUnpooledUnsafeDirectByteBuf(ByteBuffer buffer, int size) {
+        super(UnpooledByteBufAllocator.DEFAULT, buffer, size);
     }
 
     @Override
-    protected void deallocate() {
+    protected void freeDirect(ByteBuffer buffer) {
+        throw new UnsupportedOperationException(this.getClass().getCanonicalName());
     }
+
+    @Override
+    public ByteBuf capacity(int newCapacity) {
+        throw new UnsupportedOperationException(this.getClass().getCanonicalName());
+    }
+
+    @Override
+    protected abstract void deallocate();
 }

@@ -30,6 +30,7 @@ import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.UUID;
 
 /**
  * Abstraction of an implementation of a {@link Feature} using native code.
@@ -37,7 +38,7 @@ import java.nio.file.StandardCopyOption;
  * @author DaPorkchop_
  */
 public abstract class NativeFeature<F extends Feature<F>> implements Feature<F> {
-    private static final String LIB_FMT;
+    private static final String LIB_ARCH;
     private static final String LIB_EXT;
 
     public static final boolean AVAILABLE;
@@ -48,34 +49,44 @@ public abstract class NativeFeature<F extends Feature<F>> implements Feature<F> 
             case Linux:
                 switch (PlatformInfo.ARCHITECTURE) {
                     case ARM:
-                        LIB_FMT = "arm-linux-gnueabihf/"; //TODO: something about hard float detection
+                        LIB_ARCH = "arm-linux-gnueabihf"; //TODO: something about hard float detection
                         break;
                     case AARCH64:
-                        LIB_FMT = "aarch64-linux-gnu/";
+                        LIB_ARCH = "aarch64-linux-gnu";
                         break;
                     case x86_64:
-                        LIB_FMT = "x86_64-linux-gnu/";
+                        LIB_ARCH = "x86_64-linux-gnu";
                         break;
                     default:
-                        LIB_FMT = null;
+                        LIB_ARCH = null;
                 }
-                LIB_EXT = LIB_FMT == null ? null : ".so";
+                LIB_EXT = LIB_ARCH == null ? null : "so";
                 break;
             case Windows:
                 switch (PlatformInfo.ARCHITECTURE) {
                     case x86_64:
-                        LIB_FMT = "x86_64-w64-mingw32/";
+                        LIB_ARCH = "x86_64-w64-mingw32";
                         break;
                     default:
-                        LIB_FMT = null;
+                        LIB_ARCH = null;
                 }
-                LIB_EXT = LIB_FMT == null ? null : ".dll";
+                LIB_EXT = LIB_ARCH == null ? null : "dll";
                 break;
             default:
-                LIB_EXT = LIB_FMT = null;
+                LIB_EXT = LIB_ARCH = null;
         }
 
-        AVAILABLE = LIB_FMT != null;
+        AVAILABLE = LIB_ARCH != null;
+    }
+
+    public static String formatLibName(@NonNull String libName) {
+        String prefix = "";
+        if (libName.startsWith("/"))    {
+            libName = libName.substring(1);
+            prefix = "";
+        }
+        String format = libName.isEmpty() ? "%1$s%2$s.%4$s" : "%1$s%2$s/%3$s.%4$s";
+        return String.format(format, prefix, LIB_ARCH, libName, LIB_EXT);
     }
 
     /**
@@ -92,23 +103,28 @@ public abstract class NativeFeature<F extends Feature<F>> implements Feature<F> 
             throw new NativeFeaturesUnavailableException(libName);
         }
 
-        String libPath = LIB_FMT + libName + LIB_EXT;
-        if (classLoader.getResource(libPath) == null) {
-            //library file couldn't be found
-            throw new FileNotFoundException("resource: " + libPath + ", classLoader: " + classLoader);
-        }
-
         //attempt to find the class before making any files
         Class<?> clazz = Class.forName(className, false, classLoader);
 
-        //create new library file
-        File tempFile = File.createTempFile(libName, LIB_EXT);
-        tempFile.deleteOnExit();
+        String libPath = formatLibName(libName);
 
-        try (InputStream in = classLoader.getResourceAsStream(libPath)) {
+        //create new library file
+        File tempFile = File.createTempFile(libName + UUID.randomUUID(), LIB_EXT);
+
+        try (InputStream in = clazz.getResourceAsStream(libPath)) {
+            if (in == null) {//library file couldn't be found
+                //delete temporary file now
+                tempFile.delete();
+
+                throw new FileNotFoundException("resource: " + libPath + ", class: " + clazz.getCanonicalName());
+            }
+
             //copy library from resource to temp directory
             Files.copy(in, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         }
+
+        //mark temporary file for deletion
+        tempFile.deleteOnExit();
 
         //pretend to load the library from the other class rather than NativeFeature
         Method method = Runtime.class.getDeclaredMethod("load0", Class.class, String.class);

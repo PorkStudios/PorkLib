@@ -62,7 +62,7 @@ public final class FeatureBuilder<F extends Feature<F>> {
     //native
 
     public FeatureBuilder<F> addNative(@NonNull String className) {
-        return this.add(new NativeFeatureImplementation<>(className, className.replace('.', '_'), this.currentClass.getClassLoader()));
+        return this.add(new NativeFeatureImplementation<>(className, "", this.currentClass.getClassLoader()));
     }
 
     public FeatureBuilder<F> addNative(@NonNull String className, @NonNull String libName) {

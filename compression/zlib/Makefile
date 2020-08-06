@@ -1,7 +1,7 @@
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 .PHONY: $(BUILD) clean
 
-export OUTDIR	:=	$(CURDIR)/src/main/resources
+export OUTDIR	:=	$(CURDIR)/src/main/resources/net/daporkchop/lib/compression/zlib/natives
 BUILDDIR		:=	build/native/$(BUILD_TYPE)/$(BUILD)
 
 clean:
@@ -27,9 +27,9 @@ OFILES			:=	$(addsuffix .o,$(subst /,__,$(CFILES)) $(subst /,__,$(CPPFILES)))
 INCLUDE			:=	$(addprefix -I,$(INCLUDES) $(CURDIR))
 
 build: libzlib.$(EXT)
-	@echo "Copying libzlib.$(EXT) to $(OUTDIR)/$(BUILD)/..."
-	@[ -d $(OUTDIR)/$(BUILD) ] || mkdir -p $(OUTDIR)/$(BUILD)
-	@cp libzlib.$(EXT) $(OUTDIR)/$(BUILD)/net_daporkchop_lib_compression_zlib_natives_NativeZlib.$(EXT)
+	@echo "Copying libzlib.$(EXT) to $(OUTDIR)/..."
+	@[ -d $(OUTDIR) ] || mkdir -p $(OUTDIR)
+	@cp libzlib.$(EXT) $(OUTDIR)/$(BUILD).$(EXT)
 
 libzlib.$(EXT): $(CFILES) $(CPPFILES) $(OFILES) $(CURDIR)/lib-zlib/libz-ng.a
 	@echo "Linking $@..."

@@ -732,7 +732,7 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
                                 }
                                 prev = node;
                                 if ((node = node.next) == null) {
-                                    if ((value = remappingFunction.apply<1!%As_P1_%>(key, node.value)) != defaultValue) {
+                                    if ((value = remappingFunction.apply<1!%As_P1_%>(key, defaultValue)) != defaultValue) {
                                         delta = 1;
                                         prev.next = new Node<%<>%>(hash, key, value, null);
                                     }

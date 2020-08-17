@@ -22,6 +22,7 @@ package net.daporkchop.lib.common.system;
 
 import lombok.experimental.UtilityClass;
 
+import java.lang.reflect.Method;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
@@ -94,15 +95,15 @@ public class PlatformInfo {
 
         if (os.startsWith("linux")) {
             OPERATING_SYSTEM = OperatingSystem.Linux;
-        } else if (os.startsWith("freebsd"))    {
+        } else if (os.startsWith("freebsd")) {
             OPERATING_SYSTEM = OperatingSystem.FreeBSD;
-        } else if (os.startsWith("openbsd"))    {
+        } else if (os.startsWith("openbsd")) {
             OPERATING_SYSTEM = OperatingSystem.OpenBSD;
         } else if (os.startsWith("netbsd")) {
             OPERATING_SYSTEM = OperatingSystem.NetBSD;
-        } else if (os.startsWith("solaris"))    {
+        } else if (os.startsWith("solaris")) {
             OPERATING_SYSTEM = OperatingSystem.Solaris;
-        } else if (os.startsWith("windows"))    {
+        } else if (os.startsWith("windows")) {
             OPERATING_SYSTEM = OperatingSystem.Windows;
         } else {
             OPERATING_SYSTEM = OperatingSystem.UNKNOWN;
@@ -123,17 +124,20 @@ public class PlatformInfo {
     public final boolean UNALIGNED;
 
     static {
-        boolean unaligned = ARCHITECTURE == Architecture.x86 || ARCHITECTURE == Architecture.x86_64;
-        if (!unaligned) {
-            try {
-                //TODO
-            } finally {
-            }
+        boolean unaligned = false;
+        try {
+            Class<?> bitsClass = Class.forName("java.nio.Bits", false, ClassLoader.getSystemClassLoader());
+            Method unalignedMethod = bitsClass.getDeclaredMethod("unaligned");
+            unalignedMethod.setAccessible(true);
+            unaligned = (boolean) unalignedMethod.invoke(null);
+        } catch (Exception e) {
+            unaligned = ARCHITECTURE == Architecture.x86 || ARCHITECTURE == Architecture.x86_64;
+        } finally {
+            UNALIGNED = unaligned;
         }
-        UNALIGNED = unaligned;
     }
 
     public final ByteOrder BYTE_ORDER = ByteOrder.nativeOrder();
     public final boolean IS_LITTLE_ENDIAN = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN;
-    public final boolean IS_BIG_ENDIAN    = ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN;
+    public final boolean IS_BIG_ENDIAN = ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN;
 }

@@ -199,8 +199,10 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
             }
             int index = hash & (table.length - 1);
             Node_G_ node = getArrayVolatile(table, index);
-            if (node == null && casArray(table, index, null, new Node<%<>%>(hash, key, value, null)))   {
-                break; //bin is empty, we can CAS the entry right into it with no additional synchronization logic
+            if (node == null)   {
+                if (casArray(table, index, null, new Node<%<>%>(hash, key, value, null)))   {
+                    break; //bin is empty, we can CAS the entry right into it with no additional synchronization logic
+                }
             } else if (node.hash == MOVED)  {
                 table = this.helpTransfer(table, node);
             } else {
@@ -402,13 +404,17 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
 
     @Override
     public String toString()    {
+        Node_G_[] table = this.table;
+        if (table == null)  {
+            return "{}";
+        }
+
         try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get())  {
             StringBuilder builder = handle.get();
             builder.setLength(0);
             builder.append('{');
 
-            Node_G_[] table = this.table;
-            int f = table == null ? 0 : table.length;
+            int f = table.length;
             Traverser_G_ it = new Traverser<%<>%>(table, f, 0, f);
             Node_G_ node = it.advance();
             while (true)    {
@@ -422,6 +428,9 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
                 }
                 builder.append(',').append(' ');
             }
+            if (builder.length() > 1)   {
+                builder.setLength(builder.length() - 2);
+            }
             return builder.append('}').toString();
         }
     }
@@ -434,7 +443,10 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
             @SuppressWarnings("unchecked")%>
             _P0__P1_Map_G_ m = (_P0__P1_Map_G_) o;
             Node_G_[] table = this.table;
-            int f = table == null ? 0 : table.length;
+            if (table == null)  {
+                return m.isEmpty();
+            }
+            int f = table.length;
             Traverser_G_ it = new Traverser<%<>%>(table, f, 0, f);
             for (Node_G_ node = it.advance(); node != null; node = it.advance())    {
                 if (!eq(node.value, m.get(node.key)))   {
@@ -732,7 +744,7 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
                                 }
                                 prev = node;
                                 if ((node = node.next) == null) {
-                                    if ((value = remappingFunction.apply<1!%As_P1_%>(key, node.value)) != defaultValue) {
+                                    if ((value = remappingFunction.apply<1!%As_P1_%>(key, defaultValue)) != defaultValue) {
                                         delta = 1;
                                         prev.next = new Node<%<>%>(hash, key, value, null);
                                     }

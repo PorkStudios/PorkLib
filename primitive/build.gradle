@@ -73,7 +73,11 @@ compileJava {
 }
 
 jar {
-    from sourceSets.main.output
     from sourceSets.orig.output
     from sourceSets.generated.output
+}
+
+sourceJar {
+    from sourceSets.orig.allSource
+    from sourceSets.generated.allSource
 }

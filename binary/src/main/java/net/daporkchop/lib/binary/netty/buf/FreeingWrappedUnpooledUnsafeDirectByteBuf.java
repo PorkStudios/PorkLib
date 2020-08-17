@@ -20,8 +20,6 @@
 
 package net.daporkchop.lib.binary.netty.buf;
 
-import io.netty.buffer.UnpooledByteBufAllocator;
-import io.netty.buffer.UnpooledUnsafeDirectByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
@@ -32,21 +30,17 @@ import java.nio.ByteBuffer;
  *
  * @author DaPorkchop_
  */
-public final class FreeingWrappedUnpooledUnsafeDirectByteBuf extends UnpooledUnsafeDirectByteBuf {
-    private static final long DONOTFREE_OFFSET = PUnsafe.pork_getOffset(UnpooledUnsafeDirectByteBuf.class, "doNotFree");
-
+public class FreeingWrappedUnpooledUnsafeDirectByteBuf extends WrappedUnpooledUnsafeDirectByteBuf {
     protected final ByteBuffer theActualBuffer;
 
     public FreeingWrappedUnpooledUnsafeDirectByteBuf(@NonNull ByteBuffer theActualBuffer, ByteBuffer buffer, int size) {
-        super(UnpooledByteBufAllocator.DEFAULT, buffer, size);
-
-        PUnsafe.putBoolean(this, DONOTFREE_OFFSET, false);
+        super(buffer, size);
 
         this.theActualBuffer = theActualBuffer;
     }
 
     @Override
-    protected void freeDirect(ByteBuffer buffer) {
+    protected void deallocate() {
         PUnsafe.pork_releaseBuffer(this.theActualBuffer);
     }
 }

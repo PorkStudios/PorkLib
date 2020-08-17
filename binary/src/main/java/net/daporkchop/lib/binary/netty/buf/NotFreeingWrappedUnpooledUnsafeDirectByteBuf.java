@@ -32,12 +32,12 @@ import java.nio.ByteBuffer;
  *
  * @author DaPorkchop_
  */
-public final class NotFreeingWrappedUnpooledUnsafeDirectByteBuf extends UnpooledUnsafeDirectByteBuf {
+public class NotFreeingWrappedUnpooledUnsafeDirectByteBuf extends WrappedUnpooledUnsafeDirectByteBuf {
     public NotFreeingWrappedUnpooledUnsafeDirectByteBuf(ByteBuffer buffer, int size) {
-        super(UnpooledByteBufAllocator.DEFAULT, buffer, size);
+        super(buffer, size);
     }
 
     @Override
-    protected void freeDirect(ByteBuffer buffer) {
+    protected void deallocate() {
     }
 }

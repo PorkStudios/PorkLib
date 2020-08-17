@@ -18,9 +18,32 @@
  *
  */
 
-dependencies {
-    compile project(":compression")
-    compile project(":natives")
+package net.daporkchop.lib.binary.netty.buf;
 
-    compile "io.airlift:aircompressor:$aircompressorVersion"
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.UnpooledByteBufAllocator;
+import io.netty.buffer.UnpooledUnsafeDirectByteBuf;
+
+import java.nio.ByteBuffer;
+
+/**
+ * @author DaPorkchop_
+ */
+public abstract class WrappedUnpooledUnsafeDirectByteBuf extends UnpooledUnsafeDirectByteBuf {
+    public WrappedUnpooledUnsafeDirectByteBuf(ByteBuffer buffer, int size) {
+        super(UnpooledByteBufAllocator.DEFAULT, buffer, size);
+    }
+
+    @Override
+    protected void freeDirect(ByteBuffer buffer) {
+        throw new UnsupportedOperationException(this.getClass().getCanonicalName());
+    }
+
+    @Override
+    public ByteBuf capacity(int newCapacity) {
+        throw new UnsupportedOperationException(this.getClass().getCanonicalName());
+    }
+
+    @Override
+    protected abstract void deallocate();
 }

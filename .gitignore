@@ -12,7 +12,6 @@ run/
 # misc.
 *.class
 *.log
-/porklib.daporkchop.net/
 
 test_out/
 /primitive/src/generated/

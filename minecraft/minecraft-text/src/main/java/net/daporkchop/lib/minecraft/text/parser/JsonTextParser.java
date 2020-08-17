@@ -31,9 +31,11 @@ import net.daporkchop.lib.common.misc.InstancePool;
 import net.daporkchop.lib.logging.console.TextFormat;
 import net.daporkchop.lib.logging.format.TextStyle;
 import net.daporkchop.lib.logging.format.component.TextComponentString;
-import net.daporkchop.lib.minecraft.text.MCTextFormat;
+import net.daporkchop.lib.minecraft.text.format.ChatColor;
 import net.daporkchop.lib.minecraft.text.MCTextType;
 import net.daporkchop.lib.minecraft.text.component.MCTextRoot;
+import net.daporkchop.lib.minecraft.text.format.ChatFormat;
+import net.daporkchop.lib.minecraft.text.format.FormattingCode;
 
 import java.awt.Color;
 import java.util.Arrays;
@@ -46,13 +48,9 @@ import java.util.stream.Collectors;
  */
 @UtilityClass
 public class JsonTextParser {
-    protected final JsonParser                PARSER       = InstancePool.getInstance(JsonParser.class);
-    protected final Map<String, MCTextFormat> COLOR_LOOKUP = Arrays.stream(MCTextFormat.COLORS)
-            .collect(Collectors.toMap(MCTextFormat::name, PFunctions.identity()));
-
     public MCTextRoot parse(@NonNull String raw) {
         try {
-            return parse(PARSER.parse(raw), raw);
+            return parse(InstancePool.getInstance(JsonParser.class).parse(raw), raw);
         } catch (JsonSyntaxException e) {
             throw new IllegalArgumentException("Invalid JSON!");
         }
@@ -116,16 +114,16 @@ public class JsonTextParser {
         if (name == null)   {
             return null;
         }
-        MCTextFormat format = MCTextFormat.lookupColor(name);
+        FormattingCode format = FormattingCode.lookupColor(name);
         if (format == null) {
             if ("reset".equalsIgnoreCase(name)) {
-                format = MCTextFormat.RESET;
+                format = ChatFormat.RESET;
             } else {
                 throw new IllegalArgumentException("Unknown color code: \"" + name + '"');
             }
-        } else if (!format.hasColor())  {
+        } else if (!format.isColor())  {
             throw new IllegalStateException();
         }
-        return format.awtColor();
+        return ((ChatColor) format).awtColor();
     }
 }

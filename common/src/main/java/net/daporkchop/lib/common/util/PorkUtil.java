@@ -63,11 +63,11 @@ public class PorkUtil {
     public final int BUFFER_SIZE = 65536;
 
     public final HandledPool<byte[]> TINY_BUFFER_POOL = HandledPool.threadLocal(() -> new byte[TINY_BUFFER_SIZE], 4);
-    public final HandledPool<ByteBuffer> DIRECT_TINY_BUFFER_POOL =  HandledPool.threadLocal(() -> ByteBuffer.allocateDirect(TINY_BUFFER_SIZE), 4);
-    public final HandledPool<byte[]> BUFFER_POOL =  HandledPool.threadLocal(() -> new byte[BUFFER_SIZE], 4);
-    public final HandledPool<ByteBuffer> DIRECT_BUFFER_POOL =  HandledPool.threadLocal(() -> ByteBuffer.allocateDirect(BUFFER_SIZE), 4);
+    public final HandledPool<ByteBuffer> DIRECT_TINY_BUFFER_POOL = HandledPool.threadLocal(() -> ByteBuffer.allocateDirect(TINY_BUFFER_SIZE), 4);
+    public final HandledPool<byte[]> BUFFER_POOL = HandledPool.threadLocal(() -> new byte[BUFFER_SIZE], 4);
+    public final HandledPool<ByteBuffer> DIRECT_BUFFER_POOL = HandledPool.threadLocal(() -> ByteBuffer.allocateDirect(BUFFER_SIZE), 4);
 
-    public final HandledPool<StringBuilder> STRINGBUILDER_POOL =  HandledPool.threadLocal(StringBuilder::new, 4); //TODO: make this soft
+    public final HandledPool<StringBuilder> STRINGBUILDER_POOL = HandledPool.threadLocal(StringBuilder::new, 4); //TODO: make this soft
 
     public final DateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
     public final String PORKLIB_VERSION = "0.5.4-SNAPSHOT"; //TODO: set this dynamically
@@ -201,11 +201,11 @@ public class PorkUtil {
         try {
             Class<?> clazz = Class.forName("sun.misc.SoftCache");
             return (Map<K, V>) clazz.newInstance();
-        } catch (ClassNotFoundException e)  {
+        } catch (ClassNotFoundException e) {
             throw new RuntimeException("Unable to find class: sun.misc.SoftCache", e);
-        } catch (IllegalAccessException e)  {
+        } catch (IllegalAccessException e) {
             throw new AssertionError(e);
-        } catch (InstantiationException e)  {
+        } catch (InstantiationException e) {
             throw new RuntimeException(e.getCause() == null ? e : e.getCause());
         }
     }
@@ -285,14 +285,14 @@ public class PorkUtil {
         return (T) value;
     }
 
-    public static <T> T newInstance(@NonNull Class<T> clazz)    {
+    public static <T> T newInstance(@NonNull Class<T> clazz) {
         try {
             Constructor<T> constructor = clazz.getDeclaredConstructor();
             constructor.setAccessible(true);
             return constructor.newInstance();
-        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException e)   {
+        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException e) {
             PUnsafe.throwException(e);
-        } catch (InvocationTargetException e)   {
+        } catch (InvocationTargetException e) {
             PUnsafe.throwException(e.getCause() != null ? e.getCause() : e);
         }
         throw new IllegalStateException();

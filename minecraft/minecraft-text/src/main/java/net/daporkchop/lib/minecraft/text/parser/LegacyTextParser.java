@@ -20,8 +20,6 @@
 
 package net.daporkchop.lib.minecraft.text.parser;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.pool.handle.Handle;
@@ -29,14 +27,16 @@ import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.logging.console.TextFormat;
 import net.daporkchop.lib.logging.format.TextStyle;
 import net.daporkchop.lib.logging.format.component.TextComponentString;
-import net.daporkchop.lib.minecraft.text.MCTextFormat;
 import net.daporkchop.lib.minecraft.text.MCTextType;
 import net.daporkchop.lib.minecraft.text.component.MCTextRoot;
+import net.daporkchop.lib.minecraft.text.format.ChatColor;
+import net.daporkchop.lib.minecraft.text.format.FormattingCode;
 
-import java.awt.Color;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+
+import static net.daporkchop.lib.minecraft.text.format.ChatFormat.*;
 
 /**
  * @author DaPorkchop_
@@ -67,32 +67,26 @@ public class LegacyTextParser {
             builder.setLength(0);
 
             int nextChar;
-            while ((nextChar = reader.read()) != -1)    {
-                if (expectingCode)  {
-                    MCTextFormat code = MCTextFormat.lookup((char) nextChar);
-                    if (code == null)   {
+            while ((nextChar = reader.read()) != -1) {
+                if (expectingCode) {
+                    FormattingCode code = FormattingCode.lookup((char) nextChar);
+                    if (code == null) {
                         throw new IllegalArgumentException(String.format("Invalid formatting code: %c", (char) nextChar));
                     }
 
-                    if (code.hasColor())    {
-                        format.setTextColor(code.awtColor()).setStyle(0);
+                    if (code.isColor()) {
+                        format.setTextColor(((ChatColor) code).awtColor()).setStyle(0);
                     } else {
-                        switch (code)   {
-                            case BOLD:
-                                format.setStyle(format.getStyle() | TextStyle.BOLD);
-                                break;
-                            case STRIKETHROUGH:
-                                format.setStyle(format.getStyle() | TextStyle.STRIKETHROUGH);
-                                break;
-                            case UNDERLINE:
-                                format.setStyle(format.getStyle() | TextStyle.UNDERLINE);
-                                break;
-                            case ITALIC:
-                                format.setStyle(format.getStyle() | TextStyle.ITALIC);
-                                break;
-                            case RESET:
-                                format.setStyle(0).setTextColor(null);
-                                break;
+                        if (code == BOLD) {
+                            format.setStyle(format.getStyle() | TextStyle.BOLD);
+                        } else if (code == STRIKETHROUGH) {
+                            format.setStyle(format.getStyle() | TextStyle.STRIKETHROUGH);
+                        } else if (code == UNDERLINE) {
+                            format.setStyle(format.getStyle() | TextStyle.UNDERLINE);
+                        } else if (code == ITALIC) {
+                            format.setStyle(format.getStyle() | TextStyle.ITALIC);
+                        } else if (code == RESET) {
+                            format.setStyle(0).setTextColor(null);
                         }
                     }
                     expectingCode = false;
@@ -108,8 +102,8 @@ public class LegacyTextParser {
         return root;
     }
 
-    protected void createComponent(@NonNull MCTextRoot root, @NonNull StringBuilder builder, @NonNull TextFormat format)   {
-        if (builder.length() > 0)    {
+    protected void createComponent(@NonNull MCTextRoot root, @NonNull StringBuilder builder, @NonNull TextFormat format) {
+        if (builder.length() > 0) {
             root.addChild(new TextComponentString(format, builder.toString()));
             builder.setLength(0);
         }

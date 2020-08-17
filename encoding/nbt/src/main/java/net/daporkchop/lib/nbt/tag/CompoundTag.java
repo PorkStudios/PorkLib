@@ -34,9 +34,12 @@ import net.daporkchop.lib.nbt.NBTOptions;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Spliterator;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 import static net.daporkchop.lib.common.util.PorkUtil.*;
@@ -48,7 +51,7 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
  */
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Accessors(fluent = true)
-public final class CompoundTag extends Tag<CompoundTag> {
+public final class CompoundTag extends Tag<CompoundTag> implements Iterable<Map.Entry<String, Tag>> {
     protected final Map<String, Tag> map;
     @Getter
     protected final String name;
@@ -96,6 +99,29 @@ public final class CompoundTag extends Tag<CompoundTag> {
         out.writeByte(TAG_END);
     }
 
+    public int size() {
+        return this.map.size();
+    }
+
+    public boolean isEmpty()    {
+        return this.map.isEmpty();
+    }
+
+    @Override
+    public Iterator<Map.Entry<String, Tag>> iterator() {
+        return this.map.entrySet().iterator();
+    }
+
+    @Override
+    public void forEach(Consumer<? super Map.Entry<String, Tag>> action) {
+        this.map.entrySet().forEach(action);
+    }
+
+    @Override
+    public Spliterator<Map.Entry<String, Tag>> spliterator() {
+        return this.map.entrySet().spliterator();
+    }
+
     @Override
     public int id() {
         return TAG_COMPOUND;
@@ -140,7 +166,7 @@ public final class CompoundTag extends Tag<CompoundTag> {
         this.map.clear();
     }
 
-    public boolean contains(@NonNull String name)    {
+    public boolean contains(@NonNull String name) {
         return this.map.containsKey(name);
     }
 
@@ -159,6 +185,10 @@ public final class CompoundTag extends Tag<CompoundTag> {
     public CompoundTag putTag(@NonNull String name, @NonNull Tag<?> value) {
         this.map.put(name, value);
         return this;
+    }
+
+    public CompoundTag putBoolean(@NonNull String name, boolean value) {
+        return this.putByte(name, value ? (byte) 1 : 0);
     }
 
     public CompoundTag putByte(@NonNull String name, byte value) {
@@ -230,70 +260,78 @@ public final class CompoundTag extends Tag<CompoundTag> {
         return tag != null ? tag : fallback;
     }
 
+    public boolean getBoolean(@NonNull String name) {
+        return this.getByte(name) != 0;
+    }
+
+    public boolean getBoolean(@NonNull String name, boolean fallback) {
+        return this.getByte(name, fallback ? (byte) 1 : 0) != 0;
+    }
+
     public byte getByte(@NonNull String name) {
-        ByteTag tag = (ByteTag) this.map.get(name);
+        NumberTag tag = (NumberTag) this.map.get(name);
         checkArg(tag != null, "No tag with name \"%s\" found!", name);
-        return tag.value();
+        return tag.byteValue();
     }
 
     public byte getByte(@NonNull String name, byte fallback) {
-        ByteTag tag = (ByteTag) this.map.get(name);
-        return tag != null ? tag.value() : fallback;
+        NumberTag tag = (NumberTag) this.map.get(name);
+        return tag != null ? tag.byteValue() : fallback;
     }
 
     public short getShort(@NonNull String name) {
-        ShortTag tag = (ShortTag) this.map.get(name);
+        NumberTag tag = (NumberTag) this.map.get(name);
         checkArg(tag != null, "No tag with name \"%s\" found!", name);
-        return tag.value();
+        return tag.shortValue();
     }
 
     public short getShort(@NonNull String name, short fallback) {
-        ShortTag tag = (ShortTag) this.map.get(name);
-        return tag != null ? tag.value() : fallback;
+        NumberTag tag = (NumberTag) this.map.get(name);
+        return tag != null ? tag.shortValue() : fallback;
     }
 
     public int getInt(@NonNull String name) {
-        IntTag tag = (IntTag) this.map.get(name);
+        NumberTag tag = (NumberTag) this.map.get(name);
         checkArg(tag != null, "No tag with name \"%s\" found!", name);
-        return tag.value();
+        return tag.intValue();
     }
 
     public int getInt(@NonNull String name, int fallback) {
-        IntTag tag = (IntTag) this.map.get(name);
-        return tag != null ? tag.value() : fallback;
+        NumberTag tag = (NumberTag) this.map.get(name);
+        return tag != null ? tag.intValue() : fallback;
     }
 
     public long getLong(@NonNull String name) {
-        LongTag tag = (LongTag) this.map.get(name);
+        NumberTag tag = (NumberTag) this.map.get(name);
         checkArg(tag != null, "No tag with name \"%s\" found!", name);
-        return tag.value();
+        return tag.longValue();
     }
 
     public long getLong(@NonNull String name, long fallback) {
-        LongTag tag = (LongTag) this.map.get(name);
-        return tag != null ? tag.value() : fallback;
+        NumberTag tag = (NumberTag) this.map.get(name);
+        return tag != null ? tag.longValue() : fallback;
     }
 
     public float getFloat(@NonNull String name) {
-        FloatTag tag = (FloatTag) this.map.get(name);
+        NumberTag tag = (NumberTag) this.map.get(name);
         checkArg(tag != null, "No tag with name \"%s\" found!", name);
-        return tag.value();
+        return tag.floatValue();
     }
 
     public float getFloat(@NonNull String name, float fallback) {
-        FloatTag tag = (FloatTag) this.map.get(name);
-        return tag != null ? tag.value() : fallback;
+        NumberTag tag = (NumberTag) this.map.get(name);
+        return tag != null ? tag.floatValue() : fallback;
     }
 
     public double getDouble(@NonNull String name) {
-        DoubleTag tag = (DoubleTag) this.map.get(name);
+        NumberTag tag = (NumberTag) this.map.get(name);
         checkArg(tag != null, "No tag with name \"%s\" found!", name);
-        return tag.value();
+        return tag.doubleValue();
     }
 
     public double getDouble(@NonNull String name, double fallback) {
-        DoubleTag tag = (DoubleTag) this.map.get(name);
-        return tag != null ? tag.value() : fallback;
+        NumberTag tag = (NumberTag) this.map.get(name);
+        return tag != null ? tag.doubleValue() : fallback;
     }
 
     public byte[] getByteArray(@NonNull String name) {
@@ -372,5 +410,12 @@ public final class CompoundTag extends Tag<CompoundTag> {
     public long[] getLongArray(@NonNull String name, long[] fallback) {
         LongArrayTag tag = (LongArrayTag) this.map.get(name);
         return tag != null ? tag.value() : fallback;
+    }
+
+    public <T extends Tag<T>> T remove(@NonNull String name) {
+        @SuppressWarnings("unchecked")
+        T tag = (T) this.map.remove(name);
+        checkArg(tag != null, "No tag with name \"%s\" found!", name);
+        return tag;
     }
 }

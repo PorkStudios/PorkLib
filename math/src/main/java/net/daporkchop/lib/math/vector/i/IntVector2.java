@@ -33,10 +33,4 @@ public interface IntVector2 {
     IntVector2 multiply(int x, int y);
 
     IntVector2 divide(int x, int y);
-
-    interface AddressableXZ {
-        int getX();
-
-        int getZ();
-    }
 }

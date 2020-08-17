@@ -33,10 +33,10 @@ import java.io.IOException;
  */
 @Getter
 @Accessors(fluent = true)
-public final class IntTag extends Tag<IntTag> {
+public final class IntTag extends NumberTag<IntTag> {
     protected final int value;
 
-    public IntTag(int value)  {
+    public IntTag(int value) {
         this.value = value;
     }
 
@@ -82,5 +82,27 @@ public final class IntTag extends Tag<IntTag> {
     protected void toString(StringBuilder builder, int depth, String name, int index) {
         super.toString(builder, depth, name, index);
         builder.append(this.value).append('\n');
+    }
+
+    // NumberTag stuff
+
+    @Override
+    public int intValue() {
+        return this.value;
+    }
+
+    @Override
+    public long longValue() {
+        return this.value;
+    }
+
+    @Override
+    public float floatValue() {
+        return this.value;
+    }
+
+    @Override
+    public double doubleValue() {
+        return this.value;
     }
 }

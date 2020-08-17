@@ -41,4 +41,9 @@ public class MCTextRoot extends TextComponentHolder {
         this.type = type;
         this.original = original;
     }
+
+    @Override
+    public String toString() {
+        return '"' + this.toRawString() + '"';
+    }
 }

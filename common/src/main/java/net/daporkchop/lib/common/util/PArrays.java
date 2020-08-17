@@ -23,6 +23,7 @@ package net.daporkchop.lib.common.util;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 
+import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.IntFunction;
@@ -173,10 +174,9 @@ public class PArrays {
         }
     }
 
-    public <T> void fill(@NonNull T[] arr, @NonNull T value) {
-        for (int i = 0, length = arr.length; i < length; i++) {
-            arr[i] = value;
-        }
+    public <T> T[] fill(@NonNull T[] arr, @NonNull T value) {
+        Arrays.fill(arr, value);
+        return arr;
     }
 
     public <T> Object[] toObjects(@NonNull T[] src) {

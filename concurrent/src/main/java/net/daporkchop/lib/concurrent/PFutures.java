@@ -32,6 +32,7 @@ import net.daporkchop.lib.concurrent.compatibility.NettyFutureAsCompletableFutur
 import net.daporkchop.lib.concurrent.compatibility.NettyFutureAsPFuture;
 import net.daporkchop.lib.concurrent.future.done.FailedPFuture;
 import net.daporkchop.lib.concurrent.future.done.SucceededPFuture;
+import net.daporkchop.lib.concurrent.future.group.CollectAllToListFuture;
 import net.daporkchop.lib.concurrent.future.runnable.CallablePFutureTask;
 import net.daporkchop.lib.concurrent.future.runnable.ConsumerPFutureTask;
 import net.daporkchop.lib.concurrent.future.runnable.FunctionPFutureTask;
@@ -41,6 +42,9 @@ import net.daporkchop.lib.concurrent.future.runnable.SupplierPFutureTask;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -314,5 +318,30 @@ public class PFutures {
         PRunnableFuture<V> future = new FunctionPFutureTask<>(PExecutors.toNettyExecutor(executor), action, parameter);
         executor.execute(future);
         return future;
+    }
+
+    /**
+     * Combines the results of all of the given {@link PFuture}s into a list of results.
+     *
+     * @param futures the {@link PFuture}s to wait for
+     * @return a {@link PFuture} which will be completed with the results of all of the given {@link PFuture}s
+     */
+    public static <V> PFuture<List<V>> mergeToList(@NonNull Collection<Future<V>> futures) {
+        return mergeToList(futures, PExecutors.FORKJOINPOOL);
+    }
+
+    /**
+     * Combines the results of all of the given {@link PFuture}s into a list of results.
+     *
+     * @param futures  the {@link PFuture}s to wait for
+     * @param executor the {@link Executor} that the returned {@link PFuture} should execute tasks on
+     * @return a {@link PFuture} which will be completed with the results of all of the given {@link PFuture}s
+     */
+    public static <V> PFuture<List<V>> mergeToList(@NonNull Collection<Future<V>> futures, @NonNull Executor executor) {
+        if (!futures.isEmpty()) {
+            return new CollectAllToListFuture<>(PExecutors.toNettyExecutor(executor), futures);
+        } else {
+            return new SucceededPFuture<>(PExecutors.toNettyExecutor(executor), new ArrayList<>());
+        }
     }
 }

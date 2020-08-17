@@ -20,12 +20,14 @@
 
 dependencies {
     compile project(":binary")
+    compile project(":collections")
     compile project(":compression:compression-zlib")
-    compile project(":encoding")
+    compile project(":concurrent")
     compile project(":encoding:nbt")
     compile project(":minecraft:minecraft-text")
     compile project(":primitive")
+    compile project(":random")
+    compile project(":reflection")
 
-    //TODO: i'm only using LoadingCache, figure out a way to not have to pull in all of guava for that one feature
-    compile "com.google.guava:guava:$guavaVersion"
+    compile "com.google.code.gson:gson:$gsonVersion"
 }

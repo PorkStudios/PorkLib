@@ -108,7 +108,7 @@ public interface ZstdInflater extends PInflater {
     void decompressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdInflateDictionary dict) throws IndexOutOfBoundsException;
 
     /**
-     * Gets a {@link DataIn} which will decompress data written to it using this {@link PDeflater} and write the decompressed data to the given {@link DataIn}.
+     * Gets a {@link DataIn} which will decompress data written to it using this {@link PDeflater} and write the decompressed version to the given {@link DataIn}.
      * <p>
      * This will digest the dictionary before decompressing, which is an expensive operation. If the same dictionary is going to be used multiple times,
      * it is strongly advised to use {@link #decompressionStream(DataIn, ByteBufAllocator, int, ZstdInflateDictionary)}.
@@ -147,7 +147,7 @@ public interface ZstdInflater extends PInflater {
     }
 
     /**
-     * Gets a {@link DataIn} which will decompress data written to it using this {@link PDeflater} and write the decompressed data to the given {@link DataIn}.
+     * Gets a {@link DataIn} which will decompress data written to it using this {@link PDeflater} and write the decompressed version to the given {@link DataIn}.
      *
      * @param bufferAlloc the {@link ByteBufAllocator} to be used for allocating the internal write buffer. If {@code null}, the default allocator will be used
      * @param bufferSize  the size of the internal write buffer. If not positive, the default buffer size will be used

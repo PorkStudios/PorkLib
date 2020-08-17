@@ -30,10 +30,13 @@ import net.daporkchop.lib.collections.set.rw.DefaultReadWriteSet;
 import net.daporkchop.lib.collections.set.rw.ReadWriteSet;
 
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 
 /**
+ * Helper methods for {@link Set}.
+ *
  * @author DaPorkchop_
  */
 @UtilityClass
@@ -96,5 +99,9 @@ public class PSets {
 
     public static <V> ReadWriteSet<V> readWriteAuto(@NonNull Set<V> set, @NonNull Lock readLock, @NonNull Lock writeLock) {
         return new AutoReadWriteSet<>(set, readLock, writeLock);
+    }
+
+    public static <V> Set<V> concurrent()   {
+        return ConcurrentHashMap.newKeySet();
     }
 }

@@ -18,16 +18,8 @@
  *
  */
 
-dependencies {
-    compile project(":binary")
-    compile project(":collections")
-    compile project(":compression:compression-zlib")
-    compile project(":concurrent")
-    compile project(":encoding:nbt")
-    compile project(":minecraft:minecraft-text")
-    compile project(":primitive")
-    compile project(":random")
-    compile project(":reflection")
+// currently just a dummy placeholder module
 
-    compile "com.google.code.gson:gson:$gsonVersion"
+dependencies {
+    compile project(":minecraft:minecraft-text")
 }

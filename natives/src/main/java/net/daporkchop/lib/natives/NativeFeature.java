@@ -126,10 +126,15 @@ public abstract class NativeFeature<F extends Feature<F>> implements Feature<F> 
         //mark temporary file for deletion
         tempFile.deleteOnExit();
 
-        //pretend to load the library from the other class rather than NativeFeature
-        Method method = Runtime.class.getDeclaredMethod("load0", Class.class, String.class);
-        method.setAccessible(true);
-        method.invoke(Runtime.getRuntime(), clazz, tempFile.getAbsolutePath());
+        try {
+            //pretend to load the library from the other class rather than NativeFeature
+            Method method = Runtime.class.getDeclaredMethod("load0", Class.class, String.class);
+            method.setAccessible(true);
+            method.invoke(Runtime.getRuntime(), clazz, tempFile.getAbsolutePath());
+        } catch (NoSuchMethodException | SecurityException e)   {
+            //fallback to System.load
+            System.load(tempFile.getAbsolutePath());
+        }
 
         return clazz;
     }

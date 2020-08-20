@@ -57,8 +57,6 @@ public class PorkUtil {
     protected final long MATCHER_GROUPS_OFFSET = PUnsafe.pork_getOffset(Matcher.class, "groups");
     protected final long MATCHER_TEXT_OFFSET = PUnsafe.pork_getOffset(Matcher.class, "text");
 
-    private final Function<Throwable, StackTraceElement[]> GET_STACK_TRACE_WRAPPER;
-
     public final int TINY_BUFFER_SIZE = 32;
     public final int BUFFER_SIZE = 65536;
 
@@ -74,27 +72,6 @@ public class PorkUtil {
     public final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
 
     public final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
-
-    static {
-        Function<Throwable, StackTraceElement[]> func = t -> {
-            throw new UnsupportedOperationException();
-        };
-        try {
-            Method m = Throwable.class.getDeclaredMethod("getOurStackTrace");
-            m.setAccessible(true);
-            func = t -> {
-                try {
-                    return (StackTraceElement[]) m.invoke(t);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            };
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        } finally {
-            GET_STACK_TRACE_WRAPPER = func;
-        }
-    }
 
     /**
      * An alternative to {@link CharSequence#subSequence(int, int)} that can be faster for certain {@link CharSequence} implementations.
@@ -123,10 +100,6 @@ public class PorkUtil {
      */
     public static <T> T fallbackIfNull(T value, Object fallback) {
         return value != null ? value : uncheckedCast(fallback);
-    }
-
-    public static StackTraceElement[] getStackTrace(@NonNull Throwable t) {
-        return GET_STACK_TRACE_WRAPPER.apply(t);
     }
 
     @SuppressWarnings("unchecked")

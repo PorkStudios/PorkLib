@@ -20,10 +20,6 @@
 
 package net.daporkchop.lib.common.misc.threadfactory;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.experimental.Accessors;
-
 import java.util.concurrent.ThreadFactory;
 
 /**
@@ -37,7 +33,7 @@ public final class UnnamedThreadFactory extends AbstractThreadFactory {
     }
 
     @Override
-    protected String getName(Runnable r) {
+    protected String getName(Runnable task, Runnable wrappedTask, Thread thread) {
         return null;
     }
 }

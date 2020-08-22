@@ -27,7 +27,7 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.misc.threadfactory.ThreadFactoryBuilder;
+import net.daporkchop.lib.common.misc.threadfactory.PThreadFactories;
 import net.daporkchop.lib.common.pool.selection.SelectionPool;
 import net.daporkchop.lib.http.request.RequestBuilder;
 import net.daporkchop.lib.http.util.Constants;
@@ -65,7 +65,7 @@ public final class JavaHttpClientBuilder {
 
     public JavaHttpClient build() {
         if (this.threadFactory == null) {
-            this.threadFactory = ThreadFactoryBuilder.defaultThreadFactory();
+            this.threadFactory = PThreadFactories.DEFAULT_THREAD_FACTORY;
         }
         if (this.group == null) {
             this.group = ImmediateEventExecutor.INSTANCE;

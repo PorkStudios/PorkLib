@@ -20,29 +20,27 @@
 
 package net.daporkchop.lib.common.misc.threadfactory;
 
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
 import java.util.concurrent.ThreadFactory;
 
+import static net.daporkchop.lib.common.util.PValidation.*;
+
 /**
  * Helper for creating customized {@link ThreadFactory} instances.
  *
  * @author DaPorkchop_
+ * @see PThreadFactories#builder()
  */
+@NoArgsConstructor(onConstructor_ = {@Deprecated})
 @Setter
 @Accessors(fluent = true, chain = true)
 public class ThreadFactoryBuilder {
-    /**
-     * @return a default thread factory
-     */
-    public static ThreadFactory defaultThreadFactory() {
-        return Thread::new;
-    }
-
     protected String name;
 
-    protected ClassLoader                     contextClassLoader;
+    protected ClassLoader contextClassLoader;
     protected Thread.UncaughtExceptionHandler uncaughtExceptionHandler;
     protected int priority = Thread.NORM_PRIORITY;
     protected boolean daemon;
@@ -72,6 +70,33 @@ public class ThreadFactoryBuilder {
     }
 
     /**
+     * Sets the priority of threads created by the {@link ThreadFactory}.
+     *
+     * @param priority the new priority
+     * @return this {@link ThreadFactoryBuilder}
+     */
+    public ThreadFactoryBuilder priority(int priority) {
+        checkArg(priority >= Thread.MIN_PRIORITY && priority <= Thread.MAX_PRIORITY, "invalid priority: %d (must be in range [%d-%d])", priority, Thread.MIN_PRIORITY, Thread.MAX_PRIORITY);
+
+        this.priority = priority;
+        return this;
+    }
+
+    /**
+     * Alias for {@link #priority(int)} with {@link Thread#MIN_PRIORITY}.
+     */
+    public ThreadFactoryBuilder minPriority() {
+        return this.priority(Thread.MIN_PRIORITY);
+    }
+
+    /**
+     * Alias for {@link #priority(int)} with {@link Thread#MAX_PRIORITY}.
+     */
+    public ThreadFactoryBuilder maxPriority() {
+        return this.priority(Thread.MAX_PRIORITY);
+    }
+
+    /**
      * Builds a {@link ThreadFactory} using the currently configured settings.
      *
      * @return a new {@link ThreadFactory}
@@ -80,7 +105,7 @@ public class ThreadFactoryBuilder {
         if (!this.formatId) {
             if (this.name == null) {
                 if (this.contextClassLoader == null && this.uncaughtExceptionHandler == null && this.priority == Thread.NORM_PRIORITY && !this.daemon) {
-                    return defaultThreadFactory();
+                    return PThreadFactories.DEFAULT_THREAD_FACTORY;
                 } else {
                     return new UnnamedThreadFactory(this.contextClassLoader, this.uncaughtExceptionHandler, this.priority, this.daemon);
                 }

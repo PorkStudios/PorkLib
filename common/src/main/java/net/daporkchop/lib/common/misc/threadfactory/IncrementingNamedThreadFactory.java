@@ -23,9 +23,9 @@ package net.daporkchop.lib.common.misc.threadfactory;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A {@link ThreadFactory} that applies a name to all created threads, formatted with an ID which is incremented with every created thread.
@@ -34,11 +34,9 @@ import java.util.concurrent.ThreadFactory;
  */
 @Accessors(fluent = true)
 public final class IncrementingNamedThreadFactory extends AbstractThreadFactory {
-    protected static final long COUNTER_OFFSET = PUnsafe.pork_getOffset(IncrementingNamedThreadFactory.class, "counter");
-
     @Getter
-    protected final    String format;
-    protected volatile int    counter;
+    protected final String format;
+    protected final AtomicInteger counter = new AtomicInteger();
 
     public IncrementingNamedThreadFactory(@NonNull String format, ClassLoader contextClassLoader, Thread.UncaughtExceptionHandler uncaughtExceptionHandler, int priority, boolean daemon) {
         super(contextClassLoader, uncaughtExceptionHandler, priority, daemon);
@@ -47,7 +45,7 @@ public final class IncrementingNamedThreadFactory extends AbstractThreadFactory 
     }
 
     @Override
-    protected String getName(Runnable r) {
-        return String.format(this.format, PUnsafe.getAndAddInt(this, COUNTER_OFFSET, 1));
+    protected String getName(Runnable task, Runnable wrappedTask, Thread thread) {
+        return String.format(this.format, this.counter.getAndIncrement());
     }
 }

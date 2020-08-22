@@ -35,19 +35,25 @@ import java.util.concurrent.ThreadFactory;
 @Getter
 @Accessors(fluent = true)
 public abstract class AbstractThreadFactory implements ThreadFactory {
-    protected final ClassLoader                     contextClassLoader;
+    protected final ClassLoader contextClassLoader;
     protected final Thread.UncaughtExceptionHandler uncaughtExceptionHandler;
-    protected final int                             priority;
-    protected final boolean                         daemon;
+    protected final int priority;
+    protected final boolean daemon;
 
     @Override
-    public Thread newThread(Runnable r) {
-        Thread thread = this.createThread(r, this.getName(r));
+    public Thread newThread(Runnable task) {
+        Runnable wrappedTask = this.wrapTask(task);
+        Thread thread = PThreadFactories.DEFAULT_THREAD_FACTORY.newThread(wrappedTask);
 
-        if (this.contextClassLoader != null)    {
+        String name = this.getName(task, wrappedTask, thread);
+        if (name != null) {
+            thread.setName(name);
+        }
+
+        if (this.contextClassLoader != null) {
             thread.setContextClassLoader(this.contextClassLoader);
         }
-        if (this.uncaughtExceptionHandler != null)  {
+        if (this.uncaughtExceptionHandler != null) {
             thread.setUncaughtExceptionHandler(this.uncaughtExceptionHandler);
         }
         thread.setPriority(this.priority);
@@ -56,9 +62,9 @@ public abstract class AbstractThreadFactory implements ThreadFactory {
         return thread;
     }
 
-    protected Thread createThread(Runnable r, String name)   {
-        return name == null ? new Thread(r) : new Thread(r, name);
+    protected Runnable wrapTask(Runnable task) {
+        return task;
     }
 
-    protected abstract String getName(Runnable r);
+    protected abstract String getName(Runnable task, Runnable wrappedTask, Thread thread);
 }

@@ -20,30 +20,40 @@
 
 package net.daporkchop.lib.common.misc.threadfactory;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.experimental.Accessors;
+import io.netty.util.concurrent.FastThreadLocalThread;
+import lombok.experimental.UtilityClass;
 
 import java.util.concurrent.ThreadFactory;
 
 /**
- * A {@link ThreadFactory} that applies a given name to all created threads.
- *
  * @author DaPorkchop_
  */
-@Getter
-@Accessors(fluent = true)
-public final class FixedNamedThreadFactory extends AbstractThreadFactory {
-    protected final String name;
+@UtilityClass
+public class PThreadFactories {
+    /**
+     * The default {@link ThreadFactory} to use.
+     * <p>
+     * This makes a best-effort attempt to use {@link FastThreadLocalThread} instead of {@link Thread}.
+     */
+    public static final ThreadFactory DEFAULT_THREAD_FACTORY;
 
-    public FixedNamedThreadFactory(@NonNull String name, ClassLoader contextClassLoader, Thread.UncaughtExceptionHandler uncaughtExceptionHandler, int priority, boolean daemon) {
-        super(contextClassLoader, uncaughtExceptionHandler, priority, daemon);
+    static {
+        ThreadFactory defaultThreadFactory = null;
+        try {
+            Class.forName("io.netty.util.concurrent.FastThreadLocalThread"); //check if class exists
 
-        this.name = name;
+            defaultThreadFactory = FastThreadLocalThread::new;
+        } catch (ClassNotFoundException e) {
+            defaultThreadFactory = Thread::new;
+        } finally {
+            DEFAULT_THREAD_FACTORY = defaultThreadFactory;
+        }
     }
 
-    @Override
-    protected String getName(Runnable task, Runnable wrappedTask, Thread thread) {
-        return this.name;
+    /**
+     * @return a new {@link ThreadFactoryBuilder}
+     */
+    public ThreadFactoryBuilder builder() {
+        return new ThreadFactoryBuilder();
     }
 }

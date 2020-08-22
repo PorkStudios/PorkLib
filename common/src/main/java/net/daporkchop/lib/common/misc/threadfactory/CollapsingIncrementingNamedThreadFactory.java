@@ -23,7 +23,6 @@ package net.daporkchop.lib.common.misc.threadfactory;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.util.BitSet;
 import java.util.concurrent.ThreadFactory;
@@ -49,35 +48,37 @@ public final class CollapsingIncrementingNamedThreadFactory extends AbstractThre
     }
 
     @Override
-    protected Thread createThread(Runnable r, String name) {
-        return new ThreadWrapper(r);
+    protected Runnable wrapTask(Runnable task) {
+        return new TaskWrapper(task);
     }
 
     @Override
-    protected String getName(Runnable r) {
-        return null; //not actually used
+    protected String getName(Runnable task, Runnable wrappedTask, Thread thread) {
+        return String.format(this.format, ((TaskWrapper) wrappedTask).id);
     }
 
-    private final class ThreadWrapper extends Thread {
-        protected int id;
+    private final class TaskWrapper implements Runnable {
+        protected final Runnable delegate;
+        protected final int id;
 
-        public ThreadWrapper(Runnable target) {
-            super(target);
+        public TaskWrapper(@NonNull Runnable delegate) {
+            this.delegate = delegate;
+
+            BitSet usedIds = CollapsingIncrementingNamedThreadFactory.this.usedIds;
+            synchronized (usedIds)    {
+                usedIds.set(this.id = usedIds.nextClearBit(0));
+            }
         }
 
         @Override
         public void run() {
-            synchronized (CollapsingIncrementingNamedThreadFactory.this.usedIds)    {
-                this.id = CollapsingIncrementingNamedThreadFactory.this.usedIds.nextClearBit(0);
-                CollapsingIncrementingNamedThreadFactory.this.usedIds.set(this.id);
-            }
-
             try {
-                this.setName(String.format(CollapsingIncrementingNamedThreadFactory.this.format, this.id));
-
-                super.run();
+                this.delegate.run();
             } finally {
-                CollapsingIncrementingNamedThreadFactory.this.usedIds.clear(this.id);
+                BitSet usedIds = CollapsingIncrementingNamedThreadFactory.this.usedIds;
+                synchronized (usedIds) {
+                    usedIds.clear(this.id);
+                }
             }
         }
     }

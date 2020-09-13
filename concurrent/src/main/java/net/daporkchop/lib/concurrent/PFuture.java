@@ -34,6 +34,7 @@ import net.daporkchop.lib.concurrent.future.completion.both.BothBiRunnableComple
 import net.daporkchop.lib.concurrent.future.completion.either.EitherBiConsumerCompletionTask;
 import net.daporkchop.lib.concurrent.future.completion.either.EitherBiFunctionCompletionTask;
 import net.daporkchop.lib.concurrent.future.completion.either.EitherBiRunnableCompletionTask;
+import net.daporkchop.lib.concurrent.future.completion.general.ComposeCompletionTask;
 import net.daporkchop.lib.concurrent.future.completion.general.ExceptionalCompletionTask;
 import net.daporkchop.lib.concurrent.future.completion.general.ValueOrCauseConsumerCompletionTask;
 import net.daporkchop.lib.concurrent.future.completion.general.ValueOrCauseFunctionCompletionTask;
@@ -312,19 +313,19 @@ public interface PFuture<V> extends Future<V>, CompletionStage<V> {
     // compose
 
     @Override
-    default <U> PFuture<U> thenCompose(@NonNull Function<? super V, ? extends CompletionStage<U>> fn) {
-        //i really don't understand how this works or what the purpose is...
-        throw new UnsupportedOperationException();
+    default <U> PFuture<U> thenCompose(@NonNull Function<? super V, ? extends CompletionStage<U>> action) {
+        return new ComposeCompletionTask<>(this.executor(), this, false, action);
     }
 
     @Override
-    default <U> PFuture<U> thenComposeAsync(@NonNull Function<? super V, ? extends CompletionStage<U>> fn) {
-        return this.thenComposeAsync(fn, this.executor());
+    default <U> PFuture<U> thenComposeAsync(@NonNull Function<? super V, ? extends CompletionStage<U>> action) {
+        return this.thenComposeAsync(action, this.executor());
     }
 
     @Override
-    default <U> PFuture<U> thenComposeAsync(@NonNull Function<? super V, ? extends CompletionStage<U>> fn, @NonNull Executor executor) {
-        throw new UnsupportedOperationException();
+    default <U> PFuture<U> thenComposeAsync(@NonNull Function<? super V, ? extends CompletionStage<U>> action, @NonNull Executor executor) {
+        EventExecutor eventExecutor = PExecutors.toNettyExecutor(executor);
+        return new ComposeCompletionTask<>(eventExecutor, this, true, action);
     }
 
     // general listeners

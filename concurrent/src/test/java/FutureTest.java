@@ -74,4 +74,28 @@ public class FutureTest {
                 .join();
         System.out.println(list);
     }
+
+    @Test
+    public void testCompose() {
+        System.out.println("Starting...");
+        PFuture<String> a = PFutures.wrap(GlobalEventExecutor.INSTANCE.submit(() -> {
+            sleep(2000L);
+            System.out.println("A");
+            return "Hello ";
+        }));
+        System.out.println("Started A...");
+        PFuture<String> b = a.thenCompose(v -> {
+            System.out.println("B");
+            PFuture<String> c = PFutures.wrap(CompletableFuture.supplyAsync(() -> {
+                sleep(1000L);
+                System.out.println("C");
+                return "World";
+            }));
+            return c;
+        });
+
+        a.thenCombine(b, String::concat)
+                .thenAccept(System.out::println)
+                .awaitUninterruptibly();
+    }
 }

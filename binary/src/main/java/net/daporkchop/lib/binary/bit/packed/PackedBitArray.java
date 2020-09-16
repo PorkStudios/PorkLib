@@ -20,13 +20,13 @@
 
 package net.daporkchop.lib.binary.bit.packed;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.bit.BitArray;
 import net.daporkchop.lib.common.math.PMath;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
-import net.daporkchop.lib.common.misc.refcount.RefCounted;
 import net.daporkchop.lib.common.pool.array.ArrayHandle;
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
@@ -38,15 +38,15 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  *
  * @author DaPorkchop_
  */
+@Getter
 @Accessors(fluent = true)
 public class PackedBitArray extends AbstractRefCounted implements BitArray {
-    protected final long[] arr;
+    protected final long[] internalDataArray;
 
-    @Getter
     protected final int bits;
-    @Getter
     protected final int size;
 
+    @Getter(AccessLevel.NONE)
     protected final Handle<long[]> handle;
 
     public PackedBitArray(int bits, int size)   {
@@ -59,7 +59,7 @@ public class PackedBitArray extends AbstractRefCounted implements BitArray {
         int minLength = toInt(PMath.roundUp((long) size * (long) bits, 64L) >>> 6L);
         checkArg(arr.length >= minLength, "length (%d) must be at least %d!", arr.length, minLength);
 
-        this.arr = arr;
+        this.internalDataArray = arr;
         this.bits = bits;
         this.size = size;
         this.handle = null;
@@ -73,7 +73,7 @@ public class PackedBitArray extends AbstractRefCounted implements BitArray {
         int length = handle instanceof ArrayHandle ? ((ArrayHandle) handle).length() : arr.length;
         checkArg(length >= minLength, "length (%d) must be at least %d!", length, minLength);
 
-        this.arr = arr;
+        this.internalDataArray = arr;
         this.bits = bits;
         this.size = size;
         this.handle = handle;
@@ -81,7 +81,7 @@ public class PackedBitArray extends AbstractRefCounted implements BitArray {
 
     @Override
     public int get(int i) {
-        final long[] arr = this.arr;
+        final long[] arr = this.internalDataArray;
         final int bits = this.bits;
         final int size = this.size;
         checkIndex(size, i);
@@ -100,7 +100,7 @@ public class PackedBitArray extends AbstractRefCounted implements BitArray {
 
     @Override
     public void set(int i, int value) {
-        final long[] arr = this.arr;
+        final long[] arr = this.internalDataArray;
         final int bits = this.bits;
         final int size = this.size;
         checkIndex(size, i);
@@ -111,16 +111,16 @@ public class PackedBitArray extends AbstractRefCounted implements BitArray {
         int firstPos = start >> 6;
         int endPos = ((i + 1) * bits - 1) >> 6;
         int relPos = start & 0x3F;
-        arr[firstPos] = (arr[firstPos] & ~((long) mask << relPos)) | (((long) value & mask) << relPos);
+        arr[firstPos] = (arr[firstPos] & ~((long) mask << relPos)) | ((long) value << relPos);
         if (firstPos != endPos) {
             int endBitSubIndex = 64 - relPos;
-            arr[endPos] = (arr[endPos] >>> endBitSubIndex << endBitSubIndex) | (((long) value & mask) >> endBitSubIndex);
+            arr[endPos] = (arr[endPos] >>> endBitSubIndex << endBitSubIndex) | ((long) value >> endBitSubIndex);
         }
     }
 
     @Override
     public int replace(int i, int value) {
-        final long[] arr = this.arr;
+        final long[] arr = this.internalDataArray;
         final int bits = this.bits;
         final int size = this.size;
         checkIndex(size, i);
@@ -131,14 +131,19 @@ public class PackedBitArray extends AbstractRefCounted implements BitArray {
         int firstPos = start >> 6;
         int endPos = ((i + 1) * bits - 1) >> 6;
         int relPos = start & 0x3F;
-        int old = ((int) (arr[firstPos] >>> relPos) & mask);
-        arr[firstPos] = (arr[firstPos] & ~((long) mask << relPos)) | (((long) value & mask) << relPos);
+        int old = (int) ((arr[firstPos] >>> relPos) & mask);
+        arr[firstPos] = (arr[firstPos] & ~((long) mask << relPos)) | ((long) value << relPos);
         if (firstPos != endPos) {
             int endBitSubIndex = 64 - relPos;
             old |= ((int) (arr[endPos] << endBitSubIndex) & mask);
-            arr[endPos] = (arr[endPos] >>> endBitSubIndex << endBitSubIndex) | (((long) value & mask) >> endBitSubIndex);
+            arr[endPos] = (arr[endPos] >>> endBitSubIndex << endBitSubIndex) | ((long) value >> endBitSubIndex);
         }
         return old;
+    }
+
+    @Override
+    public BitArray clone() {
+        return new PackedBitArray(this.bits, this.size, this.internalDataArray.clone());
     }
 
     @Override

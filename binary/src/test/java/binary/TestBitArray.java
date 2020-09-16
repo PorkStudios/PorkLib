@@ -22,16 +22,20 @@ package binary;
 
 import net.daporkchop.lib.binary.bit.BitArray;
 import net.daporkchop.lib.binary.bit.packed.PackedBitArray;
+import net.daporkchop.lib.binary.bit.padded.PaddedBitArray;
 import org.junit.Test;
 
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import static net.daporkchop.lib.common.util.PValidation.checkState;
+import static net.daporkchop.lib.common.util.PorkUtil.*;
 
 /**
  * @author DaPorkchop_
  */
-public class TestNBitArray {
+public class TestBitArray {
     @Test
     public void test() {
         int[] reference = new int[1024];
@@ -39,16 +43,22 @@ public class TestNBitArray {
             reference[i] = ThreadLocalRandom.current().nextInt();
         }
 
-        for (int i = 1; i < 32; i++) {
-            int mask = (1 << i) - 1;
-            try (BitArray array = new PackedBitArray(i, reference.length)) {
-                for (int j = 0; j < reference.length; j++) {
-                    array.set(j, reference[j] & mask);
-                }
-                for (int j = 0; j < reference.length; j++) {
-                    int a = array.get(j);
-                    int b = reference[j] & mask;
-                    checkState(a == b, "%d != %d @ %d bits", a, b, i);
+        BiFunction<Integer, Integer, BitArray>[] creators = uncheckedCast(new BiFunction[2]);
+        creators[0] = PackedBitArray::new;
+        creators[1] = PaddedBitArray::new;
+
+        for (BiFunction<Integer, Integer, BitArray> f : creators) {
+            for (int i = 1; i < 32; i++) {
+                int mask = (1 << i) - 1;
+                try (BitArray array = f.apply(i, reference.length)) {
+                    for (int j = 0; j < reference.length; j++) {
+                        array.set(j, reference[j] & mask);
+                    }
+                    for (int j = 0; j < reference.length; j++) {
+                        int a = array.get(j);
+                        int b = reference[j] & mask;
+                        checkState(a == b, "%d != %d @ %d bits with %s", a, b, i, array);
+                    }
                 }
             }
         }

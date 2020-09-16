@@ -20,6 +20,7 @@
 
 package net.daporkchop.lib.binary.bit;
 
+import net.daporkchop.lib.common.misc.Cloneable;
 import net.daporkchop.lib.common.misc.refcount.RefCounted;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
@@ -28,7 +29,7 @@ import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
  *
  * @author DaPorkchop_
  */
-public interface BitArray extends RefCounted {
+public interface BitArray extends RefCounted, Cloneable<BitArray> {
     /**
      * @return the number of entries in the array
      */

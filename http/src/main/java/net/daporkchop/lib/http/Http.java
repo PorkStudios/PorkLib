@@ -36,12 +36,15 @@ import java.nio.charset.StandardCharsets;
  */
 @UtilityClass
 public class Http {
-    public final HttpClient CLIENT = new JavaHttpClientBuilder()
+    public final HttpClient ASYNC_CLIENT = new JavaHttpClientBuilder()
             .threadFactory(new ThreadFactoryBuilder().name("PorkLib HTTP Worker Thread #%d").formatId().collapsingId().build())
+            .build();
+    public final HttpClient BLOCKING_CLIENT = new JavaHttpClientBuilder()
+            .blockingRequests(true)
             .build();
 
     public String getString(@NonNull String url, Header... headers) {
-        return CLIENT.request(url)
+        return BLOCKING_CLIENT.request(url)
                 .followRedirects(true)
                 .putHeaders(headers)
                 .aggregateToString()
@@ -50,7 +53,7 @@ public class Http {
     }
 
     public byte[] get(@NonNull String url, Header... headers) {
-        return CLIENT.request(url)
+        return BLOCKING_CLIENT.request(url)
                 .followRedirects(true)
                 .putHeaders(headers)
                 .aggregateToByteArray()
@@ -59,7 +62,7 @@ public class Http {
     }
 
     public String postUrlEncodedString(@NonNull String url, @NonNull String content, Header... headers) {
-        return CLIENT.request(HttpMethod.POST, url)
+        return BLOCKING_CLIENT.request(HttpMethod.POST, url)
                 .followRedirects(true)
                 .putHeaders(headers)
                 .body(ContentType.parse("application/x-www-form-urlencoded; charset=UTF-8"), content.getBytes(StandardCharsets.UTF_8))
@@ -69,7 +72,7 @@ public class Http {
     }
 
     public String postJsonString(@NonNull String url, @NonNull String json, Header... headers) {
-        return CLIENT.request(HttpMethod.POST, url)
+        return BLOCKING_CLIENT.request(HttpMethod.POST, url)
                 .followRedirects(true)
                 .putHeaders(headers)
                 .bodyJson(json)
@@ -78,18 +81,18 @@ public class Http {
                 .syncBodyAndGet().body();
     }
 
-    public String postString(@NonNull String url, @NonNull byte[] content, @NonNull String contentType, Header... headers) {
-        return CLIENT.request(HttpMethod.POST, url)
+    public String postString(@NonNull String url, @NonNull String content, Header... headers) {
+        return BLOCKING_CLIENT.request(HttpMethod.POST, url)
                 .followRedirects(true)
                 .putHeaders(headers)
-                .body(contentType, content)
+                .body(content)
                 .aggregateToString()
                 .send()
                 .syncBodyAndGet().body();
     }
 
     public byte[] postUrlEncoded(@NonNull String url, @NonNull String content, Header... headers) {
-        return CLIENT.request(HttpMethod.POST, url)
+        return BLOCKING_CLIENT.request(HttpMethod.POST, url)
                 .followRedirects(true)
                 .putHeaders(headers)
                 .body(ContentType.parse("application/x-www-form-urlencoded; charset=UTF-8"), content.getBytes(StandardCharsets.UTF_8))
@@ -99,7 +102,7 @@ public class Http {
     }
 
     public byte[] postJson(@NonNull String url, @NonNull String json, Header... headers) {
-        return CLIENT.request(HttpMethod.POST, url)
+        return BLOCKING_CLIENT.request(HttpMethod.POST, url)
                 .followRedirects(true)
                 .putHeaders(headers)
                 .bodyJson(json)
@@ -109,7 +112,7 @@ public class Http {
     }
 
     public byte[] post(@NonNull String url, @NonNull byte[] content, @NonNull String contentType, Header... headers) {
-        return CLIENT.request(HttpMethod.POST, url)
+        return BLOCKING_CLIENT.request(HttpMethod.POST, url)
                 .followRedirects(true)
                 .putHeaders(headers)
                 .body(contentType, content)

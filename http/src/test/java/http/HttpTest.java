@@ -77,4 +77,27 @@ public class HttpTest {
             throw new IllegalStateException(String.format("Data not identical! Sent=%s Received=%s", text, response));
         }
     }
+
+    @Test
+    public void testErrorGET() throws IOException {
+        String data = Http.getString(
+                "https://cloud.daporkchop.net/404",
+                Header.of("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/70.0.3538.77 Chrome/70.0.3538.77 Safari/537.36")
+        );
+        if (DEBUG_PRINT) {
+            System.out.println(data);
+        }
+    }
+
+    @Test
+    public void testErrorPOST() throws IOException {
+        String data = Http.postString(
+                "https://cloud.daporkchop.net/404",
+                "my name jeff",
+                Header.of("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/70.0.3538.77 Chrome/70.0.3538.77 Safari/537.36")
+        );
+        if (DEBUG_PRINT) {
+            System.out.println(data);
+        }
+    }
 }

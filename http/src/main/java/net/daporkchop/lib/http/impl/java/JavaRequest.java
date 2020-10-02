@@ -49,12 +49,14 @@ import net.daporkchop.lib.http.util.exception.ResponseTooLargeException;
 import net.daporkchop.lib.unsafe.PUnsafe;
 import sun.net.www.http.HttpClient;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.util.List;
+import java.util.concurrent.CancellationException;
 
 /**
  * Base implementation of {@link Request} for {@link JavaHttpClient}.
@@ -62,11 +64,6 @@ import java.util.List;
  * @author DaPorkchop_
  */
 public abstract class JavaRequest<V> implements Request<V>, Runnable {
-    static {
-        PUnsafe.ensureClassInitialized(HttpClient.class);
-        PUnsafe.pork_getStaticField(HttpClient.class, "keepAliveProp").setBoolean(false);
-    }
-
     protected final JavaHttpClient        client;
     protected final JavaRequestBuilder<V> builder;
     protected       Thread                thread;
@@ -102,7 +99,7 @@ public abstract class JavaRequest<V> implements Request<V>, Runnable {
 
     @Override
     public Future<ResponseBody<V>> close() {
-        this.connection.disconnect();
+        this.body.cancel(false);
         return this.body;
     }
 
@@ -125,6 +122,7 @@ public abstract class JavaRequest<V> implements Request<V>, Runnable {
             URL url = this.builder.url;
             do {
                 this.connection = (HttpURLConnection) (this.builder.proxy() == null ? url.openConnection() : url.openConnection(this.builder.proxy()));
+                this.connection.setUseCaches(false);
 
                 //set method
                 this.connection.setRequestMethod(method.name());
@@ -194,35 +192,42 @@ public abstract class JavaRequest<V> implements Request<V>, Runnable {
                     }
                 }
 
-                //TODO: this no work correct
-                ResponseHeadersImpl<V> responseHeaders = new ResponseHeadersImpl<>(
-                        this,
-                        StatusCode.of(this.connection.getResponseCode(), this.connection.getResponseMessage()),
-                        new HeaderSnapshot(this.connection.getHeaderFields().entrySet().stream()
-                                .map(entry -> {
-                                    String key = entry.getKey();
-                                    List<String> value = entry.getValue();
-                                    return (key == null || value.isEmpty()) ? null : Header.of(key, value);
-                                })));
-
-                if (this.builder.followRedirects() && responseHeaders.isRedirect()) {
-                    url = Constants.encodeUrl(responseHeaders.redirectLocation());
-                    this.connection.disconnect();
-                    continue;
+                InputStream _in;
+                try {
+                    _in = this.connection.getInputStream();
+                } catch (IOException e) {
+                    _in = this.connection.getErrorStream();
                 }
 
-                if (!this.headers.trySuccess(responseHeaders) && !this.headers.isCancelled()) {
-                    //what?
-                    throw new IllegalStateException("Unable to mark headers as received!");
-                } else if (this.headers.isCancelled() || this.body.isCancelled()) {
-                    //client has been closed, exit silently
-                    return;
-                }
+                try (InputStream in = _in) {
+                    ResponseHeadersImpl<V> responseHeaders = new ResponseHeadersImpl<>(
+                            this,
+                            StatusCode.of(this.connection.getResponseCode(), this.connection.getResponseMessage()),
+                            new HeaderSnapshot(this.connection.getHeaderFields().entrySet().stream()
+                                    .map(entry -> {
+                                        String key = entry.getKey();
+                                        List<String> value = entry.getValue();
+                                        return (key == null || value.isEmpty()) ? null : Header.of(key, value);
+                                    })));
 
-                V bodyValue = this.implReceiveBody(this.connection.getInputStream(), responseHeaders);
-                if (!this.body.trySuccess(new DelegatingResponseBodyImpl<>(responseHeaders, bodyValue)) && !this.body.isCancelled()) {
-                    //what?
-                    throw new IllegalStateException("Unable to mark body as received!");
+                    if (this.builder.followRedirects() && responseHeaders.isRedirect()) {
+                        url = Constants.encodeUrl(responseHeaders.redirectLocation());
+                        continue;
+                    }
+
+                    if (!this.headers.trySuccess(responseHeaders) && !this.headers.isCancelled()) {
+                        //what?
+                        throw new IllegalStateException("Unable to mark headers as received!");
+                    } else if (this.headers.isCancelled() || this.body.isCancelled()) {
+                        //client has been closed, exit silently
+                        return;
+                    }
+
+                    V bodyValue = this.implReceiveBody(in, responseHeaders);
+                    if (!this.body.trySuccess(new DelegatingResponseBodyImpl<>(responseHeaders, bodyValue)) && !this.body.isCancelled()) {
+                        //what?
+                        throw new IllegalStateException("Unable to mark body as received!");
+                    }
                 }
                 //if body is cancelled this will simply exit the loop normally
             } while (!this.body.isDone());
@@ -230,9 +235,9 @@ public abstract class JavaRequest<V> implements Request<V>, Runnable {
             this.body.setFailure(e);
         } finally {
             this.client.removeRequest(this);
-            if (this.connection != null) {
+            /*if (this.connection != null) {
                 this.connection.disconnect();
-            }
+            }*/
             if (!this.body.isDone()) {
                 if (this.headers.isDone()) {
                     if (this.headers.isCancelled()) {

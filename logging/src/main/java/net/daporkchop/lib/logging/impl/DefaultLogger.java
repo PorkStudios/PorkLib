@@ -40,8 +40,10 @@ import net.daporkchop.lib.unsafe.PUnsafe;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -119,11 +121,37 @@ public class DefaultLogger extends SimpleLogger {
      * Enables ANSI text formatting on this logger.
      */
     public DefaultLogger enableANSI() {
-        if (PlatformInfo.OPERATING_SYSTEM == OperatingSystem.Windows)   {
+        WINDOWS_ANSI_CHECK:
+        if (PlatformInfo.OPERATING_SYSTEM == OperatingSystem.Windows) {
+            try {
+                // Run reg query, then read output with StreamReader (internal class)
+                Process process = Runtime.getRuntime().exec("reg query \"HKEY_CURRENT_USER\\Console\" /v VirtualTerminalLevel");
+
+                InputStream in = process.getInputStream();
+                StringWriter writer = new StringWriter();
+                for (int i; (i = in.read()) >= 0; ) {
+                    writer.write(i);
+                }
+                String output = writer.toString();
+                System.out.println(output);
+
+                // Output has the following format:
+                // \n<Version information>\n\n<key>\t<registry type>\t<value>
+                if (!output.contains("\t")) {
+                    return null;
+                }
+
+                // Parse out the value
+                String[] parsed = output.split("\t");
+                String value = parsed[parsed.length - 1];
+                this.debug(value);
+            } catch (Exception e) {
+                return null;
+            }
             this.warn("Windows detected, not enabling ANSI formatting!");
-        } else {
-            this.delegates.computeIfAbsent("console", s -> new Tuple<>(this.logLevels, null)).atomicSetB(new ANSIMessagePrinter());
+            return this;
         }
+        this.delegates.computeIfAbsent("console", s -> new Tuple<>(this.logLevels, null)).atomicSetB(new ANSIMessagePrinter());
         return this;
     }
 
@@ -131,7 +159,7 @@ public class DefaultLogger extends SimpleLogger {
         return this.setDelegate(name, null, null);
     }
 
-    public DefaultLogger setDelegate(@NonNull String name, MessagePrinter printer)  {
+    public DefaultLogger setDelegate(@NonNull String name, MessagePrinter printer) {
         return this.setDelegate(name, null, printer);
     }
 
@@ -140,45 +168,45 @@ public class DefaultLogger extends SimpleLogger {
             this.delegates.remove(name);
         } else {
             this.delegates.computeIfAbsent(name, s -> new Tuple<>(levels == null ? this.logLevels : levels, printer))
-                          .setA(levels == null ? this.logLevels : levels).setB(printer);
+                    .setA(levels == null ? this.logLevels : levels).setB(printer);
         }
         return this;
     }
 
     // file methods
-    public DefaultLogger addFile(@NonNull File path)    {
+    public DefaultLogger addFile(@NonNull File path) {
         return this.addFile(String.format("File:%s", path.getAbsolutePath()), path, true, null);
     }
 
-    public DefaultLogger addFile(@NonNull File path, Set<LogLevel> levels)    {
+    public DefaultLogger addFile(@NonNull File path, Set<LogLevel> levels) {
         return this.addFile(String.format("File:%s", path.getAbsolutePath()), path, true, levels);
     }
 
-    public DefaultLogger addFile(@NonNull File path, LogLevel... levels)    {
+    public DefaultLogger addFile(@NonNull File path, LogLevel... levels) {
         return this.addFile(String.format("File:%s", path.getAbsolutePath()), path, true, LogLevel.set(levels));
     }
 
-    public DefaultLogger addFile(@NonNull File path, @NonNull LogAmount amount)    {
+    public DefaultLogger addFile(@NonNull File path, @NonNull LogAmount amount) {
         return this.addFile(String.format("File:%s", path.getAbsolutePath()), path, true, amount.getLevelSet());
     }
 
-    public DefaultLogger addFile(@NonNull File path, boolean overwrite)    {
+    public DefaultLogger addFile(@NonNull File path, boolean overwrite) {
         return this.addFile(String.format("File:%s", path.getAbsolutePath()), path, overwrite, null);
     }
 
-    public DefaultLogger addFile(@NonNull File path, boolean overwrite, Set<LogLevel> levels)    {
+    public DefaultLogger addFile(@NonNull File path, boolean overwrite, Set<LogLevel> levels) {
         return this.addFile(String.format("File:%s", path.getAbsolutePath()), path, overwrite, levels);
     }
 
-    public DefaultLogger addFile(@NonNull File path, boolean overwrite, LogLevel... levels)    {
+    public DefaultLogger addFile(@NonNull File path, boolean overwrite, LogLevel... levels) {
         return this.addFile(String.format("File:%s", path.getAbsolutePath()), path, overwrite, LogLevel.set(levels));
     }
 
-    public DefaultLogger addFile(@NonNull File path, boolean overwrite, @NonNull LogAmount amount)    {
+    public DefaultLogger addFile(@NonNull File path, boolean overwrite, @NonNull LogAmount amount) {
         return this.addFile(String.format("File:%s", path.getAbsolutePath()), path, overwrite, amount.getLevelSet());
     }
 
-    public DefaultLogger addFile(@NonNull String name, @NonNull File path, boolean overwrite, Set<LogLevel> levels)    {
+    public DefaultLogger addFile(@NonNull String name, @NonNull File path, boolean overwrite, Set<LogLevel> levels) {
         PFiles.ensureFileExists(path);
         return this.setDelegate(name, levels, new SelfClosingMessagePrinter<UTF8FileWriter>(new UTF8FileWriter(path, !overwrite, PlatformInfo.OPERATING_SYSTEM.lineEnding(), true)) {
             @Override
@@ -195,7 +223,7 @@ public class DefaultLogger extends SimpleLogger {
     @Override
     protected synchronized void doLog(@NonNull LogLevel level, @NonNull TextComponent component) {
         for (Tuple<Set<LogLevel>, MessagePrinter> tuple : this.delegates.values()) {
-            if (tuple.getA().contains(level))   {
+            if (tuple.getA().contains(level)) {
                 tuple.getB().accept(component);
             }
         }
@@ -205,8 +233,8 @@ public class DefaultLogger extends SimpleLogger {
     public synchronized DefaultLogger setLogLevels(@NonNull Set<LogLevel> logLevels) {
         Set<LogLevel> oldLevels = this.logLevels;
         super.setLogLevels(logLevels);
-        for (Tuple<Set<LogLevel>, MessagePrinter> tuple : this.delegates.values())  {
-            if (tuple.getA() == oldLevels)  {
+        for (Tuple<Set<LogLevel>, MessagePrinter> tuple : this.delegates.values()) {
+            if (tuple.getA() == oldLevels) {
                 tuple.atomicSetA(logLevels);
             }
         }

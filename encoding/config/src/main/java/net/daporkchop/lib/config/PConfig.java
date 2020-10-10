@@ -67,7 +67,9 @@ public class PConfig {
     }
 
     public <C> C load(@NonNull C obj, @NonNull File file) throws IOException {
-        return this.load(obj, DataIn.wrap(file));
+        try (DataIn in = DataIn.wrap(file)) {
+            return this.load(obj, in);
+        }
     }
 
     public <C> C load(@NonNull C obj, @NonNull DataIn in) throws IOException   {
@@ -182,7 +184,7 @@ public class PConfig {
                     return true;
                 }
             });
-            if (!fields.isEmpty())   {
+            if (false && !fields.isEmpty())   { //we aren't using PUnsafe.allocateInstance any more, so we can assume that fields may be initialized in the object constructor
                 throw new IllegalStateException();
             }
         }
@@ -240,7 +242,9 @@ public class PConfig {
     }
 
     public void save(@NonNull Object obj, @NonNull File file) throws IOException    {
-        this.save(obj, DataOut.wrap(file));
+        try (DataOut out = DataOut.wrap(file)) {
+            this.save(obj, out);
+        }
     }
 
     public void save(@NonNull Object obj, @NonNull DataOut out) throws IOException  {

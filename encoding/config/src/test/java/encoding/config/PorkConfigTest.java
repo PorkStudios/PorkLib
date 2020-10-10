@@ -55,7 +55,7 @@ public class PorkConfigTest {
         {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             config.save(Root.INSTANCe, baos);
-            System.out.printf("Saved: \n%s\n", new String(baos.toByteArray(), StandardCharsets.UTF_8));
+            System.out.printf("Saved: \n%s", new String(baos.toByteArray(), StandardCharsets.UTF_8));
             try (DataIn in = DataIn.wrap(new ByteArrayInputStream(baos.toByteArray()))) {
                 Root rootInstance = config.load(Root.class, in);
                 System.out.println(rootInstance);

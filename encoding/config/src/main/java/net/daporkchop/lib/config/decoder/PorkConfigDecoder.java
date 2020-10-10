@@ -33,6 +33,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -230,7 +231,7 @@ public class PorkConfigDecoder implements ConfigDecoder {
 
     @Override
     public void encode(@NonNull Element.ContainerElement root, @NonNull DataOut out) throws IOException {
-        try (PrintStream stream = new PrintStream(new DataOutAsOutputStream.NonClosing(out))) {
+        try (PrintStream stream = new PrintStream(new DataOutAsOutputStream.NonClosing(out), false, "UTF-8")) {
             this.encodeRecursive(root, stream, 0);
         }
     }

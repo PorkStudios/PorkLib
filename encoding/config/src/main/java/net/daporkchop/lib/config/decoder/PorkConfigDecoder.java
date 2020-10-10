@@ -253,6 +253,7 @@ public class PorkConfigDecoder implements ConfigDecoder {
                     out.printf("%sO:%s={", indent, entry.getKey());
                     out.println();
                     this.encodeRecursive((Element.ContainerElement) entry.getValue(), out, depth + 1);
+                    previousHadComment = true; //force a newline after every object
                 }
                 break;
                 case BOOLEAN: {

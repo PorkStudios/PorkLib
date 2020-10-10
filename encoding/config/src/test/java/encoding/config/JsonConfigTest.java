@@ -21,6 +21,7 @@
 package encoding.config;
 
 import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import net.daporkchop.lib.binary.stream.DataIn;
@@ -76,6 +77,10 @@ public class JsonConfigTest {
 
         //arrays are not a good thing
         //protected final Sub3 arrays;
+
+        private Root()  { //no-args constructor
+            this(null);
+        }
 
         @ToString
         public static class Sub1   {

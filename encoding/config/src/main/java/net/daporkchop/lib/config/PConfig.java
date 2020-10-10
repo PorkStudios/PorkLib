@@ -25,6 +25,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.config.attribute.Comment;
 import net.daporkchop.lib.config.decoder.ConfigDecoder;
 import net.daporkchop.lib.config.util.Element;
@@ -36,6 +37,7 @@ import net.daporkchop.lib.unsafe.PUnsafe;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -56,12 +58,12 @@ public class PConfig {
 
     @SuppressWarnings("unchecked")
     public <C> C load(@NonNull Class<C> clazz, @NonNull File file) throws IOException   {
-        return this.load(PUnsafe.allocateInstance(clazz), file);
+        return this.load(PorkUtil.newInstance(clazz), file);
     }
 
     @SuppressWarnings("unchecked")
     public <C> C load(@NonNull Class<C> clazz, @NonNull DataIn in) throws IOException   {
-        return this.load(PUnsafe.allocateInstance(clazz), in);
+        return this.load(PorkUtil.newInstance(clazz), in);
     }
 
     public <C> C load(@NonNull C obj, @NonNull File file) throws IOException {
@@ -106,7 +108,7 @@ public class PConfig {
                 }
                 Config.Implementation implementation = field.getAnnotation(Config.Implementation.class);
                 Class subClazz = implementation == null ? field.getClassType() : implementation.value();
-                val = PUnsafe.allocateInstance(subClazz);
+                val = PorkUtil.newInstance(subClazz);
                 this.loadInto(val, subClazz, (Element.ContainerElement) subElement.getAs());
             } else {
                 val = subElement.getValue();

@@ -30,6 +30,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static net.daporkchop.lib.common.util.PValidation.*;
+
 /**
  * @author DaPorkchop_
  */
@@ -73,12 +75,19 @@ public class TextComponentHolder implements TextComponent {
     }
 
     @Override
-    public synchronized void addChild(@NonNull TextComponent child) {
+    public synchronized void pushChild(@NonNull TextComponent child) {
         List<TextComponent> children = this.children;
         if (children == Collections.<TextComponent>emptyList()) {
             this.children = children = new ArrayList<>();
         }
         children.add(child);
+    }
+
+    @Override
+    public synchronized TextComponent popChild() {
+        List<TextComponent> children = this.children;
+        checkState(!children.isEmpty(), "stack underflow");
+        return children.remove(children.size() - 1);
     }
 
     @Override

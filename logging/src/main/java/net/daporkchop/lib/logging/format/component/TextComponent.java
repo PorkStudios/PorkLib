@@ -71,7 +71,14 @@ public interface TextComponent {
      *
      * @param child the child to add
      */
-    void addChild(@NonNull TextComponent child);
+    void pushChild(@NonNull TextComponent child);
+
+    /**
+     * Pops the last child element off of this component.
+     *
+     * @return the child that was removed
+     */
+    TextComponent popChild();
 
     /**
      * Gets this text component's color, if set. If no color is explicitly set (i.e. the default color should be used), this method returns {@code null}.
@@ -137,7 +144,7 @@ public interface TextComponent {
             String text = component.getText();
             if (text != null && !text.isEmpty()) {
                 if (text.indexOf('\n') == -1) {
-                    curr.get().addChild(component);
+                    curr.get().pushChild(component);
                 } else {
                     int newlineCount = 0;
                     for (int i = text.length() - 1; i >= 0; i--) {
@@ -147,7 +154,7 @@ public interface TextComponent {
                     }
                     String[] split = text.split("\n");
                     for (String line : split) {
-                        curr.get().addChild(new TextComponentString(component.getColor(), component.getBackgroundColor(), component.getStyle(), line));
+                        curr.get().pushChild(new TextComponentString(component.getColor(), component.getBackgroundColor(), component.getStyle(), line));
                         if (newlineCount-- <= 0) {
                             continue;
                         }

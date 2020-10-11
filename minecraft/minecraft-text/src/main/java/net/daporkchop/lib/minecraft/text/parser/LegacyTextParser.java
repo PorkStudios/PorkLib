@@ -104,7 +104,7 @@ public class LegacyTextParser {
 
     protected void createComponent(@NonNull MCTextRoot root, @NonNull StringBuilder builder, @NonNull TextFormat format) {
         if (builder.length() > 0) {
-            root.addChild(new TextComponentString(format, builder.toString()));
+            root.pushChild(new TextComponentString(format, builder.toString()));
             builder.setLength(0);
         }
     }

@@ -31,6 +31,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static net.daporkchop.lib.common.util.PValidation.*;
+
 /**
  * @author DaPorkchop_
  */
@@ -54,11 +56,18 @@ public abstract class AbstractTextComponent implements TextComponent {
     }
 
     @Override
-    public synchronized void addChild(@NonNull TextComponent child) {
+    public synchronized void pushChild(@NonNull TextComponent child) {
         List<TextComponent> children = this.children;
         if (children == Collections.<TextComponent>emptyList()) {
             this.children = children = new ArrayList<>();
         }
         children.add(child);
+    }
+
+    @Override
+    public synchronized TextComponent popChild() {
+        List<TextComponent> children = this.children;
+        checkState(!children.isEmpty(), "stack underflow");
+        return children.remove(children.size() - 1);
     }
 }

@@ -48,7 +48,12 @@ public final class EmptyTextComponent implements TextComponent {
     }
 
     @Override
-    public void addChild(@NonNull TextComponent child) {
+    public void pushChild(@NonNull TextComponent child) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public TextComponent popChild() {
         throw new UnsupportedOperationException();
     }
 

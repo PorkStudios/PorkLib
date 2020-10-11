@@ -35,6 +35,7 @@ import net.daporkchop.lib.logging.format.DefaultMessageFormatter;
 import net.daporkchop.lib.logging.format.FormatParser;
 import net.daporkchop.lib.logging.format.MessageFormatter;
 import net.daporkchop.lib.logging.format.MessagePrinter;
+import net.daporkchop.lib.logging.format.component.EmptyTextComponent;
 import net.daporkchop.lib.logging.format.component.TextComponent;
 
 import java.time.Instant;
@@ -102,19 +103,33 @@ public class SimpleLogger implements Logger {
         Date date = Date.from(Instant.now());
 
         if (level == LogLevel.ALERT) {
-            TextComponent prefixFormatted = this.messageFormatter.format(date, channel, level, this.alertPrefix);
+            TextComponent component = this.messageFormatter.format(date, channel, level, this.alertHeader);
+            this.doLog(level, component);
+            component.popChild();
 
-            this.doLog(level, this.messageFormatter.format(date, channel, level, this.alertHeader));
-            this.doLog(level, prefixFormatted);
+            component.pushChild(this.alertPrefix);
+            this.doLog(level, component);
             for (TextComponent line : lines) {
-                this.doLog(level, prefixFormatted);
-                this.doLog(level, line);
+                component.pushChild(line);
+                this.doLog(level, component);
+                component.popChild();
             }
-            this.doLog(level, prefixFormatted);
-            this.doLog(level, this.messageFormatter.format(date, channel, level, this.alertFooter));
+            this.doLog(level, component);
+            component.popChild();
+
+            component.pushChild(this.alertFooter);
+            this.doLog(level, component);
+            component.popChild();
         } else {
+            TextComponent component = null;
             for (TextComponent line : lines) {
-                this.doLog(level, this.messageFormatter.format(date, channel, level, line));
+                if (component == null)  {
+                    component = this.messageFormatter.format(date, channel, level, line);
+                } else {
+                    component.pushChild(line);
+                }
+                this.doLog(level, component);
+                component.popChild();
             }
         }
     }

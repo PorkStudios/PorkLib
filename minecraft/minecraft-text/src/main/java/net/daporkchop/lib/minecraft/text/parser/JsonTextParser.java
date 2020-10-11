@@ -26,7 +26,6 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.common.function.PFunctions;
 import net.daporkchop.lib.common.misc.InstancePool;
 import net.daporkchop.lib.logging.console.TextFormat;
 import net.daporkchop.lib.logging.format.TextStyle;
@@ -38,9 +37,6 @@ import net.daporkchop.lib.minecraft.text.format.ChatFormat;
 import net.daporkchop.lib.minecraft.text.format.FormattingCode;
 
 import java.awt.Color;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author DaPorkchop_
@@ -84,7 +80,7 @@ public class JsonTextParser {
             }
         }
         if (text != null && !text.isEmpty()) {
-            root.addChild(new TextComponentString(format, text));
+            root.pushChild(new TextComponentString(format, text));
         }
         if (element.isJsonObject()) {
             JsonElement extra;

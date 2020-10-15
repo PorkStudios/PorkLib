@@ -35,13 +35,13 @@ import java.awt.Color;
 public class TextComponentString extends AbstractTextComponent {
     protected final String text;
 
-    public TextComponentString(Color color, Color backgroundColor, int style, @NonNull String text) {
+    public TextComponentString(@NonNull String text, Color color, Color backgroundColor, int style) {
         super(color, backgroundColor, style);
 
         this.text = text;
     }
 
-    public TextComponentString(@NonNull TextFormat format, @NonNull String text) {
+    public TextComponentString(@NonNull String text, @NonNull TextFormat format) {
         super(format.getTextColor(), format.getBackgroundColor(), format.getStyle());
 
         this.text = text;

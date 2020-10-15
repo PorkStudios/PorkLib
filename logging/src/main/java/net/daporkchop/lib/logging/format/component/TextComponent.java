@@ -48,9 +48,7 @@ public interface TextComponent {
     /**
      * Gets this component's text.
      * <p>
-     * This method may return {@code null} if it does not contain any text itself.
-     * <p>
-     * If this component has both children and text, it's own text should be applied before any children.
+     * This method returns {@code null} if it does not contain any text itself.
      *
      * @return this component's text
      */
@@ -154,7 +152,7 @@ public interface TextComponent {
                     }
                     String[] split = text.split("\n");
                     for (String line : split) {
-                        curr.get().pushChild(new TextComponentString(component.getColor(), component.getBackgroundColor(), component.getStyle(), line));
+                        curr.get().pushChild(new TextComponentString(line, component.getColor(), component.getBackgroundColor(), component.getStyle()));
                         if (newlineCount-- <= 0) {
                             continue;
                         }

@@ -59,7 +59,7 @@ public class DefaultMessageFormatter implements MessageFormatter {
 
     static {
         for (LogLevel level : LogLevel.values())    {
-            LEVEL_COMPONENTS.put(level, new TextComponentString(level.getColor(), null, level.getStyle(), level.name()));
+            LEVEL_COMPONENTS.put(level, new TextComponentString(level.name(), level.getColor(), null, level.getStyle()));
         }
     }
 
@@ -70,7 +70,7 @@ public class DefaultMessageFormatter implements MessageFormatter {
         List<TextComponent> components = new ArrayList<>((channelName == null ? 5 : 7) + (message.getText() == null ? 0 : 1) + message.getChildren().size());
 
         components.add(START);
-        components.add(new TextComponentString(DATE_STYLE, this.dateFormat.format(date)));
+        components.add(new TextComponentString(this.dateFormat.format(date), DATE_STYLE));
         components.add(BETWEEN);
         if (channelName != null)    {
             components.add(new TextComponentString(channelName));
@@ -78,10 +78,7 @@ public class DefaultMessageFormatter implements MessageFormatter {
         }
         components.add(LEVEL_COMPONENTS.get(level));
         components.add(END);
-        if (message.getText() != null)  {
-            components.add(message.getChildren().isEmpty() ? message : new TextComponentString(message.getColor(), message.getBackgroundColor(), message.getStyle(), message.getText()));
-        }
-        components.addAll(message.getChildren());
+        components.add(message);
 
         return new TextComponentHolder(components);
     }

@@ -22,7 +22,6 @@ package net.daporkchop.lib.minecraft.text.component;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.logging.format.component.TextComponent;
 import net.daporkchop.lib.logging.format.component.TextComponentHolder;
 import net.daporkchop.lib.minecraft.text.MCTextType;
 

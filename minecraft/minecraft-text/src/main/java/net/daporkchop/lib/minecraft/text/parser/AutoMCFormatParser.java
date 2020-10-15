@@ -20,22 +20,47 @@
 
 package net.daporkchop.lib.minecraft.text.parser;
 
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
+import net.daporkchop.lib.common.misc.InstancePool;
 import net.daporkchop.lib.logging.format.FormatParser;
-import net.daporkchop.lib.minecraft.text.MCTextType;
 import net.daporkchop.lib.minecraft.text.component.MCTextRoot;
+import net.daporkchop.lib.minecraft.text.util.TranslationSource;
 
 /**
- * Subtype of {@link FormatParser} for Minecraft format parsers.
+ * Parses Minecraft text into formatted components, automatically detecting Json or legacy-formatted text.
  *
  * @author DaPorkchop_
  */
-public interface MCFormatParser extends FormatParser {
-    @Override
-    MCTextRoot parse(@NonNull String text);
+@RequiredArgsConstructor
+@Getter
+@ToString
+public final class AutoMCFormatParser implements FormatParser {
+    public static final AutoMCFormatParser DEFAULT = new AutoMCFormatParser(JsonTextParser.DEFAULT, LegacyTextParser.INSTANCE);
 
-    /**
-     * @return the type of Minecraft text parsed by this parser
-     */
-    MCTextType type();
+    @NonNull
+    protected final JsonTextParser jsonTextParser;
+    @NonNull
+    protected final LegacyTextParser legacyTextParser;
+
+    public AutoMCFormatParser(@NonNull TranslationSource translationSource) {
+        this(new JsonTextParser(translationSource), LegacyTextParser.INSTANCE);
+    }
+
+    @Override
+    public MCTextRoot parse(@NonNull String text) {
+        if (text.indexOf('§') == -1) { //simple test to detect legacy text
+            try {
+                //attempt to parse as json text
+                return this.jsonTextParser.parse(InstancePool.getInstance(JsonParser.class).parse(text), text);
+            } catch (JsonSyntaxException e) {
+            }
+        }
+        //not a json string, treat as legacy
+        return this.legacyTextParser.parse(text);
+    }
 }

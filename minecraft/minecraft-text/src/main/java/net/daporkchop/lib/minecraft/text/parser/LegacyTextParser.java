@@ -20,8 +20,9 @@
 
 package net.daporkchop.lib.minecraft.text.parser;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.logging.console.TextFormat;
@@ -40,24 +41,12 @@ import static net.daporkchop.lib.minecraft.text.format.ChatFormat.*;
 
 /**
  * @author DaPorkchop_
- * @see net.daporkchop.lib.minecraft.text.MCTextType#LEGACY
  */
-@UtilityClass
-public class LegacyTextParser {
-    public MCTextRoot parse(@NonNull String raw) {
-        try {
-            return parse(new StringReader(raw), raw);
-        } catch (IOException e) {
-            //impossible
-            throw new IllegalStateException(e);
-        }
-    }
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class LegacyTextParser implements MCFormatParser {
+    public static final LegacyTextParser INSTANCE = new LegacyTextParser();
 
-    public MCTextRoot parse(@NonNull Reader reader) throws IOException {
-        return parse(reader, null);
-    }
-
-    protected MCTextRoot parse(@NonNull Reader reader, String raw) throws IOException {
+    protected static MCTextRoot parse(@NonNull Reader reader, String raw) throws IOException {
         MCTextRoot root = new MCTextRoot(MCTextType.LEGACY, raw);
 
         TextFormat format = new TextFormat();
@@ -102,10 +91,25 @@ public class LegacyTextParser {
         return root;
     }
 
-    protected void createComponent(@NonNull MCTextRoot root, @NonNull StringBuilder builder, @NonNull TextFormat format) {
+    protected static void createComponent(@NonNull MCTextRoot root, @NonNull StringBuilder builder, @NonNull TextFormat format) {
         if (builder.length() > 0) {
-            root.pushChild(new TextComponentString(format, builder.toString()));
+            root.pushChild(new TextComponentString(builder.toString(), format));
             builder.setLength(0);
         }
+    }
+
+    @Override
+    public MCTextRoot parse(@NonNull String raw) {
+        try {
+            return parse(new StringReader(raw), raw);
+        } catch (IOException e) {
+            //impossible
+            throw new IllegalStateException(e);
+        }
+    }
+
+    @Override
+    public MCTextType type() {
+        return MCTextType.JSON;
     }
 }

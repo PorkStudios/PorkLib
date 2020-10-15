@@ -21,14 +21,7 @@
 package net.daporkchop.lib.minecraft.text;
 
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.logging.format.component.TextComponent;
-import net.daporkchop.lib.minecraft.text.component.MCTextRoot;
-import net.daporkchop.lib.minecraft.text.parser.JsonTextParser;
-import net.daporkchop.lib.minecraft.text.parser.LegacyTextParser;
-
-import java.util.function.Function;
 
 /**
  * @author DaPorkchop_
@@ -39,14 +32,10 @@ public enum MCTextType {
     /**
      * The new JSON chat formatting system as described at https://wiki.vg/Chat.
      */
-    JSON(JsonTextParser::parse),
+    JSON,
     /**
      * The legacy text formatting system using text interleaved with formatting codes (indicated by '§'), as described at
      * https://minecraft.gamepedia.com/Formatting_codes.
      */
-    LEGACY(LegacyTextParser::parse),
-    ;
-
-    @NonNull
-    protected final Function<String, MCTextRoot> parser;
+    LEGACY;
 }

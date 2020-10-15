@@ -18,9 +18,13 @@
  *
  */
 
+import net.daporkchop.lib.logging.LogAmount;
 import net.daporkchop.lib.minecraft.text.MCTextEncoder;
 import net.daporkchop.lib.minecraft.text.MCTextType;
-import net.daporkchop.lib.minecraft.text.parser.MCFormatParser;
+import net.daporkchop.lib.minecraft.text.parser.AutoMCFormatParser;
+import net.daporkchop.lib.minecraft.text.util.TranslationSource;
+
+import java.util.Collections;
 
 import static net.daporkchop.lib.logging.Logging.*;
 
@@ -35,26 +39,30 @@ public class FormattedPrintExample {
             "\n2b2t:",
             "{\"text\":\"\",\"extra\":[{\"text\":\"2B \",\"italic\":true,\"bold\":true,\"color\":\"gray\"},{\"text\":\"A blackhole of destruction into\\n\",\"color\":\"gold\"},{\"text\":\"2T \",\"italic\":true,\"bold\":true,\"color\":\"gray\"},{\"text\":\"a singularity of power\",\"color\":\"gold\"}]}",
             "\nMineplex:",
-            "{\"text\":\"\",\"extra\":[{\"text\":\" \"},{\"text\":\"---\",\"strikethrough\":true,\"color\":\"blue\"},{\"text\":\"[-\",\"strikethrough\":true,\"bold\":true,\"color\":\"dark_gray\"},{\"text\":\" \",\"color\":\"white\"},{\"text\":\"Mineplex \",\"bold\":true,\"color\":\"gold\"},{\"text\":\"Games \",\"bold\":true,\"color\":\"white\"},{\"text\":\"[\",\"color\":\"dark_gray\"},{\"text\":\"US\",\"color\":\"gray\"},{\"text\":\"] \",\"color\":\"dark_gray\"},{\"text\":\"-]\",\"strikethrough\":true,\"bold\":true,\"color\":\"dark_gray\"},{\"text\":\"---\",\"strikethrough\":true,\"color\":\"blue\"},{\"text\":\"\\n \",\"color\":\"white\"},{\"text\":\"CLANS SEASON 6\",\"bold\":true,\"color\":\"red\"}]}"
+            "{\"text\":\"\",\"extra\":[{\"text\":\" \"},{\"text\":\"---\",\"strikethrough\":true,\"color\":\"blue\"},{\"text\":\"[-\",\"strikethrough\":true,\"bold\":true,\"color\":\"dark_gray\"},{\"text\":\" \",\"color\":\"white\"},{\"text\":\"Mineplex \",\"bold\":true,\"color\":\"gold\"},{\"text\":\"Games \",\"bold\":true,\"color\":\"white\"},{\"text\":\"[\",\"color\":\"dark_gray\"},{\"text\":\"US\",\"color\":\"gray\"},{\"text\":\"] \",\"color\":\"dark_gray\"},{\"text\":\"-]\",\"strikethrough\":true,\"bold\":true,\"color\":\"dark_gray\"},{\"text\":\"---\",\"strikethrough\":true,\"color\":\"blue\"},{\"text\":\"\\n \",\"color\":\"white\"},{\"text\":\"CLANS SEASON 6\",\"bold\":true,\"color\":\"red\"}]}",
+            "\nChat:",
+            "{\"translate\":\"chat.type.text\",\"with\":[{\"text\":\"wnuke\",\"clickEvent\":{\"action\":\"suggest_command\",\"value\":\"/tell wnuke \"},\"hoverEvent\":{\"action\":\"show_entity\",\"contents\":{\"type\":\"minecraft:player\",\"id\":\"6eae0039-8396-3cb1-b63b-c6a62be747d9\",\"name\":\"wnuke\"}},\"insertion\":\"wnuke\"},\"hello\"]}",
+            "{\"color\":\"red\",\"text\":\"jeff\",\"extra\":[{\"color\":\"green\",\"text\":\"a\",\"extra\":[\"A\"]},{\"bold\":true,\"text\":\"b\",\"extra\":[\"B\",{\"text\":\"B\"}]},{\"color\":\"blue\",\"text\":\"c\",\"extra\":[\"C\"]}]}"
     };
 
     public static void main(String... args) {
-        logger.enableANSI();
+        logger.enableANSI().setLogAmount(LogAmount.TRACE);
 
         logger.info("Displaying legacy text:");
         for (String message : MESSAGES) {
-            logger.info(MCTextEncoder.encode(MCTextType.LEGACY, MCFormatParser.DEFAULT.parse(message)));
+            logger.trace(MCTextEncoder.encode(MCTextType.LEGACY, AutoMCFormatParser.DEFAULT.parse(message)));
         }
 
-        logger.setFormatParser(MCFormatParser.DEFAULT)
+        logger.setFormatParser(AutoMCFormatParser.DEFAULT)
                 .info("\nDisplaying legacy text as formatted messages:");
         for (String message : MESSAGES) {
-            logger.info(MCTextEncoder.encode(MCTextType.LEGACY, MCFormatParser.DEFAULT.parse(message)));
+            logger.trace(MCTextEncoder.encode(MCTextType.LEGACY, AutoMCFormatParser.DEFAULT.parse(message)));
         }
 
-        logger.info("\nDisplaying formatted messages:");
+        logger.setFormatParser(new AutoMCFormatParser(TranslationSource.ofMap(Collections.singletonMap("chat.type.text", "<%s> %s"))))
+                .info("\nDisplaying formatted messages:");
         for (String message : MESSAGES) {
-            logger.info(message);
+            logger.trace(message);
         }
     }
 }

@@ -85,10 +85,10 @@ public class MCTextEncoder {
         return lastColor;
     }
 
-    protected ChatColor writeLegacyFormatting(@NonNull Appendable dst, @NonNull TextComponent component, @NonNull TextFormat format, @NonNull FormattingCode lastColor) throws IOException {
+    protected FormattingCode writeLegacyFormatting(@NonNull Appendable dst, @NonNull TextComponent component, @NonNull TextFormat format, @NonNull FormattingCode lastColor) throws IOException {
         String text = component.getText();
 
-        ChatColor newColor = PorkUtil.fallbackIfNull(FormattingCode.closestTo(component.getColor()), lastColor);
+        FormattingCode newColor = PorkUtil.fallbackIfNull(FormattingCode.closestTo(component.getColor()), lastColor);
 
         int newStyle = component.getStyle();
         int oldStyle = format.getStyle();
@@ -119,7 +119,9 @@ public class MCTextEncoder {
             dst.append(text);
         }
 
-        format.setTextColor(newColor.awtColor());
+        if (newColor.isColor()) {
+            format.setTextColor(((ChatColor) newColor).awtColor());
+        }
         format.setStyle(newStyle);
         return newColor;
     }

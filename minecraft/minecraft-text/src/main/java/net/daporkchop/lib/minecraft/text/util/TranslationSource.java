@@ -18,24 +18,46 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.text.parser;
+package net.daporkchop.lib.minecraft.text.util;
 
 import lombok.NonNull;
-import net.daporkchop.lib.logging.format.FormatParser;
-import net.daporkchop.lib.minecraft.text.MCTextType;
-import net.daporkchop.lib.minecraft.text.component.MCTextRoot;
+
+import java.util.Map;
+import java.util.Objects;
+import java.util.ResourceBundle;
 
 /**
- * Subtype of {@link FormatParser} for Minecraft format parsers.
+ * A source for translation keys.
+ * <p>
+ * This is effectively a {@code Function<String, String>}, allowing translations to be obtained from an arbitrary source (such as a {@link Map} or
+ * {@link ResourceBundle}).
  *
  * @author DaPorkchop_
  */
-public interface MCFormatParser extends FormatParser {
-    @Override
-    MCTextRoot parse(@NonNull String text);
+@FunctionalInterface
+public interface TranslationSource {
+    /**
+     * Default implementation of {@link TranslationSource}, always returns the input key.
+     */
+    TranslationSource NONE = key -> Objects.requireNonNull(key, "key");
 
     /**
-     * @return the type of Minecraft text parsed by this parser
+     * Creates a {@link TranslationSource} as a view of the given {@link Map}.
+     *
+     * @param map the delegate {@link Map} to use
+     * @return the newly created {@link TranslationSource}
      */
-    MCTextType type();
+    static TranslationSource ofMap(@NonNull Map<String, String> map) {
+        return key -> map.getOrDefault(Objects.requireNonNull(key, "key"), key);
+    }
+
+    /**
+     * Gets the translation format for the given translation key.
+     * <p>
+     * If there is no known translation for the given key, implementations are generally expected to return the translation key itself.
+     *
+     * @param key the translation key to look up
+     * @return the translation format
+     */
+    String translate(@NonNull String key);
 }

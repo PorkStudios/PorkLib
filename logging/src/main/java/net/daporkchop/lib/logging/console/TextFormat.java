@@ -21,9 +21,9 @@
 package net.daporkchop.lib.logging.console;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
@@ -43,4 +43,14 @@ public class TextFormat {
     protected Color textColor;
     protected Color backgroundColor;
     protected int style;
+
+    public TextFormat(@NonNull TextFormat src) {
+        this(src.getTextColor(), src.getBackgroundColor(), src.getStyle());
+    }
+
+    public TextFormat copyFrom(@NonNull TextFormat src) {
+        return this.setTextColor(src.getTextColor())
+                .setBackgroundColor(src.getBackgroundColor())
+                .setStyle(src.getStyle());
+    }
 }

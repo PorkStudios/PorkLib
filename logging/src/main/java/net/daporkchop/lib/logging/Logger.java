@@ -21,7 +21,6 @@
 package net.daporkchop.lib.logging;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.binary.stream.misc.SlashDevSlashNull;
 import net.daporkchop.lib.logging.format.FormatParser;
 import net.daporkchop.lib.logging.format.MessageFormatter;
@@ -42,8 +41,8 @@ import java.util.function.Consumer;
  * @author DaPorkchop_
  */
 public interface Logger {
-    TextComponent DEFAULT_ALERT_HEADER = new TextComponentString(Color.RED, null, TextStyle.BOLD, "****************************************");
-    TextComponent DEFAULT_ALERT_PREFIX = new TextComponentString(Color.RED, null, TextStyle.BOLD, "* ");
+    TextComponent DEFAULT_ALERT_HEADER = new TextComponentString("****************************************", Color.RED, null, TextStyle.BOLD);
+    TextComponent DEFAULT_ALERT_PREFIX = new TextComponentString("* ", Color.RED, null, TextStyle.BOLD);
     TextComponent DEFAULT_ALERT_FOOTER = DEFAULT_ALERT_HEADER;
 
     //

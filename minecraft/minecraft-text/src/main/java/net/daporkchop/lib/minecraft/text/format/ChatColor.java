@@ -26,7 +26,6 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.ref.Ref;
 import net.daporkchop.lib.common.ref.ThreadRef;
 import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
-import net.daporkchop.lib.minecraft.text.MCTextType;
 
 import java.awt.Color;
 import java.util.Arrays;
@@ -43,7 +42,6 @@ import java.util.regex.Pattern;
  * @author DaPorkchop_
  * @see ChatFormat
  * @see FormattingCode
- * @see MCTextType#LEGACY
  */
 @Getter
 @Accessors(fluent = true)

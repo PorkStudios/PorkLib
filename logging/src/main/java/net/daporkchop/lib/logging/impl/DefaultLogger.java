@@ -123,6 +123,7 @@ public class DefaultLogger extends SimpleLogger {
     public DefaultLogger enableANSI() {
         WINDOWS_ANSI_CHECK:
         if (PlatformInfo.OPERATING_SYSTEM == OperatingSystem.Windows) {
+            this.debug("Attempting to detect Windows ANSI settings...");
             try {
                 // Run reg query, then read output with StreamReader (internal class)
                 Process process = Runtime.getRuntime().exec("reg query \"HKEY_CURRENT_USER\\Console\" /v VirtualTerminalLevel");
@@ -137,16 +138,14 @@ public class DefaultLogger extends SimpleLogger {
 
                 // Output has the following format:
                 // \n<Version information>\n\n<key>\t<registry type>\t<value>
-                if (!output.contains("\t")) {
-                    return null;
+                if (output.contains("\t")) {
+                    // Parse out the value
+                    String[] parsed = output.split("\t");
+                    String value = parsed[parsed.length - 1];
+                    this.debug(value);
                 }
-
-                // Parse out the value
-                String[] parsed = output.split("\t");
-                String value = parsed[parsed.length - 1];
-                this.debug(value);
             } catch (Exception e) {
-                return null;
+                this.debug("Exception while detecting Windows ANSI settings!", e);
             }
             this.warn("Windows detected, not enabling ANSI formatting!");
             return this;

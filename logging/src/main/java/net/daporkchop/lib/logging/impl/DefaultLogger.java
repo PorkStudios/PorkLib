@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -40,10 +40,13 @@ import net.daporkchop.lib.unsafe.PUnsafe;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -119,7 +122,36 @@ public class DefaultLogger extends SimpleLogger {
      * Enables ANSI text formatting on this logger.
      */
     public DefaultLogger enableANSI() {
-        if (PlatformInfo.OPERATING_SYSTEM == OperatingSystem.Windows)   {
+        WINDOWS_ANSI_CHECK:
+        if (PlatformInfo.OPERATING_SYSTEM == OperatingSystem.Windows) {
+            this.debug("Attempting to detect Windows ANSI settings...");
+            try { //i don't care that this is slow
+                if (System.getenv("MINGW_CHOST") != null) {
+                    this.debug("MINGW detected, enabling ANSI formatting.");
+                    break WINDOWS_ANSI_CHECK;
+                }
+
+                {
+                    Process process = Runtime.getRuntime().exec("reg query \"HKEY_CURRENT_USER\\Console\" /v VirtualTerminalLevel");
+
+                    InputStream in = process.getInputStream();
+                    StringWriter writer = new StringWriter();
+                    for (int i; (i = in.read()) >= 0; ) {
+                        writer.write(i);
+                    }
+                    String output = writer.toString().trim();
+
+                    // Output has the following format:
+                    // \n<Version information>\n\n<key>\t<registry type>\t<value>
+                    if (output.endsWith("0x1")) {
+                        //ANSI is enabled, don't disable it!
+                        this.debug("Registry entry HKEY_CURRENT_USER\\Console\\VirtualTerminalLevel is set to 0x1, enabling ANSI formatting.");
+                        break WINDOWS_ANSI_CHECK;
+                    }
+                }
+            } catch (Exception e) {
+                this.debug("Exception while detecting Windows ANSI settings!", e);
+            }
             this.warn("Windows detected, not enabling ANSI formatting!");
         } else {
             this.delegates.computeIfAbsent("console", s -> new Tuple<>(this.logLevels, null)).atomicSetB(new ANSIMessagePrinter());

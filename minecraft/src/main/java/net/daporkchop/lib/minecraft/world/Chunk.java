@@ -22,6 +22,7 @@ package net.daporkchop.lib.minecraft.world;
 
 import net.daporkchop.lib.math.vector.i.IntVector2;
 import net.daporkchop.lib.math.vector.i.Vec2i;
+import net.daporkchop.lib.minecraft.entity.Entity;
 import net.daporkchop.lib.minecraft.tileentity.TileEntity;
 import net.daporkchop.lib.minecraft.util.BlockAccess;
 import net.daporkchop.lib.minecraft.util.world.Dirtiable;
@@ -174,6 +175,8 @@ public interface Chunk extends BlockAccess, IntVector2.AddressableXZ, Dirtiable,
         }
         return 0;
     }
+
+    Collection<Entity> entities();
 
     Collection<TileEntity> tileEntities();
 

@@ -145,6 +145,25 @@ public class ScannerTest {
     }
 
     @Test
+    public void findEntities() throws IOException {
+        try (MinecraftSave save = this.getTestWorld()) {
+            new WorldScanner(save.world(0))
+                    .addProcessor(col -> {
+                        if ((col.getX() & 0x1F) == 31 && (col.getZ() & 0x1F) == 31) {
+                            System.out.printf("Scanning region (%d,%d)\n", col.getX() >> 5, col.getZ() >> 5);
+                        }
+                    })
+                    .addProcessor(col -> col.entities().forEach(entity -> {
+                        if (true) {
+                            System.out.printf("Found Entity (id=%s, class=%s) at (%f,%f,%f)\n", entity.id().toString(), entity.getClass().getCanonicalName(), entity.getX(), entity.getY(), entity.getZ());
+                        }
+                    }))
+                    .run(true);
+        }
+        PorkUtil.unsafe_forceGC();
+    }
+
+    @Test
     public void findTileEntities() throws IOException {
         try (MinecraftSave save = this.getTestWorld()) {
             new WorldScanner(save.world(0))

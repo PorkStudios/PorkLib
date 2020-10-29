@@ -18,67 +18,66 @@
  *
  */
 
-package net.daporkchop.lib.minecraft.world.impl.vanilla;
+package net.daporkchop.lib.minecraft.entity.impl;
 
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.math.vector.i.Vec2i;
-import net.daporkchop.lib.math.vector.i.Vec3i;
-import net.daporkchop.lib.minecraft.entity.Entity;
-import net.daporkchop.lib.minecraft.tileentity.TileEntity;
-import net.daporkchop.lib.minecraft.world.Section;
-import net.daporkchop.lib.minecraft.world.World;
-
-import java.util.ArrayDeque;
-import java.util.Collection;
-import java.util.Map;
+import net.daporkchop.lib.minecraft.entity.EntityBase;
+import net.daporkchop.lib.minecraft.registry.ResourceLocation;
+import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 
 /**
- * An implementation of a Chunk for vanilla Minecraft.
+ * Represents an unknown (unregistered) entity.
  *
  * @author DaPorkchop_
  */
 @Getter
 @Accessors(fluent = true)
-public final class VanillaChunkImpl extends AbstractVanillaChunk {
-    @NonNull
-    private final Vec2i pos;
+public final class UnknownEntity extends EntityBase {
+    protected ResourceLocation id;
+    protected CompoundTag data;
 
-    private final Collection<Entity> entities = new ArrayDeque<>();
-    private final Collection<TileEntity> tileEntities = new ArrayDeque<>();
-    private final Section[]              sections     = new Section[16];
-
-    public VanillaChunkImpl(@NonNull Vec2i pos, World world) {
-        super(world);
-
-        this.pos = pos;
+    @Override
+    protected void doInit(@NonNull CompoundTag nbt) {
+        this.data = nbt; //TODO: some way to make immutable tags? i should probably rewrite NBT lib to use interfaces for each tag type
+        this.id = new ResourceLocation(nbt.getString("id"));
     }
 
     @Override
-    public Section section(int y) {
-        return this.sections[y];
+    protected void doDeinit() {
+        this.id = null;
+        this.data = null;
     }
 
     @Override
-    public void section(int y, Section section) {
-        this.sections[y] = section;
+    public CompoundTag save() {
+        return this.data;
     }
 
     @Override
-    protected void doUnload() {
-        super.doUnload();
+    protected boolean isValidId(@NonNull String id) {
+        //accept everything, it really doesn't matter (as long as it's not null)
+        return true;
+    }
 
-        {
-            Map<Vec3i, TileEntity> tes = this.world.loadedTileEntities();
-            this.tileEntities.forEach(te -> tes.remove(te.pos(), te));
-        }
+    @Override
+    public boolean dirty() {
+        return false;
+    }
 
-        for (int y = 15; y >= 0; y--) {
-            if (this.sections[y] != null) {
-                this.sections[y].release();
-                this.sections[y] = null;
-            }
-        }
+    @Override
+    public boolean markDirty() {
+        throw new UnsupportedOperationException("markDirty");
+    }
+
+    @Override
+    protected void resetDirty() {
+        throw new UnsupportedOperationException("resetDirty");
+    }
+
+    @Override
+    protected boolean checkAndResetDirty() {
+        throw new UnsupportedOperationException("checkAndResetDirty");
     }
 }

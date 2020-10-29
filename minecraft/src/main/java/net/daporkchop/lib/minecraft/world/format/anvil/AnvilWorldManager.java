@@ -30,13 +30,13 @@ import io.netty.buffer.PooledByteBufAllocator;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.common.ref.Ref;
 import net.daporkchop.lib.common.ref.ThreadRef;
-import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.compression.PInflater;
 import net.daporkchop.lib.compression.zlib.Zlib;
 import net.daporkchop.lib.math.vector.i.Vec2i;
+import net.daporkchop.lib.minecraft.entity.Entity;
 import net.daporkchop.lib.minecraft.registry.ResourceLocation;
 import net.daporkchop.lib.minecraft.tileentity.TileEntity;
 import net.daporkchop.lib.minecraft.util.SectionLayer;
@@ -173,7 +173,13 @@ public class AnvilWorldManager implements WorldManager {
                     compressed.release();
                 }
             }
-            //ListTag<CompoundTag> entitiesTag = rootTag.getTypedList("Entities"); //TODO
+            rootTag.<ListTag<CompoundTag>>get("Entities").getValue().stream()
+                    .map(tag -> {
+                        Entity entity = this.world.getSave().config().entityFactory().create(new ResourceLocation(tag.getString("id")));
+                        entity.init(this.world, tag);
+                        return entity;
+                    })
+                    .forEach(chunk.entities()::add);
             {
                 ListTag<CompoundTag> sectionsTag = rootTag.getList("Sections");
                 //TODO: biomes, terrain populated flag etc.

@@ -24,8 +24,10 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.minecraft.entity.EntityRegistry;
 import net.daporkchop.lib.minecraft.tileentity.TileEntityRegistry;
 import net.daporkchop.lib.minecraft.util.factory.ChunkFactory;
+import net.daporkchop.lib.minecraft.util.factory.EntityFactory;
 import net.daporkchop.lib.minecraft.util.factory.SectionFactory;
 import net.daporkchop.lib.minecraft.util.factory.TileEntityFactory;
 import net.daporkchop.lib.minecraft.util.factory.WorldFactory;
@@ -47,6 +49,8 @@ public class MinecraftSaveConfig {
     protected ChunkFactory      chunkFactory      = VanillaChunkImpl::new;
     @NonNull
     protected SectionFactory    sectionFactory    = HeapSectionImpl::new;
+    @NonNull
+    protected EntityFactory entityFactory = EntityRegistry.defaultRegistry();
     @NonNull
     protected TileEntityFactory tileEntityFactory = TileEntityRegistry.defaultRegistry(); //TODO: make this be a lazy reference to avoid creating the default registry if it's never used
     @NonNull

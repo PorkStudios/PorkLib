@@ -82,6 +82,11 @@ public class TextComponentHolder implements TextComponent {
     }
 
     @Override
+    public synchronized void popChild() {
+        this.children.remove(this.children.size() - 1);
+    }
+
+    @Override
     public Color getColor() {
         return null;
     }

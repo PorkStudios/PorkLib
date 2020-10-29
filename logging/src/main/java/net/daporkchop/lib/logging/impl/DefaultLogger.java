@@ -46,6 +46,7 @@ import java.io.PrintStream;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -125,24 +126,28 @@ public class DefaultLogger extends SimpleLogger {
         if (PlatformInfo.OPERATING_SYSTEM == OperatingSystem.Windows) {
             this.debug("Attempting to detect Windows ANSI settings...");
             try {
-                // Run reg query, then read output with StreamReader (internal class)
-                Process process = Runtime.getRuntime().exec("reg query \"HKEY_CURRENT_USER\\Console\" /v VirtualTerminalLevel");
-
-                InputStream in = process.getInputStream();
-                StringWriter writer = new StringWriter();
-                for (int i; (i = in.read()) >= 0; ) {
-                    writer.write(i);
+                if (System.getenv("MINGW_CHOST") != null) {
+                    this.debug("MINGW detected, enabling ANSI formatting.");
+                    break WINDOWS_ANSI_CHECK;
                 }
-                String output = writer.toString();
-                System.out.println(output);
 
-                // Output has the following format:
-                // \n<Version information>\n\n<key>\t<registry type>\t<value>
-                if (output.contains("\t")) {
-                    // Parse out the value
-                    String[] parsed = output.split("\t");
-                    String value = parsed[parsed.length - 1];
-                    this.debug(value);
+                {
+                    Process process = Runtime.getRuntime().exec("reg query \"HKEY_CURRENT_USER\\Console\" /v VirtualTerminalLevel");
+
+                    InputStream in = process.getInputStream();
+                    StringWriter writer = new StringWriter();
+                    for (int i; (i = in.read()) >= 0; ) {
+                        writer.write(i);
+                    }
+                    String output = writer.toString().trim();
+
+                    // Output has the following format:
+                    // \n<Version information>\n\n<key>\t<registry type>\t<value>
+                    if (output.endsWith("0x1")) {
+                        //ANSI is enabled, don't disable it!
+                        this.debug("Registry entry HKEY_CURRENT_USER\\Console\\VirtualTerminalLevel is set to 0x1, enabling ANSI formatting.");
+                        break WINDOWS_ANSI_CHECK;
+                    }
                 }
             } catch (Exception e) {
                 this.debug("Exception while detecting Windows ANSI settings!", e);

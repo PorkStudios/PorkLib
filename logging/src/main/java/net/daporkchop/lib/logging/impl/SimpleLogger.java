@@ -107,8 +107,9 @@ public class SimpleLogger implements Logger {
             this.doLog(level, this.messageFormatter.format(date, channel, level, this.alertHeader));
             this.doLog(level, prefixFormatted);
             for (TextComponent line : lines) {
+                prefixFormatted.addChild(line);
                 this.doLog(level, prefixFormatted);
-                this.doLog(level, line);
+                prefixFormatted.popChild();
             }
             this.doLog(level, prefixFormatted);
             this.doLog(level, this.messageFormatter.format(date, channel, level, this.alertFooter));

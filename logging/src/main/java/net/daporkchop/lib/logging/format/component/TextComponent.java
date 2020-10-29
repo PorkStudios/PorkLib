@@ -73,6 +73,8 @@ public interface TextComponent {
      */
     void addChild(@NonNull TextComponent child);
 
+    void popChild();
+
     /**
      * Gets this text component's color, if set. If no color is explicitly set (i.e. the default color should be used), this method returns {@code null}.
      *

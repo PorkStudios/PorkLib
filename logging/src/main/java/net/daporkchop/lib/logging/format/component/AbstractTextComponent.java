@@ -61,4 +61,9 @@ public abstract class AbstractTextComponent implements TextComponent {
         }
         children.add(child);
     }
+
+    @Override
+    public synchronized void popChild() {
+        this.children.remove(this.children.size() - 1);
+    }
 }

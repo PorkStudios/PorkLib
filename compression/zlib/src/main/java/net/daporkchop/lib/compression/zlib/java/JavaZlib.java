@@ -27,12 +27,16 @@ import net.daporkchop.lib.compression.zlib.ZlibDCtx;
 import net.daporkchop.lib.compression.zlib.ZlibDeflater;
 import net.daporkchop.lib.compression.zlib.ZlibInflater;
 import net.daporkchop.lib.compression.zlib.ZlibProvider;
-import net.daporkchop.lib.natives.impl.NativeFeature;
 
 /**
  * @author DaPorkchop_
  */
-public final class JavaZlib extends NativeFeature<ZlibProvider> implements ZlibProvider {
+public final class JavaZlib implements ZlibProvider {
+    @Override
+    public boolean isNative() {
+        return false;
+    }
+
     @Override
     public boolean directAccepted() {
         return false;
@@ -43,7 +47,7 @@ public final class JavaZlib extends NativeFeature<ZlibProvider> implements ZlibP
         //extracted from deflate.c, i'm assuming that the java implementation has the same limits
         PValidation.notNegative(srcSize);
         long conservativeUpperBound = srcSize + ((srcSize + 7L) >> 3L) + ((srcSize + 63L) >> 6L) + 5L;
-        switch (mode)   {
+        switch (mode) {
             case Zlib.MODE_ZLIB:
                 return conservativeUpperBound + 6L + 4L; //additional +4 in case `strstart`? whatever that means
             case Zlib.MODE_GZIP:

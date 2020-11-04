@@ -21,7 +21,6 @@
 package common;
 
 import net.daporkchop.lib.common.pool.array.ArrayAllocator;
-import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.ref.ReferenceType;
 import org.junit.Test;
 
@@ -35,27 +34,45 @@ public class ArrayAllocatorTest {
     public void testAlloc() {
         ArrayAllocator<byte[]> alloc = ArrayAllocator.pow2(byte[]::new, ReferenceType.STRONG, 2);
         byte[] arr; //this is totally unsafe, never do this in real code
-        try (Handle<byte[]> handle = alloc.atLeast(31)) {
-            arr = handle.get();
+
+        arr = alloc.atLeast(31);
+        try {
             checkState(arr.length == 32, "array length was %d, expected 32", arr.length);
+        } finally {
+            alloc.release(arr);
         }
 
-        try (Handle<byte[]> handle = alloc.atLeast(31)) {
-            checkState(handle.get() == arr, "31");
+        byte[] arr2 = alloc.atLeast(31);
+        try {
+            checkState(arr2 == arr, "31");
+        } finally {
+            alloc.release(arr2);
         }
-        try (Handle<byte[]> handle = alloc.atLeast(32)) {
-            checkState(handle.get() == arr, "32");
+        arr2 = alloc.atLeast(32);
+        try {
+            checkState(arr2 == arr, "32");
+        } finally {
+            alloc.release(arr2);
         }
-        try (Handle<byte[]> handle = alloc.atLeast(17)) {
-            checkState(handle.get() == arr, "17");
+        arr2 = alloc.atLeast(17);
+        try {
+            checkState(arr2 == arr, "17");
+        } finally {
+            alloc.release(arr2);
         }
-        try (Handle<byte[]> handle = alloc.atLeast(33)) {
-            checkState(handle.get() != arr, "33");
-            checkState(handle.get().length == 64, "array length was %d, expected 64", handle.get().length);
+        arr2 = alloc.atLeast(33);
+        try {
+            checkState(arr2 != arr, "33");
+            checkState(arr2.length == 64, "array length was %d, expected 64", arr2.length);
+        } finally {
+            alloc.release(arr2);
         }
-        try (Handle<byte[]> handle = alloc.atLeast(16)) {
-            checkState(handle.get() != arr, "16");
-            checkState(handle.get().length == 16, "array length was %d, expected 16", handle.get().length);
+        arr2 = alloc.atLeast(16);
+        try {
+            checkState(arr2 != arr, "16");
+            checkState(arr2.length == 16, "array length was %d, expected 16", arr2.length);
+        } finally {
+            alloc.release(arr2);
         }
     }
 }

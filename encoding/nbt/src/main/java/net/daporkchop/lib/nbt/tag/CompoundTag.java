@@ -160,12 +160,6 @@ public final class CompoundTag extends Tag<CompoundTag> implements Iterable<Map.
         builder.append("}\n");
     }
 
-    @Override
-    public void release() throws AlreadyReleasedException {
-        this.map.values().forEach(Tag::release);
-        this.map.clear();
-    }
-
     public boolean contains(@NonNull String name) {
         return this.map.containsKey(name);
     }

@@ -22,7 +22,4 @@ dependencies {
     compile project(":binary")
     compile project(":collections")
     compile project(":encoding")
-    compile project(":primitive")
-
-    testCompile project(":encoding")
 }

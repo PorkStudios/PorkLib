@@ -25,8 +25,6 @@ import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.common.pool.array.ArrayHandle;
-import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.nbt.NBTOptions;
 
 import java.io.IOException;
@@ -39,41 +37,24 @@ import java.util.Arrays;
 @Accessors(fluent = true)
 public final class ByteArrayTag extends Tag<ByteArrayTag> {
     protected final byte[] value;
-    protected final ArrayHandle<byte[]> handle;
-    protected final int length;
 
-    public ByteArrayTag(@NonNull byte[] value)  {
+    public ByteArrayTag(@NonNull byte[] value) {
         this.value = value;
-        this.handle = null;
-        this.length = value.length;
-    }
-
-    public ByteArrayTag(@NonNull ArrayHandle<byte[]> handle)  {
-        this.value = handle.get();
-        this.handle = handle;
-        this.length = handle.length();
     }
 
     /**
      * @deprecated Internal API, do not touch!
      */
     @Deprecated
-    public ByteArrayTag(@NonNull DataIn in, @NonNull NBTOptions options) throws IOException {
-        int length = this.length = in.readInt();
-        if (options.byteAlloc() != null)    {
-            this.handle = options.exactArraySize() ? options.byteAlloc().exactly(length) : options.byteAlloc().atLeast(length);
-            this.value = this.handle.get();
-        } else {
-            this.handle = null;
-            this.value = new byte[length];
-        }
-        in.readFully(this.value, 0, length);
+    public ByteArrayTag(@NonNull DataIn in) throws IOException {
+        int length = in.readInt();
+        in.readFully(this.value = new byte[length]);
     }
 
     @Override
     public void write(@NonNull DataOut out) throws IOException {
-        out.writeInt(this.length);
-        out.write(this.value, 0, this.length);
+        out.writeInt(this.value().length);
+        out.write(this.value);
     }
 
     @Override
@@ -87,34 +68,15 @@ public final class ByteArrayTag extends Tag<ByteArrayTag> {
     }
 
     @Override
-    public void release() {
-        if (this.handle != null)    {
-            this.handle.release();
-        }
-    }
-
-    @Override
     public int hashCode() {
-        int hash = 0;
-        for (int i = 0, length = this.length; i < length; i++)  {
-            hash = hash * 31 + (this.value[i] & 0xFF);
-        }
-        return  hash;
+        return Arrays.hashCode(this.value);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof ByteArrayTag)    {
+        if (obj instanceof ByteArrayTag) {
             ByteArrayTag other = (ByteArrayTag) obj;
-            if (this.length != other.length)    {
-                return false;
-            }
-            for (int i = 0, length = this.length; i < length; i++)  {
-                if (this.value[i] != other.value[i])    {
-                    return false;
-                }
-            }
-            return true;
+            return Arrays.equals(this.value, other.value);
         }
         return false;
     }

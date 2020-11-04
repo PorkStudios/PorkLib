@@ -21,32 +21,24 @@
 package net.daporkchop.lib.nbt.tag;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.misc.Cloneable;
-import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
 import net.daporkchop.lib.common.misc.string.PStrings;
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.nbt.NBTOptions;
 import net.daporkchop.lib.nbt.util.NBTObjectParser;
-import net.daporkchop.lib.primitive.map.ObjByteMap;
-import net.daporkchop.lib.unsafe.capability.Releasable;
-import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
-import static net.daporkchop.lib.common.util.PorkUtil.*;
-
 /**
  * Base class for all NBT tags.
  *
  * @author DaPorkchop_
  */
-public abstract class Tag<T extends Tag<T>> implements Releasable, Cloneable<T> {
+public abstract class Tag<T extends Tag<T>> implements Cloneable<T> {
     public static final Map<Class<? extends Tag>, Integer> CLASS_TO_ID;
 
     public static final int TAG_END = 0;
@@ -79,7 +71,7 @@ public abstract class Tag<T extends Tag<T>> implements Releasable, Cloneable<T> 
             case TAG_DOUBLE:
                 return new DoubleTag(in);
             case TAG_ARRAY_BYTE:
-                return new ByteArrayTag(in, options);
+                return new ByteArrayTag(in);
             case TAG_STRING:
                 return new StringTag(in, options);
             case TAG_LIST:
@@ -87,9 +79,9 @@ public abstract class Tag<T extends Tag<T>> implements Releasable, Cloneable<T> 
             case TAG_COMPOUND:
                 return new CompoundTag(in, options, null);
             case TAG_ARRAY_INT:
-                return new IntArrayTag(in, options);
+                return new IntArrayTag(in);
             case TAG_ARRAY_LONG:
-                return new LongArrayTag(in, options);
+                return new LongArrayTag(in);
             default:
                 throw new IllegalArgumentException("Unknown tag id: " + id);
         }
@@ -118,11 +110,6 @@ public abstract class Tag<T extends Tag<T>> implements Releasable, Cloneable<T> 
     public abstract int id();
 
     public abstract String typeName();
-
-    @Override
-    public void release() throws AlreadyReleasedException {
-        //do nothing by default
-    }
 
     @Override
     public abstract int hashCode();

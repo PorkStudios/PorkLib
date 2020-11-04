@@ -25,7 +25,6 @@ import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.common.pool.array.ArrayHandle;
 import net.daporkchop.lib.nbt.NBTOptions;
 
 import java.io.IOException;
@@ -38,34 +37,18 @@ import java.util.Arrays;
 @Accessors(fluent = true)
 public final class IntArrayTag extends Tag<IntArrayTag> {
     protected final int[] value;
-    protected final ArrayHandle<int[]> handle;
-    protected final int length;
 
-    public IntArrayTag(@NonNull int[] value)  {
+    public IntArrayTag(@NonNull int[] value) {
         this.value = value;
-        this.handle = null;
-        this.length = value.length;
-    }
-
-    public IntArrayTag(@NonNull ArrayHandle<int[]> handle)  {
-        this.value = handle.get();
-        this.handle = handle;
-        this.length = handle.length();
     }
 
     /**
      * @deprecated Internal API, do not touch!
      */
     @Deprecated
-    public IntArrayTag(@NonNull DataIn in, @NonNull NBTOptions options) throws IOException {
-        int length = this.length = in.readInt();
-        if (options.intAlloc() != null)    {
-            this.handle = options.exactArraySize() ? options.intAlloc().exactly(length) : options.intAlloc().atLeast(length);
-            this.value = this.handle.get();
-        } else {
-            this.handle = null;
-            this.value = new int[length];
-        }
+    public IntArrayTag(@NonNull DataIn in) throws IOException {
+        int length = in.readInt();
+        this.value = new int[length];
         for (int i = 0; i < length; i++) {
             this.value[i] = in.readInt();
         }
@@ -73,8 +56,8 @@ public final class IntArrayTag extends Tag<IntArrayTag> {
 
     @Override
     public void write(@NonNull DataOut out) throws IOException {
-        out.writeInt(this.length);
-        for (int i = 0, length = this.length; i < length; i++) {
+        out.writeInt(this.value.length);
+        for (int i = 0, length = this.value.length; i < length; i++) {
             out.writeInt(this.value[i]);
         }
     }
@@ -90,34 +73,15 @@ public final class IntArrayTag extends Tag<IntArrayTag> {
     }
 
     @Override
-    public void release() {
-        if (this.handle != null)    {
-            this.handle.release();
-        }
-    }
-
-    @Override
     public int hashCode() {
-        int hash = 0;
-        for (int i = 0, length = this.length; i < length; i++)  {
-            hash = hash * 31 + this.value[i];
-        }
-        return  hash;
+        return Arrays.hashCode(this.value);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof IntArrayTag)    {
+        if (obj instanceof IntArrayTag) {
             IntArrayTag other = (IntArrayTag) obj;
-            if (this.length != other.length)    {
-                return false;
-            }
-            for (int i = 0, length = this.length; i < length; i++)  {
-                if (this.value[i] != other.value[i])    {
-                    return false;
-                }
-            }
-            return true;
+            return Arrays.equals(this.value, other.value);
         }
         return false;
     }

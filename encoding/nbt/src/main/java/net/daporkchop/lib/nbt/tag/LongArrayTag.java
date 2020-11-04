@@ -38,34 +38,18 @@ import java.util.Arrays;
 @Accessors(fluent = true)
 public final class LongArrayTag extends Tag<LongArrayTag> {
     protected final long[] value;
-    protected final ArrayHandle<long[]> handle;
-    protected final int length;
 
     public LongArrayTag(@NonNull long[] value)  {
         this.value = value;
-        this.handle = null;
-        this.length = value.length;
-    }
-
-    public LongArrayTag(@NonNull ArrayHandle<long[]> handle)  {
-        this.value = handle.get();
-        this.handle = handle;
-        this.length = handle.length();
     }
 
     /**
      * @deprecated Internal API, do not touch!
      */
     @Deprecated
-    public LongArrayTag(@NonNull DataIn in, @NonNull NBTOptions options) throws IOException {
-        int length = this.length = in.readInt();
-        if (options.longAlloc() != null)    {
-            this.handle = options.exactArraySize() ? options.longAlloc().exactly(length) : options.longAlloc().atLeast(length);
-            this.value = this.handle.get();
-        } else {
-            this.handle = null;
-            this.value = new long[length];
-        }
+    public LongArrayTag(@NonNull DataIn in) throws IOException {
+        int length = in.readInt();
+        this.value = new long[length];
         for (int i = 0; i < length; i++) {
             this.value[i] = in.readLong();
         }
@@ -73,8 +57,8 @@ public final class LongArrayTag extends Tag<LongArrayTag> {
 
     @Override
     public void write(@NonNull DataOut out) throws IOException {
-        out.writeInt(this.length);
-        for (int i = 0, length = this.length; i < length; i++) {
+        out.writeInt(this.value.length);
+        for (int i = 0, length = this.value.length; i < length; i++) {
             out.writeLong(this.value[i]);
         }
     }
@@ -89,36 +73,17 @@ public final class LongArrayTag extends Tag<LongArrayTag> {
         return "Long_Array";
     }
 
-    @Override
-    public void release() {
-        if (this.handle != null)    {
-            this.handle.release();
-        }
-    }
 
     @Override
     public int hashCode() {
-        int hash = 0;
-        for (int i = 0, length = this.length; i < length; i++)  {
-            long l = this.value[i];
-            hash = hash * 31 + (int) ((l >>> 32L) ^ l);
-        }
-        return  hash;
+        return Arrays.hashCode(this.value);
     }
 
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof LongArrayTag)    {
             LongArrayTag other = (LongArrayTag) obj;
-            if (this.length != other.length)    {
-                return false;
-            }
-            for (int i = 0, length = this.length; i < length; i++)  {
-                if (this.value[i] != other.value[i])    {
-                    return false;
-                }
-            }
-            return true;
+            return Arrays.equals(this.value, other.value);
         }
         return false;
     }

@@ -126,12 +126,6 @@ public final class ListTag<T extends Tag<T>> extends Tag<ListTag<T>> implements 
     }
 
     @Override
-    public void release() throws AlreadyReleasedException {
-        this.list.forEach(Tag::release);
-        this.list.clear();
-    }
-
-    @Override
     public int hashCode() {
         return this.list.hashCode();
     }

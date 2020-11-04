@@ -26,6 +26,7 @@ import net.daporkchop.lib.common.ref.Ref;
 import net.daporkchop.lib.common.ref.ReferenceType;
 import net.daporkchop.lib.common.util.PArrays;
 
+import java.lang.reflect.Array;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.function.IntFunction;
@@ -39,77 +40,58 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
  *
  * @author DaPorkchop_
  */
-final class Pow2ArrayAllocator<V> extends AbstractArrayAllocator<V> {
-    protected final Deque<Ref<V>>[] arenas = uncheckedCast(PArrays.filled(32, Deque[]::new, (Supplier<Deque>) ArrayDeque::new));
-    protected final ReferenceType referenceType;
+final class StrongPow2ArrayAllocator<V> extends AbstractArrayAllocator<V> {
+    protected final Deque<V>[] arenas = uncheckedCast(PArrays.filled(32, Deque[]::new, (Supplier<Deque>) ArrayDeque::new));
     protected final int maxCapacity;
 
-    public Pow2ArrayAllocator(@NonNull IntFunction<V> lambda, @NonNull ReferenceType referenceType, int maxCapacity) {
+    public StrongPow2ArrayAllocator(@NonNull IntFunction<V> lambda, int maxCapacity) {
         super(lambda);
 
-        this.referenceType = referenceType;
         this.maxCapacity = positive(maxCapacity, "maxCapacity");
     }
 
-    public Pow2ArrayAllocator(@NonNull Class<?> componentClass, @NonNull ReferenceType referenceType, int maxCapacity) {
+    public StrongPow2ArrayAllocator(@NonNull Class<?> componentClass, int maxCapacity) {
         super(componentClass);
 
-        this.referenceType = referenceType;
         this.maxCapacity = positive(maxCapacity, "maxCapacity");
     }
 
     @Override
-    public HandleImpl<V> atLeast(int length) {
+    public V atLeast(int length) {
         return this.getPooled(notNegative(length, "size"));
     }
 
     @Override
-    public HandleImpl<V> exactly(int length) {
+    public V exactly(int length) {
         notNegative(length, "size");
         if (length != 0 && !BinMath.isPow2(length)) {
             //requested size is not a power of 2, we can't return a pooled array
-            return new HandleImpl<>(this.createArray(length), length, null, null, this.maxCapacity);
+            return this.createArray(length);
         }
         return this.getPooled(length);
     }
 
-    protected HandleImpl<V> getPooled(int length) {
+    protected V getPooled(int length) {
         int bits = length == 0 ? 0 : 31 - Integer.numberOfLeadingZeros(length - 1);
-        Deque<Ref<V>> arena = this.arenas[bits];
-        V value = null;
-        Ref<V> ref;
+        Deque<V> arena = this.arenas[bits];
+        V value;
         synchronized (arena) {
-            while ((ref = arena.poll()) != null && (value = ref.get()) == null) {
-            }
+            value = arena.poll();
         }
         if (value == null) {
             value = this.createArray(2 << bits);
-            ref = this.referenceType.create(value);
         }
-        return new HandleImpl<>(value, length, ref, arena, this.maxCapacity);
+        return value;
     }
 
-    private static final class HandleImpl<V> extends AbstractArrayHandle<V> {
-        protected final Ref<V> ref;
-        protected final Deque<Ref<V>> arena;
-        protected final int maxCapacity; //store copy of field here to avoid holding a reference to main allocator instance
-
-        public HandleImpl(@NonNull V value, int length, Ref<V> ref, Deque<Ref<V>> arena, int maxCapacity) {
-            super(value, length);
-
-            this.ref = ref;
-            this.arena = arena;
-            this.maxCapacity = maxCapacity;
-        }
-
-        @Override
-        protected void doRelease() {
-            if (this.arena != null && this.ref != null) {
-                synchronized (this.arena) {
-                    if (this.arena.size() < this.maxCapacity) {
-                        this.arena.addFirst(this.ref);
-                    }
-                }
+    @Override
+    public void release(@NonNull V array) {
+        int length = Array.getLength(array);
+        int bits = length == 0 ? 0 : 31 - Integer.numberOfLeadingZeros(length - 1);
+        Deque<V> arena = this.arenas[bits];
+        synchronized (arena) {
+            if (arena.size() < this.maxCapacity) {
+                arena.addFirst(array);
             }
         }
     }

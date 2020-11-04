@@ -25,8 +25,6 @@ import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.common.pool.array.ArrayHandle;
-import net.daporkchop.lib.nbt.NBTOptions;
 
 import java.io.IOException;
 import java.util.Arrays;

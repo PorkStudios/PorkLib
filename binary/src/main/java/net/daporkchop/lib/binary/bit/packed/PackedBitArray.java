@@ -20,15 +20,13 @@
 
 package net.daporkchop.lib.binary.bit.packed;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.bit.BitArray;
 import net.daporkchop.lib.common.math.PMath;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
-import net.daporkchop.lib.common.pool.array.ArrayHandle;
-import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.pool.array.ArrayAllocator;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
@@ -41,42 +39,45 @@ import static net.daporkchop.lib.common.util.PValidation.*;
 @Getter
 @Accessors(fluent = true)
 public class PackedBitArray extends AbstractRefCounted implements BitArray {
+    protected static int minLength(int bits, int size) {
+        checkIndex(bits > 0 && bits <= 32, "bits (%d) must be in range [1-32]", bits);
+        notNegative(size, "size");
+        return toInt(PMath.roundUp((long) size * (long) bits, 64L) >>> 6L);
+    }
+
     protected final long[] internalDataArray;
 
     protected final int bits;
     protected final int size;
 
-    @Getter(AccessLevel.NONE)
-    protected final Handle<long[]> handle;
+    protected final ArrayAllocator<long[]> alloc;
 
-    public PackedBitArray(int bits, int size)   {
-        this(bits, size, new long[toInt(PMath.roundUp((long) size * (long) bits, 64L) >>> 6L)]);
+    public PackedBitArray(int bits, int size) {
+        this.internalDataArray = new long[minLength(bits, size)];
+        this.alloc = null;
+        this.bits = bits;
+        this.size = size;
     }
 
-    public PackedBitArray(int bits, int size, @NonNull long[] arr)   {
-        checkIndex(bits > 0 && bits <= 32, "bits (%d) must be in range [1-32]", bits);
-        notNegative(size, "size");
-        int minLength = toInt(PMath.roundUp((long) size * (long) bits, 64L) >>> 6L);
+    public PackedBitArray(int bits, int size, @NonNull long[] arr) {
+        this(bits, size, arr, null);
+    }
+
+    public PackedBitArray(int bits, int size, @NonNull long[] arr, ArrayAllocator<long[]> alloc) {
+        int minLength = minLength(bits, size);
         checkArg(arr.length >= minLength, "length (%d) must be at least %d!", arr.length, minLength);
 
         this.internalDataArray = arr;
+        this.alloc = alloc;
         this.bits = bits;
         this.size = size;
-        this.handle = null;
     }
 
-    public PackedBitArray(int bits, int size, @NonNull Handle<long[]> handle)   {
-        checkIndex(bits > 0 && bits <= 32, "bits (%d) must be in range [1-32]", bits);
-        notNegative(size, "size");
-        int minLength = toInt(PMath.roundUp((long) size * (long) bits, 64L) >>> 6L);
-        long[] arr = handle.get();
-        int length = handle instanceof ArrayHandle ? ((ArrayHandle) handle).length() : arr.length;
-        checkArg(length >= minLength, "length (%d) must be at least %d!", length, minLength);
-
-        this.internalDataArray = arr;
+    public PackedBitArray(int bits, int size, @NonNull ArrayAllocator<long[]> alloc) {
+        this.internalDataArray = alloc.atLeast(minLength(bits, size));
+        this.alloc = alloc;
         this.bits = bits;
         this.size = size;
-        this.handle = handle;
     }
 
     @Override
@@ -85,7 +86,7 @@ public class PackedBitArray extends AbstractRefCounted implements BitArray {
         final int bits = this.bits;
         final int size = this.size;
         checkIndex(size, i);
-        
+
         int start = i * bits;
         int firstPos = start >> 6;
         int endPos = ((i + 1) * bits - 1) >> 6;
@@ -143,7 +144,14 @@ public class PackedBitArray extends AbstractRefCounted implements BitArray {
 
     @Override
     public BitArray clone() {
-        return new PackedBitArray(this.bits, this.size, this.internalDataArray.clone());
+        long[] clonedDataArray;
+        if (this.alloc != null) {
+            int minLength = minLength(this.bits, this.size);
+            System.arraycopy(this.internalDataArray, 0, clonedDataArray = this.alloc.atLeast(minLength), 0, minLength);
+        } else {
+            clonedDataArray = this.internalDataArray.clone();
+        }
+        return new PackedBitArray(this.bits, this.size, clonedDataArray, this.alloc);
     }
 
     @Override
@@ -154,8 +162,8 @@ public class PackedBitArray extends AbstractRefCounted implements BitArray {
 
     @Override
     protected void doRelease() {
-        if (this.handle != null)    {
-            this.handle.release();
+        if (this.alloc != null) {
+            this.alloc.release(this.internalDataArray);
         }
     }
 }

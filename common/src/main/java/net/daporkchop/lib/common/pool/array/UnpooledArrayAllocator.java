@@ -39,17 +39,17 @@ final class UnpooledArrayAllocator<V> extends AbstractArrayAllocator<V> {
     }
 
     @Override
-    public ArrayHandle<V> atLeast(int length) {
+    public V atLeast(int length) {
         return this.exactly(length);
     }
 
     @Override
-    public ArrayHandle<V> exactly(int length) {
-        return new AbstractArrayHandle<V>(this.createArray(length), length) {
-            @Override
-            protected void doRelease() {
-                //no-op
-            }
-        };
+    public V exactly(int length) {
+        return this.createArray(length);
+    }
+
+    @Override
+    public void release(@NonNull V array) {
+        //no-op
     }
 }

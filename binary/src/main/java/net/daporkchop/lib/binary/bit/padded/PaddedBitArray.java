@@ -20,14 +20,12 @@
 
 package net.daporkchop.lib.binary.bit.padded;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.bit.BitArray;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
-import net.daporkchop.lib.common.pool.array.ArrayHandle;
-import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.pool.array.ArrayAllocator;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
@@ -107,6 +105,12 @@ public class PaddedBitArray extends AbstractRefCounted implements BitArray {
             0X80000000, 0X00000000, 0X00000005
     };
 
+    protected static int minLength(int bits, int size) {
+        checkIndex(bits > 0 && bits <= 32, "bits (%d) must be in range [1-32]", bits);
+        notNegative(size, "size");
+        return (size + (Long.SIZE / bits) - 1) / (Long.SIZE / bits);
+    }
+
     protected final long[] internalDataArray;
 
     protected final int bits;
@@ -118,35 +122,19 @@ public class PaddedBitArray extends AbstractRefCounted implements BitArray {
     private final int indexOffset;
     private final int indexShift;
 
-    @Getter(AccessLevel.NONE)
-    protected final Handle<long[]> handle;
+    protected final ArrayAllocator<long[]> alloc;
 
     public PaddedBitArray(int bits, int size) {
-        this(bits, size, new long[(notNegative(size, "size") + (Long.SIZE / notNegative(bits, "bits")) - 1) / (Long.SIZE / bits)]);
+        this(bits, size, new long[minLength(bits, size)], null);
     }
 
     public PaddedBitArray(int bits, int size, @NonNull long[] arr) {
-        checkIndex(bits > 0 && bits <= 32, "bits (%d) must be in range [1-32]", bits);
-        notNegative(size, "size");
-
-        this.indexScale = Long.SIZE / bits;
-        int i = 3 * (this.indexScale - 1);
-        this.indexFactor = MASK_LOOKUP[i + 0];
-        this.indexOffset = MASK_LOOKUP[i + 1];
-        this.indexShift = MASK_LOOKUP[i + 2];
-
-        int minLength = (size + this.indexScale - 1) / this.indexScale;
-        checkArg(arr.length >= minLength, "length (%d) must be at least %d!", arr.length, minLength);
-
-        this.internalDataArray = arr;
-        this.bits = bits;
-        this.size = size;
-        this.handle = null;
+        this(bits, size, arr, null);
     }
 
-    public PaddedBitArray(int bits, int size, @NonNull Handle<long[]> handle) {
-        checkIndex(bits > 0 && bits <= 32, "bits (%d) must be in range [1-32]", bits);
-        notNegative(size, "size");
+    public PaddedBitArray(int bits, int size, @NonNull long[] arr, ArrayAllocator<long[]> alloc) {
+        int minLength = minLength(bits, size);
+        checkArg(arr.length >= minLength, "length (%d) must be at least %d!", arr.length, minLength);
 
         this.indexScale = Long.SIZE / bits;
         int i = 3 * (this.indexScale - 1);
@@ -154,15 +142,24 @@ public class PaddedBitArray extends AbstractRefCounted implements BitArray {
         this.indexOffset = MASK_LOOKUP[i + 1];
         this.indexShift = MASK_LOOKUP[i + 2];
 
-        int minLength = (size + this.indexScale - 1) / this.indexScale;
-        long[] arr = handle.get();
-        int length = handle instanceof ArrayHandle ? ((ArrayHandle) handle).length() : arr.length;
-        checkArg(length >= minLength, "length (%d) must be at least %d!", length, minLength);
-
         this.internalDataArray = arr;
+        this.alloc = alloc;
         this.bits = bits;
         this.size = size;
-        this.handle = handle;
+    }
+
+    public PaddedBitArray(int bits, int size, @NonNull ArrayAllocator<long[]> alloc) {
+        this.internalDataArray = alloc.atLeast(minLength(bits, size));
+        this.alloc = alloc;
+
+        this.indexScale = Long.SIZE / bits;
+        int i = 3 * (this.indexScale - 1);
+        this.indexFactor = MASK_LOOKUP[i + 0];
+        this.indexOffset = MASK_LOOKUP[i + 1];
+        this.indexShift = MASK_LOOKUP[i + 2];
+
+        this.bits = bits;
+        this.size = size;
     }
 
     private int toInternalIndex(int rawIndex) {
@@ -215,7 +212,14 @@ public class PaddedBitArray extends AbstractRefCounted implements BitArray {
 
     @Override
     public BitArray clone() {
-        return new PaddedBitArray(this.bits, this.size, this.internalDataArray.clone());
+        long[] clonedDataArray;
+        if (this.alloc != null) {
+            int minLength = minLength(this.bits, this.size);
+            System.arraycopy(this.internalDataArray, 0, clonedDataArray = this.alloc.atLeast(minLength), 0, minLength);
+        } else {
+            clonedDataArray = this.internalDataArray.clone();
+        }
+        return new PaddedBitArray(this.bits, this.size, clonedDataArray, this.alloc);
     }
 
     @Override
@@ -226,8 +230,8 @@ public class PaddedBitArray extends AbstractRefCounted implements BitArray {
 
     @Override
     protected void doRelease() {
-        if (this.handle != null) {
-            this.handle.release();
+        if (this.alloc != null) {
+            this.alloc.release(this.internalDataArray);
         }
     }
 }

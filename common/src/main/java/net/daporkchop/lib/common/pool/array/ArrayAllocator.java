@@ -44,7 +44,11 @@ public interface ArrayAllocator<T> {
      * @return a new global {@link ArrayAllocator}
      */
     static <T> ArrayAllocator<T> pow2(@NonNull IntFunction<T> lambda, @NonNull ReferenceType referenceType, int maxCapacity) {
-        return new Pow2ArrayAllocator<>(lambda, referenceType, maxCapacity);
+        if (referenceType == ReferenceType.STRONG) {
+            return new StrongPow2ArrayAllocator<T>(lambda, maxCapacity);
+        } else {
+            return new ReferencedPow2ArrayAllocator<>(lambda, referenceType, maxCapacity);
+        }
     }
 
     /**
@@ -57,14 +61,18 @@ public interface ArrayAllocator<T> {
      * @return a new global {@link ArrayAllocator}
      */
     static <T> ArrayAllocator<T> pow2(@NonNull Class<?> componentType, @NonNull ReferenceType referenceType, int maxCapacity) {
-        return new Pow2ArrayAllocator<>(componentType, referenceType, maxCapacity);
+        if (referenceType == ReferenceType.STRONG) {
+            return new StrongPow2ArrayAllocator<T>(componentType, maxCapacity);
+        } else {
+            return new ReferencedPow2ArrayAllocator<>(componentType, referenceType, maxCapacity);
+        }
     }
 
     /**
      * Creates a new {@link ArrayAllocator} which simply allocates a new array for each request.
      *
-     * @param lambda        a lambda function (e.g. {@code Object[]::new}) to use for creating new array instances
-     * @param <T>           the array type
+     * @param lambda a lambda function (e.g. {@code Object[]::new}) to use for creating new array instances
+     * @param <T>    the array type
      * @return a new unpooled {@link ArrayAllocator}
      */
     static <T> ArrayAllocator<T> unpooled(@NonNull IntFunction<T> lambda) {
@@ -85,20 +93,29 @@ public interface ArrayAllocator<T> {
     /**
      * Gets an array of at least the requested length.
      * <p>
-     * The returned {@link ArrayHandle}'s {@link ArrayHandle#length()} will be the same as the given value for the {@code length} parameter.
+     * The returned array's length will be at least the given value for the {@code length} parameter.
      *
      * @param length the minimum length of the requested array
      * @return an array of at least the requested size
      */
-    ArrayHandle<T> atLeast(int length);
+    T atLeast(int length);
 
     /**
      * Gets an array of exactly the requested length.
      * <p>
-     * The returned {@link ArrayHandle}'s {@link ArrayHandle#length()} will be the same as the given value for the {@code length} parameter.
+     * The returned array will be exactly the same length as the given value for the {@code length} parameter.
      *
      * @param length the length of the requested array
      * @return an array of exactly the requested length
      */
-    ArrayHandle<T> exactly(int length);
+    T exactly(int length);
+
+    /**
+     * Releases the given array.
+     * <p>
+     * If the given array does not belong to this allocator, or has already been released, the results are undefined.
+     *
+     * @param array the array to release
+     */
+    void release(@NonNull T array);
 }

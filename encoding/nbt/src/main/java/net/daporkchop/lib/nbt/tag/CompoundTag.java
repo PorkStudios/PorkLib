@@ -50,10 +50,10 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
  * @author DaPorkchop_
  */
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Getter
 @Accessors(fluent = true)
 public final class CompoundTag extends Tag<CompoundTag> implements Iterable<Map.Entry<String, Tag>> {
     protected final Map<String, Tag> map;
-    @Getter
     protected final String name;
 
     public CompoundTag() {
@@ -411,5 +411,11 @@ public final class CompoundTag extends Tag<CompoundTag> implements Iterable<Map.
         T tag = (T) this.map.remove(name);
         checkArg(tag != null, "No tag with name \"%s\" found!", name);
         return tag;
+    }
+
+    public <T extends Tag<T>> T remove(@NonNull String name, T fallback) {
+        @SuppressWarnings("unchecked")
+        T tag = (T) this.map.remove(name);
+        return tag != null ? tag : fallback;
     }
 }

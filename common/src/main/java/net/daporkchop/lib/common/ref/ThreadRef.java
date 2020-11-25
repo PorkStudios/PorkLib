@@ -21,6 +21,7 @@
 package net.daporkchop.lib.common.ref;
 
 import lombok.NonNull;
+import net.daporkchop.lib.common.misc.threadlocal.TL;
 
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -33,20 +34,11 @@ import java.util.regex.Pattern;
  */
 public interface ThreadRef<T> extends Ref<T> {
     /**
-     * Gets a simple {@link ThreadRef} will compute the value using the given {@link Supplier} once per thread when first requested.
-     *
-     * @param supplier the {@link Supplier} for the value
-     * @param <T>      the value type
-     * @return a {@link ThreadRef}
+     * @deprecated see {@link TL#withInitial(Supplier)}
      */
-    static <T> ThreadRef<T> late(@NonNull Supplier<T> supplier) {
-        try {
-            Class.forName("io.netty.util.concurrent.FastThreadLocal"); //make sure class exists
-
-            return new FastLateThreadRef<>(supplier);
-        } catch (ClassNotFoundException e) {
-            return new JavaLateThreadRef<>(supplier);
-        }
+    @Deprecated
+    static <T> Ref<T> late(@NonNull Supplier<T> supplier) {
+        return TL.withInitial(supplier);
     }
 
     /**
@@ -58,14 +50,21 @@ public interface ThreadRef<T> extends Ref<T> {
      * @param <T>      the value type
      * @return a {@link ThreadRef}
      */
-    static <T> ThreadRef<T> soft(@NonNull Supplier<T> supplier) {
-        try {
-            Class.forName("io.netty.util.concurrent.FastThreadLocal"); //make sure class exists
+    static <T> Ref<T> soft(@NonNull Supplier<T> supplier) {
+        return new CollectableThreadRef<>(TL.create(), supplier, true);
+    }
 
-            return new FastSoftThreadRef<>(supplier);
-        } catch (ClassNotFoundException e) {
-            return new JavaSoftThreadRef<>(supplier);
-        }
+    /**
+     * Gets a simple {@link ThreadRef} will compute the value using the given {@link Supplier} once per thread when first requested, and store it in a
+     * weak reference, allowing it to be garbage-collected later on if the garbage-collector deems it necessary. If garbage-collected, it will be
+     * re-computed using the {@link Supplier} and cached again.
+     *
+     * @param supplier the {@link Supplier} for the value
+     * @param <T>      the value type
+     * @return a {@link ThreadRef}
+     */
+    static <T> Ref<T> weak(@NonNull Supplier<T> supplier) {
+        return new CollectableThreadRef<>(TL.create(), supplier, false);
     }
 
     /**
@@ -75,7 +74,7 @@ public interface ThreadRef<T> extends Ref<T> {
      * @see #regex(Pattern)
      * @see #soft(Supplier)
      */
-    static ThreadRef<Matcher> regex(@NonNull String regex) {
+    static Ref<Matcher> regex(@NonNull String regex) {
         return regex(Pattern.compile(regex));
     }
 
@@ -85,17 +84,7 @@ public interface ThreadRef<T> extends Ref<T> {
      * @param pattern the {@link Pattern} to cache a {@link Matcher} for
      * @see #soft(Supplier)
      */
-    static ThreadRef<Matcher> regex(@NonNull Pattern pattern) {
+    static Ref<Matcher> regex(@NonNull Pattern pattern) {
         return soft(() -> pattern.matcher(""));
     }
-
-    @Override
-    T get();
-
-    /**
-     * Create a new instance, regardless of thread-local state
-     *
-     * @return a new instance
-     */
-    T getUncached();
 }

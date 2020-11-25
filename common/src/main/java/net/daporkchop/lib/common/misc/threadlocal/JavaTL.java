@@ -18,39 +18,23 @@
  *
  */
 
-package net.daporkchop.lib.common.ref;
+package net.daporkchop.lib.common.misc.threadlocal;
 
-import lombok.AccessLevel;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import java.lang.ref.SoftReference;
-import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
- * Implementation of {@link Ref} that uses a {@link SoftReference} to store its value.
+ * Implementation of {@link TL} using Java's {@link ThreadLocal}.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
-public final class SoftLateRef<T> implements Ref<T> {
-    @NonNull
-    protected final Supplier<T> factory;
-
-    protected SoftReference<T> ref;
+@RequiredArgsConstructor
+final class JavaTL<T> extends ThreadLocal<T> implements TL<T> {
+    protected final Supplier<T> initialSupplier;
 
     @Override
-    public T get() {
-        T val;
-        if (this.ref == null || (val = this.ref.get()) == null) {
-            synchronized (this) {
-                //check again after obtaining lock, it may have been set by another thread
-                if (this.ref == null || (val = this.ref.get()) == null) {
-                    this.ref = new SoftReference<>(val = Objects.requireNonNull(this.factory.get()));
-                }
-            }
-        }
-        return val;
+    protected T initialValue() {
+        return this.initialSupplier != null ? this.initialSupplier.get() : null;
     }
 }

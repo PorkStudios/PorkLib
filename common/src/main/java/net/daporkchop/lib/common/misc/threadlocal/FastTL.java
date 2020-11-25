@@ -18,39 +18,24 @@
  *
  */
 
-package net.daporkchop.lib.common.ref;
+package net.daporkchop.lib.common.misc.threadlocal;
 
-import lombok.AccessLevel;
-import lombok.NonNull;
+import io.netty.util.concurrent.FastThreadLocal;
 import lombok.RequiredArgsConstructor;
 
-import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
- * A simple implementation of {@link Ref} that computes a single value using a given {@link Supplier} once it's first requested.
+ * Implementation of {@link TL} using Netty's {@link FastThreadLocal}.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
-public final class LateReferencedRef<T> implements Ref<T> {
-    @NonNull
-    protected Supplier<T> factory;
-
-    protected T value;
+@RequiredArgsConstructor
+final class FastTL<T> extends FastThreadLocal<T> implements TL<T> {
+    protected final Supplier<T> initialSupplier;
 
     @Override
-    public T get() {
-        T value = this.value;
-        if (value == null) {
-            synchronized (this) {
-                //check again after obtaining lock, it may have been set by another thread
-                if ((value = this.value) == null) {
-                    this.value = value = Objects.requireNonNull(this.factory.get());
-                    this.factory = null; //allow factory to be GC-d
-                }
-            }
-        }
-        return value;
+    protected T initialValue() {
+        return this.initialSupplier != null ? this.initialSupplier.get() : null;
     }
 }

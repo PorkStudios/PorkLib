@@ -21,7 +21,7 @@
 package common;
 
 import net.daporkchop.lib.common.pool.array.ArrayAllocator;
-import net.daporkchop.lib.common.ref.ReferenceType;
+import net.daporkchop.lib.common.ref.ReferenceStrength;
 import org.junit.Test;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
@@ -32,7 +32,7 @@ import static net.daporkchop.lib.common.util.PValidation.*;
 public class ArrayAllocatorTest {
     @Test
     public void testAlloc() {
-        ArrayAllocator<byte[]> alloc = ArrayAllocator.pow2(byte[]::new, ReferenceType.STRONG, 2);
+        ArrayAllocator<byte[]> alloc = ArrayAllocator.pow2(byte[]::new, ReferenceStrength.STRONG, 2);
         byte[] arr; //this is totally unsafe, never do this in real code
 
         arr = alloc.atLeast(31);

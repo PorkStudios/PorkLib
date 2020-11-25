@@ -29,7 +29,7 @@ import java.util.function.Supplier;
  *
  * @author DaPorkchop_
  */
-public interface Ref<T> extends Supplier<T> {
+public interface Ref<T> {
     /**
      * Gets a simple {@link Ref} will compute the value using the given {@link Supplier} once first requested.
      *
@@ -37,8 +37,8 @@ public interface Ref<T> extends Supplier<T> {
      * @param <T>     the value type
      * @return a {@link Ref}
      */
-    static <T> Ref<T> late(@NonNull Supplier<T> factory) {
-        return new LateReferencedRef<>(factory);
+    static <T> Ref<T> lazy(@NonNull Supplier<T> factory) {
+        return new LazyRef<>(factory);
     }
 
     /**
@@ -51,7 +51,20 @@ public interface Ref<T> extends Supplier<T> {
      * @return a {@link Ref}
      */
     static <T> Ref<T> soft(@NonNull Supplier<T> factory) {
-        return new SoftLateRef<>(factory);
+        return new CollectableLateRef<>(factory, true);
+    }
+
+    /**
+     * Gets a simple {@link Ref} will compute the value using the given {@link Supplier} once first requested, and store it in a weak reference,
+     * allowing it to be garbage-collected later on if the garbage-collector deems it necessary. If garbage-collected, it will be re-computed using the
+     * {@link Supplier} and cached again.
+     *
+     * @param factory the {@link Supplier} for the value
+     * @param <T>     the value type
+     * @return a {@link Ref}
+     */
+    static <T> Ref<T> weak(@NonNull Supplier<T> factory) {
+        return new CollectableLateRef<>(factory, false);
     }
 
     /**

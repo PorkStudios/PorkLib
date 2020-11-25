@@ -23,34 +23,37 @@ package net.daporkchop.lib.common.ref;
 import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.common.misc.threadlocal.TL;
 
+import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
-import java.util.Objects;
+import java.lang.ref.WeakReference;
 import java.util.function.Supplier;
 
 /**
- * A {@link ThreadRef} that keeps only a soft reference to objects, and is backed by a Java {@link ThreadLocal}.
+ * A {@link ThreadRef} whose value may be garbage-collected.
  *
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
-public final class JavaSoftThreadRef<T> implements ThreadRef<T> {
+final class CollectableThreadRef<T> implements ThreadRef<T> {
     @NonNull
-    private final Supplier<T> factory;
-    private final ThreadLocal<SoftReference<T>> threadLocal = new ThreadLocal<>();
+    protected final TL<Reference<T>> threadLocal;
+    @NonNull
+    protected final Supplier<T> factory;
+    protected final boolean soft;
 
     @Override
     public T get() {
-        SoftReference<T> ref = this.threadLocal.get();
-        T val;
-        if (ref == null || (val = ref.get()) == null) {
-            this.threadLocal.set(new SoftReference<>(val = Objects.requireNonNull(this.factory.get())));
+        Reference<T> ref = this.threadLocal.get();
+        T value;
+        if (ref == null || (value = ref.get()) == null) {
+            this.threadLocal.set(this.wrap(value = this.factory.get()));
         }
-        return val;
+        return value;
     }
 
-    @Override
-    public T getUncached() {
-        return this.factory.get();
+    protected Reference<T> wrap(@NonNull T value) {
+        return this.soft ? new SoftReference<>(value) : new WeakReference<>(value);
     }
 }

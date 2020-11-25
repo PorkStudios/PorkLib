@@ -24,7 +24,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
 import net.daporkchop.lib.common.ref.Ref;
-import net.daporkchop.lib.common.ref.ReferenceType;
+import net.daporkchop.lib.common.ref.ReferenceStrength;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.util.ArrayDeque;
@@ -41,13 +41,13 @@ import static net.daporkchop.lib.common.util.PValidation.*;
 final class BasicHandledPool<V> implements HandledPool<V> {
     private final Deque<Ref<V>> deque;
     private final Supplier<V> factory;
-    private final ReferenceType referenceType;
+    private final ReferenceStrength strength;
     private final int maxCapacity;
 
-    public BasicHandledPool(@NonNull Supplier<V> factory, @NonNull ReferenceType referenceType, int maxCapacity) {
+    public BasicHandledPool(@NonNull Supplier<V> factory, @NonNull ReferenceStrength strength, int maxCapacity) {
         this.deque = new ArrayDeque<>(positive(maxCapacity, "maxCapacity"));
         this.factory = factory;
-        this.referenceType = referenceType;
+        this.strength = strength;
         this.maxCapacity = maxCapacity;
     }
 
@@ -59,7 +59,7 @@ final class BasicHandledPool<V> implements HandledPool<V> {
         }
         if (value == null)  {
             value = this.factory.get();
-            ref = this.referenceType.create(value);
+            ref = this.strength.create(value);
         }
         //important to create new instance because of reference-counting
         return new HandleImpl(value, ref);

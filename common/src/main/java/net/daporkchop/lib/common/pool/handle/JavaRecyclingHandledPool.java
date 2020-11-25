@@ -20,12 +20,8 @@
 
 package net.daporkchop.lib.common.pool.handle;
 
-import io.netty.util.Recycler;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
-import net.daporkchop.lib.common.ref.ReferenceType;
-import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
+import net.daporkchop.lib.common.ref.ReferenceStrength;
 
 import java.util.function.Supplier;
 
@@ -38,7 +34,7 @@ final class JavaRecyclingHandledPool<V> implements HandledPool<V> {
     private final ThreadLocal<BasicHandledPool<V>> tl;
 
     public JavaRecyclingHandledPool(@NonNull Supplier<V> factory, int maxCapacityPerThread) {
-        this.tl = ThreadLocal.withInitial(() -> new BasicHandledPool<>(factory, ReferenceType.STRONG, maxCapacityPerThread));
+        this.tl = ThreadLocal.withInitial(() -> new BasicHandledPool<>(factory, ReferenceStrength.STRONG, maxCapacityPerThread));
     }
 
     @Override

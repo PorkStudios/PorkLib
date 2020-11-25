@@ -20,10 +20,6 @@
 
 package net.daporkchop.lib.common.ref;
 
-import net.daporkchop.lib.common.ref.attachment.AttachedRef;
-import net.daporkchop.lib.common.ref.attachment.SoftAttachedRef;
-import net.daporkchop.lib.common.ref.attachment.StrongAttachedRef;
-import net.daporkchop.lib.common.ref.attachment.WeakAttachedRef;
 import net.daporkchop.lib.common.ref.impl.SoftRef;
 import net.daporkchop.lib.common.ref.impl.StrongRef;
 import net.daporkchop.lib.common.ref.impl.WeakRef;
@@ -35,22 +31,11 @@ import java.lang.ref.ReferenceQueue;
  *
  * @author DaPorkchop_
  */
-public enum ReferenceType {
+public enum ReferenceStrength {
     STRONG {
         @Override
         public <V> Ref<V> create(V value, ReferenceQueue<? super V> queue) {
-            if (queue != null)  {
-                throw new UnsupportedOperationException("Strong references cannot use a ReferenceQueue!");
-            }
             return new StrongRef<>(value);
-        }
-
-        @Override
-        public <V, A> AttachedRef<V, A> createAttached(V value, A attachment, ReferenceQueue<? super V> queue) {
-            if (queue != null)  {
-                throw new UnsupportedOperationException("Strong references cannot use a ReferenceQueue!");
-            }
-            return new StrongAttachedRef<>(value, attachment);
         }
     },
     SOFT {
@@ -58,21 +43,11 @@ public enum ReferenceType {
         public <V> Ref<V> create(V value, ReferenceQueue<? super V> queue) {
             return new SoftRef<>(value, queue);
         }
-
-        @Override
-        public <V, A> AttachedRef<V, A> createAttached(V value, A attachment, ReferenceQueue<? super V> queue) {
-            return new SoftAttachedRef<>(value, attachment, queue);
-        }
     },
     WEAK {
         @Override
         public <V> Ref<V> create(V value, ReferenceQueue<? super V> queue) {
             return new WeakRef<>(value, queue);
-        }
-
-        @Override
-        public <V, A> AttachedRef<V, A> createAttached(V value, A attachment, ReferenceQueue<? super V> queue) {
-            return new WeakAttachedRef<>(value, attachment, queue);
         }
     };
 
@@ -81,18 +56,4 @@ public enum ReferenceType {
     }
 
     public abstract <V> Ref<V> create(V value, ReferenceQueue<? super V> queue);
-
-    public <V, A> AttachedRef<V, A> createAttached(V value) {
-        return this.createAttached(value, null, null);
-    }
-
-    public <V, A> AttachedRef<V, A> createAttached(V value, A attachment) {
-        return this.createAttached(value, attachment, null);
-    }
-
-    public <V, A> AttachedRef<V, A> createAttached(V value, ReferenceQueue<? super V> queue) {
-        return this.createAttached(value, null, queue);
-    }
-
-    public abstract <V, A> AttachedRef<V, A> createAttached(V value, A attachment, ReferenceQueue<? super V> queue);
 }

@@ -21,7 +21,7 @@
 package net.daporkchop.lib.common.pool.handle;
 
 import lombok.NonNull;
-import net.daporkchop.lib.common.ref.ReferenceType;
+import net.daporkchop.lib.common.ref.ReferenceStrength;
 
 import java.util.function.Supplier;
 
@@ -36,13 +36,13 @@ public interface HandledPool<V> {
      * Creates a new global {@link HandledPool}.
      *
      * @param factory       a {@link Supplier} for new value instances
-     * @param referenceType the {@link ReferenceType} to use for storing references to values
+     * @param strength the {@link ReferenceStrength} to use for storing references to values
      * @param maxCapacity   the maximum number of values to be stored
      * @param <V>           the value type
      * @return a new global {@link HandledPool}
      */
-    static <V> HandledPool<V> global(@NonNull Supplier<V> factory, @NonNull ReferenceType referenceType, int maxCapacity) {
-        return new BasicHandledPool<>(factory, referenceType, maxCapacity);
+    static <V> HandledPool<V> global(@NonNull Supplier<V> factory, @NonNull ReferenceStrength strength, int maxCapacity) {
+        return new BasicHandledPool<>(factory, strength, maxCapacity);
     }
 
     /**

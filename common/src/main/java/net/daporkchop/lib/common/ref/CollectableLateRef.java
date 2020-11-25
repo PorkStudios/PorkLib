@@ -18,41 +18,47 @@
  *
  */
 
-package net.daporkchop.lib.common.ref.attachment;
+package net.daporkchop.lib.common.ref;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
+import lombok.AccessLevel;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.common.misc.threadlocal.TL;
 
-import java.lang.ref.ReferenceQueue;
+import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
+import java.lang.ref.WeakReference;
+import java.util.function.Supplier;
 
 /**
+ * A {@link ThreadRef} whose value may be garbage-collected.
+ *
  * @author DaPorkchop_
  */
-@Getter
-@Setter
-@Accessors(fluent = true, chain = true)
-public final class SoftAttachedRef<V, A> extends SoftReference<V> implements AttachedRef<V, A> {
-    protected A attachment;
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+final class CollectableLateRef<T> implements Ref<T> {
+    @NonNull
+    protected final Supplier<T> factory;
+    protected final boolean soft;
 
-    public SoftAttachedRef(V referent) {
-        super(referent);
+    protected volatile Reference<T> ref;
+
+    @Override
+    public T get() {
+        Reference<T> ref = this.ref;
+        T value;
+        if (ref == null || (value = ref.get()) == null) {
+            synchronized (this) {
+                //check again after obtaining lock, it may have been set by another thread
+                if ((ref = this.ref) == null || (value = ref.get()) == null) {
+                    this.ref = this.wrap(value = this.factory.get());
+                }
+            }
+        }
+        return value;
     }
 
-    public SoftAttachedRef(V referent, A attachment) {
-        super(referent);
-
-        this.attachment = attachment;
-    }
-
-    public SoftAttachedRef(V referent, ReferenceQueue<? super V> q) {
-        super(referent, q);
-    }
-
-    public SoftAttachedRef(V referent, A attachment, ReferenceQueue<? super V> q) {
-        super(referent, q);
-
-        this.attachment = attachment;
+    protected Reference<T> wrap(@NonNull T value) {
+        return this.soft ? new SoftReference<>(value) : new WeakReference<>(value);
     }
 }

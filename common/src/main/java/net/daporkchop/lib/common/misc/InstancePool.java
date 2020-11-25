@@ -39,8 +39,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * free up the memory if needed.
  *
  * @author DaPorkchop_
+ * @deprecated scheduled for removal in favor of a simple {@code public static final <T> DEFAULT} field
  */
 @UtilityClass
+@Deprecated
 public class InstancePool {
     private final Map<Class<?>, SoftReference<?>> MAP = new ConcurrentHashMap<>();
 
@@ -48,11 +50,11 @@ public class InstancePool {
         @SuppressWarnings("unchecked")
         SoftReference<T> ref = (SoftReference<T>) MAP.computeIfAbsent(clazz, c -> new SoftReference<>(createInstance(c)));
         T val;
-        while ((val = ref.get()) == null)   {
-            synchronized (clazz)    {
+        while ((val = ref.get()) == null) {
+            synchronized (clazz) {
                 @SuppressWarnings("unchecked")
                 SoftReference<T> newRef = (SoftReference<T>) MAP.get(clazz);
-                if (newRef == ref)  {
+                if (newRef == ref) {
                     //reference in map has not been changed, create new reference
                     MAP.replace(clazz, ref, newRef = new SoftReference<>(createInstance(clazz)));
                 }
@@ -62,7 +64,7 @@ public class InstancePool {
         return val;
     }
 
-    private static <T> T createInstance(@NonNull Class<T> clazz)    {
+    private static <T> T createInstance(@NonNull Class<T> clazz) {
         try {
             Constructor<T> constructor = clazz.getDeclaredConstructor();
             constructor.setAccessible(true);

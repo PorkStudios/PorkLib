@@ -18,29 +18,39 @@
  *
  */
 
-package net.daporkchop.lib.common.ref.attachment;
+package net.daporkchop.lib.common.ref;
 
-import net.daporkchop.lib.common.ref.Ref;
+import lombok.AccessLevel;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+
+import java.util.Objects;
+import java.util.function.Supplier;
 
 /**
- * A {@link Ref} which has an additional value attached.
+ * A simple implementation of {@link Ref} that computes a single value using a given {@link Supplier} once it's first requested.
  *
  * @author DaPorkchop_
  */
-public interface AttachedRef<V, A> extends Ref<V> {
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+final class LazyRef<T> implements Ref<T> {
+    @NonNull
+    protected Supplier<T> factory;
+
+    protected T value;
+
     @Override
-    V get();
-
-    /**
-     * @return the attachment
-     */
-    A attachment();
-
-    /**
-     * Sets the attachment.
-     *
-     * @param attachment the new attachment to set
-     * @return this {@link AttachedRef}
-     */
-    AttachedRef attachment(A attachment);
+    public T get() {
+        T value = this.value;
+        if (value == null) {
+            synchronized (this) {
+                //check again after obtaining lock, it may have been set by another thread
+                if ((value = this.value) == null) {
+                    this.value = value = Objects.requireNonNull(this.factory.get());
+                    this.factory = null; //allow factory to be GC-d
+                }
+            }
+        }
+        return value;
+    }
 }

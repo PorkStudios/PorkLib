@@ -22,7 +22,7 @@ package net.daporkchop.lib.common.pool.array;
 
 import lombok.NonNull;
 import net.daporkchop.lib.common.pool.handle.HandledPool;
-import net.daporkchop.lib.common.ref.ReferenceType;
+import net.daporkchop.lib.common.ref.ReferenceStrength;
 
 import java.util.function.IntFunction;
 
@@ -38,16 +38,16 @@ public interface ArrayAllocator<T> {
      * Creates a new global {@link ArrayAllocator} which groups arrays based on their size in powers of 2.
      *
      * @param lambda        a lambda function (e.g. {@code Object[]::new}) to use for creating new array instances
-     * @param referenceType the {@link ReferenceType} that arrays will be stored with
+     * @param strength the {@link ReferenceStrength} that arrays will be stored with
      * @param maxCapacity   the maximum internal storage capacity of the allocator per power of 2
      * @param <T>           the array type
      * @return a new global {@link ArrayAllocator}
      */
-    static <T> ArrayAllocator<T> pow2(@NonNull IntFunction<T> lambda, @NonNull ReferenceType referenceType, int maxCapacity) {
-        if (referenceType == ReferenceType.STRONG) {
+    static <T> ArrayAllocator<T> pow2(@NonNull IntFunction<T> lambda, @NonNull ReferenceStrength strength, int maxCapacity) {
+        if (strength == ReferenceStrength.STRONG) {
             return new StrongPow2ArrayAllocator<T>(lambda, maxCapacity);
         } else {
-            return new ReferencedPow2ArrayAllocator<>(lambda, referenceType, maxCapacity);
+            return new ReferencedPow2ArrayAllocator<>(lambda, strength, maxCapacity);
         }
     }
 
@@ -55,16 +55,16 @@ public interface ArrayAllocator<T> {
      * Creates a new global {@link ArrayAllocator} which groups arrays based on their size in powers of 2.
      *
      * @param componentType the array component type
-     * @param referenceType the {@link ReferenceType} that arrays will be stored with
+     * @param strength the {@link ReferenceStrength} that arrays will be stored with
      * @param maxCapacity   the maximum internal storage capacity of the allocator per power of 2
      * @param <T>           the array type
      * @return a new global {@link ArrayAllocator}
      */
-    static <T> ArrayAllocator<T> pow2(@NonNull Class<?> componentType, @NonNull ReferenceType referenceType, int maxCapacity) {
-        if (referenceType == ReferenceType.STRONG) {
+    static <T> ArrayAllocator<T> pow2(@NonNull Class<?> componentType, @NonNull ReferenceStrength strength, int maxCapacity) {
+        if (strength == ReferenceStrength.STRONG) {
             return new StrongPow2ArrayAllocator<T>(componentType, maxCapacity);
         } else {
-            return new ReferencedPow2ArrayAllocator<>(componentType, referenceType, maxCapacity);
+            return new ReferencedPow2ArrayAllocator<>(componentType, strength, maxCapacity);
         }
     }
 

@@ -23,12 +23,11 @@ package net.daporkchop.lib.common.pool.array;
 import lombok.NonNull;
 import net.daporkchop.lib.common.math.BinMath;
 import net.daporkchop.lib.common.ref.Ref;
-import net.daporkchop.lib.common.ref.ReferenceType;
+import net.daporkchop.lib.common.ref.ReferenceStrength;
 import net.daporkchop.lib.common.util.PArrays;
 
 import java.lang.reflect.Array;
 import java.util.ArrayDeque;
-import java.util.Arrays;
 import java.util.Deque;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
@@ -43,20 +42,20 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
  */
 final class ReferencedPow2ArrayAllocator<V> extends AbstractArrayAllocator<V> {
     protected final Deque<Ref<V>>[] arenas = uncheckedCast(PArrays.filled(32, Deque[]::new, (Supplier<Deque>) ArrayDeque::new));
-    protected final ReferenceType referenceType;
+    protected final ReferenceStrength strength;
     protected final int maxCapacity;
 
-    public ReferencedPow2ArrayAllocator(@NonNull IntFunction<V> lambda, @NonNull ReferenceType referenceType, int maxCapacity) {
+    public ReferencedPow2ArrayAllocator(@NonNull IntFunction<V> lambda, @NonNull ReferenceStrength strength, int maxCapacity) {
         super(lambda);
 
-        this.referenceType = referenceType;
+        this.strength = strength;
         this.maxCapacity = positive(maxCapacity, "maxCapacity");
     }
 
-    public ReferencedPow2ArrayAllocator(@NonNull Class<?> componentClass, @NonNull ReferenceType referenceType, int maxCapacity) {
+    public ReferencedPow2ArrayAllocator(@NonNull Class<?> componentClass, @NonNull ReferenceStrength strength, int maxCapacity) {
         super(componentClass);
 
-        this.referenceType = referenceType;
+        this.strength = strength;
         this.maxCapacity = positive(maxCapacity, "maxCapacity");
     }
 
@@ -97,7 +96,7 @@ final class ReferencedPow2ArrayAllocator<V> extends AbstractArrayAllocator<V> {
         Deque<Ref<V>> arena = this.arenas[bits];
         synchronized (arena) {
             if (arena.size() < this.maxCapacity) {
-                arena.addFirst(this.referenceType.create(array));
+                arena.addFirst(this.strength.create(array));
             }
         }
     }

@@ -40,32 +40,26 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  * @author DaPorkchop_
  */
 public abstract class AbstractDataIn implements DataIn {
-    protected static final long CLOSED_OFFSET = PUnsafe.pork_getOffset(AbstractDataIn.class, "closed");
-
     protected static final int RESULT_EOF = -1;
 
     protected InputStream inputStream;
 
-    protected volatile int closed = 0;
+    protected boolean closed = false;
 
     @Override
     public int read() throws IOException {
-        synchronized (this.mutex()) {
-            this.ensureOpen();
-            return this.read0();
-        }
+        this.ensureOpen();
+        return this.read0();
     }
 
     @Override
     public int readUnsignedByte() throws IOException {
-        synchronized (this.mutex()) {
-            this.ensureOpen();
-            int b = this.read0();
-            if (b >= 0) {
-                return b;
-            } else {
-                throw new EOFException();
-            }
+        this.ensureOpen();
+        int b = this.read0();
+        if (b >= 0) {
+            return b;
+        } else {
+            throw new EOFException();
         }
     }
 
@@ -78,56 +72,50 @@ public abstract class AbstractDataIn implements DataIn {
 
     @Override
     public int read(@NonNull byte[] dst, int start, int length) throws IOException {
-        synchronized (this.mutex()) {
-            this.ensureOpen();
-            PValidation.checkRangeLen(dst.length, start, length);
-            if (length == 0) {
-                return 0;
-            }
-            return this.read0(dst, start, length);
+        this.ensureOpen();
+        PValidation.checkRangeLen(dst.length, start, length);
+        if (length == 0) {
+            return 0;
         }
+        return this.read0(dst, start, length);
     }
 
     @Override
     public int read(@NonNull ByteBuffer dst) throws IOException {
-        synchronized (this.mutex()) {
-            this.ensureOpen();
-            int remaining = dst.remaining();
-            if (remaining <= 0) {
-                return 0;
-            }
-
-            int position = dst.position();
-            int read = dst.isDirect()
-                       ? toInt(this.read0(PUnsafe.pork_directBufferAddress(dst) + position, remaining))
-                       : this.read0(dst.array(), dst.arrayOffset() + position, remaining);
-            if (read > 0) {
-                dst.position(position + read);
-            }
-            return read;
+        this.ensureOpen();
+        int remaining = dst.remaining();
+        if (remaining <= 0) {
+            return 0;
         }
+
+        int position = dst.position();
+        int read = dst.isDirect()
+                ? toInt(this.read0(PUnsafe.pork_directBufferAddress(dst) + position, remaining))
+                : this.read0(dst.array(), dst.arrayOffset() + position, remaining);
+        if (read > 0) {
+            dst.position(position + read);
+        }
+        return read;
     }
 
     @Override
     public int read(@NonNull ByteBuf dst, int start, int length) throws IOException {
-        synchronized (this.mutex()) {
-            this.ensureOpen();
-            checkRangeLen(dst.maxCapacity(), start, length);
-            if (length == 0) {
-                return 0;
-            }
-            dst.ensureWritable(start + length - dst.writerIndex());
-
-            int read;
-            if (dst.hasMemoryAddress()) {
-                read = toInt(this.read0(dst.memoryAddress() + start, length));
-            } else if (dst.hasArray()) {
-                read = this.read0(dst.array(), dst.arrayOffset() + start, length);
-            } else {
-                read = dst.setBytes(start, this, length);
-            }
-            return read;
+        this.ensureOpen();
+        checkRangeLen(dst.maxCapacity(), start, length);
+        if (length == 0) {
+            return 0;
         }
+        dst.ensureWritable(start + length - dst.writerIndex());
+
+        int read;
+        if (dst.hasMemoryAddress()) {
+            read = toInt(this.read0(dst.memoryAddress() + start, length));
+        } else if (dst.hasArray()) {
+            read = this.read0(dst.array(), dst.arrayOffset() + start, length);
+        } else {
+            read = dst.setBytes(start, this, length);
+        }
+        return read;
     }
 
     /**
@@ -200,74 +188,56 @@ public abstract class AbstractDataIn implements DataIn {
      */
     protected abstract void close0() throws IOException;
 
-    protected Object mutex() {
-        return this;
-    }
-
     protected InputStream asStream0() {
         return new DataInAsInputStream(this);
     }
 
     @Override
     public long transferTo(@NonNull DataOut dst) throws IOException {
-        synchronized (this.mutex()) {
-            this.ensureOpen();
-            return this.transfer0(dst, -1L);
-        }
+        this.ensureOpen();
+        return this.transfer0(dst, -1L);
     }
 
     @Override
     public long transferTo(@NonNull DataOut dst, long count) throws IOException {
-        synchronized (this.mutex()) {
-            this.ensureOpen();
-            if (positive(count, "count") == 0L)    {
-                return 0L;
-            }
-            return this.transfer0(dst, count);
+        this.ensureOpen();
+        if (positive(count, "count") == 0L) {
+            return 0L;
         }
+        return this.transfer0(dst, count);
     }
 
     @Override
     public InputStream asInputStream() {
         InputStream inputStream = this.inputStream;
         if (inputStream == null) {
-            synchronized (this.mutex()) {
-                if ((inputStream = this.inputStream) == null) {
-                    this.inputStream = inputStream = this.asStream0();
-                }
-            }
+            this.inputStream = inputStream = this.asStream0();
         }
         return inputStream;
     }
 
     @Override
     public long remaining() throws IOException {
-        synchronized (this.mutex()) {
-            this.ensureOpen();
-            return this.remaining0();
-        }
+        this.ensureOpen();
+        return this.remaining0();
     }
 
     @Override
     public int skipBytes(int n) throws IOException {
-        synchronized (this.mutex()) {
-            this.ensureOpen();
-            if (positive(n, "n") == 0)  {
-                return 0;
-            }
-            return toInt(this.skip0(n));
+        this.ensureOpen();
+        if (positive(n, "n") == 0) {
+            return 0;
         }
+        return toInt(this.skip0(n));
     }
 
     @Override
     public long skipBytes(long n) throws IOException {
-        synchronized (this.mutex()) {
-            this.ensureOpen();
-            if (positive(n, "n") == 0L)  {
-                return 0L;
-            }
-            return toInt(this.skip0(n));
+        this.ensureOpen();
+        if (positive(n, "n") == 0L) {
+            return 0L;
         }
+        return toInt(this.skip0(n));
     }
 
     @Override
@@ -282,15 +252,14 @@ public abstract class AbstractDataIn implements DataIn {
 
     @Override
     public boolean isOpen() {
-        return this.closed == 0;
+        return !this.closed;
     }
 
     @Override
     public void close() throws IOException {
-        synchronized (this.mutex()) {
-            if (PUnsafe.compareAndSwapInt(this, CLOSED_OFFSET, 0, 1)) {
-                this.close0();
-            }
+        if (this.isOpen()) {
+            this.closed = true;
+            this.close0();
         }
     }
 

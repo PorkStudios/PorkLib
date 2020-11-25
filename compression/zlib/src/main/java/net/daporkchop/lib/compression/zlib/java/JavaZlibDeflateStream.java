@@ -116,11 +116,6 @@ class JavaZlibDeflateStream extends AbstractHeapDataOut {
     }
 
     @Override
-    protected Object mutex() {
-        return this.parent;
-    }
-
-    @Override
     protected void ensureOpen() throws IOException {
         super.ensureOpen();
         this.ensureValidSession();

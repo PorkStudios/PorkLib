@@ -38,20 +38,16 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  * @author DaPorkchop_
  */
 public abstract class AbstractDataOut implements DataOut {
-    protected static final long CLOSED_OFFSET = PUnsafe.pork_getOffset(AbstractDataIn.class, "closed");
-
     protected static final int RESULT_BLOCKING = -1;
 
     protected OutputStream outputStream;
 
-    protected volatile int closed = 0;
+    protected boolean closed = false;
 
     @Override
     public void write(int b) throws IOException {
-        synchronized (this.mutex()) {
-            this.ensureOpen();
-            this.write0(b);
-        }
+        this.ensureOpen();
+        this.write0(b);
     }
 
     /**
@@ -61,57 +57,51 @@ public abstract class AbstractDataOut implements DataOut {
 
     @Override
     public void write(@NonNull byte[] src, int start, int length) throws IOException {
-        synchronized (this.mutex()) {
-            this.ensureOpen();
-            checkRangeLen(src.length, start, length);
-            if (length == 0) {
-                return;
-            } else if (length == 1) {
-                this.write0(src[start]);
-            } else {
-                this.write0(src, start, length);
-            }
+        this.ensureOpen();
+        checkRangeLen(src.length, start, length);
+        if (length == 0) {
+            return;
+        } else if (length == 1) {
+            this.write0(src[start]);
+        } else {
+            this.write0(src, start, length);
         }
     }
 
     @Override
     public int write(@NonNull ByteBuffer src) throws IOException {
-        synchronized (this.mutex()) {
-            this.ensureOpen();
-            int remaining = src.remaining();
-            if (remaining <= 0) {
-                return 0;
-            }
-
-            int position = src.position();
-            if (src.isDirect()) {
-                this.write0(PUnsafe.pork_directBufferAddress(src) + position, remaining);
-            } else {
-                this.write0(src.array(), src.arrayOffset() + position, remaining);
-            }
-            src.position(position + remaining);
-            return remaining;
+        this.ensureOpen();
+        int remaining = src.remaining();
+        if (remaining <= 0) {
+            return 0;
         }
+
+        int position = src.position();
+        if (src.isDirect()) {
+            this.write0(PUnsafe.pork_directBufferAddress(src) + position, remaining);
+        } else {
+            this.write0(src.array(), src.arrayOffset() + position, remaining);
+        }
+        src.position(position + remaining);
+        return remaining;
     }
 
     @Override
     public int write(@NonNull ByteBuf src, int start, int length) throws IOException {
-        synchronized (this.mutex()) {
-            this.ensureOpen();
-            checkRangeLen(src.capacity(), start, length);
-            if (length == 0) {
-                return 0;
-            }
-
-            if (src.hasMemoryAddress()) {
-                this.write0(src.memoryAddress() + start, length);
-            } else if (src.hasArray()) {
-                this.write0(src.array(), src.arrayOffset() + start, length);
-            } else {
-                src.getBytes(start, this, length);
-            }
-            return length;
+        this.ensureOpen();
+        checkRangeLen(src.capacity(), start, length);
+        if (length == 0) {
+            return 0;
         }
+
+        if (src.hasMemoryAddress()) {
+            this.write0(src.memoryAddress() + start, length);
+        } else if (src.hasArray()) {
+            this.write0(src.array(), src.arrayOffset() + start, length);
+        } else {
+            src.getBytes(start, this, length);
+        }
+        return length;
     }
 
     /**
@@ -149,49 +139,35 @@ public abstract class AbstractDataOut implements DataOut {
      */
     protected abstract void close0() throws IOException;
 
-    protected Object mutex() {
-        return this;
-    }
-
     protected OutputStream asStream0() {
         return new DataOutAsOutputStream(this);
     }
 
     @Override
     public long transferFrom(@NonNull DataIn src) throws IOException {
-        synchronized (this.mutex()) {
-            this.ensureOpen();
-            return src.transferTo(this);
-        }
+        this.ensureOpen();
+        return src.transferTo(this);
     }
 
     @Override
     public long transferFrom(@NonNull DataIn src, long count) throws IOException {
-        synchronized (this.mutex()) {
-            this.ensureOpen();
-            return src.transferTo(this, count);
-        }
+        this.ensureOpen();
+        return src.transferTo(this, count);
     }
 
     @Override
     public final OutputStream asOutputStream() {
         OutputStream outputStream = this.outputStream;
         if (outputStream == null) {
-            synchronized (this.mutex()) {
-                if ((outputStream = this.outputStream) == null) {
-                    this.outputStream = outputStream = this.asStream0();
-                }
-            }
+            this.outputStream = outputStream = this.asStream0();
         }
         return outputStream;
     }
 
     @Override
     public final void flush() throws IOException {
-        synchronized (this.mutex()) {
-            this.ensureOpen();
-            this.flush0();
-        }
+        this.ensureOpen();
+        this.flush0();
     }
 
     @Override
@@ -206,15 +182,14 @@ public abstract class AbstractDataOut implements DataOut {
 
     @Override
     public boolean isOpen() {
-        return this.closed == 0;
+        return !this.closed;
     }
 
     @Override
     public final void close() throws IOException {
-        synchronized (this.mutex()) {
-            if (PUnsafe.compareAndSwapInt(this, CLOSED_OFFSET, 0, 1)) {
-                this.close0();
-            }
+        if (this.isOpen()) {
+            this.closed = true;
+            this.close0();
         }
     }
 

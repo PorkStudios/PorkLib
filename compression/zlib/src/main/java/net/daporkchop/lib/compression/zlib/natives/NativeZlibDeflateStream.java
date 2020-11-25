@@ -164,11 +164,6 @@ final class NativeZlibDeflateStream extends AbstractDirectDataOut {
     }
 
     @Override
-    protected Object mutex() {
-        return this.deflater;
-    }
-
-    @Override
     protected void ensureOpen() throws IOException {
         super.ensureOpen();
         this.ensureValidSession();

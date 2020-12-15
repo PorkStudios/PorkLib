@@ -231,7 +231,7 @@ public class SimpleLogger implements Logger {
 
         @Override
         public Logger channel(@NonNull String name) {
-            return SimpleLogger.this.channel(name);
+            return SimpleLogger.this.channel(this.name + "/" + name);
         }
     }
 }

@@ -104,8 +104,8 @@ public class WorldScanner {
                             }
                         }
                     }
-                    for (int x = -1; x <= 32; x++) {
-                        for (int z = -1; z <= 32; z++) {
+                    for (int x = 0; x < 32; x++) {
+                        for (int z = 0; z < 32; z++) {
                             Chunk chunk = world.chunks[(x + 1) * 34 + z + 1];
                             if (!chunk.loaded()) {
                                 continue;

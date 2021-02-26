@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -56,7 +56,7 @@ public class VanillaWorldImpl implements World {
     private final MinecraftSave save;
     private final LoadingCache<Vec2i, Chunk> loadedColumns = CacheBuilder.newBuilder()
             .concurrencyLevel(1)
-            .maximumSize(34 * 34 * Runtime.getRuntime().availableProcessors())
+            .maximumSize(1 * Runtime.getRuntime().availableProcessors())
             .expireAfterAccess(30L, TimeUnit.SECONDS) //TODO: configurable
             .removalListener((RemovalListener<Vec2i, Chunk>) n -> {
                 if (n.getCause() == RemovalCause.EXPIRED || n.getCause() == RemovalCause.SIZE) {

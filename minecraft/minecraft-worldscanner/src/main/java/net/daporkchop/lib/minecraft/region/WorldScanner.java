@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -100,10 +100,10 @@ public class WorldScanner {
                     BorderingWorld world = worldThreadLocal.get();
                     world.offsetX = xx;
                     world.offsetZ = zz;
-                    Chunk[] chunks = world.chunks;
                     for (int x = -1; x <= 32; x++) {
                         for (int z = -1; z <= 32; z++) {
-                            Chunk col = chunks[(x + 1) * 34 + z + 1] = this.world.column(xx + x, zz + z);
+                            Chunk col = world.chunks[(x + 1) * 34 + z + 1] = this.world.column(xx + x, zz + z);
+                            col.retain();
                             if (!col.load(false) && (x >= 0 && x <= 31 && z >= 0 && z <= 31)) {
                                 estimatedTotal.decrementAndGet();
                             }
@@ -111,7 +111,7 @@ public class WorldScanner {
                     }
                     for (int x = 31; x >= 0; x--) {
                         for (int z = 31; z >= 0; z--) {
-                            Chunk chunk = chunks[(x + 1) * 34 + z + 1];
+                            Chunk chunk = world.chunks[(x + 1) * 34 + z + 1];
                             if (!chunk.loaded()) {
                                 continue;
                             }
@@ -122,6 +122,11 @@ public class WorldScanner {
                             for (NeighboringChunkProcessor processor : this.processorsNeighboring) {
                                 processor.handle(current, estimatedTotal.get(), chunk, world);
                             }
+                        }
+                    }
+                    for (Chunk col : world.chunks) {
+                        if (col.loaded()) {
+                            col.release();
                         }
                     }
                 });

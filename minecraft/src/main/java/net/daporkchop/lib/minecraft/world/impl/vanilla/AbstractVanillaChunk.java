@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -30,6 +30,9 @@ import net.daporkchop.lib.minecraft.world.World;
 import net.daporkchop.lib.nbt.alloc.NBTArrayHandle;
 
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicLong;
+
+import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
  * Base implementation of {@link net.daporkchop.lib.minecraft.world.Chunk.Vanilla}.
@@ -48,6 +51,21 @@ public abstract class AbstractVanillaChunk implements Chunk.Vanilla {
 
     protected volatile boolean dirty;
     protected volatile boolean loaded;
+
+    protected volatile int referenceCount;
+
+    @Override
+    public synchronized void retain() {
+        this.referenceCount++;
+    }
+
+    @Override
+    public synchronized void release() {
+        checkState(this.loaded);
+        if (--this.referenceCount == 0) {
+            this.unload();
+        }
+    }
 
     @Override
     public boolean exists() {
@@ -86,7 +104,7 @@ public abstract class AbstractVanillaChunk implements Chunk.Vanilla {
 
     @Override
     public synchronized void unload() {
-        if (this.loaded) {
+        if (this.loaded && this.referenceCount == 0) {
             this.loaded = false;
             this.save();
 

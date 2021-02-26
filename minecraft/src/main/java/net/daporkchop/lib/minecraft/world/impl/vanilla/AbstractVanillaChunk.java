@@ -52,21 +52,6 @@ public abstract class AbstractVanillaChunk implements Chunk.Vanilla {
     protected volatile boolean dirty;
     protected volatile boolean loaded;
 
-    protected volatile int referenceCount;
-
-    @Override
-    public synchronized void retain() {
-        this.referenceCount++;
-    }
-
-    @Override
-    public synchronized void release() {
-        checkState(this.loaded);
-        if (--this.referenceCount == 0) {
-            this.unload();
-        }
-    }
-
     @Override
     public boolean exists() {
         return this.loaded || this.world.manager().hasColumn(this.getX(), this.getZ());
@@ -104,11 +89,10 @@ public abstract class AbstractVanillaChunk implements Chunk.Vanilla {
 
     @Override
     public synchronized void unload() {
-        if (this.loaded && this.referenceCount == 0) {
+        if (this.loaded) {
             this.loaded = false;
             this.save();
 
-            this.world.loadedColumns().remove(this.pos());
             this.heightMap = null;
 
             this.doUnload();

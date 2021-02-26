@@ -53,10 +53,6 @@ public interface Chunk extends BlockAccess, IntVector2.AddressableXZ, Dirtiable,
 
     void load();
 
-    void retain();
-
-    void release();
-
     default boolean load(boolean generate) {
         if (generate || this.exists()) {
             this.load();

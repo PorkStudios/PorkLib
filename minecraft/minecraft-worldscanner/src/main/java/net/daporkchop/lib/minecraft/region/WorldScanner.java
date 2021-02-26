@@ -26,10 +26,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.math.vector.i.Vec2i;
-import net.daporkchop.lib.math.vector.i.Vec3i;
 import net.daporkchop.lib.minecraft.region.util.ChunkProcessor;
 import net.daporkchop.lib.minecraft.region.util.NeighboringChunkProcessor;
-import net.daporkchop.lib.minecraft.tileentity.TileEntity;
 import net.daporkchop.lib.minecraft.world.Chunk;
 import net.daporkchop.lib.minecraft.world.MinecraftSave;
 import net.daporkchop.lib.minecraft.world.World;
@@ -39,8 +37,6 @@ import net.daporkchop.lib.minecraft.world.format.anvil.AnvilWorldManager;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -52,7 +48,7 @@ public class WorldScanner {
     @NonNull
     private final World world;
 
-    private final Collection<ChunkProcessor>            processors            = new ArrayList<>();
+    private final Collection<ChunkProcessor> processors = new ArrayList<>();
     private final Collection<NeighboringChunkProcessor> processorsNeighboring = new ArrayList<>();
 
     public WorldScanner addProcessor(@NonNull Consumer<Chunk> processor) {
@@ -103,14 +99,13 @@ public class WorldScanner {
                     for (int x = -1; x <= 32; x++) {
                         for (int z = -1; z <= 32; z++) {
                             Chunk col = world.chunks[(x + 1) * 34 + z + 1] = this.world.column(xx + x, zz + z);
-                            col.retain();
                             if (!col.load(false) && (x >= 0 && x <= 31 && z >= 0 && z <= 31)) {
                                 estimatedTotal.decrementAndGet();
                             }
                         }
                     }
-                    for (int x = 31; x >= 0; x--) {
-                        for (int z = 31; z >= 0; z--) {
+                    for (int x = -1; x <= 32; x++) {
+                        for (int z = -1; z <= 32; z++) {
                             Chunk chunk = world.chunks[(x + 1) * 34 + z + 1];
                             if (!chunk.loaded()) {
                                 continue;
@@ -126,7 +121,7 @@ public class WorldScanner {
                     }
                     for (Chunk col : world.chunks) {
                         if (col.loaded()) {
-                            col.release();
+                            col.unload();
                         }
                     }
                 });
@@ -134,8 +129,8 @@ public class WorldScanner {
                 stream.forEach(pos -> {
                     int xx = pos.getX() << 5;
                     int zz = pos.getY() << 5;
-                    for (int x = 31; x >= 0; x--) {
-                        for (int z = 31; z >= 0; z--) {
+                    for (int x = 0; x < 32; x++) {
+                        for (int z = 0; z < 32; z++) {
                             Chunk chunk = this.world.column(xx + x, zz + z);
                             if (chunk.load(false)) {
                                 long current = curr.getAndIncrement();
@@ -173,13 +168,8 @@ public class WorldScanner {
         private final WorldManager manager;
 
         private final Chunk[] chunks = new Chunk[34 * 34];
-        private int     offsetX;
-        private int     offsetZ;
-
-        @Override
-        public Map<Vec2i, Chunk> loadedColumns() {
-            return Collections.emptyMap();
-        }
+        private int offsetX;
+        private int offsetZ;
 
         @Override
         public Chunk column(int x, int z) {
@@ -189,11 +179,6 @@ public class WorldScanner {
         @Override
         public Chunk columnOrNull(int x, int z) {
             return this.chunks[(x - this.offsetX + 1) * 34 + z - this.offsetZ + 1];
-        }
-
-        @Override
-        public Map<Vec3i, TileEntity> loadedTileEntities() {
-            return Collections.emptyMap();
         }
 
         @Override

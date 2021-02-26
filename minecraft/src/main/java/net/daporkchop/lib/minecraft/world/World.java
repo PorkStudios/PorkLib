@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -40,17 +40,9 @@ public interface World extends BlockAccess, AutoCloseable {
 
     WorldManager manager();
 
-    Map<Vec2i, Chunk> loadedColumns();
-
     Chunk column(int x, int z);
 
     Chunk columnOrNull(int x, int z);
-
-    Map<Vec3i, TileEntity> loadedTileEntities();
-
-    default TileEntity tileEntity(int x, int y, int z) {
-        return this.loadedTileEntities().get(new Vec3i(x, y, z));
-    }
 
     void save();
 

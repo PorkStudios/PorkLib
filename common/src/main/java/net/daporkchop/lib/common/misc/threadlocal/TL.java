@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -23,8 +23,11 @@ package net.daporkchop.lib.common.misc.threadlocal;
 import io.netty.util.concurrent.FastThreadLocal;
 import lombok.NonNull;
 import net.daporkchop.lib.common.ref.Ref;
+import net.daporkchop.lib.common.util.PorkUtil;
 
 import java.util.function.Supplier;
+
+import static net.daporkchop.lib.common.util.PorkUtil.*;
 
 /**
  * An abstracted form of a {@link ThreadLocal}, allowing transparent selection of alternative implementations (such as {@link FastThreadLocal}).
@@ -39,13 +42,22 @@ public interface TL<T> extends Ref<T> {
      * @return the new thread-local variable
      */
     static <T> TL<T> create() {
-        try {
-            Class.forName("io.netty.util.concurrent.FastThreadLocal"); //make sure class exists
+        return NETTY_PRESENT
+                ? new NettyFastTL<>()
+                : new JavaTL<>();
+    }
 
-            return new FastTL<>(null);
-        } catch (ClassNotFoundException e) {
-            return new JavaTL<>(null);
-        }
+    /**
+     * Creates a new thread-local variable which will be initially set to the given value, automatically selecting the best implementation to use.
+     *
+     * @param initialValue the initial value
+     * @param <T>             the value type
+     * @return the new thread-local variable
+     */
+    static <T> TL<T> initializedTo(@NonNull T initialValue) {
+        return NETTY_PRESENT
+                ? new NettyFastTL.WithConstant<>(initialValue)
+                : new JavaTL.WithConstant<>(initialValue);
     }
 
     /**
@@ -56,14 +68,10 @@ public interface TL<T> extends Ref<T> {
      * @param <T>             the value type
      * @return the new thread-local variable
      */
-    static <T> TL<T> withInitial(@NonNull Supplier<T> initialSupplier) {
-        try {
-            Class.forName("io.netty.util.concurrent.FastThreadLocal"); //make sure class exists
-
-            return new FastTL<>(initialSupplier);
-        } catch (ClassNotFoundException e) {
-            return new JavaTL<>(initialSupplier);
-        }
+    static <T> TL<T> initializedWith(@NonNull Supplier<T> initialSupplier) {
+        return NETTY_PRESENT
+                ? new NettyFastTL.WithInitializer<>(initialSupplier)
+                : new JavaTL.WithInitializer<>(initialSupplier);
     }
 
     /**

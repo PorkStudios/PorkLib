@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -72,6 +72,8 @@ public class PorkUtil {
     public final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
 
     public final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
+
+    public final boolean NETTY_PRESENT = classExistsWithName("io.netty.util.concurrent.FastThreadLocal");
 
     /**
      * An alternative to {@link CharSequence#subSequence(int, int)} that can be faster for certain {@link CharSequence} implementations.

@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -21,6 +21,7 @@
 package net.daporkchop.lib.common.misc.threadfactory;
 
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
@@ -34,12 +35,14 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  * @author DaPorkchop_
  * @see PThreadFactories#builder()
  */
-@NoArgsConstructor(onConstructor_ = {@Deprecated})
+@NoArgsConstructor(onConstructor_ = { @Deprecated })
 @Setter
 @Accessors(fluent = true, chain = true)
 public class ThreadFactoryBuilder {
     protected String name;
 
+    @NonNull
+    protected ThreadFactory delegate = PThreadFactories.DEFAULT_THREAD_FACTORY;
     protected ClassLoader contextClassLoader;
     protected Thread.UncaughtExceptionHandler uncaughtExceptionHandler;
     protected int priority = Thread.NORM_PRIORITY;
@@ -105,19 +108,19 @@ public class ThreadFactoryBuilder {
         if (!this.formatId) {
             if (this.name == null) {
                 if (this.contextClassLoader == null && this.uncaughtExceptionHandler == null && this.priority == Thread.NORM_PRIORITY && !this.daemon) {
-                    return PThreadFactories.DEFAULT_THREAD_FACTORY;
+                    return this.delegate;
                 } else {
-                    return new UnnamedThreadFactory(this.contextClassLoader, this.uncaughtExceptionHandler, this.priority, this.daemon);
+                    return new UnnamedThreadFactory(this.delegate, this.contextClassLoader, this.uncaughtExceptionHandler, this.priority, this.daemon);
                 }
             } else {
-                return new FixedNamedThreadFactory(this.name, this.contextClassLoader, this.uncaughtExceptionHandler, this.priority, this.daemon);
+                return new FixedNamedThreadFactory(this.name, this.delegate, this.contextClassLoader, this.uncaughtExceptionHandler, this.priority, this.daemon);
             }
         } else if (this.name == null) {
             throw new IllegalStateException("formatId is set, but no name is given!");
         } else if (this.collapsingId) {
-            return new CollapsingIncrementingNamedThreadFactory(this.name, this.contextClassLoader, this.uncaughtExceptionHandler, this.priority, this.daemon);
+            return new CollapsingIncrementingNamedThreadFactory(this.name, this.delegate, this.contextClassLoader, this.uncaughtExceptionHandler, this.priority, this.daemon);
         } else {
-            return new IncrementingNamedThreadFactory(this.name, this.contextClassLoader, this.uncaughtExceptionHandler, this.priority, this.daemon);
+            return new IncrementingNamedThreadFactory(this.name, this.delegate, this.contextClassLoader, this.uncaughtExceptionHandler, this.priority, this.daemon);
         }
     }
 }

@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -33,17 +33,17 @@ import java.util.concurrent.ThreadFactory;
  */
 @Getter
 @Accessors(fluent = true)
-public final class FixedNamedThreadFactory extends AbstractThreadFactory {
+public class FixedNamedThreadFactory extends AbstractThreadFactory {
     protected final String name;
 
-    public FixedNamedThreadFactory(@NonNull String name, ClassLoader contextClassLoader, Thread.UncaughtExceptionHandler uncaughtExceptionHandler, int priority, boolean daemon) {
-        super(contextClassLoader, uncaughtExceptionHandler, priority, daemon);
+    public FixedNamedThreadFactory(@NonNull String name, ThreadFactory delegate, ClassLoader contextClassLoader, Thread.UncaughtExceptionHandler uncaughtExceptionHandler, int priority, boolean daemon) {
+        super(delegate, contextClassLoader, uncaughtExceptionHandler, priority, daemon);
 
         this.name = name;
     }
 
     @Override
-    protected String getName(Runnable task, Runnable wrappedTask, Thread thread) {
+    protected String getName(@NonNull Runnable task, @NonNull Runnable wrappedTask, @NonNull Thread thread) {
         return this.name;
     }
 }

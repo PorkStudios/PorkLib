@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -21,6 +21,7 @@
 package net.daporkchop.lib.common.misc.threadfactory;
 
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 
@@ -35,15 +36,16 @@ import java.util.concurrent.ThreadFactory;
 @Getter
 @Accessors(fluent = true)
 public abstract class AbstractThreadFactory implements ThreadFactory {
+    protected final ThreadFactory delegate;
     protected final ClassLoader contextClassLoader;
     protected final Thread.UncaughtExceptionHandler uncaughtExceptionHandler;
     protected final int priority;
     protected final boolean daemon;
 
     @Override
-    public Thread newThread(Runnable task) {
+    public Thread newThread(@NonNull Runnable task) {
         Runnable wrappedTask = this.wrapTask(task);
-        Thread thread = PThreadFactories.DEFAULT_THREAD_FACTORY.newThread(wrappedTask);
+        Thread thread = this.delegate.newThread(wrappedTask);
 
         String name = this.getName(task, wrappedTask, thread);
         if (name != null) {
@@ -62,9 +64,9 @@ public abstract class AbstractThreadFactory implements ThreadFactory {
         return thread;
     }
 
-    protected Runnable wrapTask(Runnable task) {
+    protected Runnable wrapTask(@NonNull Runnable task) {
         return task;
     }
 
-    protected abstract String getName(Runnable task, Runnable wrappedTask, Thread thread);
+    protected abstract String getName(@NonNull Runnable task, @NonNull Runnable wrappedTask, @NonNull Thread thread);
 }

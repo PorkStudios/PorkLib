@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -34,11 +34,11 @@ import java.util.regex.Pattern;
  */
 public interface ThreadRef<T> extends Ref<T> {
     /**
-     * @deprecated see {@link TL#withInitial(Supplier)}
+     * @deprecated see {@link TL#initializedWith(Supplier)}
      */
     @Deprecated
     static <T> Ref<T> late(@NonNull Supplier<T> supplier) {
-        return TL.withInitial(supplier);
+        return TL.initializedWith(supplier);
     }
 
     /**

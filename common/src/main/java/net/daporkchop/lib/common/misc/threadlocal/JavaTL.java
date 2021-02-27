@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -20,7 +20,10 @@
 
 package net.daporkchop.lib.common.misc.threadlocal;
 
+import lombok.Getter;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 
 import java.util.function.Supplier;
 
@@ -29,12 +32,32 @@ import java.util.function.Supplier;
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-final class JavaTL<T> extends ThreadLocal<T> implements TL<T> {
-    protected final Supplier<T> initialSupplier;
+public class JavaTL<T> extends ThreadLocal<T> implements TL<T> {
+    /**
+     * Extension of {@link JavaTL} with a fixed default initialization value.
+     *
+     * @author DaPorkchop_
+     */
+    @RequiredArgsConstructor
+    @Getter
+    @Accessors(fluent = true)
+    public static class WithConstant<T> extends JavaTL<T> {
+        protected final T initialValue;
+    }
 
-    @Override
-    protected T initialValue() {
-        return this.initialSupplier != null ? this.initialSupplier.get() : null;
+    /**
+     * Extension of {@link JavaTL} which computes the default initialization value on-demand.
+     *
+     * @author DaPorkchop_
+     */
+    @RequiredArgsConstructor
+    public static class WithInitializer<T> extends JavaTL<T> {
+        @NonNull
+        protected final Supplier<T> initialSupplier;
+
+        @Override
+        protected T initialValue() {
+            return this.initialSupplier.get();
+        }
     }
 }

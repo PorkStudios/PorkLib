@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -33,19 +33,19 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author DaPorkchop_
  */
 @Accessors(fluent = true)
-public final class IncrementingNamedThreadFactory extends AbstractThreadFactory {
+public class IncrementingNamedThreadFactory extends AbstractThreadFactory {
     @Getter
     protected final String format;
     protected final AtomicInteger counter = new AtomicInteger();
 
-    public IncrementingNamedThreadFactory(@NonNull String format, ClassLoader contextClassLoader, Thread.UncaughtExceptionHandler uncaughtExceptionHandler, int priority, boolean daemon) {
-        super(contextClassLoader, uncaughtExceptionHandler, priority, daemon);
+    public IncrementingNamedThreadFactory(@NonNull String format, ThreadFactory delegate, ClassLoader contextClassLoader, Thread.UncaughtExceptionHandler uncaughtExceptionHandler, int priority, boolean daemon) {
+        super(delegate, contextClassLoader, uncaughtExceptionHandler, priority, daemon);
 
         this.format = format;
     }
 
     @Override
-    protected String getName(Runnable task, Runnable wrappedTask, Thread thread) {
+    protected String getName(@NonNull Runnable task, @NonNull Runnable wrappedTask, @NonNull Thread thread) {
         return String.format(this.format, this.counter.getAndIncrement());
     }
 }

@@ -48,8 +48,6 @@ build.%: .FORCE $(foreach module,$(MODULES),%,$(module).lib)
 		$(MAKE) --no-print-directory -C $(TOPDIR)/$$_PRJ_NAME BUILD=$$_ARCH PROJDIR=$(TOPDIR)/$$_PRJ_NAME $$_ARCH && \
 		echo Built $$_PRJ_NAME for target $$_ARCH!
 
-#echo "arg = $@" && echo "prj_name = $$_PRJ_NAME" && echo "arch = $$_ARCH" && \
-
 clean:
 	@for f in $(MODULES); do $(MAKE) -C $(TOPDIR)/$$f clean; done
 

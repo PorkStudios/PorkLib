@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -81,7 +81,7 @@ public abstract class NativeFeature<F extends Feature<F>> implements Feature<F> 
 
     public static String formatLibName(@NonNull String libName) {
         String prefix = "";
-        if (libName.startsWith("/"))    {
+        if (libName.startsWith("/")) {
             libName = libName.substring(1);
             prefix = "";
         }
@@ -109,7 +109,7 @@ public abstract class NativeFeature<F extends Feature<F>> implements Feature<F> 
         String libPath = formatLibName(libName);
 
         //create new library file
-        File tempFile = File.createTempFile(libName + UUID.randomUUID(), LIB_EXT);
+        File tempFile = File.createTempFile(libName + UUID.randomUUID(), '.' + LIB_EXT);
 
         try (InputStream in = clazz.getResourceAsStream(libPath)) {
             if (in == null) {//library file couldn't be found
@@ -126,17 +126,29 @@ public abstract class NativeFeature<F extends Feature<F>> implements Feature<F> 
         //mark temporary file for deletion
         tempFile.deleteOnExit();
 
+        //load shared library
+        loadNativeLibrary(clazz, tempFile);
+
+        return clazz;
+    }
+
+    /**
+     * Attempts to load a native library.
+     *
+     * @param loaderClass the class that the library will be loaded from
+     * @param file        the library file to be loaded
+     * @throws Throwable if an exception occurs while loading the library
+     */
+    public static void loadNativeLibrary(@NonNull Class<?> loaderClass, @NonNull File file) throws Throwable {
         try {
             //pretend to load the library from the other class rather than NativeFeature
             Method method = Runtime.class.getDeclaredMethod("load0", Class.class, String.class);
             method.setAccessible(true);
-            method.invoke(Runtime.getRuntime(), clazz, tempFile.getAbsolutePath());
-        } catch (NoSuchMethodException | SecurityException e)   {
+            method.invoke(Runtime.getRuntime(), loaderClass, file.getAbsolutePath());
+        } catch (NoSuchMethodException | SecurityException e) {
             //fallback to System.load
-            System.load(tempFile.getAbsolutePath());
+            System.load(file.getAbsolutePath());
         }
-
-        return clazz;
     }
 
     @Override

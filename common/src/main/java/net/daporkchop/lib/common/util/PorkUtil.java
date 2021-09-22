@@ -21,10 +21,9 @@
 package net.daporkchop.lib.common.util;
 
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
 import net.daporkchop.lib.common.pool.handle.HandledPool;
-import net.daporkchop.lib.unsafe.PUnsafe;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -37,14 +36,17 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Function;
-import java.util.regex.Matcher;
 
 /**
  * Some helper methods and values that I use all over the place
@@ -54,9 +56,6 @@ import java.util.regex.Matcher;
 //TODO: clean this up a bit
 @UtilityClass
 public class PorkUtil {
-    protected final long MATCHER_GROUPS_OFFSET = PUnsafe.pork_getOffset(Matcher.class, "groups");
-    protected final long MATCHER_TEXT_OFFSET = PUnsafe.pork_getOffset(Matcher.class, "text");
-
     public final int TINY_BUFFER_SIZE = 32;
     public final int BUFFER_SIZE = 65536;
 
@@ -68,28 +67,48 @@ public class PorkUtil {
     public final HandledPool<StringBuilder> STRINGBUILDER_POOL = HandledPool.threadLocal(StringBuilder::new, 4); //TODO: make this soft
 
     public final DateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-    public final String PORKLIB_VERSION = "0.5.4-SNAPSHOT"; //TODO: set this dynamically
+    public final String PORKLIB_VERSION = preventInline("0.5.6-SNAPSHOT"); //TODO: set this dynamically
     public final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
 
+    public final boolean[] EMPTY_BOOLEAN_ARRAY = new boolean[0];
+    public final byte[] EMPTY_BYTE_ARRAY = new byte[0];
+    public final short[] EMPTY_SHORT_ARRAY = new short[0];
+    public final char[] EMPTY_CHAR_ARRAY = new char[0];
+    public final int[] EMPTY_INT_ARRAY = new int[0];
+    public final long[] EMPTY_LONG_ARRAY = new long[0];
+    public final float[] EMPTY_FLOAT_ARRAY = new float[0];
+    public final double[] EMPTY_DOUBLE_ARRAY = new double[0];
     public final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
 
     public final boolean NETTY_PRESENT = classExistsWithName("io.netty.util.concurrent.FastThreadLocal");
 
     /**
-     * An alternative to {@link CharSequence#subSequence(int, int)} that can be faster for certain {@link CharSequence} implementations.
+     * Casts the given value to the target type without any compile-time warnings or errors.
+     * <p>
+     * Note that if the cast is impossible, a {@link ClassCastException} will still be thrown at runtime.
      *
-     * @param seq   the {@link CharSequence} to get a subsequence of
-     * @param start the first index, inclusive
-     * @param end   the last index, exclusive
-     * @return a subsequence of the given range of the given {@link CharSequence}
-     * @see CharSequence#subSequence(int, int)
+     * @param value the value to cast
+     * @param <T>   the target type
+     * @return the cast value
      */
-    public static CharSequence subSequence(@NonNull CharSequence seq, int start, int end) {
-        if (start == 0 && end == seq.length()) {
-            return seq;
-        }
-        char[] arr = PUnsafeStrings.tryUnwrap(seq);
-        return arr != null ? CharBuffer.wrap(arr, start, end - start) : seq.subSequence(start, end);
+    @SuppressWarnings("unchecked")
+    public static <T> T uncheckedCast(Object value) {
+        return (T) value;
+    }
+
+    /**
+     * Prevents the given value from being inlined at compile-time by {@code javac}.
+     * <p>
+     * Can be used to keep API backwards-compatibility for {@code static final} constants which might change in the future, or to ensure visibility of reflective
+     * modifications to {@code final} member fields.
+     * <p>
+     * This does not affect the JIT compiler's ability to inline field values at runtime.
+     *
+     * @param value the value
+     * @return the value
+     */
+    public static <T> T preventInline(T value) {
+        return value;
     }
 
     /**
@@ -149,15 +168,37 @@ public class PorkUtil {
         }
     }
 
+    @SneakyThrows(NoSuchMethodException.class)
     public static Method getMethod(@NonNull Class<?> clazz, @NonNull String name, @NonNull Class<?>... params) {
         try {
-            return clazz.getDeclaredMethod(name, params);
-        } catch (NoSuchMethodException e) {
-            try {
-                return clazz.getMethod(name, params);
-            } catch (NoSuchMethodException e1) {
-                throw new RuntimeException(e);
+            //this will only work for public methods
+            return clazz.getMethod(name, params);
+        } catch (NoSuchMethodException ignored0) {
+            //breadth-first search to find the first class which defines the method
+            Set<Class<?>> processed = Collections.newSetFromMap(new IdentityHashMap<>());
+            Queue<Class<?>> queue = new ArrayDeque<>();
+
+            queue.add(clazz);
+
+            for (Class<?> curr; (curr = queue.poll()) != null; ) {
+                if (!processed.add(curr)) { //this class was already processed
+                    continue;
+                }
+
+                try {
+                    return curr.getDeclaredMethod(name, params);
+                } catch (NoSuchMethodException ignored1) {
+                    //silently swallow exception
+                }
+
+                if (curr.getSuperclass() != null) {
+                    queue.add(curr.getSuperclass());
+                }
+                queue.addAll(Arrays.asList(curr.getInterfaces()));
             }
+
+            //the method isn't defined anywhere
+            throw ignored0;
         }
     }
 
@@ -225,7 +266,7 @@ public class PorkUtil {
     }
 
     public static String className(Object obj) {
-        return obj == null ? "null" : obj.getClass().getCanonicalName();
+        return obj == null ? "null" : obj.getClass().getTypeName();
     }
 
     public void unsafe_forceGC() {
@@ -241,35 +282,10 @@ public class PorkUtil {
         return null;
     }
 
-    public static CharSequence fastGroup(@NonNull Matcher matcher, int group) {
-        matcher.start(); //this does a < 0 check internally
-        if (group < 0 || group > matcher.groupCount()) {
-            throw new IndexOutOfBoundsException("No group " + group);
-        }
-        int[] groups = PUnsafe.getObject(matcher, MATCHER_GROUPS_OFFSET);
-        int start = groups[group << 1];
-        int end = groups[(group << 1) + 1];
-        if (start == -1 || end == -1) {
-            return null;
-        }
-        return PUnsafe.<CharSequence>getObject(matcher, MATCHER_TEXT_OFFSET).subSequence(start, end);
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <T> T uncheckedCast(Object value) {
-        return (T) value;
-    }
-
+    @SneakyThrows({ IllegalAccessException.class, InstantiationException.class, InvocationTargetException.class, NoSuchMethodException.class })
     public static <T> T newInstance(@NonNull Class<T> clazz) {
-        try {
-            Constructor<T> constructor = clazz.getDeclaredConstructor();
-            constructor.setAccessible(true);
-            return constructor.newInstance();
-        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException e) {
-            PUnsafe.throwException(e);
-        } catch (InvocationTargetException e) {
-            PUnsafe.throwException(e.getCause() != null ? e.getCause() : e);
-        }
-        throw new IllegalStateException();
+        Constructor<T> constructor = clazz.getDeclaredConstructor();
+        constructor.setAccessible(true);
+        return constructor.newInstance();
     }
 }

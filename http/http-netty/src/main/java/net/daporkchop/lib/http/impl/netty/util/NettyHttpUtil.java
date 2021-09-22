@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -24,7 +24,7 @@ import com.florianingerl.util.regex.Matcher;
 import com.florianingerl.util.regex.Pattern;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
 import net.daporkchop.lib.http.HttpMethod;
 import net.daporkchop.lib.http.request.query.Query;
 import net.daporkchop.lib.http.request.query.QueryImpl;
@@ -124,7 +124,7 @@ public class NettyHttpUtil {
         if (startIndex < 0 || endIndex < 0) {
             return null;
         } else {
-            return PorkUtil.subSequence(PUnsafe.getObject(matcher, MATCHER_TEXT_OFFSET), startIndex, endIndex);
+            return PUnsafeStrings.subSequence(PUnsafe.getObject(matcher, MATCHER_TEXT_OFFSET), startIndex, endIndex);
         }
     }
 
@@ -144,7 +144,7 @@ public class NettyHttpUtil {
         if (startIndex < 0 || endIndex < 0) {
             return null;
         } else {
-            return PorkUtil.subSequence(PUnsafe.getObject(matcher, MATCHER_TEXT_OFFSET), startIndex, endIndex);
+            return PUnsafeStrings.subSequence(PUnsafe.getObject(matcher, MATCHER_TEXT_OFFSET), startIndex, endIndex);
         }
     }
 }

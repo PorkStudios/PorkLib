@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -24,6 +24,9 @@ import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
+import java.nio.CharBuffer;
+import java.util.regex.Matcher;
+
 import static net.daporkchop.lib.common.util.PorkUtil.*;
 import static net.daporkchop.lib.unsafe.PUnsafe.*;
 
@@ -37,10 +40,13 @@ import static net.daporkchop.lib.unsafe.PUnsafe.*;
  */
 @UtilityClass
 public class PUnsafeStrings {
-    protected final long STRING_VALUE_OFFSET        = pork_getOffset(String.class, "value");
-    protected final long STRING_HASH_OFFSET         = pork_getOffset(String.class, "hash");
-    protected final long ENUM_NAME_OFFSET           = pork_getOffset(Enum.class, "name");
+    protected final long STRING_VALUE_OFFSET = pork_getOffset(String.class, "value");
+    protected final long STRING_HASH_OFFSET = pork_getOffset(String.class, "hash");
+    protected final long ENUM_NAME_OFFSET = pork_getOffset(Enum.class, "name");
     protected final long STRINGBUILDER_VALUE_OFFSET = pork_getOffset(classForName("java.lang.AbstractStringBuilder"), "value");
+
+    protected final long MATCHER_GROUPS_OFFSET = pork_getOffset(Matcher.class, "groups");
+    protected final long MATCHER_TEXT_OFFSET = pork_getOffset(Matcher.class, "text");
 
     /**
      * Sets the value of {@link Enum#name()} for an {@link Enum} value.
@@ -174,5 +180,44 @@ public class PUnsafeStrings {
      */
     public static char[] unwrap(@NonNull StringBuffer buffer) {
         return PUnsafe.getObject(buffer, STRINGBUILDER_VALUE_OFFSET);
+    }
+
+    /**
+     * An alternative to {@link CharSequence#subSequence(int, int)} that can be faster for certain {@link CharSequence} implementations.
+     *
+     * @param seq   the {@link CharSequence} to get a subsequence of
+     * @param start the first index, inclusive
+     * @param end   the last index, exclusive
+     * @return a subsequence of the given range of the given {@link CharSequence}
+     * @see CharSequence#subSequence(int, int)
+     */
+    public static CharSequence subSequence(@NonNull CharSequence seq, int start, int end) {
+        if (start == 0 && end == seq.length()) {
+            return seq;
+        }
+        char[] arr = tryUnwrap(seq);
+        return arr != null ? CharBuffer.wrap(arr, start, end - start) : seq.subSequence(start, end);
+    }
+
+    /**
+     * Faster alternative to {@link Matcher#group(int)}.
+     *
+     * @param matcher the {@link Matcher}
+     * @param group   the group index
+     * @return the group's text, or {@code null} if the group didn't match
+     * @see Matcher#group(int)
+     */
+    public static CharSequence fastGroup(@NonNull Matcher matcher, int group) {
+        matcher.start(); //this does a < 0 check internally
+        if (group < 0 || group > matcher.groupCount()) {
+            throw new IndexOutOfBoundsException("No group " + group);
+        }
+        int[] groups = getObject(matcher, MATCHER_GROUPS_OFFSET);
+        int start = groups[group << 1];
+        int end = groups[(group << 1) + 1];
+        if (start == -1 || end == -1) {
+            return null;
+        }
+        return PUnsafe.<CharSequence>getObject(matcher, MATCHER_TEXT_OFFSET).subSequence(start, end);
     }
 }

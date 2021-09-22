@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -59,6 +59,7 @@ public abstract class TileEntityBase extends AbstractDirtiable implements TileEn
         this.pos = new Vec3i(nbt.getInt("x"), nbt.getInt("y"), nbt.getInt("z"));
 
         this.doInit(nbt);
+        this.cachedTag = nbt;
     }
 
     /**
@@ -66,8 +67,7 @@ public abstract class TileEntityBase extends AbstractDirtiable implements TileEn
      *
      * @param nbt the NBT {@link CompoundTag} containing this tile entity's encoded state
      */
-    protected void doInit(@NonNull CompoundTag nbt) {
-    }
+    protected abstract void doInit(@NonNull CompoundTag nbt);
 
     @Override
     public synchronized void deinit() {
@@ -85,22 +85,16 @@ public abstract class TileEntityBase extends AbstractDirtiable implements TileEn
     @Override
     public synchronized CompoundTag save() {
         CompoundTag nbt = this.cachedTag;
-        if (this.dirty() || nbt == null) {
-            synchronized (this) {
-                if (this.checkAndResetDirty()) {
-                    //if this tile entity was dirty, re-compute cached tag
-                    nbt = new CompoundTag();
+        if (nbt == null || this.checkAndResetDirty()) {
+            //if this tile entity was dirty, re-compute cached tag
+            nbt = new CompoundTag();
 
-                    nbt.putString("id", this.id().toString());
-                    nbt.putInt("x", this.pos.getX());
-                    nbt.putInt("y", this.pos.getY());
-                    nbt.putInt("z", this.pos.getZ());
+            nbt.putString("id", this.id().toString());
+            nbt.putInt("x", this.pos.getX());
+            nbt.putInt("y", this.pos.getY());
+            nbt.putInt("z", this.pos.getZ());
 
-                    this.cachedTag = nbt;
-                } else if ((nbt = this.cachedTag) == null) {
-                    throw new IllegalStateException("Cached tag was still null, even after waiting for other thread to compute it!");
-                }
-            }
+            this.cachedTag = nbt;
         }
         return nbt;
     }
@@ -109,7 +103,7 @@ public abstract class TileEntityBase extends AbstractDirtiable implements TileEn
     public boolean markDirty() {
         CompoundTag cachedTag = this.cachedTag;
         boolean flag = super.markDirty();
-        if (flag)   {
+        if (flag) {
             PUnsafe.compareAndSwapObject(this, CACHEDTAG_OFFSET, cachedTag, null);
         }
         return flag;

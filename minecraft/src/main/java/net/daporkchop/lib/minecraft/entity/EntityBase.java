@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -24,7 +24,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.math.vector.i.Vec3i;
 import net.daporkchop.lib.minecraft.registry.ResourceLocation;
 import net.daporkchop.lib.minecraft.util.world.AbstractDirtiable;
 import net.daporkchop.lib.minecraft.world.World;
@@ -67,6 +66,7 @@ public abstract class EntityBase extends AbstractDirtiable implements Entity {
         this.z = pos.get(2).getValue();
 
         this.doInit(nbt);
+        this.cachedTag = nbt;
     }
 
     /**
@@ -74,8 +74,7 @@ public abstract class EntityBase extends AbstractDirtiable implements Entity {
      *
      * @param nbt the NBT {@link CompoundTag} containing this entity's encoded state
      */
-    protected void doInit(@NonNull CompoundTag nbt) {
-    }
+    protected abstract void doInit(@NonNull CompoundTag nbt);
 
     @Override
     public synchronized void deinit() {
@@ -93,22 +92,16 @@ public abstract class EntityBase extends AbstractDirtiable implements Entity {
     @Override
     public synchronized CompoundTag save() {
         CompoundTag nbt = this.cachedTag;
-        if (this.dirty() || nbt == null) {
-            synchronized (this) {
-                if (this.checkAndResetDirty()) {
-                    //if this entity was dirty, re-compute cached tag
-                    nbt = new CompoundTag();
+        if (nbt == null || this.checkAndResetDirty()) {
+            //if this entity was dirty, re-compute cached tag
+            nbt = new CompoundTag();
 
-                    nbt.putString("id", this.id().toString());
-                    nbt.putDouble("x", this.x);
-                    nbt.putDouble("y", this.y);
-                    nbt.putDouble("z", this.z);
+            nbt.putString("id", this.id().toString());
+            nbt.putDouble("x", this.x);
+            nbt.putDouble("y", this.y);
+            nbt.putDouble("z", this.z);
 
-                    this.cachedTag = nbt;
-                } else if ((nbt = this.cachedTag) == null) {
-                    throw new IllegalStateException("Cached tag was still null, even after waiting for other thread to compute it!");
-                }
-            }
+            this.cachedTag = nbt;
         }
         return nbt;
     }
@@ -117,7 +110,7 @@ public abstract class EntityBase extends AbstractDirtiable implements Entity {
     public boolean markDirty() {
         CompoundTag cachedTag = this.cachedTag;
         boolean flag = super.markDirty();
-        if (flag)   {
+        if (flag) {
             PUnsafe.compareAndSwapObject(this, CACHEDTAG_OFFSET, cachedTag, null);
         }
         return flag;

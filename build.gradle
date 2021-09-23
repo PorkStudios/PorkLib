@@ -101,7 +101,7 @@ allprojects {
                     }
 
                     name = "NukkitX"
-                    url = version.endsWith("SNAPSHOT") ? "https://repo.opencollab.dev/snapshot/" : "https://repo.opencollab.dev/release/"
+                    url = version.endsWith("SNAPSHOT") ? "https://repo.opencollab.dev/maven-snapshots/" : "https://repo.opencollab.dev/release/"
                 }
             }
             if (project.hasProperty("daporkchopMavenUsername") && project.hasProperty("daporkchopMavenPassword")) {

@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -98,18 +98,18 @@ public class AdvancedOrientation<T extends Component> implements Orientation<T> 
     }
 
     public UpdatePriority getPriority(@NonNull Axis axis) {
-        return UpdatePriority.values()[PArrays.indexOf(this.calcAxes, axis)];
+        return UpdatePriority.values()[PArrays.linearSearch(this.calcAxes, axis)];
     }
 
     public AdvancedOrientation<T> configureAxis(@NonNull Axis axis, @NonNull Consumer<AdvancedCalculator<T>> initializer) {
         AdvancedCalculator<T> calculator = new AdvancedCalculator<>();
-        this.calculators[PArrays.indexOf(this.calcAxes, axis)] = calculator;
+        this.calculators[PArrays.linearSearch(this.calcAxes, axis)] = calculator;
         initializer.accept(calculator);
         return this;
     }
 
     public AdvancedOrientation<T> configureAxis(@NonNull Axis axis, @NonNull Axis other) {
-        this.calculators[PArrays.indexOf(this.calcAxes, axis)] = this.calculators[PArrays.indexOf(this.calcAxes, other)];
+        this.calculators[PArrays.linearSearch(this.calcAxes, axis)] = this.calculators[PArrays.linearSearch(this.calcAxes, other)];
         return this;
     }
 

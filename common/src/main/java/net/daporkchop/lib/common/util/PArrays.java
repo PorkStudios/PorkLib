@@ -37,9 +37,9 @@ import java.util.function.IntToDoubleFunction;
 import java.util.function.IntToLongFunction;
 import java.util.function.IntUnaryOperator;
 import java.util.function.LongSupplier;
-import java.util.function.LongUnaryOperator;
 import java.util.function.Supplier;
 
+import static net.daporkchop.lib.common.util.PValidation.*;
 import static net.daporkchop.lib.common.util.PorkUtil.*;
 
 /**
@@ -52,6 +52,40 @@ public class PArrays {
     //
     // SHUFFLE
     //
+
+    /**
+     * Shuffles the elements of the given array.
+     *
+     * @param arr the array
+     */
+    public void shuffle(@NonNull boolean[] arr) {
+        shuffle(arr, ThreadLocalRandom.current());
+    }
+
+    /**
+     * Shuffles the elements of the given array using the provided {@link Random} to generate random numbers.
+     *
+     * @param arr    the array
+     * @param random the {@link Random} to use
+     */
+    public void shuffle(@NonNull boolean[] arr, @NonNull Random random) {
+        for (int i = 0, length = arr.length; i < length; i++) {
+            swap(arr, i, random.nextInt(length));
+        }
+    }
+
+    /**
+     * Shuffles the elements of the given array using the provided {@link IntUnaryOperator} to generate random numbers.
+     *
+     * @param arr    the array
+     * @param random the {@link IntUnaryOperator} to use as a source of random numbers. Given an exclusive upper bound, it should return a random number uniformly
+     *               distributed in the range {@code [0-bound)}, as with {@link Random#nextInt(int)}.
+     */
+    public void shuffle(@NonNull boolean[] arr, @NonNull IntUnaryOperator random) {
+        for (int i = 0, length = arr.length; i < length; i++) {
+            swap(arr, i, random.applyAsInt(length));
+        }
+    }
 
     /**
      * Shuffles the elements of the given array.
@@ -296,7 +330,7 @@ public class PArrays {
      *
      * @param arr the array
      */
-    public <T> void shuffle(@NonNull T[] arr) {
+    public void shuffle(@NonNull Object[] arr) {
         shuffle(arr, ThreadLocalRandom.current());
     }
 
@@ -306,7 +340,7 @@ public class PArrays {
      * @param arr    the array
      * @param random the {@link Random} to use
      */
-    public <T> void shuffle(@NonNull T[] arr, @NonNull Random random) {
+    public void shuffle(@NonNull Object[] arr, @NonNull Random random) {
         for (int i = 0, length = arr.length; i < length; i++) {
             swap(arr, i, random.nextInt(length));
         }
@@ -319,7 +353,7 @@ public class PArrays {
      * @param random the {@link IntUnaryOperator} to use as a source of random numbers. Given an exclusive upper bound, it should return a random number uniformly
      *               distributed in the range {@code [0-bound)}, as with {@link Random#nextInt(int)}.
      */
-    public <T> void shuffle(@NonNull T[] arr, @NonNull IntUnaryOperator random) {
+    public void shuffle(@NonNull Object[] arr, @NonNull IntUnaryOperator random) {
         for (int i = 0, length = arr.length; i < length; i++) {
             swap(arr, i, random.applyAsInt(length));
         }
@@ -646,7 +680,7 @@ public class PArrays {
         }
         return arr;
     }
-    
+
     //TODO: float
 
     /**
@@ -667,9 +701,9 @@ public class PArrays {
     /**
      * Allocates a new array of the given length with all elements set to values returned by the given {@link IntFunction} for the element index.
      *
-     * @param length   the length of the new array
+     * @param length        the length of the new array
      * @param componentType the erased type of {@link T}
-     * @param function a {@link IntFunction} which computes the default value for each element in the array from the element index
+     * @param function      a {@link IntFunction} which computes the default value for each element in the array from the element index
      * @return the new array
      */
     public <T> T[] filledBy(int length, @NonNull Class<T> componentType, @NonNull IntFunction<? extends T> function) {
@@ -683,9 +717,9 @@ public class PArrays {
     /**
      * Allocates a new array of the given length with all elements set to values returned by the given {@link IntFunction} for the element index.
      *
-     * @param length   the length of the new array
+     * @param length       the length of the new array
      * @param arrayCreator a function to use for allocating the new array. Assumed to be a lambda in the form {@code T[]::new}.
-     * @param function a {@link IntFunction} which computes the default value for each element in the array from the element index
+     * @param function     a {@link IntFunction} which computes the default value for each element in the array from the element index
      * @return the new array
      */
     public <T> T[] filledBy(int length, @NonNull IntFunction<T[]> arrayCreator, @NonNull IntFunction<? extends T> function) {
@@ -696,17 +730,33 @@ public class PArrays {
         return arr;
     }
 
-    public <T> Object[] toObjects(@NonNull T[] src) {
-        if (src.getClass() == Object[].class) {
-            return src;
-        }
-        Object[] dst = new Object[src.length];
-        System.arraycopy(src, 0, dst, 0, src.length);
-        return dst;
+    //
+    // LINEAR SEARCH
+    //
+
+    /**
+     * Does a linear search to find the first index in the array containing the given value.
+     *
+     * @param arr the array to search
+     * @param val the value to search for
+     * @return the index at which the value was found, or {@code -1} if not present
+     */
+    public int linearSearch(@NonNull boolean[] arr, boolean val) {
+        return linearSearch(arr, 0, arr.length, val);
     }
 
-    public int indexOf(@NonNull byte[] arr, byte val) {
-        for (int i = 0, length = arr.length; i < length; i++) {
+    /**
+     * Does a linear search to find the first index in the array containing the given value.
+     *
+     * @param arr  the array to search
+     * @param from the first index in the array to search (inclusive)
+     * @param to   the final index in the array to search (exclusive)
+     * @param val  the value to search for
+     * @return the index at which the value was found, or {@code -1} if not present
+     */
+    public int linearSearch(@NonNull boolean[] arr, int from, int to, boolean val) {
+        checkRange(arr.length, from, to);
+        for (int i = from; i < to; i++) {
             if (arr[i] == val) {
                 return i;
             }
@@ -714,18 +764,29 @@ public class PArrays {
         return -1;
     }
 
-    public int indexOf(@NonNull byte[] arr, byte val, int from, int to) {
-        PValidation.checkRange(arr.length, from, to);
-        for (; from < to; from++) {
-            if (arr[from] == val) {
-                return from;
-            }
-        }
-        return -1;
+    /**
+     * Does a linear search to find the first index in the array containing the given value.
+     *
+     * @param arr the array to search
+     * @param val the value to search for
+     * @return the index at which the value was found, or {@code -1} if not present
+     */
+    public int linearSearch(@NonNull byte[] arr, byte val) {
+        return linearSearch(arr, 0, arr.length, val);
     }
 
-    public int indexOf(@NonNull short[] arr, short val) {
-        for (int i = 0, length = arr.length; i < length; i++) {
+    /**
+     * Does a linear search to find the first index in the array containing the given value.
+     *
+     * @param arr  the array to search
+     * @param from the first index in the array to search (inclusive)
+     * @param to   the final index in the array to search (exclusive)
+     * @param val  the value to search for
+     * @return the index at which the value was found, or {@code -1} if not present
+     */
+    public int linearSearch(@NonNull byte[] arr, int from, int to, byte val) {
+        checkRange(arr.length, from, to);
+        for (int i = from; i < to; i++) {
             if (arr[i] == val) {
                 return i;
             }
@@ -733,18 +794,29 @@ public class PArrays {
         return -1;
     }
 
-    public int indexOf(@NonNull short[] arr, short val, int from, int to) {
-        PValidation.checkRange(arr.length, from, to);
-        for (; from < to; from++) {
-            if (arr[from] == val) {
-                return from;
-            }
-        }
-        return -1;
+    /**
+     * Does a linear search to find the first index in the array containing the given value.
+     *
+     * @param arr the array to search
+     * @param val the value to search for
+     * @return the index at which the value was found, or {@code -1} if not present
+     */
+    public int linearSearch(@NonNull short[] arr, short val) {
+        return linearSearch(arr, 0, arr.length, val);
     }
 
-    public int indexOf(@NonNull char[] arr, char val) {
-        for (int i = 0, length = arr.length; i < length; i++) {
+    /**
+     * Does a linear search to find the first index in the array containing the given value.
+     *
+     * @param arr  the array to search
+     * @param from the first index in the array to search (inclusive)
+     * @param to   the final index in the array to search (exclusive)
+     * @param val  the value to search for
+     * @return the index at which the value was found, or {@code -1} if not present
+     */
+    public int linearSearch(@NonNull short[] arr, int from, int to, short val) {
+        checkRange(arr.length, from, to);
+        for (int i = from; i < to; i++) {
             if (arr[i] == val) {
                 return i;
             }
@@ -752,18 +824,29 @@ public class PArrays {
         return -1;
     }
 
-    public int indexOf(@NonNull char[] arr, char val, int from, int to) {
-        PValidation.checkRange(arr.length, from, to);
-        for (; from < to; from++) {
-            if (arr[from] == val) {
-                return from;
-            }
-        }
-        return -1;
+    /**
+     * Does a linear search to find the first index in the array containing the given value.
+     *
+     * @param arr the array to search
+     * @param val the value to search for
+     * @return the index at which the value was found, or {@code -1} if not present
+     */
+    public int linearSearch(@NonNull char[] arr, char val) {
+        return linearSearch(arr, 0, arr.length, val);
     }
 
-    public int indexOf(@NonNull int[] arr, int val) {
-        for (int i = 0, length = arr.length; i < length; i++) {
+    /**
+     * Does a linear search to find the first index in the array containing the given value.
+     *
+     * @param arr  the array to search
+     * @param from the first index in the array to search (inclusive)
+     * @param to   the final index in the array to search (exclusive)
+     * @param val  the value to search for
+     * @return the index at which the value was found, or {@code -1} if not present
+     */
+    public int linearSearch(@NonNull char[] arr, int from, int to, char val) {
+        checkRange(arr.length, from, to);
+        for (int i = from; i < to; i++) {
             if (arr[i] == val) {
                 return i;
             }
@@ -771,18 +854,29 @@ public class PArrays {
         return -1;
     }
 
-    public int indexOf(@NonNull int[] arr, int val, int from, int to) {
-        PValidation.checkRange(arr.length, from, to);
-        for (; from < to; from++) {
-            if (arr[from] == val) {
-                return from;
-            }
-        }
-        return -1;
+    /**
+     * Does a linear search to find the first index in the array containing the given value.
+     *
+     * @param arr the array to search
+     * @param val the value to search for
+     * @return the index at which the value was found, or {@code -1} if not present
+     */
+    public int linearSearch(@NonNull int[] arr, int val) {
+        return linearSearch(arr, 0, arr.length, val);
     }
 
-    public int indexOf(@NonNull long[] arr, long val) {
-        for (int i = 0, length = arr.length; i < length; i++) {
+    /**
+     * Does a linear search to find the first index in the array containing the given value.
+     *
+     * @param arr  the array to search
+     * @param from the first index in the array to search (inclusive)
+     * @param to   the final index in the array to search (exclusive)
+     * @param val  the value to search for
+     * @return the index at which the value was found, or {@code -1} if not present
+     */
+    public int linearSearch(@NonNull int[] arr, int from, int to, int val) {
+        checkRange(arr.length, from, to);
+        for (int i = from; i < to; i++) {
             if (arr[i] == val) {
                 return i;
             }
@@ -790,18 +884,29 @@ public class PArrays {
         return -1;
     }
 
-    public int indexOf(@NonNull long[] arr, long val, int from, int to) {
-        PValidation.checkRange(arr.length, from, to);
-        for (; from < to; from++) {
-            if (arr[from] == val) {
-                return from;
-            }
-        }
-        return -1;
+    /**
+     * Does a linear search to find the first index in the array containing the given value.
+     *
+     * @param arr the array to search
+     * @param val the value to search for
+     * @return the index at which the value was found, or {@code -1} if not present
+     */
+    public int linearSearch(@NonNull long[] arr, long val) {
+        return linearSearch(arr, 0, arr.length, val);
     }
 
-    public int indexOf(@NonNull float[] arr, float val) {
-        for (int i = 0, length = arr.length; i < length; i++) {
+    /**
+     * Does a linear search to find the first index in the array containing the given value.
+     *
+     * @param arr  the array to search
+     * @param from the first index in the array to search (inclusive)
+     * @param to   the final index in the array to search (exclusive)
+     * @param val  the value to search for
+     * @return the index at which the value was found, or {@code -1} if not present
+     */
+    public int linearSearch(@NonNull long[] arr, int from, int to, long val) {
+        checkRange(arr.length, from, to);
+        for (int i = from; i < to; i++) {
             if (arr[i] == val) {
                 return i;
             }
@@ -809,18 +914,29 @@ public class PArrays {
         return -1;
     }
 
-    public int indexOf(@NonNull float[] arr, float val, int from, int to) {
-        PValidation.checkRange(arr.length, from, to);
-        for (; from < to; from++) {
-            if (arr[from] == val) {
-                return from;
-            }
-        }
-        return -1;
+    /**
+     * Does a linear search to find the first index in the array containing the given value.
+     *
+     * @param arr the array to search
+     * @param val the value to search for
+     * @return the index at which the value was found, or {@code -1} if not present
+     */
+    public int linearSearch(@NonNull float[] arr, float val) {
+        return linearSearch(arr, 0, arr.length, val);
     }
 
-    public int indexOf(@NonNull double[] arr, double val) {
-        for (int i = 0, length = arr.length; i < length; i++) {
+    /**
+     * Does a linear search to find the first index in the array containing the given value.
+     *
+     * @param arr  the array to search
+     * @param from the first index in the array to search (inclusive)
+     * @param to   the final index in the array to search (exclusive)
+     * @param val  the value to search for
+     * @return the index at which the value was found, or {@code -1} if not present
+     */
+    public int linearSearch(@NonNull float[] arr, int from, int to, float val) {
+        checkRange(arr.length, from, to);
+        for (int i = from; i < to; i++) {
             if (arr[i] == val) {
                 return i;
             }
@@ -828,18 +944,29 @@ public class PArrays {
         return -1;
     }
 
-    public int indexOf(@NonNull double[] arr, double val, int from, int to) {
-        PValidation.checkRange(arr.length, from, to);
-        for (; from < to; from++) {
-            if (arr[from] == val) {
-                return from;
-            }
-        }
-        return -1;
+    /**
+     * Does a linear search to find the first index in the array containing the given value.
+     *
+     * @param arr the array to search
+     * @param val the value to search for
+     * @return the index at which the value was found, or {@code -1} if not present
+     */
+    public int linearSearch(@NonNull double[] arr, double val) {
+        return linearSearch(arr, 0, arr.length, val);
     }
 
-    public <T> int indexOf(@NonNull T[] arr, @NonNull T val) {
-        for (int i = 0, length = arr.length; i < length; i++) {
+    /**
+     * Does a linear search to find the first index in the array containing the given value.
+     *
+     * @param arr  the array to search
+     * @param from the first index in the array to search (inclusive)
+     * @param to   the final index in the array to search (exclusive)
+     * @param val  the value to search for
+     * @return the index at which the value was found, or {@code -1} if not present
+     */
+    public int linearSearch(@NonNull double[] arr, int from, int to, double val) {
+        checkRange(arr.length, from, to);
+        for (int i = from; i < to; i++) {
             if (arr[i] == val) {
                 return i;
             }
@@ -847,233 +974,192 @@ public class PArrays {
         return -1;
     }
 
-    public byte max(@NonNull byte[] arr) {
-        if (arr.length == 0) {
-            throw new IllegalArgumentException("Array may not be empty!");
+    /**
+     * Does a linear search to find the first index in the array containing the given value.
+     *
+     * @param arr the array to search
+     * @param val the value to search for
+     * @return the index at which the value was found, or {@code -1} if not present
+     */
+    public int linearSearch(@NonNull Object[] arr, Object val) {
+        return linearSearch(arr, 0, arr.length, val);
+    }
+
+    /**
+     * Does a linear search to find the first index in the array containing the given value.
+     *
+     * @param arr  the array to search
+     * @param from the first index in the array to search (inclusive)
+     * @param to   the final index in the array to search (exclusive)
+     * @param val  the value to search for
+     * @return the index at which the value was found, or {@code -1} if not present
+     */
+    public int linearSearch(@NonNull Object[] arr, int from, int to, Object val) {
+        if (val == null) { //if value is null, equality is effectively by identity
+            return linearSearchIdentity(arr, from, to, null);
         }
-        byte val = Byte.MIN_VALUE;
-        for (int i = 0, length = arr.length; i < length; i++) {
-            if (arr[i] > val) {
-                val = arr[i];
+
+        checkRange(arr.length, from, to);
+        for (int i = from; i < to; i++) {
+            if (arr[i] != null && val.equals(arr[i])) {
+                return i;
             }
         }
-        return val;
+        return -1;
     }
 
-    public short max(@NonNull short[] arr) {
-        if (arr.length == 0) {
-            throw new IllegalArgumentException("Array may not be empty!");
-        }
-        short val = Short.MIN_VALUE;
-        for (int i = 0, length = arr.length; i < length; i++) {
-            if (arr[i] > val) {
-                val = arr[i];
+    /**
+     * Does a linear search to find the first index in the array containing the given value.
+     * <p>
+     * Equality is checked by object identity, not {@link Object#equals(Object)}.
+     *
+     * @param arr the array to search
+     * @param val the value to search for
+     * @return the index at which the value was found, or {@code -1} if not present
+     */
+    public int linearSearchIdentity(@NonNull Object[] arr, Object val) {
+        return linearSearchIdentity(arr, 0, arr.length, val);
+    }
+
+    /**
+     * Does a linear search to find the first index in the array containing the given value.
+     * <p>
+     * Equality is checked by object identity, not {@link Object#equals(Object)}.
+     *
+     * @param arr  the array to search
+     * @param from the first index in the array to search (inclusive)
+     * @param to   the final index in the array to search (exclusive)
+     * @param val  the value to search for
+     * @return the index at which the value was found, or {@code -1} if not present
+     */
+    public int linearSearchIdentity(@NonNull Object[] arr, int from, int to, Object val) {
+        checkRange(arr.length, from, to);
+        for (int i = from; i < to; i++) {
+            if (arr[i] == val) {
+                return i;
             }
         }
-        return val;
+        return -1;
     }
 
-    public char max(@NonNull char[] arr) {
-        if (arr.length == 0) {
-            throw new IllegalArgumentException("Array may not be empty!");
-        }
-        char val = Character.MIN_VALUE;
-        for (int i = 0, length = arr.length; i < length; i++) {
-            if (arr[i] > val) {
-                val = arr[i];
-            }
-        }
-        return val;
+    //
+    // ARRAY ELEMENT VALUE SWAPS
+    //
+
+    /**
+     * Swaps the values stored at the two given array indices.
+     *
+     * @param arr the array
+     * @param i0  an array index
+     * @param i1  an array index
+     */
+    public void swap(@NonNull boolean[] arr, int i0, int i1) {
+        boolean val = arr[i0];
+        arr[i0] = arr[i1];
+        arr[i1] = val;
     }
 
-    public int max(@NonNull int[] arr) {
-        if (arr.length == 0) {
-            throw new IllegalArgumentException("Array may not be empty!");
-        }
-        int val = Integer.MIN_VALUE;
-        for (int i = 0, length = arr.length; i < length; i++) {
-            if (arr[i] > val) {
-                val = arr[i];
-            }
-        }
-        return val;
+    /**
+     * Swaps the values stored at the two given array indices.
+     *
+     * @param arr the array
+     * @param i0  an array index
+     * @param i1  an array index
+     */
+    public void swap(@NonNull byte[] arr, int i0, int i1) {
+        byte val = arr[i0];
+        arr[i0] = arr[i1];
+        arr[i1] = val;
     }
 
-    public long max(@NonNull long[] arr) {
-        if (arr.length == 0) {
-            throw new IllegalArgumentException("Array may not be empty!");
-        }
-        long val = Long.MIN_VALUE;
-        for (int i = 0, length = arr.length; i < length; i++) {
-            if (arr[i] > val) {
-                val = arr[i];
-            }
-        }
-        return val;
+    /**
+     * Swaps the values stored at the two given array indices.
+     *
+     * @param arr the array
+     * @param i0  an array index
+     * @param i1  an array index
+     */
+    public void swap(@NonNull short[] arr, int i0, int i1) {
+        short val = arr[i0];
+        arr[i0] = arr[i1];
+        arr[i1] = val;
     }
 
-    public float max(@NonNull float[] arr) {
-        if (arr.length == 0) {
-            throw new IllegalArgumentException("Array may not be empty!");
-        }
-        float val = Float.MIN_VALUE;
-        for (int i = 0, length = arr.length; i < length; i++) {
-            if (arr[i] > val) {
-                val = arr[i];
-            }
-        }
-        return val;
+    /**
+     * Swaps the values stored at the two given array indices.
+     *
+     * @param arr the array
+     * @param i0  an array index
+     * @param i1  an array index
+     */
+    public void swap(@NonNull char[] arr, int i0, int i1) {
+        char val = arr[i0];
+        arr[i0] = arr[i1];
+        arr[i1] = val;
     }
 
-    public double max(@NonNull double[] arr) {
-        if (arr.length == 0) {
-            throw new IllegalArgumentException("Array may not be empty!");
-        }
-        double val = Double.MIN_VALUE;
-        for (int i = 0, length = arr.length; i < length; i++) {
-            if (arr[i] > val) {
-                val = arr[i];
-            }
-        }
-        return val;
+    /**
+     * Swaps the values stored at the two given array indices.
+     *
+     * @param arr the array
+     * @param i0  an array index
+     * @param i1  an array index
+     */
+    public void swap(@NonNull int[] arr, int i0, int i1) {
+        int val = arr[i0];
+        arr[i0] = arr[i1];
+        arr[i1] = val;
     }
 
-    public byte min(@NonNull byte[] arr) {
-        if (arr.length == 0) {
-            throw new IllegalArgumentException("Array may not be empty!");
-        }
-        byte val = Byte.MAX_VALUE;
-        for (int i = 0, length = arr.length; i < length; i++) {
-            if (arr[i] < val) {
-                val = arr[i];
-            }
-        }
-        return val;
+    /**
+     * Swaps the values stored at the two given array indices.
+     *
+     * @param arr the array
+     * @param i0  an array index
+     * @param i1  an array index
+     */
+    public void swap(@NonNull long[] arr, int i0, int i1) {
+        long val = arr[i0];
+        arr[i0] = arr[i1];
+        arr[i1] = val;
     }
 
-    public short min(@NonNull short[] arr) {
-        if (arr.length == 0) {
-            throw new IllegalArgumentException("Array may not be empty!");
-        }
-        short val = Short.MAX_VALUE;
-        for (int i = 0, length = arr.length; i < length; i++) {
-            if (arr[i] < val) {
-                val = arr[i];
-            }
-        }
-        return val;
+    /**
+     * Swaps the values stored at the two given array indices.
+     *
+     * @param arr the array
+     * @param i0  an array index
+     * @param i1  an array index
+     */
+    public void swap(@NonNull float[] arr, int i0, int i1) {
+        float val = arr[i0];
+        arr[i0] = arr[i1];
+        arr[i1] = val;
     }
 
-    public char min(@NonNull char[] arr) {
-        if (arr.length == 0) {
-            throw new IllegalArgumentException("Array may not be empty!");
-        }
-        char val = Character.MAX_VALUE;
-        for (int i = 0, length = arr.length; i < length; i++) {
-            if (arr[i] < val) {
-                val = arr[i];
-            }
-        }
-        return val;
+    /**
+     * Swaps the values stored at the two given array indices.
+     *
+     * @param arr the array
+     * @param i0  an array index
+     * @param i1  an array index
+     */
+    public void swap(@NonNull double[] arr, int i0, int i1) {
+        double val = arr[i0];
+        arr[i0] = arr[i1];
+        arr[i1] = val;
     }
 
-    public int min(@NonNull int[] arr) {
-        if (arr.length == 0) {
-            throw new IllegalArgumentException("Array may not be empty!");
-        }
-        int val = Integer.MAX_VALUE;
-        for (int i = 0, length = arr.length; i < length; i++) {
-            if (arr[i] < val) {
-                val = arr[i];
-            }
-        }
-        return val;
-    }
-
-    public long min(@NonNull long[] arr) {
-        if (arr.length == 0) {
-            throw new IllegalArgumentException("Array may not be empty!");
-        }
-        long val = Long.MAX_VALUE;
-        for (int i = 0, length = arr.length; i < length; i++) {
-            if (arr[i] < val) {
-                val = arr[i];
-            }
-        }
-        return val;
-    }
-
-    public float min(@NonNull float[] arr) {
-        if (arr.length == 0) {
-            throw new IllegalArgumentException("Array may not be empty!");
-        }
-        float val = Float.MAX_VALUE;
-        for (int i = 0, length = arr.length; i < length; i++) {
-            if (arr[i] < val) {
-                val = arr[i];
-            }
-        }
-        return val;
-    }
-
-    public double min(@NonNull double[] arr) {
-        if (arr.length == 0) {
-            throw new IllegalArgumentException("Array may not be empty!");
-        }
-        double val = Double.MAX_VALUE;
-        for (int i = 0, length = arr.length; i < length; i++) {
-            if (arr[i] < val) {
-                val = arr[i];
-            }
-        }
-        return val;
-    }
-
-    public void swap(@NonNull byte[] arr, int i1, int i2) {
-        byte val = arr[i1];
-        arr[i1] = arr[i2];
-        arr[i2] = val;
-    }
-
-    public void swap(@NonNull short[] arr, int i1, int i2) {
-        short val = arr[i1];
-        arr[i1] = arr[i2];
-        arr[i2] = val;
-    }
-
-    public void swap(@NonNull char[] arr, int i1, int i2) {
-        char val = arr[i1];
-        arr[i1] = arr[i2];
-        arr[i2] = val;
-    }
-
-    public void swap(@NonNull int[] arr, int i1, int i2) {
-        int val = arr[i1];
-        arr[i1] = arr[i2];
-        arr[i2] = val;
-    }
-
-    public void swap(@NonNull long[] arr, int i1, int i2) {
-        long val = arr[i1];
-        arr[i1] = arr[i2];
-        arr[i2] = val;
-    }
-
-    public void swap(@NonNull float[] arr, int i1, int i2) {
-        float val = arr[i1];
-        arr[i1] = arr[i2];
-        arr[i2] = val;
-    }
-
-    public void swap(@NonNull double[] arr, int i1, int i2) {
-        double val = arr[i1];
-        arr[i1] = arr[i2];
-        arr[i2] = val;
-    }
-
-    public <T> void swap(@NonNull T[] arr, int i1, int i2) {
-        T val = arr[i1];
-        arr[i1] = arr[i2];
-        arr[i2] = val;
+    /**
+     * Swaps the values stored at the two given array indices.
+     *
+     * @param arr the array
+     * @param i0  an array index
+     * @param i1  an array index
+     */
+    public void swap(@NonNull Object[] arr, int i0, int i1) {
+        Object val = arr[i0];
+        arr[i0] = arr[i1];
+        arr[i1] = val;
     }
 }

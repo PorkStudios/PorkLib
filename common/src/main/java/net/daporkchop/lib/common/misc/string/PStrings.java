@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -54,7 +54,7 @@ public class PStrings {
 
         int off = 0;
         int next;
-        while ((next = PArrays.indexOf(src, delimiter, off, length)) != -1) {
+        while ((next = PArrays.linearSearch(src, off, length, delimiter)) != -1) {
             list.add(Arrays.copyOfRange(src, off, next));
             off = next + 1;
         }

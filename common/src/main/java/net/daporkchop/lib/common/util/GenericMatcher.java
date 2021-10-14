@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -115,7 +115,7 @@ public class GenericMatcher {
 
             Type genericSuperType;
             if (clazz.isInterface()) {
-                genericSuperType = next.getGenericInterfaces()[PArrays.indexOf(next.getInterfaces(), clazz)];
+                genericSuperType = next.getGenericInterfaces()[PArrays.linearSearch(next.getInterfaces(), clazz)];
             } else {
                 genericSuperType = next.getGenericSuperclass();
             }

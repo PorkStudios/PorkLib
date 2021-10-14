@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -39,7 +39,7 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
  * @author DaPorkchop_
  */
 final class StrongPow2ArrayAllocator<V> extends AbstractArrayAllocator<V> {
-    protected final Deque<V>[] arenas = uncheckedCast(PArrays.filled(32, Deque[]::new, (Supplier<Deque>) ArrayDeque::new));
+    protected final Deque<V>[] arenas = uncheckedCast(PArrays.filledFrom(32, Deque.class, ArrayDeque::new));
     protected final int maxCapacity;
 
     public StrongPow2ArrayAllocator(@NonNull IntFunction<V> lambda, int maxCapacity) {

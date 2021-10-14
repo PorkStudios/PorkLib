@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -100,15 +100,15 @@ public class ConcurrentHashMapHelper {
     }
 
     public static <T> T getArrayVolatile(Object base, int index) {
-        return PUnsafe.getObjectVolatile(base, PUnsafe.ARRAY_OBJECT_BASE_OFFSET + index * PUnsafe.ARRAY_OBJECT_INDEX_SCALE);
+        return PUnsafe.getObjectVolatile(base, PUnsafe.arrayObjectElementOffset(index));
     }
 
     public static void setArrayVolatile(Object base, int index, Object value) {
-        PUnsafe.putObjectVolatile(base, PUnsafe.ARRAY_OBJECT_BASE_OFFSET + index * PUnsafe.ARRAY_OBJECT_INDEX_SCALE, value);
+        PUnsafe.putObjectVolatile(base, PUnsafe.arrayObjectElementOffset(index), value);
     }
 
     public static boolean casArray(Object base, int index, Object expect, Object value) {
-        return PUnsafe.compareAndSwapObject(base, PUnsafe.ARRAY_OBJECT_BASE_OFFSET + index * PUnsafe.ARRAY_OBJECT_INDEX_SCALE, expect, value);
+        return PUnsafe.compareAndSwapObject(base, PUnsafe.arrayObjectElementOffset(index), expect, value);
     }
 
     public static int getProbe() {

@@ -22,15 +22,14 @@ package net.daporkchop.lib.common.pool.array;
 
 import lombok.NonNull;
 import net.daporkchop.lib.common.math.BinMath;
-import net.daporkchop.lib.common.ref.Ref;
-import net.daporkchop.lib.common.ref.ReferenceStrength;
+import net.daporkchop.lib.common.reference.Reference;
+import net.daporkchop.lib.common.reference.ReferenceStrength;
 import net.daporkchop.lib.common.util.PArrays;
 
 import java.lang.reflect.Array;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.function.IntFunction;
-import java.util.function.Supplier;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 import static net.daporkchop.lib.common.util.PorkUtil.*;
@@ -41,7 +40,7 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
  * @author DaPorkchop_
  */
 final class ReferencedPow2ArrayAllocator<V> extends AbstractArrayAllocator<V> {
-    protected final Deque<Ref<V>>[] arenas = uncheckedCast(PArrays.filledFrom(32, Deque.class, ArrayDeque::new));
+    protected final Deque<Reference<V>>[] arenas = uncheckedCast(PArrays.filledFrom(32, Deque.class, ArrayDeque::new));
     protected final ReferenceStrength strength;
     protected final int maxCapacity;
 
@@ -76,9 +75,9 @@ final class ReferencedPow2ArrayAllocator<V> extends AbstractArrayAllocator<V> {
 
     protected V getPooled(int length) {
         int bits = length == 0 ? 0 : 31 - Integer.numberOfLeadingZeros(length - 1);
-        Deque<Ref<V>> arena = this.arenas[bits];
+        Deque<Reference<V>> arena = this.arenas[bits];
         V value = null;
-        Ref<V> ref;
+        Reference<V> ref;
         synchronized (arena) {
             while ((ref = arena.poll()) != null && (value = ref.get()) == null) {
             }
@@ -93,10 +92,10 @@ final class ReferencedPow2ArrayAllocator<V> extends AbstractArrayAllocator<V> {
     public void release(@NonNull V array) {
         int length = Array.getLength(array);
         int bits = length == 0 ? 0 : 31 - Integer.numberOfLeadingZeros(length - 1);
-        Deque<Ref<V>> arena = this.arenas[bits];
+        Deque<Reference<V>> arena = this.arenas[bits];
         synchronized (arena) {
             if (arena.size() < this.maxCapacity) {
-                arena.addFirst(this.strength.create(array));
+                arena.addFirst(this.strength.createReference(array));
             }
         }
     }

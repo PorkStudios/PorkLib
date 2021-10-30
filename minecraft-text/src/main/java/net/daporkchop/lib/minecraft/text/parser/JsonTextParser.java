@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -28,8 +28,7 @@ import com.google.gson.JsonSyntaxException;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.misc.InstancePool;
-import net.daporkchop.lib.common.ref.Ref;
-import net.daporkchop.lib.common.ref.ThreadRef;
+import net.daporkchop.lib.common.reference.cache.Cached;
 import net.daporkchop.lib.logging.console.TextFormat;
 import net.daporkchop.lib.logging.format.TextStyle;
 import net.daporkchop.lib.logging.format.component.TextComponentString;
@@ -47,7 +46,7 @@ import java.util.regex.Pattern;
  */
 @RequiredArgsConstructor
 public class JsonTextParser implements MCFormatParser {
-    protected static final Ref<Matcher> TRANSLATION_MATCHER_CACHE = ThreadRef.regex(Pattern.compile("%(?:%|(?:(\\d+)\\$)?s)"));
+    protected static final Cached<Matcher> TRANSLATION_MATCHER_CACHE = Cached.regex(Pattern.compile("%(?:%|(?:(\\d+)\\$)?s)"));
 
     public static final JsonTextParser DEFAULT = new JsonTextParser(TranslationSource.NONE);
 

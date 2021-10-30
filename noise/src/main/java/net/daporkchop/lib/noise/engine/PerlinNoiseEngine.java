@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -21,7 +21,8 @@
 package net.daporkchop.lib.noise.engine;
 
 import lombok.NonNull;
-import net.daporkchop.lib.common.ref.Ref;
+import net.daporkchop.lib.common.reference.ReferenceStrength;
+import net.daporkchop.lib.common.reference.cache.Cached;
 import net.daporkchop.lib.noise.NoiseSource;
 import net.daporkchop.lib.random.PRandom;
 
@@ -35,13 +36,13 @@ import static net.daporkchop.lib.common.math.PMath.*;
  * @author DaPorkchop_
  */
 public class PerlinNoiseEngine implements NoiseSource {
-    protected static final Ref<byte[]> INITIAL_STATE_CACHE = Ref.soft(() -> {
+    protected static final Cached<byte[]> INITIAL_STATE_CACHE = Cached.global(() -> {
         byte[] arr = new byte[256];
-        for (int i = 0; i < arr.length; i++)    {
+        for (int i = 0; i < arr.length; i++) {
             arr[i] = (byte) i;
         }
         return arr;
-    });
+    }, ReferenceStrength.WEAK);
 
     protected static double fade(double t) {
         return t * t * t * (t * (t * 6.0d - 15.0d) + 10.0d);

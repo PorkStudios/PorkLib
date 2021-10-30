@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -18,23 +18,41 @@
  *
  */
 
-package net.daporkchop.lib.common.ref.impl;
+package net.daporkchop.lib.common.reference.cache;
 
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.common.ref.Ref;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 
-import java.lang.ref.ReferenceQueue;
-import java.lang.ref.SoftReference;
+import java.util.function.Supplier;
 
 /**
  * @author DaPorkchop_
  */
-public final class SoftRef<T> extends SoftReference<T> implements Ref<T> {
-    public SoftRef(T referent) {
-        super(referent);
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+@Accessors(fluent = true)
+class GlobalStrongCached<T> implements Cached<T> {
+    @Getter
+    @NonNull
+    protected final Supplier<T> factory;
+
+    protected T value;
+
+    @Override
+    public T get() {
+        T value = this.value;
+        if (value == null) { //value is unset, compute it
+            value = this.compute();
+        }
+
+        return value;
     }
 
-    public SoftRef(T referent, ReferenceQueue<? super T> q) {
-        super(referent, q);
+    protected synchronized T compute() {
+        return this.value == null
+                ? this.value = this.factory.get() //compute and save the value
+                : this.value; //value has already been computed by another thread, return it
     }
 }

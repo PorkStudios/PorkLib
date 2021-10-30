@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -22,11 +22,8 @@ package net.daporkchop.lib.primitive.generator;
 
 import com.google.gson.JsonObject;
 import lombok.NonNull;
-import net.daporkchop.lib.common.misc.Tuple;
-import net.daporkchop.lib.common.ref.Ref;
-import net.daporkchop.lib.common.ref.ThreadRef;
+import net.daporkchop.lib.common.reference.cache.Cached;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -36,11 +33,11 @@ import java.util.stream.Collectors;
  * @author DaPorkchop_
  */
 public class OverrideReplacer implements Replacer {
-    private static final Ref<Matcher> NAME_MATCHER_CACHE = ThreadRef.regex(Pattern.compile("(?:[a-z]+\\.)*(?<![a-zA-Z])([A-Z][a-zA-Z]+)"));
+    private static final Cached<Matcher> NAME_MATCHER_CACHE = Cached.regex(Pattern.compile("(?:[a-z]+\\.)*(?<![a-zA-Z])([A-Z][a-zA-Z]+)"));
 
     private final Map<String, String> overrides;
 
-    public OverrideReplacer(@NonNull JsonObject obj)    {
+    public OverrideReplacer(@NonNull JsonObject obj) {
         this.overrides = obj.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getAsString()));
     }
 

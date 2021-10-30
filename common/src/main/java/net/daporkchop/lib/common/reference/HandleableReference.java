@@ -18,27 +18,27 @@
  *
  */
 
-package net.daporkchop.lib.common.pool.handle;
+package net.daporkchop.lib.common.reference;
 
-import lombok.NonNull;
-import net.daporkchop.lib.common.reference.ReferenceStrength;
+import net.daporkchop.lib.unsafe.PCleaner;
 
-import java.util.function.Supplier;
+import java.lang.ref.Reference;
 
 /**
- * Alternative implementation of {@link RecyclingHandledPool} in vanilla Java.
+ * Interface which may be implemented by {@link Reference} subclasses to define a behavior to be executed at some point after the referent
+ * is garbage-collected.
+ * <p>
+ * Unlike a {@link PCleaner}, this code is not guaranteed to be executed as long as the JVM isn't shut down early. {@link #handle()} is only guaranteed to
+ * be called at some point after the referent is collected <strong>if</strong> the reference itself has not been collected. If the reference is collected
+ * earlier or at the same time as the referent, it will not run.
+ * <p>
+ * This is not magic. {@link #handle()} will only be called automatically if invoked externally, such as through {@link PReferenceHandler}.
  *
  * @author DaPorkchop_
  */
-final class JavaRecyclingHandledPool<V> implements HandledPool<V> {
-    private final ThreadLocal<BasicHandledPool<V>> tl;
-
-    public JavaRecyclingHandledPool(@NonNull Supplier<V> factory, int maxCapacityPerThread) {
-        this.tl = ThreadLocal.withInitial(() -> new BasicHandledPool<>(factory, ReferenceStrength.STRONG, maxCapacityPerThread));
-    }
-
-    @Override
-    public Handle<V> get() {
-        return this.tl.get().get();
-    }
+public interface HandleableReference {
+    /**
+     * Fired after the referent is garbage-collected.
+     */
+    void handle();
 }

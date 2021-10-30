@@ -22,8 +22,6 @@ package net.daporkchop.lib.common.misc.threadlocal;
 
 import io.netty.util.concurrent.FastThreadLocal;
 import lombok.NonNull;
-import net.daporkchop.lib.common.ref.Ref;
-import net.daporkchop.lib.common.util.PorkUtil;
 
 import java.util.function.Supplier;
 
@@ -34,7 +32,7 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
  *
  * @author DaPorkchop_
  */
-public interface TL<T> extends Ref<T> {
+public interface TL<T> {
     /**
      * Creates a new thread-local variable, automatically selecting the best implementation to use.
      *
@@ -51,7 +49,7 @@ public interface TL<T> extends Ref<T> {
      * Creates a new thread-local variable which will be initially set to the given value, automatically selecting the best implementation to use.
      *
      * @param initialValue the initial value
-     * @param <T>             the value type
+     * @param <T>          the value type
      * @return the new thread-local variable
      */
     static <T> TL<T> initializedTo(@NonNull T initialValue) {

@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -18,47 +18,23 @@
  *
  */
 
-package net.daporkchop.lib.common.ref;
+package net.daporkchop.lib.common.reference;
 
-import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.common.misc.threadlocal.TL;
-
-import java.lang.ref.Reference;
-import java.lang.ref.SoftReference;
-import java.lang.ref.WeakReference;
-import java.util.function.Supplier;
 
 /**
- * A {@link ThreadRef} whose value may be garbage-collected.
+ * A strong {@link Reference} to an object instance.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
-final class CollectableLateRef<T> implements Ref<T> {
+@RequiredArgsConstructor
+public class StrongReference<T> implements Reference<T> {
     @NonNull
-    protected final Supplier<T> factory;
-    protected final boolean soft;
-
-    protected volatile Reference<T> ref;
+    private final T referent;
 
     @Override
     public T get() {
-        Reference<T> ref = this.ref;
-        T value;
-        if (ref == null || (value = ref.get()) == null) {
-            synchronized (this) {
-                //check again after obtaining lock, it may have been set by another thread
-                if ((ref = this.ref) == null || (value = ref.get()) == null) {
-                    this.ref = this.wrap(value = this.factory.get());
-                }
-            }
-        }
-        return value;
-    }
-
-    protected Reference<T> wrap(@NonNull T value) {
-        return this.soft ? new SoftReference<>(value) : new WeakReference<>(value);
+        return this.referent;
     }
 }

@@ -18,27 +18,56 @@
  *
  */
 
-package net.daporkchop.lib.common.pool.handle;
+package net.daporkchop.lib.common.reference.cache;
 
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.misc.threadlocal.TL;
+import net.daporkchop.lib.common.reference.Reference;
 import net.daporkchop.lib.common.reference.ReferenceStrength;
 
+import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
- * Alternative implementation of {@link RecyclingHandledPool} in vanilla Java.
- *
  * @author DaPorkchop_
  */
-final class JavaRecyclingHandledPool<V> implements HandledPool<V> {
-    private final ThreadLocal<BasicHandledPool<V>> tl;
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+@Accessors(fluent = true)
+class ThreadLocalReferencedCached<T> implements Cached<T> {
+    protected final TL<Reference<T>> tl = TL.create();
 
-    public JavaRecyclingHandledPool(@NonNull Supplier<V> factory, int maxCapacityPerThread) {
-        this.tl = ThreadLocal.withInitial(() -> new BasicHandledPool<>(factory, ReferenceStrength.STRONG, maxCapacityPerThread));
-    }
+    @Getter
+    @NonNull
+    protected final Supplier<T> factory;
+    @NonNull
+    protected final ReferenceStrength strength;
 
     @Override
-    public Handle<V> get() {
-        return this.tl.get().get();
+    public T get() {
+        Reference<T> ref = this.tl.get();
+        T value;
+        if (ref == null || (value = ref.get()) == null) { //reference is unset or has been garbage-collected, (re-)compute it
+            value = this.compute();
+        }
+
+        return value;
+    }
+
+    protected T compute() {
+        Reference<T> ref = this.tl.get();
+        T value;
+        if (ref == null || (value = ref.get()) == null) {
+            //compute value
+            value = Objects.requireNonNull(this.factory.get());
+
+            //create reference
+            this.tl.set(this.strength.createReference(value));
+        }
+
+        return value;
     }
 }

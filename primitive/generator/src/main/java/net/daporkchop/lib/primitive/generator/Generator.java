@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -31,8 +31,8 @@ import net.daporkchop.lib.common.misc.InstancePool;
 import net.daporkchop.lib.common.misc.Tuple;
 import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.common.misc.string.PStrings;
-import net.daporkchop.lib.common.ref.Ref;
-import net.daporkchop.lib.common.ref.ThreadRef;
+import net.daporkchop.lib.common.reference.ReferenceStrength;
+import net.daporkchop.lib.common.reference.cache.Cached;
 import net.daporkchop.lib.primitive.generator.option.HeaderOptions;
 import net.daporkchop.lib.primitive.generator.option.Parameter;
 import net.daporkchop.lib.primitive.generator.option.ParameterContext;
@@ -97,21 +97,21 @@ public class Generator {
     public static final String LICENSE;
     public static final OverrideReplacer OVERRIDES;
 
-    private static final Ref<StringBuffer> STRINGBUFFER_CACHE = ThreadRef.late(StringBuffer::new);
-    private static final Ref<StringBuffer> STRINGBUFFER_CACHE_2 = ThreadRef.late(StringBuffer::new);
-    private static final Ref<Matcher> NAME_MATCHER_CACHE = ThreadRef.regex(Pattern.compile("_P(\\d+)_"));
-    private static final Ref<Matcher> TOKEN_MATCHER_CACHE = ThreadRef.regex(Pattern.compile("_([a-zA-Z0-9]*?)(?:([pP])(\\d+))?_"));
+    private static final Cached<StringBuffer> STRINGBUFFER_CACHE = Cached.threadLocal(StringBuffer::new, ReferenceStrength.WEAK);
+    private static final Cached<StringBuffer> STRINGBUFFER_CACHE_2 = Cached.threadLocal(StringBuffer::new, ReferenceStrength.WEAK);
+    private static final Cached<Matcher> NAME_MATCHER_CACHE = Cached.regex(Pattern.compile("_P(\\d+)_"));
+    private static final Cached<Matcher> TOKEN_MATCHER_CACHE = Cached.regex(Pattern.compile("_([a-zA-Z0-9]*?)(?:([pP])(\\d+))?_"));
 
     private static final Pattern GENERIC_FILTER_PATTERN = Pattern.compile("<(\\d+)?(!)?%((?:.*?(?:<\\d+?!?%.*?%>)?)*)%>", Pattern.DOTALL);
-    private static final Ref<Matcher> GENERIC_FILTER_CACHE = ThreadRef.regex(GENERIC_FILTER_PATTERN);
-    private static final Ref<Matcher> GENERIC_FILTER_CACHE_2 = ThreadRef.regex(GENERIC_FILTER_PATTERN);
+    private static final Cached<Matcher> GENERIC_FILTER_CACHE = Cached.regex(GENERIC_FILTER_PATTERN, true);
+    private static final Cached<Matcher> GENERIC_FILTER_CACHE_2 = Cached.regex(GENERIC_FILTER_PATTERN, true);
 
     private static final Pattern TYPE_FILTER_PATTERN = Pattern.compile("<((?:\\d+[a-zA-Z]+)+)(!)?%((?:.*?(?:<(?:\\d+[a-zA-Z]+)+!?%.*?%>)?)*)%>", Pattern.DOTALL);
-    private static final Ref<Matcher> TYPE_FILTER_CACHE = ThreadRef.regex(TYPE_FILTER_PATTERN);
-    private static final Ref<Matcher> TYPE_FILTER_CACHE_2 = ThreadRef.regex(TYPE_FILTER_PATTERN);
+    private static final Cached<Matcher> TYPE_FILTER_CACHE = Cached.regex(TYPE_FILTER_PATTERN, true);
+    private static final Cached<Matcher> TYPE_FILTER_CACHE_2 = Cached.regex(TYPE_FILTER_PATTERN, true);
     private static final Pattern TYPE_FILTER_EXTRACT_PATTERN = Pattern.compile("(\\d+)([a-zA-Z]+)");
-    private static final Ref<Matcher> TYPE_FILTER_EXTRACT_CACHE = ThreadRef.regex(TYPE_FILTER_EXTRACT_PATTERN);
-    private static final Ref<Matcher> TYPE_FILTER_EXTRACT_CACHE_2 = ThreadRef.regex(TYPE_FILTER_EXTRACT_PATTERN);
+    private static final Cached<Matcher> TYPE_FILTER_EXTRACT_CACHE = Cached.regex(TYPE_FILTER_EXTRACT_PATTERN, true);
+    private static final Cached<Matcher> TYPE_FILTER_EXTRACT_CACHE_2 = Cached.regex(TYPE_FILTER_EXTRACT_PATTERN, true);
 
     static {
         try {
@@ -365,7 +365,7 @@ public class Generator {
                 if (valid ^ invert) {
                     String content2 = matcher.group(3);
                     Matcher matcher2 = TYPE_FILTER_CACHE_2.get().reset(content2);
-                    if (matcher2.find())    {
+                    if (matcher2.find()) {
                         StringBuffer buffer2 = STRINGBUFFER_CACHE_2.get();
                         buffer2.setLength(0);
                         do {

@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -23,8 +23,8 @@ package net.daporkchop.lib.common.pool.handle;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
-import net.daporkchop.lib.common.ref.Ref;
-import net.daporkchop.lib.common.ref.ReferenceStrength;
+import net.daporkchop.lib.common.reference.Reference;
+import net.daporkchop.lib.common.reference.ReferenceStrength;
 import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
 
 import java.util.ArrayDeque;
@@ -39,7 +39,7 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  * @author DaPorkchop_
  */
 final class BasicHandledPool<V> implements HandledPool<V> {
-    private final Deque<Ref<V>> deque;
+    private final Deque<Reference<V>> deque;
     private final Supplier<V> factory;
     private final ReferenceStrength strength;
     private final int maxCapacity;
@@ -54,12 +54,12 @@ final class BasicHandledPool<V> implements HandledPool<V> {
     @Override
     public synchronized Handle<V> get() {
         V value = null;
-        Ref<V> ref;
+        Reference<V> ref;
         while ((ref = this.deque.poll()) != null && (value = ref.get()) == null) {
         }
         if (value == null)  {
             value = this.factory.get();
-            ref = this.strength.create(value);
+            ref = this.strength.createReference(value);
         }
         //important to create new instance because of reference-counting
         return new HandleImpl(value, ref);
@@ -70,7 +70,7 @@ final class BasicHandledPool<V> implements HandledPool<V> {
         @NonNull
         protected final V value;
         @NonNull
-        protected final Ref<V> ref;
+        protected final Reference<V> ref;
 
         @Override
         protected void doRelease() {

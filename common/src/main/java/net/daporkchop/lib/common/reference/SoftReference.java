@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -18,42 +18,24 @@
  *
  */
 
-package net.daporkchop.lib.common.ref;
+package net.daporkchop.lib.common.reference;
 
-import lombok.AccessLevel;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.common.misc.threadlocal.TL;
 
-import java.lang.ref.Reference;
-import java.lang.ref.SoftReference;
-import java.lang.ref.WeakReference;
-import java.util.function.Supplier;
+import java.lang.ref.ReferenceQueue;
 
 /**
- * A {@link ThreadRef} whose value may be garbage-collected.
+ * A soft {@link Reference} to an object instance.
  *
  * @author DaPorkchop_
+ * @see java.lang.ref.SoftReference
  */
-@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
-final class CollectableThreadRef<T> implements ThreadRef<T> {
-    @NonNull
-    protected final TL<Reference<T>> threadLocal;
-    @NonNull
-    protected final Supplier<T> factory;
-    protected final boolean soft;
-
-    @Override
-    public T get() {
-        Reference<T> ref = this.threadLocal.get();
-        T value;
-        if (ref == null || (value = ref.get()) == null) {
-            this.threadLocal.set(this.wrap(value = this.factory.get()));
-        }
-        return value;
+public class SoftReference<T> extends java.lang.ref.SoftReference<T> implements Reference<T> {
+    public SoftReference(@NonNull T referent) {
+        super(referent);
     }
 
-    protected Reference<T> wrap(@NonNull T value) {
-        return this.soft ? new SoftReference<>(value) : new WeakReference<>(value);
+    public SoftReference(@NonNull T referent, ReferenceQueue<? super T> queue) {
+        super(referent, queue);
     }
 }

@@ -21,8 +21,8 @@
 package net.daporkchop.lib.crypto.cipher.block;
 
 import lombok.NonNull;
-import net.daporkchop.lib.common.ref.Ref;
-import net.daporkchop.lib.common.ref.ThreadRef;
+import net.daporkchop.lib.common.reference.ReferenceStrength;
+import net.daporkchop.lib.common.reference.cache.Cached;
 import net.daporkchop.lib.hash.util.Digest;
 
 import java.util.function.Consumer;
@@ -37,7 +37,7 @@ public interface IVUpdater extends Consumer<byte[]> {
     IVUpdater SHA3_256 = ofHash(Digest.SHA3_256);
 
     static IVUpdater ofHash(@NonNull Digest digest) {
-        Ref<byte[]> cache = ThreadRef.soft(() -> new byte[digest.getHashSize()]);
+        Cached<byte[]> cache = Cached.threadLocal(() -> new byte[digest.getHashSize()], ReferenceStrength.WEAK);
         return iv -> {
             byte[] buf = cache.get();
             for (int i = 0; i < iv.length; i += buf.length) {

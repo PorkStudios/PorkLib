@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -21,8 +21,7 @@
 package net.daporkchop.lib.primitive.generator.replacer;
 
 import lombok.NonNull;
-import net.daporkchop.lib.common.ref.Ref;
-import net.daporkchop.lib.common.ref.ThreadRef;
+import net.daporkchop.lib.common.reference.cache.Cached;
 import net.daporkchop.lib.primitive.generator.TokenReplacer;
 import net.daporkchop.lib.primitive.generator.option.ParameterContext;
 
@@ -36,8 +35,8 @@ import java.util.stream.Collectors;
  * @author DaPorkchop_
  */
 public class ComplexGenericReplacer implements TokenReplacer {
-    public static final Ref<Matcher> COMPLEX_GENERIC_MATCHER = ThreadRef.regex(Pattern.compile("^_G(?:\\d+(?:extends|super)?)+_$"));
-    public static final Ref<Matcher> COMPLEX_GENERIC_PARAMS = ThreadRef.regex(Pattern.compile("(\\d+)(extends|super)?"));
+    public static final Cached<Matcher> COMPLEX_GENERIC_MATCHER = Cached.regex(Pattern.compile("^_G(?:\\d+(?:extends|super)?)+_$"));
+    public static final Cached<Matcher> COMPLEX_GENERIC_PARAMS = Cached.regex(Pattern.compile("(\\d+)(extends|super)?"));
 
     @Override
     public String replace(@NonNull String text, @NonNull List<ParameterContext> params, String pkg) {

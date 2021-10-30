@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -18,42 +18,16 @@
  *
  */
 
-package net.daporkchop.lib.common.ref;
-
-import net.daporkchop.lib.common.ref.impl.SoftRef;
-import net.daporkchop.lib.common.ref.impl.StrongRef;
-import net.daporkchop.lib.common.ref.impl.WeakRef;
-
-import java.lang.ref.ReferenceQueue;
+package net.daporkchop.lib.common.reference;
 
 /**
- * Various types of reference.
+ * Like {@link java.lang.ref.Reference}, but allows custom sub-classes.
  *
  * @author DaPorkchop_
  */
-public enum ReferenceStrength {
-    STRONG {
-        @Override
-        public <V> Ref<V> create(V value, ReferenceQueue<? super V> queue) {
-            return new StrongRef<>(value);
-        }
-    },
-    SOFT {
-        @Override
-        public <V> Ref<V> create(V value, ReferenceQueue<? super V> queue) {
-            return new SoftRef<>(value, queue);
-        }
-    },
-    WEAK {
-        @Override
-        public <V> Ref<V> create(V value, ReferenceQueue<? super V> queue) {
-            return new WeakRef<>(value, queue);
-        }
-    };
-
-    public <V> Ref<V> create(V value) {
-        return this.create(value, null);
-    }
-
-    public abstract <V> Ref<V> create(V value, ReferenceQueue<? super V> queue);
+public interface Reference<T> {
+    /**
+     * @return the referent, or {@code null} if it has been garbage-collected
+     */
+    T get();
 }

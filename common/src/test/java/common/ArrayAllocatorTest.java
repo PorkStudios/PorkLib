@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -21,7 +21,7 @@
 package common;
 
 import net.daporkchop.lib.common.pool.array.ArrayAllocator;
-import net.daporkchop.lib.common.ref.ReferenceStrength;
+import net.daporkchop.lib.common.reference.ReferenceStrength;
 import org.junit.Test;
 
 import static net.daporkchop.lib.common.util.PValidation.*;

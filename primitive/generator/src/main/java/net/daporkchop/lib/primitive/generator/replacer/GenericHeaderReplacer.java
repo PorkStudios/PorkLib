@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -21,8 +21,7 @@
 package net.daporkchop.lib.primitive.generator.replacer;
 
 import lombok.NonNull;
-import net.daporkchop.lib.common.ref.Ref;
-import net.daporkchop.lib.common.ref.ThreadRef;
+import net.daporkchop.lib.common.reference.cache.Cached;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.primitive.generator.Primitive;
 import net.daporkchop.lib.primitive.generator.TokenReplacer;
@@ -40,7 +39,7 @@ import java.util.regex.Pattern;
  * @author DaPorkchop_
  */
 public class GenericHeaderReplacer implements TokenReplacer, Function<List<ParameterContext>, String> {
-    private static final Ref<Matcher> GENERIC_HEADER_MATCHER = ThreadRef.regex(Pattern.compile("_G(extends|super)?_"));
+    private static final Cached<Matcher> GENERIC_HEADER_MATCHER = Cached.regex(Pattern.compile("_G(extends|super)?_"));
     private static final Map<String, Map<List<ParameterContext>, String>> LOOKUP = new HashMap<>();
 
     static {

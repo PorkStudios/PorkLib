@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -18,23 +18,46 @@
  *
  */
 
-package net.daporkchop.lib.common.ref.impl;
+package net.daporkchop.lib.common.reference.cache;
 
-import net.daporkchop.lib.common.ref.Ref;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.misc.threadlocal.TL;
 
-import java.lang.ref.ReferenceQueue;
-import java.lang.ref.SoftReference;
-import java.lang.ref.WeakReference;
+import java.util.Objects;
+import java.util.function.Supplier;
 
 /**
  * @author DaPorkchop_
  */
-public final class WeakRef<T> extends WeakReference<T> implements Ref<T> {
-    public WeakRef(T referent) {
-        super(referent);
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+@Accessors(fluent = true)
+class ThreadLocalStrongCached<T> implements Cached<T> {
+    protected final TL<T> tl = TL.create();
+
+    @Getter
+    @NonNull
+    protected final Supplier<T> factory;
+
+    @Override
+    public T get() {
+        T value = this.tl.get();
+        if (value == null) { //value is unset, compute it
+            value = this.compute();
+        }
+
+        return value;
     }
 
-    public WeakRef(T referent, ReferenceQueue<? super T> q) {
-        super(referent, q);
+    protected T compute() {
+        //compute value
+        T value = Objects.requireNonNull(this.factory.get());
+
+        //save value
+        this.tl.set(value);
+        return value;
     }
 }

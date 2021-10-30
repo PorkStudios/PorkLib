@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -18,39 +18,24 @@
  *
  */
 
-package net.daporkchop.lib.common.ref;
+package net.daporkchop.lib.common.reference;
 
-import lombok.AccessLevel;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 
-import java.util.Objects;
-import java.util.function.Supplier;
+import java.lang.ref.ReferenceQueue;
 
 /**
- * A simple implementation of {@link Ref} that computes a single value using a given {@link Supplier} once it's first requested.
+ * A weak {@link Reference} to an object instance.
  *
  * @author DaPorkchop_
+ * @see java.lang.ref.WeakReference
  */
-@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
-final class LazyRef<T> implements Ref<T> {
-    @NonNull
-    protected Supplier<T> factory;
+public class WeakReference<T> extends java.lang.ref.WeakReference<T> implements Reference<T> {
+    public WeakReference(@NonNull T referent) {
+        super(referent);
+    }
 
-    protected T value;
-
-    @Override
-    public T get() {
-        T value = this.value;
-        if (value == null) {
-            synchronized (this) {
-                //check again after obtaining lock, it may have been set by another thread
-                if ((value = this.value) == null) {
-                    this.value = value = Objects.requireNonNull(this.factory.get());
-                    this.factory = null; //allow factory to be GC-d
-                }
-            }
-        }
-        return value;
+    public WeakReference(@NonNull T referent, ReferenceQueue<? super T> queue) {
+        super(referent, queue);
     }
 }

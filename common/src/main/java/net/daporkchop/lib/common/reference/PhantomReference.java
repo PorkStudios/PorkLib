@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -18,20 +18,20 @@
  *
  */
 
-package net.daporkchop.lib.common.ref.impl;
+package net.daporkchop.lib.common.reference;
 
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.common.ref.Ref;
+import lombok.NonNull;
+
+import java.lang.ref.ReferenceQueue;
 
 /**
+ * A phantom {@link Reference} to an object instance.
+ *
  * @author DaPorkchop_
+ * @see java.lang.ref.PhantomReference
  */
-@RequiredArgsConstructor
-public final class StrongRef<T> implements Ref<T> {
-    protected final T value;
-
-    @Override
-    public T get() {
-        return this.value;
+public class PhantomReference<T> extends java.lang.ref.PhantomReference<T> implements Reference<T> {
+    public PhantomReference(@NonNull T referent, @NonNull ReferenceQueue<? super T> queue) {
+        super(referent, queue);
     }
 }

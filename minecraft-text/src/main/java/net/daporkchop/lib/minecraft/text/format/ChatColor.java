@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -21,14 +21,11 @@
 package net.daporkchop.lib.minecraft.text.format;
 
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.ref.Ref;
-import net.daporkchop.lib.common.ref.ThreadRef;
 import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
+import net.daporkchop.lib.common.reference.cache.Cached;
 
 import java.awt.Color;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
@@ -63,13 +60,13 @@ public enum ChatColor implements FormattingCode {
     YELLOW('e', 0xFFFF55, 0x3F3F15),
     WHITE('f', Color.WHITE, new Color(0x3F3F3F));
 
-    static final Ref<Matcher> CLEAN_MATCHER_CACHE = ThreadRef.regex(Pattern.compile("§[0-9a-fk-or]", Pattern.CASE_INSENSITIVE));
+    static final Cached<Matcher> CLEAN_MATCHER_CACHE = Cached.regex(Pattern.compile("§[0-9a-fk-or]", Pattern.CASE_INSENSITIVE));
 
     static final ChatColor[] VALUES = values();
 
-    static final FormattingCode[] CODE_LOOKUP       = new FormattingCode['r' + 1];
+    static final FormattingCode[] CODE_LOOKUP = new FormattingCode['r' + 1];
 
-    static final Map<String, FormattingCode> NAME_LOOKUP       = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    static final Map<String, FormattingCode> NAME_LOOKUP = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
     static {
         for (ChatColor color : VALUES) {
@@ -110,7 +107,7 @@ public enum ChatColor implements FormattingCode {
         return closest;
     }
 
-    public static ChatColor fromIndex(int index)    {
+    public static ChatColor fromIndex(int index) {
         return VALUES[index];
     }
 

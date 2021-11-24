@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -21,6 +21,7 @@
 package net.daporkchop.lib.reflection;
 
 import lombok.NonNull;
+import lombok.experimental.UtilityClass;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -32,7 +33,8 @@ import java.util.stream.Stream;
 /**
  * @author DaPorkchop_
  */
-public abstract class PReflection {
+@UtilityClass
+public class PReflection {
     /**
      * Gets an annotation on a class
      *
@@ -88,12 +90,27 @@ public abstract class PReflection {
         return null;
     }
 
-    public static Method getMethod(@NonNull Class<?> clazz, @NonNull String name, @NonNull Class<?>... params)  {
+    /**
+     * Returns a distinct {@link Stream} containing the given class along with all of its superclasses and superinterfaces.
+     *
+     * @param clazz the class
+     * @return the superclasses and superinterfaces
+     */
+    public static Stream<Class<?>> getAllSuperclasses(@NonNull Class<?> clazz) {
+        return Stream.concat(
+                Stream.of(clazz),
+                Stream.concat(Stream.of(clazz.getSuperclass()), Stream.of(clazz.getInterfaces()))
+                        .filter(Objects::nonNull)
+                        .flatMap(PReflection::getAllSuperclasses))
+                .distinct();
+    }
+
+    public static Method getMethod(@NonNull Class<?> clazz, @NonNull String name, @NonNull Class<?>... params) {
         try {
             Method method = clazz.getDeclaredMethod(name, params);
             method.setAccessible(true);
             return method;
-        } catch (NoSuchMethodException e)   {
+        } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
     }

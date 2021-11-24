@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -20,7 +20,6 @@
 
 package net.daporkchop.lib.logging.impl;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -34,51 +33,38 @@ import net.daporkchop.lib.logging.format.DefaultFormatParser;
 import net.daporkchop.lib.logging.format.DefaultMessageFormatter;
 import net.daporkchop.lib.logging.format.FormatParser;
 import net.daporkchop.lib.logging.format.MessageFormatter;
-import net.daporkchop.lib.logging.format.MessagePrinter;
-import net.daporkchop.lib.logging.format.component.EmptyTextComponent;
 import net.daporkchop.lib.logging.format.component.TextComponent;
 
-import java.time.Instant;
 import java.util.Collections;
-import java.util.Date;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * @author DaPorkchop_
  */
-@AllArgsConstructor
 @RequiredArgsConstructor
 @Getter
 @Setter
 @Accessors(chain = true)
-public class SimpleLogger implements Logger {
+public abstract class SimpleLogger implements Logger {
     @NonNull
-    protected FormatParser formatParser = new DefaultFormatParser();
+    protected FormatParser formatParser;
     @NonNull
-    protected MessageFormatter messageFormatter = new DefaultMessageFormatter();
-    @NonNull
-    protected MessagePrinter messagePrinter;
-    @NonNull
-    protected TextComponent alertHeader = DEFAULT_ALERT_HEADER;
-    @NonNull
-    protected TextComponent alertPrefix = DEFAULT_ALERT_PREFIX;
-    @NonNull
-    protected TextComponent alertFooter = DEFAULT_ALERT_FOOTER;
+    protected MessageFormatter messageFormatter;
 
     @NonNull
     protected Set<LogLevel> logLevels = LogAmount.NORMAL.getLevelSet();
 
     protected final Map<String, ChannelLogger> channelCache = Collections.synchronizedMap(PorkUtil.newSoftCache());
 
-    public SimpleLogger(@NonNull MessagePrinter messagePrinter, @NonNull Set<LogLevel> logLevels)    {
-        this.messagePrinter = messagePrinter;
-        this.logLevels = logLevels;
+    public SimpleLogger() {
+        this(new DefaultFormatParser(), DefaultMessageFormatter.builder().build());
     }
 
-    public SimpleLogger(@NonNull MessagePrinter messagePrinter, @NonNull LogAmount amount)    {
-        this(messagePrinter, amount.getLevelSet());
+    public SimpleLogger(@NonNull Set<LogLevel> logLevels) {
+        this();
+        this.logLevels = logLevels;
     }
 
     @Override
@@ -87,56 +73,11 @@ public class SimpleLogger implements Logger {
         return this;
     }
 
-    protected synchronized void doLog(@NonNull LogLevel level, String channel, @NonNull String message) {
-        this.doLog(level, channel, this.formatParser.parse(message));
+    protected void doLog(@NonNull LogLevel level, String channel, @NonNull String message) {
+        this.doLog(level, this.messageFormatter.format(level, channel, this.formatParser.parse(message).splitOnNewlines()));
     }
 
-    protected synchronized void doLog(@NonNull LogLevel level, String channel, @NonNull TextComponent message)  {
-        if (message.hasNewline())   {
-            this.doLog(level, channel, message.splitOnNewlines());
-        } else {
-            this.doLog(level, channel, Collections.singletonList(message));
-        }
-    }
-
-    protected synchronized void doLog(@NonNull LogLevel level, String channel, @NonNull List<TextComponent> lines)  {
-        Date date = Date.from(Instant.now());
-
-        if (level == LogLevel.ALERT) {
-            TextComponent component = this.messageFormatter.format(date, channel, level, this.alertHeader);
-            this.doLog(level, component);
-            component.popChild();
-
-            component.pushChild(this.alertPrefix);
-            this.doLog(level, component);
-            for (TextComponent line : lines) {
-                component.pushChild(line);
-                this.doLog(level, component);
-                component.popChild();
-            }
-            this.doLog(level, component);
-            component.popChild();
-
-            component.pushChild(this.alertFooter);
-            this.doLog(level, component);
-            component.popChild();
-        } else {
-            TextComponent component = null;
-            for (TextComponent line : lines) {
-                if (component == null)  {
-                    component = this.messageFormatter.format(date, channel, level, line);
-                } else {
-                    component.pushChild(line);
-                }
-                this.doLog(level, component);
-                component.popChild();
-            }
-        }
-    }
-
-    protected synchronized void doLog(@NonNull LogLevel level, @NonNull TextComponent component) {
-        this.messagePrinter.accept(component);
-    }
+    protected abstract void doLog(@NonNull LogLevel level, @NonNull Stream<TextComponent> messageLines);
 
     @Override
     public Logger channel(@NonNull String name) {
@@ -177,46 +118,6 @@ public class SimpleLogger implements Logger {
         @Override
         public Logger setMessageFormatter(@NonNull MessageFormatter formatter) {
             return SimpleLogger.this.setMessageFormatter(formatter);
-        }
-
-        @Override
-        public MessagePrinter getMessagePrinter() {
-            return SimpleLogger.this.getMessagePrinter();
-        }
-
-        @Override
-        public Logger setMessagePrinter(@NonNull MessagePrinter printer) {
-            return SimpleLogger.this.setMessagePrinter(printer);
-        }
-
-        @Override
-        public TextComponent getAlertHeader() {
-            return SimpleLogger.this.getAlertHeader();
-        }
-
-        @Override
-        public Logger setAlertHeader(@NonNull TextComponent alertHeader) {
-            return SimpleLogger.this.setAlertHeader(alertHeader);
-        }
-
-        @Override
-        public TextComponent getAlertPrefix() {
-            return SimpleLogger.this.getAlertPrefix();
-        }
-
-        @Override
-        public Logger setAlertPrefix(@NonNull TextComponent alertPrefix) {
-            return SimpleLogger.this.setAlertPrefix(alertPrefix);
-        }
-
-        @Override
-        public TextComponent getAlertFooter() {
-            return SimpleLogger.this.getAlertFooter();
-        }
-
-        @Override
-        public Logger setAlertFooter(@NonNull TextComponent alertFooter) {
-            return SimpleLogger.this.setAlertFooter(alertFooter);
         }
 
         @Override

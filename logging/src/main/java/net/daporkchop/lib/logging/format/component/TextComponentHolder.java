@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -75,7 +75,7 @@ public class TextComponentHolder implements TextComponent {
     }
 
     @Override
-    public synchronized void pushChild(@NonNull TextComponent child) {
+    public void pushChild(@NonNull TextComponent child) {
         List<TextComponent> children = this.children;
         if (children == Collections.<TextComponent>emptyList()) {
             this.children = children = new ArrayList<>();
@@ -84,7 +84,7 @@ public class TextComponentHolder implements TextComponent {
     }
 
     @Override
-    public synchronized TextComponent popChild() {
+    public TextComponent popChild() {
         List<TextComponent> children = this.children;
         checkState(!children.isEmpty(), "stack underflow");
         return children.remove(children.size() - 1);

@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -20,10 +20,11 @@
 
 package net.daporkchop.lib.logging.format;
 
-import lombok.Getter;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.Setter;
-import lombok.experimental.Accessors;
+import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.logging.LogLevel;
 import net.daporkchop.lib.logging.console.TextFormat;
@@ -32,12 +33,14 @@ import net.daporkchop.lib.logging.format.component.TextComponentHolder;
 import net.daporkchop.lib.logging.format.component.TextComponentString;
 
 import java.awt.Color;
+import java.sql.Date;
 import java.text.DateFormat;
-import java.util.ArrayList;
-import java.util.Date;
+import java.time.Instant;
+import java.util.Arrays;
 import java.util.EnumMap;
-import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 /**
  * Default implementation of {@link MessageFormatter}. Prints messages as follows:
@@ -46,40 +49,79 @@ import java.util.Map;
  *
  * @author DaPorkchop_
  */
-@Getter
-@Setter
-@Accessors(chain = true)
+@Builder
 public class DefaultMessageFormatter implements MessageFormatter {
-    protected static final TextComponent START = new TextComponentString("[");
-    protected static final TextComponent BETWEEN = new TextComponentString("] [");
-    protected static final TextComponent END = new TextComponentString("] ");
+    protected static final TextComponent TOKEN_START = new TextComponentString("[");
+    protected static final TextComponent TOKEN_END = new TextComponentString("] ");
+
+    protected static final TextComponent NEWLINE = new TextComponentString("\n");
 
     protected static final Map<LogLevel, TextComponent> LEVEL_COMPONENTS = new EnumMap<>(LogLevel.class);
-    protected static final TextFormat DATE_STYLE = new TextFormat().setTextColor(Color.CYAN);
 
     static {
-        for (LogLevel level : LogLevel.values())    {
+        for (LogLevel level : LogLevel.values()) {
             LEVEL_COMPONENTS.put(level, new TextComponentString(level.name(), level.getColor(), null, level.getStyle()));
         }
     }
 
-    protected DateFormat dateFormat = PorkUtil.DATE_FORMAT;
+    @Builder.Default
+    protected final boolean alertSpecialFormatting = true;
+    @NonNull
+    @Builder.Default
+    protected final TextComponent alertHeaderFooter = new TextComponentString("****************************************", Color.RED, null, TextStyle.BOLD);
+    @NonNull
+    @Builder.Default
+    protected final TextComponent alertPrefix = new TextComponentString("* ", Color.RED, null, TextStyle.BOLD);
+
+    @Builder.Default
+    protected final boolean includeDate = true;
+    @NonNull
+    @Builder.Default
+    protected final DateFormat dateFormat = PorkUtil.DATE_FORMAT;
+    @NonNull
+    @Builder.Default
+    protected final TextFormat dateStyle = new TextFormat().setTextColor(Color.CYAN);
+
+    @Builder.Default
+    protected final boolean includeChannel = true;
+    @NonNull
+    @Builder.Default
+    protected final TextFormat channelStyle = new TextFormat();
+
+    @Builder.Default
+    protected final boolean includeLevel = true;
 
     @Override
-    public TextComponent format(@NonNull Date date, String channelName, @NonNull LogLevel level, @NonNull TextComponent message) {
-        List<TextComponent> components = new ArrayList<>((channelName == null ? 5 : 7) + (message.getText() == null ? 0 : 1) + message.getChildren().size());
-
-        components.add(START);
-        components.add(new TextComponentString(this.dateFormat.format(date), DATE_STYLE));
-        components.add(BETWEEN);
-        if (channelName != null)    {
-            components.add(new TextComponentString(channelName));
-            components.add(BETWEEN);
+    public Stream<TextComponent> format(@NonNull LogLevel level, String channelName, @NonNull Stream<TextComponent> message) {
+        TextComponent sharedPrefix = new TextComponentHolder();
+        if (this.includeDate) {
+            sharedPrefix.pushChild(TOKEN_START);
+            sharedPrefix.pushChild(new TextComponentString(this.dateFormat.format(Date.from(Instant.now())), this.dateStyle));
+            sharedPrefix.pushChild(TOKEN_END);
         }
-        components.add(LEVEL_COMPONENTS.get(level));
-        components.add(END);
-        components.add(message);
+        if (this.includeChannel && channelName != null) {
+            sharedPrefix.pushChild(TOKEN_START);
+            sharedPrefix.pushChild(new TextComponentString(channelName, this.channelStyle));
+            sharedPrefix.pushChild(TOKEN_END);
+        }
+        if (this.includeLevel) {
+            sharedPrefix.pushChild(TOKEN_START);
+            sharedPrefix.pushChild(LEVEL_COMPONENTS.get(level));
+            sharedPrefix.pushChild(TOKEN_END);
+        }
 
-        return new TextComponentHolder(components);
+        if (this.alertSpecialFormatting && level == LogLevel.ALERT) {
+            return Stream.of(
+                    Stream.of(
+                            new TextComponentHolder(Arrays.asList(sharedPrefix, this.alertHeaderFooter)),
+                            new TextComponentHolder(Arrays.asList(sharedPrefix, this.alertPrefix))),
+                    message.map(line -> new TextComponentHolder(Arrays.asList(sharedPrefix, this.alertPrefix, line))),
+                    Stream.of(
+                            new TextComponentHolder(Arrays.asList(sharedPrefix, this.alertPrefix)),
+                            new TextComponentHolder(Arrays.asList(sharedPrefix, this.alertHeaderFooter))))
+                    .flatMap(Function.identity());
+        } else {
+            return message.map(line -> new TextComponentHolder(Arrays.asList(sharedPrefix, line)));
+        }
     }
 }

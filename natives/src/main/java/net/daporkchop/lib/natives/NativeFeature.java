@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -29,6 +29,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
@@ -79,14 +80,12 @@ public abstract class NativeFeature<F extends Feature<F>> implements Feature<F> 
         AVAILABLE = LIB_ARCH != null;
     }
 
-    public static String formatLibName(@NonNull String libName) {
-        String prefix = "";
+    private static String resourcePath(@NonNull String libName) {
         if (libName.startsWith("/"))    {
             libName = libName.substring(1);
-            prefix = "";
         }
-        String format = libName.isEmpty() ? "%1$s%2$s.%4$s" : "%1$s%2$s/%3$s.%4$s";
-        return String.format(format, prefix, LIB_ARCH, libName, LIB_EXT);
+        String format = libName.isEmpty() ? "%1$s.%3$s" : "%1$s/%2$s.%3$s";
+        return String.format(format, LIB_ARCH, libName, LIB_EXT);
     }
 
     /**
@@ -106,10 +105,10 @@ public abstract class NativeFeature<F extends Feature<F>> implements Feature<F> 
         //attempt to find the class before making any files
         Class<?> clazz = Class.forName(className, false, classLoader);
 
-        String libPath = formatLibName(libName);
+        String libPath = resourcePath(libName);
 
         //create new library file
-        File tempFile = File.createTempFile(libName + UUID.randomUUID(), LIB_EXT);
+        File tempFile = File.createTempFile(libName + UUID.randomUUID(), '.' + LIB_EXT);
 
         try (InputStream in = clazz.getResourceAsStream(libPath)) {
             if (in == null) {//library file couldn't be found

@@ -26,6 +26,7 @@ import net.daporkchop.lib.common.misc.Tuple;
 import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.common.system.OperatingSystem;
 import net.daporkchop.lib.common.system.PlatformInfo;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.logging.LogAmount;
 import net.daporkchop.lib.logging.LogLevel;
 import net.daporkchop.lib.logging.Logger;
@@ -47,9 +48,15 @@ import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The default, global logger instance, accessible via {@link net.daporkchop.lib.logging.Logging#logger}.
@@ -65,14 +72,17 @@ public class DefaultLogger extends SimpleLogger {
     public static final PrintStream stdOut = System.out;
     protected volatile int redirectedStdOut = 0;
 
-    protected final Map<String, Tuple<Set<LogLevel>, MessagePrinter>> delegates = new ConcurrentHashMap<>();
+    protected final Map<String, Tuple<Set<LogLevel>, MessagePrinter>> delegates = new HashMap<>();
+    protected final Map<LogLevel, List<MessagePrinter>> delegatesByLevel = new EnumMap<>(LogLevel.class);
 
     public DefaultLogger() {
-        super(component -> {
-            throw new UnsupportedOperationException("DefaultLogger's base message printer doesn't do anything!");
-        });
+        super();
 
-        this.delegates.put("console", new Tuple<>(this.logLevels, component -> stdOut.println(component.toRawString())));
+        for (LogLevel level : LogLevel.values()) {
+            this.delegatesByLevel.put(level, new CopyOnWriteArrayList<>());
+        }
+
+        this.setDelegate("console", component -> stdOut.println(component.toRawString()));
     }
 
     /**
@@ -154,7 +164,7 @@ public class DefaultLogger extends SimpleLogger {
             }
             this.warn("Windows detected, not enabling ANSI formatting!");
         } else {
-            this.delegates.computeIfAbsent("console", s -> new Tuple<>(this.logLevels, null)).atomicSetB(new ANSIMessagePrinter());
+            this.setDelegate("console", new ANSIMessagePrinter());
         }
         return this;
     }
@@ -167,12 +177,17 @@ public class DefaultLogger extends SimpleLogger {
         return this.setDelegate(name, null, printer);
     }
 
-    public DefaultLogger setDelegate(@NonNull String name, Set<LogLevel> levels, MessagePrinter printer) {
-        if (printer == null) {
-            this.delegates.remove(name);
-        } else {
-            this.delegates.computeIfAbsent(name, s -> new Tuple<>(levels == null ? this.logLevels : levels, printer))
-                          .setA(levels == null ? this.logLevels : levels).setB(printer);
+    public synchronized DefaultLogger setDelegate(@NonNull String name, Set<LogLevel> levels, MessagePrinter printer) {
+        //remove any existing delegates for name
+        this.delegates.computeIfPresent(name, (_name, old) -> {
+            PorkUtil.fallbackIfNull(levels, this.logLevels).forEach(level -> this.delegatesByLevel.get(level).remove(old.getB()));
+            return null;
+        });
+
+        //add new delegate
+        if (printer != null) {
+            this.delegates.put(name, new Tuple<>(levels, printer));
+            PorkUtil.fallbackIfNull(levels, this.logLevels).forEach(level -> this.delegatesByLevel.get(level).add(printer));
         }
         return this;
     }
@@ -225,29 +240,33 @@ public class DefaultLogger extends SimpleLogger {
     }
 
     @Override
-    protected synchronized void doLog(@NonNull LogLevel level, @NonNull TextComponent component) {
-        for (Tuple<Set<LogLevel>, MessagePrinter> tuple : this.delegates.values()) {
-            if (tuple.getA().contains(level))   {
-                tuple.getB().accept(component);
-            }
-        }
+    protected synchronized void doLog(@NonNull LogLevel level, @NonNull Stream<TextComponent> messageLines) {
+        this.delegatesByLevel.get(level).forEach(messageLines.collect(Collectors.toList())::forEach);
     }
 
     @Override
     public synchronized DefaultLogger setLogLevels(@NonNull Set<LogLevel> logLevels) {
         Set<LogLevel> oldLevels = this.logLevels;
         super.setLogLevels(logLevels);
-        for (Tuple<Set<LogLevel>, MessagePrinter> tuple : this.delegates.values())  {
-            if (tuple.getA() == oldLevels)  {
-                tuple.atomicSetA(logLevels);
+        this.delegates.values().forEach(tuple -> {
+            if (tuple.isANull()) {
+                for (LogLevel level : LogLevel.values()) {
+                    if (oldLevels.contains(level) ^ logLevels.contains(level)) {
+                        if (oldLevels.contains(level)) {
+                            this.delegatesByLevel.get(level).remove(tuple.getB());
+                        } else {
+                            this.delegatesByLevel.get(level).add(tuple.getB());
+                        }
+                    }
+                }
             }
-        }
+        });
         return this;
     }
 
     @Override
-    public DefaultLogger setMessagePrinter(@NonNull MessagePrinter messagePrinter) {
-        this.warn("Attempted to call setMessagePrinter() on an instance of %s!", DefaultLogger.class);
+    public DefaultLogger setLogAmount(@NonNull LogAmount amount) {
+        super.setLogAmount(amount);
         return this;
     }
 
@@ -260,30 +279,6 @@ public class DefaultLogger extends SimpleLogger {
     @Override
     public DefaultLogger setMessageFormatter(@NonNull MessageFormatter messageFormatter) {
         super.setMessageFormatter(messageFormatter);
-        return this;
-    }
-
-    @Override
-    public DefaultLogger setAlertHeader(@NonNull TextComponent alertHeader) {
-        super.setAlertHeader(alertHeader);
-        return this;
-    }
-
-    @Override
-    public DefaultLogger setAlertPrefix(@NonNull TextComponent alertPrefix) {
-        super.setAlertPrefix(alertPrefix);
-        return this;
-    }
-
-    @Override
-    public DefaultLogger setAlertFooter(@NonNull TextComponent alertFooter) {
-        super.setAlertFooter(alertFooter);
-        return this;
-    }
-
-    @Override
-    public DefaultLogger setLogAmount(@NonNull LogAmount amount) {
-        super.setLogAmount(amount);
         return this;
     }
 }

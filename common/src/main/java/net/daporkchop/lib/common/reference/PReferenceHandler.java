@@ -59,7 +59,7 @@ public class PReferenceHandler {
     /**
      * Equivalent to calling {@link #createReference(Object, BiFunction, int)} with a {@code cost} of {@code 1}.
      */
-    public <S, R extends Reference<S> & HandleableReference> R createReference(@NonNull S referent, @NonNull BiFunction<S, ReferenceQueue<? super S>, R> factory) {
+    public <T, R extends Reference<T> & HandleableReference> R createReference(@NonNull T referent, @NonNull BiFunction<T, ReferenceQueue<? super T>, R> factory) {
         return createReference(referent, factory, 1);
     }
 
@@ -73,11 +73,11 @@ public class PReferenceHandler {
      * @param cost     the estimated cost of invoking {@link HandleableReference#handle()} on the reference. This may be an arbitrary
      *                 positive {@code int}, where higher values indicate a more expensive operation. It may be used to help load-balancing
      *                 across multiple handler threads.
-     * @param <S>      the referent type
+     * @param <T>      the referent type
      * @param <R>      the reference type
      * @return the created reference
      */
-    public <S, R extends Reference<S> & HandleableReference> R createReference(@NonNull S referent, @NonNull BiFunction<S, ReferenceQueue<? super S>, R> factory, int cost) {
+    public <T, R extends Reference<T> & HandleableReference> R createReference(@NonNull T referent, @NonNull BiFunction<T, ReferenceQueue<? super T>, R> factory, int cost) {
         return factory.apply(referent, uncheckedCast(CURRENT_HANDLER.queue));
     }
 

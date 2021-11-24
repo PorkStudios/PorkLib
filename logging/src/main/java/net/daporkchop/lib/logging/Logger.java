@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -41,10 +41,6 @@ import java.util.function.Consumer;
  * @author DaPorkchop_
  */
 public interface Logger {
-    TextComponent DEFAULT_ALERT_HEADER = new TextComponentString("****************************************", Color.RED, null, TextStyle.BOLD);
-    TextComponent DEFAULT_ALERT_PREFIX = new TextComponentString("* ", Color.RED, null, TextStyle.BOLD);
-    TextComponent DEFAULT_ALERT_FOOTER = DEFAULT_ALERT_HEADER;
-
     //
     //
     // Utility methods
@@ -606,74 +602,6 @@ public interface Logger {
      * @param formatter the new {@link MessageFormatter} to use
      */
     Logger setMessageFormatter(@NonNull MessageFormatter formatter);
-
-    /**
-     * Gets the currently used {@link MessagePrinter} for printing log messages.
-     *
-     * @return the currently used {@link MessagePrinter}
-     */
-    MessagePrinter getMessagePrinter();
-
-    /**
-     * Sets the currently used {@link MessagePrinter} for printing log messages.
-     *
-     * @param printer the new {@link MessagePrinter} to use
-     */
-    Logger setMessagePrinter(@NonNull MessagePrinter printer);
-
-    /**
-     * Gets the currently used header above messages printed with the {@link LogLevel#ALERT} level.
-     * <p>
-     * Defaults to {@link #DEFAULT_ALERT_HEADER}.
-     *
-     * @return the current alert header
-     */
-    TextComponent getAlertHeader();
-
-    /**
-     * Sets the currently used header above messages printed with the {@link LogLevel#ALERT} level.
-     * <p>
-     * Defaults to {@link #DEFAULT_ALERT_HEADER}.
-     *
-     * @param alertHeader the new alert header to use
-     */
-    Logger setAlertHeader(@NonNull TextComponent alertHeader);
-
-    /**
-     * Gets the currently used prefix above messages printed with the {@link LogLevel#ALERT} level.
-     * <p>
-     * Defaults to {@link #DEFAULT_ALERT_PREFIX}.
-     *
-     * @return the current alert prefix
-     */
-    TextComponent getAlertPrefix();
-
-    /**
-     * Sets the currently used prefix above messages printed with the {@link LogLevel#ALERT} level.
-     * <p>
-     * Defaults to {@link #DEFAULT_ALERT_PREFIX}.
-     *
-     * @param alertPrefix the new alert prefix to use
-     */
-    Logger setAlertPrefix(@NonNull TextComponent alertPrefix);
-
-    /**
-     * Gets the currently used footer above messages printed with the {@link LogLevel#ALERT} level.
-     * <p>
-     * Defaults to {@link #DEFAULT_ALERT_FOOTER}.
-     *
-     * @return the current alert footer
-     */
-    TextComponent getAlertFooter();
-
-    /**
-     * Sets the currently used footer above messages printed with the {@link LogLevel#ALERT} level.
-     * <p>
-     * Defaults to {@link #DEFAULT_ALERT_FOOTER}.
-     *
-     * @param alertFooter the new alert footer to use
-     */
-    Logger setAlertFooter(@NonNull TextComponent alertFooter);
 
     /**
      * Gets the levels that may be printed by this logger.

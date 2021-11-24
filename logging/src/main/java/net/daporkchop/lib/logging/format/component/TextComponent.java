@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 
 /**
  * Base component in a formatted text string.
@@ -127,14 +128,14 @@ public interface TextComponent {
         }
     }
 
-    default List<TextComponent> splitOnNewlines() {
+    default Stream<TextComponent> splitOnNewlines() {
         List<TextComponent> cache = new ArrayList<>();
         AtomicReference<TextComponent> ref = new AtomicReference<>(new TextComponentHolder());
         this.internal_addComponents(cache, ref, this, null);
         if (!ref.get().getChildren().isEmpty()) {
             cache.add(ref.get());
         }
-        return cache;
+        return cache.stream();
     }
 
     default void internal_addComponents(@NonNull List<TextComponent> cache, @NonNull AtomicReference<TextComponent> curr, @NonNull TextComponent component, TextComponent parent) {

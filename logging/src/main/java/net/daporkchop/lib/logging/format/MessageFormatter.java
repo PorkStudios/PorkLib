@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -24,7 +24,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.logging.LogLevel;
 import net.daporkchop.lib.logging.format.component.TextComponent;
 
-import java.util.Date;
+import java.util.stream.Stream;
 
 /**
  * Formats log messages for printing to the console
@@ -36,11 +36,10 @@ public interface MessageFormatter {
     /**
      * Prepares the actual message for printing
      *
-     * @param date        the date that the message was sent at, should be used for message timestamps
-     * @param channelName the name of the channel that the message was sent on. May be {@code null}
      * @param level       the log level that the message was sent using
+     * @param channelName the name of the channel that the message was sent on. May be {@code null}
      * @param message     the actual message
-     * @return a formatted message, ready to be printed to the console
+     * @return a {@link Stream} containing each line of the formatted message, ready to be printed to the console
      */
-    TextComponent format(@NonNull Date date, String channelName, @NonNull LogLevel level, @NonNull TextComponent message);
+    Stream<TextComponent> format(@NonNull LogLevel level, String channelName, @NonNull Stream<TextComponent> message);
 }

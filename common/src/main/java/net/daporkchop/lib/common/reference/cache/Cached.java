@@ -84,7 +84,7 @@ public interface Cached<T> {
     static <T> Cached<T> threadLocal(@NonNull Supplier<T> factory, @NonNull ReferenceStrength strength) {
         return strength == ReferenceStrength.STRONG
                 ? new ThreadLocalStrongCached<>(factory)
-                : new GlobalReferencedCached<>(factory, strength);
+                : new ThreadLocalReferencedCached<>(factory, strength);
     }
 
     /**

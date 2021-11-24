@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -27,6 +27,7 @@ import lombok.NonNull;
 import java.awt.Color;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Implementation of an empty {@link TextComponent}.
@@ -83,7 +84,7 @@ public final class EmptyTextComponent implements TextComponent {
     }
 
     @Override
-    public List<TextComponent> splitOnNewlines() {
-        return Collections.singletonList(this);
+    public Stream<TextComponent> splitOnNewlines() {
+        return Stream.of(this);
     }
 }

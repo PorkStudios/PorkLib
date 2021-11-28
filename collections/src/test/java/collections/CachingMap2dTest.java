@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2021 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -23,7 +23,7 @@ package collections;
 import lombok.NonNull;
 import net.daporkchop.lib.collections.map.map2d.CachingMap2d;
 import net.daporkchop.lib.collections.map.map2d.Map2d;
-import net.daporkchop.lib.math.vector.i.Vec2i;
+import net.daporkchop.lib.math.vector.Vec2i;
 import org.junit.Test;
 
 import java.util.Collection;
@@ -39,7 +39,7 @@ public class CachingMap2dTest {
         Map2d<String> map = new CachingMap2d<String>(256) {
             @Override
             protected void onEvicted(int x, int y, @NonNull String value) {
-                if (!evictedPositions.add(new Vec2i(x, y))) {
+                if (!evictedPositions.add(Vec2i.of(x, y))) {
                     throw new IllegalStateException(x + "," + y);
                 }
             }

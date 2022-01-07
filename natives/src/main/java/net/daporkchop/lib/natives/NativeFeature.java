@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2021 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -29,7 +29,6 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
@@ -81,7 +80,7 @@ public abstract class NativeFeature<F extends Feature<F>> implements Feature<F> 
     }
 
     private static String resourcePath(@NonNull String libName) {
-        if (libName.startsWith("/"))    {
+        if (libName.startsWith("/")) {
             libName = libName.substring(1);
         }
         String format = libName.isEmpty() ? "%1$s.%3$s" : "%1$s/%2$s.%3$s";
@@ -130,7 +129,10 @@ public abstract class NativeFeature<F extends Feature<F>> implements Feature<F> 
             Method method = Runtime.class.getDeclaredMethod("load0", Class.class, String.class);
             method.setAccessible(true);
             method.invoke(Runtime.getRuntime(), clazz, tempFile.getAbsolutePath());
-        } catch (NoSuchMethodException | SecurityException e)   {
+        } catch (Exception e) {
+            if (PlatformInfo.JAVA_VERSION >= 8) {
+                new RuntimeException("you are running java 9+, which is bad and not good. this means that native libraries will be loaded from the incorrect classloader.", e).printStackTrace();
+            }
             //fallback to System.load
             System.load(tempFile.getAbsolutePath());
         }

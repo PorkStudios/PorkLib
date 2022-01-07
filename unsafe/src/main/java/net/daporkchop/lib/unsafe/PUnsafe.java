@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2021 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -28,8 +28,9 @@ import sun.nio.ch.DirectBuffer;
 
 import java.lang.reflect.Field;
 import java.nio.Buffer;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.security.ProtectionDomain;
-import java.util.function.Supplier;
 
 /**
  * Wrapper class around {@link Unsafe}.
@@ -44,7 +45,7 @@ public class PUnsafe {
     /**
      * A reference to {@link Unsafe}.
      */
-    public final Unsafe UNSAFE = ((Supplier<Unsafe>) () -> {
+    public final Unsafe UNSAFE = AccessController.doPrivileged((PrivilegedAction<Unsafe>) () -> {
         try {
             Field field = Unsafe.class.getDeclaredField("theUnsafe");
             field.setAccessible(true);
@@ -52,7 +53,19 @@ public class PUnsafe {
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new AssertionError("Unable to obtain instance of sun.misc.Unsafe", e);
         }
-    }).get();
+    });
+
+    //
+    // INTERNAL
+    //
+
+    private final long DIRECT_BUFFER_ADDRESS_OFFSET = AccessController.doPrivileged((PrivilegedAction<Long>) () -> {
+        try {
+            return objectFieldOffset(Buffer.class.getDeclaredField("address"));
+        } catch (NoSuchFieldException e) {
+            throw new AssertionError("Unable to resolve direct buffer address offset!");
+        }
+    });
 
     //
     // ARRAY BASE OFFSETS
@@ -807,9 +820,10 @@ public class PUnsafe {
     }
 
     public long pork_directBufferAddress(Buffer buffer) {
-        return ((DirectBuffer) buffer).address();
+        return PUnsafe.getLong(buffer, DIRECT_BUFFER_ADDRESS_OFFSET);
     }
 
+    //TODO: these methods won't work on Java 9+
     public Object pork_directBufferAttachment(Buffer buffer) {
         return ((DirectBuffer) buffer).attachment();
     }

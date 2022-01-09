@@ -21,7 +21,7 @@ endif
 $(info natives: building for $(BUILD_TYPE))
 
 export SOURCES		:=
-export INCLUDES		:=	$(COMMONSRC)/include $(JAVA_HOME)include $(JAVA_HOME)include/linux
+export INCLUDES		:=	$(COMMONSRC)/include $(JAVA_HOME)/include $(JAVA_HOME)/include/linux
 
 export ARCHS		:=	aarch64-linux-gnu x86_64-linux-gnu x86_64-w64-mingw32
 #TODO: export ARCHS		:=	aarch64-linux-gnu arm-linux-gnueabihf x86_64-linux-gnu x86_64-w64-mingw32

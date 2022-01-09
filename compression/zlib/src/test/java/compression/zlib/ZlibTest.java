@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -28,17 +28,21 @@ import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.binary.stream.misc.SlashDevSlashNull;
 import net.daporkchop.lib.common.function.io.IOConsumer;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.compression.context.PDeflater;
 import net.daporkchop.lib.compression.context.PInflater;
 import net.daporkchop.lib.compression.zlib.Zlib;
 import net.daporkchop.lib.compression.zlib.ZlibMode;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.stream.Stream;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
@@ -50,6 +54,11 @@ public class ZlibTest {
     protected byte[] text;
     protected byte[] gzipped;
     protected byte[] zeroes;
+
+    @BeforeClass
+    public static void ensureNative() {
+        checkState(Zlib.PROVIDER.isNative(), "native zlib must be loaded!");
+    }
 
     @Before
     public void loadText() throws IOException {
@@ -133,6 +142,7 @@ public class ZlibTest {
     @Test
     public void testStreamCompression() throws IOException {
         try (PDeflater deflater = Zlib.PROVIDER.deflater()) {
+            //simple streaming compression
             this.forEachBufferType(2, buffers -> {
                 ByteBuf src = buffers[0].writeBytes(this.text);
                 ByteBuf dst = buffers[1].ensureWritable(deflater.provider().compressBound(src.readableBytes()));
@@ -141,6 +151,8 @@ public class ZlibTest {
                     out.write(src);
                 }
             });
+
+            //simple streaming compression with dictionary
             this.forEachBufferType(3, buffers -> {
                 ByteBuf src = buffers[0].writeBytes(this.text);
                 ByteBuf dst = buffers[1].ensureWritable(deflater.provider().compressBound(src.readableBytes()));
@@ -149,6 +161,56 @@ public class ZlibTest {
 
                 try (DataOut out = deflater.compressionStream(DataOut.wrap(dst), dict)) {
                     out.write(src);
+                }
+            });
+
+            //simple streaming compression with multiple consecutive flushes
+            this.forEachBufferType(3, buffers -> {
+                ByteBuf src = buffers[0].writeBytes(this.text);
+                ByteBuf dst = buffers[1].ensureWritable(deflater.provider().compressBound(src.readableBytes()));
+                ByteBuf dict = buffers[2];
+                SlashDevSlashNull.INSTANCE.read(dict, 1024);
+
+                try (DataOut out = deflater.compressionStream(DataOut.wrap(dst), dict)) {
+                    out.flush();
+                    out.flush();
+                    out.write(src);
+                    out.flush();
+                    out.flush();
+                    out.write(new byte[0]);
+                    out.flush();
+                    out.flush();
+                }
+            });
+
+            //simple streaming compression as OutputStream
+            this.forEachBufferType(2, buffers -> {
+                ByteBuf src = buffers[0].writeBytes(this.text);
+                ByteBuf dst = buffers[1].ensureWritable(deflater.provider().compressBound(src.readableBytes()));
+
+                try (OutputStream out = deflater.compressionStream(DataOut.wrap(dst)).asOutputStream()) {
+                    src.readBytes(out, src.readableBytes());
+                }
+            });
+
+            //simple streaming compression when wrapped in a BufferedOutputStream
+            this.forEachBufferType(2, buffers -> {
+                ByteBuf src = buffers[0].writeBytes(this.text);
+                ByteBuf dst = buffers[1].ensureWritable(deflater.provider().compressBound(src.readableBytes()));
+
+                try (OutputStream out = new BufferedOutputStream(deflater.compressionStream(DataOut.wrap(dst)).asOutputStream())) {
+                    src.readBytes(out, src.readableBytes());
+                }
+            });
+
+            //simple streaming compression when wrapped in a BufferedOutputStream which is explicitly flushed
+            this.forEachBufferType(2, buffers -> {
+                ByteBuf src = buffers[0].writeBytes(this.text);
+                ByteBuf dst = buffers[1].ensureWritable(deflater.provider().compressBound(src.readableBytes()));
+
+                try (OutputStream out = new BufferedOutputStream(deflater.compressionStream(DataOut.wrap(dst)).asOutputStream())) {
+                    src.readBytes(out, src.readableBytes());
+                    out.flush();
                 }
             });
         }

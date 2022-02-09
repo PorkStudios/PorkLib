@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2021 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -36,6 +36,7 @@ import net.daporkchop.lib.logging.format.MessageFormatter;
 import net.daporkchop.lib.logging.format.component.TextComponent;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -56,7 +57,7 @@ public abstract class SimpleLogger implements Logger {
     @NonNull
     protected Set<LogLevel> logLevels = LogAmount.NORMAL.getLevelSet();
 
-    protected final Map<String, ChannelLogger> channelCache = Collections.synchronizedMap(PorkUtil.newSoftCache());
+    protected final Map<String, ChannelLogger> channelCache = Collections.synchronizedMap(new HashMap<>()); //TODO: i want this to have weak values
 
     public SimpleLogger() {
         this(new DefaultFormatParser(), DefaultMessageFormatter.builder().build());

@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2021 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -33,6 +33,7 @@ import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 /**
  * A helper class for looking up generic parameters in implementation classes.
@@ -43,7 +44,7 @@ import java.util.Map;
  */
 @UtilityClass
 public class GenericMatcher {
-    private static final Map<Key, Class<?>> CACHE = PorkUtil.newSoftCache(); //TODO: SoftCache doesn't have soft keys
+    private static final Map<Key, Class<?>> CACHE = new WeakHashMap<>(); //TODO: this doesn't have soft keys
 
     /**
      * Finds the parameter of a generic type in a particular implementation of a class.

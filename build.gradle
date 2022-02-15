@@ -18,33 +18,10 @@
  *
  */
 
-buildscript {
-    repositories {
-        jcenter()
-    }
-}
-
 allprojects {
     apply plugin: "java"
     apply plugin: "java-library"
     apply plugin: "maven-publish"
-
-    ext {
-        //general things
-        javaVersion = "1.8"
-        porklibVersion = "0.5.7-SNAPSHOT"
-
-        //dependency things
-        aircompressorVersion = "0.16"
-        bouncycastleVersion = "1.59"
-        florianingerlRegexVersion = "1.1.9"
-        gsonVersion = "2.8.5"
-        guavaVersion = "27.0-jre"
-        junitVersion = "4.12"
-        lombokVersion = "1.16.20"
-        nettyVersion = "4.1.36.Final"
-        raknetVersion = "1.4.0"
-    }
 
     group "net.daporkchop"
     version "$porklibVersion"

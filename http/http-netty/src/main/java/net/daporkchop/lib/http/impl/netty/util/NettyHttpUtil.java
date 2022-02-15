@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2021 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -24,12 +24,12 @@ import com.florianingerl.util.regex.Matcher;
 import com.florianingerl.util.regex.Pattern;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
+import net.daporkchop.lib.common.misc.string.PStrings;
 import net.daporkchop.lib.http.HttpMethod;
 import net.daporkchop.lib.http.request.query.Query;
 import net.daporkchop.lib.http.request.query.QueryImpl;
-import net.daporkchop.lib.http.util.URLEncoding;
 import net.daporkchop.lib.http.util.StatusCodes;
+import net.daporkchop.lib.http.util.URLEncoding;
 import net.daporkchop.lib.http.util.exception.GenericHttpException;
 import net.daporkchop.lib.http.util.exception.HttpException;
 import net.daporkchop.lib.unsafe.PUnsafe;
@@ -43,11 +43,11 @@ import java.util.Map;
  */
 @UtilityClass
 public class NettyHttpUtil {
-    protected final long MATCHER_FIRST_OFFSET         = PUnsafe.pork_getOffset(Matcher.class, "first");
-    protected final long MATCHER_GROUPS_OFFSET        = PUnsafe.pork_getOffset(Matcher.class, "groups");
+    protected final long MATCHER_FIRST_OFFSET = PUnsafe.pork_getOffset(Matcher.class, "first");
+    protected final long MATCHER_GROUPS_OFFSET = PUnsafe.pork_getOffset(Matcher.class, "groups");
     protected final long MATCHER_PARENTPATTERN_OFFSET = PUnsafe.pork_getOffset(Matcher.class, "parentPattern");
-    protected final long MATCHER_TEXT_OFFSET          = PUnsafe.pork_getOffset(Matcher.class, "text");
-    protected final long PATTERN_GROUPINDICES_OFFSET  = PUnsafe.pork_getOffset(Pattern.class, "groupIndices");
+    protected final long MATCHER_TEXT_OFFSET = PUnsafe.pork_getOffset(Matcher.class, "text");
+    protected final long PATTERN_GROUPINDICES_OFFSET = PUnsafe.pork_getOffset(Pattern.class, "groupIndices");
 
     //protected final Pattern _BASE_URL_PATTERN       = Pattern.compile("^([\\/A-Za-z+*\\-._%]+)(?:\\?(?:[A-Za-z+*\\-._%]+(?:=[A-Za-z+*\\-._%]+)?&)*(?:[A-Za-z+*\\-._%]+(?:=[A-Za-z+*\\-._%]+)?))?(?:#[A-Za-z+*\\-._%]*)?$");
     //protected final Pattern _EXTRACT_PARAMS_PATTERN = Pattern.compile("\\?((?:(?>[\\/A-Za-z+*\\-._]|%(?:[a-zA-Z0-9]{2})+)+)(?:=(?:[\\/A-Za-z+*\\-._]|%(?:[a-zA-Z0-9]{2})+)+)?(?:&(?1))?)");
@@ -124,7 +124,7 @@ public class NettyHttpUtil {
         if (startIndex < 0 || endIndex < 0) {
             return null;
         } else {
-            return PUnsafeStrings.subSequence(PUnsafe.getObject(matcher, MATCHER_TEXT_OFFSET), startIndex, endIndex);
+            return PStrings.subSequence(PUnsafe.getObject(matcher, MATCHER_TEXT_OFFSET), startIndex, endIndex);
         }
     }
 
@@ -144,7 +144,7 @@ public class NettyHttpUtil {
         if (startIndex < 0 || endIndex < 0) {
             return null;
         } else {
-            return PUnsafeStrings.subSequence(PUnsafe.getObject(matcher, MATCHER_TEXT_OFFSET), startIndex, endIndex);
+            return PStrings.subSequence(PUnsafe.getObject(matcher, MATCHER_TEXT_OFFSET), startIndex, endIndex);
         }
     }
 }

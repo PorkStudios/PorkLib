@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -29,7 +29,7 @@ import lombok.NonNull;
  */
 public final class StringGroup {
     protected final char[][] values;
-    protected final int      totalLength;
+    protected final int totalLength;
 
     StringGroup(@NonNull char[][] values) {
         this.values = values;
@@ -46,11 +46,11 @@ public final class StringGroup {
     /**
      * Applies title formatting to each of the strings in this {@link StringGroup}.
      *
-     * @see PUnsafeStrings#titleFormat(String)
+     * @see PStrings#titleFormat(String)
      */
     public StringGroup titleFormat() {
         for (char[] arr : this.values) {
-            PUnsafeStrings.titleFormat(arr);
+            PStrings.titleFormatWord(arr);
         }
         return this;
     }
@@ -61,25 +61,25 @@ public final class StringGroup {
      * @param glue the {@code char} to put between the strings
      */
     public String join(char glue) {
-        if (this.values.length == 0) {
+        int values = this.values.length;
+        if (values == 0) {
             return "";
-        } else if (this.values.length == 1) {
-            return PUnsafeStrings.wrap(this.values[0]);
-        } else if (this.totalLength + this.values.length < 0) {
-            throw new IllegalArgumentException("integer overflow");
+        } else if (values == 1) {
+            return PStrings.immutableArrayToString(this.values[0]);
         }
 
-        char[] dst = new char[this.totalLength + this.values.length - 1];
+        char[] dst = new char[Math.addExact(this.totalLength, values - 1)];
         int i = this.values[0].length;
 
         System.arraycopy(this.values[0], 0, dst, 0, i);
-        for (int j = 1, length = this.values.length; j < length; j++) {
-            char[] arr = this.values[j];
+        for (int j = 1; j < values; j++) {
             dst[i++] = glue;
+
+            char[] arr = this.values[j];
             System.arraycopy(arr, 0, dst, i, arr.length);
             i += arr.length;
         }
 
-        return PUnsafeStrings.wrap(dst);
+        return PStrings.immutableArrayToString(this.values[0]);
     }
 }

@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -21,9 +21,9 @@
 package net.daporkchop.lib.encoding.basen;
 
 import lombok.NonNull;
-import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
-import net.daporkchop.lib.encoding.util.FastCharIntMap;
 import net.daporkchop.lib.common.math.PMath;
+import net.daporkchop.lib.common.misc.string.PStrings;
+import net.daporkchop.lib.encoding.util.FastCharIntMap;
 
 import java.util.Arrays;
 
@@ -43,18 +43,20 @@ public final class BaseN {
     protected final char zero;
 
     private BaseN(@NonNull String alphabet) {
-        if (alphabet.isEmpty()){
+        if (alphabet.isEmpty()) {
             throw new IllegalArgumentException("Alphabet cannot be null or empty!");
         }
-        this.alphabet = PUnsafeStrings.unwrap(alphabet);
+        this.alphabet = PStrings.stringToImmutableArray(alphabet);
         this.length = alphabet.length();
 
         //check for duplicates
         for (int i = 0; i < this.length; i++) {
             char c = this.alphabet[i];
             for (int j = 0; j < this.length; j++) {
-                if (j == i) continue;
-                if (this.alphabet[j] == c){
+                if (j == i) {
+                    continue;
+                }
+                if (this.alphabet[j] == c) {
                     throw new IllegalArgumentException(String.format("Found duplicate character '%c' in alphabet at indexes %d and %d!", this.alphabet[i], i, j));
                 }
             }
@@ -69,7 +71,7 @@ public final class BaseN {
     }
 
     public String encode(@NonNull byte[] data) {
-        if (data.length == 0)   {
+        if (data.length == 0) {
             return "";
         }
         // Count leading zeros.

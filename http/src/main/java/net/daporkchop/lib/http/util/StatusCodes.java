@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -23,7 +23,6 @@ package net.daporkchop.lib.http.util;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.misc.string.PStrings;
-import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
 import net.daporkchop.lib.http.StatusCode;
 import net.daporkchop.lib.http.util.exception.GenericHttpException;
 
@@ -100,44 +99,35 @@ public enum StatusCodes implements StatusCode {
     INSUFFICIENT_STORAGE(507),
     LOOP_DETECTED(508),
     NOT_EXTENDED(510),
-    NETWORK_AUTHENTICATION_REQUIRED(511)
-    ;
+    NETWORK_AUTHENTICATION_REQUIRED(511);
 
+    private final String message;
     private final String errorMessage;
     private final GenericHttpException exception;
     private final int code;
 
-    StatusCodes(int code)    {
+    StatusCodes(int code) {
         this(code, null, null);
     }
 
-    StatusCodes(int code, String errorMessage)    {
+    StatusCodes(int code, String errorMessage) {
         this(code, null, errorMessage);
     }
 
-    StatusCodes(int code, String name, String errorMessage)    {
+    StatusCodes(int code, String message, String errorMessage) {
         this.code = code;
         this.errorMessage = errorMessage;
 
-        if (name == null)   {
-            if (false) {
-                char[] arr = PUnsafeStrings.unwrap(this.name()).clone();
-                PUnsafeStrings.replace(arr, '_', ' ');
-                PUnsafeStrings.titleFormat(arr);
-                name = PUnsafeStrings.wrap(arr);
-            } else {
-                name = PStrings.split(this.name(), '_').titleFormat().join(' ');
-            }
+        if (message == null) {
+            message = PStrings.split(this.name(), '_').titleFormat().join(' ').intern();
         }
-
-        PUnsafeStrings.setEnumName(this, name);
-        //this.msg = (name == null ? PStrings.split(this.name(), '_').titleFormat().join(' ') : name);
+        this.message = message;
 
         this.exception = new GenericHttpException(this, false);
     }
 
     @Override
     public String toString() {
-        return String.format("StatusCode(%d %s)", this.code, this.name());
+        return this.code + " " + this.message;
     }
 }

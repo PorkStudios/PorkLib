@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -92,7 +92,7 @@ public interface FormattingCode {
      */
     static FormattingCode lookup(@NonNull String name) {
         FormattingCode format;
-        if (name.length() == 1 && (format = lookup(name.charAt(0))) != null)    {
+        if (name.length() == 1 && (format = lookup(name.charAt(0))) != null) {
             return format;
         }
         return NAME_LOOKUP.get(name);
@@ -117,7 +117,8 @@ public interface FormattingCode {
     /**
      * @return the lowercase name of this formatting code
      */
-    String name();
+    @Override
+    String toString();
 
     /**
      * @return whether or not this formatting code is a color

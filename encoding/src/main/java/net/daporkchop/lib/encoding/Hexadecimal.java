@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -22,7 +22,7 @@ package net.daporkchop.lib.encoding;
 
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
+import net.daporkchop.lib.common.misc.string.PStrings;
 import net.daporkchop.lib.common.util.PValidation;
 
 import java.io.IOException;
@@ -54,7 +54,7 @@ public class Hexadecimal {
             newText[a + 1] = ALPHABET[b & 0xF];
             newText[a] = ALPHABET[(b >> 4) & 0xF];
         }
-        return PUnsafeStrings.wrap(newText);
+        return PStrings.immutableArrayToString(newText);
     }
 
     public String encode(@NonNull byte[] data, int from, int length) throws IndexOutOfBoundsException {
@@ -66,7 +66,7 @@ public class Hexadecimal {
             newText[a] = ALPHABET[(b >>> 4) & 0xF];
             newText[a + 1] = ALPHABET[b & 0xF];
         }
-        return PUnsafeStrings.wrap(newText);
+        return PStrings.immutableArrayToString(newText);
     }
 
     public void encode(@NonNull StringBuilder to, @NonNull byte[] data) {
@@ -76,13 +76,13 @@ public class Hexadecimal {
     public void encode(@NonNull StringBuilder to, @NonNull byte[] data, int from, int length) throws IndexOutOfBoundsException {
         PValidation.checkRangeLen(data.length, from, length);
         to.ensureCapacity(length << 1);
-        for (int i = 0; i < length; i++)    {
+        for (int i = 0; i < length; i++) {
             byte b = data[i + from];
             to.append(ALPHABET[(b >>> 4) & 0xF]).append(ALPHABET[b & 0xF]);
         }
     }
 
-    public void encode(@NonNull StringBuilder to, byte b)   {
+    public void encode(@NonNull StringBuilder to, byte b) {
         to.append(ALPHABET[(b >>> 4) & 0xF]).append(ALPHABET[b & 0xF]);
     }
 
@@ -92,26 +92,25 @@ public class Hexadecimal {
 
     public void encode(@NonNull Appendable dst, @NonNull byte[] data, int from, int length) throws IOException, IndexOutOfBoundsException {
         PValidation.checkRangeLen(data.length, from, length);
-        for (int i = 0; i < length; i++)    {
+        for (int i = 0; i < length; i++) {
             byte b = data[i + from];
             dst.append(ALPHABET[(b >>> 4) & 0xF]).append(ALPHABET[b & 0xF]);
         }
     }
 
-    public void encode(@NonNull Appendable dst, byte b) throws IOException  {
+    public void encode(@NonNull Appendable dst, byte b) throws IOException {
         dst.append(ALPHABET[(b >>> 4) & 0xF]).append(ALPHABET[b & 0xF]);
     }
 
     public byte[] decode(@NonNull String input) {
-        final char[] chars = PUnsafeStrings.unwrap(input);
-        final int length = chars.length;
-        if ((length & 1) != 0)    {
+        final int length = input.length();
+        if ((length & 1) != 0) {
             throw new IllegalArgumentException(String.format("Length not a multiple of 2: %d", length));
         }
 
         byte[] data = new byte[length >>> 1];
-        for (int i = 0; i < length;) {
-            byte b = INDEX[chars[i++]], a = INDEX[chars[i++]];
+        for (int i = 0; i < length; ) {
+            byte b = INDEX[input.charAt(i++)], a = INDEX[input.charAt(i++)];
             if (b < 0 || a < 0) {
                 throw new IllegalArgumentException("Illegal input text!");
             }
@@ -120,7 +119,7 @@ public class Hexadecimal {
         return data;
     }
 
-    public byte decode(char c1, char c2)  {
+    public byte decode(char c1, char c2) {
         byte a = INDEX[c2];
         byte b = INDEX[c1];
         if (b < 0 || a < 0) {
@@ -129,7 +128,7 @@ public class Hexadecimal {
         return (byte) (a | (b << 4));
     }
 
-    public int decodeUnsigned(char c1, char c2)  {
+    public int decodeUnsigned(char c1, char c2) {
         byte a = INDEX[c2];
         byte b = INDEX[c1];
         if (a >= 0 && b >= 0) {

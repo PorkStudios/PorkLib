@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -25,9 +25,8 @@ import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.oio.appendable.PAppendable;
 import net.daporkchop.lib.common.misc.file.PFiles;
-import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
+import net.daporkchop.lib.common.misc.string.PStrings;
 import net.daporkchop.lib.common.system.PlatformInfo;
-import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.common.util.exception.file.NoSuchFileException;
 import net.daporkchop.lib.common.util.exception.file.NotAFileException;
 
@@ -59,9 +58,9 @@ public final class UTF8FileWriter extends OutputStreamWriter implements PAppenda
         }
     }
 
-    private final    String                   lineEnding;
+    private final String lineEnding;
     private volatile SoftReference<Formatter> formatterRef;
-    private final    boolean                  autoFlush;
+    private final boolean autoFlush;
 
     public UTF8FileWriter(String path) throws NoSuchFileException, NotAFileException {
         this(path, false);
@@ -109,55 +108,27 @@ public final class UTF8FileWriter extends OutputStreamWriter implements PAppenda
 
     @Override
     public void write(@NonNull String str) throws IOException {
-        super.write(PUnsafeStrings.unwrap(str));
-    }
-
-    @Override
-    public void write(@NonNull String str, int off, int len) throws IOException {
-        super.write(PUnsafeStrings.unwrap(str), off, len);
+        this.write(PStrings.stringToImmutableArray(str), 0, str.length());
     }
 
     @Override
     public UTF8FileWriter append(CharSequence seq) throws IOException {
-        if (seq == null) {
-            this.write("null");
-        } else if (seq instanceof String) {
-            this.write((String) seq);
-        } else {
-            if (seq instanceof StringBuilder) {
-                this.write(PUnsafeStrings.unwrap((StringBuilder) seq), 0, seq.length());
-            } else if (seq instanceof StringBuffer) {
-                this.write(PUnsafeStrings.unwrap((StringBuffer) seq), 0, seq.length());
-            } else {
-                synchronized (this) {
-                    for (int i = 0, size = seq.length(); i < size; i++) {
-                        super.write(seq.charAt(i));
-                    }
-                }
-            }
+        char[] unwrapped = PStrings.tryCharSequenceToImmutableArray(seq).orElse(null);
+        if (unwrapped != null) { //we were able to unwrap the sequence, write it as a simple array
+            this.write(unwrapped, 0, seq.length());
+        } else { //fall back to default implementation
+            super.append(seq);
         }
         return this;
     }
 
     @Override
     public UTF8FileWriter append(CharSequence seq, int start, int end) throws IOException {
-        if (seq == null) {
-            this.write("null", start, end);
-        } else if (seq instanceof String) {
-            this.write((String) seq, start, end);
-        } else {
-            PValidation.checkRange(seq.length(), start, end);
-            if (seq instanceof StringBuilder) {
-                this.write(PUnsafeStrings.unwrap((StringBuilder) seq), start, end);
-            } else if (seq instanceof StringBuffer) {
-                this.write(PUnsafeStrings.unwrap((StringBuffer) seq), start, end);
-            } else {
-                synchronized (this) {
-                    for (int i = start; i < end; i++) {
-                        super.write(seq.charAt(i));
-                    }
-                }
-            }
+        char[] unwrapped = PStrings.tryCharSequenceToImmutableArray(seq).orElse(null);
+        if (unwrapped != null) { //we were able to unwrap the sequence, write it as a simple array
+            this.write(unwrapped, start, end);
+        } else { //fall back to default implementation
+            super.append(seq, start, end);
         }
         return this;
     }

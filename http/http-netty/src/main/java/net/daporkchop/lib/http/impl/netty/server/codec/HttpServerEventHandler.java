@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -143,7 +143,7 @@ public final class HttpServerEventHandler extends ChannelDuplexHandler {
             Object[] args = new Object[2];
 
             args[0] = status.code();
-            args[1] = status.name();
+            args[1] = status.message();
             fmt.format("HTTP/1.1 %1$d %2$s\r\n", args);
 
             //server.logger().debug("Response headers:");

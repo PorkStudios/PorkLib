@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -22,7 +22,7 @@ package net.daporkchop.lib.binary.util;
 
 import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
+import net.daporkchop.lib.common.misc.string.PStrings;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.util.Arrays;
@@ -62,8 +62,8 @@ public final class ByteArrayAsKey {
 
     @Override
     public String toString() {
-        char[] c = new char[this.array.length >> 1];
-        PUnsafe.copyMemory(this.array, PUnsafe.ARRAY_BYTE_BASE_OFFSET, c, PUnsafe.ARRAY_CHAR_BASE_OFFSET, this.array.length);
-        return PUnsafeStrings.wrap(c);
+        char[] arr = new char[this.array.length >> 1];
+        PUnsafe.copyMemory(this.array, PUnsafe.ARRAY_BYTE_BASE_OFFSET, arr, PUnsafe.ARRAY_CHAR_BASE_OFFSET, this.array.length);
+        return PStrings.immutableArrayToString(arr);
     }
 }

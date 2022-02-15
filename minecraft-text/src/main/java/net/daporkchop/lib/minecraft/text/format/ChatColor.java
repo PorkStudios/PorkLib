@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2021 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -22,10 +22,10 @@ package net.daporkchop.lib.minecraft.text.format;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
 import net.daporkchop.lib.common.reference.cache.Cached;
 
 import java.awt.Color;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
@@ -156,12 +156,15 @@ public enum ChatColor implements FormattingCode {
         this.color = (this.awtColor = color) != null ? (color.getRGB() | 0xFF000000) : 0;
         this.bgColor = (this.awtBgColor = bgColor) != null ? (color.getRGB() | 0xFF000000) : 0;
         this.code = code;
-
-        PUnsafeStrings.setEnumName(this, this.name().toLowerCase());
     }
 
     ChatColor(char code, int color, int bgColor) {
         this(code, new Color(color), new Color(bgColor));
+    }
+
+    @Override
+    public String toString() {
+        return this.name().toLowerCase(Locale.ROOT);
     }
 
     @Override

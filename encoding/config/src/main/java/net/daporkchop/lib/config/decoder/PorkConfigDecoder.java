@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -24,7 +24,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.binary.stream.wrapper.DataOutAsOutputStream;
-import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
+import net.daporkchop.lib.common.misc.string.PStrings;
 import net.daporkchop.lib.config.attribute.Comment;
 import net.daporkchop.lib.config.util.Element;
 import net.daporkchop.lib.reflection.util.Type;
@@ -33,7 +33,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -52,12 +51,12 @@ public class PorkConfigDecoder implements ConfigDecoder {
         return root;
     }
 
-    protected void decodeInto(@NonNull Element.ContainerElement container, @NonNull BufferedReader reader) throws IOException   {
+    protected void decodeInto(@NonNull Element.ContainerElement container, @NonNull BufferedReader reader) throws IOException {
         List<String> commentBuf = new LinkedList<>();
         String next;
         while (true) {
             next = reader.readLine();
-            if (next == null)   {
+            if (next == null) {
                 return;
             } else {
                 next = next.trim();
@@ -158,7 +157,7 @@ public class PorkConfigDecoder implements ConfigDecoder {
         }
     }
 
-    protected void parseVal(@NonNull Element.ContainerElement container, @NonNull BufferedReader reader, @NonNull String line, @NonNull Type expectedType, @NonNull List<String> comments) throws IOException    {
+    protected void parseVal(@NonNull Element.ContainerElement container, @NonNull BufferedReader reader, @NonNull String line, @NonNull Type expectedType, @NonNull List<String> comments) throws IOException {
         try {
             if (line.charAt(1) != ':') {
                 throw new IllegalStateException(String.format("Invalid char: %c", line.charAt(1)));
@@ -236,15 +235,15 @@ public class PorkConfigDecoder implements ConfigDecoder {
         }
     }
 
-    protected void encodeRecursive(@NonNull Element.ContainerElement container, @NonNull PrintStream out, int depth) throws IOException  {
+    protected void encodeRecursive(@NonNull Element.ContainerElement container, @NonNull PrintStream out, int depth) throws IOException {
         String indent = this.indent(depth);
         boolean previousHadComment = false;
-        for (Map.Entry<String, Element> entry : container.getValue().entrySet())  {
+        for (Map.Entry<String, Element> entry : container.getValue().entrySet()) {
             if (previousHadComment) {
                 out.println();
             }
-            if (previousHadComment = entry.getValue().getComment().isPresent())  {
-                for (String line : entry.getValue().getComment().getCommentLines())    {
+            if (previousHadComment = entry.getValue().getComment().isPresent()) {
+                for (String line : entry.getValue().getComment().getCommentLines()) {
                     out.printf("%s# %s", indent, line);
                     out.println();
                 }
@@ -312,10 +311,10 @@ public class PorkConfigDecoder implements ConfigDecoder {
             out.println();
         }
     }
-    
-    protected String indent(int depth)  {
-        char[] c = new char[Math.max(0, depth) * 4];
-        Arrays.fill(c, ' ');
-        return PUnsafeStrings.wrap(c);
+
+    protected String indent(int depth) {
+        char[] arr = new char[Math.max(0, depth) * 4];
+        Arrays.fill(arr, ' ');
+        return PStrings.immutableArrayToString(arr);
     }
 }

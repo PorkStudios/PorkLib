@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -23,12 +23,14 @@ package net.daporkchop.lib.minecraft.text.format;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
+
+import java.util.Locale;
 
 /**
  * All format codes from the legacy formatting system.
  * <p>
  * See https://minecraft.gamepedia.com/Formatting_codes for more information.
+ *
  * @author DaPorkchop_
  * @see ChatColor
  * @see FormattingCode
@@ -46,13 +48,12 @@ public enum ChatFormat implements FormattingCode {
 
     static final ChatFormat[] VALUES = values();
 
-    static {
-        for (ChatFormat format : VALUES)  {
-            PUnsafeStrings.setEnumName(format, format.name().toLowerCase().intern());
-        }
-    }
-
     private final char code;
+
+    @Override
+    public String toString() {
+        return this.name().toLowerCase(Locale.ROOT);
+    }
 
     @Override
     public boolean isColor() {

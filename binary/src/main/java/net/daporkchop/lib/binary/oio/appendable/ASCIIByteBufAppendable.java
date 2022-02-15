@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2021 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -28,7 +28,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.chars.SingleCharSequence;
-import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
+import net.daporkchop.lib.common.misc.string.PStrings;
 import net.daporkchop.lib.common.system.PlatformInfo;
 
 import java.nio.charset.StandardCharsets;
@@ -45,9 +45,9 @@ import java.nio.charset.StandardCharsets;
 @Accessors(fluent = true)
 public final class ASCIIByteBufAppendable implements PAppendable {
     @NonNull
-    protected final ByteBuf   buf;
+    protected final ByteBuf buf;
     @NonNull
-    protected final String    lineEnding;
+    protected final String lineEnding;
     @Getter(AccessLevel.NONE)
     protected final SingleCharSequence singleCharSequence = new SingleCharSequence();
 
@@ -63,7 +63,7 @@ public final class ASCIIByteBufAppendable implements PAppendable {
 
     @Override
     public ASCIIByteBufAppendable append(CharSequence seq, int start, int end) {
-        this.buf.writeCharSequence(PUnsafeStrings.subSequence(seq == null ? "null" : seq, start, end), StandardCharsets.US_ASCII);
+        this.buf.writeCharSequence(PStrings.subSequence(seq == null ? "null" : seq, start, end), StandardCharsets.US_ASCII);
         return this;
     }
 

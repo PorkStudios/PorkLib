@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2021 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -22,13 +22,13 @@ package net.daporkchop.lib.common.misc.string;
 
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.common.system.PlatformInfo;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.nio.CharBuffer;
 import java.util.regex.Matcher;
 
 import static net.daporkchop.lib.common.util.PorkUtil.*;
-import static net.daporkchop.lib.unsafe.PUnsafe.*;
 
 /**
  * Unsafe operations for {@link String}.
@@ -37,16 +37,26 @@ import static net.daporkchop.lib.unsafe.PUnsafe.*;
  *
  * @author DaPorkchop_
  * @see PStrings
+ * @deprecated this is horrible and should never have existed
  */
 @UtilityClass
+@Deprecated
 public class PUnsafeStrings {
-    protected final long STRING_VALUE_OFFSET = pork_getOffset(String.class, "value");
-    protected final long STRING_HASH_OFFSET = pork_getOffset(String.class, "hash");
-    protected final long ENUM_NAME_OFFSET = pork_getOffset(Enum.class, "name");
-    protected final long STRINGBUILDER_VALUE_OFFSET = pork_getOffset(classForName("java.lang.AbstractStringBuilder"), "value");
+    static {
+        if (PlatformInfo.JAVA_VERSION >= 9) {
+            throw new AssertionError(PUnsafeStrings.class.getTypeName() + " is not supported on Java 9+ (and should not be used on any Java version for any reason anyway)");
+        }
 
-    protected final long MATCHER_GROUPS_OFFSET = pork_getOffset(Matcher.class, "groups");
-    protected final long MATCHER_TEXT_OFFSET = pork_getOffset(Matcher.class, "text");
+        new UnsupportedOperationException(PUnsafeStrings.class.getTypeName() + " is deprecated and will be removed in a future release").printStackTrace();
+    }
+
+    private final long STRING_VALUE_OFFSET = PUnsafe.pork_getOffset(String.class, "value");
+    private final long STRING_HASH_OFFSET = PUnsafe.pork_getOffset(String.class, "hash");
+    private final long ENUM_NAME_OFFSET = PUnsafe.pork_getOffset(Enum.class, "name");
+    private final long STRINGBUILDER_VALUE_OFFSET = PUnsafe.pork_getOffset(classForName("java.lang.AbstractStringBuilder"), "value");
+
+    private final long MATCHER_GROUPS_OFFSET = PUnsafe.pork_getOffset(Matcher.class, "groups");
+    private final long MATCHER_TEXT_OFFSET = PUnsafe.pork_getOffset(Matcher.class, "text");
 
     /**
      * Sets the value of {@link Enum#name()} for an {@link Enum} value.
@@ -89,7 +99,7 @@ public class PUnsafeStrings {
     /**
      * Applies title formatting to the given {@link String}.
      *
-     * @see #titleFormat(char[])
+     * @see PStrings#titleFormatWord(char[])
      */
     public static void titleFormat(@NonNull String text) {
         titleFormat(unwrap(text));
@@ -97,11 +107,7 @@ public class PUnsafeStrings {
     }
 
     /**
-     * Applies title formatting to the given {@code char[]}.
-     * <p>
-     * A "title formatted" string starts with one upper-case letter, all following letters are lower-case.
-     *
-     * @param text the {@code char[]} to apply title formatting to
+     * @deprecated replaced by {@link PStrings#titleFormatWord(char[])}
      */
     public static void titleFormat(@NonNull char[] text) {
         final int length = text.length;
@@ -116,10 +122,7 @@ public class PUnsafeStrings {
     }
 
     /**
-     * Wraps a {@code char[]} into a {@link String} without copying the array.
-     *
-     * @param chars the {@code char[]} to wrap
-     * @return a new {@link String}
+     * @deprecated replaced by {@link PStrings#immutableArrayToString(char[])}
      */
     public static String wrap(@NonNull char[] chars) {
         String s = PUnsafe.allocateInstance(String.class);
@@ -128,13 +131,7 @@ public class PUnsafeStrings {
     }
 
     /**
-     * Unwraps a {@link CharSequence} into a {@code char[]} without copying the array, if possible.
-     * <p>
-     * Be aware that the returned {@code char[]} may be larger than the actual size of the {@link CharSequence}. It is therefore strongly advised to use
-     * {@link CharSequence#length()} instead of {@code char[]#length}.
-     *
-     * @param seq the {@link CharSequence} to unwrap
-     * @return the value of the {@link CharSequence} as a {@code char[]}, or {@code null} if the given {@link CharSequence} cannot be unwrapped
+     * @deprecated replaced by {@link PStrings#tryCharSequenceToImmutableArray(CharSequence)}
      */
     public static char[] tryUnwrap(@NonNull CharSequence seq) {
         if (seq instanceof String) {
@@ -147,49 +144,28 @@ public class PUnsafeStrings {
     }
 
     /**
-     * Unwraps a {@link String} into a {@code char[]} without copying the array.
-     *
-     * @param string the {@link String} to unwrap
-     * @return the value of the {@link String} as a {@code char[]}
+     * @deprecated replaced by {@link PStrings#stringToImmutableArray(String)}
      */
     public static char[] unwrap(@NonNull String string) {
         return PUnsafe.getObject(string, STRING_VALUE_OFFSET);
     }
 
     /**
-     * Unwraps a {@link StringBuilder} into a {@code char[]} without copying the array.
-     * <p>
-     * Be aware that the returned {@code char[]} may be larger than the actual size of the {@link StringBuilder}. It is therefore strongly advised to use
-     * {@link StringBuilder#length()} instead of {@code char[]#length}.
-     *
-     * @param builder the {@link StringBuilder} to unwrap
-     * @return the value of the {@link StringBuilder} as a {@code char[]}
+     * @deprecated replaced by {@link PStrings#stringBuilderToImmutableArray(StringBuilder)}
      */
     public static char[] unwrap(@NonNull StringBuilder builder) {
         return PUnsafe.getObject(builder, STRINGBUILDER_VALUE_OFFSET);
     }
 
     /**
-     * Unwraps a {@link StringBuffer} into a {@code char[]} without copying the array.
-     * <p>
-     * Be aware that the returned {@code char[]} may be larger than the actual size of the {@link StringBuffer}. It is therefore strongly advised to use
-     * {@link StringBuffer#length()} instead of {@code char[]#length}.
-     *
-     * @param buffer the {@link StringBuffer} to unwrap
-     * @return the value of the {@link StringBuffer} as a {@code char[]}
+     * @deprecated replaced by {@link PStrings#stringBufferToImmutableArray(StringBuffer)}
      */
     public static char[] unwrap(@NonNull StringBuffer buffer) {
         return PUnsafe.getObject(buffer, STRINGBUILDER_VALUE_OFFSET);
     }
 
     /**
-     * An alternative to {@link CharSequence#subSequence(int, int)} that can be faster for certain {@link CharSequence} implementations.
-     *
-     * @param seq   the {@link CharSequence} to get a subsequence of
-     * @param start the first index, inclusive
-     * @param end   the last index, exclusive
-     * @return a subsequence of the given range of the given {@link CharSequence}
-     * @see CharSequence#subSequence(int, int)
+     * @deprecated replaced by {@link PStrings#subSequence(CharSequence, int, int)}
      */
     public static CharSequence subSequence(@NonNull CharSequence seq, int start, int end) {
         if (start == 0 && end == seq.length()) {
@@ -212,7 +188,7 @@ public class PUnsafeStrings {
         if (group < 0 || group > matcher.groupCount()) {
             throw new IndexOutOfBoundsException("No group " + group);
         }
-        int[] groups = getObject(matcher, MATCHER_GROUPS_OFFSET);
+        int[] groups = PUnsafe.getObject(matcher, MATCHER_GROUPS_OFFSET);
         int start = groups[group << 1];
         int end = groups[(group << 1) + 1];
         if (start == -1 || end == -1) {

@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -25,7 +25,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.misc.string.PUnsafeStrings;
+import net.daporkchop.lib.common.misc.string.PStrings;
 import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.unsafe.PUnsafe;
 import net.daporkchop.lib.unsafe.capability.Releasable;
@@ -44,7 +44,7 @@ import java.nio.MappedByteBuffer;
 @Accessors(fluent = true)
 public class DirectASCIISequence implements CharSequence {
     protected final long addr;
-    protected final int  length;
+    protected final int length;
 
     @Override
     public char charAt(int index) {
@@ -60,7 +60,7 @@ public class DirectASCIISequence implements CharSequence {
         return start == 0 && end == this.length ? this : this.slice(start, end - start);
     }
 
-    protected CharSequence slice(int start, int len)    {
+    protected CharSequence slice(int start, int len) {
         return new DirectASCIISequence(this.addr + start, len);
     }
 
@@ -102,7 +102,7 @@ public class DirectASCIISequence implements CharSequence {
         for (int i = 0; i < len; i++) {
             arr[i] = (char) (PUnsafe.getByte(addr + i) & 0xFF);
         }
-        return PUnsafeStrings.wrap(arr);
+        return PStrings.immutableArrayToString(arr);
     }
 
     /**
@@ -132,7 +132,7 @@ public class DirectASCIISequence implements CharSequence {
 
             this.buffer = buffer;
 
-            if (load)   {
+            if (load) {
                 buffer.load();
             }
         }
@@ -144,7 +144,7 @@ public class DirectASCIISequence implements CharSequence {
 
         @Override
         public synchronized void release() throws AlreadyReleasedException {
-            if (this.buffer != null)    {
+            if (this.buffer != null) {
                 PUnsafe.pork_releaseBuffer(this.buffer);
                 this.buffer = null;
             } else {

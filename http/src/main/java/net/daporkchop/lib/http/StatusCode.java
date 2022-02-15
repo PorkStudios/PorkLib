@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -54,18 +54,18 @@ public interface StatusCode {
      */
     static StatusCode of(int id, @NonNull CharSequence msg) {
         StatusCode code = Constants.STATUS_CODES_BY_NUMERIC_ID.get(id);
-        return code == null ? new UnknownNamed(msg, id) : code;
+        return code == null ? new UnknownWithMessage(id, msg) : code;
     }
-
-    /**
-     * @return this status code's message (textual representation)
-     */
-    CharSequence name();
 
     /**
      * @return the status code's numeric ID
      */
     int code();
+
+    /**
+     * @return this status code's message (textual representation)
+     */
+    CharSequence message();
 
     /**
      * @return an additional textual error message that will be displayed on error pages, or {@code null} if none should be displayed
@@ -86,7 +86,7 @@ public interface StatusCode {
         private final int code;
 
         @Override
-        public CharSequence name() {
+        public CharSequence message() {
             return "UNKNOWN";
         }
 
@@ -102,7 +102,7 @@ public interface StatusCode {
 
         @Override
         public String toString() {
-            return String.format("StatusCode(%d UNKNOWN)", this.code);
+            return this.code + " UNKNOWN";
         }
     }
 
@@ -114,10 +114,10 @@ public interface StatusCode {
     @RequiredArgsConstructor
     @Getter
     @Accessors(fluent = true)
-    final class UnknownNamed implements StatusCode {
+    final class UnknownWithMessage implements StatusCode {
+        private final int code;
         @NonNull
-        private final CharSequence name;
-        private final int          code;
+        private final CharSequence message;
 
         @Override
         public int hashCode() {
@@ -131,7 +131,7 @@ public interface StatusCode {
 
         @Override
         public String toString() {
-            return String.format("StatusCode(%d %s)", this.code, this.name);
+            return this.code + " " + this.message;
         }
     }
 }

@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2021 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -26,6 +26,7 @@ buildscript {
 
 allprojects {
     apply plugin: "java"
+    apply plugin: "java-library"
     apply plugin: "maven-publish"
 
     ext {
@@ -76,10 +77,10 @@ allprojects {
 
     dependencies {
         if (!("root".equalsIgnoreCase(project.name) || "common".equalsIgnoreCase(project.name) || "unsafe".equalsIgnoreCase(project.name))) {
-            compile project(":common")
+            api project(":common")
         }
 
-        testCompile "junit:junit:$junitVersion"
+        testImplementation "junit:junit:$junitVersion"
 
         compileOnly "org.projectlombok:lombok:$lombokVersion"
         testCompileOnly "org.projectlombok:lombok:$lombokVersion"
@@ -152,7 +153,7 @@ allprojects {
 dependencies {
     for (Project prj : project.allprojects) {
         if (!"PorkLib".equalsIgnoreCase(prj.name) && prj.parent.name.equalsIgnoreCase("PorkLib")) {
-            compile project(":" + prj.name)
+            api project(":" + prj.name)
         }
     }
 }

@@ -125,7 +125,6 @@ final class NativeZlibDeflateStream extends AbstractDirectDataOut {
         if (!this.flushed) { //we can actually flush the deflater
             this.flushed = true;
 
-            int itrs = 0;
             int status;
             do {
                 status = this.buf.hasMemoryAddress() ?

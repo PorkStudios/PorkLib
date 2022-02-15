@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -26,33 +26,33 @@ sourceSets {
 
 dependencies {
     //orig
-    origCompile project(":unsafe")
-    origCompile project(":primitive:primitive-lambda")
+    origImplementation project(":unsafe")
+    origImplementation project(":primitive:primitive-lambda")
 
     origCompileOnly "org.projectlombok:lombok:$lombokVersion"
     origAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
 
     //generated
-    generatedCompile project(":unsafe")
-    generatedCompile project(":primitive:primitive-lambda")
-    generatedCompile sourceSets.orig.output
+    generatedImplementation project(":unsafe")
+    generatedImplementation project(":primitive:primitive-lambda")
+    generatedImplementation sourceSets.orig.output
 
     generatedCompileOnly "org.projectlombok:lombok:$lombokVersion"
     generatedAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
 
     //main
-    compile project(":primitive:primitive-lambda")
+    api project(":primitive:primitive-lambda")
 
-    compile sourceSets.orig.output
-    compile sourceSets.generated.output
+    api sourceSets.orig.output
+    api sourceSets.generated.output
 
     //testOrig
     testOrigCompileOnly "org.projectlombok:lombok:$lombokVersion"
     testOrigAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
 
     //test
-    testCompile project(":primitive:primitive-lambda")
-    testCompile sourceSets.testOrig.output
+    testImplementation project(":primitive:primitive-lambda")
+    testImplementation sourceSets.testOrig.output
 }
 
 compileOrigJava.dependsOn(":primitive:generator:gen")

@@ -206,8 +206,9 @@ public class ScannerTest {
                                 }
                             }
                         }
-                    });
+                    }).run();
         }
+        PorkUtil.unsafe_forceGC();
     }
 
     @Test

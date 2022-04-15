@@ -187,6 +187,30 @@ public class ScannerTest {
     }
 
     @Test
+    public void getBiomes() throws IOException {
+        try (MinecraftSave save = this.getTestWorld()) {
+            new WorldScanner(save.world(0))
+                    .addProcessor(col -> {
+                        if ((col.getX() & 0x1F) == 31 && (col.getZ() & 0x1F) == 31) {
+                            System.out.printf("Scanning region (%d,%d)\n", col.getX() >> 5, col.getZ() >> 5);
+                        }
+                    })
+                    .addProcessor((current, estimatedTotal, chunk, access) -> {
+                        int x = chunk.getX() << 4;
+                        int z = chunk.getZ() << 4;
+                        for (int xx = 15; xx >= 0; xx--) {
+                            for (int zz = 15 - (xx & 1); zz >= 0; zz -= 2) {
+                                int id = access.getBiomeId(x + xx, z + zz);
+                                if (id == 1) {
+                                    System.out.printf("Plains at (%d, %d)", x, z);
+                                }
+                            }
+                        }
+                    });
+        }
+    }
+
+    @Test
     public void makeSimpleMap() throws IOException {
         Map<ResourceLocation, Color[]> colorMap = new Hashtable<>();
         {

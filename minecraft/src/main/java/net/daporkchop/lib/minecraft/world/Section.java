@@ -132,6 +132,11 @@ public interface Section extends BlockAccess, Dirtiable, Releasable {
         }
 
         @Override
+        public int getBiomeId(int x, int z) {
+            return 0;
+        }
+
+        @Override
         public void setBlockId(int x, int y, int z, int id) {
             throw new UnsupportedOperationException();
         }
@@ -148,6 +153,16 @@ public interface Section extends BlockAccess, Dirtiable, Releasable {
 
         @Override
         public void setSkyLight(int x, int y, int z, int level) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void setBiomeId(int x, int z, int id) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void setBiomeArray(byte[] biomes) {
             throw new UnsupportedOperationException();
         }
 

@@ -182,7 +182,7 @@ public class AnvilWorldManager implements WorldManager {
                     })
                     .forEach(chunk.entities()::add);
 
-            chunk.setBiomeArray(rootTag.<ByteArrayTag>get("Biomes").value());
+            chunk.setBiomeArray(rootTag.getByteArray("Biomes"));
 
             {
                 ListTag<CompoundTag> sectionsTag = rootTag.getList("Sections");

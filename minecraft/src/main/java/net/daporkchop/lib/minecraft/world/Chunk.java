@@ -116,7 +116,6 @@ public interface Chunk extends BlockAccess, IntVector2.AddressableXZ, Dirtiable,
         }
     }
 
-    @Override
     default int getBiomeId(int x, int z) {
         int xx = x & 15;
         int zz = z & 15;
@@ -172,7 +171,6 @@ public interface Chunk extends BlockAccess, IntVector2.AddressableXZ, Dirtiable,
         section.setSkyLight(x, y & 0xF, z, level);
     }
 
-    @Override
     default void setBiomeId(int x, int z, int id) {
         int xx = x & 15;
         int zz = z & 15;
@@ -180,7 +178,6 @@ public interface Chunk extends BlockAccess, IntVector2.AddressableXZ, Dirtiable,
         this.biomeArray()[zz << 4 | xx] = (byte) (id & 255);
     }
 
-    @Override
     default void setBiomeArray(byte[] biomes) {
         System.arraycopy(biomes, 0, this.biomeArray(), 0, this.biomeArray().length);
     }

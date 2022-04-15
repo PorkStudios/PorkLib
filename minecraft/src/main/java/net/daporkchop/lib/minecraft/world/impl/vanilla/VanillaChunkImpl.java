@@ -66,6 +66,11 @@ public final class VanillaChunkImpl extends AbstractVanillaChunk {
     }
 
     @Override
+    public byte[] biomeArray() {
+        return new byte[256];
+    }
+
+    @Override
     protected void doUnload() {
         super.doUnload();
 

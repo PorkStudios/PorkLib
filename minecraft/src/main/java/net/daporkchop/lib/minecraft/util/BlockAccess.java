@@ -34,8 +34,6 @@ public interface BlockAccess {
 
     int getSkyLight(int x, int y, int z);
 
-    int getBiomeId(int x, int z);
-
     void setBlockId(int x, int y, int z, int id);
 
     void setBlockMeta(int x, int y, int z, int meta);
@@ -43,10 +41,6 @@ public interface BlockAccess {
     void setBlockLight(int x, int y, int z, int level);
 
     void setSkyLight(int x, int y, int z, int level);
-
-    void setBiomeId(int x, int z, int id);
-
-    void setBiomeArray(byte[] biomes);
 
     int getHighestBlock(int x, int z);
 

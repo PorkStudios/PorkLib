@@ -200,7 +200,7 @@ public class ScannerTest {
                         int z = chunk.getZ() << 4;
                         for (int xx = 15; xx >= 0; xx--) {
                             for (int zz = 15 - (xx & 1); zz >= 0; zz -= 2) {
-                                int id = access.getBiomeId(x + xx, z + zz);
+                                int id = chunk.getBiomeId(x + xx, z + zz);
                                 if (id == 1) {
                                     System.out.printf("Plains at (%d, %d)", x, z);
                                 }

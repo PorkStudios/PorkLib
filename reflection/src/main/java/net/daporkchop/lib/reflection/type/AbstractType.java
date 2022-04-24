@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -20,28 +20,22 @@
 
 package net.daporkchop.lib.reflection.type;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NonNull;
-
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
 /**
- * Simple implementation of {@link ParameterizedType}.
+ * Base implementation of {@link Type}.
  *
  * @author DaPorkchop_
  */
-@AllArgsConstructor
-@Getter
-public final class ParameterizedTypeImpl implements ParameterizedType {
-    @NonNull
-    private final Type[] actualTypeArguments;
-    @NonNull
-    private final Type rawType;
-    private final Type ownerType;
+public abstract class AbstractType implements Type {
+    //declare these methods abstract so that they are implemented properly
 
-    public ParameterizedTypeImpl(Type[] actualTypeArguments, Type rawType) {
-        this(actualTypeArguments, rawType, null);
-    }
+    @Override
+    public abstract boolean equals(Object obj);
+
+    @Override
+    public abstract int hashCode();
+
+    @Override
+    public abstract String toString();
 }

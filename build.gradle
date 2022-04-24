@@ -39,6 +39,7 @@ allprojects {
             name = "DaPorkchop_"
             url = "https://maven.daporkchop.net/"
         }
+        mavenCentral()
     }
 
     sourceSets {

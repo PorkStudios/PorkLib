@@ -60,7 +60,7 @@ public class ScannerTest {
     private MinecraftSave getTestWorld() {
         return new SaveBuilder()
                 .setFormat(new AnvilSaveFormat(new File(".", "run/testworld")))
-                //.setFormat(new AnvilSaveFormat(new File("/media/daporkchop/TooMuchStuff/Misc/2b2t_org")))
+//                .setFormat(new AnvilSaveFormat(new File("C:\\Users\\thela\\AppData\\Roaming\\.minecraft\\saves\\holes_z")))
                 //.setFormat(new AnvilSaveFormat(new File("E:\\Misc\\2b2t_org")))
                 .setInitFunctions(new MinecraftSaveConfig()
                         .openOptions(new RegionOpenOptions().access(RegionFile.Access.READ_ONLY)))
@@ -201,12 +201,13 @@ public class ScannerTest {
                         for (int xx = 15; xx >= 0; xx--) {
                             for (int zz = 15 - (xx & 1); zz >= 0; zz -= 2) {
                                 int id = chunk.getBiomeId(x + xx, z + zz);
+//                                System.out.printf("%d at (%d, %d)\n", id, x + xx, z + zz);
                                 if (id == 1) {
-                                    System.out.printf("Plains at (%d, %d)", x, z);
+                                    System.out.printf("Plains at (%d, %d)\n", x + xx, z + zz);
                                 }
                             }
                         }
-                    }).run();
+                    }).run(true);
         }
         PorkUtil.unsafe_forceGC();
     }

@@ -38,8 +38,6 @@ import java.util.Arrays;
  * @author DaPorkchop_
  */
 public abstract class AbstractWildcardType extends AbstractType implements WildcardType {
-    public static final Type[] EMPTY_TYPE_ARRAY = {};
-
     public static boolean containsOnlyObjectClass(Type[] array) {
         return array.length == 1 && array[0] == Object.class;
     }

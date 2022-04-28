@@ -22,18 +22,28 @@ package net.daporkchop.lib.reflection.type;
 
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.reflection.type.collection.MapWithTypeKeys;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.AnnotatedType;
+import java.lang.reflect.Array;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.GenericDeclaration;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
+import static net.daporkchop.lib.common.util.PorkUtil.*;
 
 /**
  * Helper class for dealing with {@link Type}.
@@ -42,6 +52,14 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  */
 @UtilityClass
 public class PTypes {
+    public static final Type[] EMPTY_TYPE_ARRAY = {};
+
+    /**
+     * Gets an {@link GenericArrayType array type} with the given {@link GenericArrayType#getGenericComponentType() component type}.
+     *
+     * @param componentType the {@link GenericArrayType#getGenericComponentType() component type}
+     * @return a {@link GenericArrayType}
+     */
     public static GenericArrayType array(@NonNull Type componentType) {
         return validate(new AbstractGenericArrayType() {
             @Override
@@ -51,6 +69,15 @@ public class PTypes {
         });
     }
 
+    /**
+     * Gets a {@link ParameterizedType parameterized type} with the given {@link ParameterizedType#getActualTypeArguments() type arguments},
+     * {@link ParameterizedType#getRawType() raw type} and {@link ParameterizedType#getOwnerType() owner type}.
+     *
+     * @param actualTypeArguments the {@link ParameterizedType#getActualTypeArguments() type arguments}
+     * @param rawType             the {@link ParameterizedType#getRawType() raw type}
+     * @param ownerType           the {@link ParameterizedType#getOwnerType() owner type}
+     * @return a {@link ParameterizedType}
+     */
     public static ParameterizedType parameterized(@NonNull Type @NonNull [] actualTypeArguments, @NonNull Type rawType, Type ownerType) {
         return validate(new AbstractParameterizedType() {
             @Override
@@ -70,6 +97,13 @@ public class PTypes {
         });
     }
 
+    /**
+     * Gets a {@link WildcardType wildcard type} with the given {@link WildcardType#getUpperBounds() upper bounds} and {@link WildcardType#getLowerBounds() lower bounds}.
+     *
+     * @param upperBounds the {@link WildcardType#getUpperBounds() upper bounds}
+     * @param lowerBounds the {@link WildcardType#getLowerBounds() lower bounds}
+     * @return a {@link WildcardType}
+     */
     public static WildcardType wildcard(@NonNull Type @NonNull [] upperBounds, @NonNull Type @NonNull [] lowerBounds) {
         return validate(new AbstractWildcardType() {
             @Override
@@ -84,6 +118,19 @@ public class PTypes {
         });
     }
 
+    /**
+     * Gets a {@link TypeVariable type variable} with the given {@link TypeVariable#getBounds() bounds}, {@link TypeVariable#getGenericDeclaration() generic declaration},
+     * {@link TypeVariable#getName() name} and {@link TypeVariable#getAnnotatedBounds() annotated bounds}, and using the given {@link AnnotatedElement} as a source of
+     * annotations.
+     *
+     * @param bounds             the {@link TypeVariable#getBounds() bounds}
+     * @param genericDeclaration the {@link TypeVariable#getGenericDeclaration() generic declaration}
+     * @param name               the {@link TypeVariable#getName() name}
+     * @param annotatedBounds    the {@link TypeVariable#getAnnotatedBounds() annotated bounds}
+     * @param annotationSource   a {@link AnnotatedElement} to use as a source of annotations
+     * @param <D>                the {@link TypeVariable#getGenericDeclaration() generic declaration}'s type
+     * @return a {@link TypeVariable}
+     */
     public static <D extends GenericDeclaration> TypeVariable<D> variable(@NonNull Type[] bounds, @NonNull D genericDeclaration, @NonNull String name, @NonNull AnnotatedType[] annotatedBounds, @NonNull AnnotatedElement annotationSource) {
         AnnotatedElement realAnnotationSource = annotationSource instanceof DelegatingAnnotatedElement
                 ? ((DelegatingAnnotatedElement) annotationSource).annotationSource()
@@ -119,6 +166,13 @@ public class PTypes {
         return validate(new VariableTypeImpl());
     }
 
+    /**
+     * Gets an {@link AnnotatedType annotated type} with the given {@link Type} and using the given {@link AnnotatedElement} as a source of annotations.
+     *
+     * @param type             the {@link Type}
+     * @param annotationSource a {@link AnnotatedElement} to use as a source of annotations
+     * @return a {@link AnnotatedType}
+     */
     public static AnnotatedType annotated(@NonNull Type type, @NonNull AnnotatedElement annotationSource) {
         AnnotatedElement realAnnotationSource = annotationSource instanceof DelegatingAnnotatedElement
                 ? ((DelegatingAnnotatedElement) annotationSource).annotationSource()
@@ -226,7 +280,7 @@ public class PTypes {
         });
     }
 
-    protected static Type[] canonicalizeArray(@NonNull Type[] originalArray) {
+    protected static Type[] canonicalizeArray(Type[] originalArray) {
         Type[] canonicalArray = originalArray;
 
         for (int i = 0; i < originalArray.length; i++) {
@@ -333,7 +387,7 @@ public class PTypes {
                     @Override
                     public Boolean applyVariable(@NonNull TypeVariable<?> source) { //class <- type variable
                         //pretend the source type is a wildcard and recursively try again
-                        return isAssignableFrom(target, wildcard(source.getBounds(), AbstractWildcardType.EMPTY_TYPE_ARRAY));
+                        return isAssignableFrom(target, wildcard(source.getBounds(), EMPTY_TYPE_ARRAY));
 
                         //TODO: this is wrong, we should resolve the generic type
                     }
@@ -512,9 +566,9 @@ public class PTypes {
 
                 //ensure all the type parameters are within their bounds
                 for (int i = 0; i < actualTypeArguments.length; i++) {
-                    if (!isAssignableFrom(formalTypeParameters[i], actualTypeArguments[i])) {
+                    if (false && !isAssignableFrom(formalTypeParameters[i], actualTypeArguments[i])) { //TODO
                         throw new IllegalStateException("invalid type arguments: parameter " + i + " (\"" + formalTypeParameters[i] + "\") expects "
-                                                        + wildcard(formalTypeParameters[i].getBounds(), AbstractWildcardType.EMPTY_TYPE_ARRAY)
+                                                        + wildcard(formalTypeParameters[i].getBounds(), EMPTY_TYPE_ARRAY)
                                                         + ", but found " + actualTypeArguments[i]);
                     }
                 }
@@ -555,6 +609,334 @@ public class PTypes {
         }
 
         return array;
+    }
+
+    /**
+     * Gets the raw {@link Class} representation of the given {@link Type}.
+     *
+     * @param type the {@link Type}
+     * @return the raw type
+     * @throws IllegalArgumentException if the given {@link Type} doesn't have a raw {@link Class} representation
+     * @throws NoSuchElementException   if the given {@link Type} references a {@link TypeVariable} which cannot be resolved
+     * @see #raw(TypeVariableResolver, Type)
+     */
+    @Deprecated
+    public static Class<?> raw(@NonNull Type type) {
+        return raw(resolver(), type);
+    }
+
+    /**
+     * Gets the raw {@link Class} representation of the given {@link Type}.
+     *
+     * @param resolver the {@link TypeVariableResolver} to use for resolving {@link TypeVariable}
+     * @param type     the {@link Type}
+     * @return the raw type
+     * @throws IllegalArgumentException if the given {@link Type} doesn't have a raw {@link Class} representation
+     * @throws NoSuchElementException   if the given {@link Type} references a {@link TypeVariable} which cannot be resolved
+     */
+    public static Class<?> raw(@NonNull TypeVariableResolver resolver, @NonNull Type type) {
+        return applyWith(type, new TypedTypeFunction<Class<?>>() {
+            @Override
+            public Class<?> applyClass(@NonNull Class<?> type) {
+                return type; //type is already raw
+            }
+
+            @Override
+            public Class<?> applyGenericArray(@NonNull GenericArrayType type) {
+                //get the array's raw component type
+                Class<?> rawComponentType = raw(resolver, type);
+
+                //get the array class corresponding to the raw component type
+                return Array.newInstance(rawComponentType, 0).getClass(); //this is kinda gross but i'm not aware of any better way to do it
+            }
+
+            @Override
+            public Class<?> applyParameterized(@NonNull ParameterizedType type) {
+                return raw(resolver, type.getRawType()); //discard parameters
+            }
+
+            @Override
+            public Class<?> applyWildcard(@NonNull WildcardType type) {
+                throw new IllegalArgumentException("wildcard type doesn't have a raw equivalent!");
+            }
+
+            @Override
+            public Class<?> applyVariable(@NonNull TypeVariable<?> type) {
+                //try to resolve the type
+                Optional<Type> optionalResolved = resolver.resolveTypeVariable(type);
+                if (!optionalResolved.isPresent()) { //if it couldn't be resolved, there's no way to get the equivalent raw type
+                    throw new NoSuchElementException("type variable " + type + " declared in " + type.getGenericDeclaration() + " couldn't be resolved, and"
+                                                     + "therefore doesn't have a raw equivalent!");
+                }
+
+                Type resolved = optionalResolved.get();
+                if (resolved instanceof TypeVariable) { //if it resolved to a type variable, throw exception to prevent infinite recursion
+                    throw new IllegalArgumentException("type variable " + type + " declared in " + type.getGenericDeclaration() + " resolves to another type variable, and "
+                                                       + "therefore doesn't have a raw equivalent!");
+                }
+
+                //try again with the now-resolved type
+                return raw(resolver, resolved);
+            }
+        });
+    }
+
+    /**
+     * Gets a default {@link TypeVariableResolver} which has no context, and will therefore be unable to resolve any types.
+     *
+     * @return the default {@link TypeVariableResolver}
+     */
+    public static TypeVariableResolver resolver() {
+        return type -> Optional.empty();
+    }
+
+    public static TypeVariableResolver resolver(@NonNull Type context) {
+        //before we do anything else, let's ensure the context has been canonicalized
+        context = canonicalize(context);
+
+        //get the raw context class
+        Class<?> contextClass = raw(resolver(), context);
+        if (contextClass.isArray()) {
+            throw new IllegalArgumentException("cannot create a TypeVariableResolver from an array context!");
+        }
+
+        //recursively build the resolution table, then wrap it into a TypeVariableResolver
+        Map<TypeVariable<?>, Type> resolvedTable = mapWithSpecificTypeKeys();
+        buildResolver(contextClass, context, new IdentityHashMap<>(), resolvedTable);
+        return resolvedTable.isEmpty() ? resolver() : resolver(resolvedTable);
+    }
+
+    protected static void buildResolver(Class<?> contextClass, Type contextType, Map<Class<?>, Type> visitedClasses, Map<TypeVariable<?>, Type> resolvedTable) {
+        { //avoid visiting the same class multiple times
+            Type existingInheritedType = visitedClasses.putIfAbsent(contextClass, contextType);
+            if (existingInheritedType != null) { //the class has already been visited
+                //this should be impossible for anything other than bytecode which was hand-crafted to be invalid, as this same check is also done by javac
+                assert equals(contextType, existingInheritedType) : contextClass + " is inherited with unrelated types: " + contextType + " and " + existingInheritedType;
+
+                //break out early so we don't process the same class again
+                return;
+            }
+        }
+
+        //save all the resolvable parameter values into the map
+        indexResolvableParameters(contextType, resolvedTable);
+
+        //this TypeVariableResolver will be able to resolve every type variable we've encountered so far during our recursion
+        TypeVariableResolver resolver = resolver(resolvedTable);
+
+        { //recurse into all superinterfaces
+            Class<?>[] rawInterfaces = contextClass.getInterfaces();
+            Type[] genericInterfaces = contextClass.getInterfaces();
+            for (int i = 0; i < rawInterfaces.length; i++) {
+                buildResolver(rawInterfaces[i], resolve(resolver, genericInterfaces[i]), visitedClasses, resolvedTable);
+            }
+        }
+
+        { //recurse into superclass, if any
+            Class<?> rawSuperclass = contextClass.getSuperclass();
+            if (rawSuperclass != null) {
+                buildResolver(rawSuperclass, resolve(resolver, contextClass.getGenericSuperclass()), visitedClasses, resolvedTable);
+            }
+        }
+    }
+
+    public static TypeVariableResolver resolver(@NonNull Map<TypeVariable<?>, Type> resolutionTable) {
+        return variable -> Optional.ofNullable(resolutionTable.get(variable));
+    }
+
+    protected static Map<TypeVariable<?>, Type> indexResolvableParameters(Type context) {
+        Map<TypeVariable<?>, Type> out = mapWithSpecificTypeKeys();
+        indexResolvableParameters(context, out);
+        return out;
+    }
+
+    protected static void indexResolvableParameters(Type context, Map<TypeVariable<?>, Type> out) {
+        do {
+            //process the current context type, then recurse into its owner (if any)
+            context = applyWith(context, new TypedTypeFunction.ExceptionalByDefault<Type>() {
+                @Override
+                public Type applyClass(@NonNull Class<?> context) {
+                    return null; //no more parameterized owner types remain
+                }
+
+                @Override
+                public Type applyParameterized(@NonNull ParameterizedType context) {
+                    Type[] arguments = context.getActualTypeArguments();
+                    TypeVariable<? extends Class<?>>[] variables = ((Class<?>) context.getRawType()).getTypeParameters();
+                    for (int i = 0; i < variables.length; i++) {
+                        Type existingResolvedType = out.putIfAbsent(variables[i], arguments[i]);
+
+                        //should be impossible
+                        assert existingResolvedType == null : "type variable " + variables[i] + " declared in " + variables[i].getGenericDeclaration() + " was already resolved?!?";
+                    }
+                    return context.getOwnerType();
+                }
+            });
+        } while (context != null);
+    }
+
+    /**
+     * Resolves all {@link TypeVariable}s within the given {@link Type}.
+     *
+     * @param resolver the {@link TypeVariableResolver} to use
+     * @param type     the {@link Type} to resolve
+     * @return the resolved {@link Type}
+     */
+    public static Type resolve(@NonNull TypeVariableResolver resolver, @NonNull Type type) {
+        return applyWith(type, new TypedTypeFunction<Type>() {
+            @Override
+            public Type applyClass(@NonNull Class<?> type) {
+                return type; //ordinary class, doesn't need to be resolved
+            }
+
+            @Override
+            public Type applyGenericArray(@NonNull GenericArrayType type) {
+                Type originalComponentType = type.getGenericComponentType();
+                Type resolvedComponentType = resolve(resolver, type);
+
+                return originalComponentType != resolvedComponentType
+                        ? array(resolvedComponentType) //the component type changed, we need to re-create the type instance
+                        : originalComponentType; //the component type is unchanged, return original type unmodified
+            }
+
+            @Override
+            public Type applyParameterized(@NonNull ParameterizedType type) {
+                Type[] originalActualTypeArguments = type.getActualTypeArguments();
+                Type[] resolvedActualTypeArguments = resolveArray(resolver, originalActualTypeArguments);
+
+                Type originalRawType = type.getRawType();
+                Type resolvedRawType = resolve(resolver, originalRawType);
+
+                Type originalOwnerType = type.getOwnerType();
+                Type resolvedOwnerType = originalOwnerType != null ? resolve(resolver, originalOwnerType) : null;
+
+                //noinspection ArrayEquality
+                return originalActualTypeArguments != resolvedActualTypeArguments || originalRawType != resolvedRawType || originalOwnerType != resolvedOwnerType
+                        ? parameterized(resolvedActualTypeArguments, resolvedRawType, resolvedOwnerType) //one of the child types changed, we need to re-create the type instance
+                        : type; //all of the child types are unchanged, return original type unmodified
+            }
+
+            @Override
+            public Type applyWildcard(@NonNull WildcardType type) {
+                Type[] originalUpperBounds = type.getUpperBounds();
+                Type[] resolvedUpperBounds = resolveArray(resolver, originalUpperBounds);
+
+                Type[] originalLowerBounds = type.getLowerBounds();
+                Type[] resolvedLowerBounds = resolveArray(resolver, originalLowerBounds);
+
+                //noinspection ArrayEquality
+                return originalUpperBounds != resolvedUpperBounds || originalLowerBounds != resolvedLowerBounds
+                        ? wildcard(resolvedUpperBounds, resolvedLowerBounds) //one of the child types changed, we need to re-create the type instance
+                        : type; //all of the child types are unchanged, return original type unmodified
+            }
+
+            @Override
+            public Type applyVariable(@NonNull TypeVariable<?> type) {
+                Optional<Type> resolvedType = resolver.resolveTypeVariable(type);
+                if (resolvedType.isPresent()) { //the type variable was resolved
+                    return resolvedType.get();
+                }
+
+                Type[] originalBounds = type.getBounds();
+                Type[] resolvedBounds = resolveArray(resolver, originalBounds);
+
+                //noinspection ArrayEquality
+                if (originalBounds != resolvedBounds) { //one of the child types changed, we need to re-create the type instance
+                    //redirect the annotated bounds to the new target
+                    AnnotatedType[] resolvedAnnotatedBounds = type.getAnnotatedBounds();
+                    for (int i = 0; i < resolvedBounds.length; i++) {
+                        resolvedAnnotatedBounds[i] = annotated(resolvedBounds[i], resolvedAnnotatedBounds[i]); //safe to modify in-place since the array has already been cloned
+                    }
+
+                    return variable(resolvedBounds, type.getGenericDeclaration(), type.getName(), resolvedAnnotatedBounds, type);
+                } else { //all of the child types are unchanged, return original type unmodified
+                    return type;
+                }
+            }
+        });
+    }
+
+    protected static Type[] resolveArray(TypeVariableResolver resolver, Type[] originalArray) {
+        Type[] resolvedArray = originalArray;
+
+        for (int i = 0; i < originalArray.length; i++) {
+            Type originalType = originalArray[i];
+            Type resolvedType = resolve(resolver, originalType);
+
+            if (originalType != resolvedType) {
+                //noinspection ArrayEquality
+                if (originalArray == resolvedArray) { //array hasn't been cloned yet because every type processed so far has been unchanged
+                    resolvedArray = originalArray.clone();
+                }
+                resolvedArray[i] = resolvedType;
+            }
+        }
+
+        return resolvedArray;
+    }
+
+    /*public static Type resolve(@NonNull Type context, @NonNull Type toResolve) {
+    }
+
+    private static Type resolve(Type context, Type toResolve, Set<TypeVariable<?>> typeVariables) {
+    }
+
+    public static Type inheritedGenericSupertype(@NonNull TypeVariableResolver resolver, @NonNull Type context, @NonNull Class<?> targetClass) {
+        return inheritedGenericSupertype(context, raw(resolver, context), targetClass, Collections.newSetFromMap(new IdentityHashMap<>()));
+    }
+
+    protected static Type inheritedGenericSupertype(Type contextType, Class<?> contextClass, Class<?> targetClass, Set<Class<?>> visitedClasses) {
+        if (contextClass == targetClass) { //the current context is the class we were searching for
+            return contextType;
+        }
+
+        if (targetClass.isInterface()) { //the target class is an interface, so we should try to recurse into the superinterface
+            Class<?>[] rawInterfaces = targetClass.getInterfaces();
+            Type[] genericInterfaces = targetClass.getGenericInterfaces();
+            for (int i = 0; i < rawInterfaces.length; i++) {
+                if (rawInterfaces[i] == contextClass) { //the interface in question is the one we're searching for
+                    return
+                }
+            }
+        }
+
+        { //recurse into superclass
+            Class<?> superclass = contextClass.getSuperclass();
+            if (superclass != null //the current context class actually has a superclass
+                && visitedClasses.add(superclass) //avoid visiting the same class multiple times
+                && targetClass.isAssignableFrom(superclass)) { //don't need to examine the superclass any further if it isn't assignable
+                contextClass.g
+                return inheritedGenericSupertype(cont)
+            }
+        }
+
+        //if the target class is an interface, bfs through all of the check superinterfaces
+        if (target.isInterface()) { //we
+        }
+
+        if (target.isInterface()) {
+        }
+    }*/
+
+    /**
+     * Creates a new {@link Map} which uses {@link Type}s as a key type.
+     *
+     * @param <V> the value type
+     * @return the created {@link Map}
+     */
+    public static <V> Map<Type, V> mapWithTypeKeys() {
+        return new MapWithTypeKeys<>(new HashMap<>());
+    }
+
+    /**
+     * Creates a new {@link Map} which uses a specific type of {@link Type}s as a key type.
+     *
+     * @param <K> the key type
+     * @param <V> the value type
+     * @return the created {@link Map}
+     */
+    public static <K extends Type, V> Map<K, V> mapWithSpecificTypeKeys() {
+        return uncheckedCast(mapWithTypeKeys());
     }
 
     public static void acceptWith(@NonNull Type type, @NonNull TypedTypeConsumer action) {
@@ -599,6 +981,55 @@ public class PTypes {
         void acceptWildcard(@NonNull WildcardType type);
 
         void acceptVariable(@NonNull TypeVariable<?> type);
+
+        interface NoopByDefault extends TypedTypeConsumer {
+            @Override
+            default void acceptClass(@NonNull Class<?> type) {
+            }
+
+            @Override
+            default void acceptGenericArray(@NonNull GenericArrayType type) {
+            }
+
+            @Override
+            default void acceptParameterized(@NonNull ParameterizedType type) {
+            }
+
+            @Override
+            default void acceptWildcard(@NonNull WildcardType type) {
+            }
+
+            @Override
+            default void acceptVariable(@NonNull TypeVariable<?> type) {
+            }
+        }
+
+        interface ExceptionalByDefault extends TypedTypeConsumer {
+            @Override
+            default void acceptClass(@NonNull Class<?> type) {
+                throw new IllegalArgumentException("unsupported argument type: " + Class.class.getTypeName() + " (given: " + type + ')');
+            }
+
+            @Override
+            default void acceptGenericArray(@NonNull GenericArrayType type) {
+                throw new IllegalArgumentException("unsupported argument type: " + GenericArrayType.class.getTypeName() + " (given: " + type + ')');
+            }
+
+            @Override
+            default void acceptParameterized(@NonNull ParameterizedType type) {
+                throw new IllegalArgumentException("unsupported argument type: " + ParameterizedType.class.getTypeName() + " (given: " + type + ')');
+            }
+
+            @Override
+            default void acceptWildcard(@NonNull WildcardType type) {
+                throw new IllegalArgumentException("unsupported argument type: " + WildcardType.class.getTypeName() + " (given: " + type + ')');
+            }
+
+            @Override
+            default void acceptVariable(@NonNull TypeVariable<?> type) {
+                throw new IllegalArgumentException("unsupported argument type: " + TypeVariable.class.getTypeName() + " (given: " + type + ')');
+            }
+        }
     }
 
     public interface TypedTypeFunction<R> {
@@ -611,5 +1042,32 @@ public class PTypes {
         R applyWildcard(@NonNull WildcardType type);
 
         R applyVariable(@NonNull TypeVariable<?> type);
+
+        interface ExceptionalByDefault<R> extends TypedTypeFunction<R> {
+            @Override
+            default R applyClass(@NonNull Class<?> type) {
+                throw new IllegalArgumentException("unsupported argument type: " + Class.class.getTypeName() + " (given: " + type + ')');
+            }
+
+            @Override
+            default R applyGenericArray(@NonNull GenericArrayType type) {
+                throw new IllegalArgumentException("unsupported argument type: " + GenericArrayType.class.getTypeName() + " (given: " + type + ')');
+            }
+
+            @Override
+            default R applyParameterized(@NonNull ParameterizedType type) {
+                throw new IllegalArgumentException("unsupported argument type: " + ParameterizedType.class.getTypeName() + " (given: " + type + ')');
+            }
+
+            @Override
+            default R applyWildcard(@NonNull WildcardType type) {
+                throw new IllegalArgumentException("unsupported argument type: " + WildcardType.class.getTypeName() + " (given: " + type + ')');
+            }
+
+            @Override
+            default R applyVariable(@NonNull TypeVariable<?> type) {
+                throw new IllegalArgumentException("unsupported argument type: " + TypeVariable.class.getTypeName() + " (given: " + type + ')');
+            }
+        }
     }
 }

@@ -38,9 +38,6 @@ import java.util.Arrays;
  * @author DaPorkchop_
  */
 public abstract class AbstractWildcardType extends AbstractType implements WildcardType {
-    public static boolean containsOnlyObjectClass(Type[] array) {
-        return array.length == 1 && array[0] == Object.class;
-    }
 
     @Override
     public abstract @NonNull Type @NonNull [] getUpperBounds();
@@ -78,10 +75,10 @@ public abstract class AbstractWildcardType extends AbstractType implements Wildc
 
         String prefix;
         Type[] bounds;
-        if (lowerBounds.length > 0) { //use lower bounds
+        if (PTypes.isWildcardSuper(upperBounds, lowerBounds)) { //use lower bounds
             prefix = "? super ";
             bounds = lowerBounds;
-        } else if (containsOnlyObjectClass(upperBounds)) { //there are effectively no bounds
+        } else if (PTypes.isWildcardUnbounded(upperBounds, lowerBounds)) { //there are effectively no bounds
             return "?";
         } else { //use upper bounds
             prefix = "? extends ";

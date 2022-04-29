@@ -24,6 +24,7 @@ import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.reflection.type.collection.MapWithTypeKeys;
 
+import java.io.Serializable;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Array;
@@ -33,14 +34,12 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 import static net.daporkchop.lib.common.util.PorkUtil.*;
@@ -52,6 +51,12 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
  */
 @UtilityClass
 public class PTypes {
+    /*
+     * Implementation details:
+     *
+     * - we assume that ParameterizedType#getRawType() always returns Class<?>
+     */
+
     public static final Type[] EMPTY_TYPE_ARRAY = {};
 
     /**
@@ -78,7 +83,7 @@ public class PTypes {
      * @param ownerType           the {@link ParameterizedType#getOwnerType() owner type}
      * @return a {@link ParameterizedType}
      */
-    public static ParameterizedType parameterized(@NonNull Type @NonNull [] actualTypeArguments, @NonNull Type rawType, Type ownerType) {
+    public static ParameterizedType parameterized(@NonNull Type @NonNull [] actualTypeArguments, @NonNull Class<?> rawType, Type ownerType) {
         return validate(new AbstractParameterizedType() {
             @Override
             public @NonNull Type @NonNull [] getActualTypeArguments() {
@@ -86,13 +91,13 @@ public class PTypes {
             }
 
             @Override
-            public @NonNull Type getRawType() {
+            public @NonNull Class<?> getRawType() {
                 return rawType;
             }
 
             @Override
             public Type getOwnerType() {
-                return ownerType;
+                return ownerType != null ? ownerType : rawType.getDeclaringClass();
             }
         });
     }
@@ -116,6 +121,26 @@ public class PTypes {
                 return lowerBounds.clone();
             }
         });
+    }
+
+    /**
+     * Gets a {@link WildcardType wildcard type} with the given {@link WildcardType#getLowerBounds() lower bound}.
+     *
+     * @param lowerBound the {@link WildcardType#getLowerBounds() lower bound}
+     * @return a {@link WildcardType}
+     */
+    public static WildcardType wildcardSuper(@NonNull Type lowerBound) {
+        return wildcard(new Type[]{ Object.class }, new Type[]{ lowerBound });
+    }
+
+    /**
+     * Gets a {@link WildcardType wildcard type} with the given {@link WildcardType#getUpperBounds() upper bound}.
+     *
+     * @param upperBound the {@link WildcardType#getUpperBounds() upper bound}
+     * @return a {@link WildcardType}
+     */
+    public static WildcardType wildcardExtends(@NonNull Type upperBound) {
+        return wildcard(new Type[]{ upperBound }, EMPTY_TYPE_ARRAY);
     }
 
     /**
@@ -233,15 +258,12 @@ public class PTypes {
                 Type[] originalActualTypeArguments = type.getActualTypeArguments();
                 Type[] canonicalActualTypeArguments = canonicalizeArray(originalActualTypeArguments);
 
-                Type originalRawType = type.getRawType();
-                Type canonicalRawType = canonicalize(originalRawType);
-
                 Type originalOwnerType = type.getOwnerType();
                 Type canonicalOwnerType = originalOwnerType != null ? canonicalize(originalOwnerType) : null;
 
                 //noinspection ArrayEquality
-                return originalActualTypeArguments != canonicalActualTypeArguments || originalRawType != canonicalRawType || originalOwnerType != canonicalOwnerType
-                        ? parameterized(canonicalActualTypeArguments, canonicalRawType, canonicalOwnerType) //one of the child types changed, we need to re-create the type instance
+                return originalActualTypeArguments != canonicalActualTypeArguments || originalOwnerType != canonicalOwnerType
+                        ? parameterized(canonicalActualTypeArguments, (Class<?>) type.getRawType(), canonicalOwnerType) //one of the child types changed, we need to re-create the type instance
                         : type; //all of the child types are unchanged, return original type unmodified
             }
 
@@ -308,8 +330,8 @@ public class PTypes {
      * @param type the {@link Type}
      * @return a hash code for the given {@link Type}
      */
-    public static int hashCode(@NonNull Type type) {
-        return canonicalize(type).hashCode();
+    public static int hashCode(Type type) {
+        return type != null ? canonicalize(type).hashCode() : 0;
     }
 
     /**
@@ -321,8 +343,14 @@ public class PTypes {
      * @param b a {@link Type}
      * @return whether or not the given {@link Type}s are functionally equal
      */
-    public static boolean equals(@NonNull Type a, @NonNull Type b) {
-        return canonicalize(a).equals(canonicalize(b));
+    public static boolean equals(Type a, Type b) {
+        if (a == b) {
+            return true;
+        } else if (a == null || b == null) { //if either value is null, the other is non-null
+            return false;
+        } else {
+            return canonicalize(a).equals(canonicalize(b));
+        }
     }
 
     /**
@@ -334,197 +362,442 @@ public class PTypes {
      * @param type the {@link Type}
      * @return a {@link String} representation of the given {@link Type}
      */
-    public static String toString(@NonNull Type type) {
-        return canonicalize(type).getTypeName();
+    public static String toString(Type type) {
+        return type != null ? canonicalize(type).getTypeName() : "null";
     }
 
-    //TODO: i am not entirely sure if this function yields the correct result in 100% of cases, but i don't know how best to verify it
-    public static boolean isAssignableFrom(@NonNull Type target, @NonNull Type source) {
-        //this uses two levels of applyWith(), first for the target type, then the source type, in order to cover every possible combination of assigning one type to another.
+    /**
+     * Checks whether or not the given source type is either equal to, or is a subtype of, the given target type.
+     * <p>
+     * Defined as {@code source <: target} in the JLS.
+     *
+     * @see <a href="https://docs.oracle.com/javase/specs/jls/se8/html/jls-4.html#jls-4.10">JLS 4.10. Subtyping</a>
+     */
+    @SuppressWarnings({ "UnnecessaryContinue", "unused", "RedundantCast" })
+    public static boolean isSubtype(@NonNull Type t, @NonNull Type s) {
+        do {
+            if (t instanceof Class) {
+                Class<?> target = (Class<?>) t;
 
-        return applyWith(target, new TypedTypeFunction<Boolean>() {
-            @Override
-            public Boolean applyClass(@NonNull Class<?> target) {
-                return applyWith(source, new TypedTypeFunction<Boolean>() {
-                    @Override
-                    public Boolean applyClass(@NonNull Class<?> source) { //class <- class
-                        //both types are classes, delegate to regular Class#isAssignableFrom
-                        return target.isAssignableFrom(source);
+                if (s instanceof Class<?>) { //class <: class
+                    Class<?> source = (Class<?>) s;
+
+                    //both types are classes, delegate to ordinary Class#isAssignableFrom (this has proper handling for array types)
+                    return target.isAssignableFrom(source);
+                } else if (s instanceof GenericArrayType) { //array <: class
+                    GenericArrayType source = (GenericArrayType) s;
+
+                    //JLS 4.10.3. Subtyping among Array Types: (slightly reformatted for better clarity)
+                    //  The following rules define the direct supertype relation among array types:
+                    //  - Object >1 T[]
+                    //  - Cloneable >1 T[]
+                    //  - java.io.Serializable >1 T[]
+                    //  - If S and T are both reference types, then S[] >1 T[] iff S >1 T.
+
+                    if (target == Object.class || target == Cloneable.class || target == Serializable.class) { //all array types are subtypes of Object, Cloneable and Serializable
+                        return true;
+                    } else if (target.isArray()) { //the target type is actually a class masquerading as an array!
+                        //check if the source's component type is a subtype of the target's component type. this will have proper handling for primitive arrays (it'll end up
+                        //  delegating to Class#isAssignableFrom, which essentially compares object identity for primitive types).
+                        t = target.getComponentType();
+                        s = source.getGenericComponentType();
+                        continue;
+                    } else { //an array type can't be a subtype of a reference type (leaving aside the special cases we already handled)
+                        return false;
                     }
+                } else if (s instanceof ParameterizedType) { //parameterized class <: class
+                    ParameterizedType source = (ParameterizedType) s;
 
-                    @Override
-                    public Boolean applyGenericArray(@NonNull GenericArrayType source) { //class <- array
-                        if (target.isArray()) { //the target type is actually an array
-                            //both types are arrays, strip one level of array-ness and recursively try again
-                            return isAssignableFrom(target.getComponentType(), source.getGenericComponentType());
+                    //JLS 4.10.2. Subtyping among Class and Interface types
+                    //  Given a generic type declaration C<F_1,...,F_n> (n > 0), the direct supertypes of the parameterized type C<T_1,...,T_n>, where T_i (1 <= i <= n) is a type,
+                    //  are all of the following:
+                    //  - D<U_1 θ,...,U_k θ>, where D<U_1,...,U_k> is a generic type which is a direct supertype of the generic type C<T_1,...,T_n> and θ is the substitution
+                    //    [F_1:=T_1,...,F_n:=T_n].
+                    //  - C<S_1,...,S_n>, where S_i contains T_i (1 <= i <= n) (§4.5.1).
+                    //  - The type Object, if C<F_1,...,F_n> is a generic interface type with no direct superinterfaces.
+                    //  - The raw type C.
+
+                    //the target type isn't parameterized, so the source type will be accepted regardless of its parameter values. let's try again using the raw source type as the
+                    //  source type.
+                    s = (Class<?>) source.getRawType();
+                } else if (s instanceof WildcardType) { //wildcard <: class
+                    WildcardType source = (WildcardType) s;
+
+                    //JLS 4.10.2. Subtyping among Class and Interface types
+                    //  Given a generic type declaration C<F_1,...,F_n> (n > 0), the direct supertypes of the parameterized type C<R_1,...,R_n> where at least one of the
+                    //  R_i (1 <= i <= n) is a wildcard type argument, are the direct supertypes of the parameterized type C<X_1,...,X_n> which is the result of applying
+                    //  capture conversion to C<R_1,...,R_n> (§5.1.10).
+
+                    throw new UnsupportedOperationException(); //TODO
+                } else if (s instanceof TypeVariable) { //type variable <: class
+                    TypeVariable<?> source = (TypeVariable<?>) s;
+
+                    //JLS 4.10.2. Subtyping among Class and Interface types
+                    //  The direct supertypes of a type variable are the types listed in its bound.
+
+                    //we want to know whether the target type is a supertype of any of the type variable's bounds (actually, the other way around: whether any of the type variable's
+                    //  bounds is a subtype of the target type). this requires us to recurse into each bound type.
+                    for (Type sourceBound : source.getBounds()) {
+                        if (isSubtype(target, sourceBound)) { //break out as soon as we have a match
+                            return true;
                         }
+                    }
+                    return false;
+                } else {
+                    throw new IllegalArgumentException("don't know how to handle " + s);
+                }
+            } else if (t instanceof GenericArrayType) {
+                GenericArrayType target = (GenericArrayType) t;
 
-                        //the source type is an array, but the target type is an ordinary class. regardless of its component type, an array can only be assigned to a
-                        //  non-array target if the target type is Object
-                        return target == Object.class;
+                if (s instanceof Class<?>) { //class <: array
+                    Class<?> source = (Class<?>) s;
+
+                    if (source.isArray()) { //the source type is actually a class masquerading as an array!
+                        //check if the source's component type is a subtype of the target's component type. this will have proper handling for primitive arrays (it'll end up
+                        //  delegating to Class#isAssignableFrom, which essentially compares object identity for primitive types).
+                        t = target.getGenericComponentType();
+                        s = source.getComponentType();
+                        continue;
+                    } else { //a reference type can't be a subtype of an array type in any case
+                        return false;
+                    }
+                } else if (s instanceof GenericArrayType) { //array <: array
+                    GenericArrayType source = (GenericArrayType) s;
+
+                    //check if the source's component type is a subtype of the target's component type. this will have proper handling for primitive arrays (it'll end up
+                    //  delegating to Class#isAssignableFrom, which essentially compares object identity for primitive types).
+                    t = target.getGenericComponentType();
+                    s = source.getGenericComponentType();
+                    continue;
+                } else if (s instanceof ParameterizedType) { //parameterized class <: array
+                    ParameterizedType source = (ParameterizedType) s;
+
+                    //only non-array reference types can be parameterized. therefore, no parameterized type can ever be a subtype of an array type.
+                    return false;
+                } else if (s instanceof WildcardType) { //wildcard <: array
+                    WildcardType source = (WildcardType) s;
+
+                    throw new UnsupportedOperationException(); //TODO
+                } else if (s instanceof TypeVariable) { //type variable <: array
+                    TypeVariable<?> source = (TypeVariable<?>) s;
+
+                    //JLS 4.10.2. Subtyping among Class and Interface types
+                    //  The direct supertypes of a type variable are the types listed in its bound.
+
+                    //we want to know whether the target type is a supertype of any of the type variable's bounds (actually, the other way around: whether any of the type variable's
+                    //  bounds is a subtype of the target type). this requires us to recurse into each bound type.
+                    for (Type sourceBound : source.getBounds()) {
+                        if (isSubtype(target, sourceBound)) { //break out as soon as we have a match
+                            return true;
+                        }
+                    }
+                    return false;
+                } else {
+                    throw new IllegalArgumentException("don't know how to handle " + s);
+                }
+            } else if (t instanceof ParameterizedType) {
+                ParameterizedType target = (ParameterizedType) t;
+
+                if (s instanceof Class<?>) { //class <: parameterized class
+                    Class<?> source = (Class<?>) s;
+
+                    if (source.isArray()) { //the source type is actually a class masquerading as an array!
+                        //only non-array reference types can be parameterized. therefore, no array type can ever be a subtype of an parameterized type.
+                        return false;
                     }
 
-                    @Override
-                    public Boolean applyParameterized(@NonNull ParameterizedType source) { //class <- parameterized type
-                        //the target type is a class, so it doesn't care about generic parameters. strip parameters from source type and recursively try again
-                        return isAssignableFrom(target, source.getRawType());
+                    //JLS 4.10.2. Subtyping among Class and Interface types
+                    //  Given a generic type declaration C<F_1,...,F_n> (n > 0), the direct supertypes of the parameterized type C<T_1,...,T_n>, where T_i (1 <= i <= n) is a type,
+                    //  are all of the following:
+                    //  - D<U_1 θ,...,U_k θ>, where D<U_1,...,U_k> is a generic type which is a direct supertype of the generic type C<T_1,...,T_n> and θ is the substitution
+                    //    [F_1:=T_1,...,F_n:=T_n].
+                    //  - C<S_1,...,S_n>, where S_i contains T_i (1 <= i <= n) (§4.5.1).
+                    //  - The type Object, if C<F_1,...,F_n> is a generic interface type with no direct superinterfaces.
+                    //  - The raw type C.
+
+                    Class<?> rawTarget = (Class<?>) target.getRawType();
+
+                    if (source == rawTarget) {
+                        //since the raw type C (the source type, in this case) is a supertype of the parameterized type C<...> (the target type, in this case), but not vice-versa, we
+                        //  can say that the source type is NOT a subtype of the target type whenever the raw types are the same.
+                        return false;
                     }
 
-                    @Override
-                    public Boolean applyWildcard(@NonNull WildcardType source) { //class <- wildcard
-                        //the source type could be any type which extends from every one of the upper bound types. therefore, as long as at least one of the source upper
-                        //  bound types is assignable to the target type, every type assignable to the source type will be assignable to the target type, and the source
-                        //  lower bound types don't even need to be taken into account!
+                    //the only way that the type could still somehow be assignable is if it inherits a suitable parameterization from another supertype.
 
-                        for (Type upperBound : source.getUpperBounds()) {
-                            if (isAssignableFrom(upperBound, target)) {
-                                return true;
+                    if (!rawTarget.isAssignableFrom(source)) {
+                        //the source type isn't a subtype of the raw target type, therefore it cannot
+                    }
+                    //return false;
+                    throw new UnsupportedOperationException(); //TODO
+                } else if (s instanceof GenericArrayType) { //array <: parameterized class
+                    GenericArrayType source = (GenericArrayType) s;
+
+                    //an array can never be parameterized, therefore it cannot be a subtype of a parameterized type
+                    return false;
+                } else if (s instanceof ParameterizedType) { //parameterized class <: parameterized class
+                    ParameterizedType source = (ParameterizedType) s;
+
+                    //JLS 4.10.2. Subtyping among Class and Interface types
+                    //  Given a generic type declaration C<F_1,...,F_n> (n > 0), the direct supertypes of the parameterized type C<T_1,...,T_n>, where T_i (1 <= i <= n) is a type,
+                    //  are all of the following:
+                    //  - D<U_1 θ,...,U_k θ>, where D<U_1,...,U_k> is a generic type which is a direct supertype of the generic type C<T_1,...,T_n> and θ is the substitution
+                    //    [F_1:=T_1,...,F_n:=T_n].
+                    //  - C<S_1,...,S_n>, where S_i contains T_i (1 <= i <= n) (§4.5.1).
+                    //  - The type Object, if C<F_1,...,F_n> is a generic interface type with no direct superinterfaces.
+                    //  - The raw type C.
+
+                    if (equals(target.getRawType(), source.getRawType())) { //the raw types are the same
+                        //  - C<S_1,...,S_n>, where S_i contains T_i (1 <= i <= n) (§4.5.1).
+
+                        //ensure that each of the source arguments is contained by the corresponding target arguments
+                        Type[] targetArguments = target.getActualTypeArguments();
+                        Type[] sourceArguments = source.getActualTypeArguments();
+                        for (int i = 0; i < targetArguments.length; i++) {
+                            if (!containsTypeArgument(targetArguments[i], sourceArguments[i])) {
+                                return false;
                             }
                         }
-                        return false;
+                        return true;
                     }
 
-                    @Override
-                    public Boolean applyVariable(@NonNull TypeVariable<?> source) { //class <- type variable
-                        //pretend the source type is a wildcard and recursively try again
-                        return isAssignableFrom(target, wildcard(source.getBounds(), EMPTY_TYPE_ARRAY));
+                    throw new UnsupportedOperationException(); //TODO
+                } else if (s instanceof WildcardType) { //wildcard <: parameterized class
+                    WildcardType source = (WildcardType) s;
 
-                        //TODO: this is wrong, we should resolve the generic type
-                    }
-                });
+                    throw new UnsupportedOperationException(); //TODO
+                } else if (s instanceof TypeVariable) { //type variable <: parameterized class
+                    TypeVariable<?> source = (TypeVariable<?>) s;
+
+                    throw new UnsupportedOperationException(); //TODO
+                } else {
+                    throw new IllegalArgumentException("don't know how to handle " + s);
+                }
+            } else if (t instanceof WildcardType) {
+                WildcardType target = (WildcardType) t;
+
+                if (s instanceof Class<?>) { //class <: wildcard
+                    Class<?> source = (Class<?>) s;
+
+                    throw new UnsupportedOperationException(); //TODO
+                } else if (s instanceof GenericArrayType) { //array <: wildcard
+                    GenericArrayType source = (GenericArrayType) s;
+
+                    throw new UnsupportedOperationException(); //TODO
+                } else if (s instanceof ParameterizedType) { //parameterized class <: wildcard
+                    ParameterizedType source = (ParameterizedType) s;
+
+                    throw new UnsupportedOperationException(); //TODO
+                } else if (s instanceof WildcardType) { //wildcard <: wildcard
+                    WildcardType source = (WildcardType) s;
+
+                    throw new UnsupportedOperationException(); //TODO
+                } else if (s instanceof TypeVariable) { //type variable <: wildcard
+                    TypeVariable<?> source = (TypeVariable<?>) s;
+
+                    throw new UnsupportedOperationException(); //TODO
+                } else {
+                    throw new IllegalArgumentException("don't know how to handle " + s);
+                }
+            } else if (t instanceof TypeVariable) {
+                TypeVariable<?> target = (TypeVariable<?>) t;
+
+                if (s instanceof Class<?>) { //class <: type variable
+                    Class<?> source = (Class<?>) s;
+
+                    throw new UnsupportedOperationException(); //TODO
+                } else if (s instanceof GenericArrayType) { //array <: type variable
+                    GenericArrayType source = (GenericArrayType) s;
+
+                    throw new UnsupportedOperationException(); //TODO
+                } else if (s instanceof ParameterizedType) { //parameterized class <: type variable
+                    ParameterizedType source = (ParameterizedType) s;
+
+                    throw new UnsupportedOperationException(); //TODO
+                } else if (s instanceof WildcardType) { //wildcard <: type variable
+                    WildcardType source = (WildcardType) s;
+
+                    throw new UnsupportedOperationException(); //TODO
+                } else if (s instanceof TypeVariable) { //type variable <: type variable
+                    TypeVariable<?> source = (TypeVariable<?>) s;
+
+                    throw new UnsupportedOperationException(); //TODO
+                } else {
+                    throw new IllegalArgumentException("don't know how to handle " + s);
+                }
+            } else {
+                throw new IllegalArgumentException("don't know how to handle " + t);
+            }
+        } while (true);
+    }
+
+    protected static boolean isWildcard(Type t) {
+        if (t instanceof Class || t instanceof GenericArrayType || t instanceof ParameterizedType) {
+            return false;
+        } else if (t instanceof WildcardType) {
+            return true;
+        } else if (t instanceof TypeVariable) {
+            throw unresolvedException((TypeVariable<?>) t);
+        } else {
+            throw new IllegalArgumentException("don't know how to handle " + t.getClass().getTypeName());
+        }
+    }
+
+    /**
+     * Checks whether or not the given target type argument contains the given source type argument.
+     * <p>
+     * Defined as {@code source <= target} in the JLS.
+     *
+     * @see <a href="https://docs.oracle.com/javase/specs/jls/se8/html/jls-4.html#jls-4.5.1">JLS 4.5.1. Type Arguments of Parameterized Types</a>
+     */
+    public static boolean containsTypeArgument(@NonNull Type t, @NonNull Type s) {
+        //JLS 4.5.1. Type Arguments of Parameterized Types:
+        //  A type argument T_1 is said to contain another type argument T_2, written T_2 <= T_1, if the set of types denoted by T_2 is provably a subset of the set of types
+        //  denoted by T_1 under the reflexive and transitive closure of the following rules (where <: denotes subtyping (§4.10)):
+        //  - ? extends T <= ? extends S if T <: S
+        //  - ? extends T <= ?
+        //  - ? super T <= ? super S if S <: T
+        //  - ? super T <= ?
+        //  - ? super T <= ? extends Object
+        //  - T <= T
+        //  - T <= ? extends T
+        //  - T <= ? super T
+
+        boolean isTargetWildcard = isWildcard(t);
+        boolean isSourceWildcard = isWildcard(s);
+
+        if (isTargetWildcard) {
+            WildcardType target = (WildcardType) t;
+            Type[] targetUpperBounds = target.getUpperBounds();
+            Type[] targetLowerBounds = target.getLowerBounds();
+
+            assert targetUpperBounds.length <= 1 : "target has " + targetUpperBounds.length + " upper bounds!";
+            assert targetLowerBounds.length <= 1 : "target has " + targetLowerBounds.length + " lower bounds!";
+
+            if (!isSourceWildcard) { //the target type is a wildcard, but the source type is not
+                //relevant rules:
+                //  - ? extends T <= ? extends S if T <: S
+                //  - ? extends T <= ?
+                //  - ? super T <= ? super S if S <: T
+                //  - ? super T <= ?
+                //  - ? super T <= ? extends Object
+                //  - T <= ? extends T
+                //  - T <= ? super T
+
+                //a non-wildcard source type is contained by a wildcard target type if wrapped into a wildcard type which points in the same direction (super/extends) as the target.
+                //  we just need to determine which direction to wrap it in...
+
+                if (isWildcardUnbounded(targetUpperBounds, targetLowerBounds)) { //the target type is an unbounded wildcard
+                    //relevant rules:
+                    //  - ? extends T <= ?
+                    //  - ? super T <= ?
+                    //  - ? super T <= ? extends Object
+
+                    //it doesn't matter which way we wrap the source type, it'll always be contained
+                    return true;
+                } else if (isWildcardSuper(targetUpperBounds, targetLowerBounds)) { //the target type is of the form ? super Y
+                    //wrap the source type into a wildcard of the form ? super X, then proceed as if both types were originally wildcards
+                    s = wildcard(EMPTY_TYPE_ARRAY, new Type[]{ s });
+                } else if (isWildcardExtends(targetUpperBounds, targetLowerBounds)) { //the target type is of the form ? extends Y
+                    //wrap the source type into a wildcard of the form ? extends X, then proceed as if both types were originally wildcards
+                    s = wildcard(new Type[]{ s }, EMPTY_TYPE_ARRAY);
+                } else { //impossible
+                    throw new AssertionError();
+                }
             }
 
-            @Override
-            public Boolean applyGenericArray(@NonNull GenericArrayType target) {
-                return applyWith(source, new TypedTypeFunction<Boolean>() {
-                    @Override
-                    public Boolean applyClass(@NonNull Class<?> source) { //array <- class
-                        if (source.isArray()) { //the source type is actually an array
-                            //both types are arrays, strip one level of array-ness and recursively try again
-                            return isAssignableFrom(target.getGenericComponentType(), source.getComponentType());
-                        }
+            //both the source and target types are wildcards
 
-                        //the source type is an array, but the target type is an ordinary class. regardless of its component type, an array can only be assigned to a
-                        //  non-array target if the target type is Object. since the target type is a GenericArrayType, it cannot possibly be Object, so the assignment
-                        //  is invalid.
-                        return false;
-                    }
+            WildcardType source = (WildcardType) s;
+            Type[] sourceUpperBounds = source.getUpperBounds();
+            Type[] sourceLowerBounds = source.getLowerBounds();
 
-                    @Override
-                    public Boolean applyGenericArray(@NonNull GenericArrayType source) { //array <- array
-                        //both types are arrays, strip one level of array-ness and recursively try again
-                        return isAssignableFrom(target.getGenericComponentType(), source.getGenericComponentType());
-                    }
+            assert sourceLowerBounds.length <= 1 : "source has " + sourceLowerBounds.length + " lower bounds!";
+            assert sourceUpperBounds.length <= 1 : "source has " + sourceUpperBounds.length + " upper bounds!";
 
-                    @Override
-                    public Boolean applyParameterized(@NonNull ParameterizedType source) { //array <- parameterized type
-                        //an array type can't be parameterized, so the source type is certainly not an array and therefore can't possibly be assignable
-                        return false;
-                    }
+            //relevant rules:
+            //  - ? extends T <= ? extends S if T <: S
+            //  - ? extends T <= ?
+            //  - ? super T <= ? super S if S <: T
+            //  - ? super T <= ?
+            //  - ? super T <= ? extends Object
 
-                    @Override
-                    public Boolean applyWildcard(@NonNull WildcardType source) { //array <- wildcard
-                        //an array type can't be a wildcard, so the source type is certainly not an array and therefore can't possibly be assignable
-                        return false;
-                    }
+            if (isWildcardSuper(sourceUpperBounds, sourceLowerBounds)) { //source type is of the form ? super X
+                //relevant rules:
+                //  - ? super T <= ? super S if S <: T
+                //  - ? super T <= ?
+                //  - ? super T <= ? extends Object
 
-                    @Override
-                    public Boolean applyVariable(@NonNull TypeVariable<?> source) { //array <- type variable
-                        throw new UnsupportedOperationException(); //TODO
-                    }
-                });
+                if (isWildcardSuper(targetUpperBounds, targetLowerBounds)) { //target type is of the form ? super Y
+                    //relevant rules:
+                    //  - ? super T <= ? super S if S <: T
+
+                    //source type is contained by target type if target type's bound is a subtype of source type's bound
+                    return isSubtype(sourceLowerBounds[0], targetLowerBounds[0]);
+                } else if (isWildcardUnbounded(targetUpperBounds, targetLowerBounds)) { //target type is of the form ? or ? extends Object
+                    //relevant rules:
+                    //  - ? super T <= ?
+                    //  - ? super T <= ? extends Object
+
+                    //source type is always contained
+                    return true;
+                } else if (isWildcardExtends(targetUpperBounds, targetLowerBounds)) { //target type is of the form ? extends Y
+                    //relevant rules:
+                    //  <none>
+
+                    //a wildcard ? super X cannot be contained by any wildcard ? extends Y, regardless of the specific bound types
+                    return false;
+                } else { //impossible
+                    throw new AssertionError();
+                }
+            } else if (isWildcardUnbounded(sourceUpperBounds, sourceLowerBounds) //target type is of the form ? or ? extends Object
+                       || isWildcardExtends(sourceUpperBounds, sourceLowerBounds)) { //source type is of the form ? extends X
+                //relevant rules:
+                //  - ? extends T <= ? extends S if T <: S
+                //  - ? extends T <= ?
+
+                if (isWildcardSuper(targetUpperBounds, targetLowerBounds)) { //target type is of the form ? super Y
+                    //relevant rules:
+                    //  <none>
+
+                    //a wildcard ? extends X cannot be contained by any wildcard ? super Y, regardless of the specific bound types
+                    return false;
+                } else if (isWildcardUnbounded(targetUpperBounds, targetLowerBounds)) { //target type is of the form ?
+                    //relevant rules:
+                    //  - ? extends T <= ?
+
+                    //source type is always contained
+                    return true;
+                } else if (isWildcardExtends(targetUpperBounds, targetLowerBounds)) { //target type is of the form ? extends Y
+                    //relevant rules:
+                    //  - ? extends T <= ? extends S if T <: S
+
+                    //source type is contained by target type if source type's bound is a subtype of target type's bound
+                    Type sourceBoundType = isWildcardUnbounded(sourceUpperBounds, sourceLowerBounds) && sourceUpperBounds.length == 0
+                            ? Object.class //sourceUpperBounds array could theoretically be empty if the wildcard is unbounded
+                            : sourceUpperBounds[0];
+                    return isSubtype(targetUpperBounds[0], sourceBoundType);
+                } else { //impossible
+                    throw new AssertionError();
+                }
+            } else { //impossible
+                throw new AssertionError();
             }
+        } else {
+            if (isSourceWildcard) { //the source type is a wildcard, the target type is a non-wildcard
+                //relevant rules:
+                //  <none>
 
-            @Override
-            public Boolean applyParameterized(@NonNull ParameterizedType target) {
-                return applyWith(source, new TypedTypeFunction<Boolean>() {
-                    @Override
-                    public Boolean applyClass(@NonNull Class<?> source) { //parameterized type <- class
-                        throw new UnsupportedOperationException(); //TODO
-                    }
+                //a non-wildcard type cannot contain a wildcard type.
+                return false;
+            } else { //neither type is a wildcard type
+                //relevant rules:
+                //  - T <= T
 
-                    @Override
-                    public Boolean applyGenericArray(@NonNull GenericArrayType source) { //parameterized type <- array
-                        throw new UnsupportedOperationException(); //TODO
-                    }
-
-                    @Override
-                    public Boolean applyParameterized(@NonNull ParameterizedType source) { //parameterized type <- parameterized type
-                        throw new UnsupportedOperationException(); //TODO
-                    }
-
-                    @Override
-                    public Boolean applyWildcard(@NonNull WildcardType source) { //parameterized type <- wildcard
-                        throw new UnsupportedOperationException(); //TODO
-                    }
-
-                    @Override
-                    public Boolean applyVariable(@NonNull TypeVariable<?> source) { //parameterized type <- type variable
-                        throw new UnsupportedOperationException(); //TODO
-                    }
-                });
+                //a non-wildcard type can only contain another non-wildcard type if they both denote the same type. we only need to check if the two types are equal!
+                return equals(t, s);
             }
-
-            @Override
-            public Boolean applyWildcard(@NonNull WildcardType target) {
-                return applyWith(source, new TypedTypeFunction<Boolean>() {
-                    @Override
-                    public Boolean applyClass(@NonNull Class<?> source) { //wildcard <- class
-                        throw new UnsupportedOperationException(); //TODO
-                    }
-
-                    @Override
-                    public Boolean applyGenericArray(@NonNull GenericArrayType source) { //wildcard <- array
-                        throw new UnsupportedOperationException(); //TODO
-                    }
-
-                    @Override
-                    public Boolean applyParameterized(@NonNull ParameterizedType source) { //wildcard <- parameterized type
-                        throw new UnsupportedOperationException(); //TODO
-                    }
-
-                    @Override
-                    public Boolean applyWildcard(@NonNull WildcardType source) { //wildcard <- wildcard
-                        throw new UnsupportedOperationException(); //TODO
-                    }
-
-                    @Override
-                    public Boolean applyVariable(@NonNull TypeVariable<?> source) { //wildcard <- type variable
-                        throw new UnsupportedOperationException(); //TODO
-                    }
-                });
-            }
-
-            @Override
-            public Boolean applyVariable(@NonNull TypeVariable<?> target) {
-                return applyWith(source, new TypedTypeFunction<Boolean>() {
-                    @Override
-                    public Boolean applyClass(@NonNull Class<?> source) { //type variable <- class
-                        throw new UnsupportedOperationException(); //TODO
-                    }
-
-                    @Override
-                    public Boolean applyGenericArray(@NonNull GenericArrayType source) { //type variable <- array
-                        throw new UnsupportedOperationException(); //TODO
-                    }
-
-                    @Override
-                    public Boolean applyParameterized(@NonNull ParameterizedType source) { //type variable <- parameterized type
-                        throw new UnsupportedOperationException(); //TODO
-                    }
-
-                    @Override
-                    public Boolean applyWildcard(@NonNull WildcardType source) { //type variable <- wildcard
-                        throw new UnsupportedOperationException(); //TODO
-                    }
-
-                    @Override
-                    public Boolean applyVariable(@NonNull TypeVariable<?> source) { //type variable <- type variable
-                        throw new UnsupportedOperationException(); //TODO
-                    }
-                });
-            }
-        });
+        }
     }
 
     /**
@@ -549,7 +822,7 @@ public class PTypes {
 
             @Override
             public void acceptParameterized(@NonNull ParameterizedType type) {
-                Type rawType = Objects.requireNonNull(type.getRawType(), "rawType");
+                Class<?> rawType = (Class<?>) Objects.requireNonNull(type.getRawType(), "rawType");
                 Type[] actualTypeArguments = requireArrayNonNull(type.getActualTypeArguments(), "actualTypeArguments");
 
                 //ensure all argument types are valid
@@ -557,7 +830,7 @@ public class PTypes {
                     validate(actualTypeArgument);
                 }
 
-                TypeVariable<?>[] formalTypeParameters = ((GenericDeclaration) rawType).getTypeParameters();
+                TypeVariable<?>[] formalTypeParameters = rawType.getTypeParameters();
 
                 //ensure correct arity of argument count
                 checkState(formalTypeParameters.length == actualTypeArguments.length,
@@ -566,7 +839,7 @@ public class PTypes {
 
                 //ensure all the type parameters are within their bounds
                 for (int i = 0; i < actualTypeArguments.length; i++) {
-                    if (false && !isAssignableFrom(formalTypeParameters[i], actualTypeArguments[i])) { //TODO
+                    if (false && !isSubtype(formalTypeParameters[i], actualTypeArguments[i])) { //TODO
                         throw new IllegalStateException("invalid type arguments: parameter " + i + " (\"" + formalTypeParameters[i] + "\") expects "
                                                         + wildcard(formalTypeParameters[i].getBounds(), EMPTY_TYPE_ARRAY)
                                                         + ", but found " + actualTypeArguments[i]);
@@ -579,8 +852,8 @@ public class PTypes {
                 Type[] upperBounds = requireArrayNonNull(type.getUpperBounds(), "upperBounds");
                 Type[] lowerBounds = requireArrayNonNull(type.getLowerBounds(), "lowerBounds");
 
-                checkState(upperBounds.length != 0, "upperBounds may not be empty!");
-                checkState(lowerBounds.length == 0 || AbstractWildcardType.containsOnlyObjectClass(upperBounds), "if lowerBounds are non-empty, upperBounds must be {Object.class}");
+                checkState(upperBounds.length <= 1, "upperBounds must have at most one element!");
+                checkState(lowerBounds.length <= 1, "lowerBounds may have at most one element!");
             }
 
             @Override
@@ -652,7 +925,7 @@ public class PTypes {
 
             @Override
             public Class<?> applyParameterized(@NonNull ParameterizedType type) {
-                return raw(resolver, type.getRawType()); //discard parameters
+                return (Class<?>) type.getRawType(); //discard parameters
             }
 
             @Override
@@ -804,15 +1077,12 @@ public class PTypes {
                 Type[] originalActualTypeArguments = type.getActualTypeArguments();
                 Type[] resolvedActualTypeArguments = resolveArray(resolver, originalActualTypeArguments);
 
-                Type originalRawType = type.getRawType();
-                Type resolvedRawType = resolve(resolver, originalRawType);
-
                 Type originalOwnerType = type.getOwnerType();
                 Type resolvedOwnerType = originalOwnerType != null ? resolve(resolver, originalOwnerType) : null;
 
                 //noinspection ArrayEquality
-                return originalActualTypeArguments != resolvedActualTypeArguments || originalRawType != resolvedRawType || originalOwnerType != resolvedOwnerType
-                        ? parameterized(resolvedActualTypeArguments, resolvedRawType, resolvedOwnerType) //one of the child types changed, we need to re-create the type instance
+                return originalActualTypeArguments != resolvedActualTypeArguments || originalOwnerType != resolvedOwnerType
+                        ? parameterized(resolvedActualTypeArguments, (Class<?>) type.getRawType(), resolvedOwnerType) //one of the child types changed, we need to re-create the type instance
                         : type; //all of the child types are unchanged, return original type unmodified
             }
 
@@ -918,6 +1188,10 @@ public class PTypes {
         }
     }*/
 
+    protected static RuntimeException unresolvedException(TypeVariable<?> variable) {
+        return new IllegalArgumentException("unresolved type variable: " + variable + " (declared in " + variable.getGenericDeclaration() + ')');
+    }
+
     /**
      * Creates a new {@link Map} which uses {@link Type}s as a key type.
      *
@@ -969,6 +1243,20 @@ public class PTypes {
         } else {
             throw new IllegalArgumentException("don't know how to handle " + type.getClass().getTypeName());
         }
+    }
+
+    public static boolean isWildcardSuper(Type[] upperBounds, Type[] lowerBounds) {
+        return lowerBounds.length > 0;
+    }
+
+    public static boolean isWildcardUnbounded(Type[] upperBounds, Type[] lowerBounds) {
+        return lowerBounds.length == 0
+               && (upperBounds.length == 0 || upperBounds[0] == Object.class);
+    }
+
+    public static boolean isWildcardExtends(Type[] upperBounds, Type[] lowerBounds) {
+        return lowerBounds.length == 0
+               && upperBounds.length != 0;
     }
 
     public interface TypedTypeConsumer {

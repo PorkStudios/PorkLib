@@ -43,7 +43,7 @@ public abstract class AbstractParameterizedType extends AbstractType implements 
     public abstract @NonNull Type @NonNull [] getActualTypeArguments();
 
     @Override
-    public abstract @NonNull Type getRawType();
+    public abstract @NonNull Class<?> getRawType();
 
     @Override
     public abstract Type getOwnerType();
@@ -58,7 +58,7 @@ public abstract class AbstractParameterizedType extends AbstractType implements 
             ParameterizedType other = (ParameterizedType) obj;
 
             return Objects.equals(this.getOwnerType(), other.getOwnerType())
-                   && this.getRawType().equals(other.getRawType())
+                   && this.getRawType() == other.getRawType()
                    && Arrays.equals(this.getActualTypeArguments(), other.getActualTypeArguments());
         } else {
             return false;
@@ -75,30 +75,16 @@ public abstract class AbstractParameterizedType extends AbstractType implements 
     @Override
     public String toString() {
         Type ownerType = this.getOwnerType();
-        Type rawType = this.getRawType();
+        Class<?> rawType = this.getRawType();
         Type[] actualTypeArguments = this.getActualTypeArguments();
 
         //magic number 30 is copied from com.google.gson.internal.\$Gson\$Types$ParameterizedTypeImpl#toString()
         StringBuilder builder = new StringBuilder((actualTypeArguments.length + 1) * 30);
 
-        { //raw type name
-            String rawName = rawType.getTypeName();
-
-            if (ownerType == null) { //type has no owner, simply append the raw type's name
-                builder.append(rawName);
-            } else { //type has an owner
-                String ownerName = ownerType.getTypeName();
-                builder.append(ownerName).append('$');
-
-                //find the longest shared prefix between the raw type and the owner type's names, then strip it from the raw type's name and append it.
-                //  this is similar to calling Class#getSimpleName(), although i don't think it'll be valid in every case
-
-                int pos = 0;
-                while (pos < rawName.length() && pos < ownerName.length() && rawName.charAt(pos) == ownerName.charAt(pos)) {
-                    pos++;
-                }
-                builder.append(rawName, pos, rawName.length());
-            }
+        if (ownerType == null) { //type has no owner, simply append the raw type's name
+            builder.append(rawType.getName());
+        } else { //type has an owner
+            builder.append(ownerType.getTypeName()).append('$').append(rawType.getSimpleName());
         }
 
         if (actualTypeArguments.length > 0) { //type arguments

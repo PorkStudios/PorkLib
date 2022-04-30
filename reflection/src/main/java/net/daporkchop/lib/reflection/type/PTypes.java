@@ -35,6 +35,7 @@ import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
@@ -45,6 +46,7 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 import static net.daporkchop.lib.common.util.PorkUtil.*;
@@ -63,6 +65,9 @@ public class PTypes {
      */
 
     public static final Type[] EMPTY_TYPE_ARRAY = {};
+    protected static final Type[] OBJECT_CLASS_TYPE_ARRAY = { Object.class };
+
+    protected static final WildcardType UNBOUNDED_WILDCARD_TYPE = wildcard(OBJECT_CLASS_TYPE_ARRAY, EMPTY_TYPE_ARRAY);
 
     /**
      * Gets an {@link GenericArrayType array type} with the given {@link GenericArrayType#getGenericComponentType() component type}.
@@ -71,7 +76,7 @@ public class PTypes {
      * @return a {@link GenericArrayType}
      */
     public static GenericArrayType array(@NonNull Type componentType) {
-        return validate(new AbstractGenericArrayType() {
+        return validateAndGet(new AbstractGenericArrayType() {
             @Override
             public @NonNull Type getGenericComponentType() {
                 return componentType;
@@ -89,7 +94,7 @@ public class PTypes {
      * @return a {@link ParameterizedType}
      */
     public static ParameterizedType parameterized(@NonNull Class<?> rawType, Type ownerType, @NonNull Type @NonNull ... actualTypeArguments) {
-        return validate(new AbstractParameterizedType() {
+        return new AbstractParameterizedType() {
             @Override
             public @NonNull Type @NonNull [] getActualTypeArguments() {
                 return actualTypeArguments.clone();
@@ -104,7 +109,7 @@ public class PTypes {
             public Type getOwnerType() {
                 return ownerType != null ? ownerType : rawType.getDeclaringClass();
             }
-        });
+        };
     }
 
     /**
@@ -115,7 +120,7 @@ public class PTypes {
      * @return a {@link WildcardType}
      */
     public static WildcardType wildcard(@NonNull Type @NonNull [] upperBounds, @NonNull Type @NonNull [] lowerBounds) {
-        return validate(new AbstractWildcardType() {
+        return validateAndGet(new AbstractWildcardType() {
             @Override
             public @NonNull Type @NonNull [] getUpperBounds() {
                 return upperBounds.clone();
@@ -135,7 +140,24 @@ public class PTypes {
      * @return a {@link WildcardType}
      */
     public static WildcardType wildcardSuper(@NonNull Type lowerBound) {
-        return wildcard(new Type[]{ Object.class }, new Type[]{ lowerBound });
+        return wildcard(OBJECT_CLASS_TYPE_ARRAY, lowerBound == Object.class ? OBJECT_CLASS_TYPE_ARRAY : new Type[]{ lowerBound });
+    }
+
+    /**
+     * Gets a {@link WildcardType wildcard type} with the given {@link WildcardType#getLowerBounds() lower bound}s.
+     *
+     * @param lowerBounds the {@link WildcardType#getLowerBounds() lower bound}s
+     * @return a {@link WildcardType}
+     */
+    public static WildcardType wildcardSuper(@NonNull Type @NonNull ... lowerBounds) {
+        switch (lowerBounds.length) {
+            case 0:
+                return wildcardUnbounded();
+            case 1:
+                return wildcardSuper(lowerBounds[0]);
+            default:
+                return wildcard(OBJECT_CLASS_TYPE_ARRAY, lowerBounds);
+        }
     }
 
     /**
@@ -145,7 +167,24 @@ public class PTypes {
      * @return a {@link WildcardType}
      */
     public static WildcardType wildcardExtends(@NonNull Type upperBound) {
-        return wildcard(new Type[]{ upperBound }, EMPTY_TYPE_ARRAY);
+        return wildcard(upperBound == Object.class ? OBJECT_CLASS_TYPE_ARRAY : new Type[]{ upperBound }, EMPTY_TYPE_ARRAY);
+    }
+
+    /**
+     * Gets a {@link WildcardType wildcard type} with the given {@link WildcardType#getUpperBounds() upper bound}s.
+     *
+     * @param upperBounds the {@link WildcardType#getUpperBounds() upper bound}s
+     * @return a {@link WildcardType}
+     */
+    public static WildcardType wildcardExtends(@NonNull Type @NonNull ... upperBounds) {
+        switch (upperBounds.length) {
+            case 0:
+                return wildcardUnbounded();
+            case 1:
+                return wildcardExtends(upperBounds[0]);
+            default:
+                return wildcard(upperBounds, EMPTY_TYPE_ARRAY);
+        }
     }
 
     /**
@@ -154,7 +193,7 @@ public class PTypes {
      * @return a {@link WildcardType}
      */
     public static WildcardType wildcardUnbounded() {
-        return wildcard(new Type[]{ Object.class }, EMPTY_TYPE_ARRAY);
+        return UNBOUNDED_WILDCARD_TYPE;
     }
 
     /**
@@ -202,7 +241,7 @@ public class PTypes {
                 return realAnnotationSource;
             }
         }
-        return validate(new VariableTypeImpl());
+        return validateAndGet(new VariableTypeImpl());
     }
 
     /**
@@ -245,80 +284,94 @@ public class PTypes {
      * <p>
      * This operation is not reversible.
      *
-     * @param type the {@link Type}
+     * @param t the {@link Type}
      * @return the canonical {@link Type}
      */
-    public static Type canonicalize(@NonNull Type type) {
-        return applyWith(type, new TypedTypeFunction<Type>() {
-            @Override
-            public Type applyClass(@NonNull Class<?> type) {
-                return type.isArray()
-                        ? array(canonicalize(type.getComponentType())) //unroll into a (chain of) GenericArrayType
-                        : type; //ordinary class, return original type unmodified
+    @SuppressWarnings("ArrayEquality")
+    public static Type canonicalize(@NonNull Type t) {
+        /*
+         * Changes made by this method:
+         *
+         * - array classes are unrolled into GenericComponentType
+         * - super and unbounded wildcard types always use an empty Type[] for their upper bounds
+         */
+
+        if (t instanceof Class) {
+            Class<?> type = (Class<?>) t;
+
+            return type.isArray()
+                    ? array(canonicalize(type.getComponentType())) //unroll into a GenericArrayType
+                    : type; //ordinary class, return original type unmodified
+        } else if (t instanceof GenericArrayType) { //we need to canonicalize the array's component type
+            GenericArrayType type = (GenericArrayType) t;
+
+            Type originalComponentType = type.getGenericComponentType();
+            Type canonicalComponentType = canonicalize(type);
+
+            return originalComponentType != canonicalComponentType
+                    ? array(canonicalComponentType) //the component type changed, we need to re-create the type instance
+                    : originalComponentType; //the component type is unchanged, return original type unmodified
+        } else if (t instanceof ParameterizedType) { //we need to canonicalize the type's type arguments, owner type and raw type
+            ParameterizedType type = (ParameterizedType) t;
+
+            Type[] originalActualTypeArguments = type.getActualTypeArguments();
+            Type[] canonicalActualTypeArguments = canonicalizeArray(originalActualTypeArguments);
+
+            Type originalOwnerType = type.getOwnerType();
+            Type canonicalOwnerType = originalOwnerType != null ? canonicalize(originalOwnerType) : null;
+
+            return originalActualTypeArguments != canonicalActualTypeArguments || originalOwnerType != canonicalOwnerType
+                    ? parameterized((Class<?>) type.getRawType(), canonicalOwnerType, canonicalActualTypeArguments) //one of the child types changed, we need to re-create the type instance
+                    : type; //all of the child types are unchanged, return original type unmodified
+        } else if (t instanceof WildcardType) { //we need to canonicalize all of the upper and lower bounds
+            WildcardType type = (WildcardType) t;
+
+            Type[] originalUpperBounds = type.getUpperBounds();
+            Type[] canonicalUpperBounds = canonicalizeArray(originalUpperBounds);
+
+            Type[] originalLowerBounds = type.getLowerBounds();
+            Type[] canonicalLowerBounds = canonicalizeArray(originalLowerBounds);
+
+            if (isWildcardSuper(canonicalUpperBounds, canonicalLowerBounds) || isWildcardUnbounded(canonicalUpperBounds, canonicalLowerBounds)) { //use an empty Type[] for the upper bounds
+                canonicalUpperBounds = EMPTY_TYPE_ARRAY;
             }
 
-            @Override
-            public Type applyGenericArray(@NonNull GenericArrayType type) {
-                Type originalComponentType = type.getGenericComponentType();
-                Type canonicalComponentType = canonicalize(type);
+            return originalUpperBounds != canonicalUpperBounds || originalLowerBounds != canonicalLowerBounds
+                    ? wildcard(canonicalUpperBounds, canonicalLowerBounds) //one of the child types changed, we need to re-create the type instance
+                    : type; //all of the child types are unchanged, return original type unmodified
+        } else if (t instanceof TypeVariable) { //we need to canonicalize the type's bounds
+            TypeVariable<?> type = (TypeVariable<?>) t;
 
-                return originalComponentType != canonicalComponentType
-                        ? array(canonicalComponentType) //the component type changed, we need to re-create the type instance 
-                        : originalComponentType; //the component type is unchanged, return original type unmodified
-            }
+            Type[] originalBounds = type.getBounds();
+            Type[] canonicalBounds = canonicalizeArray(originalBounds);
 
-            @Override
-            public Type applyParameterized(@NonNull ParameterizedType type) {
-                Type[] originalActualTypeArguments = type.getActualTypeArguments();
-                Type[] canonicalActualTypeArguments = canonicalizeArray(originalActualTypeArguments);
-
-                Type originalOwnerType = type.getOwnerType();
-                Type canonicalOwnerType = originalOwnerType != null ? canonicalize(originalOwnerType) : null;
-
-                //noinspection ArrayEquality
-                return originalActualTypeArguments != canonicalActualTypeArguments || originalOwnerType != canonicalOwnerType
-                        ? parameterized((Class<?>) type.getRawType(), canonicalOwnerType, canonicalActualTypeArguments) //one of the child types changed, we need to re-create the type instance
-                        : type; //all of the child types are unchanged, return original type unmodified
-            }
-
-            @Override
-            public Type applyWildcard(@NonNull WildcardType type) {
-                Type[] originalUpperBounds = type.getUpperBounds();
-                Type[] canonicalUpperBounds = canonicalizeArray(originalUpperBounds);
-
-                Type[] originalLowerBounds = type.getLowerBounds();
-                Type[] canonicalLowerBounds = canonicalizeArray(originalLowerBounds);
-
-                //noinspection ArrayEquality
-                return originalUpperBounds != canonicalUpperBounds || originalLowerBounds != canonicalLowerBounds
-                        ? wildcard(canonicalUpperBounds, canonicalLowerBounds) //one of the child types changed, we need to re-create the type instance
-                        : type; //all of the child types are unchanged, return original type unmodified
-            }
-
-            @Override
-            public Type applyVariable(@NonNull TypeVariable<?> type) {
-                Type[] originalBounds = type.getBounds();
-                Type[] canonicalBounds = canonicalizeArray(originalBounds);
-
-                //noinspection ArrayEquality
-                if (originalBounds != canonicalBounds) { //one of the child types changed, we need to re-create the type instance
-                    //redirect the annotated bounds to the new target
-                    AnnotatedType[] canonicalAnnotatedBounds = type.getAnnotatedBounds();
-                    for (int i = 0; i < canonicalBounds.length; i++) {
-                        canonicalAnnotatedBounds[i] = annotated(canonicalBounds[i], canonicalAnnotatedBounds[i]); //safe to modify in-place since the array has already been cloned
-                    }
-
-                    return variable(canonicalBounds, type.getGenericDeclaration(), type.getName(), canonicalAnnotatedBounds, type);
-                } else { //all of the child types are unchanged, return original type unmodified
-                    return type;
+            if (originalBounds != canonicalBounds) { //one of the child types changed, we need to re-create the type instance
+                //redirect the annotated bounds to the new target
+                AnnotatedType[] canonicalAnnotatedBounds = type.getAnnotatedBounds();
+                for (int i = 0; i < canonicalBounds.length; i++) {
+                    canonicalAnnotatedBounds[i] = annotated(canonicalBounds[i], canonicalAnnotatedBounds[i]); //safe to modify in-place since the array has already been cloned
                 }
+
+                return variable(canonicalBounds, type.getGenericDeclaration(), type.getName(), canonicalAnnotatedBounds, type);
+            } else { //all of the child types are unchanged, return original type unmodified
+                return type;
             }
-        });
+        } else {
+            throw unsupportedTypeException(t);
+        }
     }
 
     protected static Type[] canonicalizeArray(Type[] originalArray) {
-        Type[] canonicalArray = originalArray;
+        switch (originalArray.length) {
+            case 0: //use the global empty Type[]
+                return EMPTY_TYPE_ARRAY;
+            case 1:
+                if (originalArray[0] == Object.class) { //use the global Type[] which only contains Object.class
+                    return OBJECT_CLASS_TYPE_ARRAY;
+                }
+        }
 
+        Type[] canonicalArray = originalArray;
         for (int i = 0; i < originalArray.length; i++) {
             Type originalType = originalArray[i];
             Type canonicalType = canonicalize(originalType);
@@ -331,7 +384,6 @@ public class PTypes {
                 canonicalArray[i] = canonicalType;
             }
         }
-
         return canonicalArray;
     }
 
@@ -339,45 +391,198 @@ public class PTypes {
      * Computes a hash code for the given {@link Type} which will be the same for any other functionally equal {@link Type}. This may not return the same result as
      * {@link Object#hashCode()}.
      * <p>
-     * Equivalent to {@code PTypes.canonicalize(type).hashCode()}.
+     * Equivalent to {@code t != null ? PTypes.canonicalize(t).hashCode() : 0}.
      *
-     * @param type the {@link Type}
+     * @param t the {@link Type}
      * @return a hash code for the given {@link Type}
      */
-    public static int hashCode(Type type) {
-        return type != null ? canonicalize(type).hashCode() : 0;
+    @SuppressWarnings("UnnecessaryContinue")
+    public static int hashCode(Type t) {
+        //XOR is both associative and commutative. all default implementations of Type#hashCode() combine intermediary results using XOR. we can do fake recursion in more cases
+        //  by tracking the current hash "state" and XOR-ing additional values onto it.
+        int state = 0;
+
+        do {
+            if (t == null) { //hashCode of null is 0
+                return state;
+            } else if (t instanceof Class<?>) {
+                Class<?> type = (Class<?>) t;
+
+                while (type.isArray()) { //type isn't canonical!
+                    //  "array classes are unrolled into GenericComponentType"
+                    //  we'll pretend like it's already been unrolled into a (chain of) GenericArrayType: the hash code will be genericComponentType.hashCode()
+
+                    //tail "recursion" into component type
+                    type = type.getComponentType();
+                }
+
+                //type is an ordinary class, return its hashCode unmodified
+                return state ^ type.hashCode();
+            } else if (t instanceof GenericArrayType) { //genericComponentType.hashCode()
+                //tail "recursion" into component type
+                t = ((GenericArrayType) t).getGenericComponentType();
+                continue;
+            } else if (t instanceof ParameterizedType) { //Arrays.hashCode(actualTypeArguments) ^ rawType.hashCode() ^ Objects.hashCode(ownerType)
+                ParameterizedType type = (ParameterizedType) t;
+
+                Class<?> rawType = (Class<?>) type.getRawType();
+                assert !rawType.isArray() : "parameterized type " + toString(type) + "'s raw type is an array: " + rawType;
+
+                state ^= hashCode(type.getActualTypeArguments()) ^ rawType.hashCode();
+
+                //tail "recursion" into owner type
+                t = type.getOwnerType();
+                continue;
+            } else if (t instanceof WildcardType) { //Arrays.hashCode(upperBounds) ^ Arrays.hashCode(lowerBounds)
+                WildcardType type = (WildcardType) t;
+
+                Type[] upperBounds = type.getUpperBounds();
+                Type[] lowerBounds = type.getLowerBounds();
+
+                if ((isWildcardSuper(upperBounds, lowerBounds) || isWildcardUnbounded(upperBounds, lowerBounds)) && upperBounds.length != 0) { //type isn't canonical!
+                    //  "super and unbounded wildcard types always use an empty Type[] for their upper bounds"
+                    //  we'll pretend like the upper bounds are an empty Type[]
+                    upperBounds = EMPTY_TYPE_ARRAY;
+                }
+
+                return state ^ hashCode(upperBounds) ^ hashCode(lowerBounds);
+            } else if (t instanceof TypeVariable) { //genericDeclaration.hashCode() ^ name.hashCode()
+                TypeVariable<?> type = (TypeVariable<?>) t;
+
+                return state ^ type.getGenericDeclaration().hashCode() ^ type.getName().hashCode();
+            } else {
+                throw unsupportedTypeException(t);
+            }
+        } while (true);
+    }
+
+    //emulate Arrays.hashCode(Object[]), but without null handling and delegating element hashing to PTypes.hashCode(type)
+    protected static int hashCode(Type[] array) {
+        int result = 1;
+        for (Type element : array) {
+            result = 31 * result + hashCode(element);
+        }
+        return result;
     }
 
     /**
      * Checks whether or not the two given {@link Type}s are functionally equal. This may not return the same result as {@link Object#equals(Object)}.
      * <p>
-     * Equivalent to {@code PTypes.canonicalize(a).equals(PTypes.canonicalize(b))}.
+     * Equivalent to {@code a == b || (a != null && b != null && PTypes.canonicalize(a).equals(PTypes.canonicalize(b)))}.
      *
      * @param a a {@link Type}
      * @param b a {@link Type}
      * @return whether or not the given {@link Type}s are functionally equal
      */
     public static boolean equals(Type a, Type b) {
-        if (a == b) {
-            return true;
-        } else if (a == null || b == null) { //if either value is null, the other is non-null
-            return false;
-        } else {
-            return canonicalize(a).equals(canonicalize(b));
-        }
+        //TODO: manually optimize this
+        return a == b || (a != null && b != null && canonicalize(a).equals(canonicalize(b)));
     }
 
     /**
      * Gets a {@link String} representing the given {@link Type} which will be the same for any other functionally equal {@link Type}. This may not return the same result as
      * {@link Object#toString()}.
      * <p>
-     * Equivalent to {@code PTypes.canonicalize(type).getTypeName()}.
+     * Equivalent to {@code type != null ? PTypes.canonicalize(type).getTypeName() : "null"}.
      *
      * @param type the {@link Type}
      * @return a {@link String} representation of the given {@link Type}
      */
     public static String toString(Type type) {
-        return type != null ? canonicalize(type).getTypeName() : "null";
+        if (type == null) {
+            return "null";
+        }
+
+        StringBuilder builder = new StringBuilder();
+        toString(builder, type);
+        return builder.toString();
+    }
+
+    private static void toString(StringBuilder builder, Type t) {
+        if (t instanceof Class) {
+            Class<?> type = (Class<?>) t;
+
+            if (type.isArray()) { //the type is actually a class masquerading as an array!
+                //figure out how many dimensions the array has
+                int dimensions = 0;
+                do {
+                    dimensions++;
+                    type = type.getComponentType();
+                } while (type.isArray());
+
+                //append the component type's regular class name
+                builder.append(type.getName());
+
+                //suffix with as many "[]"s as there are array dimensions
+                do {
+                    builder.append("[]");
+                } while (--dimensions != 0);
+            } else { //the type is an ordinary class
+                builder.append(type.getName());
+            }
+        } else if (t instanceof GenericArrayType) { //recursively stringify the array's component type, then append a "[]" suffix
+            toString(builder, ((GenericArrayType) t).getGenericComponentType());
+            builder.append("[]");
+        } else if (t instanceof ParameterizedType) {
+            ParameterizedType type = (ParameterizedType) t;
+
+            Class<?> rawType = (Class<?>) type.getRawType();
+            Type ownerType = type.getOwnerType();
+
+            if (ownerType != null) { //the type has an owner type, the raw type needs to be prefixed with it
+                //prefix this type with the owner type by recursively stringify-ing the owner type
+                toString(builder, ownerType);
+
+                //append the raw type's name with it's owner class' name stripped from it. this will automatically include the '$' separator.
+                String rawName = rawType.getName();
+                builder.append(rawName, rawType.getEnclosingClass().getName().length(), rawName.length());
+            } else { //simply append the raw type's name
+                builder.append(rawType.getName());
+            }
+
+            Type[] actualTypeArguments = type.getActualTypeArguments();
+            if (actualTypeArguments.length > 0) { //recursively stringify the type arguments
+                builder.append('<');
+                toString(builder, actualTypeArguments[0]);
+                for (int i = 1; i < actualTypeArguments.length; i++) {
+                    builder.append(", ");
+                    toString(builder, actualTypeArguments[i]);
+                }
+                builder.append('>');
+            }
+        } else if (t instanceof WildcardType) {
+            WildcardType type = (WildcardType) t;
+
+            Type[] upperBounds = type.getUpperBounds();
+            Type[] lowerBounds = type.getLowerBounds();
+
+            if (isWildcardUnbounded(upperBounds, lowerBounds)) { //?
+                builder.append('?');
+                return;
+            }
+
+            Type[] bounds;
+            if (isWildcardSuper(upperBounds, lowerBounds)) { //? super X { & Y...}
+                builder.append("? super ");
+                bounds = lowerBounds;
+            } else if (isWildcardExtendsAny(upperBounds, lowerBounds)) { //? extends X { & Y...}
+                builder.append("? extends ");
+                bounds = upperBounds;
+            } else {
+                throw new AssertionError(); //impossible
+            }
+
+            //recursively stringify bound types
+            toString(builder, bounds[0]);
+            for (int i = 1; i < bounds.length; i++) {
+                builder.append(" & ");
+                toString(builder, bounds[i]);
+            }
+        } else if (t instanceof TypeVariable) { //simply append the type variable's name
+            builder.append(((TypeVariable) t).getName());
+        } else {
+            throw unsupportedTypeException(t);
+        }
     }
 
     /**
@@ -605,7 +810,7 @@ public class PTypes {
                         }
                     }
                     return false;
-                } else if (s instanceof WildcardType) {
+                } else if (s instanceof WildcardType) { //wildcard <: parameterized class
                     throw wildcardNotAllowedException(s);
                 } else {
                     throw unsupportedTypeException(s);
@@ -632,14 +837,12 @@ public class PTypes {
     }
 
     protected static boolean isWildcard(Type t) {
-        if (t instanceof Class || t instanceof GenericArrayType || t instanceof ParameterizedType) {
+        if (t instanceof Class || t instanceof GenericArrayType || t instanceof ParameterizedType || t instanceof TypeVariable) {
             return false;
         } else if (t instanceof WildcardType) {
             return true;
-        } else if (t instanceof TypeVariable) {
-            throw unresolvedException((TypeVariable<?>) t);
         } else {
-            throw new IllegalArgumentException("don't know how to handle " + t.getClass().getTypeName());
+            throw unsupportedTypeException(t);
         }
     }
 
@@ -694,10 +897,10 @@ public class PTypes {
                     return true;
                 } else if (isWildcardSuper(targetUpperBounds, targetLowerBounds)) { //the target type is of the form ? super Y
                     //wrap the source type into a wildcard of the form ? super X, then proceed as if both types were originally wildcards
-                    s = wildcard(EMPTY_TYPE_ARRAY, new Type[]{ s });
-                } else if (isWildcardExtends(targetUpperBounds, targetLowerBounds)) { //the target type is of the form ? extends Y
+                    s = wildcardSuper(s);
+                } else if (isWildcardExtendsAny(targetUpperBounds, targetLowerBounds)) { //the target type is of the form ? extends Y
                     //wrap the source type into a wildcard of the form ? extends X, then proceed as if both types were originally wildcards
-                    s = wildcard(new Type[]{ s }, EMPTY_TYPE_ARRAY);
+                    s = wildcardExtends(s);
                 } else { //impossible
                     throw new AssertionError();
                 }
@@ -735,7 +938,7 @@ public class PTypes {
 
                     //source type is always contained
                     return true;
-                } else if (isWildcardExtends(targetUpperBounds, targetLowerBounds)) { //target type is of the form ? extends Y
+                } else if (isWildcardExtendsAny(targetUpperBounds, targetLowerBounds)) { //target type is of the form ? extends Y
                     //relevant rules:
                     //  <none>
 
@@ -745,7 +948,7 @@ public class PTypes {
                     throw new AssertionError();
                 }
             } else if (isWildcardUnbounded(sourceUpperBounds, sourceLowerBounds) //target type is of the form ? or ? extends Object
-                       || isWildcardExtends(sourceUpperBounds, sourceLowerBounds)) { //source type is of the form ? extends X
+                       || isWildcardExtendsAny(sourceUpperBounds, sourceLowerBounds)) { //source type is of the form ? extends X
                 //relevant rules:
                 //  - ? extends T <= ? extends S if T <: S
                 //  - ? extends T <= ?
@@ -762,7 +965,7 @@ public class PTypes {
 
                     //source type is always contained
                     return true;
-                } else if (isWildcardExtends(targetUpperBounds, targetLowerBounds)) { //target type is of the form ? extends Y
+                } else if (isWildcardExtendsAny(targetUpperBounds, targetLowerBounds)) { //target type is of the form ? extends Y
                     //relevant rules:
                     //  - ? extends T <= ? extends S if T <: S
 
@@ -797,29 +1000,26 @@ public class PTypes {
     /**
      * Ensures that the given {@link Type} is valid.
      *
-     * @param type the {@link Type}
-     * @return the {@link Type}
+     * @param t the {@link Type}
      * @throws RuntimeException if the type is invalid
      */
-    public static <T extends Type> T validate(@NonNull T type) {
-        acceptWith(type, new TypedTypeConsumer() {
-            @Override
-            public void acceptClass(@NonNull Class<?> type) {
+    public static void validate(@NonNull Type t) {
+        do {
+            if (t instanceof Class) {
                 //no-op, class is always valid
-            }
+            } else if (t instanceof GenericArrayType) { //we need to validate the array's component type
+                GenericArrayType type = (GenericArrayType) t;
 
-            @Override
-            public void acceptGenericArray(@NonNull GenericArrayType type) {
-                //recursively validate the array's component type
-                validate(type.getGenericComponentType());
-            }
+                //tail "recursion" into the component type
+                t = type.getGenericComponentType();
+                continue;
+            } else if (t instanceof ParameterizedType) { //we need to validate the type's type arguments and owner type, and make sure that the raw type is a Class<?>
+                ParameterizedType type = (ParameterizedType) t;
 
-            @Override
-            public void acceptParameterized(@NonNull ParameterizedType type) {
                 Class<?> rawType = (Class<?>) Objects.requireNonNull(type.getRawType(), "rawType");
                 Type[] actualTypeArguments = requireArrayNonNull(type.getActualTypeArguments(), "actualTypeArguments");
 
-                //ensure all argument types are valid
+                //recursively validate all argument types
                 for (Type actualTypeArgument : actualTypeArguments) {
                     validate(actualTypeArgument);
                 }
@@ -827,50 +1027,96 @@ public class PTypes {
                 TypeVariable<?>[] formalTypeParameters = rawType.getTypeParameters();
 
                 //ensure correct arity of argument count
-                checkState(formalTypeParameters.length == actualTypeArguments.length,
-                        "wrong number of type arguments: %s declares %d type parameters, but found %d arguments",
-                        rawType, formalTypeParameters.length, actualTypeArguments.length);
+                if (formalTypeParameters.length != actualTypeArguments.length) {
+                    throw new IllegalStateException("wrong number of type arguments: " + rawType + " declares " + formalTypeParameters.length + " type parameters, but found "
+                                                    + actualTypeArguments.length + " arguments");
+                }
 
                 //ensure all the type parameters are within their bounds
-                for (int i = 0; i < actualTypeArguments.length; i++) {
-                    if (false && !containsTypeArgument(formalTypeParameters[i], actualTypeArguments[i])) { //TODO
-                        throw new IllegalStateException("invalid type arguments: parameter " + i + " (\"" + formalTypeParameters[i] + "\") expects "
-                                                        + wildcard(formalTypeParameters[i].getBounds(), EMPTY_TYPE_ARRAY)
-                                                        + ", but found " + actualTypeArguments[i]);
-                    }
-                }
-            }
 
-            @Override
-            public void acceptWildcard(@NonNull WildcardType type) {
+                //get a parameterized type with a matching raw type, but using all of the parameter's bounds as wildcards
+                Type rawBoundedType = parameterized(rawType, type.getOwnerType(), Stream.of(formalTypeParameters).map(param -> wildcardExtends(param.getBounds())).toArray(Type[]::new));
+                //resolve any type variables from the type produced in the previous stage, to account for the case where one parameter references another parameter in its bounds
+                rawBoundedType = resolve(resolver(type), rawBoundedType);
+                //check if the given type is a valid subtype of the raw bounds with resolved type variables
+                if (!isSubtype(rawBoundedType, type)) {
+                    throw new IllegalStateException("invalid type arguments: " + toString(type) + " does not conform to bounds: " + toString(rawBoundedType));
+                }
+
+                t = type.getOwnerType();
+                if (t != null) { //tail "recursion" into the owner type
+                    continue;
+                }
+            } else if (t instanceof WildcardType) { //we need to validate the type's upper and lower bounds
+                WildcardType type = (WildcardType) t;
+
                 Type[] upperBounds = requireArrayNonNull(type.getUpperBounds(), "upperBounds");
                 Type[] lowerBounds = requireArrayNonNull(type.getLowerBounds(), "lowerBounds");
 
-                int cnt = 0;
-                if (isWildcardSuper(upperBounds, lowerBounds)) {
-                    cnt++;
+                if (lowerBounds.length != 0) { //lower bounds are non-empty, meaning this wildcard is of the form ? super X { & Y...}
+                    if (upperBounds.length > 1 || (upperBounds.length == 1 && upperBounds[0] != Object.class)) {
+                        throw new IllegalStateException("if lowerBounds is non-empty, upperBounds must either be empty or [Object.class], but it was " + Arrays.toString(upperBounds));
+                    }
+                } else if (upperBounds.length != 0) { //upper bounds are non-empty, meaning this wildcard is of the form ? extends X { & Y...}
+                    if (upperBounds.length > 1 && upperBounds[0] == Object.class) {
+                        throw new IllegalStateException("if upperBounds[0] is Object.class, no additional upper bounds may be present, but upperBounds was " + Arrays.toString(upperBounds));
+                    }
                 }
-                if (isWildcardUnbounded(upperBounds, lowerBounds) || isWildcardExtends(upperBounds, lowerBounds)) {
-                    cnt++;
-                }
-                checkState(cnt == 1, "illegal wildcard type: %s", type);
-            }
 
-            @Override
-            public void acceptVariable(@NonNull TypeVariable<?> type) {
-                Objects.requireNonNull(type.getGenericDeclaration(), "genericDeclaration");
+                //recursively validate all upper bounds
+                for (Type upperBound : upperBounds) {
+                    validate(upperBound);
+                }
+
+                //recursively validate all lower bounds
+                for (Type lowerBound : lowerBounds) {
+                    validate(lowerBound);
+                }
+            } else if (t instanceof TypeVariable) { //we need to validate the type variable's bounds, and make sure that all the annotated bounds are strictly equal
+                TypeVariable<?> type = (TypeVariable<?>) t;
 
                 Type[] bounds = requireArrayNonNull(type.getBounds(), "bounds");
+
+                //recursively validate all bounds
+                for (Type bound : bounds) {
+                    validate(bound);
+                }
+
                 AnnotatedType[] annotatedBounds = requireArrayNonNull(type.getAnnotatedBounds(), "annotatedBounds");
 
-                //ensure correct arity of (annotated) bound count
-                checkState(bounds.length == annotatedBounds.length, "bounds and annotated bounds must have the same length!");
-                for (int i = 0; i < annotatedBounds.length; i++) { //ensure all bounds are equal to their annotated counterparts
-                    checkState(bounds[i].equals(annotatedBounds[i].getType()), "bound type is not equal to annotated bound type");
+                //ensure correct arity of annotated bound count
+                if (bounds.length != annotatedBounds.length) {
+                    throw new IllegalStateException("length mismatch between bounds and annotated bounds: found " + bounds.length + " bounds, but " + annotatedBounds.length
+                                                    + " annotated bounds");
                 }
+
+                //ensure all bounds are equal to their annotated counterparts
+                for (int i = 0; i < bounds.length; i++) {
+                    if (!equals(bounds[i], annotatedBounds[i].getType())) {
+                        throw new IllegalStateException("bound #" + i + " differs between raw and annotated bounds: regular bound" + toString(bounds[i])
+                                                        + " does not equal annotated bound " + toString(annotatedBounds[i].getType()));
+                    }
+                }
+            } else {
+                throw unsupportedTypeException(t);
             }
-        });
-        return type;
+
+            //there's nothing left to be validated!
+            //  this will be skipped by 'continue;' in the event of a tail "recursion".
+            return;
+        } while (true);
+    }
+
+    /**
+     * Ensures that the given {@link Type} is valid.
+     *
+     * @param t the {@link Type}
+     * @return the {@link Type}
+     * @throws RuntimeException if the type is invalid
+     */
+    public static <T extends Type> T validateAndGet(T t) {
+        validate(t);
+        return t;
     }
 
     protected static <T> T[] requireArrayNonNull(T[] array, String name) {
@@ -921,6 +1167,12 @@ public class PTypes {
         return type -> Optional.empty();
     }
 
+    /**
+     * Gets a {@link TypeVariableResolver} which can resolve type variables in the given context.
+     *
+     * @param context the context to resolve type variables in
+     * @return a {@link TypeVariableResolver}
+     */
     public static TypeVariableResolver resolver(@NonNull Type context) {
         //before we do anything else, let's ensure the context has been canonicalized
         context = canonicalize(context);
@@ -971,6 +1223,12 @@ public class PTypes {
         }
     }
 
+    /**
+     * Gets a {@link TypeVariableResolver} which delegates to the given {@link Map}.
+     *
+     * @param resolutionTable the {@link Map} containing the type variable lookup entries
+     * @return a {@link TypeVariableResolver}
+     */
     public static TypeVariableResolver resolver(@NonNull Map<TypeVariable<?>, Type> resolutionTable) {
         return variable -> Optional.ofNullable(resolutionTable.get(variable));
     }
@@ -1016,10 +1274,9 @@ public class PTypes {
      */
     @SuppressWarnings("ArrayEquality")
     public static Type resolve(@NonNull TypeVariableResolver resolver, @NonNull Type t) {
-        if (t instanceof Class) {
-            return t; //ordinary class, doesn't need to be resolved
-        } else if (t instanceof GenericArrayType) {
-            //we need to resolve the array's component type
+        if (t instanceof Class) { //ordinary class, nothing needs to be resolved
+            return t;
+        } else if (t instanceof GenericArrayType) { //we need to resolve the array's component type
             GenericArrayType type = (GenericArrayType) t;
 
             Type originalComponentType = type.getGenericComponentType();
@@ -1028,8 +1285,7 @@ public class PTypes {
             return originalComponentType != resolvedComponentType
                     ? array(resolvedComponentType) //the component type changed, we need to re-create the type instance
                     : originalComponentType; //the component type is unchanged, return original type unmodified
-        } else if (t instanceof ParameterizedType) {
-            //we need to resolve the type's type arguments and owner type
+        } else if (t instanceof ParameterizedType) { //we need to resolve the type's type arguments and owner type
             ParameterizedType type = (ParameterizedType) t;
 
             Type[] originalActualTypeArguments = type.getActualTypeArguments();
@@ -1041,8 +1297,7 @@ public class PTypes {
             return originalActualTypeArguments != resolvedActualTypeArguments || originalOwnerType != resolvedOwnerType
                     ? parameterized((Class<?>) type.getRawType(), resolvedOwnerType, resolvedActualTypeArguments) //one of the child types changed, we need to re-create the type instance
                     : type; //all of the child types are unchanged, return original type unmodified
-        } else if (t instanceof WildcardType) {
-            //we need to resolve the type's upper and lower bounds
+        } else if (t instanceof WildcardType) { //we need to resolve the type's upper and lower bounds
             WildcardType type = (WildcardType) t;
 
             Type[] originalUpperBounds = type.getUpperBounds();
@@ -1054,8 +1309,7 @@ public class PTypes {
             return originalUpperBounds != resolvedUpperBounds || originalLowerBounds != resolvedLowerBounds
                     ? wildcard(resolvedUpperBounds, resolvedLowerBounds) //one of the child types changed, we need to re-create the type instance
                     : type; //all of the child types are unchanged, return original type unmodified
-        } else if (t instanceof TypeVariable) {
-            //we need to try to resolve the type variable itself
+        } else if (t instanceof TypeVariable) { //we need to try to resolve the type variable itself
             TypeVariable<?> type = (TypeVariable<?>) t;
 
             Optional<Type> resolvedType = resolver.resolveTypeVariable(type);
@@ -1064,7 +1318,7 @@ public class PTypes {
             } else {
                 throw unresolvedException(type);
             }
-        } else {
+        } else { //invalid or unknown type
             throw unsupportedTypeException(t);
         }
     }
@@ -1088,6 +1342,21 @@ public class PTypes {
         return resolvedArray;
     }
 
+    /**
+     * Finds the generic parameterization of the given target class inherited by the given context type.
+     * <p>
+     * Examples:
+     * <ul>
+     *     <li>{@code inheritedGenericSupertype(String.class, Comparable.class)} returns {@code Comparable<String>}</li>
+     *     <li>{@code inheritedGenericSupertype(StringList.class, Iterable.class)} returns {@code Iterable<String>}</li>
+     *     <li>{@code inheritedGenericSupertype(ArrayList<? extends CharSequence>, Collection.class)} returns {@code Collection<? extends CharSequence>}</li>
+     *     <li>{@code inheritedGenericSupertype(ArrayList<? extends CharSequence>, RandomAccess.class)} returns {@code RandomAccess.class}</li>
+     * </ul>
+     *
+     * @param context     the context type which inherits from the target class
+     * @param targetClass the target class to search for the inherited parameterization of
+     * @return the generic parameterization of the given target class inherited by the given context type
+     */
     public static Type inheritedGenericSupertype(@NonNull Type context, @NonNull Class<?> targetClass) {
         checkArg(!(context instanceof Class) || ((Class<?>) context).getTypeParameters().length == 0, "given type: %s has some type parameters, but no arguments were given!", context);
 
@@ -1176,102 +1445,56 @@ public class PTypes {
         return uncheckedCast(mapWithTypeKeys());
     }
 
-    @Deprecated
-    public static void acceptWith(@NonNull Type type, @NonNull TypedTypeConsumer action) {
-        if (type instanceof Class) {
-            action.acceptClass((Class<?>) type);
-        } else if (type instanceof GenericArrayType) {
-            action.acceptGenericArray((GenericArrayType) type);
-        } else if (type instanceof ParameterizedType) {
-            action.acceptParameterized((ParameterizedType) type);
-        } else if (type instanceof WildcardType) {
-            action.acceptWildcard((WildcardType) type);
-        } else if (type instanceof TypeVariable) {
-            action.acceptVariable((TypeVariable<?>) type);
-        } else {
-            throw new IllegalArgumentException("don't know how to handle " + type.getClass().getTypeName());
-        }
-    }
-
-    @Deprecated
-    public static <R> R applyWith(@NonNull Type type, @NonNull TypedTypeFunction<R> action) {
-        if (type instanceof Class) {
-            return action.applyClass((Class<?>) type);
-        } else if (type instanceof GenericArrayType) {
-            return action.applyGenericArray((GenericArrayType) type);
-        } else if (type instanceof ParameterizedType) {
-            return action.applyParameterized((ParameterizedType) type);
-        } else if (type instanceof WildcardType) {
-            return action.applyWildcard((WildcardType) type);
-        } else if (type instanceof TypeVariable) {
-            return action.applyVariable((TypeVariable<?>) type);
-        } else {
-            throw new IllegalArgumentException("don't know how to handle " + type.getClass().getTypeName());
-        }
-    }
-
-    public static boolean isWildcardSuper(Type[] upperBounds, Type[] lowerBounds) {
+    /**
+     * Checks whether or not the {@link WildcardType wildcard type} with the given {@link WildcardType#getUpperBounds() upper bounds} and {@link WildcardType#getLowerBounds() lower bounds}
+     * is a wildcard of the form {@code ? super ...}.
+     *
+     * @param upperBounds the {@link WildcardType#getUpperBounds() upper bounds}
+     * @param lowerBounds the {@link WildcardType#getLowerBounds() lower bounds}
+     * @return whether or not the wildcard is of the form {@code ? super ...}
+     */
+    public static boolean isWildcardSuper(@SuppressWarnings("unused") Type[] upperBounds, Type[] lowerBounds) {
         return lowerBounds.length > 0;
     }
 
+    /**
+     * Checks whether or not the {@link WildcardType wildcard type} with the given {@link WildcardType#getUpperBounds() upper bounds} and {@link WildcardType#getLowerBounds() lower bounds}
+     * is a wildcard of the form {@code ?} or {@code ? extends Object}.
+     *
+     * @param upperBounds the {@link WildcardType#getUpperBounds() upper bounds}
+     * @param lowerBounds the {@link WildcardType#getLowerBounds() lower bounds}
+     * @return whether or not the wildcard is of the form {@code ?} or {@code ? extends Object}
+     */
     public static boolean isWildcardUnbounded(Type[] upperBounds, Type[] lowerBounds) {
         return lowerBounds.length == 0
                && (upperBounds.length == 0 || upperBounds[0] == Object.class);
     }
 
-    public static boolean isWildcardExtends(Type[] upperBounds, Type[] lowerBounds) {
+    /**
+     * Checks whether or not the {@link WildcardType wildcard type} with the given {@link WildcardType#getUpperBounds() upper bounds} and {@link WildcardType#getLowerBounds() lower bounds}
+     * is a wildcard of the form {@code ? extends ...}. The special case {@code ? extends Object} is excluded.
+     *
+     * @param upperBounds the {@link WildcardType#getUpperBounds() upper bounds}
+     * @param lowerBounds the {@link WildcardType#getLowerBounds() lower bounds}
+     * @return whether or not the wildcard is of the form {@code ? extends ...}
+     * @see #isWildcardExtendsAny
+     */
+    public static boolean isWildcardExtendsStrict(Type[] upperBounds, Type[] lowerBounds) {
+        return lowerBounds.length == 0
+               && upperBounds.length != 0 && upperBounds[0] != Object.class;
+    }
+
+    /**
+     * Checks whether or not the {@link WildcardType wildcard type} with the given {@link WildcardType#getUpperBounds() upper bounds} and {@link WildcardType#getLowerBounds() lower bounds}
+     * is a wildcard of the form {@code ? extends ...}. The special case {@code ? extends Object} is <strong>not</strong> excluded.
+     *
+     * @param upperBounds the {@link WildcardType#getUpperBounds() upper bounds}
+     * @param lowerBounds the {@link WildcardType#getLowerBounds() lower bounds}
+     * @return whether or not the wildcard is of the form {@code ? extends ...}
+     * @see #isWildcardExtendsStrict
+     */
+    public static boolean isWildcardExtendsAny(Type[] upperBounds, Type[] lowerBounds) {
         return lowerBounds.length == 0
                && upperBounds.length != 0;
-    }
-
-    public interface TypedTypeConsumer {
-        void acceptClass(@NonNull Class<?> type);
-
-        void acceptGenericArray(@NonNull GenericArrayType type);
-
-        void acceptParameterized(@NonNull ParameterizedType type);
-
-        void acceptWildcard(@NonNull WildcardType type);
-
-        void acceptVariable(@NonNull TypeVariable<?> type);
-    }
-
-    public interface TypedTypeFunction<R> {
-        R applyClass(@NonNull Class<?> type);
-
-        R applyGenericArray(@NonNull GenericArrayType type);
-
-        R applyParameterized(@NonNull ParameterizedType type);
-
-        R applyWildcard(@NonNull WildcardType type);
-
-        R applyVariable(@NonNull TypeVariable<?> type);
-
-        interface ExceptionalByDefault<R> extends TypedTypeFunction<R> {
-            @Override
-            default R applyClass(@NonNull Class<?> type) {
-                throw new IllegalArgumentException("unsupported argument type: " + Class.class.getTypeName() + " (given: " + type + ')');
-            }
-
-            @Override
-            default R applyGenericArray(@NonNull GenericArrayType type) {
-                throw new IllegalArgumentException("unsupported argument type: " + GenericArrayType.class.getTypeName() + " (given: " + type + ')');
-            }
-
-            @Override
-            default R applyParameterized(@NonNull ParameterizedType type) {
-                throw new IllegalArgumentException("unsupported argument type: " + ParameterizedType.class.getTypeName() + " (given: " + type + ')');
-            }
-
-            @Override
-            default R applyWildcard(@NonNull WildcardType type) {
-                throw new IllegalArgumentException("unsupported argument type: " + WildcardType.class.getTypeName() + " (given: " + type + ')');
-            }
-
-            @Override
-            default R applyVariable(@NonNull TypeVariable<?> type) {
-                throw new IllegalArgumentException("unsupported argument type: " + TypeVariable.class.getTypeName() + " (given: " + type + ')');
-            }
-        }
     }
 }

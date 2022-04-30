@@ -20,7 +20,9 @@
 
 package net.daporkchop.lib.reflection.type;
 
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Type;
@@ -36,7 +38,7 @@ import java.lang.reflect.Type;
  *
  * @author DaPorkchop_
  */
-public abstract class AbstractGenericArrayType extends AbstractType implements GenericArrayType {
+public abstract class AbstractGenericArrayType implements GenericArrayType {
     @Override
     public abstract @NonNull Type getGenericComponentType();
 
@@ -62,6 +64,18 @@ public abstract class AbstractGenericArrayType extends AbstractType implements G
 
     @Override
     public String toString() {
-        return this.getGenericComponentType().getTypeName() + "[]";
+        Type componentType = this.getGenericComponentType();
+        return (componentType instanceof Class ? ((Class<?>) componentType).getName() : componentType.toString()) + "[]";
+    }
+
+    /**
+     * Default implementation of {@link AbstractGenericArrayType}.
+     *
+     * @author DaPorkchop_
+     */
+    @RequiredArgsConstructor
+    @Getter
+    public static final class DefaultGenericArrayType extends AbstractGenericArrayType {
+        private final Type genericComponentType;
     }
 }

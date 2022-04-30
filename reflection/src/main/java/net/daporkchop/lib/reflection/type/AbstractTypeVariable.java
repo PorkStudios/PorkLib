@@ -20,8 +20,12 @@
 
 package net.daporkchop.lib.reflection.type;
 
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.GenericDeclaration;
 import java.lang.reflect.Type;
@@ -38,7 +42,7 @@ import java.lang.reflect.TypeVariable;
  *
  * @author DaPorkchop_
  */
-public abstract class AbstractTypeVariable<D extends GenericDeclaration> extends AbstractType implements TypeVariable<D> {
+public abstract class AbstractTypeVariable<D extends GenericDeclaration> implements TypeVariable<D> {
     @Override
     public abstract @NonNull Type @NonNull [] getBounds();
 
@@ -51,7 +55,7 @@ public abstract class AbstractTypeVariable<D extends GenericDeclaration> extends
     @Override
     public abstract @NonNull AnnotatedType @NonNull [] getAnnotatedBounds();
 
-    //equals() and hashCode() implementations should be functionally identical to sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl
+    //equals() and hashCode() implementations should be functionally identical to sun.reflect.generics.reflectiveObjects.TypeVariableImpl
 
     @Override
     public boolean equals(Object obj) {
@@ -75,5 +79,33 @@ public abstract class AbstractTypeVariable<D extends GenericDeclaration> extends
     @Override
     public String toString() {
         return this.getName();
+    }
+
+    /**
+     * Default implementation of {@link AbstractTypeVariable}.
+     *
+     * @author DaPorkchop_
+     */
+    @RequiredArgsConstructor
+    @Getter
+    public static final class DefaultTypeVariable<D extends GenericDeclaration> extends AbstractTypeVariable<D> implements DelegatingAnnotatedElement {
+        private final Type[] bounds;
+        private final D genericDeclaration;
+        private final String name;
+        private final AnnotatedType[] annotatedBounds;
+        @Accessors(fluent = true)
+        private final AnnotatedElement annotationSource;
+
+        @Override
+        public @NonNull Type @NonNull [] getBounds() {
+            Type[] bounds = this.bounds;
+            return bounds.length != 0 ? bounds.clone() : bounds; //only need to clone backing array if it's non-empty
+        }
+
+        @Override
+        public @NonNull AnnotatedType @NonNull [] getAnnotatedBounds() {
+            AnnotatedType[] annotatedBounds = this.annotatedBounds;
+            return annotatedBounds.length != 0 ? annotatedBounds.clone() : annotatedBounds; //only need to clone backing array if it's non-empty
+        }
     }
 }

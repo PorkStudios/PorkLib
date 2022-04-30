@@ -20,7 +20,9 @@
 
 package net.daporkchop.lib.reflection.type;
 
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -38,7 +40,7 @@ import java.util.Objects;
  *
  * @author DaPorkchop_
  */
-public abstract class AbstractParameterizedType extends AbstractType implements ParameterizedType {
+public abstract class AbstractParameterizedType implements ParameterizedType {
     @Override
     public abstract @NonNull Type @NonNull [] getActualTypeArguments();
 
@@ -84,7 +86,9 @@ public abstract class AbstractParameterizedType extends AbstractType implements 
         if (ownerType == null) { //type has no owner, simply append the raw type's name
             builder.append(rawType.getName());
         } else { //type has an owner
-            builder.append(ownerType.getTypeName()).append('$').append(rawType.getSimpleName());
+            builder.append(ownerType instanceof Class ? ((Class<?>) ownerType).getName() : ownerType.toString())
+                    .append('$')
+                    .append(rawType.getSimpleName());
         }
 
         if (actualTypeArguments.length > 0) { //type arguments
@@ -96,5 +100,24 @@ public abstract class AbstractParameterizedType extends AbstractType implements 
         }
 
         return builder.toString();
+    }
+
+    /**
+     * Default implementation of {@link AbstractParameterizedType}.
+     *
+     * @author DaPorkchop_
+     */
+    @RequiredArgsConstructor
+    @Getter
+    public static final class DefaultParameterizedType extends AbstractParameterizedType {
+        private final Type[] actualTypeArguments;
+        private final Class<?> rawType;
+        private final Type ownerType;
+
+        @Override
+        public @NonNull Type @NonNull [] getActualTypeArguments() {
+            Type[] actualTypeArguments = this.actualTypeArguments;
+            return actualTypeArguments.length != 0 ? actualTypeArguments.clone() : actualTypeArguments; //only need to clone backing array if it's non-empty
+        }
     }
 }

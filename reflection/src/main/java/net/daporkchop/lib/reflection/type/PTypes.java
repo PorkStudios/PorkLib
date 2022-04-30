@@ -20,7 +20,10 @@
 
 package net.daporkchop.lib.reflection.type;
 
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.reflection.type.collection.MapWithTypeKeys;
 
@@ -65,6 +68,8 @@ public class PTypes {
      */
 
     public static final Type[] EMPTY_TYPE_ARRAY = {};
+    public static final AnnotatedType[] EMPTY_ANNOTATED_TYPE_ARRAY = {};
+
     protected static final Type[] OBJECT_CLASS_TYPE_ARRAY = { Object.class };
 
     protected static final WildcardType UNBOUNDED_WILDCARD_TYPE = wildcard(OBJECT_CLASS_TYPE_ARRAY, EMPTY_TYPE_ARRAY);
@@ -76,12 +81,7 @@ public class PTypes {
      * @return a {@link GenericArrayType}
      */
     public static GenericArrayType array(@NonNull Type componentType) {
-        return validateAndGet(new AbstractGenericArrayType() {
-            @Override
-            public @NonNull Type getGenericComponentType() {
-                return componentType;
-            }
-        });
+        return new AbstractGenericArrayType.DefaultGenericArrayType(componentType);
     }
 
     /**
@@ -94,22 +94,24 @@ public class PTypes {
      * @return a {@link ParameterizedType}
      */
     public static ParameterizedType parameterized(@NonNull Class<?> rawType, Type ownerType, @NonNull Type @NonNull ... actualTypeArguments) {
-        return new AbstractParameterizedType() {
-            @Override
-            public @NonNull Type @NonNull [] getActualTypeArguments() {
-                return actualTypeArguments.clone();
-            }
+        //canonicalize actualTypeArguments array
+        switch (actualTypeArguments.length) {
+            case 0:
+                actualTypeArguments = EMPTY_TYPE_ARRAY;
+                break;
+            case 1:
+                if (actualTypeArguments[0] == Object.class) {
+                    actualTypeArguments = OBJECT_CLASS_TYPE_ARRAY;
+                }
+                break;
+        }
 
-            @Override
-            public @NonNull Class<?> getRawType() {
-                return rawType;
-            }
+        //if ownerType is unset, have it fall back to declaring class (behavior copied from sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl constructor)
+        if (ownerType == null) {
+            ownerType = rawType.getDeclaringClass();
+        }
 
-            @Override
-            public Type getOwnerType() {
-                return ownerType != null ? ownerType : rawType.getDeclaringClass();
-            }
-        };
+        return new AbstractParameterizedType.DefaultParameterizedType(actualTypeArguments, rawType, ownerType);
     }
 
     /**
@@ -120,17 +122,31 @@ public class PTypes {
      * @return a {@link WildcardType}
      */
     public static WildcardType wildcard(@NonNull Type @NonNull [] upperBounds, @NonNull Type @NonNull [] lowerBounds) {
-        return validateAndGet(new AbstractWildcardType() {
-            @Override
-            public @NonNull Type @NonNull [] getUpperBounds() {
-                return upperBounds.clone();
-            }
+        //canonicalize upperBounds array
+        switch (upperBounds.length) {
+            case 0:
+                upperBounds = EMPTY_TYPE_ARRAY;
+                break;
+            case 1:
+                if (upperBounds[0] == Object.class) {
+                    upperBounds = OBJECT_CLASS_TYPE_ARRAY;
+                }
+                break;
+        }
 
-            @Override
-            public @NonNull Type @NonNull [] getLowerBounds() {
-                return lowerBounds.clone();
-            }
-        });
+        //canonicalize lowerBounds array
+        switch (lowerBounds.length) {
+            case 0:
+                lowerBounds = EMPTY_TYPE_ARRAY;
+                break;
+            case 1:
+                if (lowerBounds[0] == Object.class) {
+                    lowerBounds = OBJECT_CLASS_TYPE_ARRAY;
+                }
+                break;
+        }
+
+        return new AbstractWildcardType.DefaultWildcardType(upperBounds, lowerBounds);
     }
 
     /**
@@ -210,38 +226,29 @@ public class PTypes {
      * @return a {@link TypeVariable}
      */
     public static <D extends GenericDeclaration> TypeVariable<D> variable(@NonNull Type[] bounds, @NonNull D genericDeclaration, @NonNull String name, @NonNull AnnotatedType[] annotatedBounds, @NonNull AnnotatedElement annotationSource) {
-        AnnotatedElement realAnnotationSource = annotationSource instanceof DelegatingAnnotatedElement
-                ? ((DelegatingAnnotatedElement) annotationSource).annotationSource()
-                : annotationSource;
-
-        //can't use an anonymous class because i need to extend a class and implement an interface
-        class VariableTypeImpl extends AbstractTypeVariable<D> implements DelegatingAnnotatedElement {
-            @Override
-            public @NonNull Type @NonNull [] getBounds() {
-                return bounds.clone();
-            }
-
-            @Override
-            public @NonNull D getGenericDeclaration() {
-                return genericDeclaration;
-            }
-
-            @Override
-            public @NonNull String getName() {
-                return name;
-            }
-
-            @Override
-            public @NonNull AnnotatedType @NonNull [] getAnnotatedBounds() {
-                return annotatedBounds.clone();
-            }
-
-            @Override
-            public @NonNull AnnotatedElement annotationSource() {
-                return realAnnotationSource;
-            }
+        //canonicalize bounds array
+        switch (bounds.length) {
+            case 0:
+                bounds = EMPTY_TYPE_ARRAY;
+                break;
+            case 1:
+                if (bounds[0] == Object.class) {
+                    bounds = OBJECT_CLASS_TYPE_ARRAY;
+                }
+                break;
         }
-        return validateAndGet(new VariableTypeImpl());
+
+        //canonicalize annotatedBounds array
+        if (annotatedBounds.length == 0) {
+            annotatedBounds = EMPTY_ANNOTATED_TYPE_ARRAY;
+        }
+
+        //unwrap annotationSource if necessary
+        while (annotationSource instanceof DelegatingAnnotatedElement) {
+            annotationSource = ((DelegatingAnnotatedElement) annotationSource).annotationSource();
+        }
+
+        return new AbstractTypeVariable.DefaultTypeVariable<>(bounds, genericDeclaration, name, annotatedBounds, annotationSource);
     }
 
     /**
@@ -252,23 +259,20 @@ public class PTypes {
      * @return a {@link AnnotatedType}
      */
     public static AnnotatedType annotated(@NonNull Type type, @NonNull AnnotatedElement annotationSource) {
-        AnnotatedElement realAnnotationSource = annotationSource instanceof DelegatingAnnotatedElement
-                ? ((DelegatingAnnotatedElement) annotationSource).annotationSource()
-                : annotationSource;
-
-        //can't use an anonymous class because i need to implement multiple interfaces
-        class AnnotationRedirectingDelegate implements AnnotatedType, DelegatingAnnotatedElement {
-            @Override
-            public Type getType() {
-                return type;
-            }
-
-            @Override
-            public @NonNull AnnotatedElement annotationSource() {
-                return realAnnotationSource;
-            }
+        //unwrap annotationSource if necessary
+        while (annotationSource instanceof DelegatingAnnotatedElement) {
+            annotationSource = ((DelegatingAnnotatedElement) annotationSource).annotationSource();
         }
-        return new AnnotationRedirectingDelegate();
+
+        @RequiredArgsConstructor
+        @Getter
+        class AnnotationRedirectingDelegate implements AnnotatedType, DelegatingAnnotatedElement {
+            private final Type type;
+            @Accessors(fluent = true)
+            private final AnnotatedElement annotationSource;
+        }
+
+        return new AnnotationRedirectingDelegate(type, annotationSource);
     }
 
     /**
@@ -428,7 +432,7 @@ public class PTypes {
                 Class<?> rawType = (Class<?>) type.getRawType();
                 assert !rawType.isArray() : "parameterized type " + toString(type) + "'s raw type is an array: " + rawType;
 
-                state ^= hashCode(type.getActualTypeArguments()) ^ rawType.hashCode();
+                state ^= hashCodeArray(type.getActualTypeArguments()) ^ rawType.hashCode();
 
                 //tail "recursion" into owner type
                 t = type.getOwnerType();
@@ -445,7 +449,7 @@ public class PTypes {
                     upperBounds = EMPTY_TYPE_ARRAY;
                 }
 
-                return state ^ hashCode(upperBounds) ^ hashCode(lowerBounds);
+                return state ^ hashCodeArray(upperBounds) ^ hashCodeArray(lowerBounds);
             } else if (t instanceof TypeVariable) { //genericDeclaration.hashCode() ^ name.hashCode()
                 TypeVariable<?> type = (TypeVariable<?>) t;
 
@@ -457,7 +461,7 @@ public class PTypes {
     }
 
     //emulate Arrays.hashCode(Object[]), but without null handling and delegating element hashing to PTypes.hashCode(type)
-    protected static int hashCode(Type[] array) {
+    protected static int hashCodeArray(Type[] array) {
         int result = 1;
         for (Type element : array) {
             result = 31 * result + hashCode(element);
@@ -474,9 +478,115 @@ public class PTypes {
      * @param b a {@link Type}
      * @return whether or not the given {@link Type}s are functionally equal
      */
+    @SuppressWarnings({ "ArrayEquality" })
     public static boolean equals(Type a, Type b) {
-        //TODO: manually optimize this
-        return a == b || (a != null && b != null && canonicalize(a).equals(canonicalize(b)));
+        do {
+            if (a == b) { //objects are identity equal
+                return true;
+            } else if (a == null || b == null) { //exactly one of the given types is null
+                return false;
+            } else if (a instanceof Class) {
+                Class<?> a0 = (Class<?>) a;
+
+                //even if 'b instanceof Class', it wouldn't make a difference: we already checked above to see if the objects are identity equal. the only way the two types could still
+                //  be equal is if a is an array class (which isn't canonical and therefore hasn't been unrolled into a GenericArrayType), while b is a GenericArrayType.
+                if (a0.isArray() && b instanceof GenericArrayType) {
+                    //tail "recursion" with one level of array-ness removed
+                    a = a0.getComponentType();
+                    b = ((GenericArrayType) b).getGenericComponentType();
+                    continue;
+                }
+            } else if (a instanceof GenericArrayType) {
+                GenericArrayType a0 = (GenericArrayType) a;
+
+                if (b instanceof Class) { //b could be an array class (which isn't canonical and therefore hasn't been unrolled into a GenericArrayType)
+                    Class<?> b0 = (Class<?>) b;
+
+                    if (b0.isArray()) {
+                        //tail "recursion" with one level of array-ness removed
+                        a = a0.getGenericComponentType();
+                        b = b0.getComponentType();
+                        continue;
+                    }
+                } else if (b instanceof GenericArrayType) {
+                    //tail "recursion" with one level of array-ness removed
+                    a = a0.getGenericComponentType();
+                    b = ((GenericArrayType) b).getGenericComponentType();
+                    continue;
+                }
+            } else if (a instanceof ParameterizedType) {
+                ParameterizedType a0 = (ParameterizedType) a;
+
+                if (b instanceof ParameterizedType) {
+                    ParameterizedType b0 = (ParameterizedType) b;
+
+                    //noinspection RedundantCast
+                    if ((Class<?>) a0.getRawType() != (Class<?>) b0.getRawType()) { //if the raw types aren't equal, the parameterized types can't be equal either
+                        return false;
+                    }
+
+                    //check if the arguments are equal
+                    Type[] aArgs = a0.getActualTypeArguments();
+                    Type[] bArgs = b0.getActualTypeArguments();
+                    if (aArgs != bArgs && (aArgs.length != bArgs.length || !equalsArray(aArgs, bArgs))) {
+                        return false;
+                    }
+
+                    //tail "recursion" with owner type, if any
+                    a = a0.getOwnerType();
+                    b = b0.getOwnerType();
+                    continue;
+                }
+            } else if (a instanceof WildcardType) {
+                WildcardType a0 = (WildcardType) a;
+
+                if (b instanceof WildcardType) {
+                    WildcardType b0 = (WildcardType) b;
+
+                    Type[] aUpperBounds = a0.getUpperBounds();
+                    Type[] aLowerBounds = a0.getLowerBounds();
+                    if ((isWildcardSuper(aUpperBounds, aLowerBounds) || isWildcardUnbounded(aUpperBounds, aLowerBounds)) && aUpperBounds.length != 0) { //type isn't canonical!
+                        //  "super and unbounded wildcard types always use an empty Type[] for their upper bounds"
+                        //  we'll pretend like the upper bounds are an empty Type[]
+                        aUpperBounds = EMPTY_TYPE_ARRAY;
+                    }
+
+                    Type[] bUpperBounds = b0.getUpperBounds();
+                    Type[] bLowerBounds = b0.getLowerBounds();
+                    if ((isWildcardSuper(bUpperBounds, bLowerBounds) || isWildcardUnbounded(bUpperBounds, bLowerBounds)) && bUpperBounds.length != 0) { //type isn't canonical!
+                        //  "super and unbounded wildcard types always use an empty Type[] for their upper bounds"
+                        //  we'll pretend like the upper bounds are an empty Type[]
+                        bUpperBounds = EMPTY_TYPE_ARRAY;
+                    }
+
+                    return (aUpperBounds == bUpperBounds || (aUpperBounds.length == bUpperBounds.length && equalsArray(aUpperBounds, bUpperBounds))) //upper bounds are equal
+                           && (aLowerBounds == bLowerBounds || (aLowerBounds.length == bLowerBounds.length && equalsArray(aLowerBounds, bLowerBounds))); //lower bounds are equal
+                }
+            } else if (a instanceof TypeVariable && b instanceof TypeVariable) {
+                TypeVariable<?> a0 = (TypeVariable<?>) a;
+                TypeVariable<?> b0 = (TypeVariable<?>) b;
+
+                //only generic declaration and variable name need to be compared
+                return a0.getGenericDeclaration().equals(b0.getGenericDeclaration())
+                       && a0.getName().equals(b0.getName());
+            }
+
+            //this would be skipped if we were doing a fast emulated tail "recursion", so if we get this far the types must not be equal
+            return false;
+        } while (true);
+    }
+
+    protected static boolean equalsArray(Type[] a, Type[] b) {
+        if (a.length != b.length) {
+            return false;
+        } else {
+            for (int i = 0; i < a.length; i++) {
+                if (!equals(a[i], b[i])) { //abort immediately if any of the arguments don't match
+                    return false;
+                }
+            }
+            return true;
+        }
     }
 
     /**
@@ -639,23 +749,8 @@ public class PTypes {
                     //the target type isn't parameterized, so the source type will be accepted regardless of its parameter values. let's try again using the raw source type as the
                     //  source type.
                     s = (Class<?>) source.getRawType();
-                } else if (s instanceof TypeVariable) { //type variable <: class
-                    TypeVariable<?> source = (TypeVariable<?>) s;
-
-                    //JLS 4.10.2. Subtyping among Class and Interface types
-                    //  The direct supertypes of a type variable are the types listed in its bound.
-
-                    //we want to know whether the target type is a supertype of any of the type variable's bounds (actually, the other way around: whether any of the type variable's
-                    //  bounds is a subtype of the target type). this requires us to recurse into each bound type.
-                    for (Type sourceBound : source.getBounds()) {
-                        if (isSubtype(target, sourceBound)) { //break out as soon as we have a match
-                            return true;
-                        }
-                    }
-                    return false;
-                } else if (s instanceof WildcardType) {
-                    throw wildcardNotAllowedException(s);
-                } else {
+                    continue;
+                } else if (!(s instanceof WildcardType || s instanceof TypeVariable)) { //WildcardType and TypeVariable are handled below
                     throw unsupportedTypeException(s);
                 }
             } else if (t instanceof GenericArrayType) {
@@ -686,23 +781,7 @@ public class PTypes {
 
                     //only non-array reference types can be parameterized. therefore, no parameterized type can ever be a subtype of an array type.
                     return false;
-                } else if (s instanceof TypeVariable) { //type variable <: array
-                    TypeVariable<?> source = (TypeVariable<?>) s;
-
-                    //JLS 4.10.2. Subtyping among Class and Interface types
-                    //  The direct supertypes of a type variable are the types listed in its bound.
-
-                    //we want to know whether the target type is a supertype of any of the type variable's bounds (actually, the other way around: whether any of the type variable's
-                    //  bounds is a subtype of the target type). this requires us to recurse into each bound type.
-                    for (Type sourceBound : source.getBounds()) {
-                        if (isSubtype(target, sourceBound)) { //break out as soon as we have a match
-                            return true;
-                        }
-                    }
-                    return false;
-                } else if (s instanceof WildcardType) {
-                    throw wildcardNotAllowedException(s);
-                } else {
+                } else if (!(s instanceof WildcardType || s instanceof TypeVariable)) { //WildcardType and TypeVariable are handled below
                     throw unsupportedTypeException(s);
                 }
             } else if (t instanceof ParameterizedType) {
@@ -796,23 +875,7 @@ public class PTypes {
                     } else { //if the raw source type isn't a raw subtype of the raw target type, no amount of type parameters will be able to fix that
                         return false;
                     }
-                } else if (s instanceof TypeVariable) { //type variable <: parameterized class
-                    TypeVariable<?> source = (TypeVariable<?>) s;
-
-                    //JLS 4.10.2. Subtyping among Class and Interface types
-                    //  The direct supertypes of a type variable are the types listed in its bound.
-
-                    //we want to know whether the target type is a supertype of any of the type variable's bounds (actually, the other way around: whether any of the type variable's
-                    //  bounds is a subtype of the target type). this requires us to recurse into each bound type.
-                    for (Type sourceBound : source.getBounds()) {
-                        if (isSubtype(target, sourceBound)) { //break out as soon as we have a match
-                            return true;
-                        }
-                    }
-                    return false;
-                } else if (s instanceof WildcardType) { //wildcard <: parameterized class
-                    throw wildcardNotAllowedException(s);
-                } else {
+                } else if (!(s instanceof WildcardType || s instanceof TypeVariable)) { //WildcardType and TypeVariable are handled below
                     throw unsupportedTypeException(s);
                 }
             } else if (t instanceof TypeVariable) {
@@ -822,16 +885,102 @@ public class PTypes {
                 //  The direct supertypes of a type variable are the types listed in its bound.
 
                 //we want to know whether the source type is a subtype of all of the type variable's bounds. this requires us to recurse into each bound type.
-                for (Type targetBound : target.getBounds()) {
-                    if (!isSubtype(targetBound, s)) { //break out as soon as one doesn't match
-                        return false;
-                    }
+                Type[] targetBounds = target.getBounds();
+                switch (targetBounds.length) {
+                    default:
+                        for (Type targetBound : targetBounds) {
+                            if (!isSubtype(targetBound, s)) { //break out as soon as one doesn't match
+                                return false;
+                            }
+                        }
+                        return true;
+
+                    //special cases: use fast emulated tail "recursion" if there are 0 or 1 bounds
+                    case 0: //target type has no bounds, therefore it implicitly extends Object
+                        t = Object.class;
+                        continue;
+                    case 1: //target type has no bounds, therefore it implicitly extends Object
+                        t = targetBounds[0];
+                        continue;
                 }
-                return true;
-            } else if (t instanceof WildcardType) {
-                throw wildcardNotAllowedException(t);
+            } else if (t instanceof WildcardType) { //pretend like we actually support capture conversion
+                /*
+                 * code example of what's going on here:
+                 *
+                 *   List<? extends String> l1 = Arrays.asList(null, null);
+                 *   l0.set(0, null); //no actual may be passed as a value here, not even Object
+                 */
+
+                return false;
             } else {
                 throw unsupportedTypeException(t);
+            }
+
+            if (s instanceof TypeVariable) { //special case: source type is a type variable
+                TypeVariable<?> source = (TypeVariable<?>) s;
+
+                //JLS 4.10.2. Subtyping among Class and Interface types
+                //  The direct supertypes of a type variable are the types listed in its bound.
+
+                //we want to know whether the target type is a supertype of any of the type variable's bounds (actually, the other way around: whether any of the type variable's
+                //  bounds is a subtype of the target type). this requires us to recurse into each bound type.
+                Type[] sourceBounds = source.getBounds();
+                switch (sourceBounds.length) {
+                    default:
+                        for (Type sourceBound : sourceBounds) {
+                            if (isSubtype(t, sourceBound)) { //break out as soon as we have a match
+                                return true;
+                            }
+                        }
+                        return false;
+
+                    //special cases: use fast emulated tail "recursion" if there are 0 or 1 bounds
+                    case 0: //source type has no bounds, therefore it implicitly extends Object
+                        s = Object.class;
+                        continue;
+                    case 1: //source type has exactly one bound
+                        s = sourceBounds[0];
+                        continue;
+                }
+            } else /* if (s instanceof Wildcard) */ { //special case: source type is a wildcard, pretend like we actually support capture conversion
+                WildcardType source = (WildcardType) s;
+
+                Type[] sourceUpperBounds = source.getUpperBounds();
+                Type[] sourceLowerBounds = source.getLowerBounds();
+
+                if (sourceLowerBounds.length != 0) { //source type is a wildcard of form ? super ...
+                    /*
+                     * code example of what's going on here:
+                     *
+                     *   List<? super String> l0;
+                     *   Object var = l0.get(0); //any type other than Object is not accepted
+                     */
+
+                    //the source type could be any supertype of its lower bound, all the way up to Object. therefore, the target type must be a supertype of Object.
+
+                    s = Object.class;
+                    continue; //tail "recursion"
+                } else { //source type is either an unbounded wildcard (i.e. ? extends Object), or a wildcard of form ? extends ...
+                    //we want to know whether the target type is a supertype of any of the source type variable's bounds (actually, the other way around: whether any of the type variable's
+                    //  bounds is a subtype of the target type). this requires us to recurse into each bound type.
+                    switch (sourceUpperBounds.length) {
+                        default:
+                            for (Type sourceUpperBound : sourceUpperBounds) {
+                                if (!isSubtype(t, sourceUpperBound)) { //break out as soon as one doesn't match
+                                    return false;
+                                }
+                            }
+                            return true;
+
+                        //special cases: use fast emulated tail "recursion" if there are 0 or 1 bounds
+                        case 0: //source type has no upper bounds, which makes it an unbounded wildcard (i.e. ? extends Object)
+                            s = Object.class;
+                            continue;
+                        case 1: //source type has exactly one upper bound
+                            s = sourceUpperBounds[0];
+                            continue;
+                    }
+                }
             }
         } while (true);
     }
@@ -1035,7 +1184,9 @@ public class PTypes {
                 //ensure all the type parameters are within their bounds
 
                 //get a parameterized type with a matching raw type, but using all of the parameter's bounds as wildcards
-                Type rawBoundedType = parameterized(rawType, type.getOwnerType(), Stream.of(formalTypeParameters).map(param -> wildcardExtends(param.getBounds())).toArray(Type[]::new));
+                Type rawBoundedType = new AbstractParameterizedType.DefaultParameterizedType(
+                        Stream.of(formalTypeParameters).map(param -> wildcardExtends(param.getBounds())).toArray(Type[]::new),
+                        rawType, type.getOwnerType());
                 //resolve any type variables from the type produced in the previous stage, to account for the case where one parameter references another parameter in its bounds
                 rawBoundedType = resolve(resolver(type), rawBoundedType);
                 //check if the given type is a valid subtype of the raw bounds with resolved type variables
@@ -1174,9 +1325,6 @@ public class PTypes {
      * @return a {@link TypeVariableResolver}
      */
     public static TypeVariableResolver resolver(@NonNull Type context) {
-        //before we do anything else, let's ensure the context has been canonicalized
-        context = canonicalize(context);
-
         //get the raw context class
         Class<?> contextClass = raw(context);
         if (contextClass.isArray()) {

@@ -21,6 +21,7 @@
 package net.daporkchop.lib.reflection.type;
 
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
@@ -37,8 +38,7 @@ import java.util.Arrays;
  *
  * @author DaPorkchop_
  */
-public abstract class AbstractWildcardType extends AbstractType implements WildcardType {
-
+public abstract class AbstractWildcardType implements WildcardType {
     @Override
     public abstract @NonNull Type @NonNull [] getUpperBounds();
 
@@ -95,5 +95,28 @@ public abstract class AbstractWildcardType extends AbstractType implements Wildc
         }
 
         return builder.toString();
+    }
+
+    /**
+     * Default implementation of {@link AbstractWildcardType}.
+     *
+     * @author DaPorkchop_
+     */
+    @RequiredArgsConstructor
+    public static final class DefaultWildcardType extends AbstractWildcardType {
+        private final Type[] upperBounds;
+        private final Type[] lowerBounds;
+
+        @Override
+        public @NonNull Type @NonNull [] getUpperBounds() {
+            Type[] upperBounds = this.upperBounds;
+            return upperBounds.length != 0 ? upperBounds.clone() : upperBounds; //only need to clone backing array if it's non-empty
+        }
+
+        @Override
+        public @NonNull Type @NonNull [] getLowerBounds() {
+            Type[] lowerBounds = this.lowerBounds;
+            return lowerBounds.length != 0 ? lowerBounds.clone() : lowerBounds; //only need to clone backing array if it's non-empty
+        }
     }
 }

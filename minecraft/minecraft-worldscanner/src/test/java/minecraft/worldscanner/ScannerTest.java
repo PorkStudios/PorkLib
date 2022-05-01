@@ -60,7 +60,6 @@ public class ScannerTest {
     private MinecraftSave getTestWorld() {
         return new SaveBuilder()
                 .setFormat(new AnvilSaveFormat(new File(".", "run/testworld")))
-//                .setFormat(new AnvilSaveFormat(new File("C:\\Users\\thela\\AppData\\Roaming\\.minecraft\\saves\\holes_z")))
                 //.setFormat(new AnvilSaveFormat(new File("E:\\Misc\\2b2t_org")))
                 .setInitFunctions(new MinecraftSaveConfig()
                         .openOptions(new RegionOpenOptions().access(RegionFile.Access.READ_ONLY)))
@@ -199,7 +198,7 @@ public class ScannerTest {
                         int x = chunk.getX() << 4;
                         int z = chunk.getZ() << 4;
                         for (int xx = 15; xx >= 0; xx--) {
-                            for (int zz = 15 - (xx & 1); zz >= 0; zz -= 2) {
+                            for (int zz = 15; zz >= 0; zz--) {
                                 int id = chunk.getBiomeId(x + xx, z + zz);
 //                                System.out.printf("%d at (%d, %d)\n", id, x + xx, z + zz);
                                 if (id == 1) {

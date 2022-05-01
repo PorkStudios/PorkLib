@@ -276,6 +276,60 @@ public class PTypes {
     }
 
     /**
+     * Gets a {@link Type} representing the given {@link Class}, but with all type parameters filled in by their corresponding {@link TypeVariable}s.
+     *
+     * @param clazz the {@link Class}
+     * @return the {@link Type}
+     */
+    public static Type fillParametersWithTypeVariables(@NonNull Class<?> clazz) {
+        Type ownerType = null;
+        Class<?> ownerClass = clazz.getEnclosingClass();
+        if (ownerClass != null) { //class isn't a top-level class, it might have inherited some parameters from its enclosing class
+            ownerType = fillParametersWithTypeVariables(ownerClass);
+        }
+
+        TypeVariable<?>[] formalArgs = clazz.getTypeParameters();
+        if (formalArgs.length != 0 //the class has at least one type parameter
+            || !(ownerType instanceof Class)) { //at least one of the enclosing classes has inherited a type variable from its supertype
+            return parameterized(clazz, ownerType, formalArgs);
+        }
+
+        //there are no parameters to fill in
+        return clazz;
+    }
+
+    /**
+     * Gets a {@link Type} representing the given {@link Class}, but with all type parameters filled in by unbounded wildcards.
+     *
+     * @param clazz the {@link Class}
+     * @return the {@link Type}
+     */
+    public static Type fillParametersWithWildcards(@NonNull Class<?> clazz) {
+        Type ownerType = null;
+        Class<?> ownerClass = clazz.getEnclosingClass();
+        if (ownerClass != null) { //class isn't a top-level class, it might have inherited some parameters from its enclosing class
+            ownerType = fillParametersWithWildcards(ownerClass);
+        }
+
+        TypeVariable<?>[] formalArgs = clazz.getTypeParameters();
+        if (formalArgs.length != 0 //the class has at least one type parameter
+            || !(ownerType instanceof Class)) { //at least one of the enclosing classes has inherited a type variable from its supertype
+            Type[] actualTypeArguments;
+            if (formalArgs.length == 0) { //there are no type arguments, use global empty array instance
+                actualTypeArguments = EMPTY_TYPE_ARRAY;
+            } else { //allocate a new array and fill it with unbounded wildcards
+                actualTypeArguments = new Type[formalArgs.length];
+                Arrays.fill(actualTypeArguments, wildcardUnbounded());
+            }
+
+            return parameterized(clazz, ownerType, actualTypeArguments);
+        }
+
+        //there are no parameters to fill in
+        return clazz;
+    }
+
+    /**
      * Returns a {@link Type} which is functionally equivalent to the given {@link Type}, but may not be strictly equal according to {@link Object#equals(Object)}.
      * <p>
      * Given two non-canonical, but functionally equivalent {@link Type}s {@code a} and {@code b}, the following statements are true:
@@ -904,14 +958,57 @@ public class PTypes {
                         continue;
                 }
             } else if (t instanceof WildcardType) { //pretend like we actually support capture conversion
-                /*
-                 * code example of what's going on here:
-                 *
-                 *   List<? extends String> l1 = Arrays.asList(null, null);
-                 *   l0.set(0, null); //no actual may be passed as a value here, not even Object
-                 */
+                WildcardType target = (WildcardType) t;
 
-                return false;
+                Type[] targetUpperBounds = target.getUpperBounds();
+                Type[] targetLowerBounds = target.getLowerBounds();
+
+                if (isWildcardSuper(targetUpperBounds, targetLowerBounds)) { //target type is a wildcard of form ? super ...
+                    /*
+                     * code example of what's going on here:
+                     *
+                     *   List<? super CharSequence> list = new ArrayList<>();
+                     *   list.add((CharSequence) ""); //list.add(""); would also be valid
+                     */
+
+                    //for some reason which i don't entirely understand, the super is accepting any SUBtype of its bound (which is what i would have expected to occur if the target type
+                    //  were '? extends CharSequence', and this code actually compiles. i believe it's related to the following rules from the JLS:
+
+                    //JLS 4.5.1. Type Arguments of Parameterized Types:
+                    //  - ? super T <= ? super S if S <: T
+                    //  - T <= ? super T
+
+                    //my best guess is that these rules are somehow also being applied during capture conversion (see JLS 5.1.10. Capture Conversion), but since i haven't yet managed to
+                    //  decipher the spec's definition of capture conversion, i can't actually support it. for now, i'll just assume that it does, in fact, get treated as an extends and
+                    //  leave it at that.
+
+                    //we want to know whether the source type is a subtype of all of the target wildcard's lower bounds. this requires us to recurse into each bound type.
+                    switch (targetLowerBounds.length) {
+                        default:
+                            for (Type targetLowerBound : targetLowerBounds) {
+                                if (!isSubtype(targetLowerBound, s)) { //break out as soon as one doesn't match
+                                    return false;
+                                }
+                            }
+                            return true;
+
+                        //special cases: use fast emulated tail "recursion" if there are 0 or 1 bounds
+                        case 0: //this is impossible, isWildcardSuper() requires that there be at least one lower bound
+                            throw new AssertionError();
+                        case 1: //target type has exactly one lower bound
+                            t = targetLowerBounds[0];
+                            continue;
+                    }
+                } else {
+                    /*
+                     * code example of what's going on here:
+                     *
+                     *   List<? extends String> l1 = Arrays.asList(null, null);
+                     *   l0.set(0, null); //no actual may be passed as a value here, not even Object
+                     */
+
+                    return false;
+                }
             } else {
                 throw unsupportedTypeException(t);
             }
@@ -961,8 +1058,8 @@ public class PTypes {
                     s = Object.class;
                     continue; //tail "recursion"
                 } else { //source type is either an unbounded wildcard (i.e. ? extends Object), or a wildcard of form ? extends ...
-                    //we want to know whether the target type is a supertype of any of the source type variable's bounds (actually, the other way around: whether any of the type variable's
-                    //  bounds is a subtype of the target type). this requires us to recurse into each bound type.
+                    //we want to know whether the target type is a supertype of all of the source wildcard's upper bounds (actually, the other way around: whether all of the source wildcard's
+                    //  upper bounds are a subtype of the target type). this requires us to recurse into each upper bound type.
                     switch (sourceUpperBounds.length) {
                         default:
                             for (Type sourceUpperBound : sourceUpperBounds) {
@@ -1357,7 +1454,7 @@ public class PTypes {
 
         { //recurse into all superinterfaces
             Class<?>[] rawInterfaces = contextClass.getInterfaces();
-            Type[] genericInterfaces = contextClass.getInterfaces();
+            Type[] genericInterfaces = contextClass.getGenericInterfaces();
             for (int i = 0; i < rawInterfaces.length; i++) {
                 buildResolver(rawInterfaces[i], resolve(resolver, genericInterfaces[i]), visitedClasses, resolvedTable);
             }
@@ -1463,8 +1560,21 @@ public class PTypes {
             Optional<Type> resolvedType = resolver.resolveTypeVariable(type);
             if (resolvedType.isPresent()) { //the type variable was resolved
                 return resolvedType.get();
-            } else {
-                throw unresolvedException(type);
+            }
+
+            Type[] originalBounds = type.getBounds();
+            Type[] resolvedBounds = resolveArray(resolver, originalBounds);
+
+            if (originalBounds != resolvedBounds) { //one of the child types changed, we need to re-create the type instance
+                //redirect the annotated bounds to the new target
+                AnnotatedType[] resolvedAnnotatedBounds = type.getAnnotatedBounds();
+                for (int i = 0; i < resolvedBounds.length; i++) {
+                    resolvedAnnotatedBounds[i] = annotated(resolvedBounds[i], resolvedAnnotatedBounds[i]); //safe to modify in-place since the array has already been cloned
+                }
+
+                return variable(resolvedBounds, type.getGenericDeclaration(), type.getName(), resolvedAnnotatedBounds, type);
+            } else { //all of the child types are unchanged, return original type unmodified
+                return type;
             }
         } else { //invalid or unknown type
             throw unsupportedTypeException(t);
@@ -1496,7 +1606,7 @@ public class PTypes {
      * Examples:
      * <ul>
      *     <li>{@code inheritedGenericSupertype(String.class, Comparable.class)} returns {@code Comparable<String>}</li>
-     *     <li>{@code inheritedGenericSupertype(StringList.class, Iterable.class)} returns {@code Iterable<String>}</li>
+     *     <li>{@code inheritedGenericSupertype(StringList.class, Iterable.class)} returns {@code Iterable<String>} (assuming {@code StringList} is a class which inherits from {@code List<String>})</li>
      *     <li>{@code inheritedGenericSupertype(ArrayList<? extends CharSequence>, Collection.class)} returns {@code Collection<? extends CharSequence>}</li>
      *     <li>{@code inheritedGenericSupertype(ArrayList<? extends CharSequence>, RandomAccess.class)} returns {@code RandomAccess.class}</li>
      * </ul>
@@ -1570,6 +1680,14 @@ public class PTypes {
 
     protected static RuntimeException unsupportedTypeException(Object msg) {
         return new IllegalArgumentException("unsupported type type: " + msg.getClass().getTypeName());
+    }
+
+    public static Stream<? super Class<?>> allSuperclasses(@NonNull Class<?> clazz) {
+        Stream.Builder<? super Class<?>> builder = Stream.builder();
+        do {
+            builder.add(clazz);
+        } while ((clazz = clazz.getSuperclass()) != null);
+        return builder.build();
     }
 
     /**

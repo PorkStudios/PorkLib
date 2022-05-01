@@ -33,6 +33,7 @@ import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Array;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.GenericDeclaration;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
@@ -62,9 +63,41 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
 @UtilityClass
 public class PTypes {
     /*
-     * Implementation details:
+     * java.lang.reflect.Type has 5 sub-types:
+     *   - Class<?>
+     *   - GenericArrayType
+     *   - ParameterizedType
+     *   - WildcardType
+     *   - TypeVariable<?>
      *
-     * - we assume that ParameterizedType#getRawType() always returns Class<?>
+     * Many of the exact details of the java.lang.reflect.Type API are not clearly documented. This not only means that the user is pretty much forced to use the official implementation
+     * as reference material in order to make anything work, but even that two Type instances which represent the exact same type might not be equal according to Object#equals(Object),
+     * and could have different hash codes or toString() representations. I've resolved this vagueness by making a number of assumptions about certain Type sub-types' properties which I
+     * am reasonably certain will always hold under all implementations. Additionally, I've defined an additional set of rules for converting a Type to its 'canonical' form, which
+     * should (I hope) have no ambiguity, and will ensure that two types representing the same type are actually equal.
+     *
+     * Assumptions:
+     *   - any sub-type properties which return an array will never contain any null elements
+     *   - a ParameterizedType's actual type argument count is always the same as its raw type's type parameter count
+     *   - each of a ParameterizedType's actual type arguments are always within the upper bounds defined by the corresponding type variable
+     *   - a ParameterizedType's raw type is always a non-array Class<?>
+     *   - a ParameterizedType's owner type is always a Class<?>, a ParameterizedType or null
+     *   - a ParameterizedType's owner type will always be non-null as long as its raw type is a non-static class which inherits type parameters from an enclosing class. For instance, given
+     *     the following: 'class Outer<A> { class Inner<B> {}}', the type 'Outer.Inner<?>' would not be valid as the type parameter A is not defined.
+     *   - a WildcardType of the form '? super ...' has >= 1 lower bounds, and its upper bounds are either an empty array or [Object.class]
+     *   - an unbounded WildcardType (i.e. a WildcardType of the form '?' or '? extends Object') has 0 lower bounds, and its upper bounds are either an empty array or [Object.class]
+     *   - a WildcardType of the form '? extends ...' has 0 lower bounds and >= 1 upper bounds, none of which is Object.class
+     *   - an unbounded TypeVariable (i.e. a TypeVariable of the form 'T' or 'T extends Object')'s upper bounds are either an empty array or [Object.class]
+     *   - a bounded TypeVariable has >= 1 upper bound, none of which is Object.class
+     *   - two TypeVariables are equal as long as their generic declarations and names are equal according to Object#equals(Object)
+     *
+     * Canonicalization rules:
+     *   - a Class representing an array is replaced by a GenericArrayType using the class's component type as a component type. In other words, T[].class is replaced with GenericArrayType(T.class).
+     *   - a ParameterizedType's owner type is always non-null as long as its raw type is not a static class and the raw type's enclosing class is non-null
+     *   - a ParameterizedType with no type arguments and whose owner type is either a Class or null is replaced with its raw type
+     *   - a WildcardType whose upper bounds are [Object.class] is replaced with a WildcardType with the same lower bounds and whose upper bounds are an empty array. This will only affect
+     *     wildcards of the form '? super ...', '?' or '? extends Object'.
+     *   - these rules are applied recursively
      */
 
     public static final Type[] EMPTY_TYPE_ARRAY = {};
@@ -347,39 +380,47 @@ public class PTypes {
      */
     @SuppressWarnings("ArrayEquality")
     public static Type canonicalize(@NonNull Type t) {
-        /*
-         * Changes made by this method:
-         *
-         * - array classes are unrolled into GenericComponentType
-         * - super and unbounded wildcard types always use an empty Type[] for their upper bounds
-         */
+        //see the comment at the top of this file for the rules enforced by this method
 
         if (t instanceof Class) {
             Class<?> type = (Class<?>) t;
 
             return type.isArray()
-                    ? array(canonicalize(type.getComponentType())) //unroll into a GenericArrayType
+                    ? array(canonicalize(type.getComponentType())) //canonicalization: "T[].class is replaced with GenericArrayType(T.class)"
                     : type; //ordinary class, return original type unmodified
         } else if (t instanceof GenericArrayType) { //we need to canonicalize the array's component type
             GenericArrayType type = (GenericArrayType) t;
 
             Type originalComponentType = type.getGenericComponentType();
-            Type canonicalComponentType = canonicalize(type);
+            Type canonicalComponentType = canonicalize(originalComponentType);
 
             return originalComponentType != canonicalComponentType
                     ? array(canonicalComponentType) //the component type changed, we need to re-create the type instance
-                    : originalComponentType; //the component type is unchanged, return original type unmodified
+                    : type; //the component type is unchanged, return original type unmodified
         } else if (t instanceof ParameterizedType) { //we need to canonicalize the type's type arguments, owner type and raw type
             ParameterizedType type = (ParameterizedType) t;
 
-            Type[] originalActualTypeArguments = type.getActualTypeArguments();
-            Type[] canonicalActualTypeArguments = canonicalizeArray(originalActualTypeArguments);
+            Class<?> rawType = (Class<?>) type.getRawType();
 
             Type originalOwnerType = type.getOwnerType();
             Type canonicalOwnerType = originalOwnerType != null ? canonicalize(originalOwnerType) : null;
 
+            Type[] originalActualTypeArguments = type.getActualTypeArguments();
+
+            //canonicalization: "a ParameterizedType's owner type is always non-null as long as its raw type is not a static class and the raw type's enclosing class is non-null"
+            if (canonicalOwnerType == null && (rawType.getModifiers() & Modifier.STATIC) != 0) {
+                canonicalOwnerType = rawType.getEnclosingClass();
+            }
+
+            //canonicalization: "a ParameterizedType with no type arguments and whose owner type is either a Class or null is replaced with its raw type"
+            if (originalActualTypeArguments.length == 0 && (canonicalOwnerType == null || canonicalOwnerType instanceof Class)) {
+                return rawType;
+            }
+
+            Type[] canonicalActualTypeArguments = canonicalizeArray(originalActualTypeArguments);
+
             return originalActualTypeArguments != canonicalActualTypeArguments || originalOwnerType != canonicalOwnerType
-                    ? parameterized((Class<?>) type.getRawType(), canonicalOwnerType, canonicalActualTypeArguments) //one of the child types changed, we need to re-create the type instance
+                    ? parameterized(rawType, canonicalOwnerType, canonicalActualTypeArguments) //one of the child types changed, we need to re-create the type instance
                     : type; //all of the child types are unchanged, return original type unmodified
         } else if (t instanceof WildcardType) { //we need to canonicalize all of the upper and lower bounds
             WildcardType type = (WildcardType) t;
@@ -390,7 +431,8 @@ public class PTypes {
             Type[] originalLowerBounds = type.getLowerBounds();
             Type[] canonicalLowerBounds = canonicalizeArray(originalLowerBounds);
 
-            if (isWildcardSuper(canonicalUpperBounds, canonicalLowerBounds) || isWildcardUnbounded(canonicalUpperBounds, canonicalLowerBounds)) { //use an empty Type[] for the upper bounds
+            //canonicalization: "a WildcardType whose upper bounds are [Object.class] is replaced with a WildcardType with the same lower bounds and whose upper bounds are an empty array"
+            if (canonicalUpperBounds.length == 1 && canonicalUpperBounds[0] == Object.class) {
                 canonicalUpperBounds = EMPTY_TYPE_ARRAY;
             }
 
@@ -460,14 +502,15 @@ public class PTypes {
         //  by tracking the current hash "state" and XOR-ing additional values onto it.
         int state = 0;
 
+        //this method simultaneously enforces the canonicalization rules described in the comment at the beginning of this class while computing the hash code.
+
         do {
             if (t == null) { //hashCode of null is 0
                 return state;
             } else if (t instanceof Class<?>) {
                 Class<?> type = (Class<?>) t;
 
-                while (type.isArray()) { //type isn't canonical!
-                    //  "array classes are unrolled into GenericComponentType"
+                while (type.isArray()) { //canonicalization: "T[].class is replaced with GenericArrayType(T.class)"
                     //  we'll pretend like it's already been unrolled into a (chain of) GenericArrayType: the hash code will be genericComponentType.hashCode()
 
                     //tail "recursion" into component type
@@ -484,12 +527,26 @@ public class PTypes {
                 ParameterizedType type = (ParameterizedType) t;
 
                 Class<?> rawType = (Class<?>) type.getRawType();
-                assert !rawType.isArray() : "parameterized type " + toString(type) + "'s raw type is an array: " + rawType;
+                Type ownerType = type.getOwnerType();
+                Type[] actualTypeArguments = type.getActualTypeArguments();
 
-                state ^= hashCodeArray(type.getActualTypeArguments()) ^ rawType.hashCode();
+                { //try to canonicalize the type
+                    //canonicalization: "a ParameterizedType's owner type is always non-null as long as its raw type is not a static class and the raw type's enclosing class is non-null"
+                    if (ownerType == null && (rawType.getModifiers() & Modifier.STATIC) != 0) {
+                        ownerType = rawType.getEnclosingClass();
+                    }
+
+                    //canonicalization: "a ParameterizedType with no type arguments and whose owner type is either a Class or null is replaced with its raw type"
+                    if (actualTypeArguments.length == 0 && (ownerType == null || ownerType instanceof Class)) {
+                        t = rawType; //replace a with its raw type and try again
+                        continue;
+                    }
+                }
+
+                state ^= hashCodeArray(actualTypeArguments) ^ rawType.hashCode();
 
                 //tail "recursion" into owner type
-                t = type.getOwnerType();
+                t = ownerType;
                 continue;
             } else if (t instanceof WildcardType) { //Arrays.hashCode(upperBounds) ^ Arrays.hashCode(lowerBounds)
                 WildcardType type = (WildcardType) t;
@@ -497,9 +554,8 @@ public class PTypes {
                 Type[] upperBounds = type.getUpperBounds();
                 Type[] lowerBounds = type.getLowerBounds();
 
-                if ((isWildcardSuper(upperBounds, lowerBounds) || isWildcardUnbounded(upperBounds, lowerBounds)) && upperBounds.length != 0) { //type isn't canonical!
-                    //  "super and unbounded wildcard types always use an empty Type[] for their upper bounds"
-                    //  we'll pretend like the upper bounds are an empty Type[]
+                //canonicalization: "a WildcardType whose upper bounds are [Object.class] is replaced with a WildcardType with the same lower bounds and whose upper bounds are an empty array"
+                if (upperBounds.length == 1 && upperBounds[0] == Object.class) {
                     upperBounds = EMPTY_TYPE_ARRAY;
                 }
 
@@ -534,6 +590,8 @@ public class PTypes {
      */
     @SuppressWarnings({ "ArrayEquality" })
     public static boolean equals(Type a, Type b) {
+        //this method simultaneously enforces the canonicalization rules described in the comment at the beginning of this class while comparing the types.
+
         do {
             if (a == b) { //objects are identity equal
                 return true;
@@ -542,13 +600,37 @@ public class PTypes {
             } else if (a instanceof Class) {
                 Class<?> a0 = (Class<?>) a;
 
-                //even if 'b instanceof Class', it wouldn't make a difference: we already checked above to see if the objects are identity equal. the only way the two types could still
-                //  be equal is if a is an array class (which isn't canonical and therefore hasn't been unrolled into a GenericArrayType), while b is a GenericArrayType.
-                if (a0.isArray() && b instanceof GenericArrayType) {
-                    //tail "recursion" with one level of array-ness removed
-                    a = a0.getComponentType();
-                    b = ((GenericArrayType) b).getGenericComponentType();
-                    continue;
+                //even if 'b instanceof Class', it wouldn't make a difference: we already checked above to see if the objects are identity equal. there are only two ways the types could
+                //  still be equal:
+                //  - a could be an array class (which isn't canonical and therefore hasn't been replaced with GenericArrayType), while b is a GenericArrayClass
+                //  - b could be a non-canonical ParameterizedType which would be replaced by its raw type during canonicalization, and the raw type could be equal to a
+                if (a0.isArray()) {
+                    if (b instanceof GenericArrayType) {
+                        //tail "recursion" with one level of array-ness removed
+                        a = a0.getComponentType();
+                        b = ((GenericArrayType) b).getGenericComponentType();
+                        continue;
+                    }
+                } else if (b instanceof ParameterizedType) {
+                    ParameterizedType b0 = (ParameterizedType) b;
+
+                    Class<?> bRaw = (Class<?>) b0.getRawType();
+
+                    if (a0 != bRaw) { //if the raw type isn't equal to a, canonicalization wouldn't make the types match
+                        return false;
+                    }
+
+                    Type ownerType = b0.getOwnerType();
+                    Type[] actualTypeArguments = b0.getActualTypeArguments();
+
+                    //canonicalization: "a ParameterizedType's owner type is always non-null as long as its raw type is not a static class and the raw type's enclosing class is non-null"
+                    if (ownerType == null && (bRaw.getModifiers() & Modifier.STATIC) != 0) {
+                        ownerType = bRaw.getEnclosingClass();
+                    }
+
+                    //canonicalization: "a ParameterizedType with no type arguments and whose owner type is either a Class or null is replaced with its raw type"
+                    //  we know that the raw types are equal, so once b has been replaced with its raw type a and b will be equal
+                    return actualTypeArguments.length == 0 && (ownerType == null || ownerType instanceof Class);
                 }
             } else if (a instanceof GenericArrayType) {
                 GenericArrayType a0 = (GenericArrayType) a;
@@ -569,26 +651,61 @@ public class PTypes {
                     continue;
                 }
             } else if (a instanceof ParameterizedType) {
+                if (!(b instanceof ParameterizedType || b instanceof Class)) { //if b isn't either a parameterized type or a class, the types cannot be equal
+                    return false;
+                }
+
                 ParameterizedType a0 = (ParameterizedType) a;
+
+                Class<?> aRaw = (Class<?>) a0.getRawType();
+                Type aOwnerType = a0.getOwnerType();
+                Type[] aArgs = a0.getActualTypeArguments();
+
+                { //try to canonicalize a
+                    //canonicalization: "a ParameterizedType's owner type is always non-null as long as its raw type is not a static class and the raw type's enclosing class is non-null"
+                    if (aOwnerType == null && (aRaw.getModifiers() & Modifier.STATIC) != 0) {
+                        aOwnerType = aRaw.getEnclosingClass();
+                    }
+
+                    //canonicalization: "a ParameterizedType with no type arguments and whose owner type is either a Class or null is replaced with its raw type"
+                    if (aArgs.length == 0 && (aOwnerType == null || aOwnerType instanceof Class)) {
+                        a = aRaw; //replace a with its raw type and try again
+                        continue;
+                    }
+                }
 
                 if (b instanceof ParameterizedType) {
                     ParameterizedType b0 = (ParameterizedType) b;
 
-                    //noinspection RedundantCast
-                    if ((Class<?>) a0.getRawType() != (Class<?>) b0.getRawType()) { //if the raw types aren't equal, the parameterized types can't be equal either
+                    Class<?> bRaw = (Class<?>) b0.getRawType();
+                    if (aRaw != bRaw) { //if the raw types aren't equal, the parameterized types can't be equal either
                         return false;
                     }
 
-                    //check if the arguments are equal
-                    Type[] aArgs = a0.getActualTypeArguments();
+                    Type bOwnerType = b0.getOwnerType();
                     Type[] bArgs = b0.getActualTypeArguments();
+
+                    { //try to canonicalize b
+                        //canonicalization: "a ParameterizedType's owner type is always non-null as long as its raw type is not a static class and the raw type's enclosing class is non-null"
+                        if (bOwnerType == null && (bRaw.getModifiers() & Modifier.STATIC) != 0) {
+                            bOwnerType = bRaw.getEnclosingClass();
+                        }
+
+                        //canonicalization: "a ParameterizedType with no type arguments and whose owner type is either a Class or null is replaced with its raw type"
+                        if (bArgs.length == 0 && (bOwnerType == null || bOwnerType instanceof Class)) {
+                            //we already know that a is canonical but hasn't been replaced with a class. a parameterized type can't equal a class, so the types aren't equal
+                            return false;
+                        }
+                    }
+
+                    //check if the arguments are equal
                     if (aArgs != bArgs && (aArgs.length != bArgs.length || !equalsArray(aArgs, bArgs))) {
                         return false;
                     }
 
                     //tail "recursion" with owner type, if any
-                    a = a0.getOwnerType();
-                    b = b0.getOwnerType();
+                    a = aOwnerType;
+                    b = bOwnerType;
                     continue;
                 }
             } else if (a instanceof WildcardType) {
@@ -599,17 +716,17 @@ public class PTypes {
 
                     Type[] aUpperBounds = a0.getUpperBounds();
                     Type[] aLowerBounds = a0.getLowerBounds();
-                    if ((isWildcardSuper(aUpperBounds, aLowerBounds) || isWildcardUnbounded(aUpperBounds, aLowerBounds)) && aUpperBounds.length != 0) { //type isn't canonical!
-                        //  "super and unbounded wildcard types always use an empty Type[] for their upper bounds"
-                        //  we'll pretend like the upper bounds are an empty Type[]
+
+                    //canonicalization: "a WildcardType whose upper bounds are [Object.class] is replaced with a WildcardType with the same lower bounds and whose upper bounds are an empty array"
+                    if (aUpperBounds.length == 1 && aUpperBounds[0] == Object.class) {
                         aUpperBounds = EMPTY_TYPE_ARRAY;
                     }
 
                     Type[] bUpperBounds = b0.getUpperBounds();
                     Type[] bLowerBounds = b0.getLowerBounds();
-                    if ((isWildcardSuper(bUpperBounds, bLowerBounds) || isWildcardUnbounded(bUpperBounds, bLowerBounds)) && bUpperBounds.length != 0) { //type isn't canonical!
-                        //  "super and unbounded wildcard types always use an empty Type[] for their upper bounds"
-                        //  we'll pretend like the upper bounds are an empty Type[]
+
+                    //canonicalization: "a WildcardType whose upper bounds are [Object.class] is replaced with a WildcardType with the same lower bounds and whose upper bounds are an empty array"
+                    if (bUpperBounds.length == 1 && bUpperBounds[0] == Object.class) {
                         bUpperBounds = EMPTY_TYPE_ARRAY;
                     }
 
@@ -663,10 +780,12 @@ public class PTypes {
     }
 
     private static void toString(StringBuilder builder, Type t) {
+        //this method simultaneously enforces the canonicalization rules described in the comment at the beginning of this class while stringifying the type.
+
         if (t instanceof Class) {
             Class<?> type = (Class<?>) t;
 
-            if (type.isArray()) { //the type is actually a class masquerading as an array!
+            if (type.isArray()) { //canonicalization: "T[].class is replaced with GenericArrayType(T.class)"
                 //figure out how many dimensions the array has
                 int dimensions = 0;
                 do {
@@ -692,6 +811,21 @@ public class PTypes {
 
             Class<?> rawType = (Class<?>) type.getRawType();
             Type ownerType = type.getOwnerType();
+            Type[] actualTypeArguments = type.getActualTypeArguments();
+
+            { //try to canonicalize the type
+                //canonicalization: "a ParameterizedType's owner type is always non-null as long as its raw type is not a static class and the raw type's enclosing class is non-null"
+                if (ownerType == null && (rawType.getModifiers() & Modifier.STATIC) != 0) {
+                    ownerType = rawType.getEnclosingClass();
+                }
+
+                //canonicalization: "a ParameterizedType with no type arguments and whose owner type is either a Class or null is replaced with its raw type"
+                if (actualTypeArguments.length == 0 && (ownerType == null || ownerType instanceof Class)) {
+                    //we know that the raw type can't be an array class, so we can be safe in the knowledge that it's an ordinary class and simply append its regular name
+                    builder.append(rawType.getName());
+                    return;
+                }
+            }
 
             if (ownerType != null) { //the type has an owner type, the raw type needs to be prefixed with it
                 //prefix this type with the owner type by recursively stringify-ing the owner type
@@ -704,7 +838,6 @@ public class PTypes {
                 builder.append(rawType.getName());
             }
 
-            Type[] actualTypeArguments = type.getActualTypeArguments();
             if (actualTypeArguments.length > 0) { //recursively stringify the type arguments
                 builder.append('<');
                 toString(builder, actualTypeArguments[0]);
@@ -1719,8 +1852,9 @@ public class PTypes {
      * @param lowerBounds the {@link WildcardType#getLowerBounds() lower bounds}
      * @return whether or not the wildcard is of the form {@code ? super ...}
      */
-    public static boolean isWildcardSuper(@SuppressWarnings("unused") Type[] upperBounds, Type[] lowerBounds) {
-        return lowerBounds.length > 0;
+    public static boolean isWildcardSuper(Type[] upperBounds, Type[] lowerBounds) {
+        return lowerBounds.length > 0
+               && (upperBounds.length == 0 || upperBounds[0] == Object.class);
     }
 
     /**

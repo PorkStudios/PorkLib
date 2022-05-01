@@ -26,6 +26,7 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import java.io.Serializable;
+import java.lang.reflect.Type;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -555,6 +556,91 @@ public class TestPTypes {
         assert PTypes.equals(
                 RandomAccess.class,
                 inheritedGenericSupertype(parameterized(ArrayList.class, null, wildcardExtends(CharSequence.class)), RandomAccess.class));
+    }
+    
+    //
+    // test cases for canonicalize (and, by extension, equals/hashCode/toString)
+    //
+
+    private void test_canonicalize_pos(Type a, Type b) {
+        if (a != null && b != null) {
+            Type ca = canonicalize(a);
+            Type cb = canonicalize(b);
+
+            assert ca.equals(cb) : "canonicalize(a).equals(canonicalize(b)): " + PTypes.toString(a) + "   " + PTypes.toString(b);
+            assert cb.equals(ca) : "canonicalize(b).equals(canonicalize(a)): " + PTypes.toString(a) + "   " + PTypes.toString(b);
+            assert ca.hashCode() == cb.hashCode() : "canonicalize(a).hashCode() == canonicalize(b).hashCode(): " + PTypes.toString(a) + "   " + PTypes.toString(b);
+            assert ca.getTypeName().equals(cb.getTypeName()) : "canonicalize(a).getTypeName().equals(canonicalize(b).getTypeName()): " + PTypes.toString(a) + "   " + PTypes.toString(b);
+        }
+
+        assert PTypes.equals(a, b) : "equals(a, b): " + PTypes.toString(a) + "   " + PTypes.toString(b);
+        assert PTypes.equals(b, a) : "equals(b, a): " + PTypes.toString(a) + "   " + PTypes.toString(b);
+        assert PTypes.hashCode(a) == PTypes.hashCode(b) : "hashCode(a) == hashCode(b): " + PTypes.toString(a) + "   " + PTypes.toString(b);
+        assert PTypes.toString(a).equals(PTypes.toString(b)) : "toString(a).equals(toString(b)): " + PTypes.toString(a) + "   " + PTypes.toString(b);
+    }
+
+    private void test_canonicalize_neg(Type a, Type b) {
+        if (a != null && b != null) {
+            Type ca = canonicalize(a);
+            Type cb = canonicalize(b);
+
+            assert !ca.equals(cb) : "canonicalize(a).equals(canonicalize(b)): " + PTypes.toString(a) + "   " + PTypes.toString(b);
+            assert !cb.equals(ca) : "canonicalize(b).equals(canonicalize(a)): " + PTypes.toString(a) + "   " + PTypes.toString(b);
+            assert !ca.getTypeName().equals(cb.getTypeName()) : "canonicalize(a).getTypeName().equals(canonicalize(b).getTypeName()): " + PTypes.toString(a) + "   " + PTypes.toString(b);
+        }
+
+        assert !PTypes.equals(a, b) : "equals(a, b): " + PTypes.toString(a) + "   " + PTypes.toString(b);
+        assert !PTypes.toString(a).equals(PTypes.toString(b)) : "toString(a).equals(toString(b)): " + PTypes.toString(a) + "   " + PTypes.toString(b);
+    }
+
+    @Test
+    public void test_canonicalize_0000() { //nulls
+        this.test_canonicalize_pos(null, null);
+        this.test_canonicalize_neg(null, Object.class);
+    }
+
+    @Test
+    public void test_canonicalize_0001() { //classes
+        this.test_canonicalize_pos(Object.class, Object.class);
+        this.test_canonicalize_neg(String.class, Object.class);
+    }
+
+    @Test
+    public void test_canonicalize_0002() { //more complex cases
+        this.test_canonicalize_pos(Scratch3.Test2.Nested2.class.getGenericSuperclass(), Scratch3.Test2.Nested2.class.getGenericSuperclass());
+        this.test_canonicalize_pos(Scratch3.Test.Nested.class.getGenericSuperclass(), Scratch3.Test.Nested.class.getGenericSuperclass());
+        this.test_canonicalize_neg(Scratch3.Test2.Nested2.class.getGenericSuperclass(), Scratch3.Test.Nested.class.getGenericSuperclass());
+    }
+
+    @Test
+    public void test_canonicalize_0003() { //hand-crafted edge cases: array
+        this.test_canonicalize_pos(int[].class, array(int.class));
+        this.test_canonicalize_neg(int[].class, array(array(int.class)));
+        this.test_canonicalize_neg(int[][].class, array(int.class));
+    }
+
+    @Test
+    public void test_canonicalize_0004() { //hand-crafted edge cases: generic array
+        this.test_canonicalize_neg(List[].class, array(parameterized(List.class, null, wildcardUnbounded())));
+    }
+
+    @Test
+    public void test_canonicalize_0005() { //hand-crafted edge cases: wildcards with unusual upper bounds
+        this.test_canonicalize_pos(wildcard(new Type[]{Object.class}, EMPTY_TYPE_ARRAY), wildcard(EMPTY_TYPE_ARRAY, EMPTY_TYPE_ARRAY));
+        this.test_canonicalize_neg(wildcard(new Type[]{Object.class}, new Type[]{Object.class}), wildcard(EMPTY_TYPE_ARRAY, EMPTY_TYPE_ARRAY));
+        this.test_canonicalize_pos(wildcard(new Type[]{Object.class}, new Type[]{Object.class}), wildcard(EMPTY_TYPE_ARRAY, new Type[]{Object.class}));
+    }
+
+    @Test
+    public void test_canonicalize_0006() { //hand-crafted edge cases: parameterized types with redundant owner type
+        this.test_canonicalize_pos(parameterized(StringList.class, TestPTypes.class), parameterized(StringList.class, null));
+        this.test_canonicalize_pos(parameterized(StringList.class, TestPTypes.class), StringList.class);
+        this.test_canonicalize_pos(
+                parameterized(DependentGenerics.class, TestPTypes.class, String.class, String.class, StringList.class),
+                parameterized(DependentGenerics.class, null, String.class, String.class, StringList.class));
+        this.test_canonicalize_pos(
+                parameterized(Scratch.T.class, parameterized(Scratch.class, TestPTypes.class, String.class, String.class), String.class),
+                parameterized(Scratch.T.class, parameterized(Scratch.class, null, String.class, String.class), String.class));
     }
 
     //

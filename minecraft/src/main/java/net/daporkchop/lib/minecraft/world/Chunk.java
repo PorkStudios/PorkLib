@@ -120,7 +120,7 @@ public interface Chunk extends BlockAccess, IntVector2.AddressableXZ, Dirtiable,
         int xx = x & 15;
         int zz = z & 15;
 
-        return this.biomeArray()[zz << 4 | xx] & 0xFF;
+        return this.biomeArray()[(zz << 4) | xx] & 0xFF;
     }
 
     @Override
@@ -175,7 +175,7 @@ public interface Chunk extends BlockAccess, IntVector2.AddressableXZ, Dirtiable,
         int xx = x & 15;
         int zz = z & 15;
 
-        this.biomeArray()[zz << 4 | xx] = (byte) (id & 0xFF);
+        this.biomeArray()[(zz << 4) | xx] = (byte) (id & 0xFF);
     }
 
     default void setBiomeArray(byte[] biomes) {

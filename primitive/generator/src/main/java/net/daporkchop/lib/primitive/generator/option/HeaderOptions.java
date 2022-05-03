@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -24,10 +24,12 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
 
-import java.io.File;
-import java.util.Collection;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -48,7 +50,8 @@ public class HeaderOptions {
 
     private final long lastModified;
 
-    public HeaderOptions(@NonNull JsonObject object, @NonNull File file) {
+    @SneakyThrows(IOException.class)
+    public HeaderOptions(@NonNull JsonObject object, @NonNull Path file) {
         if (object.has("params")) {
             JsonArray params = object.getAsJsonArray("params");
             this.parameters = Collections.unmodifiableList(IntStream.range(0, params.size())
@@ -58,6 +61,6 @@ public class HeaderOptions {
             this.parameters = Collections.emptyList();
         }
 
-        this.lastModified = file.lastModified();
+        this.lastModified = Files.getLastModifiedTime(file).toMillis();
     }
 }

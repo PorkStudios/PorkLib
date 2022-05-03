@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2021 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -25,9 +25,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.binary.oio.StreamUtil;
+import lombok.SneakyThrows;
 import net.daporkchop.lib.common.function.PFunctions;
-import net.daporkchop.lib.common.misc.InstancePool;
+import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.common.misc.Tuple;
 import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.common.misc.string.PStrings;
@@ -40,29 +40,29 @@ import net.daporkchop.lib.primitive.generator.replacer.ComplexGenericReplacer;
 import net.daporkchop.lib.primitive.generator.replacer.FileHeaderReplacer;
 import net.daporkchop.lib.primitive.generator.replacer.GenericHeaderReplacer;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.FileTime;
 import java.text.NumberFormat;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -81,17 +81,17 @@ public class Generator {
     private static final Collection<Generator> GENERATORS = Stream.of(
             null
             , new Generator(
-                    new File("src/main/resources/primitive/java"),
-                    new File("../src/generated/java"),
-                    new File("src/main/resources/primitive/primitive.json"))
+                    Paths.get("src/main/resources/primitive/java"),
+                    Paths.get("../src/generated/java"),
+                    Paths.get("src/main/resources/primitive/primitive.json"))
             , new Generator(
-                    new File("src/main/resources/test/java"),
-                    new File("../src/test/java"),
-                    new File("src/main/resources/test/test.json"))
+                    Paths.get("src/main/resources/test/java"),
+                    Paths.get("../src/test/java"),
+                    Paths.get("src/main/resources/test/test.json"))
             , new Generator(
-                    new File("src/main/resources/lambda/java"),
-                    new File("../lambda/src/generated/java"),
-                    new File("src/main/resources/lambda/lambda.json"))
+                    Paths.get("src/main/resources/lambda/java"),
+                    Paths.get("../lambda/src/generated/java"),
+                    Paths.get("src/main/resources/lambda/lambda.json"))
     ).filter(Objects::nonNull).collect(Collectors.toList());
 
     public static final String LICENSE;
@@ -115,17 +115,13 @@ public class Generator {
 
     static {
         try {
-            try (InputStream is = new FileInputStream(new File("../../LICENSE"))) {
-                LICENSE = String.format("/*\n * %s\n */",
-                        new String(StreamUtil.toByteArray(is), StandardCharsets.UTF_8)
-                                .replace("$today.year", String.valueOf(Calendar.getInstance().get(Calendar.YEAR)))
-                                .replaceAll("\n", "\n * "));
-            }
+            LICENSE = String.format("/*\n * %s\n */",
+                    new String(Files.readAllBytes(Paths.get("../../LICENSE")), StandardCharsets.UTF_8)
+                            .replace("$today.year", String.valueOf(Calendar.getInstance().get(Calendar.YEAR)))
+                            .replaceAll("\n", "\n * "));
 
-            try (Reader reader = new BufferedReader(new InputStreamReader(new FileInputStream(new File("src/main/resources/global.json")), StandardCharsets.UTF_8))) {
-                JsonObject global = InstancePool.getInstance(JsonParser.class).parse(reader).getAsJsonObject();
-                OVERRIDES = new OverrideReplacer(global.getAsJsonObject("overrides"));
-            }
+            OVERRIDES = new OverrideReplacer(new JsonParser().parse(new String(Files.readAllBytes(Paths.get("src/main/resources/global.json")), StandardCharsets.UTF_8))
+                    .getAsJsonObject().getAsJsonObject("overrides"));
         } catch (Exception e) {
             throw new AssertionError(e);
         }
@@ -143,43 +139,39 @@ public class Generator {
                 (double) SIZE.get() / 1024.0d / 1024.0d);
 
         System.out.println(Stream.of(
-                new Tuple<>(NAME_TIME.get(), "Name"),
-                new Tuple<>(NAME_OVERRIDE_TIME.get(), "Name overrides"),
-                new Tuple<>(GENERIC_FILTER_TIME.get(), "Filter generics"),
-                new Tuple<>(TYPE_FILTER_TIME.get(), "Filter types"),
-                new Tuple<>(TOKEN_REPLACE_TIME.get(), "Replace tokens"),
-                new Tuple<>(CONTENT_OVERRIDE_TIME.get(), "Content overrides"),
-                new Tuple<>(UTF8_ENCODE_TIME.get(), "UTF8 encode"))
+                new Tuple<>(NAME_TIME.sum(), "Name"),
+                new Tuple<>(NAME_OVERRIDE_TIME.sum(), "Name overrides"),
+                new Tuple<>(GENERIC_FILTER_TIME.sum(), "Filter generics"),
+                new Tuple<>(TYPE_FILTER_TIME.sum(), "Filter types"),
+                new Tuple<>(TOKEN_REPLACE_TIME.sum(), "Replace tokens"),
+                new Tuple<>(CONTENT_OVERRIDE_TIME.sum(), "Content overrides"),
+                new Tuple<>(UTF8_ENCODE_TIME.sum(), "UTF8 encode"))
                 .sorted(Comparator.comparingLong(Tuple::getA))
                 .map(t -> String.format("%.2fms, %s", t.getA() / 1000000.0d, t.getB()))
                 .collect(Collectors.joining("\n")));
     }
 
-    public static final AtomicLong NAME_TIME = new AtomicLong();
-    public static final AtomicLong NAME_OVERRIDE_TIME = new AtomicLong();
-    public static final AtomicLong GENERIC_FILTER_TIME = new AtomicLong();
-    public static final AtomicLong TYPE_FILTER_TIME = new AtomicLong();
-    public static final AtomicLong TOKEN_REPLACE_TIME = new AtomicLong();
-    public static final AtomicLong CONTENT_OVERRIDE_TIME = new AtomicLong();
-    public static final AtomicLong UTF8_ENCODE_TIME = new AtomicLong();
+    public static final LongAdder NAME_TIME = new LongAdder();
+    public static final LongAdder NAME_OVERRIDE_TIME = new LongAdder();
+    public static final LongAdder GENERIC_FILTER_TIME = new LongAdder();
+    public static final LongAdder TYPE_FILTER_TIME = new LongAdder();
+    public static final LongAdder TOKEN_REPLACE_TIME = new LongAdder();
+    public static final LongAdder CONTENT_OVERRIDE_TIME = new LongAdder();
+    public static final LongAdder UTF8_ENCODE_TIME = new LongAdder();
 
-    public final File inRoot;
-    public final File outRoot;
-    private final Collection<File> existing = Collections.newSetFromMap(new ConcurrentHashMap<>());
-    private final Collection<File> generated = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    public final Path inRoot;
+    public final Path outRoot;
+    private final Collection<Path> existing = ConcurrentHashMap.newKeySet();
+    private final Collection<Path> generated = ConcurrentHashMap.newKeySet();
     private final String imports;
     private final TokenReplacer[] tokenReplacers;
 
-    public Generator(@NonNull File inRoot, @NonNull File outRoot, @NonNull File manifestFile) {
+    @SneakyThrows(IOException.class)
+    public Generator(@NonNull Path inRoot, @NonNull Path outRoot, @NonNull Path manifestFile) {
         this.inRoot = PFiles.assertDirectoryExists(inRoot);
         this.outRoot = PFiles.ensureDirectoryExists(outRoot);
 
-        JsonObject manifest;
-        try (Reader reader = new BufferedReader(new InputStreamReader(new FileInputStream(PFiles.assertFileExists(manifestFile)), StandardCharsets.UTF_8))) {
-            manifest = InstancePool.getInstance(JsonParser.class).parse(reader).getAsJsonObject();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        JsonObject manifest = new JsonParser().parse(new String(Files.readAllBytes(manifestFile), StandardCharsets.UTF_8)).getAsJsonObject();
 
         this.imports = StreamSupport.stream(manifest.getAsJsonArray("imports").spliterator(), false)
                 .map(JsonElement::getAsString)
@@ -195,7 +187,7 @@ public class Generator {
     }
 
     public void generate() {
-        this.addAllExisting(PFiles.ensureDirectoryExists(this.outRoot));
+        this.addAllExisting(this.outRoot);
 
         this.generate(this.inRoot, this.outRoot);
 
@@ -204,8 +196,8 @@ public class Generator {
         AtomicLong deletedSize = new AtomicLong(0L);
         this.existing.parallelStream()
                 .filter(PFunctions.not(this.generated::contains))
-                .forEach(file -> {
-                    deletedSize.addAndGet(file.length());
+                .forEach((IOConsumer<Path>) file -> {
+                    deletedSize.addAndGet(Files.size(file));
                     PFiles.rm(file);
                     deletedFiles.incrementAndGet();
                 });
@@ -217,28 +209,25 @@ public class Generator {
                 deletedSize.get() / 1024.0d / 1024.0d);
     }
 
-    public void generate(@NonNull File file, @NonNull File out) {
-        if (!file.exists()) {
+    @SneakyThrows(IOException.class)
+    public void generate(@NonNull Path file, @NonNull Path out) {
+        String fileName = file.getFileName().toString();
+
+        if (!Files.exists(file)) {
             throw new IllegalStateException();
-        }
-        if (file.isDirectory()) {
-            if (file.getName().endsWith("_methods")) {
+        } else if (Files.isDirectory(file)) {
+            if (fileName.endsWith("_methods")) {
                 return;
             }
-            File realOut = "java".equals(file.getName()) ? out : new File(out, file.getName());
-            for (File f : file.listFiles()) {
-                this.generate(f, realOut);
+            Path realOut = "java".equals(fileName) ? out : out.resolve(fileName);
+            try (Stream<Path> stream = Files.list(file)) {
+                stream.forEach(f -> this.generate(f, realOut));
             }
-        } else if (file.getName().endsWith(".template")) {
-            String name = file.getName().substring(0, file.getName().length() - ".template".length());
+        } else if (fileName.endsWith(".template")) {
+            String name = fileName.substring(0, fileName.length() - ".template".length());
             String packageName = this.getPackageName(file);
 
-            String rawContent;
-            try (InputStream is = new FileInputStream(file)) {
-                rawContent = new String(StreamUtil.toByteArray(is), StandardCharsets.UTF_8);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            String rawContent = new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
 
             String content;
             HeaderOptions options;
@@ -249,9 +238,7 @@ public class Generator {
                     content = "_headers_" + split[1];
                     try (Reader reader = new StringReader(split[0])) {
                         reader.skip("$$$settings$$$".length());
-                        obj = InstancePool.getInstance(JsonParser.class).parse(reader).getAsJsonObject();
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
+                        obj = new JsonParser().parse(reader).getAsJsonObject();
                     }
                 } else {
                     content = rawContent;
@@ -279,7 +266,8 @@ public class Generator {
         }
     }
 
-    private void generate0(@NonNull File dir, @NonNull String name, @NonNull String content, @NonNull String pkg, @NonNull HeaderOptions options, @NonNull List<ParameterContext> params) {
+    @SneakyThrows(IOException.class)
+    private void generate0(@NonNull Path dir, @NonNull String name, @NonNull String content, @NonNull String pkg, @NonNull HeaderOptions options, @NonNull List<ParameterContext> params) {
         StringBuffer buffer = STRINGBUFFER_CACHE.get();
         Matcher matcher;
 
@@ -295,7 +283,7 @@ public class Generator {
             name = buffer.toString();
         }
 
-        NAME_TIME.getAndAdd(System.nanoTime() - time);
+        NAME_TIME.add(System.nanoTime() - time);
         time = System.nanoTime();
 
         if ((name = OVERRIDES.processName(name, -1, buffer)) == null) {
@@ -303,11 +291,11 @@ public class Generator {
         }
         name += ".java";
 
-        NAME_OVERRIDE_TIME.getAndAdd(System.nanoTime() - time);
+        NAME_OVERRIDE_TIME.add(System.nanoTime() - time);
 
-        File file = new File(dir, name);
+        Path file = dir.resolve(name);
         checkState(this.generated.add(file), "File %s was already generated?!?", name);
-        if (file.lastModified() == options.lastModified()) {
+        if (PFiles.checkFileExists(file) && Files.getLastModifiedTime(file).toMillis() == options.lastModified()) {
             return;
         }
 
@@ -347,7 +335,7 @@ public class Generator {
             contentOut = buffer.toString();
         }
 
-        GENERIC_FILTER_TIME.getAndAdd(System.nanoTime() - time);
+        GENERIC_FILTER_TIME.add(System.nanoTime() - time);
         time = System.nanoTime();
 
         matcher = TYPE_FILTER_CACHE.get().reset(contentOut);
@@ -391,7 +379,7 @@ public class Generator {
             contentOut = buffer.toString();
         }
 
-        TYPE_FILTER_TIME.getAndAdd(System.nanoTime() - time);
+        TYPE_FILTER_TIME.add(System.nanoTime() - time);
         time = System.nanoTime();
 
         matcher = TOKEN_MATCHER_CACHE.get().reset(contentOut);
@@ -424,56 +412,51 @@ public class Generator {
             contentOut = buffer.toString();
         }
 
-        TOKEN_REPLACE_TIME.getAndAdd(System.nanoTime() - time);
+        TOKEN_REPLACE_TIME.add(System.nanoTime() - time);
         time = System.nanoTime();
 
         if ((contentOut = OVERRIDES.processCode(contentOut, -1, buffer)) == null) {
             throw new IllegalStateException();
         }
 
-        CONTENT_OVERRIDE_TIME.getAndAdd(System.nanoTime() - time);
+        CONTENT_OVERRIDE_TIME.add(System.nanoTime() - time);
         time = System.nanoTime();
 
         byte[] b = contentOut.getBytes(StandardCharsets.UTF_8);
-        try (OutputStream os = new FileOutputStream(file)) {
-            os.write(b);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        checkState(file.setLastModified(options.lastModified()));
+        Files.write(file, b);
+        Files.setLastModifiedTime(file, FileTime.fromMillis(options.lastModified()));
 
-        UTF8_ENCODE_TIME.getAndAdd(System.nanoTime() - time);
+        UTF8_ENCODE_TIME.add(System.nanoTime() - time);
 
         SIZE.addAndGet(b.length);
         FILES.incrementAndGet();
     }
 
-    private String getPackageName(@NonNull File file) {
-        List<String> list = new ArrayList<>();
-        if (!file.isDirectory()) {
-            file = file.getParentFile();
+    private String getPackageName(@NonNull Path file) {
+        if (!Files.isDirectory(file)) {
+            file = file.getParent();
         }
-        String name;
-        while (!"java".equals(name = file.getName())) {
-            list.add(0, name);
-            file = file.getParentFile();
+
+        //temporarily buffer in a Deque to reverse all names
+        Deque<String> deque = new ArrayDeque<>();
+        String fileName;
+        for (; !"java".equals(fileName = file.getFileName().toString()); file = file.getParent()) {
+            deque.addFirst(fileName);
         }
+
         StringJoiner joiner = new StringJoiner(".");
-        list.forEach(joiner::add);
+        deque.forEach(joiner::add);
         return joiner.toString();
     }
 
-    private void addAllExisting(@NonNull File file) {
-        File[] files = PFiles.ensureDirectoryExists(file).listFiles();
-        if (files == null) {
-            throw new IllegalArgumentException(file.getAbsolutePath() + " has null contents!");
-        }
-        for (File f : files) {
-            if (f.isDirectory() && !f.getName().endsWith(".java")) { //why is isDirectory() returning true when it isn't?
-                this.addAllExisting(f);
-            } else if (f.isFile()) {
-                this.existing.add(f);
-            }
+    @SneakyThrows(IOException.class)
+    private void addAllExisting(@NonNull Path file) {
+        try (Stream<Path> stream = Files.walk(PFiles.ensureDirectoryExists(file))) {
+            stream.forEach(f -> {
+                if (Files.isRegularFile(f)) {
+                    this.existing.add(f);
+                }
+            });
         }
     }
 }

@@ -18,66 +18,10 @@
  *
  */
 
-sourceSets {
-    orig
-    generated
-    testOrig
-}
+apply from: "${project.rootDir}/primitive/primitive_module.gradle"
 
 dependencies {
-    //orig
-    origImplementation project(":unsafe")
-    origImplementation project(":primitive:primitive-lambda")
+    primitiveModuleApi project(":primitive:primitive-lambda")
 
-    origCompileOnly "org.projectlombok:lombok:$lombokVersion"
-    origAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
-
-    //generated
-    generatedImplementation project(":unsafe")
-    generatedImplementation project(":primitive:primitive-lambda")
-    generatedImplementation sourceSets.orig.output
-
-    generatedCompileOnly "org.projectlombok:lombok:$lombokVersion"
-    generatedAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
-
-    //main
-    api project(":primitive:primitive-lambda")
-
-    api sourceSets.orig.output
-    api sourceSets.generated.output
-
-    //testOrig
-    testOrigCompileOnly "org.projectlombok:lombok:$lombokVersion"
-    testOrigAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
-
-    //test
-    testImplementation project(":primitive:primitive-lambda")
-    testImplementation sourceSets.testOrig.output
-}
-
-compileOrigJava.dependsOn(":primitive:generator:gen")
-compileGeneratedJava.dependsOn(compileOrigJava)
-compileJava.dependsOn(compileGeneratedJava)
-compileTestJava.dependsOn(":primitive:generator:gen", compileTestOrigJava)
-
-task deleteSource(type: Delete) {
-    delete "src/generated"
-    delete "src/test"
-}
-
-clean.dependsOn(deleteSource)
-
-compileJava {
-    options.fork = true
-    options.forkOptions.setMemoryMaximumSize("2G")
-}
-
-jar {
-    from sourceSets.orig.output
-    from sourceSets.generated.output
-}
-
-sourceJar {
-    from sourceSets.orig.allSource
-    from sourceSets.generated.allSource
+    primitiveModuleApi project(":unsafe")
 }

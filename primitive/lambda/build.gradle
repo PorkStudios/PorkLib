@@ -18,44 +18,7 @@
  *
  */
 
-sourceSets {
-    orig
-    generated
-}
+apply from: "${project.rootDir}/primitive/primitive_module.gradle"
 
 dependencies {
-    //orig
-    origCompileOnly "org.projectlombok:lombok:$lombokVersion"
-    origAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
-
-    //generated
-    generatedImplementation sourceSets.orig.output
-
-    generatedCompileOnly "org.projectlombok:lombok:$lombokVersion"
-    generatedAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
-
-    //main
-    api sourceSets.orig.output
-    api sourceSets.generated.output
-}
-
-compileOrigJava.dependsOn(":primitive:generator:gen")
-compileGeneratedJava.dependsOn(compileOrigJava)
-compileJava.dependsOn(compileGeneratedJava)
-
-task deleteSource(type: Delete) {
-    delete "src/generated"
-    delete "src/test"
-}
-
-clean.dependsOn(deleteSource)
-
-jar {
-    from sourceSets.orig.output
-    from sourceSets.generated.output
-}
-
-sourceJar {
-    from sourceSets.orig.allSource
-    from sourceSets.generated.allSource
 }

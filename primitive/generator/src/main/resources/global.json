@@ -8,7 +8,7 @@
     "ObjObjIntFunction": "java.util.function.ToIntBiFunction",
     "ObjObjLongFunction": "java.util.function.ToLongBiFunction",
     "ObjObjObjFunction": "java.util.function.BiFunction",
-    
+
     "ObjObjConsumer": "java.util.function.BiConsumer",
     "DoubleConsumer": "java.util.function.DoubleConsumer",
     "IntConsumer": "java.util.function.IntConsumer",
@@ -24,19 +24,19 @@
     "ObjIntFunction": "java.util.function.ToIntFunction",
     "ObjLongFunction": "java.util.function.ToLongFunction",
 
-    "BooleanSupplier": "java.util.function.BooleanSupplier",
+    "BoolSupplier": "java.util.function.BooleanSupplier",
     "DoubleSupplier": "java.util.function.DoubleSupplier",
     "IntSupplier": "java.util.function.IntSupplier",
     "LongSupplier": "java.util.function.LongSupplier",
     "ObjSupplier": "java.util.function.Supplier",
-    
+
     //collections
     "ObjIterator": "java.util.Iterator",
     "ObjIterable": "java.util.Iterable",
     "IntIterator": "java.util.PrimitiveIterator.OfInt",
     "LongIterator": "java.util.PrimitiveIterator.OfLong",
     "DoubleIterator": "java.util.PrimitiveIterator.OfDouble",
-    
+
     "ObjCollection": "java.util.Collection",
     "ObjCollections": "java.util.Collections",
     "AbstractObjCollection": "java.util.AbstractCollection",

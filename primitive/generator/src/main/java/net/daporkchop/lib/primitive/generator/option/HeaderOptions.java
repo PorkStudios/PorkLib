@@ -24,12 +24,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -48,10 +44,7 @@ public class HeaderOptions {
      */
     private final List<Parameter> parameters;
 
-    private final long lastModified;
-
-    @SneakyThrows(IOException.class)
-    public HeaderOptions(@NonNull JsonObject object, @NonNull Path file) {
+    public HeaderOptions(@NonNull JsonObject object) {
         if (object.has("params")) {
             JsonArray params = object.getAsJsonArray("params");
             this.parameters = Collections.unmodifiableList(IntStream.range(0, params.size())
@@ -60,7 +53,5 @@ public class HeaderOptions {
         } else {
             this.parameters = Collections.emptyList();
         }
-
-        this.lastModified = Files.getLastModifiedTime(file).toMillis();
     }
 }

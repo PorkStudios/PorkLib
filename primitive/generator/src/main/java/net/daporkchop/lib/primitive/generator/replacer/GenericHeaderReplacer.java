@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2021 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -25,6 +25,7 @@ import net.daporkchop.lib.common.reference.cache.Cached;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.primitive.generator.Primitive;
 import net.daporkchop.lib.primitive.generator.TokenReplacer;
+import net.daporkchop.lib.primitive.generator.config.GeneratorConfig;
 import net.daporkchop.lib.primitive.generator.option.ParameterContext;
 
 import java.util.HashMap;
@@ -49,7 +50,7 @@ public class GenericHeaderReplacer implements TokenReplacer, Function<List<Param
     }
 
     @Override
-    public String replace(@NonNull String text, @NonNull List<ParameterContext> params, String pkg) {
+    public String replace(@NonNull GeneratorConfig config, @NonNull String text, @NonNull List<ParameterContext> params, String pkg) {
         Matcher matcher = GENERIC_HEADER_MATCHER.get().reset(text);
         if (matcher.find()) {
             String header = LOOKUP.get(PorkUtil.fallbackIfNull(matcher.group(1), "")).computeIfAbsent(params, this);

@@ -18,17 +18,14 @@
  *
  */
 
-package net.daporkchop.lib.primitive.generator;
+package net.daporkchop.lib.primitive.generator.config;
 
+import com.google.gson.JsonElement;
 import lombok.NonNull;
-import net.daporkchop.lib.primitive.generator.config.GeneratorConfig;
-import net.daporkchop.lib.primitive.generator.option.ParameterContext;
-
-import java.util.List;
 
 /**
  * @author DaPorkchop_
  */
-public interface TokenReplacer {
-    String replace(@NonNull GeneratorConfig config, @NonNull String text, @NonNull List<ParameterContext> params, String pkg);
+public interface Configurable<T, JSON extends JsonElement> {
+    T mergeConfiguration(@NonNull JSON json);
 }

@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -20,83 +20,41 @@
 
 package net.daporkchop.lib.primitive.generator;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.function.PFunctions;
 import net.daporkchop.lib.primitive.generator.option.Parameter;
 import net.daporkchop.lib.primitive.generator.option.ParameterContext;
 
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
-@Setter
-@NoArgsConstructor
 @Accessors(chain = true)
-public class Primitive {
-    public static final Collection<Primitive> PRIMITIVES = Collections.unmodifiableList(Arrays.asList(
-            new Primitive()
-                    .setFullName("Boolean")
-                    .setDisplayName("Bool")
-                    .setName("boolean")
-                    .setEmptyValue("false")
-                    .build(),
-            new Primitive()
-                    .setFullName("Byte")
-                    .setName("byte")
-                    .setEmptyValue("(byte) -1")
-                    .build(),
-            new Primitive()
-                    .setFullName("Short")
-                    .setName("short")
-                    .setEmptyValue("(short) -1")
-                    .build(),
-            new Primitive()
-                    .setFullName("Character")
-                    .setDisplayName("Char")
-                    .setUnsafeName("Char")
-                    .setName("char")
-                    .setEmptyValue("(char) 0")
-                    .build(),
-            new Primitive()
-                    .setFullName("Integer")
-                    .setDisplayName("Int")
-                    .setUnsafeName("Int")
-                    .setName("int")
-                    .setEmptyValue("-1")
-                    .build(),
-            new Primitive()
-                    .setFullName("Long")
-                    .setName("long")
-                    .setEmptyValue("-1L")
-                    .build(),
-            new Primitive()
-                    .setFullName("Float")
-                    .setName("float")
-                    .setEmptyValue("Float.NaN")
-                    .build(),
-            new Primitive()
-                    .setFullName("Double")
-                    .setName("double")
-                    .setEmptyValue("Double.NaN")
-                    .build(),
-            new Primitive()
-                    .setFullName("Object")
-                    .setDisplayName("Obj")
-                    .setName("Object")
-                    .setGeneric()
-                    .setEmptyValue("null")
-                    .build()));
+public enum Primitive {
+    BOOLEAN("Boolean", "Bool", "Boolean", "boolean", "false", false),
+    BYTE("Byte", "Byte", "Byte", "byte", "(byte) -1", false),
+    SHORT("Short", "Short", "Short", "short", "(short) -1", false),
+    CHAR("Character", "Char", "Char", "char", "(char) 0", false),
+    INT("Integer", "Int", "Int", "int", "-1", false),
+    LONG("Long", "Long", "Long", "long", "-1L", false),
+    FLOAT("Float", "Float", "Float", "float", "Float.NaN", false),
+    DOUBLE("Double", "Double", "Double", "double", "Double.NaN", false),
+    OBJECT("Object", "Object", "Object", "Object", "null", true),
+    ;
+
+    public static final Set<Primitive> PRIMITIVES = Collections.unmodifiableSet(EnumSet.allOf(Primitive.class));
 
     public static final Map<String, Primitive> BY_NAME = Collections.unmodifiableMap(PRIMITIVES.stream()
-            .collect(Collectors.toMap(Primitive::getName, PFunctions.identity())));
+            .collect(Collectors.toMap(Primitive::getName, Function.identity())));
 
     public static final String PARAM_DEF = "P%d";
     public static final String DISPLAYNAME_DEF = String.format("_%s_", PARAM_DEF);
@@ -134,28 +92,16 @@ public class Primitive {
     }
 
     @NonNull
-    public String fullName;
+    public final String fullName;
     @NonNull
-    public String displayName;
+    public final String displayName;
     @NonNull
-    public String unsafeName;
+    public final String unsafeName;
     @NonNull
-    public String name;
+    public final String name;
     @NonNull
-    public String emptyValue;
-    public boolean generic;
-
-    public Primitive setGeneric() {
-        this.generic = true;
-        return this;
-    }
-
-    public Primitive build() {
-        if (this.displayName == null) {
-            this.displayName = this.fullName;
-        }
-        return this;
-    }
+    public final String emptyValue;
+    public final boolean generic;
 
     @Override
     public String toString() {

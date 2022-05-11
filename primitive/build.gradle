@@ -21,7 +21,10 @@
 apply from: "${project.rootDir}/primitive/primitive_module.gradle"
 
 dependencies {
+    primitiveModuleApi project(":primitive:primitive-collections")
+    primitiveModuleApi project(":primitive:primitive-iterators")
     primitiveModuleApi project(":primitive:primitive-lambda")
+    primitiveModuleApi project(":primitive:primitive-streams")
 
     primitiveModuleApi project(":unsafe")
 }

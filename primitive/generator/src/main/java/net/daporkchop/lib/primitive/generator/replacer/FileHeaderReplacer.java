@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -22,8 +22,8 @@ package net.daporkchop.lib.primitive.generator.replacer;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.primitive.generator.Generator;
 import net.daporkchop.lib.primitive.generator.TokenReplacer;
+import net.daporkchop.lib.primitive.generator.config.GeneratorConfig;
 import net.daporkchop.lib.primitive.generator.option.ParameterContext;
 
 import java.util.List;
@@ -35,22 +35,27 @@ import static net.daporkchop.lib.primitive.generator.Primitive.*;
  */
 @RequiredArgsConstructor
 public class FileHeaderReplacer implements TokenReplacer {
-    @NonNull
-    private final String imports;
-
     @Override
-    public String replace(@NonNull String text, @NonNull List<ParameterContext> params, String pkg) {
+    public String replace(@NonNull GeneratorConfig config, @NonNull String text, @NonNull List<ParameterContext> params, String pkg) {
         switch (text) {
-            case HEADERS_DEF:
-                return this.imports.isEmpty()
-                       ? Generator.LICENSE + "\n\n" + pkg
-                       : Generator.LICENSE + "\n\n" + pkg + "\n\n" + this.imports;
-            case LICENSE_DEF:
-                return Generator.LICENSE;
+            case HEADERS_DEF: {
+                StringBuilder builder = new StringBuilder();
+                config.getLicense().appendLicense(builder);
+                config.getImports().appendImports(builder);
+                return builder.toString();
+            }
+            case LICENSE_DEF: {
+                StringBuilder builder = new StringBuilder();
+                config.getLicense().appendLicense(builder);
+                return builder.toString();
+            }
             case PACKAGE_DEF:
                 return pkg;
-            case IMPORTS_DEF:
-                return this.imports;
+            case IMPORTS_DEF: {
+                StringBuilder builder = new StringBuilder();
+                config.getImports().appendImports(builder);
+                return builder.toString();
+            }
         }
         return null;
     }

@@ -18,17 +18,10 @@
  *
  */
 
-package net.daporkchop.lib.primitive.generator;
+apply from: "${project.rootDir}/primitive/primitive_module.gradle"
 
-import lombok.NonNull;
-import net.daporkchop.lib.primitive.generator.config.GeneratorConfig;
-import net.daporkchop.lib.primitive.generator.option.ParameterContext;
-
-import java.util.List;
-
-/**
- * @author DaPorkchop_
- */
-public interface TokenReplacer {
-    String replace(@NonNull GeneratorConfig config, @NonNull String text, @NonNull List<ParameterContext> params, String pkg);
+dependencies {
+    primitiveModuleApi project(":primitive:primitive-iterators")
+    primitiveModuleApi project(":primitive:primitive-lambda")
+    primitiveModuleApi project(":primitive:primitive-streams")
 }

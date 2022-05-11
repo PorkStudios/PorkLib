@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2021 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -23,6 +23,7 @@ package net.daporkchop.lib.primitive.generator.replacer;
 import lombok.NonNull;
 import net.daporkchop.lib.common.reference.cache.Cached;
 import net.daporkchop.lib.primitive.generator.TokenReplacer;
+import net.daporkchop.lib.primitive.generator.config.GeneratorConfig;
 import net.daporkchop.lib.primitive.generator.option.ParameterContext;
 
 import java.util.ArrayList;
@@ -39,7 +40,7 @@ public class ComplexGenericReplacer implements TokenReplacer {
     public static final Cached<Matcher> COMPLEX_GENERIC_PARAMS = Cached.regex(Pattern.compile("(\\d+)(extends|super)?"));
 
     @Override
-    public String replace(@NonNull String text, @NonNull List<ParameterContext> params, String pkg) {
+    public String replace(@NonNull GeneratorConfig config, @NonNull String text, @NonNull List<ParameterContext> params, String pkg) {
         Matcher matcher = COMPLEX_GENERIC_MATCHER.get().reset(text);
         if (matcher.matches()) {
             List<String> formatted = new ArrayList<>();

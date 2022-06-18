@@ -28,12 +28,14 @@ import lombok.NonNull;
 import lombok.Singular;
 import lombok.SneakyThrows;
 import net.daporkchop.lib.common.function.io.IOConsumer;
+import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.common.reference.cache.Cached;
 import net.daporkchop.lib.primitive.generator.Generator;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -42,6 +44,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author DaPorkchop_
@@ -68,13 +71,18 @@ public final class LicenseConfig implements Configurable<LicenseConfig, JsonObje
     @NonNull
     private final List<String> lines;
 
+    @Builder.Default
+    private final Path licenseFilePath = null;
+
     @Override
     @SneakyThrows(IOException.class)
     public LicenseConfig mergeConfiguration(@NonNull JsonObject jsonObject) {
         LicenseConfigBuilder builder = builder();
 
         if (jsonObject.has("licenseFile")) { //read all lines from the given license file
-            builder.lines(Files.readAllLines(Paths.get(jsonObject.getAsJsonPrimitive("licenseFile").getAsString()), StandardCharsets.UTF_8));
+            Path licenseFilePath = PFiles.assertFileExists(Paths.get(jsonObject.getAsJsonPrimitive("licenseFile").getAsString()));
+            builder.licenseFilePath(licenseFilePath);
+            builder.lines(Files.readAllLines(licenseFilePath, StandardCharsets.UTF_8));
         } else if (jsonObject.has("licenseContents")) { //set the license to the contents of the given json object
             for (JsonElement line : jsonObject.getAsJsonArray("licenseContents")) {
                 builder.line(line.getAsString());
@@ -85,6 +93,11 @@ public final class LicenseConfig implements Configurable<LicenseConfig, JsonObje
         builder.lines.replaceAll(original -> Generator.replace(REPLACEMENT_MATCHER_CACHE.get(), original, matcher -> REPLACEMENTS.get(matcher.group())));
 
         return builder.build();
+    }
+
+    @Override
+    public Stream<Path> potentiallyAffectedByFiles() {
+        return this.licenseFilePath != null ? Stream.of(this.licenseFilePath) : Stream.empty();
     }
 
     @SneakyThrows(IOException.class)

@@ -48,7 +48,7 @@ public enum Primitive {
     LONG("Long", "Long", "Long", "long", "-1L", false),
     FLOAT("Float", "Float", "Float", "float", "Float.NaN", false),
     DOUBLE("Double", "Double", "Double", "double", "Double.NaN", false),
-    OBJECT("Object", "Object", "Object", "Object", "null", true),
+    OBJECT("Object", "Obj", "Object", "Object", "null", true),
     ;
 
     public static final Set<Primitive> PRIMITIVES = Collections.unmodifiableSet(EnumSet.allOf(Primitive.class));

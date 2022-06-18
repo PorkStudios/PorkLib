@@ -1,4 +1,7 @@
 {
+  "license": {
+    "licenseFile": "../../LICENSE"
+  },
   "ignored_tokens": [
     "_ARRAY_"
   ],

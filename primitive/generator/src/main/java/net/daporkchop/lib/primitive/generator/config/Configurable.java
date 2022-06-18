@@ -23,9 +23,14 @@ package net.daporkchop.lib.primitive.generator.config;
 import com.google.gson.JsonElement;
 import lombok.NonNull;
 
+import java.nio.file.Path;
+import java.util.stream.Stream;
+
 /**
  * @author DaPorkchop_
  */
 public interface Configurable<T, JSON extends JsonElement> {
     T mergeConfiguration(@NonNull JSON json);
+
+    Stream<Path> potentiallyAffectedByFiles();
 }

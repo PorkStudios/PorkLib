@@ -28,9 +28,11 @@ import lombok.Singular;
 import net.daporkchop.lib.common.reference.cache.Cached;
 import net.daporkchop.lib.primitive.generator.Replacer;
 
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 /**
  * @author DaPorkchop_
@@ -51,6 +53,11 @@ public final class OverrideReplacer implements Replacer, Configurable<OverrideRe
         OverrideReplacerBuilder builder = this.toBuilder();
         jsonObject.entrySet().forEach(entry -> builder.override(entry.getKey(), entry.getValue().getAsString()));
         return builder.build();
+    }
+
+    @Override
+    public Stream<Path> potentiallyAffectedByFiles() {
+        return Stream.empty();
     }
 
     @Override

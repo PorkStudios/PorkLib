@@ -29,7 +29,9 @@ import lombok.SneakyThrows;
 import net.daporkchop.lib.common.function.io.IOConsumer;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.SortedSet;
+import java.util.stream.Stream;
 
 /**
  * @author DaPorkchop_
@@ -63,6 +65,11 @@ public final class ImportsConfig implements Configurable<ImportsConfig, JsonArra
             }
         });
         return builder.build();
+    }
+
+    @Override
+    public Stream<Path> potentiallyAffectedByFiles() {
+        return Stream.empty();
     }
 
     @SneakyThrows(IOException.class)

@@ -28,6 +28,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import net.daporkchop.lib.common.function.io.IOConsumer;
+import net.daporkchop.lib.common.function.io.IOFunction;
 import net.daporkchop.lib.common.misc.Tuple;
 import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.common.reference.ReferenceStrength;
@@ -39,6 +40,7 @@ import net.daporkchop.lib.primitive.generator.option.ParameterContext;
 import net.daporkchop.lib.primitive.generator.replacer.ComplexGenericReplacer;
 import net.daporkchop.lib.primitive.generator.replacer.FileHeaderReplacer;
 import net.daporkchop.lib.primitive.generator.replacer.GenericHeaderReplacer;
+import net.daporkchop.lib.primitive.generator.util.ignore.IgnoreProcessor;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -156,7 +158,7 @@ public class Generator implements Runnable {
 
     @Override
     public void run() {
-        this.indexExistingFiles(this.existingFiles, this.outRoot);
+        this.indexExistingFiles(this.existingFiles, this.outRoot, IgnoreProcessor.begin(this.outRoot));
         System.out.println("Existing source files: " + NUMBER_FORMAT.format(this.existingFiles.size()));
 
         this.generateDirectory(GeneratorConfig.DEFAULT, this.inRoot, this.outRoot);
@@ -170,7 +172,7 @@ public class Generator implements Runnable {
                 deletedFiles.increment();
                 deletedSize.add(Files.size(file));
 
-                //PFiles.rm(file);
+                PFiles.rm(file);
             }
         });
 
@@ -198,7 +200,9 @@ public class Generator implements Runnable {
 
         //if present, load config.json and merge with existing config
         GeneratorConfig childConfig = PFiles.checkFileExists(inDirectory.resolve("config.json"))
-                ? config.mergeConfiguration(new JsonParser().parse(new String(Files.readAllBytes(inDirectory.resolve("config.json")), StandardCharsets.UTF_8)).getAsJsonObject())
+                ? config.mergeConfiguration(
+                new JsonParser().parse(new String(Files.readAllBytes(inDirectory.resolve("config.json")), StandardCharsets.UTF_8)).getAsJsonObject(),
+                Collections.singleton(inDirectory.resolve("config.json")))
                 : config;
 
         //list the files under the input directory and schedule sub-futures for them
@@ -301,7 +305,15 @@ public class Generator implements Runnable {
 
         Path file = outDirectory.resolve(name);
         checkState(this.generated.add(file), "File %s was already generated?!?", name);
-        if (PFiles.checkFileExists(file) && Files.getLastModifiedTime(file).toMillis() == templateFileAttrs.lastModifiedTime().toMillis()) {
+
+        FileTime expectedResultTime = Stream.concat(
+                config.potentiallyAffectedByFiles().filter(PFiles::checkFileExists)
+                        .map((IOFunction<Path, FileTime>) Files::getLastModifiedTime),
+                Stream.of(templateFileAttrs.lastModifiedTime()))
+                .max(Comparator.naturalOrder())
+                .get();
+
+        if (PFiles.checkFileExists(file) && Files.getLastModifiedTime(file).toMillis() == expectedResultTime.toMillis()) {
             return;
         }
 
@@ -430,7 +442,7 @@ public class Generator implements Runnable {
 
         byte[] b = contentOut.getBytes(StandardCharsets.UTF_8);
         Files.write(file, b);
-        Files.setLastModifiedTime(file, templateFileAttrs.lastModifiedTime());
+        Files.setLastModifiedTime(file, expectedResultTime);
 
         this.timeWrite.add(System.nanoTime() - time);
 
@@ -456,18 +468,20 @@ public class Generator implements Runnable {
     }
 
     @SneakyThrows(IOException.class)
-    private void indexExistingFiles(@NonNull Map<Path, FileTime> dst, @NonNull Path dir) {
+    private void indexExistingFiles(@NonNull Map<Path, FileTime> dst, @NonNull Path dir, @NonNull IgnoreProcessor ignoreProcessor) {
         List<ForkJoinTask<?>> tasks = new ArrayList<>();
 
-        Files.walkFileTree(dir, new SimpleFileVisitor<Path>() {
+        Files.walkFileTree(dir, Collections.emptySet(), 1, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                if (attrs.isRegularFile()) {
+                if (ignoreProcessor.shouldIgnore(file, attrs)) {
+                    System.out.println("ignoring " + file);
+                } else if (attrs.isRegularFile()) {
                     if (file.getFileName().toString().endsWith(".java")) { //we only care about java files
                         checkState(dst.putIfAbsent(file, attrs.lastModifiedTime()) == null, "file %s is already indexed?!?", file);
                     }
                 } else if (attrs.isDirectory()) { //schedule a task which will asynchronously recurse into the subdirectory
-                    tasks.add(ForkJoinTask.adapt(() -> Generator.this.indexExistingFiles(dst, file)));
+                    tasks.add(ForkJoinTask.adapt(() -> Generator.this.indexExistingFiles(dst, file, ignoreProcessor.enterDirectory(file))));
                 } else {
                     throw new IllegalArgumentException("don't know what to do with file: " + file);
                 }

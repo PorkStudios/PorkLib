@@ -41,7 +41,17 @@ public class FileHeaderReplacer implements TokenReplacer {
             case HEADERS_DEF: {
                 StringBuilder builder = new StringBuilder();
                 config.getLicense().appendLicense(builder);
+
+                if (builder.length() != 0) {
+                    builder.append('\n');
+                }
+                builder.append(pkg).append("\n\n");
+
+                int preImportsLength = builder.length();
                 config.getImports().appendImports(builder);
+                if (builder.length() == preImportsLength) { //no imports were added, remove the trailing newlines we added before
+                    builder.setLength(preImportsLength - 2);
+                }
                 return builder.toString();
             }
             case LICENSE_DEF: {

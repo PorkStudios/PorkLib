@@ -14,9 +14,6 @@ run/
 *.log
 
 test_out/
-/primitive/src/generated/
-/primitive/src/test/
-/primitive/lambda/src/generated/
 
 # project root
 /src/

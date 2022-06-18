@@ -15,7 +15,7 @@ import java.util.PrimitiveIterator;
 import java.util.NoSuchElementException;
 
 /**
- * Allows iteration over a series of values in a {@link _P0_Collection}.
+ * Allows iteration over a sequence of {@code _p0_} values.
  *
  * @author DaPorkchop_
  * @see PrimitiveIterator

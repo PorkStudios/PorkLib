@@ -12,7 +12,7 @@ $$$settings$$$
 _headers_
 
 import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.primitive.collection._P0_Iterator;
+import net.daporkchop.lib.primitive.iterators._P0_Iterator;
 import net.daporkchop.lib.primitive.list._P0_List;
 
 import java.util.ArrayList;

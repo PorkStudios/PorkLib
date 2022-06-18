@@ -8,6 +8,7 @@ $$$settings$$$
 }
 _headers_
 
+import net.daporkchop.lib.primitive.iterators._P0_Iterator;
 import net.daporkchop.lib.primitive.lambda._P0_Consumer;
 import net.daporkchop.lib.primitive.lambda._P0_BoolFunction;
 

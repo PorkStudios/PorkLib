@@ -11,7 +11,7 @@ $$$settings$$$
 }
 _headers_
 
-import net.daporkchop.lib.primitive.collection._P0_Collection;
+import net.daporkchop.lib.primitive.collections._P0_Collection;
 import net.daporkchop.lib.primitive.lambda._P0__P0_Function;
 
 import java.util.Arrays;

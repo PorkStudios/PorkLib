@@ -23,10 +23,10 @@ _headers_
 
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.primitive.collection.Abstract_P1_Collection;
-import net.daporkchop.lib.primitive.collection._P1_Collection;
-import net.daporkchop.lib.primitive.collection._P0_Iterator;
-import net.daporkchop.lib.primitive.collection._P1_Iterator;
+import net.daporkchop.lib.primitive.collections.Abstract_P1_Collection;
+import net.daporkchop.lib.primitive.collections._P1_Collection;
+import net.daporkchop.lib.primitive.iterators._P0_Iterator;
+import net.daporkchop.lib.primitive.iterators._P1_Iterator;
 import net.daporkchop.lib.primitive.lambda._P0_Consumer;
 import net.daporkchop.lib.primitive.lambda._P1_Consumer;
 import net.daporkchop.lib.primitive.lambda._P0__P1_Consumer;

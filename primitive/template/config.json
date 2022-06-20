@@ -33,6 +33,9 @@
     "LongSupplier": "java.util.function.LongSupplier",
     "ObjSupplier": "java.util.function.Supplier",
 
+    //common
+    "ObjComparator": "java.util.Comparator",
+
     //collections
     "ObjIterator": "java.util.Iterator",
     "ObjIterable": "java.util.Iterable",

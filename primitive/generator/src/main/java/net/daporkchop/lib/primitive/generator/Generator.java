@@ -54,6 +54,7 @@ import java.nio.file.attribute.FileTime;
 import java.text.NumberFormat;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -441,7 +442,9 @@ public class Generator implements Runnable {
         time = System.nanoTime();
 
         byte[] b = contentOut.getBytes(StandardCharsets.UTF_8);
-        Files.write(file, b);
+        if (!PFiles.checkFileExists(file) || !Arrays.equals(Files.readAllBytes(file), b)) { //only (over)write file contents if the file doesn't exist or its contents are different
+            Files.write(file, b);
+        }
         Files.setLastModifiedTime(file, expectedResultTime);
 
         this.timeWrite.add(System.nanoTime() - time);

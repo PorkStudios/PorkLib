@@ -1,0 +1,55 @@
+$$$settings$$$
+{
+    "params": [
+        {
+            "genericName": "T"
+        }
+    ]
+}
+_headers_
+
+import net.daporkchop.lib.primitive.common.PrimitiveHelper;
+
+/**
+ * A strategy which is able to compare two {@code _p0_} values to check if they are equal.
+ *
+ * @see Object#equals(Object)
+ * @author DaPorkchop_
+ */
+@FunctionalInterface
+public interface _P0_EqualityStrategy_G_ {
+    /**
+     * Gets an instance of a {@link _P0_EqualityStrategy} which performs the default equality checks by delegating to {@link PrimitiveHelper#eq(_p0_, _p0_)}.
+     *
+     * @return a default {@link _P0_EqualityStrategy}
+     */<%
+    @SuppressWarnings("unchecked")%>
+    static<% _G_%> _P0_EqualityStrategy_G_ def() {
+        return <%(_P0_EqualityStrategy_G_) %>Default.INSTANCE;
+    }
+
+    /**
+     * Checks whether or not the given values are equal.
+     *
+     * @param a a value
+     * @param b a value
+     * @return {@code true} if the two given values are equal
+     */
+    boolean equals(_p0_ a, _p0_ b);
+
+    /**
+     * Default implementation of {@link _P0_EqualityStrategy}.
+     * <p>
+     * Delegates equality checks to {@link PrimitiveHelper#eq(_p0_, _p0_)}.
+     *
+     * @author DaPorkchop_
+     */
+    class Default_G_ implements _P0_EqualityStrategy_G_ {
+        public static final Default<%<?>%> INSTANCE = new Default<%<>%>();
+
+        @Override
+        public boolean equals(_p0_ a, _p0_ b) {
+            return PrimitiveHelper.eq(a, b);
+        }
+    }
+}

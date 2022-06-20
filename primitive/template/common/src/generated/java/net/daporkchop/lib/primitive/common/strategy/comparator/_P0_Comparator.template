@@ -1,0 +1,104 @@
+$$$settings$$$
+{
+    "params": [
+        {
+            "genericName": "T"
+        }
+    ]
+}
+_headers_
+
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+
+import net.daporkchop.lib.primitive.common.PrimitiveHelper;
+
+import java.io.Serializable;
+
+/**
+ * A strategy which is able to compare two {@code _p0_} values to check if they are equal.
+ *
+ * @see java.util.Comparator
+ * @author DaPorkchop_
+ */
+@FunctionalInterface
+public interface _P0_Comparator_G_ {
+    /**
+     * Compares the given values.
+     *
+     * @param a the first value to be compared
+     * @param b the second value to be compared
+     * @return a negative integer, zero, or a positive integer as the first argument is less than, equal to, or greater than the second
+     */
+    int compare(_p0_ a, _p0_ b);
+
+    /**
+     * Returns a comparator that imposes the reverse ordering of this comparator.
+     *
+     * @return a comparator that imposes the reverse ordering of this comparator
+     * @see java.util.Comparator#reversed()
+     */
+    default _P0_Comparator_G_ reversed() {
+        @RequiredArgsConstructor
+        class Reversed_G_ implements _P0_Comparator_G_ {
+            @NonNull
+            protected final _P0_Comparator_G_ delegate;
+
+            @Override
+            public int compare(_p0_ a, _p0_ b) {
+                return this.delegate.compare(b, a);
+            }
+
+            @Override
+            public _P0_Comparator_G_ reversed() {
+                return this.delegate;
+            }
+
+            @Override
+            public boolean equals(Object o) {
+                return o == this || (o instanceof Reversed && this.delegate.equals(((Reversed) o).delegate));
+            }
+
+            @Override
+            public int hashCode() {
+                return this.delegate.hashCode() ^ Integer.MIN_VALUE;
+            }
+        }
+
+        return new Reversed_G_(this);
+    }
+
+    /**
+     * Returns a lexicographic-order comparator with another comparator.
+     *
+     * @param other the other comparator to be used when this comparator compares two objects that are equal.
+     * @return a lexicographic-order comparator composed of this and then the other comparator
+     * @see java.util.Comparator#thenComparing(java.util.Comparator)
+     */
+    default _P0_Comparator_G_ thenComparing(@NonNull _P0_Comparator_GsuperP0_ other) {
+        return (_P0_Comparator_G_ & Serializable) (a, b) -> {
+            int result = this.compare(a, b);
+            return result != 0 ? result : other.compare(a, b);
+        };
+    }
+
+    //TODO: generate thenComparing methods with different primitive conversion types
+
+    /**
+     * Gets an instance of a {@link _P0_Comparator} which compares values in natural order.
+     *
+     * @return a {@link _P0_Comparator} which imposes natural ordering on values
+     */
+    static<% <T extends Comparable<? super T>>%> _P0_Comparator_G_ naturalOrder() {
+        return PrimitiveHelper::compare;
+    }
+
+    /**
+     * Gets an instance of a {@link _P0_Comparator} which compares values in the reverse of natural order.
+     *
+     * @return a {@link _P0_Comparator} which imposes the reverse of natural ordering on values
+     */
+    static<% <T extends Comparable<? super T>>%> _P0_Comparator_G_ reverseOrder() {
+        return PrimitiveHelper::compareReverse;
+    }
+}

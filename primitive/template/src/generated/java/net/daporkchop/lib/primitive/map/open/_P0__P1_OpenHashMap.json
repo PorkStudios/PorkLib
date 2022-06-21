@@ -1,0 +1,15 @@
+{
+  "params": [
+    {
+      "genericName": "K",
+      "blacklist": [
+        "boolean",
+        "float",
+        "double"
+      ]
+    },
+    {
+      "genericName": "V"
+    }
+  ]
+}

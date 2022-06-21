@@ -27,7 +27,6 @@ import lombok.NonNull;
 import lombok.Singular;
 
 import java.nio.file.Path;
-import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -55,16 +54,8 @@ public final class GeneratorConfig implements Configurable<GeneratorConfig, Json
     @NonNull
     private final OverrideReplacer overrideReplacer = OverrideReplacer.DEFAULT;
 
-    @Singular
-    @NonNull
-    private final Set<Path> configFiles;
-
     @Override
     public GeneratorConfig mergeConfiguration(@NonNull JsonObject jsonObject) {
-        return this.mergeConfiguration(jsonObject, Collections.emptySet());
-    }
-
-    public GeneratorConfig mergeConfiguration(@NonNull JsonObject jsonObject, @NonNull Set<Path> configFiles) {
         GeneratorConfigBuilder builder = this.toBuilder();
 
         if (jsonObject.has("ignored_tokens")) {
@@ -83,15 +74,11 @@ public final class GeneratorConfig implements Configurable<GeneratorConfig, Json
             builder.overrideReplacer(this.overrideReplacer.mergeConfiguration(jsonObject.getAsJsonObject("overrides")));
         }
 
-        configFiles.forEach(builder::configFile);
-
         return builder.build();
     }
 
     @Override
     public Stream<Path> potentiallyAffectedByFiles() {
-        return Stream.concat(
-                Stream.of(this.license, this.imports, this.overrideReplacer).flatMap(Configurable::potentiallyAffectedByFiles),
-                this.configFiles.stream());
+        return Stream.of(this.license, this.imports, this.overrideReplacer).flatMap(Configurable::potentiallyAffectedByFiles);
     }
 }

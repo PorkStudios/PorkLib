@@ -1,0 +1,13 @@
+{
+  "params": [
+    {
+      "genericName": "K",
+      "blacklist": [
+        "boolean"
+      ]
+    },
+    {
+      "genericName": "V"
+    }
+  ]
+}

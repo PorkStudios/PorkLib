@@ -1,0 +1,20 @@
+{
+  "params": [
+    {
+      "genericName": "K",
+      "whitelist": [
+        "int",
+        "long",
+        "Object"
+      ]
+    },
+    {
+      "genericName": "V",
+      "whitelist": [
+        "int",
+        "long",
+        "Object"
+      ]
+    }
+  ]
+}

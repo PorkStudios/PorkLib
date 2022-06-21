@@ -1,24 +1,3 @@
-$$$settings$$$
-{
-    "params": [
-        {
-            "genericName": "K",
-            "whitelist": [
-                "int",
-                "long",
-                "Object"
-            ]
-        },
-        {
-            "genericName": "V",
-            "whitelist": [
-                "int",
-                "long",
-                "Object"
-            ]
-        }
-    ]
-}
 _headers_
 
 import net.daporkchop.lib.common.pool.handle.Handle;
@@ -49,9 +28,6 @@ import static net.daporkchop.lib.primitive.map.concurrent.ConcurrentHashMapHelpe
  * <p>
  * The implementation is based on the OpenJDK 8 implementation of {@link java.util.concurrent.ConcurrentHashMap}, with various
  * performance tweaks and simplifications.
- * <p>
- * Unlike {@link net.daporkchop.lib.primitive.map.open._P0__P1_OpenHashMap}, this does not allow use of custom hash/equality/comparison
- * functions. Hashes are computed as the the murmur32 hash of the key<0%'s {@link Object#hashCode()}%>.
  * <p>
  * Tree nodes are not currently implemented. Poor hash functions are therefore likely to cause a significant loss in performance.
  *
@@ -86,36 +62,21 @@ public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _
     protected transient KeySetView_G_ keySet;
     protected transient ValuesView_G_ values;
     protected transient EntrySetView_G_ entrySet;
-<1%
-    public _P0__P1_ConcurrentHashMap() {
-        this(DEFAULT_CAPACITY);
+
+    public _P0__P1_ConcurrentHashMap(<1!%_p1_ defaultValue%>) {
+        this(<1!%defaultValue, %>DEFAULT_CAPACITY);
     }
 
-    public _P0__P1_ConcurrentHashMap(int initialCapacity) {
+    public _P0__P1_ConcurrentHashMap(<1!%_p1_ defaultValue, %>int initialCapacity) {<1!%
+        this.defaultValue = defaultValue;%>
         this.sizeCtl = (notNegative(initialCapacity, "initialCapacity") >= (MAXIMUM_CAPACITY >>> 1)
                 ? MAXIMUM_CAPACITY
                 : tableSizeFor(initialCapacity + (initialCapacity >>> 1) + 1));
     }
 
     public _P0__P1_ConcurrentHashMap(@NonNull _P0__P1_Map_Gextends_ m) {
-        this(DEFAULT_CAPACITY);
-        this.putAll(m);
-    }%><1!%
-    public _P0__P1_ConcurrentHashMap(_p1_ defaultValue) {
-        this(defaultValue, DEFAULT_CAPACITY);
-    }
-
-    public _P0__P1_ConcurrentHashMap(_p1_ defaultValue, int initialCapacity) {
-        this.defaultValue = defaultValue;
-        this.sizeCtl = (notNegative(initialCapacity, "initialCapacity") >= (MAXIMUM_CAPACITY >>> 1)
-                ? MAXIMUM_CAPACITY
-                : tableSizeFor(initialCapacity + (initialCapacity >>> 1) + 1));
-    }
-
-    public _P0__P1_ConcurrentHashMap(_p1_ defaultValue, @NonNull _P0__P1_Map_Gextends_ m) {
-        this(defaultValue, DEFAULT_CAPACITY);
-        this.putAll(m);
-    }
+        this(<1!%m.defaultValue(), %>DEFAULT_CAPACITY);
+    }<1!%
 
     @Override
     public final _P0__P1_ConcurrentHashMap_G_ defaultValue(_p1_ defaultValue)   {

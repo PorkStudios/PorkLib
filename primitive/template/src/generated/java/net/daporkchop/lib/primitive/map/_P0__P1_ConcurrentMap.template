@@ -1,24 +1,3 @@
-$$$settings$$$
-{
-    "params": [ //this is only generated for a limited selection of types because it doesn't make any sense to be using a concurrent map with byte keys lol
-        {
-            "genericName": "K",
-            "whitelist": [
-                "int",
-                "long",
-                "Object"
-            ]
-        },
-        {
-            "genericName": "V",
-            "whitelist": [
-                "int",
-                "long",
-                "Object"
-            ]
-        }
-    ]
-}
 _headers_
 
 import net.daporkchop.lib.primitive.collections._P1_Collection;

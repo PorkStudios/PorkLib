@@ -1,17 +1,3 @@
-$$$settings$$$
-{
-    "params": [
-        {
-            "genericName": "T"
-        },
-        {
-            "genericName": "U"
-        },
-        {
-            "genericName": "V"
-        }
-    ]
-}
 _headers_
 
 /**

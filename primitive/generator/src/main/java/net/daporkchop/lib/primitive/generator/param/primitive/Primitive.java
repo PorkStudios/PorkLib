@@ -18,15 +18,16 @@
  *
  */
 
-package net.daporkchop.lib.primitive.generator;
+package net.daporkchop.lib.primitive.generator.param.primitive;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.primitive.generator.option.Parameter;
-import net.daporkchop.lib.primitive.generator.option.ParameterContext;
+import net.daporkchop.lib.primitive.generator.param.Parameter;
+import net.daporkchop.lib.primitive.generator.param.ParameterContext;
+import net.daporkchop.lib.primitive.generator.param.ParameterValue;
 
 import java.util.Collections;
 import java.util.EnumSet;
@@ -39,7 +40,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
 @Accessors(chain = true)
-public enum Primitive {
+public enum Primitive implements ParameterValue<PrimitiveParameterOptions> {
     BOOLEAN("Boolean", "Bool", "Boolean", "boolean", "false", false),
     BYTE("Byte", "Byte", "Byte", "byte", "(byte) -1", false),
     SHORT("Short", "Short", "Short", "short", "(short) -1", false),
@@ -85,9 +86,11 @@ public enum Primitive {
     public static final String UNSAFE_ARRAY_OFFSET_DEF = String.format("_arrOffset%s_", PARAM_DEF);
     public static final String UNSAFE_ARRAY_SCALE_DEF = String.format("_arrScale%s_", PARAM_DEF);
 
-    public static String getGenericHeader(@NonNull List<ParameterContext> params, @NonNull String prefix) {
-        List<ParameterContext> generics = params.stream().filter(ctx -> ctx.primitive().generic).collect(Collectors.toList());
-        return generics.isEmpty() ? "" : generics.stream().map(ParameterContext::parameter).map(Parameter::genericName)
+    public static String getGenericHeader(@NonNull List<? extends ParameterContext<?>> params, @NonNull String prefix) {
+        List<PrimitiveParameterContext> generics = params.stream()
+                .filter(PrimitiveParameterContext.class::isInstance).map(PrimitiveParameterContext.class::cast)
+                .filter(ctx -> ctx.value().generic).collect(Collectors.toList());
+        return generics.isEmpty() ? "" : generics.stream().map(PrimitiveParameterContext::parameter).map(Parameter::options).map(PrimitiveParameterOptions::genericName)
                 .collect(Collectors.joining(", " + prefix, "<" + prefix, ">"));
     }
 

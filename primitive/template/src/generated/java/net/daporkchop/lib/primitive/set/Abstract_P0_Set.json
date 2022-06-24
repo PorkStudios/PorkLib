@@ -1,7 +1,10 @@
 {
   "params": [
     {
-      "genericName": "E",
+      "type": "primitive",
+      "options": {
+        "genericName": "E"
+      },
       "blacklist": [
         "boolean"
       ]

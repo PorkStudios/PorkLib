@@ -18,18 +18,39 @@
  *
  */
 
-package net.daporkchop.lib.primitive.generator;
+package net.daporkchop.lib.primitive.generator.param.primitive;
 
 import lombok.NonNull;
-import net.daporkchop.lib.primitive.generator.config.GeneratorConfig;
-import net.daporkchop.lib.primitive.generator.param.primitive.PrimitiveParameterContext;
+import net.daporkchop.lib.primitive.generator.param.Parameter;
+import net.daporkchop.lib.primitive.generator.param.ParameterContext;
+import net.daporkchop.lib.primitive.generator.param.ParameterType;
+import net.daporkchop.lib.primitive.generator.param.ParameterValue;
 
-import java.util.List;
+import java.util.Map;
+
+import static net.daporkchop.lib.common.util.PorkUtil.*;
 
 /**
  * @author DaPorkchop_
  */
-@FunctionalInterface
-public interface TokenReplacer {
-    String replace(@NonNull Context context, @NonNull String text, String pkg);
+public class PrimitiveParameterType implements ParameterType<PrimitiveParameterOptions> {
+    @Override
+    public Map<String, ParameterValue<PrimitiveParameterOptions>> getValuesByName() {
+        return uncheckedCast(Primitive.BY_NAME);
+    }
+
+    @Override
+    public Class<PrimitiveParameterOptions> optionsClass() {
+        return PrimitiveParameterOptions.class;
+    }
+
+    @Override
+    public PrimitiveParameterOptions defaultOptions() {
+        throw new UnsupportedOperationException("cannot create default options for primitive parameter options!");
+    }
+
+    @Override
+    public ParameterContext<PrimitiveParameterOptions> makeContext(@NonNull Parameter<PrimitiveParameterOptions> parameter, @NonNull ParameterValue<PrimitiveParameterOptions> value) {
+        return new PrimitiveParameterContext(parameter, (Primitive) value);
+    }
 }

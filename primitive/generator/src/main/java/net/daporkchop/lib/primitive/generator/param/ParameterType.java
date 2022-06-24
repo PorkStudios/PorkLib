@@ -18,18 +18,23 @@
  *
  */
 
-package net.daporkchop.lib.primitive.generator;
+package net.daporkchop.lib.primitive.generator.param;
 
 import lombok.NonNull;
-import net.daporkchop.lib.primitive.generator.config.GeneratorConfig;
-import net.daporkchop.lib.primitive.generator.param.primitive.PrimitiveParameterContext;
 
-import java.util.List;
+import java.util.Map;
 
 /**
+ * A type of parameter which defines a set of possible values.
+ *
  * @author DaPorkchop_
  */
-@FunctionalInterface
-public interface TokenReplacer {
-    String replace(@NonNull Context context, @NonNull String text, String pkg);
+public interface ParameterType<O extends ParameterOptions> {
+    Map<String, ParameterValue<O>> getValuesByName();
+
+    Class<O> optionsClass();
+
+    O defaultOptions();
+
+    ParameterContext<O> makeContext(@NonNull Parameter<O> parameter, @NonNull ParameterValue<O> value);
 }

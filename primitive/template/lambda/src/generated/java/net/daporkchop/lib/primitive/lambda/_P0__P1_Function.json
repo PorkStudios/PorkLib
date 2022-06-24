@@ -1,10 +1,16 @@
 {
   "params": [
     {
-      "genericName": "T"
+      "type": "primitive",
+      "options": {
+        "genericName": "T"
+      }
     },
     {
-      "genericName": "R"
+      "type": "primitive",
+      "options": {
+        "genericName": "U"
+      }
     }
   ]
 }

@@ -22,9 +22,11 @@ package net.daporkchop.lib.primitive.generator.replacer;
 
 import lombok.NonNull;
 import net.daporkchop.lib.common.reference.cache.Cached;
+import net.daporkchop.lib.primitive.generator.Context;
 import net.daporkchop.lib.primitive.generator.TokenReplacer;
-import net.daporkchop.lib.primitive.generator.config.GeneratorConfig;
-import net.daporkchop.lib.primitive.generator.option.ParameterContext;
+import net.daporkchop.lib.primitive.generator.param.ParameterContext;
+import net.daporkchop.lib.primitive.generator.param.primitive.Primitive;
+import net.daporkchop.lib.primitive.generator.param.primitive.PrimitiveParameterOptions;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,16 +42,16 @@ public class ComplexGenericReplacer implements TokenReplacer {
     public static final Cached<Matcher> COMPLEX_GENERIC_PARAMS = Cached.regex(Pattern.compile("(\\d+)(extends|super)?"));
 
     @Override
-    public String replace(@NonNull GeneratorConfig config, @NonNull String text, @NonNull List<ParameterContext> params, String pkg) {
+    public String replace(@NonNull Context context, @NonNull String text, String pkg) {
         Matcher matcher = COMPLEX_GENERIC_MATCHER.get().reset(text);
         if (matcher.matches()) {
             List<String> formatted = new ArrayList<>();
             matcher = COMPLEX_GENERIC_PARAMS.get().reset(text);
             while (matcher.find()) {
-                ParameterContext param = params.get(Integer.parseUnsignedInt(matcher.group(1)));
-                if (param.primitive().isGeneric()) {
+                ParameterContext<?> param = context.getParams().get(Integer.parseUnsignedInt(matcher.group(1)));
+                if (((Primitive) param.value()).isGeneric()) {
                     String requirement = matcher.group(2);
-                    formatted.add((requirement == null ? "" : "? " + requirement + ' ') + param.parameter().genericName());
+                    formatted.add((requirement == null ? "" : "? " + requirement + ' ') + ((PrimitiveParameterOptions) param.parameter().options()).genericName());
                 }
             }
             return formatted.isEmpty() ? "" : formatted.stream().collect(Collectors.joining(", ", "<", ">"));

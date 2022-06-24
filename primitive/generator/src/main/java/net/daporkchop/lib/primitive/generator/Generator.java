@@ -33,9 +33,9 @@ import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.common.reference.ReferenceStrength;
 import net.daporkchop.lib.common.reference.cache.Cached;
 import net.daporkchop.lib.primitive.generator.config.GeneratorConfig;
-import net.daporkchop.lib.primitive.generator.option.HeaderOptions;
-import net.daporkchop.lib.primitive.generator.option.Parameter;
-import net.daporkchop.lib.primitive.generator.option.ParameterContext;
+import net.daporkchop.lib.primitive.generator.param.Parameter;
+import net.daporkchop.lib.primitive.generator.param.ParameterContext;
+import net.daporkchop.lib.primitive.generator.param.primitive.Primitive;
 import net.daporkchop.lib.primitive.generator.replacer.ComplexGenericReplacer;
 import net.daporkchop.lib.primitive.generator.replacer.FileHeaderReplacer;
 import net.daporkchop.lib.primitive.generator.replacer.GenericHeaderReplacer;
@@ -73,6 +73,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
+import static net.daporkchop.lib.common.util.PorkUtil.*;
 
 /**
  * @author DaPorkchop_
@@ -253,7 +254,7 @@ public class Generator implements Runnable {
     }
 
     @SneakyThrows(IOException.class)
-    private void generateFile(@NonNull GeneratorConfig config, @NonNull FileTime latestExpectedTime, @NonNull Path templateFile, @NonNull BasicFileAttributes templateFileAttrs, @NonNull Path outDirectory) {
+    private void generateFile(@NonNull GeneratorConfig originalConfig, @NonNull FileTime latestExpectedTime, @NonNull Path templateFile, @NonNull BasicFileAttributes templateFileAttrs, @NonNull Path outDirectory) {
         String name = templateFile.getFileName().toString().substring(0, templateFile.getFileName().toString().length() - ".template".length());
         Path configFile = PFiles.assertFileExists(templateFile.resolveSibling(name + ".json"));
 
@@ -262,17 +263,17 @@ public class Generator implements Runnable {
         FileTime expectedResultTime = Stream.of(latestExpectedTime, templateFileAttrs.lastModifiedTime(), Files.getLastModifiedTime(configFile))
                 .max(Comparator.naturalOrder()).get();
 
-        HeaderOptions headerOptions = new HeaderOptions(new JsonParser().parse(new String(Files.readAllBytes(configFile), StandardCharsets.UTF_8)).getAsJsonObject());
+        GeneratorConfig config = originalConfig.mergeConfiguration(new JsonParser().parse(new String(Files.readAllBytes(configFile), StandardCharsets.UTF_8)).getAsJsonObject());
         String content = new String(Files.readAllBytes(templateFile), StandardCharsets.UTF_8);
 
         PFiles.ensureDirectoryExists(outDirectory);
 
-        Stream<List<ParameterContext>> stream = Stream.of(Collections.emptyList());
-        for (Parameter parameter : headerOptions.parameters()) {
-            stream = stream.flatMap(currentParams -> parameter.primitives().stream()
-                    .map(primitive -> new ParameterContext(parameter, primitive))
+        Stream<List<ParameterContext<?>>> parametersStream = Stream.of(Collections.emptyList());
+        for (Parameter<?> parameter : config.getParmeters().getParameters()) {
+            parametersStream = parametersStream.flatMap(currentParams -> parameter.values().stream()
+                    .map(value -> parameter.type().makeContext(uncheckedCast(parameter), uncheckedCast(value)))
                     .map(ctx -> {
-                        List<ParameterContext> params = new ArrayList<>(currentParams.size() + 1);
+                        List<ParameterContext<?>> params = new ArrayList<>(currentParams.size() + 1);
                         params.addAll(currentParams);
                         params.add(ctx);
                         return params;
@@ -280,13 +281,13 @@ public class Generator implements Runnable {
         }
 
         //spawn a sub-task for each combination of parameters, then execute them all and wait for them all to complete
-        ForkJoinTask.invokeAll(stream
-                .map(params -> ForkJoinTask.adapt(() -> this.generate0(outDirectory, name, expectedResultTime, content, packageName, config, headerOptions, params)))
+        ForkJoinTask.invokeAll(parametersStream
+                .map(params -> ForkJoinTask.adapt(() -> this.generate0(outDirectory, name, expectedResultTime, content, packageName, new Context(config, params))))
                 .collect(Collectors.toList()));
     }
 
     @SneakyThrows(IOException.class)
-    private void generate0(@NonNull Path outDirectory, @NonNull String templateFileName, @NonNull FileTime expectedResultTime, @NonNull String templateFileContent, @NonNull String packageName, @NonNull GeneratorConfig config, @NonNull HeaderOptions headerOptions, @NonNull List<ParameterContext> params) {
+    private void generate0(@NonNull Path outDirectory, @NonNull String templateFileName, @NonNull FileTime expectedResultTime, @NonNull String templateFileContent, @NonNull String packageName, @NonNull Context context) {
         String name;
         { //name
             long time = System.nanoTime(); //begin profiling timeName
@@ -296,7 +297,7 @@ public class Generator implements Runnable {
                 StringBuffer buffer = STRINGBUFFER_CACHE.get();
                 buffer.setLength(0);
                 do {
-                    matcher.appendReplacement(buffer, params.get(Integer.parseUnsignedInt(matcher.group(1))).primitive().displayName);
+                    matcher.appendReplacement(buffer, ((Primitive) context.getParams().get(Integer.parseUnsignedInt(matcher.group(1))).value()).displayName);
                 } while (matcher.find());
                 matcher.appendTail(buffer);
                 name = buffer.toString();
@@ -310,7 +311,7 @@ public class Generator implements Runnable {
         { //name override
             long time = System.nanoTime();
             try {
-                if ((name = config.getOverrideReplacer().processName(name, -1, STRINGBUFFER_CACHE.get())) == null) {
+                if ((name = context.getConfig().getOverrideReplacer().processName(name, -1, STRINGBUFFER_CACHE.get())) == null) {
                     //the template file's name is supposed to be replaced!
                     return;
                 }
@@ -328,14 +329,14 @@ public class Generator implements Runnable {
         }
 
         String contentOut = templateFileContent;
-        contentOut = this.processGenericFilters(contentOut, params);
-        contentOut = this.processTypeFilters(contentOut, params);
-        contentOut = this.processTokens(contentOut, params, packageName, config);
+        contentOut = this.processGenericFilters(contentOut, context);
+        contentOut = this.processTypeFilters(contentOut, context);
+        contentOut = this.processTokens(contentOut, context, packageName);
 
         { //overrides
             long time = System.nanoTime();
 
-            if ((contentOut = config.getOverrideReplacer().processCode(contentOut, -1, STRINGBUFFER_CACHE.get())) == null) {
+            if ((contentOut = context.getConfig().getOverrideReplacer().processCode(contentOut, -1, STRINGBUFFER_CACHE.get())) == null) {
                 throw new IllegalStateException();
             }
 
@@ -358,17 +359,19 @@ public class Generator implements Runnable {
         }
     }
 
-    private String processGenericFilters(@NonNull String text, @NonNull List<ParameterContext> params) {
+    private String processGenericFilters(@NonNull String text, @NonNull Context context) {
         long time = System.nanoTime();
 
         Matcher matcher = GENERIC_FILTER_CACHE.get().reset(text);
-        boolean anyGeneric = params.stream().map(ParameterContext::primitive).anyMatch(Primitive::isGeneric);
+        boolean anyGeneric = context.getParams().stream().map(ParameterContext::value)
+                .filter(Primitive.class::isInstance).map(Primitive.class::cast)
+                .anyMatch(Primitive::isGeneric);
         if (matcher.find()) {
             StringBuffer buffer = STRINGBUFFER_CACHE.get();
             buffer.setLength(0);
             do {
                 String numberTxt = matcher.group(1);
-                boolean generic = numberTxt == null ? anyGeneric : params.get(Integer.parseUnsignedInt(numberTxt)).primitive().generic;
+                boolean generic = numberTxt == null ? anyGeneric : ((Primitive) context.getParams().get(Integer.parseUnsignedInt(numberTxt)).value()).generic;
                 boolean inverted = matcher.group(2) != null;
                 if (generic ^ inverted) {
                     String content2 = matcher.group(3);
@@ -378,7 +381,7 @@ public class Generator implements Runnable {
                         buffer2.setLength(0);
                         do {
                             String numberTxt2 = matcher2.group(1);
-                            boolean generic2 = numberTxt2 == null ? anyGeneric : params.get(Integer.parseUnsignedInt(numberTxt2)).primitive().generic;
+                            boolean generic2 = numberTxt2 == null ? anyGeneric : ((Primitive) context.getParams().get(Integer.parseUnsignedInt(numberTxt2)).value()).generic;
                             boolean inverted2 = matcher2.group(2) != null;
                             matcher2.appendReplacement(buffer2, generic2 ^ inverted2 ? matcher2.group(3) : "");
                         } while (matcher2.find());
@@ -399,7 +402,7 @@ public class Generator implements Runnable {
         return text;
     }
 
-    private String processTypeFilters(@NonNull String text, @NonNull List<ParameterContext> params) {
+    private String processTypeFilters(@NonNull String text, @NonNull Context context) {
         long time = System.nanoTime();
 
         Matcher matcher = TYPE_FILTER_CACHE.get().reset(text);
@@ -413,7 +416,7 @@ public class Generator implements Runnable {
                 while (extractMatcher.find()) {
                     int index = Integer.parseUnsignedInt(extractMatcher.group(1));
                     Primitive primitive = Primitive.BY_NAME.get(extractMatcher.group(2));
-                    valid |= params.get(index).primitive().equals(primitive);
+                    valid |= context.getParams().get(index).value().equals(primitive);
                 }
                 if (valid ^ invert) {
                     String content2 = matcher.group(3);
@@ -428,7 +431,7 @@ public class Generator implements Runnable {
                             while (extractMatcher.find()) {
                                 int index = Integer.parseUnsignedInt(extractMatcher.group(1));
                                 Primitive primitive = Primitive.BY_NAME.get(extractMatcher.group(2));
-                                valid2 |= params.get(index).primitive().equals(primitive);
+                                valid2 |= context.getParams().get(index).value().equals(primitive);
                             }
                             matcher2.appendReplacement(buffer2, valid2 ^ inverted2 ? matcher2.group(3) : "");
                         } while (matcher2.find());
@@ -448,7 +451,7 @@ public class Generator implements Runnable {
         return text;
     }
 
-    private String processTokens(@NonNull String text, @NonNull List<ParameterContext> params, @NonNull String packageName, @NonNull GeneratorConfig config) {
+    private String processTokens(@NonNull String text, @NonNull Context context, @NonNull String packageName) {
         long time = System.nanoTime();
 
         Matcher matcher = TOKEN_MATCHER_CACHE.get().reset(text);
@@ -462,14 +465,14 @@ public class Generator implements Runnable {
                 if (numberTxt != null) {
                     String token = matcher.group(1);
                     boolean lowerCase = matcher.group(2).charAt(0) == 'p';
-                    String value = params.get(Integer.parseUnsignedInt(numberTxt)).replace(token, lowerCase, params);
+                    String value = context.getParams().get(Integer.parseUnsignedInt(numberTxt)).replace(context, token, lowerCase);
                     if (value != null) {
                         matcher.appendReplacement(buffer, value);
                         continue;
                     }
                 } else {
                     for (TokenReplacer replacer : this.tokenReplacers) {
-                        String value = replacer.replace(config, original, params, packageName);
+                        String value = replacer.replace(context, original, packageName);
                         if (value != null) {
                             matcher.appendReplacement(buffer, value);
                             continue MAIN;

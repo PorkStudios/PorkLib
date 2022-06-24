@@ -22,13 +22,10 @@ package net.daporkchop.lib.primitive.generator.replacer;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.primitive.generator.Context;
 import net.daporkchop.lib.primitive.generator.TokenReplacer;
-import net.daporkchop.lib.primitive.generator.config.GeneratorConfig;
-import net.daporkchop.lib.primitive.generator.option.ParameterContext;
 
-import java.util.List;
-
-import static net.daporkchop.lib.primitive.generator.Primitive.*;
+import static net.daporkchop.lib.primitive.generator.param.primitive.Primitive.*;
 
 /**
  * @author DaPorkchop_
@@ -36,11 +33,11 @@ import static net.daporkchop.lib.primitive.generator.Primitive.*;
 @RequiredArgsConstructor
 public class FileHeaderReplacer implements TokenReplacer {
     @Override
-    public String replace(@NonNull GeneratorConfig config, @NonNull String text, @NonNull List<ParameterContext> params, String pkg) {
+    public String replace(@NonNull Context context, @NonNull String text, String pkg) {
         switch (text) {
             case HEADERS_DEF: {
                 StringBuilder builder = new StringBuilder();
-                config.getLicense().appendLicense(builder);
+                context.getConfig().getLicense().appendLicense(builder);
 
                 if (builder.length() != 0) {
                     builder.append('\n');
@@ -48,7 +45,7 @@ public class FileHeaderReplacer implements TokenReplacer {
                 builder.append(pkg).append("\n\n");
 
                 int preImportsLength = builder.length();
-                config.getImports().appendImports(builder);
+                context.getConfig().getImports().appendImports(builder);
                 if (builder.length() == preImportsLength) { //no imports were added, remove the trailing newlines we added before
                     builder.setLength(preImportsLength - 2);
                 }
@@ -56,14 +53,14 @@ public class FileHeaderReplacer implements TokenReplacer {
             }
             case LICENSE_DEF: {
                 StringBuilder builder = new StringBuilder();
-                config.getLicense().appendLicense(builder);
+                context.getConfig().getLicense().appendLicense(builder);
                 return builder.toString();
             }
             case PACKAGE_DEF:
                 return pkg;
             case IMPORTS_DEF: {
                 StringBuilder builder = new StringBuilder();
-                config.getImports().appendImports(builder);
+                context.getConfig().getImports().appendImports(builder);
                 return builder.toString();
             }
         }

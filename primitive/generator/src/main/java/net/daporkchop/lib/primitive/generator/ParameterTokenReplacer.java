@@ -21,15 +21,11 @@
 package net.daporkchop.lib.primitive.generator;
 
 import lombok.NonNull;
-import net.daporkchop.lib.primitive.generator.config.GeneratorConfig;
-import net.daporkchop.lib.primitive.generator.param.primitive.PrimitiveParameterContext;
-
-import java.util.List;
 
 /**
  * @author DaPorkchop_
  */
 @FunctionalInterface
-public interface TokenReplacer {
-    String replace(@NonNull Context context, @NonNull String text, String pkg);
+public interface ParameterTokenReplacer {
+    String replace(@NonNull Context context, @NonNull String token, boolean lowercase);
 }

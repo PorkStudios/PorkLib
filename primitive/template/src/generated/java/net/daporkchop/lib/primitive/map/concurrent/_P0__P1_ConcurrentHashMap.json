@@ -1,7 +1,10 @@
 {
   "params": [
     {
-      "genericName": "K",
+      "type": "primitive",
+      "options": {
+        "genericName": "K"
+      },
       "whitelist": [
         "int",
         "long",
@@ -9,7 +12,10 @@
       ]
     },
     {
-      "genericName": "V",
+      "type": "primitive",
+      "options": {
+        "genericName": "V"
+      },
       "whitelist": [
         "int",
         "long",

@@ -54,6 +54,10 @@ public final class GeneratorConfig implements Configurable<GeneratorConfig, Json
     @NonNull
     private final OverrideReplacer overrideReplacer = OverrideReplacer.DEFAULT;
 
+    @Builder.Default
+    @NonNull
+    private final ParametersConfig parmeters = ParametersConfig.DEFAULT;
+
     @Override
     public GeneratorConfig mergeConfiguration(@NonNull JsonObject jsonObject) {
         GeneratorConfigBuilder builder = this.toBuilder();
@@ -74,11 +78,15 @@ public final class GeneratorConfig implements Configurable<GeneratorConfig, Json
             builder.overrideReplacer(this.overrideReplacer.mergeConfiguration(jsonObject.getAsJsonObject("overrides")));
         }
 
+        if (jsonObject.has("params")) {
+            builder.parmeters(this.parmeters.mergeConfiguration(jsonObject.get("params")));
+        }
+
         return builder.build();
     }
 
     @Override
     public Stream<Path> potentiallyAffectedByFiles() {
-        return Stream.of(this.license, this.imports, this.overrideReplacer).flatMap(Configurable::potentiallyAffectedByFiles);
+        return Stream.of(this.license, this.imports, this.overrideReplacer, this.parmeters).flatMap(Configurable::potentiallyAffectedByFiles);
     }
 }

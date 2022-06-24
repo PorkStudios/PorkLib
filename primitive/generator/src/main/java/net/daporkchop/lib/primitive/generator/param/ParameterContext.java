@@ -18,40 +18,20 @@
  *
  */
 
-package net.daporkchop.lib.primitive.generator.option;
+package net.daporkchop.lib.primitive.generator.param;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.experimental.Accessors;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import net.daporkchop.lib.primitive.generator.Context;
+import net.daporkchop.lib.primitive.generator.ParameterTokenReplacer;
 
 /**
- * Options defined at the top of a class file.
- *
  * @author DaPorkchop_
  */
-@Getter
-@Accessors(fluent = true)
-public class HeaderOptions {
-    /**
-     * An array of generic parameter names.
-     */
-    private final List<Parameter> parameters;
+public interface ParameterContext<O extends ParameterOptions> extends ParameterTokenReplacer {
+    Parameter<O> parameter();
 
-    public HeaderOptions(@NonNull JsonObject object) {
-        if (object.has("params")) {
-            JsonArray params = object.getAsJsonArray("params");
-            this.parameters = Collections.unmodifiableList(IntStream.range(0, params.size())
-                    .mapToObj(i -> new Parameter(params.get(i).getAsJsonObject(), i))
-                    .collect(Collectors.toList()));
-        } else {
-            this.parameters = Collections.emptyList();
-        }
-    }
+    ParameterValue<O> value();
+
+    @Override
+    String replace(@NonNull Context context, @NonNull String token, boolean lowercase);
 }

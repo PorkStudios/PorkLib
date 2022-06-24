@@ -20,16 +20,20 @@
 
 package net.daporkchop.lib.primitive.generator;
 
+import lombok.Data;
 import lombok.NonNull;
 import net.daporkchop.lib.primitive.generator.config.GeneratorConfig;
-import net.daporkchop.lib.primitive.generator.param.primitive.PrimitiveParameterContext;
+import net.daporkchop.lib.primitive.generator.param.ParameterContext;
 
 import java.util.List;
 
 /**
  * @author DaPorkchop_
  */
-@FunctionalInterface
-public interface TokenReplacer {
-    String replace(@NonNull Context context, @NonNull String text, String pkg);
+@Data
+public final class Context {
+    @NonNull
+    private final GeneratorConfig config;
+    @NonNull
+    private final List<? extends ParameterContext<?>> params;
 }

@@ -18,18 +18,21 @@
  *
  */
 
-package net.daporkchop.lib.primitive.generator;
+package net.daporkchop.lib.primitive.generator.param.primitive;
 
+import lombok.Getter;
 import lombok.NonNull;
-import net.daporkchop.lib.primitive.generator.config.GeneratorConfig;
-import net.daporkchop.lib.primitive.generator.param.primitive.PrimitiveParameterContext;
-
-import java.util.List;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.primitive.generator.param.ParameterOptions;
 
 /**
  * @author DaPorkchop_
  */
-@FunctionalInterface
-public interface TokenReplacer {
-    String replace(@NonNull Context context, @NonNull String text, String pkg);
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public class PrimitiveParameterOptions implements ParameterOptions {
+    @NonNull
+    private final String genericName;
 }

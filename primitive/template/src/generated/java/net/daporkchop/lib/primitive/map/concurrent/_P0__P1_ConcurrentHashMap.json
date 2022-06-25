@@ -1,26 +1,36 @@
 {
-  "params": [
-    {
-      "type": "primitive",
-      "options": {
-        "genericName": "K"
-      },
-      "whitelist": [
-        "int",
-        "long",
-        "Object"
-      ]
+  "params": {
+    "types": {
+      "custom": {
+        "regular": {},
+        "custom": {}
+      }
     },
-    {
-      "type": "primitive",
-      "options": {
-        "genericName": "V"
+    "params": [
+      {
+        "type": "primitive",
+        "options": {
+          "genericName": "K"
+        },
+        "whitelist": [
+          "int",
+          "long",
+          "Object"
+        ]
       },
-      "whitelist": [
-        "int",
-        "long",
-        "Object"
-      ]
-    }
-  ]
+      {
+        "type": "primitive",
+        "options": {
+          "genericName": "V"
+        },
+        "whitelist": [
+          "int",
+          "long",
+          "Object"
+        ]
+      },
+      "custom"
+    ]
+  },
+  "name_override": "_P0__P1_Concurrent<2custom%Custom%>HashMap"
 }

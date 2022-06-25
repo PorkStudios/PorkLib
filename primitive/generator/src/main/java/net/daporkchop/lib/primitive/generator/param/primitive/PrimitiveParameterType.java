@@ -28,15 +28,13 @@ import net.daporkchop.lib.primitive.generator.param.ParameterValue;
 
 import java.util.Map;
 
-import static net.daporkchop.lib.common.util.PorkUtil.*;
-
 /**
  * @author DaPorkchop_
  */
 public class PrimitiveParameterType implements ParameterType<PrimitiveParameterOptions> {
     @Override
-    public Map<String, ParameterValue<PrimitiveParameterOptions>> getValuesByName() {
-        return uncheckedCast(Primitive.BY_NAME);
+    public Map<String, ? extends ParameterValue<PrimitiveParameterOptions>> getValuesByName() {
+        return Primitive.BY_NAME;
     }
 
     @Override

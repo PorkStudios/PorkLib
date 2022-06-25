@@ -29,9 +29,12 @@ import lombok.NonNull;
 import lombok.Singular;
 import net.daporkchop.lib.primitive.generator.param.Parameter;
 import net.daporkchop.lib.primitive.generator.param.ParameterType;
+import net.daporkchop.lib.primitive.generator.param.custom.CustomParameterType;
+import net.daporkchop.lib.primitive.generator.param.custom.CustomParameterValue;
 import net.daporkchop.lib.primitive.generator.param.primitive.PrimitiveParameterType;
 
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -64,10 +67,18 @@ public final class ParametersConfig implements Configurable<ParametersConfig, Js
             JsonObject jsonObject = jsonElement.getAsJsonObject();
 
             if (jsonObject.has("types")) {
-                jsonObject.getAsJsonObject("types").entrySet().forEach(entry -> {
-                    String name = entry.getKey();
+                jsonObject.getAsJsonObject("types").entrySet().forEach(typeEntry -> {
+                    String typeName = typeEntry.getKey();
 
-                    throw new UnsupportedOperationException("custom parameter types"); //TODO
+                    builder.type(typeName, new CustomParameterType(Collections.unmodifiableMap(typeEntry.getValue().getAsJsonObject().entrySet().stream()
+                            .collect(Collectors.toMap(
+                                    Map.Entry::getKey,
+                                    parameterEntry -> new CustomParameterValue(
+                                            parameterEntry.getKey(),
+                                            Collections.unmodifiableMap(parameterEntry.getValue().getAsJsonObject().entrySet().stream()
+                                                    .collect(Collectors.toMap(
+                                                            Map.Entry::getKey,
+                                                            propertyEntry -> propertyEntry.getValue().getAsString())))))))));
                 });
             }
 

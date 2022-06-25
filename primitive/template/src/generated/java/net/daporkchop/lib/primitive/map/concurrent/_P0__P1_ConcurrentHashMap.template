@@ -34,7 +34,7 @@ import static net.daporkchop.lib.primitive.map.concurrent.ConcurrentHashMapHelpe
  * @author DaPorkchop_
  */
 //TODO: don't cache hash for int/long keys (it's just useless overhead, comparing them directly would be fine)
-public class _P0__P1_ConcurrentHashMap_G_ implements _P0__P1_ConcurrentMap_G_, _P0__P1_Consumer_G_ {
+public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_ConcurrentMap_G_, _P0__P1_Consumer_G_ {
     //split into multiple lines to work around generator limitations
     protected static final long SIZECTL = PUnsafe.pork_getOffset(
             _P0__P1_ConcurrentHashMap.class, "sizeCtl");

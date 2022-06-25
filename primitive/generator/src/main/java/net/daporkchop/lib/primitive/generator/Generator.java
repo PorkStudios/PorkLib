@@ -35,6 +35,7 @@ import net.daporkchop.lib.common.reference.cache.Cached;
 import net.daporkchop.lib.primitive.generator.config.GeneratorConfig;
 import net.daporkchop.lib.primitive.generator.param.Parameter;
 import net.daporkchop.lib.primitive.generator.param.ParameterContext;
+import net.daporkchop.lib.primitive.generator.param.ParameterValue;
 import net.daporkchop.lib.primitive.generator.param.primitive.Primitive;
 import net.daporkchop.lib.primitive.generator.replacer.ComplexGenericReplacer;
 import net.daporkchop.lib.primitive.generator.replacer.FileHeaderReplacer;
@@ -102,7 +103,6 @@ public class Generator implements Runnable {
     private static final Cached<Matcher> TYPE_FILTER_CACHE_2 = Cached.regex(TYPE_FILTER_PATTERN, true);
     private static final Pattern TYPE_FILTER_EXTRACT_PATTERN = Pattern.compile("(\\d+)([a-zA-Z]+)");
     private static final Cached<Matcher> TYPE_FILTER_EXTRACT_CACHE = Cached.regex(TYPE_FILTER_EXTRACT_PATTERN, true);
-    private static final Cached<Matcher> TYPE_FILTER_EXTRACT_CACHE_2 = Cached.regex(TYPE_FILTER_EXTRACT_PATTERN, true);
 
     public static String replace(@NonNull Matcher matcher, @NonNull CharSequence original, @NonNull Function<? super Matcher, String> replacer) {
         StringBuffer buffer = new StringBuffer();
@@ -292,18 +292,11 @@ public class Generator implements Runnable {
         { //name
             long time = System.nanoTime(); //begin profiling timeName
 
-            Matcher matcher = NAME_MATCHER_CACHE.get().reset(templateFileName);
-            if (matcher.find()) {
-                StringBuffer buffer = STRINGBUFFER_CACHE.get();
-                buffer.setLength(0);
-                do {
-                    matcher.appendReplacement(buffer, ((Primitive) context.getParams().get(Integer.parseUnsignedInt(matcher.group(1))).value()).displayName);
-                } while (matcher.find());
-                matcher.appendTail(buffer);
-                name = buffer.toString();
-            } else {
-                name = templateFileName;
+            if (context.getConfig().getNameOverride().isPresent()) {
+                templateFileName = context.getConfig().getNameOverride().get();
             }
+
+            name = this.processString(templateFileName, context, packageName);
 
             this.timeName.add(System.nanoTime() - time);
         }
@@ -328,10 +321,7 @@ public class Generator implements Runnable {
             return;
         }
 
-        String contentOut = templateFileContent;
-        contentOut = this.processGenericFilters(contentOut, context);
-        contentOut = this.processTypeFilters(contentOut, context);
-        contentOut = this.processTokens(contentOut, context, packageName);
+        String contentOut = this.processString(templateFileContent, context, packageName);
 
         { //overrides
             long time = System.nanoTime();
@@ -357,6 +347,13 @@ public class Generator implements Runnable {
 
             this.timeWrite.add(System.nanoTime() - time);
         }
+    }
+
+    private String processString(@NonNull String text, @NonNull Context context, @NonNull String packageName) {
+        text = this.processGenericFilters(text, context);
+        text = this.processTypeFilters(text, context);
+        text = this.processTokens(text, context, packageName);
+        return text;
     }
 
     private String processGenericFilters(@NonNull String text, @NonNull Context context) {
@@ -415,8 +412,9 @@ public class Generator implements Runnable {
                 Matcher extractMatcher = TYPE_FILTER_EXTRACT_CACHE.get().reset(matcher.group(1));
                 while (extractMatcher.find()) {
                     int index = Integer.parseUnsignedInt(extractMatcher.group(1));
-                    Primitive primitive = Primitive.BY_NAME.get(extractMatcher.group(2));
-                    valid |= context.getParams().get(index).value().equals(primitive);
+                    ParameterContext<?> parameterContext = context.getParams().get(index);
+                    ParameterValue<?> value = parameterContext.parameter().type().getValuesByName().get(extractMatcher.group(2));
+                    valid |= parameterContext.value().equals(value);
                 }
                 if (valid ^ invert) {
                     String content2 = matcher.group(3);
@@ -430,8 +428,9 @@ public class Generator implements Runnable {
                             extractMatcher.reset(matcher2.group(1));
                             while (extractMatcher.find()) {
                                 int index = Integer.parseUnsignedInt(extractMatcher.group(1));
-                                Primitive primitive = Primitive.BY_NAME.get(extractMatcher.group(2));
-                                valid2 |= context.getParams().get(index).value().equals(primitive);
+                                ParameterContext<?> parameterContext = context.getParams().get(index);
+                                ParameterValue<?> value = parameterContext.parameter().type().getValuesByName().get(extractMatcher.group(2));
+                                valid2 |= parameterContext.value().equals(value);
                             }
                             matcher2.appendReplacement(buffer2, valid2 ^ inverted2 ? matcher2.group(3) : "");
                         } while (matcher2.find());

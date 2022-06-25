@@ -27,6 +27,7 @@ import lombok.NonNull;
 import lombok.Singular;
 
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -58,6 +59,10 @@ public final class GeneratorConfig implements Configurable<GeneratorConfig, Json
     @NonNull
     private final ParametersConfig parmeters = ParametersConfig.DEFAULT;
 
+    @Builder.Default
+    @NonNull
+    private final Optional<String> nameOverride = Optional.empty();
+
     @Override
     public GeneratorConfig mergeConfiguration(@NonNull JsonObject jsonObject) {
         GeneratorConfigBuilder builder = this.toBuilder();
@@ -80,6 +85,10 @@ public final class GeneratorConfig implements Configurable<GeneratorConfig, Json
 
         if (jsonObject.has("params")) {
             builder.parmeters(this.parmeters.mergeConfiguration(jsonObject.get("params")));
+        }
+
+        if (jsonObject.has("name_override")) {
+            builder.nameOverride(Optional.of(jsonObject.get("name_override").getAsString()));
         }
 
         return builder.build();

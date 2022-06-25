@@ -18,23 +18,37 @@
  *
  */
 
-package net.daporkchop.lib.primitive.generator.param;
+package net.daporkchop.lib.primitive.generator.param.custom;
 
+import lombok.Data;
 import lombok.NonNull;
+import net.daporkchop.lib.primitive.generator.param.Parameter;
+import net.daporkchop.lib.primitive.generator.param.ParameterContext;
+import net.daporkchop.lib.primitive.generator.param.ParameterType;
+import net.daporkchop.lib.primitive.generator.param.ParameterValue;
 
 import java.util.Map;
 
 /**
- * A type of parameter which defines a set of possible values.
- *
  * @author DaPorkchop_
  */
-public interface ParameterType<O extends ParameterOptions> {
-    Map<String, ? extends ParameterValue<O>> getValuesByName();
+@Data
+public class CustomParameterType implements ParameterType<CustomParameterOptions> {
+    @NonNull
+    private final Map<String, CustomParameterValue> valuesByName;
 
-    Class<O> optionsClass();
+    @Override
+    public Class<CustomParameterOptions> optionsClass() {
+        return CustomParameterOptions.class;
+    }
 
-    O defaultOptions();
+    @Override
+    public CustomParameterOptions defaultOptions() {
+        return new CustomParameterOptions();
+    }
 
-    ParameterContext<O> makeContext(@NonNull Parameter<O> parameter, @NonNull ParameterValue<O> value);
+    @Override
+    public ParameterContext<CustomParameterOptions> makeContext(@NonNull Parameter<CustomParameterOptions> parameter, @NonNull ParameterValue<CustomParameterOptions> value) {
+        return new CustomParameterContext(parameter, (CustomParameterValue) value);
+    }
 }

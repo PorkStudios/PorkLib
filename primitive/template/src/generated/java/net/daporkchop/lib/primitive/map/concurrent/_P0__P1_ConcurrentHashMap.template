@@ -3,7 +3,8 @@ _headers_
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.primitive.collections.Abstract_P1_Collection;
-import net.daporkchop.lib.primitive.collections._P1_Collection;
+import net.daporkchop.lib.primitive.collections._P1_Collection;<2custom%
+import net.daporkchop.lib.primitive.common.strategy.hash._P0_HashStrategy;%>
 import net.daporkchop.lib.primitive.iterators._P0_Iterator;
 import net.daporkchop.lib.primitive.iterators._P1_Iterator;
 import net.daporkchop.lib.primitive.lambda._P0_Consumer;
@@ -29,7 +30,10 @@ import static net.daporkchop.lib.primitive.map.concurrent.ConcurrentHashMapHelpe
  * The implementation is based on the OpenJDK 8 implementation of {@link java.util.concurrent.ConcurrentHashMap}, with various
  * performance tweaks and simplifications.
  * <p>
- * Tree nodes are not currently implemented. Poor hash functions are therefore likely to cause a significant loss in performance.
+ * Tree nodes are not currently implemented. Poor hash functions are therefore likely to cause a significant loss in performance.<0%<2custom%
+ * <p>
+ * Keys provided to any functions under this class must be a subtype of the key type, as otherwise the provided {@link _P0_HashStrategy} may be
+ * unable to process them.%>%>
  *
  * @author DaPorkchop_
  */
@@ -37,19 +41,21 @@ import static net.daporkchop.lib.primitive.map.concurrent.ConcurrentHashMapHelpe
 public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_ConcurrentMap_G_, _P0__P1_Consumer_G_ {
     //split into multiple lines to work around generator limitations
     protected static final long SIZECTL = PUnsafe.pork_getOffset(
-            _P0__P1_ConcurrentHashMap.class, "sizeCtl");
+            _P0__P1_Concurrent<2custom%Custom%>HashMap.class, "sizeCtl");
     protected static final long TRANSFERINDEX = PUnsafe.pork_getOffset(
-            _P0__P1_ConcurrentHashMap.class, "transferIndex");
+            _P0__P1_Concurrent<2custom%Custom%>HashMap.class, "transferIndex");
     protected static final long BASECOUNT = PUnsafe.pork_getOffset(
-            _P0__P1_ConcurrentHashMap.class, "baseCount");
+            _P0__P1_Concurrent<2custom%Custom%>HashMap.class, "baseCount");
     protected static final long CELLSBUSY = PUnsafe.pork_getOffset(
-            _P0__P1_ConcurrentHashMap.class, "cellsBusy");
+            _P0__P1_Concurrent<2custom%Custom%>HashMap.class, "cellsBusy");
     protected static final long CELLVALUE = PUnsafe.pork_getOffset(
             CounterCell.class, "value");
 <1!%
     @Getter
     @Accessors(fluent = true)
     protected final _p1_ defaultValue;
+%><2custom%
+    protected final _P0_HashStrategy_G0super_ strategy;
 %>
     protected transient volatile Node_G_[] table;
     protected transient volatile Node_G_[] nextTable;
@@ -63,23 +69,25 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
     protected transient ValuesView_G_ values;
     protected transient EntrySetView_G_ entrySet;
 
-    public _P0__P1_ConcurrentHashMap(<1!%_p1_ defaultValue%>) {
-        this(<1!%defaultValue, %>DEFAULT_CAPACITY);
+    public _P0__P1_Concurrent<2custom%Custom%>HashMap(<1!%_p1_ defaultValue%><1!%<2custom%, %>%><2custom%@NonNull _P0_HashStrategy_G0super_ strategy%>) {
+        this(<1!%defaultValue, %>DEFAULT_CAPACITY<2custom%, strategy%>);
     }
 
-    public _P0__P1_ConcurrentHashMap(<1!%_p1_ defaultValue, %>int initialCapacity) {<1!%
-        this.defaultValue = defaultValue;%>
+    public _P0__P1_Concurrent<2custom%Custom%>HashMap(<1!%_p1_ defaultValue, %>int initialCapacity<2custom%, @NonNull _P0_HashStrategy_G0super_ strategy%>) {<1!%
+        this.defaultValue = defaultValue;%><2custom%
+        this.strategy = strategy;%>
         this.sizeCtl = (notNegative(initialCapacity, "initialCapacity") >= (MAXIMUM_CAPACITY >>> 1)
                 ? MAXIMUM_CAPACITY
                 : tableSizeFor(initialCapacity + (initialCapacity >>> 1) + 1));
     }
 
-    public _P0__P1_ConcurrentHashMap(@NonNull _P0__P1_Map_Gextends_ m) {
-        this(<1!%m.defaultValue(), %>DEFAULT_CAPACITY);
+    public _P0__P1_Concurrent<2custom%Custom%>HashMap(@NonNull _P0__P1_Map_Gextends_ m<2custom%, @NonNull _P0_HashStrategy_G0super_ strategy%>) {
+        this(<1!%m.defaultValue(), %>DEFAULT_CAPACITY<2custom%, strategy%>);
+        this.putAll(m);
     }<1!%
 
     @Override
-    public final _P0__P1_ConcurrentHashMap_G_ defaultValue(_p1_ defaultValue)   {
+    public final _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ defaultValue(_p1_ defaultValue)   {
         throw new UnsupportedOperationException();
     }%>
 
@@ -98,9 +106,11 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
         return this.getOrDefault(key, <1!%this.defaultValue%><1%null%>);
     }
 
-    @Override
-    public _p1_ getOrDefault(_nameP0_ key, _p1_ defaultValue)   {
-        int hash = hash(key) & HASH_BITS;
+    @Override<0%<2custom%
+    @SuppressWarnings("unchecked")%>%>
+    public _p1_ getOrDefault(_nameP0_ key, _p1_ defaultValue)   {<2custom%
+        _P0_HashStrategy_G0super_ strategy = this.strategy;%>
+        int hash = <2custom%strategy.%>hash(<0%<2custom%(_p0_) %>%>key) & HASH_BITS;
         Node_G_[] table = this.table;
         if (table == null || table.length <= 0)  {
             return defaultValue;
@@ -108,13 +118,13 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
         Node_G_ node = getArrayVolatile(table, hash & (table.length - 1));
         if (node == null)   {
             return defaultValue;
-        } else if (hash == node.hash && eq(key, node.key)) {
+        } else if (hash == node.hash && <2custom%strategy.%>eq(<0%<2custom%(_p0_) %>%>key, node.key)) {
             return node.value;
         } else if (node.hash < 0)    { //special node
-            return (node = node.find(hash, key)) != null ? node.value : defaultValue;
+            return (node = node.find(hash, key<2custom%, strategy%>)) != null ? node.value : defaultValue;
         }
         while ((node = node.next) != null)  {
-            if (hash == node.hash && eq(key, node.key)) {
+            if (hash == node.hash && <2custom%strategy.%>eq(<0%<2custom%(_p0_) %>%>key, node.key)) {
                 return node.value;
             }
         }
@@ -133,7 +143,8 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
         Node_G_[] table = this.table;
         if (table != null)  {
             Traverser_G_ it = new Traverser<%<>%>(table, table.length, 0, table.length);
-            for (Node_G_ node = it.advance(); node != null; node = it.advance())    {
+            for (Node_G_ node = it.advance(); node != null; node = it.advance())    {<2custom%
+                //we don't use the user-supplied hash strategy here since we're comparing values%>
                 if (eq(value, node.value))  {
                     return true;
                 }
@@ -147,10 +158,11 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
         return this.putVal(key, value, false);
     }
 
-    protected _p1_ putVal(_p0_ key, _p1_ value, boolean onlyIfAbsent)   {
+    protected _p1_ putVal(_p0_ key, _p1_ value, boolean onlyIfAbsent)   {<2custom%
+        _P0_HashStrategy_G0super_ strategy = this.strategy;%>
         _p1_ defaultValue = <1!%this.defaultValue()%><1%null%>;
         checkArg(value != defaultValue, "value (%s) may not be default value!", value);
-        int hash = hash(key) & HASH_BITS;
+        int hash = <2custom%strategy.%>hash(key) & HASH_BITS;
         int binCount = 0;
         Node_G_[] table = this.table;
         while (true)    {
@@ -168,12 +180,13 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
                 table = this.helpTransfer(table, node);
             } else {
                 _p1_ oldValue = defaultValue;
+                //noinspection SynchronizationOnLocalVariableOrMethodParameter
                 synchronized (node) {
                     if (getArrayVolatile(table, index) == node) {
                         if (node.hash >= 0) {
                             binCount = 1;
                             for (Node_G_ child = node;; binCount++) {
-                                if (hash == child.hash && eq(key, child.key))   {
+                                if (hash == child.hash && <2custom%strategy.%>eq(key, child.key))   {
                                     oldValue = child.value;
                                     if (!onlyIfAbsent)  {
                                         child.value = value;
@@ -219,15 +232,16 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
         m.forEach(this);
     }
 
-    @Override<%
-    @SuppressWarnings("unchecked")%>
+    @Override
     public _p1_ remove(_nameP0_ key)    {
         _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;
         return this.replaceNode(key, defaultValue, defaultValue);
     }
-
-    protected _p1_ replaceNode(_nameP0_ key, _p1_ value, _nameP1_ cv)   {
-        int hash = hash(key) & HASH_BITS;
+<0%<2custom%
+    @SuppressWarnings("unchecked")%>%>
+    protected _p1_ replaceNode(_nameP0_ key, _p1_ value, _nameP1_ cv)   {<2custom%
+        _P0_HashStrategy_G0super_ strategy = this.strategy;%>
+        int hash = <2custom%strategy.%>hash(<0%<2custom%(_p0_) %>%>key) & HASH_BITS;
         _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;
         Node_G_[] table = this.table;
         while (true)    {
@@ -243,13 +257,15 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
             } else {
                 _p1_ oldValue = defaultValue;
                 boolean validated = false;
+                //noinspection SynchronizationOnLocalVariableOrMethodParameter
                 synchronized (f)    {
                     if (getArrayVolatile(table, i) == f)    {
                         if (f.hash >= 0)    {
                             validated = true;
                             for (Node_G_ node = f, prev = null;;)   {
-                                if (hash == node.hash && eq(key, node.key)) {
-                                    _p1_ nodeValue = node.value;
+                                if (hash == node.hash && <2custom%strategy.%>eq(<0%<2custom%(_p0_) %>%>key, node.key)) {
+                                    _p1_ nodeValue = node.value;<2custom%
+                                    //we don't use the user-supplied hash strategy here since we're comparing values%>
                                     if (cv == defaultValue || eq(cv, nodeValue))    {
                                         oldValue = nodeValue;
                                         if (value != defaultValue)  {
@@ -273,7 +289,8 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
                             if (t.root != null) {
                                 TreeNode_G_ p = t.root.findTreeNode(hash, key<0%, null%>);
                                 if (p != null)  {
-                                    _p1_ nodeValue = p.value;
+                                    _p1_ nodeValue = p.value;<2custom%
+                                    //we don't use the user-supplied hash strategy here since we're comparing values%>
                                     if (cv == defaultValue || eq(cv, nodeValue))    {
                                         oldValue = nodeValue;
                                         if (value != defaultValue)  {
@@ -314,6 +331,7 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
                 table = this.helpTransfer(table, node);
                 i = 0;
             } else {
+                //noinspection SynchronizationOnLocalVariableOrMethodParameter
                 synchronized (node)    {
                     if (getArrayVolatile(table, i) != node) {
                         continue;
@@ -354,10 +372,11 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
     public int hashCode()   {
         int h = 0;
         Node_G_[] table = this.table;
-        if (table != null)  {
+        if (table != null)  {<2custom%
+            _P0_HashStrategy_G0super_ strategy = this.strategy;%>
             Traverser_G_ it = new Traverser<%<>%>(table, table.length, 0, table.length);
             for (Node_G_ node = it.advance(); node != null; node = it.advance())    {
-                h += hash(node.key) ^ hash(node.value);
+                h += <2custom%strategy.%>hash(node.key) ^ hash(node.value);
             }
         }
         return h;
@@ -409,14 +428,16 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
             }
             int f = table.length;
             Traverser_G_ it = new Traverser<%<>%>(table, f, 0, f);
-            for (Node_G_ node = it.advance(); node != null; node = it.advance())    {
+            for (Node_G_ node = it.advance(); node != null; node = it.advance())    {<2custom%
+                //we don't use the user-supplied hash strategy here since we're comparing values%>
                 if (!eq(node.value, m.get(node.key)))   {
                     return false;
                 }
             }
             _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;
             for (Entry_G_ e : m.entrySet()) {
-                _p1_ v = e.getValue();
+                _p1_ v = e.getValue();<2custom%
+                //we don't use the user-supplied hash strategy here since we're comparing values%>
                 if (v == defaultValue || !eq(this.get(e.getKey()), v))  {
                     return false;
                 }
@@ -485,9 +506,10 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
     }
 
     @Override
-    public _p1_ computeIfAbsent(_p0_ key, @NonNull _P0__P1_Function_G0super1extends_ mappingFunction)  {
+    public _p1_ computeIfAbsent(_p0_ key, @NonNull _P0__P1_Function_G0super1extends_ mappingFunction)  {<2custom%
+        _P0_HashStrategy_G0super_ strategy = this.strategy;%>
         _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;
-        int hash = hash(key) & HASH_BITS;
+        int hash = <2custom%strategy.%>hash(key) & HASH_BITS;
         _p1_ value = defaultValue;
         int binCount = 0;
         Node_G_[] table = this.table;
@@ -500,6 +522,7 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
             Node_G_ f = getArrayVolatile(table, i);
             if (f == null)  { //root of bin
                 Node_G_ r = new ReservationNode<%<>%>();
+                //noinspection SynchronizationOnLocalVariableOrMethodParameter
                 synchronized (r)    { //obtain lock before putting node into table to ensure that no other thread manages to grab it first
                     if (casArray(table, i, null, r))    {
                         binCount = 1;
@@ -520,18 +543,19 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
                 table = this.helpTransfer(table, f);
             } else {
                 { //attempt to get existing entry before locking the entire bin (reduces contention when entry is already present)
-                    Node_G_ node = f.find(hash, key);
+                    Node_G_ node = f.find(hash, key<2custom%, strategy%>);
                     if (node != null)   {
                         return node.value;
                     }
                 }
                 boolean added = false;
+                //noinspection SynchronizationOnLocalVariableOrMethodParameter
                 synchronized (f)    {
                     if (getArrayVolatile(table, i) == f)    {
                         if (f.hash >= 0)    {
                             binCount = 1;
                             for (Node_G_ node = f;; binCount++) {
-                                if (hash == node.hash && eq(key, node.key)) {
+                                if (hash == node.hash && <2custom%strategy.%>eq(key, node.key)) {
                                     value = node.value;
                                     break;
                                 }
@@ -575,11 +599,13 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
     }
 
     @Override
-    public _p1_ computeIfPresent(_p0_ key, @NonNull _P0__P1__P1_Function_G0super1super1extends_ remappingFunction) {
+    public _p1_ computeIfPresent(_p0_ key, @NonNull _P0__P1__P1_Function_G0super1super1extends_ remappingFunction) {<2custom%
+        _P0_HashStrategy_G0super_ strategy = this.strategy;%>
         _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;
-        int hash = hash(key) & HASH_BITS;
+        int hash = <2custom%strategy.%>hash(key) & HASH_BITS;
         _p1_ value = defaultValue;
-        int delta = 0, binCount = 0;
+        int delta = 0;
+        int binCount = 0;
         Node_G_[] table = this.table;
         while (true)    {
             if (table == null || table.length == 0)  {
@@ -593,15 +619,16 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
             } else if (hash == f.hash)  {
                 table = this.helpTransfer(table, f);
             } else {
-                if (f.find(hash, key) == null)  { //check for existing entry before locking the entire bin (reduces contention when entry is not present)
+                if (f.find(hash, key<2custom%, strategy%>) == null)  { //check for existing entry before locking the entire bin (reduces contention when entry is not present)
                     break;
                 }
+                //noinspection SynchronizationOnLocalVariableOrMethodParameter
                 synchronized (f)    {
                     if (getArrayVolatile(table, i) == f)    {
                         if (f.hash >= 0)    {
                             binCount = 1;
                             for (Node_G_ node = f, prev = null;; binCount++)    {
-                                if (hash == node.hash && eq(key, node.key)) {
+                                if (hash == node.hash && <2custom%strategy.%>eq(key, node.key)) {
                                     if ((value = remappingFunction.apply<1!%As_P1_%>(key, node.value)) != defaultValue) {
                                         node.value = value;
                                     } else {
@@ -650,11 +677,13 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
     }
 
     @Override
-    public _p1_ compute(_p0_ key, @NonNull _P0__P1__P1_Function_G0super1super1extends_ remappingFunction) {
+    public _p1_ compute(_p0_ key, @NonNull _P0__P1__P1_Function_G0super1super1extends_ remappingFunction) {<2custom%
+        _P0_HashStrategy_G0super_ strategy = this.strategy;%>
         _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;
-        int hash = hash(key) & HASH_BITS;
+        int hash = <2custom%strategy.%>hash(key) & HASH_BITS;
         _p1_ value = defaultValue;
-        int delta = 0, binCount = 0;
+        int delta = 0;
+        int binCount = 0;
         Node_G_[] table = this.table;
         while (true)    {
             if (table == null || table.length == 0)  {
@@ -665,6 +694,7 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
             Node_G_ f = getArrayVolatile(table, i);
             if (f == null)  {
                 Node_G_ r = new ReservationNode<%<>%>();
+                //noinspection SynchronizationOnLocalVariableOrMethodParameter
                 synchronized (r)    {
                     if (casArray(table, i, null, r))    {
                         binCount = 1;
@@ -685,12 +715,13 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
             } else if (f.hash == MOVED) {
                 table = this.helpTransfer(table, f);
             } else {
+                //noinspection SynchronizationOnLocalVariableOrMethodParameter
                 synchronized (f)    {
                     if (getArrayVolatile(table, i) == f)    {
                         if (f.hash >= 0)    {
                             binCount = 1;
                             for (Node_G_ node = f, prev = null;; binCount++)    {
-                                if (hash == node.hash && eq(key, node.key)) {
+                                if (hash == node.hash && <2custom%strategy.%>eq(key, node.key)) {
                                     if ((value = remappingFunction.apply<1!%As_P1_%>(key, node.value)) != defaultValue) {
                                         node.value = value;
                                     } else {
@@ -748,12 +779,14 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
     }
 
     @Override
-    public _p1_ merge(_p0_ key, _p1_ vin, @NonNull _P1__P1__P1_Function_G1super1super1extends_ remappingFunction) {
+    public _p1_ merge(_p0_ key, _p1_ vin, @NonNull _P1__P1__P1_Function_G1super1super1extends_ remappingFunction) {<2custom%
+        _P0_HashStrategy_G0super_ strategy = this.strategy;%>
         _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;
         checkArg(vin != defaultValue, "value (%s) may not be default value!", defaultValue);
-        int hash = hash(key) & HASH_BITS;
+        int hash = <2custom%strategy.%>hash(key) & HASH_BITS;
         _p1_ value = defaultValue;
-        int delta = 0, binCount = 0;
+        int delta = 0;
+        int binCount = 0;
         Node_G_[] table = this.table;
         while (true)    {
             if (table == null || table.length == 0)  {
@@ -771,12 +804,13 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
             } else if (f.hash == MOVED) {
                 table = this.helpTransfer(table, f);
             } else {
+                //noinspection SynchronizationOnLocalVariableOrMethodParameter
                 synchronized (f)    {
                     if (getArrayVolatile(table, i) == f)    {
                         if (f.hash >= 0)    {
                             binCount = 1;
                             for (Node_G_ node = f, prev = null;; binCount++)    {
-                                if (hash == node.hash && eq(key, node.key)) {
+                                if (hash == node.hash && <2custom%strategy.%>eq(key, node.key)) {
                                     if ((value = remappingFunction.apply<1!%As_P1_%>(node.value, vin)) != defaultValue)    {
                                         node.value = value;
                                     } else {
@@ -865,7 +899,6 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
         long sum;
         if (counterCells != null || !PUnsafe.compareAndSwapLong(this, BASECOUNT, baseCount = this.baseCount, sum = baseCount + x))   {
             CounterCell cell;
-            long value;
             boolean uncontended = true;
             if (counterCells == null || counterCells.length == 0
                 || (cell = counterCells[getProbe() & (counterCells.length - 1)]) == null
@@ -884,6 +917,7 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
                 int stamp = resizeStamp(table.length);
                 if (sizeCtl < 0)    {
                     Node_G_[] nextTable;
+                    //noinspection ConstantConditions
                     if (sizeCtl >>> RESIZE_STAMP_SHIFT != stamp || sizeCtl == stamp + 1 || sizeCtl == stamp + MAX_RESIZERS
                         || (nextTable = this.nextTable) == null || this.transferIndex <= 0)  {
                         break;
@@ -903,7 +937,9 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
         if (table != null && f instanceof ForwardingNode && (nextTable = ((ForwardingNode_G_) f).nextTable) != null)    {
             int stamp = resizeStamp(table.length);
             int sizeCtl;
+            //noinspection ArrayEquality
             while (nextTable == this.nextTable && table == this.table && (sizeCtl = this.sizeCtl) < 0)  {
+                //noinspection ConstantConditions
                 if ((sizeCtl >>> RESIZE_STAMP_SHIFT) != stamp || sizeCtl == stamp + 1 || sizeCtl == stamp + MAX_RESIZERS || this.transferIndex <= 0)   {
                     break;
                 } else if (PUnsafe.compareAndSwapInt(this, SIZECTL, sizeCtl, sizeCtl + 1))  {
@@ -925,6 +961,7 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
                 int n = Math.max(sizeCtl, capacity);
                 if (PUnsafe.compareAndSwapInt(this, SIZECTL, sizeCtl, -1))  {
                     try {
+                        //noinspection ArrayEquality
                         if (this.table == table)    {<%
                             @SuppressWarnings("unchecked")%>
                             Node_G_[] nextTable = <%(Node_G_[]) %>new Node[n];
@@ -937,8 +974,10 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
                 }
             } else if (capacity <= sizeCtl || table.length >= MAXIMUM_CAPACITY)    {
                 break;
-            } else if (table == this.table) {
+            } else //noinspection ArrayEquality
+                if (table == this.table) {
                 int stamp = resizeStamp(table.length);
+                //noinspection ConstantConditions
                 if (sizeCtl < 0)    {
                     Node_G_[] nextTable;
                     if ((sizeCtl >>> RESIZE_STAMP_SHIFT) != stamp || sizeCtl == stamp + 1 || sizeCtl == stamp + MAX_RESIZERS
@@ -970,11 +1009,14 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
         }
         int nextn = nextTable.length;
         ForwardingNode_G_ fwd = new ForwardingNode<%<>%>(nextTable);
-        boolean advance = true, finishing = false;
-        int i = 0, bound = 0;
+        boolean advance = true;
+        boolean finishing = false;
+        int i = 0;
+        int bound = 0;
         while (true)    {
             while (advance) {
-                int nextIndex, nextBound;
+                int nextIndex;
+                int nextBound;
                 if (--i >= bound || finishing)  {
                     advance = false;
                 } else if ((nextIndex = this.transferIndex) <= 0)   {
@@ -1007,6 +1049,7 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
             } else if (f.hash == MOVED)  {
                 advance = true; //already processed
             } else {
+                //noinspection SynchronizationOnLocalVariableOrMethodParameter
                 synchronized (f)    {
                     if (getArrayVolatile(table, i) != f)    {
                         continue;
@@ -1021,7 +1064,8 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
                                 lastRun = node;
                             }
                         }
-                        Node_G_ loNode, hiNode;
+                        Node_G_ loNode;
+                        Node_G_ hiNode;
                         if (runBit == 0)    {
                             loNode = lastRun;
                             hiNode = null;
@@ -1133,12 +1177,14 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
                     wasUncontended = true;
                 } else if (PUnsafe.compareAndSwapLong(cell, CELLVALUE, v = cell.value, v + x))  {
                     break;
-                } else if (this.counterCells != counterCells || counterCells.length >= NCPU)    {
+                } else //noinspection ArrayEquality
+                    if (this.counterCells != counterCells || counterCells.length >= NCPU)    {
                     collision = false;
                 } else if (!collision)  {
                     collision = true;
                 } else if (this.cellsBusy == 0 && PUnsafe.compareAndSwapInt(this, CELLSBUSY, 0, 1)) {
                     try {
+                        //noinspection ArrayEquality
                         if (this.counterCells == counterCells)  {
                             CounterCell[] newCounterCells = new CounterCell[counterCells.length << 1];
                             System.arraycopy(counterCells, 0, newCounterCells, 0, counterCells.length);
@@ -1151,8 +1197,10 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
                     continue;
                 }
                 probe = advanceProbe(probe);
-            } else if (this.cellsBusy == 0 && this.counterCells == counterCells && PUnsafe.compareAndSwapInt(this, CELLSBUSY, 0, 1))    {
+            } else //noinspection ArrayEquality
+                if (this.cellsBusy == 0 && this.counterCells == counterCells && PUnsafe.compareAndSwapInt(this, CELLSBUSY, 0, 1))    {
                 try {
+                    //noinspection ArrayEquality
                     if (this.counterCells == counterCells)  {
                         counterCells = new CounterCell[2];
                         counterCells[probe & 1] = new CounterCell(x);
@@ -1178,7 +1226,8 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
         protected volatile Node_G_ next;
 
         @Override
-        public final int hashCode() {
+        public final int hashCode() {<2custom%
+            //this doesn't use the user-supplied hash strategy for hashing keys!%>
             return hash(this.key) ^ hash(this.value);
         }
 
@@ -1196,17 +1245,19 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
         public final boolean equals(Object o) {
             if (o instanceof Entry)  {<%
                 @SuppressWarnings("unchecked")%>
-                Entry_G_ e = (Entry_G_) o;
+                Entry_G_ e = (Entry_G_) o;<2custom%
+                //this doesn't use the user-supplied hash strategy for comparing keys!%>
                 return eq(this.key, e.getKey()) && eq(this.value, e.getValue());
             } else {
                 return false;
             }
         }
-
-        protected Node_G_ find(int hash, _nameP0_ key) {
+<0%<2custom%
+        @SuppressWarnings("unchecked")%>%>
+        protected Node_G_ find(int hash, _nameP0_ key<2custom%, _P0_HashStrategy_G0super_ strategy%>) {
             Node_G_ e = this;
             do {
-                if (hash == e.hash && eq(key, e.key))   {
+                if (hash == e.hash && <2custom%strategy.%>eq(<0%<2custom%(_p0_) %>%>key, e.key))   {
                     return e;
                 }
             } while ((e = e.next) != null);
@@ -1222,8 +1273,9 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
             this.nextTable = nextTable;
         }
 
-        @Override
-        protected Node_G_ find(int hash, _nameP0_ key)  {
+        @Override<0%<2custom%
+        @SuppressWarnings("unchecked")%>%>
+        protected Node_G_ find(int hash, _nameP0_ key<2custom%, _P0_HashStrategy_G0super_ strategy%>)  {
             Node_G_[] table = this.nextTable;
             OUT:
             while (true)    {
@@ -1235,14 +1287,14 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
                     return null;
                 }
                 while (true)    {
-                    if (hash == node.hash && eq(key, node.key)) {
+                    if (hash == node.hash && <2custom%strategy.%>eq(<0%<2custom%(_p0_) %>%>key, node.key)) {
                         return node;
                     } else if (node.hash < 0)   { //special node
                         if (node instanceof ForwardingNode) {
                             table = ((ForwardingNode_G_) node).nextTable;
                             continue OUT;
                         } else {
-                            return node.find(hash, key);
+                            return node.find(hash, key<2custom%, strategy%>);
                         }
                     } else if ((node = node.next) == null)  {
                         return null;
@@ -1258,7 +1310,7 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
         }
 
         @Override
-        protected Node_G_ find(int hash, _nameP0_ key) {
+        protected Node_G_ find(int hash, _nameP0_ key<2custom%, _P0_HashStrategy_G0super_ strategy%>) {
             return null;
         }
     }
@@ -1353,10 +1405,10 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
     }
 
     protected static class BaseIterator_G_ extends Traverser_G_ {
-        protected final _P0__P1_ConcurrentHashMap_G_ map;
+        protected final _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ map;
         protected Node_G_ lastReturned;
 
-        protected BaseIterator(Node_G_[] table, int size, int index, int limit, _P0__P1_ConcurrentHashMap_G_ map)    {
+        protected BaseIterator(Node_G_[] table, int size, int index, int limit, _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ map)    {
             super(table, size, index, limit);
             this.map = map;
             this.advance();
@@ -1376,7 +1428,7 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
     }
 
     protected static class KeyIterator_G_ extends BaseIterator_G_ implements _P0_Iterator_GP0_  {
-        protected KeyIterator(Node_G_[] table, int size, int index, int limit, _P0__P1_ConcurrentHashMap_G_ map)    {
+        protected KeyIterator(Node_G_[] table, int size, int index, int limit, _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ map)    {
             super(table, size, index, limit, map);
         }
 
@@ -1394,7 +1446,7 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
     }
 
     protected static class ValueIterator_G_ extends BaseIterator_G_ implements _P1_Iterator_GP1_  {
-        protected ValueIterator(Node_G_[] table, int size, int index, int limit, _P0__P1_ConcurrentHashMap_G_ map)    {
+        protected ValueIterator(Node_G_[] table, int size, int index, int limit, _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ map)    {
             super(table, size, index, limit, map);
         }
 
@@ -1412,7 +1464,7 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
     }
 
     protected static class EntryIterator_G_ extends BaseIterator_G_ implements Iterator<Entry_G_>  {
-        protected EntryIterator(Node_G_[] table, int size, int index, int limit, _P0__P1_ConcurrentHashMap_G_ map)    {
+        protected EntryIterator(Node_G_[] table, int size, int index, int limit, _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ map)    {
             super(table, size, index, limit, map);
         }
 
@@ -1436,11 +1488,11 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
         protected final _p0_ key;
         @Getter
         protected _p1_ value;
-        protected final _P0__P1_ConcurrentHashMap_G_ map;
+        protected final _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ map;
 
         @Override
         public int hashCode()   {
-            return hash(this.key) ^ hash(this.value);
+            return <2custom%this.map.strategy.%>hash(this.key) ^ hash(this.value);
         }
 
         @Override
@@ -1455,7 +1507,7 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
             } else if (o instanceof Entry)  {<%
                 @SuppressWarnings("unchecked")%>
                 Entry_G_ entry = (Entry_G_) o;
-                return eq(this.key, entry.getKey()) && eq(this.value, entry.getValue());
+                return <2custom%this.map.strategy.%>eq(this.key, entry.getKey()) && eq(this.value, entry.getValue());
             } else {
                 return false;
             }
@@ -1473,7 +1525,7 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
 
     @AllArgsConstructor
     protected static class KeySetView_G_ extends Abstract_P0_Set_GP0_ {
-        protected final _P0__P1_ConcurrentHashMap_G_ map;
+        protected final _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ map;
 
         @Override
         public void clear() {
@@ -1521,7 +1573,7 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
 
     @AllArgsConstructor
     protected static class ValuesView_G_ extends Abstract_P1_Collection_GP1_ {
-        protected final _P0__P1_ConcurrentHashMap_G_ map;
+        protected final _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ map;
 
         @Override
         public void clear() {
@@ -1564,7 +1616,7 @@ public class _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ implements _P0__P1_Co
 
     @AllArgsConstructor
     protected static class EntrySetView_G_ extends AbstractSet<Entry_G_> {
-        protected final _P0__P1_ConcurrentHashMap_G_ map;
+        protected final _P0__P1_Concurrent<2custom%Custom%>HashMap_G_ map;
 
         @Override
         public void clear() {

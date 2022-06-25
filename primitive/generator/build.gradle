@@ -22,6 +22,8 @@ dependencies {
     api project(":binary")
 
     api "com.google.code.gson:gson:$gsonVersion"
+
+    implementation "com.github.florianingerl.util:regex:$florianingerlRegexVersion"
 }
 
 task gen(type: JavaExec, dependsOn: "classes") {

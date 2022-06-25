@@ -89,20 +89,35 @@ public class Generator implements Runnable {
 
     public static final Gson GSON = new GsonBuilder().setLenient().setPrettyPrinting().create();
 
-    private static final Cached<StringBuffer> STRINGBUFFER_CACHE = Cached.threadLocal(StringBuffer::new, ReferenceStrength.WEAK);
-    private static final Cached<StringBuffer> STRINGBUFFER_CACHE_2 = Cached.threadLocal(StringBuffer::new, ReferenceStrength.WEAK);
-    private static final Cached<Matcher> NAME_MATCHER_CACHE = Cached.regex(Pattern.compile("_P(\\d+)_"));
+    private static final Cached<Deque<StringBuffer>> STRINGBUFFER_CACHE = Cached.threadLocal(ArrayDeque::new, ReferenceStrength.WEAK);
     private static final Cached<Matcher> TOKEN_MATCHER_CACHE = Cached.regex(Pattern.compile("_([a-zA-Z0-9]*?)(?:([pP])(\\d+))?_"));
 
-    private static final Pattern GENERIC_FILTER_PATTERN = Pattern.compile("<(\\d+)?(!)?%((?:.*?(?:<\\d+?!?%.*?%>)?)*)%>", Pattern.DOTALL);
-    private static final Cached<Matcher> GENERIC_FILTER_CACHE = Cached.regex(GENERIC_FILTER_PATTERN, true);
-    private static final Cached<Matcher> GENERIC_FILTER_CACHE_2 = Cached.regex(GENERIC_FILTER_PATTERN, true);
+    //recursive regular expressions! woot woot
+    private static final com.florianingerl.util.regex.Pattern FILTER_PATTERN = com.florianingerl.util.regex.Pattern.compile(
+            "(<(?:(?<generic>(?<generic_number>\\d+)?(?<generic_invert>!)?)|(?<type>(?<type_filter>(?:\\d+[a-zA-Z]+)+)(?<type_invert>!)?))%(?<content>.*?(?:(?1).*?)*)%>)",
+            com.florianingerl.util.regex.Pattern.DOTALL);
+    private static final Cached<Deque<com.florianingerl.util.regex.Matcher>> FILTER_MATCHER_CACHE = Cached.threadLocal(ArrayDeque::new, ReferenceStrength.WEAK);
 
-    private static final Pattern TYPE_FILTER_PATTERN = Pattern.compile("<((?:\\d+[a-zA-Z]+)+)(!)?%((?:.*?(?:<(?:\\d+[a-zA-Z]+)+!?%.*?%>)?)*)%>", Pattern.DOTALL);
-    private static final Cached<Matcher> TYPE_FILTER_CACHE = Cached.regex(TYPE_FILTER_PATTERN, true);
-    private static final Cached<Matcher> TYPE_FILTER_CACHE_2 = Cached.regex(TYPE_FILTER_PATTERN, true);
     private static final Pattern TYPE_FILTER_EXTRACT_PATTERN = Pattern.compile("(\\d+)([a-zA-Z]+)");
     private static final Cached<Matcher> TYPE_FILTER_EXTRACT_CACHE = Cached.regex(TYPE_FILTER_EXTRACT_PATTERN, true);
+
+    private static StringBuffer allocateStringBuffer() {
+        Deque<StringBuffer> stack = STRINGBUFFER_CACHE.get();
+        return stack.isEmpty() ? new StringBuffer() : stack.pop();
+    }
+
+    private static void releaseStringBuffer(@NonNull StringBuffer buffer) {
+        STRINGBUFFER_CACHE.get().push(buffer);
+    }
+
+    private static com.florianingerl.util.regex.Matcher allocateFilterMatcher() {
+        Deque<com.florianingerl.util.regex.Matcher> stack = FILTER_MATCHER_CACHE.get();
+        return stack.isEmpty() ? FILTER_PATTERN.matcher("") : stack.pop();
+    }
+
+    private static void releaseFilterMatcher(@NonNull com.florianingerl.util.regex.Matcher matcher) {
+        FILTER_MATCHER_CACHE.get().push(matcher);
+    }
 
     public static String replace(@NonNull Matcher matcher, @NonNull CharSequence original, @NonNull Function<? super Matcher, String> replacer) {
         StringBuffer buffer = new StringBuffer();
@@ -141,8 +156,7 @@ public class Generator implements Runnable {
 
     public final LongAdder timeName = new LongAdder();
     public final LongAdder timeNameOverride = new LongAdder();
-    public final LongAdder timeFilterGeneric = new LongAdder();
-    public final LongAdder timeFilterType = new LongAdder();
+    public final LongAdder timeFilter = new LongAdder();
     public final LongAdder timeReplaceToken = new LongAdder();
     public final LongAdder timeContentOverride = new LongAdder();
     public final LongAdder timeWrite = new LongAdder();
@@ -184,8 +198,7 @@ public class Generator implements Runnable {
         System.out.println(Stream.of(
                 new Tuple<>(this.timeName.sum(), "  Name"),
                 new Tuple<>(this.timeNameOverride.sum(), "  Name overrides"),
-                new Tuple<>(this.timeFilterGeneric.sum(), "  Filter generics"),
-                new Tuple<>(this.timeFilterType.sum(), "  Filter types"),
+                new Tuple<>(this.timeFilter.sum(), "  Filter"),
                 new Tuple<>(this.timeReplaceToken.sum(), "  Replace tokens"),
                 new Tuple<>(this.timeContentOverride.sum(), "  Content overrides"),
                 new Tuple<>(this.timeWrite.sum(), "  UTF-8 encode & write"))
@@ -256,6 +269,7 @@ public class Generator implements Runnable {
     @SneakyThrows(IOException.class)
     private void generateFile(@NonNull GeneratorConfig originalConfig, @NonNull FileTime latestExpectedTime, @NonNull Path templateFile, @NonNull BasicFileAttributes templateFileAttrs, @NonNull Path outDirectory) {
         String name = templateFile.getFileName().toString().substring(0, templateFile.getFileName().toString().length() - ".template".length());
+
         Path configFile = PFiles.assertFileExists(templateFile.resolveSibling(name + ".json"));
 
         String packageName = "package " + this.getPackageName(templateFile) + ';';
@@ -303,13 +317,15 @@ public class Generator implements Runnable {
 
         { //name override
             long time = System.nanoTime();
+            StringBuffer buffer = allocateStringBuffer();
             try {
-                if ((name = context.getConfig().getOverrideReplacer().processName(name, -1, STRINGBUFFER_CACHE.get())) == null) {
+                if ((name = context.getConfig().getOverrideReplacer().processName(name, -1, buffer)) == null) {
                     //the template file's name is supposed to be replaced!
                     return;
                 }
                 name += ".java";
             } finally {
+                releaseStringBuffer(buffer);
                 this.timeNameOverride.add(System.nanoTime() - time);
             }
         }
@@ -325,12 +341,15 @@ public class Generator implements Runnable {
 
         { //overrides
             long time = System.nanoTime();
-
-            if ((contentOut = context.getConfig().getOverrideReplacer().processCode(contentOut, -1, STRINGBUFFER_CACHE.get())) == null) {
-                throw new IllegalStateException();
+            StringBuffer buffer = allocateStringBuffer();
+            try {
+                if ((contentOut = context.getConfig().getOverrideReplacer().processCode(contentOut, -1, buffer)) == null) {
+                    throw new IllegalStateException();
+                }
+            } finally {
+                releaseStringBuffer(buffer);
+                this.timeContentOverride.add(System.nanoTime() - time);
             }
-
-            this.timeContentOverride.add(System.nanoTime() - time);
         }
 
         { //write
@@ -350,103 +369,63 @@ public class Generator implements Runnable {
     }
 
     private String processString(@NonNull String text, @NonNull Context context, @NonNull String packageName) {
-        text = this.processGenericFilters(text, context);
-        text = this.processTypeFilters(text, context);
+        text = this.processFilters(text, context, true);
         text = this.processTokens(text, context, packageName);
         return text;
     }
 
-    private String processGenericFilters(@NonNull String text, @NonNull Context context) {
+    private String processFilters(@NonNull String text, @NonNull Context context, boolean first) {
         long time = System.nanoTime();
 
-        Matcher matcher = GENERIC_FILTER_CACHE.get().reset(text);
-        boolean anyGeneric = context.getParams().stream().map(ParameterContext::value)
-                .filter(Primitive.class::isInstance).map(Primitive.class::cast)
-                .anyMatch(Primitive::isGeneric);
+        com.florianingerl.util.regex.Matcher matcher = allocateFilterMatcher().reset(text);
         if (matcher.find()) {
-            StringBuffer buffer = STRINGBUFFER_CACHE.get();
+            StringBuffer buffer = allocateStringBuffer();
             buffer.setLength(0);
+
             do {
-                String numberTxt = matcher.group(1);
-                boolean generic = numberTxt == null ? anyGeneric : ((Primitive) context.getParams().get(Integer.parseUnsignedInt(numberTxt)).value()).generic;
-                boolean inverted = matcher.group(2) != null;
-                if (generic ^ inverted) {
-                    String content2 = matcher.group(3);
-                    Matcher matcher2 = GENERIC_FILTER_CACHE_2.get().reset(content2);
-                    if (matcher2.find()) {
-                        StringBuffer buffer2 = STRINGBUFFER_CACHE_2.get();
-                        buffer2.setLength(0);
-                        do {
-                            String numberTxt2 = matcher2.group(1);
-                            boolean generic2 = numberTxt2 == null ? anyGeneric : ((Primitive) context.getParams().get(Integer.parseUnsignedInt(numberTxt2)).value()).generic;
-                            boolean inverted2 = matcher2.group(2) != null;
-                            matcher2.appendReplacement(buffer2, generic2 ^ inverted2 ? matcher2.group(3) : "");
-                        } while (matcher2.find());
-                        matcher2.appendTail(buffer2);
-                        content2 = buffer2.toString();
+                if (matcher.group("generic") != null) { //filter by generic types
+                    String numberTxt = matcher.group("generic_number");
+                    boolean generic = numberTxt == null
+                            ? context.getParams().stream().map(ParameterContext::value).filter(Primitive.class::isInstance).map(Primitive.class::cast).anyMatch(Primitive::isGeneric)
+                            : ((Primitive) context.getParams().get(Integer.parseUnsignedInt(numberTxt)).value()).generic;
+                    boolean inverted = matcher.group("generic_invert") != null;
+
+                    if (generic ^ inverted) { //keep the enclosed contents
+                        matcher.appendReplacement(buffer, this.processFilters(matcher.group("content"), context, false));
+                    } else { //discard the enclosed contents
+                        matcher.appendReplacement(buffer, "");
                     }
-                    matcher.appendReplacement(buffer, content2);
+                } else if (matcher.group("type") != null) { //filter by type values
+                    boolean inverted = matcher.group("type_invert") != null;
+                    boolean valid = false;
+
+                    Matcher extractMatcher = TYPE_FILTER_EXTRACT_CACHE.get().reset(matcher.group("type_filter"));
+                    while (extractMatcher.find()) {
+                        int index = Integer.parseUnsignedInt(extractMatcher.group(1));
+                        ParameterContext<?> parameterContext = context.getParams().get(index);
+                        ParameterValue<?> value = parameterContext.parameter().type().getValuesByName().get(extractMatcher.group(2));
+                        valid |= parameterContext.value().equals(value);
+                    }
+
+                    if (valid ^ inverted) { //keep the enclosed contents
+                        matcher.appendReplacement(buffer, this.processFilters(matcher.group("content"), context, false));
+                    } else { //discard the enclosed contents
+                        matcher.appendReplacement(buffer, "");
+                    }
                 } else {
-                    matcher.appendReplacement(buffer, "");
+                    throw new IllegalStateException("invalid match: " + matcher.group());
                 }
             } while (matcher.find());
-            matcher.appendTail(buffer);
 
-            text = buffer.toString();
-        }
-
-        this.timeFilterGeneric.add(System.nanoTime() - time);
-        return text;
-    }
-
-    private String processTypeFilters(@NonNull String text, @NonNull Context context) {
-        long time = System.nanoTime();
-
-        Matcher matcher = TYPE_FILTER_CACHE.get().reset(text);
-        if (matcher.find()) {
-            StringBuffer buffer = STRINGBUFFER_CACHE.get();
-            buffer.setLength(0);
-            do {
-                boolean invert = matcher.group(2) != null;
-                boolean valid = false;
-                Matcher extractMatcher = TYPE_FILTER_EXTRACT_CACHE.get().reset(matcher.group(1));
-                while (extractMatcher.find()) {
-                    int index = Integer.parseUnsignedInt(extractMatcher.group(1));
-                    ParameterContext<?> parameterContext = context.getParams().get(index);
-                    ParameterValue<?> value = parameterContext.parameter().type().getValuesByName().get(extractMatcher.group(2));
-                    valid |= parameterContext.value().equals(value);
-                }
-                if (valid ^ invert) {
-                    String content2 = matcher.group(3);
-                    Matcher matcher2 = TYPE_FILTER_CACHE_2.get().reset(content2);
-                    if (matcher2.find()) {
-                        StringBuffer buffer2 = STRINGBUFFER_CACHE_2.get();
-                        buffer2.setLength(0);
-                        do {
-                            boolean inverted2 = matcher2.group(2) != null;
-                            boolean valid2 = false;
-                            extractMatcher.reset(matcher2.group(1));
-                            while (extractMatcher.find()) {
-                                int index = Integer.parseUnsignedInt(extractMatcher.group(1));
-                                ParameterContext<?> parameterContext = context.getParams().get(index);
-                                ParameterValue<?> value = parameterContext.parameter().type().getValuesByName().get(extractMatcher.group(2));
-                                valid2 |= parameterContext.value().equals(value);
-                            }
-                            matcher2.appendReplacement(buffer2, valid2 ^ inverted2 ? matcher2.group(3) : "");
-                        } while (matcher2.find());
-                        matcher2.appendTail(buffer2);
-                        content2 = buffer2.toString();
-                    }
-                    matcher.appendReplacement(buffer, content2);
-                } else {
-                    matcher.appendReplacement(buffer, "");
-                }
-            } while (matcher.find());
             matcher.appendTail(buffer);
             text = buffer.toString();
+            releaseStringBuffer(buffer);
         }
+        releaseFilterMatcher(matcher);
 
-        this.timeFilterType.add(System.nanoTime() - time);
+        if (first) {
+            this.timeFilter.add(System.nanoTime() - time);
+        }
         return text;
     }
 
@@ -455,7 +434,7 @@ public class Generator implements Runnable {
 
         Matcher matcher = TOKEN_MATCHER_CACHE.get().reset(text);
         if (matcher.find()) {
-            StringBuffer buffer = STRINGBUFFER_CACHE.get();
+            StringBuffer buffer = allocateStringBuffer();
             buffer.setLength(0);
             MAIN:
             do {
@@ -482,6 +461,7 @@ public class Generator implements Runnable {
             } while (matcher.find());
             matcher.appendTail(buffer);
             text = buffer.toString();
+            releaseStringBuffer(buffer);
         }
 
         this.timeReplaceToken.add(System.nanoTime() - time);

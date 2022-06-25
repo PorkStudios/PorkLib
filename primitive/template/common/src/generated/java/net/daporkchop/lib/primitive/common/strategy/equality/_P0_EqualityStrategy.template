@@ -27,7 +27,7 @@ public interface _P0_EqualityStrategy_G_ {
      * @param b a value
      * @return {@code true} if the two given values are equal
      */
-    boolean equals(_p0_ a, _p0_ b);
+    boolean eq(_p0_ a, _p0_ b);
 
     /**
      * Default implementation of {@link _P0_EqualityStrategy}.
@@ -40,7 +40,7 @@ public interface _P0_EqualityStrategy_G_ {
         public static final Default<%<?>%> INSTANCE = new Default<%<>%>();
 
         @Override
-        public boolean equals(_p0_ a, _p0_ b) {
+        public boolean eq(_p0_ a, _p0_ b) {
             return PrimitiveHelper.eq(a, b);
         }
     }

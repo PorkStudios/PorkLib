@@ -27,6 +27,10 @@ dependencies {
 }
 
 task gen(type: JavaExec, dependsOn: "classes") {
-    main = "net.daporkchop.lib.primitive.generator.Generator"
+    main "net.daporkchop.lib.primitive.generator.Generator"
+    args(
+            project.rootProject.projectDir.toPath().resolve("LICENSE").toString(),
+            project.rootProject.projectDir.toPath().resolve("primitive").resolve("template").toString(),
+            project.rootProject.projectDir.toPath().resolve("primitive").toString())
     classpath = sourceSets.main.runtimeClasspath
 }

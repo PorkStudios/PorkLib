@@ -305,14 +305,19 @@ public class Generator implements Runnable {
         String name;
         { //name
             long time = System.nanoTime(); //begin profiling timeName
+            try {
+                if (context.getConfig().getNameOverride().isPresent()) {
+                    templateFileName = context.getConfig().getNameOverride().get();
+                }
 
-            if (context.getConfig().getNameOverride().isPresent()) {
-                templateFileName = context.getConfig().getNameOverride().get();
+                name = this.processString(templateFileName, context, packageName);
+
+                if (name.isEmpty()) {
+                    return;
+                }
+            } finally {
+                this.timeName.add(System.nanoTime() - time);
             }
-
-            name = this.processString(templateFileName, context, packageName);
-
-            this.timeName.add(System.nanoTime() - time);
         }
 
         { //name override

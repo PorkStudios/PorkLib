@@ -14,9 +14,13 @@ public class _P0__P1_MapTest {
     protected final _P0__P1_Map[] map = {
         new net.daporkchop.lib.primitive.map.open._P0__P1_OpenHashMap()<0int0long0Object%<1Object%,
         new net.daporkchop.lib.primitive.map.concurrent._P0__P1_ConcurrentHashMap(),
-        new net.daporkchop.lib.primitive.map.concurrent._P0__P1_ConcurrentCustomHashMap(_P0_HashStrategy.def())%>%><0int0long0Object%<1int1long%,
+        new net.daporkchop.lib.primitive.map.concurrent._P0__P1_ConcurrentCustomHashMap(_P0_HashStrategy.def()),<0Object%
+        new net.daporkchop.lib.primitive.map.concurrent._P0__P1_ConcurrentUncachedHashMap(),%>
+        new net.daporkchop.lib.primitive.map.concurrent._P0__P1_ConcurrentCustomUncachedHashMap(_P0_HashStrategy.def())%>%><0int0long0Object%<1int1long%,
         new net.daporkchop.lib.primitive.map.concurrent._P0__P1_ConcurrentHashMap(_EP1_),
-        new net.daporkchop.lib.primitive.map.concurrent._P0__P1_ConcurrentCustomHashMap(_EP1_, _P0_HashStrategy.def())%>%>
+        new net.daporkchop.lib.primitive.map.concurrent._P0__P1_ConcurrentCustomHashMap(_EP1_, _P0_HashStrategy.def()),<0Object%
+        new net.daporkchop.lib.primitive.map.concurrent._P0__P1_ConcurrentUncachedHashMap(_EP1_),%>
+        new net.daporkchop.lib.primitive.map.concurrent._P0__P1_ConcurrentCustomUncachedHashMap(_EP1_, _P0_HashStrategy.def())%>%>
     };
 
     @Test

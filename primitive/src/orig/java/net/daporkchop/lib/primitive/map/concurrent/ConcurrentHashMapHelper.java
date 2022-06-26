@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2021 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -47,7 +47,7 @@ public class ConcurrentHashMapHelper {
     public static final int MAX_RESIZERS = (1 << (32 - RESIZE_STAMP_BITS)) - 1;
     public static final int RESIZE_STAMP_SHIFT = 32 - RESIZE_STAMP_BITS;
 
-    public static final int MOVED = -1;
+    public static final int FORWARDING = -1;
     public static final int TREEBIN = -2;
     public static final int RESERVED = -3;
     public static final int HASH_BITS = 0x7FFFFFFF;

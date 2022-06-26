@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -18,30 +18,9 @@
  *
  */
 
-package net.daporkchop.lib.primitive.map.hash;
+apply from: "${project.rootDir}/primitive/primitive_module.gradle"
 
-import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.common.math.BinMath;
-import net.daporkchop.lib.common.math.PMath;
-
-import static net.daporkchop.lib.common.util.PValidation.*;
-
-/**
- * Various constants used by hash map implementations.
- *
- * @author DaPorkchop_
- */
-@UtilityClass
-public class HashMapHelper {
-    public static final int DEFAULT_INITIAL_CAPACITY = 1 << 4;
-    public static final int MAXIMUM_CAPACITY = 1 << 30;
-    public static final float DEFAULT_LOAD_FACTOR = 0.75f;
-
-    public static int tableSizeFor(int capacity) {
-        return PMath.clamp(BinMath.roundToNearestPowerOf2(notNegative(capacity, "capacity")), 1, MAXIMUM_CAPACITY);
-    }
-
-    public static int thresholdFor(int currentCapacity, float loadFactor) {
-        return PMath.floorI(currentCapacity * loadFactor);
-    }
+dependencies {
+    primitiveModuleApi project(":primitive:primitive-collections")
+    primitiveModuleApi project(":primitive:primitive-common")
 }

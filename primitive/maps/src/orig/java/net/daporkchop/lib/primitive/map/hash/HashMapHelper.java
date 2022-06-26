@@ -18,17 +18,30 @@
  *
  */
 
-apply from: "${project.rootDir}/primitive/primitive_module.gradle"
+package net.daporkchop.lib.primitive.map.hash;
 
-dependencies {
-    primitiveModuleApi project(":primitive:primitive-collections")
-    primitiveModuleApi project(":primitive:primitive-common")
-    primitiveModuleApi project(":primitive:primitive-iterators")
-    primitiveModuleApi project(":primitive:primitive-lambda")
-    primitiveModuleApi project(":primitive:primitive-lists")
-    primitiveModuleApi project(":primitive:primitive-maps")
-    primitiveModuleApi project(":primitive:primitive-sets")
-    primitiveModuleApi project(":primitive:primitive-streams")
+import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.common.math.BinMath;
+import net.daporkchop.lib.common.math.PMath;
 
-    primitiveModuleApi project(":unsafe")
+import static net.daporkchop.lib.common.util.PValidation.*;
+
+/**
+ * Various constants used by hash map implementations.
+ *
+ * @author DaPorkchop_
+ */
+@UtilityClass
+public class HashMapHelper {
+    public static final int DEFAULT_INITIAL_CAPACITY = 1 << 4;
+    public static final int MAXIMUM_CAPACITY = 1 << 30;
+    public static final float DEFAULT_LOAD_FACTOR = 0.75f;
+
+    public static int tableSizeFor(int capacity) {
+        return PMath.clamp(BinMath.roundToNearestPowerOf2(notNegative(capacity, "capacity")), 1, MAXIMUM_CAPACITY);
+    }
+
+    public static int thresholdFor(int currentCapacity, float loadFactor) {
+        return PMath.floorI(currentCapacity * loadFactor);
+    }
 }

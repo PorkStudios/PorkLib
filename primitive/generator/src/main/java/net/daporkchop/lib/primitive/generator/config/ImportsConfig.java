@@ -74,12 +74,12 @@ public final class ImportsConfig implements Configurable<ImportsConfig, JsonArra
 
     @SneakyThrows(IOException.class)
     public void appendImports(@NonNull Appendable dst) {
-        this.regularImports.forEach((IOConsumer<String>) entry -> dst.append("import ").append(entry).append(";\n"));
+        this.regularImports.forEach((IOConsumer<String>) entry -> dst.append("\nimport ").append(entry).append(';'));
 
         if (!this.regularImports.isEmpty() && !this.staticImports.isEmpty()) {
             dst.append('\n');
         }
 
-        this.staticImports.forEach((IOConsumer<String>) entry -> dst.append("import static ").append(entry).append(";\n"));
+        this.staticImports.forEach((IOConsumer<String>) entry -> dst.append("\nimport static ").append(entry).append(';'));
     }
 }

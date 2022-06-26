@@ -23,6 +23,7 @@ package net.daporkchop.lib.primitive.generator.replacer;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.primitive.generator.Context;
+import net.daporkchop.lib.primitive.generator.Generator;
 import net.daporkchop.lib.primitive.generator.TokenReplacer;
 
 import static net.daporkchop.lib.primitive.generator.param.primitive.Primitive.*;
@@ -33,7 +34,7 @@ import static net.daporkchop.lib.primitive.generator.param.primitive.Primitive.*
 @RequiredArgsConstructor
 public class FileHeaderReplacer implements TokenReplacer {
     @Override
-    public String replace(@NonNull Context context, @NonNull String text, String pkg) {
+    public String replace(@NonNull Context context, @NonNull String text) {
         switch (text) {
             case HEADERS_DEF: {
                 StringBuilder builder = new StringBuilder();
@@ -42,12 +43,12 @@ public class FileHeaderReplacer implements TokenReplacer {
                 if (builder.length() != 0) {
                     builder.append('\n');
                 }
-                builder.append(pkg).append("\n\n");
+                builder.append("package ").append(Generator.getPackageName(context.getTemplate().getTemplateFilePath())).append(";\n");
 
                 int preImportsLength = builder.length();
                 context.getConfig().getImports().appendImports(builder);
                 if (builder.length() == preImportsLength) { //no imports were added, remove the trailing newlines we added before
-                    builder.setLength(preImportsLength - 2);
+                    builder.setLength(preImportsLength - 1);
                 }
                 return builder.toString();
             }
@@ -57,7 +58,7 @@ public class FileHeaderReplacer implements TokenReplacer {
                 return builder.toString();
             }
             case PACKAGE_DEF:
-                return pkg;
+                return "package " + Generator.getPackageName(context.getTemplate().getTemplateFilePath()) + ';';
             case IMPORTS_DEF: {
                 StringBuilder builder = new StringBuilder();
                 context.getConfig().getImports().appendImports(builder);

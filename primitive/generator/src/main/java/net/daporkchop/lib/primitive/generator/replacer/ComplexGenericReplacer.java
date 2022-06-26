@@ -22,6 +22,7 @@ package net.daporkchop.lib.primitive.generator.replacer;
 
 import lombok.NonNull;
 import net.daporkchop.lib.common.reference.cache.Cached;
+import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.primitive.generator.Context;
 import net.daporkchop.lib.primitive.generator.TokenReplacer;
 import net.daporkchop.lib.primitive.generator.param.ParameterContext;
@@ -38,11 +39,11 @@ import java.util.stream.Collectors;
  * @author DaPorkchop_
  */
 public class ComplexGenericReplacer implements TokenReplacer {
-    public static final Cached<Matcher> COMPLEX_GENERIC_MATCHER = Cached.regex(Pattern.compile("^_G(?:\\d+(?:extends|super)?)+_$"));
-    public static final Cached<Matcher> COMPLEX_GENERIC_PARAMS = Cached.regex(Pattern.compile("(\\d+)(extends|super)?"));
+    public static final Cached<Matcher> COMPLEX_GENERIC_MATCHER = Cached.regex(Pattern.compile("^_G(?:\\d+(?:[A-Z]+)?(?:extends|super)?,?)+_$"));
+    public static final Cached<Matcher> COMPLEX_GENERIC_PARAMS = Cached.regex(Pattern.compile("(\\d+)([A-Z]+)?(extends|super)?,?"));
 
     @Override
-    public String replace(@NonNull Context context, @NonNull String text, String pkg) {
+    public String replace(@NonNull Context context, @NonNull String text) {
         Matcher matcher = COMPLEX_GENERIC_MATCHER.get().reset(text);
         if (matcher.matches()) {
             List<String> formatted = new ArrayList<>();
@@ -50,8 +51,9 @@ public class ComplexGenericReplacer implements TokenReplacer {
             while (matcher.find()) {
                 ParameterContext<?> param = context.getParams().get(Integer.parseUnsignedInt(matcher.group(1)));
                 if (((Primitive) param.value()).isGeneric()) {
-                    String requirement = matcher.group(2);
-                    formatted.add((requirement == null ? "" : "? " + requirement + ' ') + ((PrimitiveParameterOptions) param.parameter().options()).genericName());
+                    String name = PorkUtil.fallbackIfNull(matcher.group(2), ((PrimitiveParameterOptions) param.parameter().options()).genericName());
+                    String requirement = matcher.group(3);
+                    formatted.add((requirement == null ? "" : "? " + requirement + ' ') + name);
                 }
             }
             return formatted.isEmpty() ? "" : formatted.stream().collect(Collectors.joining(", ", "<", ">"));

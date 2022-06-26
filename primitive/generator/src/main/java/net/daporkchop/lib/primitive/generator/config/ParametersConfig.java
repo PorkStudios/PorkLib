@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * @author DaPorkchop_
@@ -70,7 +71,7 @@ public final class ParametersConfig implements Configurable<ParametersConfig, Js
                 jsonObject.getAsJsonObject("types").entrySet().forEach(typeEntry -> {
                     String typeName = typeEntry.getKey();
 
-                    builder.type(typeName, new CustomParameterType(Collections.unmodifiableMap(typeEntry.getValue().getAsJsonObject().entrySet().stream()
+                    builder.type(typeName, new CustomParameterType(typeName, Collections.unmodifiableMap(typeEntry.getValue().getAsJsonObject().entrySet().stream()
                             .collect(Collectors.toMap(
                                     Map.Entry::getKey,
                                     parameterEntry -> new CustomParameterValue(
@@ -88,8 +89,8 @@ public final class ParametersConfig implements Configurable<ParametersConfig, Js
         } else if (jsonElement.isJsonArray()) {
             JsonArray jsonArray = jsonElement.getAsJsonArray();
 
-            builder.parameters(IntStream.range(0, jsonArray.size())
-                    .mapToObj(i -> new Parameter<>(this, jsonArray.get(i), i))
+            builder.parameters(StreamSupport.stream(jsonArray.spliterator(), false)
+                    .map(element -> new Parameter<>(this, element))
                     .collect(Collectors.toList()));
         }
 

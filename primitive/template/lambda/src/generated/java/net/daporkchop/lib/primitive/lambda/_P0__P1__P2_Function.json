@@ -1,4 +1,9 @@
 {
+  "imports": [
+    "lombok.NonNull",
+    "java.util.function.BiFunction",
+    "java.util.function.Function"
+  ],
   "params": [
     {
       "type": "primitive",
@@ -15,7 +20,7 @@
     {
       "type": "primitive",
       "options": {
-        "genericName": "V"
+        "genericName": "R"
       }
     }
   ]

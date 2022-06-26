@@ -40,6 +40,7 @@ import net.daporkchop.lib.primitive.generator.param.primitive.Primitive;
 import net.daporkchop.lib.primitive.generator.replacer.ComplexGenericReplacer;
 import net.daporkchop.lib.primitive.generator.replacer.FileHeaderReplacer;
 import net.daporkchop.lib.primitive.generator.replacer.GenericHeaderReplacer;
+import net.daporkchop.lib.primitive.generator.replacer.MethodReplacer;
 import net.daporkchop.lib.primitive.generator.util.ignore.IgnoreProcessor;
 
 import java.io.IOException;
@@ -60,9 +61,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinTask;
@@ -90,11 +93,13 @@ public class Generator implements Runnable {
     public static final Gson GSON = new GsonBuilder().setLenient().setPrettyPrinting().create();
 
     private static final Cached<Deque<StringBuffer>> STRINGBUFFER_CACHE = Cached.threadLocal(ArrayDeque::new, ReferenceStrength.WEAK);
-    private static final Cached<Matcher> TOKEN_MATCHER_CACHE = Cached.regex(Pattern.compile("_([a-zA-Z0-9]*?)(?:([pP])(\\d+))?_"));
+
+    private static final Pattern TOKEN_PATTERN = Pattern.compile("_([a-zA-Z0-9,]*?)(?:([pP])(\\d+))?_");
+    private static final Cached<Deque<Matcher>> TOKEN_MATCHER_CACHE = Cached.threadLocal(ArrayDeque::new, ReferenceStrength.WEAK);
 
     //recursive regular expressions! woot woot
     private static final com.florianingerl.util.regex.Pattern FILTER_PATTERN = com.florianingerl.util.regex.Pattern.compile(
-            "(<(?:(?<generic>(?<generic_number>\\d+)?(?<generic_invert>!)?)|(?<type>(?<type_filter>(?:\\d+[a-zA-Z]+)+)(?<type_invert>!)?))%(?<content>.*?(?:(?1).*?)*)%>)",
+            "(<(?:(?<generic>(?<generic_number>\\d+(?:,\\d+)*)?(?<generic_invert>!)?)|(?<type>(?<type_filter>(?:\\d+(?:[a-zA-Z]+|_(?:[a-zA-Z0-9,]*?)(?:([pP])(\\d+))?_))+)(?<type_invert>!)?))%(?<content>.*?(?:(?1).*?)*)%>)",
             com.florianingerl.util.regex.Pattern.DOTALL);
     private static final Cached<Deque<com.florianingerl.util.regex.Matcher>> FILTER_MATCHER_CACHE = Cached.threadLocal(ArrayDeque::new, ReferenceStrength.WEAK);
 
@@ -108,6 +113,15 @@ public class Generator implements Runnable {
 
     private static void releaseStringBuffer(@NonNull StringBuffer buffer) {
         STRINGBUFFER_CACHE.get().push(buffer);
+    }
+
+    private static Matcher allocateTokenMatcher() {
+        Deque<Matcher> stack = TOKEN_MATCHER_CACHE.get();
+        return stack.isEmpty() ? TOKEN_PATTERN.matcher("") : stack.pop();
+    }
+
+    private static void releaseTokenMatcher(@NonNull Matcher matcher) {
+        TOKEN_MATCHER_CACHE.get().push(matcher);
     }
 
     private static com.florianingerl.util.regex.Matcher allocateFilterMatcher() {
@@ -129,6 +143,24 @@ public class Generator implements Runnable {
         matcher.appendTail(buffer);
 
         return buffer.toString();
+    }
+
+    public static String getPackageName(@NonNull Path p) {
+        StringJoiner joiner = new StringJoiner(".");
+        boolean started = false;
+        for (Path path : p) {
+            String fileName = path.toString();
+            if (started) {
+                if (fileName.endsWith(".template") || fileName.endsWith(".json") || fileName.endsWith(".methods")) {
+                    break;
+                } else {
+                    joiner.add(fileName);
+                }
+            } else if ("java".equals(fileName)) {
+                started = true;
+            }
+        }
+        return joiner.toString();
     }
 
     public static void main(String... args) {
@@ -168,7 +200,8 @@ public class Generator implements Runnable {
         this.tokenReplacers = new TokenReplacer[]{
                 new GenericHeaderReplacer(),
                 new FileHeaderReplacer(),
-                new ComplexGenericReplacer()
+                new ComplexGenericReplacer(),
+                new MethodReplacer()
         };
     }
 
@@ -251,7 +284,7 @@ public class Generator implements Runnable {
                         childTasks.add(ForkJoinTask.adapt(() -> Generator.this.generateFile(childConfig, nextExpectedTime, file, attrs, outDirectory)));
                     }
                 } else if (attrs.isDirectory()) {
-                    if (!file.getFileName().toString().endsWith("_methods")) { //schedule task to asynchronously recurse into the subdirectory
+                    if (!file.getFileName().toString().endsWith(".methods")) { //schedule task to asynchronously recurse into the subdirectory
                         childTasks.add(ForkJoinTask.adapt(() -> Generator.this.generateDirectory(childConfig, nextExpectedTime, file, outDirectory.resolve(file.getFileName()))));
                     }
                 } else {
@@ -266,24 +299,13 @@ public class Generator implements Runnable {
         ForkJoinTask.invokeAll(childTasks);
     }
 
-    @SneakyThrows(IOException.class)
     private void generateFile(@NonNull GeneratorConfig originalConfig, @NonNull FileTime latestExpectedTime, @NonNull Path templateFile, @NonNull BasicFileAttributes templateFileAttrs, @NonNull Path outDirectory) {
-        String name = templateFile.getFileName().toString().substring(0, templateFile.getFileName().toString().length() - ".template".length());
-
-        Path configFile = PFiles.assertFileExists(templateFile.resolveSibling(name + ".json"));
-
-        String packageName = "package " + this.getPackageName(templateFile) + ';';
-
-        FileTime expectedResultTime = Stream.of(latestExpectedTime, templateFileAttrs.lastModifiedTime(), Files.getLastModifiedTime(configFile))
-                .max(Comparator.naturalOrder()).get();
-
-        GeneratorConfig config = originalConfig.mergeConfiguration(new JsonParser().parse(new String(Files.readAllBytes(configFile), StandardCharsets.UTF_8)).getAsJsonObject());
-        String content = new String(Files.readAllBytes(templateFile), StandardCharsets.UTF_8);
-
         PFiles.ensureDirectoryExists(outDirectory);
 
-        Stream<List<ParameterContext<?>>> parametersStream = Stream.of(Collections.emptyList());
-        for (Parameter<?> parameter : config.getParmeters().getParameters()) {
+        Template template = this.loadTemplate(originalConfig, latestExpectedTime, templateFile, templateFileAttrs);
+
+        Stream<List<? extends ParameterContext<?>>> parametersStream = Stream.of(Collections.emptyList());
+        for (Parameter<?> parameter : template.getConfig().getParmeters().getParameters()) {
             parametersStream = parametersStream.flatMap(currentParams -> parameter.values().stream()
                     .map(value -> parameter.type().makeContext(uncheckedCast(parameter), uncheckedCast(value)))
                     .map(ctx -> {
@@ -296,21 +318,64 @@ public class Generator implements Runnable {
 
         //spawn a sub-task for each combination of parameters, then execute them all and wait for them all to complete
         ForkJoinTask.invokeAll(parametersStream
-                .map(params -> ForkJoinTask.adapt(() -> this.generate0(outDirectory, name, expectedResultTime, content, packageName, new Context(config, params))))
+                .map(params -> ForkJoinTask.adapt(() -> this.generate0(outDirectory, new Context(this, Optional.empty(), template, params))))
                 .collect(Collectors.toList()));
     }
 
     @SneakyThrows(IOException.class)
-    private void generate0(@NonNull Path outDirectory, @NonNull String templateFileName, @NonNull FileTime expectedResultTime, @NonNull String templateFileContent, @NonNull String packageName, @NonNull Context context) {
+    private Template loadTemplate(@NonNull GeneratorConfig inheritedConfig, @NonNull FileTime latestExpectedTime, @NonNull Path templateFile, @NonNull BasicFileAttributes templateFileAttrs) {
+        String name = templateFile.getFileName().toString().substring(0, templateFile.getFileName().toString().length() - ".template".length());
+        String content = new String(Files.readAllBytes(templateFile), StandardCharsets.UTF_8);
+
+        Path configFile = PFiles.assertFileExists(templateFile.resolveSibling(name + ".json"));
+        GeneratorConfig config = inheritedConfig.mergeConfiguration(new JsonParser().parse(new String(Files.readAllBytes(configFile), StandardCharsets.UTF_8)).getAsJsonObject());
+
+        Map<String, Template> methods;
+        Path methodsDir = templateFile.resolveSibling(name + ".methods");
+        if (PFiles.checkDirectoryExists(methodsDir)) {
+            methods = new HashMap<>();
+
+            //list the files under the input directory and schedule sub-futures for them
+            Files.walkFileTree(methodsDir, Collections.emptySet(), 1, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    if (attrs.isRegularFile()) {
+                        if (file.getFileName().toString().endsWith(".template")) { //schedule task to asynchronously generate the template
+                            Template methodTemplate = Generator.this.loadTemplate(config, latestExpectedTime, file, attrs);
+                            methods.put(methodTemplate.getTemplateFileName(), methodTemplate);
+                        }
+                    } else if (attrs.isDirectory() && file.getFileName().toString().endsWith(".methods")) {
+                        //silently ignore
+                    } else {
+                        throw new IllegalArgumentException("don't know how to handle: " + file);
+                    }
+
+                    return super.visitFile(file, attrs);
+                }
+            });
+        } else {
+            methods = Collections.emptyMap();
+        }
+
+        FileTime expectedResultTime = Stream.concat(
+                Stream.of(latestExpectedTime, templateFileAttrs.lastModifiedTime(), Files.getLastModifiedTime(configFile)),
+                methods.values().stream().map(Template::getExpectedResultTime))
+                .max(Comparator.naturalOrder()).get();
+
+        return new Template(config, expectedResultTime, name, content, templateFile, methods);
+    }
+
+    @SneakyThrows(IOException.class)
+    private void generate0(@NonNull Path outDirectory, @NonNull Context context) {
         String name;
         { //name
             long time = System.nanoTime(); //begin profiling timeName
             try {
-                if (context.getConfig().getNameOverride().isPresent()) {
-                    templateFileName = context.getConfig().getNameOverride().get();
-                }
+                name = context.getConfig().getNameOverride().isPresent()
+                        ? context.getConfig().getNameOverride().get()
+                        : context.getTemplate().getTemplateFileName();
 
-                name = this.processString(templateFileName, context, packageName);
+                name = this.processString(name, context);
 
                 if (name.isEmpty()) {
                     return;
@@ -338,11 +403,11 @@ public class Generator implements Runnable {
         Path file = outDirectory.resolve(name);
         checkState(this.generated.add(file), "File %s was already generated?!?", name);
 
-        if (PFiles.checkFileExists(file) && Files.getLastModifiedTime(file).toMillis() == expectedResultTime.toMillis()) {
+        if (PFiles.checkFileExists(file) && Files.getLastModifiedTime(file).toMillis() == context.getTemplate().getExpectedResultTime().toMillis()) {
             return;
         }
 
-        String contentOut = this.processString(templateFileContent, context, packageName);
+        String contentOut = this.processString(context.getTemplate().getTemplateFileContent(), context);
 
         { //overrides
             long time = System.nanoTime();
@@ -364,7 +429,7 @@ public class Generator implements Runnable {
             if (!PFiles.checkFileExists(file) || !Arrays.equals(Files.readAllBytes(file), b)) { //only (over)write file contents if the file doesn't exist or its contents are different
                 Files.write(file, b);
             }
-            Files.setLastModifiedTime(file, expectedResultTime);
+            Files.setLastModifiedTime(file, context.getTemplate().getExpectedResultTime());
 
             this.generatedSize.add(b.length);
             this.generatedFiles.increment();
@@ -373,9 +438,9 @@ public class Generator implements Runnable {
         }
     }
 
-    private String processString(@NonNull String text, @NonNull Context context, @NonNull String packageName) {
+    public String processString(@NonNull String text, @NonNull Context context) {
         text = this.processFilters(text, context, true);
-        text = this.processTokens(text, context, packageName);
+        text = this.processTokens(text, context);
         return text;
     }
 
@@ -391,8 +456,10 @@ public class Generator implements Runnable {
                 if (matcher.group("generic") != null) { //filter by generic types
                     String numberTxt = matcher.group("generic_number");
                     boolean generic = numberTxt == null
-                            ? context.getParams().stream().map(ParameterContext::value).filter(Primitive.class::isInstance).map(Primitive.class::cast).anyMatch(Primitive::isGeneric)
-                            : ((Primitive) context.getParams().get(Integer.parseUnsignedInt(numberTxt)).value()).generic;
+                            ? context.isAnyParameterGeneric() :
+                            numberTxt.indexOf(',') >= 0
+                                    ? Stream.of(numberTxt.split(",")).mapToInt(Integer::parseUnsignedInt).anyMatch(i -> ((Primitive) context.getParams().get(i).value()).generic)
+                                    : ((Primitive) context.getParams().get(Integer.parseUnsignedInt(numberTxt)).value()).generic;
                     boolean inverted = matcher.group("generic_invert") != null;
 
                     if (generic ^ inverted) { //keep the enclosed contents
@@ -404,7 +471,7 @@ public class Generator implements Runnable {
                     boolean inverted = matcher.group("type_invert") != null;
                     boolean valid = false;
 
-                    Matcher extractMatcher = TYPE_FILTER_EXTRACT_CACHE.get().reset(matcher.group("type_filter"));
+                    Matcher extractMatcher = TYPE_FILTER_EXTRACT_CACHE.get().reset(this.processTokens(matcher.group("type_filter"), context));
                     while (extractMatcher.find()) {
                         int index = Integer.parseUnsignedInt(extractMatcher.group(1));
                         ParameterContext<?> parameterContext = context.getParams().get(index);
@@ -434,10 +501,10 @@ public class Generator implements Runnable {
         return text;
     }
 
-    private String processTokens(@NonNull String text, @NonNull Context context, @NonNull String packageName) {
+    private String processTokens(@NonNull String text, @NonNull Context context) {
         long time = System.nanoTime();
 
-        Matcher matcher = TOKEN_MATCHER_CACHE.get().reset(text);
+        Matcher matcher = allocateTokenMatcher().reset(text);
         if (matcher.find()) {
             StringBuffer buffer = allocateStringBuffer();
             buffer.setLength(0);
@@ -455,7 +522,7 @@ public class Generator implements Runnable {
                     }
                 } else {
                     for (TokenReplacer replacer : this.tokenReplacers) {
-                        String value = replacer.replace(context, original, packageName);
+                        String value = replacer.replace(context, original);
                         if (value != null) {
                             matcher.appendReplacement(buffer, value);
                             continue MAIN;
@@ -468,26 +535,10 @@ public class Generator implements Runnable {
             text = buffer.toString();
             releaseStringBuffer(buffer);
         }
+        releaseTokenMatcher(matcher);
 
         this.timeReplaceToken.add(System.nanoTime() - time);
         return text;
-    }
-
-    private String getPackageName(@NonNull Path file) {
-        if (!Files.isDirectory(file)) {
-            file = file.getParent();
-        }
-
-        //temporarily buffer in a Deque to reverse all names
-        Deque<String> deque = new ArrayDeque<>();
-        String fileName;
-        for (; !"java".equals(fileName = file.getFileName().toString()); file = file.getParent()) {
-            deque.addFirst(fileName);
-        }
-
-        StringJoiner joiner = new StringJoiner(".");
-        deque.forEach(joiner::add);
-        return joiner.toString();
     }
 
     @SneakyThrows(IOException.class)

@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -48,15 +49,11 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
 @Data
 @Accessors(fluent = true)
 public class Parameter<O extends ParameterOptions> {
-    private final int index;
-
     private final ParameterType<O> type;
     private final Set<ParameterValue<O>> values;
     private final O options;
 
-    public Parameter(@NonNull ParametersConfig config, @NonNull JsonElement element, int index) {
-        this.index = index;
-
+    public Parameter(@NonNull ParametersConfig config, @NonNull JsonElement element) {
         if (element.isJsonPrimitive()) {
             JsonObject object = new JsonObject();
             object.add("type", element);
@@ -69,21 +66,21 @@ public class Parameter<O extends ParameterOptions> {
         this.type = uncheckedCast(config.getTypes().get(object.getAsJsonPrimitive("type").getAsString()));
 
         if (object.has("whitelist")) {
-            this.values = Collections.unmodifiableSet(StreamSupport.stream(object.getAsJsonArray("whitelist").spliterator(), false)
+            this.values = Collections.unmodifiableSet(new TreeSet<>(StreamSupport.stream(object.getAsJsonArray("whitelist").spliterator(), false)
                     .map(JsonElement::getAsString)
                     .map(this.type.getValuesByName()::get)
                     .peek(Objects::requireNonNull)
-                    .collect(Collectors.toSet()));
+                    .collect(Collectors.toSet())));
         } else if (object.has("blacklist")) {
-            this.values = Collections.unmodifiableSet(this.type.getValuesByName().values().stream()
+            this.values = Collections.unmodifiableSet(new TreeSet<>(this.type.getValuesByName().values().stream()
                     .filter(((Predicate<? super ParameterValue<O>>) StreamSupport.stream(object.getAsJsonArray("blacklist").spliterator(), false)
                             .map(JsonElement::getAsString)
                             .map(this.type.getValuesByName()::get)
                             .peek(Objects::requireNonNull)
                             .collect(Collectors.toSet())::contains).negate())
-                    .collect(Collectors.toSet()));
+                    .collect(Collectors.toSet())));
         } else {
-            this.values = Collections.unmodifiableSet(new HashSet<>(this.type.getValuesByName().values()));
+            this.values = Collections.unmodifiableSet(new TreeSet<>(this.type.getValuesByName().values()));
         }
 
         this.options = object.has("options")

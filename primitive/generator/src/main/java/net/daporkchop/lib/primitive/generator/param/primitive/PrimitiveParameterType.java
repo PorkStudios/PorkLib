@@ -33,6 +33,11 @@ import java.util.Map;
  */
 public class PrimitiveParameterType implements ParameterType<PrimitiveParameterOptions> {
     @Override
+    public String getName() {
+        return "primitive";
+    }
+
+    @Override
     public Map<String, ? extends ParameterValue<PrimitiveParameterOptions>> getValuesByName() {
         return Primitive.BY_NAME;
     }

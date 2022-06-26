@@ -30,9 +30,14 @@ import java.util.Map;
  * @author DaPorkchop_
  */
 @Data
-public class CustomParameterValue implements ParameterValue<CustomParameterOptions> {
+public class CustomParameterValue implements ParameterValue<CustomParameterOptions>, Comparable<CustomParameterValue> {
     @NonNull
     private final String name;
     @NonNull
     private final Map<String, String> properties;
+
+    @Override
+    public int compareTo(CustomParameterValue o) {
+        return this.name.compareTo(o.name);
+    }
 }

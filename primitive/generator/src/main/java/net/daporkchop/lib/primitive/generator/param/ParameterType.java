@@ -30,6 +30,8 @@ import java.util.Map;
  * @author DaPorkchop_
  */
 public interface ParameterType<O extends ParameterOptions> {
+    String getName();
+
     Map<String, ? extends ParameterValue<O>> getValuesByName();
 
     Class<O> optionsClass();

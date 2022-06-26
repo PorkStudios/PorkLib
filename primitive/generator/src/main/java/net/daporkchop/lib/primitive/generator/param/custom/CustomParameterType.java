@@ -35,6 +35,8 @@ import java.util.Map;
 @Data
 public class CustomParameterType implements ParameterType<CustomParameterOptions> {
     @NonNull
+    private final String name;
+    @NonNull
     private final Map<String, CustomParameterValue> valuesByName;
 
     @Override

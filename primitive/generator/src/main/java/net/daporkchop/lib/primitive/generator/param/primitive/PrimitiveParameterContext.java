@@ -73,4 +73,9 @@ public class PrimitiveParameterContext implements ParameterContext<PrimitivePara
         }
         throw new IllegalArgumentException(token);
     }
+
+    @Override
+    public String toString() {
+        return "primitive=" + this.value.name;
+    }
 }

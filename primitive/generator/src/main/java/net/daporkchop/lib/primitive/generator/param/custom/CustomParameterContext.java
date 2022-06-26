@@ -42,4 +42,9 @@ public class CustomParameterContext implements ParameterContext<CustomParameterO
     public String replace(@NonNull Context context, @NonNull String token, boolean lowercase) {
         return this.value.getProperties().get(token);
     }
+
+    @Override
+    public String toString() {
+        return this.parameter.type().getName() + '=' + this.value.getName();
+    }
 }

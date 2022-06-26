@@ -3,10 +3,23 @@ _headers_
 /**
  * A function that accepts a single _nameP0_ and returns nothing.
  *
+ * @see Consumer
  * @author DaPorkchop_
- * @see java.util.function.Consumer
  */
 @FunctionalInterface
 public interface _P0_Consumer_G_ {
+    /**
+     * @see Consumer#accept(Object)
+     */
     void accept(_p0_ t);
+
+    /**
+     * @see Consumer#andThen(Consumer)
+     */
+    default _P0_Consumer_G_ andThen(@NonNull _P0_Consumer_Gsuper_ after) {
+        return t -> {
+            this.accept(t);
+            after.accept(t);
+        };
+    }
 }

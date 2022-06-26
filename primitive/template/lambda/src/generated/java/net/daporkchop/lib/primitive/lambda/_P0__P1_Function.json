@@ -1,4 +1,8 @@
 {
+  "imports": [
+    "lombok.NonNull",
+    "java.util.function.Function"
+  ],
   "params": [
     {
       "type": "primitive",
@@ -9,7 +13,7 @@
     {
       "type": "primitive",
       "options": {
-        "genericName": "U"
+        "genericName": "R"
       }
     }
   ]

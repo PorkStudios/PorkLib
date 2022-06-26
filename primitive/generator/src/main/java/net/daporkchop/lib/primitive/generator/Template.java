@@ -20,16 +20,32 @@
 
 package net.daporkchop.lib.primitive.generator;
 
+import lombok.Data;
 import lombok.NonNull;
 import net.daporkchop.lib.primitive.generator.config.GeneratorConfig;
-import net.daporkchop.lib.primitive.generator.param.primitive.PrimitiveParameterContext;
 
-import java.util.List;
+import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
+import java.util.Map;
 
 /**
  * @author DaPorkchop_
  */
-@FunctionalInterface
-public interface TokenReplacer {
-    String replace(@NonNull Context context, @NonNull String text);
+@Data
+public final class Template {
+    @NonNull
+    private final GeneratorConfig config;
+    @NonNull
+    private final FileTime expectedResultTime;
+
+    @NonNull
+    private final String templateFileName;
+    @NonNull
+    private final String templateFileContent;
+
+    @NonNull
+    private final Path templateFilePath;
+
+    @NonNull
+    private final Map<String, Template> methods;
 }

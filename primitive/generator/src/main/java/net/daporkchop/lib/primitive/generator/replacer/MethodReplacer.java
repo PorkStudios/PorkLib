@@ -21,49 +21,18 @@
 package net.daporkchop.lib.primitive.generator.replacer;
 
 import lombok.NonNull;
-import net.daporkchop.lib.common.reference.cache.Cached;
-import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.primitive.generator.Context;
-import net.daporkchop.lib.primitive.generator.param.ParameterContext;
-import net.daporkchop.lib.primitive.generator.param.primitive.Primitive;
 import net.daporkchop.lib.primitive.generator.TokenReplacer;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * @author DaPorkchop_
  */
-public class GenericHeaderReplacer implements TokenReplacer, Function<List<? extends ParameterContext<?>>, String> {
-    private static final Cached<Matcher> GENERIC_HEADER_MATCHER = Cached.regex(Pattern.compile("_G(extends|super)?_"));
-    private static final Map<String, Map<List<? extends ParameterContext<?>>, String>> LOOKUP = new HashMap<>();
-
-    static {
-        LOOKUP.put("", new ConcurrentHashMap<>());
-        LOOKUP.put("extends", new ConcurrentHashMap<>());
-        LOOKUP.put("super", new ConcurrentHashMap<>());
-    }
-
+public class MethodReplacer implements TokenReplacer {
     @Override
     public String replace(@NonNull Context context, @NonNull String text) {
-        Matcher matcher = GENERIC_HEADER_MATCHER.get().reset(text);
-        if (matcher.find()) {
-            String header = LOOKUP.get(PorkUtil.fallbackIfNull(matcher.group(1), "")).computeIfAbsent(context.getParams(), this);
-            matcher.hashCode(); //prevent gc
-            return header;
+        if (text.startsWith("_M") && text.endsWith("_")) {
+            return context.evaluateMethod(text.substring("_M".length(), text.length() - "_".length()));
         }
         return null;
-    }
-
-    @Deprecated
-    @Override
-    public String apply(@NonNull List<? extends ParameterContext<?>> params) {
-        String relation = GENERIC_HEADER_MATCHER.get().group(1);
-        return Primitive.getGenericHeader(params, relation == null ? "" : "? " + relation + ' ');
     }
 }

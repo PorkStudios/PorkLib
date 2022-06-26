@@ -1,4 +1,8 @@
 {
+  "imports": [
+    "lombok.NonNull",
+    "java.util.function.BiConsumer"
+  ],
   "params": [
     {
       "type": "primitive",

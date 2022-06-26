@@ -1,0 +1,7 @@
+    /**
+     * @see Function#compose(Function)
+     */
+    default<2% _GP2_%> _P2__P1_Function_G2,1_ compose<2!%From_P2_%>(@NonNull _P2__P0_Function_G2super0extends_ before) {
+        return v -> this.apply<1!%As_P1_%>(before.apply<0!%As_P0_%>(v));
+    }
+

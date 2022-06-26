@@ -22,4 +22,6 @@ apply from: "${project.rootDir}/primitive/primitive_module.gradle"
 
 dependencies {
     primitiveModuleApi project(":common")
+
+    primitiveModuleApi project(":primitive:primitive-lambda")
 }

@@ -524,7 +524,7 @@ public class Generator implements Runnable {
                     for (TokenReplacer replacer : this.tokenReplacers) {
                         String value = replacer.replace(context, original);
                         if (value != null) {
-                            matcher.appendReplacement(buffer, value);
+                            matcher.appendReplacement(buffer, this.processTokens(value, context));
                             continue MAIN;
                         }
                     }

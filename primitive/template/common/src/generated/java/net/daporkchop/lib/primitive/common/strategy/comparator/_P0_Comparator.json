@@ -1,4 +1,21 @@
 {
+  "imports": [
+    "lombok.NonNull",
+    "lombok.RequiredArgsConstructor",
+    "java.io.Serializable",
+    "java.util.function.Function",
+    "java.util.Comparator",
+    "net.daporkchop.lib.primitive.common.PrimitiveHelper",
+    "net.daporkchop.lib.primitive.lambda._P0_BoolFunction",
+    "net.daporkchop.lib.primitive.lambda._P0_ByteFunction",
+    "net.daporkchop.lib.primitive.lambda._P0_ShortFunction",
+    "net.daporkchop.lib.primitive.lambda._P0_CharFunction",
+    "net.daporkchop.lib.primitive.lambda._P0_IntFunction",
+    "net.daporkchop.lib.primitive.lambda._P0_LongFunction",
+    "net.daporkchop.lib.primitive.lambda._P0_FloatFunction",
+    "net.daporkchop.lib.primitive.lambda._P0_DoubleFunction",
+    "net.daporkchop.lib.primitive.lambda._P0_ObjFunction"
+  ],
   "params": [
     {
       "type": "primitive",

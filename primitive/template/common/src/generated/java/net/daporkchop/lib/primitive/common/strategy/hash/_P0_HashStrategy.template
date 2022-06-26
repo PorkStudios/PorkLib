@@ -1,7 +1,9 @@
 _headers_
 
 import net.daporkchop.lib.primitive.common.PrimitiveHelper;
-import net.daporkchop.lib.primitive.common.strategy.equality._P0_EqualityStrategy;
+import net.daporkchop.lib.primitive.common.strategy.equality._P0_EqualityStrategy;<0%
+
+import java.util.Arrays;%>
 
 /**
  * A strategy which is able to compute a hash code for {@code _p0_} values, and is also able to compare two {@code _p0_} values to check if they are equal.
@@ -11,16 +13,6 @@ import net.daporkchop.lib.primitive.common.strategy.equality._P0_EqualityStrateg
  * @author DaPorkchop_
  */
 public interface _P0_HashStrategy_G_ extends _P0_EqualityStrategy_G_ {
-    /**
-     * Gets an instance of a {@link _P0_HashStrategy} which performs the default equality checks by delegating to {@link PrimitiveHelper#hash(_p0_)}.
-     *
-     * @return a default {@link _P0_HashStrategy}
-     */<%
-    @SuppressWarnings("unchecked")%>
-    static<% _G_%> _P0_HashStrategy_G_ def() {
-        return <%(_P0_HashStrategy_G_) %>Default.INSTANCE;
-    }
-
     /**
      * Returns the given value's hash code.
      *
@@ -38,27 +30,18 @@ public interface _P0_HashStrategy_G_ extends _P0_EqualityStrategy_G_ {
      * @return the value's 64-bit hash code
      */
     default long hash64(_p0_ e) {
-        return this.hash(e);
+        return this.hash(e) & 0xFFFFFFFFL;
     }
 
     /**
-     * Default implementation of {@link _P0_HashStrategy}.
-     * <p>
-     * Delegates equality checks to {@link PrimitiveHelper#hash(_p0_)}.
+     * Gets an instance of {@link _P0_HashStrategy} which delegates equality checks and hash calculations to {@link PrimitiveHelper}.
      *
-     * @author DaPorkchop_
-     */
-    class Default_G_ extends _P0_EqualityStrategy.Default_G_ implements _P0_HashStrategy_G_ {
-        public static final _P0_HashStrategy.Default<%<?>%> INSTANCE = new _P0_HashStrategy.Default<%<>%>();
+     * @return an instance of {@link _P0_HashStrategy}
+     */<%
+    @SuppressWarnings("unchecked")%>
+    static<% _G_%> _P0_HashStrategy_G_ def() {
+        return <%(_P0_HashStrategy_G_) %>_P0_DefaultHashStrategy.INSTANCE;
+    }<%
 
-        @Override
-        public int hash(_p0_ e) {
-            return PrimitiveHelper.hash(e);
-        }
-
-        @Override
-        public long hash64(_p0_ e) {
-            return PrimitiveHelper.hash64(e);
-        }
-    }
+ _Marray_%>
 }

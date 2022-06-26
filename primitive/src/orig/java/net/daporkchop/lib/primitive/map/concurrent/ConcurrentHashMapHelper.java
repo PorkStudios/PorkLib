@@ -37,8 +37,6 @@ public class ConcurrentHashMapHelper {
     public static final int MAXIMUM_CAPACITY = 1 << 30;
     public static final int DEFAULT_CAPACITY = 16;
     public static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
-    public static final int DEFAULT_CONCURRENCY_LEVEL = 16;
-    public static final float LOAD_FACTOR = 0.75f;
     public static final int TREEIFY_THRESHOLD = 8;
     public static final int UNTREEIFY_THRESHOLD = 6;
     public static final int MIN_TREEIFY_CAPACITY = 64;

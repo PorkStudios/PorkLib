@@ -1815,12 +1815,35 @@ public class PTypes {
         return new IllegalArgumentException("unsupported type type: " + msg.getClass().getTypeName());
     }
 
-    public static Stream<? super Class<?>> allSuperclasses(@NonNull Class<?> clazz) {
-        Stream.Builder<? super Class<?>> builder = Stream.builder();
+    public static Stream<Class<?>> allSuperclasses(@NonNull Class<?> clazz) {
+        Stream.Builder<Class<?>> builder = Stream.builder();
         do {
             builder.add(clazz);
         } while ((clazz = clazz.getSuperclass()) != null);
         return builder.build();
+    }
+
+    public static Stream<Class<?>> allRawSupertypes(@NonNull Class<?> clazz) {
+        Map<Class<?>, Boolean> map = new IdentityHashMap<>();
+        map.put(clazz, Boolean.TRUE);
+        listRawSupertypes(map, clazz);
+        return map.keySet().stream();
+    }
+
+    private static void listRawSupertypes(@NonNull Map<Class<?>, Boolean> map, @NonNull Class<?> clazz) {
+        if (!clazz.isInterface() && clazz.getSuperclass() != null && map.putIfAbsent(clazz.getSuperclass(), Boolean.TRUE) == null) {
+            listRawSupertypes(map, clazz.getSuperclass());
+        }
+
+        for (Class<?> superinterface : clazz.getInterfaces()) {
+            if (map.putIfAbsent(superinterface, Boolean.TRUE) == null) {
+                listRawSupertypes(map, superinterface);
+            }
+        }
+    }
+
+    public static Stream<Type> allInheritedSupertypes(@NonNull Class<?> clazz) {
+        return allRawSupertypes(clazz).map(rawSupertype -> inheritedGenericSupertype(clazz, rawSupertype));
     }
 
     /**

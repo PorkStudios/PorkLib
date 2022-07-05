@@ -130,7 +130,7 @@ public abstract class NativeFeature<F extends Feature<F>> implements Feature<F> 
             method.setAccessible(true);
             method.invoke(Runtime.getRuntime(), clazz, tempFile.getAbsolutePath());
         } catch (Exception e) {
-            if (PlatformInfo.JAVA_VERSION >= 8) {
+            if (PlatformInfo.JAVA_VERSION > 8) {
                 new RuntimeException("you are running java 9+, which is bad and not good. this means that native libraries will be loaded from the incorrect classloader.", e).printStackTrace();
             }
             //fallback to System.load

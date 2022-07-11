@@ -24,7 +24,6 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.math.vector.i.Vec2i;
-import net.daporkchop.lib.math.vector.i.Vec3i;
 import net.daporkchop.lib.minecraft.entity.Entity;
 import net.daporkchop.lib.minecraft.tileentity.TileEntity;
 import net.daporkchop.lib.minecraft.world.Section;
@@ -32,7 +31,6 @@ import net.daporkchop.lib.minecraft.world.World;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
-import java.util.Map;
 
 /**
  * An implementation of a Chunk for vanilla Minecraft.
@@ -47,6 +45,7 @@ public final class VanillaChunkImpl extends AbstractVanillaChunk {
 
     private final Collection<Entity> entities = new ArrayDeque<>();
     private final Collection<TileEntity> tileEntities = new ArrayDeque<>();
+    private final byte[] biomeArray = new byte[256];
     private final Section[]              sections     = new Section[16];
 
     public VanillaChunkImpl(@NonNull Vec2i pos, World world) {

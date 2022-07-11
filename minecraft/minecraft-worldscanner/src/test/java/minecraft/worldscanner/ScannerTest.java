@@ -60,7 +60,6 @@ public class ScannerTest {
     private MinecraftSave getTestWorld() {
         return new SaveBuilder()
                 .setFormat(new AnvilSaveFormat(new File(".", "run/testworld")))
-                //.setFormat(new AnvilSaveFormat(new File("/media/daporkchop/TooMuchStuff/Misc/2b2t_org")))
                 //.setFormat(new AnvilSaveFormat(new File("E:\\Misc\\2b2t_org")))
                 .setInitFunctions(new MinecraftSaveConfig()
                         .openOptions(new RegionOpenOptions().access(RegionFile.Access.READ_ONLY)))
@@ -182,6 +181,32 @@ public class ScannerTest {
                         }
                     }))
                     .run(true);
+        }
+        PorkUtil.unsafe_forceGC();
+    }
+
+    @Test
+    public void getBiomes() throws IOException {
+        try (MinecraftSave save = this.getTestWorld()) {
+            new WorldScanner(save.world(0))
+                    .addProcessor(col -> {
+                        if ((col.getX() & 0x1F) == 31 && (col.getZ() & 0x1F) == 31) {
+                            System.out.printf("Scanning region (%d,%d)\n", col.getX() >> 5, col.getZ() >> 5);
+                        }
+                    })
+                    .addProcessor((current, estimatedTotal, chunk, access) -> {
+                        int x = chunk.getX() << 4;
+                        int z = chunk.getZ() << 4;
+                        for (int xx = 15; xx >= 0; xx--) {
+                            for (int zz = 15; zz >= 0; zz--) {
+                                int id = chunk.getBiomeId(x + xx, z + zz);
+//                                System.out.printf("%d at (%d, %d)\n", id, x + xx, z + zz);
+                                if (id == 1) {
+                                    System.out.printf("Plains at (%d, %d)\n", x + xx, z + zz);
+                                }
+                            }
+                        }
+                    }).run(true);
         }
         PorkUtil.unsafe_forceGC();
     }

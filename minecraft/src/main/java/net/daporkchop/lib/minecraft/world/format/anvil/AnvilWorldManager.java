@@ -51,6 +51,7 @@ import net.daporkchop.lib.minecraft.world.impl.section.HeapSectionImpl;
 import net.daporkchop.lib.minecraft.world.impl.vanilla.VanillaChunkImpl;
 import net.daporkchop.lib.nbt.NBTInputStream;
 import net.daporkchop.lib.nbt.alloc.NBTArrayAllocator;
+import net.daporkchop.lib.nbt.tag.notch.ByteArrayTag;
 import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 import net.daporkchop.lib.nbt.tag.notch.IntArrayTag;
 import net.daporkchop.lib.nbt.tag.notch.ListTag;
@@ -180,9 +181,12 @@ public class AnvilWorldManager implements WorldManager {
                         return entity;
                     })
                     .forEach(chunk.entities()::add);
+
+            chunk.setBiomeArray(rootTag.getByteArray("Biomes"));
+
             {
                 ListTag<CompoundTag> sectionsTag = rootTag.getList("Sections");
-                //TODO: biomes, terrain populated flag etc.
+                //TODO: terrain populated flag etc.
                 for (int y = 15; y >= 0; y--) {
                     Section section = chunk.section(y);
                     CompoundTag tag = null;

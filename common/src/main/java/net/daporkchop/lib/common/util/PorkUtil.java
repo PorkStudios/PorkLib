@@ -23,6 +23,7 @@ package net.daporkchop.lib.common.util;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.common.function.throwing.TConsumer;
 import net.daporkchop.lib.common.pool.handle.HandledPool;
 
 import javax.swing.ImageIcon;
@@ -42,11 +43,14 @@ import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.IdentityHashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+
+import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
  * Some helper methods and values that I use all over the place
@@ -67,7 +71,7 @@ public class PorkUtil {
     public final HandledPool<StringBuilder> STRINGBUILDER_POOL = HandledPool.threadLocal(StringBuilder::new, 4); //TODO: make this soft
 
     public final DateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-    public final String PORKLIB_VERSION = preventInline("0.5.6-SNAPSHOT"); //TODO: set this dynamically
+    public final String PORKLIB_VERSION = preventInline("0.5.7-SNAPSHOT"); //TODO: set this dynamically
     public final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
 
     public final boolean[] EMPTY_BOOLEAN_ARRAY = new boolean[0];
@@ -252,7 +256,7 @@ public class PorkUtil {
             try {
                 future.get();
             } catch (InterruptedException
-                    | ExecutionException e) {
+                     | ExecutionException e) {
                 throw new RuntimeException(e);
             }
         }
@@ -270,15 +274,6 @@ public class PorkUtil {
         return obj == null ? "null" : obj.getClass().getTypeName();
     }
 
-    public void unsafe_forceGC() {
-        Object obj = new Object();
-        long oldMem = Runtime.getRuntime().freeMemory();
-        obj = null;
-        do {
-            System.gc();
-        } while (Runtime.getRuntime().freeMemory() <= oldMem);
-    }
-
     public static Object getNull() {
         return null;
     }
@@ -288,5 +283,107 @@ public class PorkUtil {
         Constructor<T> constructor = clazz.getDeclaredConstructor();
         constructor.setAccessible(true);
         return constructor.newInstance();
+    }
+
+    public static void closeAll(@NonNull Iterable<? extends AutoCloseable> closeables) throws Exception {
+        Exception e = null;
+        for (Iterator<? extends AutoCloseable> itr = closeables.iterator(); itr.hasNext(); ) { //iterate over all the values
+            AutoCloseable value = itr.next();
+            if (value != null) { //the value is non-null, try to close it
+                try {
+                    value.close();
+                } catch (Exception e1) { //there was an exception, save it for later
+                    if (e == null) { //this is the first exception which has occurred
+                        e = e1;
+                    } else { //add the exception onto the first exception
+                        e.addSuppressed(e1);
+                    }
+                }
+            }
+        }
+
+        if (e != null) { //at least one value threw an exception while being closed, rethrow it
+            throw e;
+        }
+    }
+
+    public static void closeAll(@NonNull AutoCloseable... closeables) throws Exception {
+        closeAll(closeables, 0, closeables.length);
+    }
+
+    public static void closeAll(@NonNull AutoCloseable[] closeables, int off, int len) throws Exception {
+        checkRangeLen(closeables.length, off, len);
+
+        Exception e = null;
+        for (int i = 0; i < len; i++) { //iterate over all the values
+            AutoCloseable value = closeables[i + off];
+            if (value != null) { //the value is non-null, try to close it
+                try {
+                    value.close();
+                } catch (Exception e1) { //there was an exception, save it for later
+                    if (e == null) { //this is the first exception which has occurred
+                        e = e1;
+                    } else { //add the exception onto the first exception
+                        e.addSuppressed(e1);
+                    }
+                }
+            }
+        }
+
+        if (e != null) { //at least one value threw an exception while being closed, rethrow it
+            throw e;
+        }
+    }
+
+    @SneakyThrows(Exception.class)
+    public static <T, E extends Exception> void closeAll(@NonNull TConsumer<T, E> closeFunction, @NonNull Iterable<? extends T> closeables) throws E {
+        Exception e = null;
+        for (Iterator<? extends T> itr = closeables.iterator(); itr.hasNext(); ) { //iterate over all the values
+            T value = itr.next();
+            if (value != null) { //the value is non-null, try to close it
+                try {
+                    closeFunction.acceptThrowing(value);
+                } catch (Exception e1) { //there was an exception, save it for later
+                    if (e == null) { //this is the first exception which has occurred
+                        e = e1;
+                    } else { //add the exception onto the first exception
+                        e.addSuppressed(e1);
+                    }
+                }
+            }
+        }
+
+        if (e != null) { //at least one value threw an exception while being closed, rethrow it
+            throw e;
+        }
+    }
+
+    public static <T, E extends Exception> void closeAll(@NonNull TConsumer<T, E> closeFunction, @NonNull T... closeables) throws E {
+        closeAll(closeFunction, closeables, 0, closeables.length);
+    }
+
+    @SneakyThrows(Exception.class)
+    public static <T, E extends Exception> void closeAll(@NonNull TConsumer<T, E> closeFunction, @NonNull T[] closeables, int off, int len) throws E {
+        checkRangeLen(closeables.length, off, len);
+
+        Exception e = null;
+        for (int i = 0; i < len; i++) { //iterate over all the values
+            T value = closeables[i + off];
+            if (value != null) { //the value is non-null, try to close it
+                try {
+                    closeFunction.acceptThrowing(value);
+                } catch (Exception e1) { //there was an exception, save it for later
+                    if (e == null) { //this is the first exception which has occurred
+                        e = e1;
+                    } else { //add the exception onto the first exception
+                        e.addSuppressed(e1);
+                    }
+                }
+            }
+        }
+
+        if (e != null) { //at least one value threw an exception while being closed, rethrow it
+            throw e;
+        }
     }
 }

@@ -22,8 +22,7 @@ package net.daporkchop.lib.common.function;
 
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.common.function.throwing.ESupplier;
-import net.daporkchop.lib.unsafe.PUnsafe;
+import net.daporkchop.lib.common.function.exception.ESupplier;
 
 import java.lang.reflect.Constructor;
 import java.util.function.Function;
@@ -67,21 +66,21 @@ public class PFunctions {
 
     /**
      * Logically inverts a {@link Predicate}.
+     * <p>
+     * Convenience method because calling {@link Predicate#negate()} directly on a lambda method reference requires an explicit cast to the target {@link Predicate} type.
      *
      * @param predicate the predicate to invert
      * @return a {@link Predicate} that will return the opposite value of whatever is returned by the original
      */
     public <T> Predicate<T> not(@NonNull Predicate<T> predicate) {
-        return t -> !predicate.test(t);
+        return predicate.negate();
     }
 
     /**
-     * Gets a {@link Function} which returns the identity of the given input value.
-     *
-     * @param <T> the type of value
-     * @return the identity function of the type
+     * @deprecated use {@link Function#identity()}
      */
+    @Deprecated
     public <T> Function<T, T> identity() {
-        return o -> o;
+        return Function.identity();
     }
 }

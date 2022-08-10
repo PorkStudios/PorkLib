@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -18,29 +18,18 @@
  *
  */
 
-package net.daporkchop.lib.common.function.throwing;
+package net.daporkchop.lib.common.function.exception;
 
-import net.daporkchop.lib.unsafe.PUnsafe;
+import net.daporkchop.lib.common.function.throwing.TBiConsumer;
 
-import java.io.IOException;
-import java.util.concurrent.Callable;
-import java.util.function.Supplier;
+import java.util.function.BiConsumer;
 
 /**
+ * A {@link BiConsumer} which can throw an {@link Exception}.
+ *
  * @author DaPorkchop_
+ * @see BiConsumer
  */
 @FunctionalInterface
-public interface ESupplier<T> extends Supplier<T>, Callable<T> {
-    @Override
-    default T get() {
-        try {
-            return this.call();
-        } catch (Exception e) {
-            PUnsafe.throwException(e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    T call() throws Exception;
+public interface EBiConsumer<T, U> extends TBiConsumer<T, U, Exception> {
 }

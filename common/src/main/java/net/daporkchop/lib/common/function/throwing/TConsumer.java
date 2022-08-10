@@ -18,19 +18,28 @@
  *
  */
 
-package net.daporkchop.lib.common.function.io;
+package net.daporkchop.lib.common.function.throwing;
 
-import net.daporkchop.lib.common.function.throwing.TFunction;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
-import java.io.IOException;
-import java.util.function.Function;
+import java.util.function.Consumer;
 
 /**
- * A {@link Function} which can throw an {@link IOException}.
+ * A {@link Consumer} which can throw a {@link Throwable}. The type of {@link Throwable} which is thrown is defined by a type parameter.
  *
  * @author DaPorkchop_
- * @see Function
+ * @see Consumer
  */
 @FunctionalInterface
-public interface IOFunction<T, R> extends TFunction<T, R, IOException> {
+public interface TConsumer<T, E extends Throwable> extends Consumer<T> {
+    @Override
+    default void accept(T t) {
+        try {
+            this.acceptThrowing(t);
+        } catch (Throwable e) { //rethrow
+            throw PUnsafe.throwException(e);
+        }
+    }
+
+    void acceptThrowing(T t) throws E;
 }

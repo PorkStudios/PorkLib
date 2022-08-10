@@ -18,19 +18,27 @@
  *
  */
 
-package net.daporkchop.lib.common.function.io;
+package net.daporkchop.lib.common.function.throwing;
 
-import net.daporkchop.lib.common.function.throwing.TFunction;
-
-import java.io.IOException;
-import java.util.function.Function;
+import net.daporkchop.lib.common.function.plain.QuadConsumer;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 /**
- * A {@link Function} which can throw an {@link IOException}.
+ * A {@link QuadConsumer} which can throw a {@link Throwable}. The type of {@link Throwable} which is thrown is defined by a type parameter.
  *
  * @author DaPorkchop_
- * @see Function
+ * @see QuadConsumer
  */
 @FunctionalInterface
-public interface IOFunction<T, R> extends TFunction<T, R, IOException> {
+public interface TQuadConsumer<T, U, V, W, E extends Throwable> extends QuadConsumer<T, U, V, W> {
+    @Override
+    default void accept(T t, U u, V v, W w) {
+        try {
+            this.acceptThrowing(t, u, v, w);
+        } catch (Throwable e) { //rethrow
+            throw PUnsafe.throwException(e);
+        }
+    }
+
+    void acceptThrowing(T t, U u, V v, W w) throws E;
 }

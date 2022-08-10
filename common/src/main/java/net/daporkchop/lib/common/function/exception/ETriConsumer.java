@@ -18,19 +18,17 @@
  *
  */
 
-package net.daporkchop.lib.common.function.io;
+package net.daporkchop.lib.common.function.exception;
 
-import net.daporkchop.lib.common.function.throwing.TFunction;
-
-import java.io.IOException;
-import java.util.function.Function;
+import net.daporkchop.lib.common.function.plain.TriConsumer;
+import net.daporkchop.lib.common.function.throwing.TTriConsumer;
 
 /**
- * A {@link Function} which can throw an {@link IOException}.
+ * A {@link TriConsumer} which can throw an {@link Exception}.
  *
  * @author DaPorkchop_
- * @see Function
+ * @see TriConsumer
  */
 @FunctionalInterface
-public interface IOFunction<T, R> extends TFunction<T, R, IOException> {
+public interface ETriConsumer<T, U, V> extends TTriConsumer<T, U, V, Exception> {
 }

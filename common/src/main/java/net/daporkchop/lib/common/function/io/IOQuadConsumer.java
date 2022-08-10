@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -21,24 +21,16 @@
 package net.daporkchop.lib.common.function.io;
 
 import net.daporkchop.lib.common.function.plain.QuadConsumer;
-import net.daporkchop.lib.unsafe.PUnsafe;
+import net.daporkchop.lib.common.function.throwing.TQuadConsumer;
 
 import java.io.IOException;
 
 /**
+ * A {@link QuadConsumer} which can throw an {@link IOException}.
+ *
  * @author DaPorkchop_
+ * @see QuadConsumer
  */
 @FunctionalInterface
-public interface IOQuadConsumer<T, U, V, W> extends QuadConsumer<T, U, V, W> {
-    @Override
-    default void accept(T t, U u, V v, W w) {
-        try {
-            this.acceptThrowing(t, u, v, w);
-        } catch (IOException e) {
-            PUnsafe.throwException(e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    void acceptThrowing(T t, U u, V v, W w) throws IOException;
+public interface IOQuadConsumer<T, U, V, W> extends TQuadConsumer<T, U, V, W, IOException> {
 }

@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -22,26 +22,24 @@ package net.daporkchop.lib.common.function.throwing;
 
 import net.daporkchop.lib.unsafe.PUnsafe;
 
-import java.io.IOException;
-import java.util.function.BiFunction;
-import java.util.function.Function;
+import java.util.function.BinaryOperator;
 
 /**
- * A {@link Function} that can throw an {@link IOException}
+ * A {@link BinaryOperator} which can throw a {@link Throwable}. The type of {@link Throwable} which is thrown is defined by a type parameter.
  *
  * @author DaPorkchop_
+ * @see BinaryOperator
  */
 @FunctionalInterface
-public interface EBiFunction<T, U, R> extends BiFunction<T, U, R> {
+public interface TBinaryOperator<T, E extends Throwable> extends BinaryOperator<T> {
     @Override
-    default R apply(T t, U u) {
+    default T apply(T t, T t2) {
         try {
-            return this.applyThrowing(t, u);
-        } catch (Exception e) {
-            PUnsafe.throwException(e);
-            throw new RuntimeException(e);
+            return this.applyThrowing(t, t2);
+        } catch (Throwable e) { //rethrow
+            throw PUnsafe.throwException(e);
         }
     }
 
-    R applyThrowing(T t, U u) throws Exception;
+    T applyThrowing(T t, T t2) throws E;
 }

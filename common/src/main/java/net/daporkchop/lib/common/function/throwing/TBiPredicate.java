@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -22,23 +22,24 @@ package net.daporkchop.lib.common.function.throwing;
 
 import net.daporkchop.lib.unsafe.PUnsafe;
 
-import java.io.IOException;
-import java.util.function.Consumer;
+import java.util.function.BiPredicate;
 
 /**
+ * A {@link BiPredicate} which can throw a {@link Throwable}. The type of {@link Throwable} which is thrown is defined by a type parameter.
+ *
  * @author DaPorkchop_
+ * @see BiPredicate
  */
 @FunctionalInterface
-public interface EConsumer<T> extends Consumer<T> {
+public interface TBiPredicate<T, U, E extends Throwable> extends BiPredicate<T, U> {
     @Override
-    default void accept(T t) {
+    default boolean test(T t, U u) {
         try {
-            this.acceptThrowing(t);
-        } catch (Exception e) {
-            PUnsafe.throwException(e);
-            throw new RuntimeException(e);
+            return this.testThrowing(t, u);
+        } catch (Throwable e) { //rethrow
+            throw PUnsafe.throwException(e);
         }
     }
 
-    void acceptThrowing(T t) throws Exception;
+    boolean testThrowing(T t, U u) throws E;
 }

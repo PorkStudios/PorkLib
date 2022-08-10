@@ -18,19 +18,27 @@
  *
  */
 
-package net.daporkchop.lib.common.function.io;
+package net.daporkchop.lib.common.function.throwing;
 
-import net.daporkchop.lib.common.function.throwing.TFunction;
-
-import java.io.IOException;
-import java.util.function.Function;
+import net.daporkchop.lib.common.function.plain.TriFunction;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 /**
- * A {@link Function} which can throw an {@link IOException}.
+ * A {@link TriFunction} which can throw a {@link Throwable}. The type of {@link Throwable} which is thrown is defined by a type parameter.
  *
  * @author DaPorkchop_
- * @see Function
+ * @see TriFunction
  */
 @FunctionalInterface
-public interface IOFunction<T, R> extends TFunction<T, R, IOException> {
+public interface TTriFunction<T, U, V, R, E extends Throwable> extends TriFunction<T, U, V, R> {
+    @Override
+    default R apply(T t, U u, V v) {
+        try {
+            return this.applyThrowing(t, u, v);
+        } catch (Throwable e) { //rethrow
+            throw PUnsafe.throwException(e);
+        }
+    }
+
+    R applyThrowing(T t, U u, V v) throws E;
 }

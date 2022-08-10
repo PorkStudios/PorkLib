@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -22,12 +22,8 @@ package net.daporkchop.lib.logging.format;
 
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.common.function.throwing.ERunnable;
-import net.daporkchop.lib.logging.format.component.TextComponent;
+import net.daporkchop.lib.common.function.exception.ERunnable;
 import net.daporkchop.lib.unsafe.PCleaner;
-
-import java.util.function.Consumer;
 
 /**
  * A {@link MessagePrinter} which uses a resource that must be closed when no longer needed by this printer.

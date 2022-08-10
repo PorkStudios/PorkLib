@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -18,27 +18,18 @@
  *
  */
 
-package net.daporkchop.lib.common.function.throwing;
+package net.daporkchop.lib.common.function.exception;
 
-import net.daporkchop.lib.unsafe.PUnsafe;
+import net.daporkchop.lib.common.function.throwing.TBiFunction;
 
-import java.io.IOException;
-import java.util.function.UnaryOperator;
+import java.util.function.BiFunction;
 
 /**
+ * A {@link BiFunction} which can throw an {@link Exception}.
+ *
  * @author DaPorkchop_
+ * @see BiFunction
  */
 @FunctionalInterface
-public interface EUnaryOperator<T> extends UnaryOperator<T> {
-    @Override
-    default T apply(T t) {
-        try {
-            return this.applyThrowing(t);
-        } catch (Exception e) {
-            PUnsafe.throwException(e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    T applyThrowing(T t) throws Exception;
+public interface EBiFunction<T, U, R> extends TBiFunction<T, U, R, Exception> {
 }

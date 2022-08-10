@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -18,26 +18,18 @@
  *
  */
 
-package net.daporkchop.lib.common.function.throwing;
+package net.daporkchop.lib.common.function.exception;
 
-import net.daporkchop.lib.unsafe.PUnsafe;
+import net.daporkchop.lib.common.function.throwing.TBinaryOperator;
 
-import java.io.IOException;
+import java.util.function.BinaryOperator;
 
 /**
+ * A {@link BinaryOperator} which can throw an {@link Exception}.
+ *
  * @author DaPorkchop_
+ * @see BinaryOperator
  */
 @FunctionalInterface
-public interface ERunnable extends Runnable {
-    @Override
-    default void run() {
-        try {
-            this.runThrowing();
-        } catch (Exception e) {
-            PUnsafe.throwException(e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    void runThrowing() throws Exception;
+public interface EBinaryOperator<T> extends TBinaryOperator<T, Exception> {
 }

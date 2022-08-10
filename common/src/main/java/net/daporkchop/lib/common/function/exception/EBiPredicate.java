@@ -18,19 +18,18 @@
  *
  */
 
-package net.daporkchop.lib.common.function.io;
+package net.daporkchop.lib.common.function.exception;
 
-import net.daporkchop.lib.common.function.throwing.TFunction;
+import net.daporkchop.lib.common.function.throwing.TBiPredicate;
 
-import java.io.IOException;
-import java.util.function.Function;
+import java.util.function.BiPredicate;
 
 /**
- * A {@link Function} which can throw an {@link IOException}.
+ * A {@link BiPredicate} which can throw an {@link Exception}.
  *
  * @author DaPorkchop_
- * @see Function
+ * @see BiPredicate
  */
 @FunctionalInterface
-public interface IOFunction<T, R> extends TFunction<T, R, IOException> {
+public interface EBiPredicate<T, U> extends TBiPredicate<T, U, Exception> {
 }

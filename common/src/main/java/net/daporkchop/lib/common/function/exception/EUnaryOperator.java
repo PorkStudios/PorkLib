@@ -18,19 +18,18 @@
  *
  */
 
-package net.daporkchop.lib.common.function.io;
+package net.daporkchop.lib.common.function.exception;
 
-import net.daporkchop.lib.common.function.throwing.TFunction;
+import net.daporkchop.lib.common.function.throwing.TUnaryOperator;
 
-import java.io.IOException;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 /**
- * A {@link Function} which can throw an {@link IOException}.
+ * A {@link UnaryOperator} which can throw an {@link Exception}.
  *
  * @author DaPorkchop_
- * @see Function
+ * @see UnaryOperator
  */
 @FunctionalInterface
-public interface IOFunction<T, R> extends TFunction<T, R, IOException> {
+public interface EUnaryOperator<T> extends TUnaryOperator<T, Exception> {
 }

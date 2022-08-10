@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -18,30 +18,23 @@
  *
  */
 
-package net.daporkchop.lib.common.function.throwing;
+package net.daporkchop.lib.common.function.exception;
 
-import net.daporkchop.lib.common.function.plain.TriFunction;
-import net.daporkchop.lib.unsafe.PUnsafe;
+import net.daporkchop.lib.common.function.throwing.TSupplier;
 
-import java.io.IOException;
-import java.util.function.Function;
+import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 
 /**
- * A {@link Function} that can throw an {@link Exception}
+ * A {@link Supplier} which can throw an {@link Exception}.
  *
  * @author DaPorkchop_
+ * @see Supplier
  */
 @FunctionalInterface
-public interface ETriFunction<T, U, V, R> extends TriFunction<T, U, V, R> {
+public interface ESupplier<T> extends TSupplier<T, Exception>, Callable<T> {
     @Override
-    default R apply(T t, U u, V v) {
-        try {
-            return this.applyThrowing(t, u, v);
-        } catch (Exception e) {
-            PUnsafe.throwException(e);
-            throw new RuntimeException(e);
-        }
+    default T call() throws Exception {
+        return this.getThrowing();
     }
-
-    R applyThrowing(T t, U u, V v) throws Exception;
 }

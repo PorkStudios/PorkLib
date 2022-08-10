@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -20,25 +20,22 @@
 
 package net.daporkchop.lib.common.function.io;
 
-import net.daporkchop.lib.unsafe.PUnsafe;
+import net.daporkchop.lib.common.function.throwing.TSupplier;
 
 import java.io.IOException;
+import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 
 /**
+ * A {@link Supplier} which can throw an {@link IOException}.
+ *
  * @author DaPorkchop_
+ * @see Supplier
  */
 @FunctionalInterface
-public interface IOSupplier<T> extends Supplier<T> {
+public interface IOSupplier<T> extends TSupplier<T, IOException>, Callable<T> {
     @Override
-    default T get() {
-        try {
-            return this.getThrowing();
-        } catch (IOException e) {
-            PUnsafe.throwException(e);
-            throw new RuntimeException(e);
-        }
+    default T call() throws IOException {
+        return this.getThrowing();
     }
-
-    T getThrowing() throws IOException;
 }

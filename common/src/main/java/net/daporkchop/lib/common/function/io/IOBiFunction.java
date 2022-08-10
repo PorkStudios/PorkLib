@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -20,28 +20,17 @@
 
 package net.daporkchop.lib.common.function.io;
 
-import net.daporkchop.lib.unsafe.PUnsafe;
+import net.daporkchop.lib.common.function.throwing.TBiFunction;
 
 import java.io.IOException;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 /**
- * A {@link Function} that can throw an {@link IOException}
+ * A {@link BiFunction} which can throw an {@link IOException}.
  *
  * @author DaPorkchop_
+ * @see BiFunction
  */
 @FunctionalInterface
-public interface IOBiFunction<T, U, R> extends BiFunction<T, U, R> {
-    @Override
-    default R apply(T t, U u) {
-        try {
-            return this.applyThrowing(t, u);
-        } catch (IOException e) {
-            PUnsafe.throwException(e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    R applyThrowing(T t, U u) throws IOException;
+public interface IOBiFunction<T, U, R> extends TBiFunction<T, U, R, IOException> {
 }

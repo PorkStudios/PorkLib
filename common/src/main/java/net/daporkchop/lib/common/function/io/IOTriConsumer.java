@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -21,24 +21,16 @@
 package net.daporkchop.lib.common.function.io;
 
 import net.daporkchop.lib.common.function.plain.TriConsumer;
-import net.daporkchop.lib.unsafe.PUnsafe;
+import net.daporkchop.lib.common.function.throwing.TTriConsumer;
 
 import java.io.IOException;
 
 /**
+ * A {@link TriConsumer} which can throw an {@link IOException}.
+ *
  * @author DaPorkchop_
+ * @see TriConsumer
  */
 @FunctionalInterface
-public interface IOTriConsumer<T, U, V> extends TriConsumer<T, U, V> {
-    @Override
-    default void accept(T t, U u, V v) {
-        try {
-            this.acceptThrowing(t, u, v);
-        } catch (IOException e) {
-            PUnsafe.throwException(e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    void acceptThrowing(T t, U u, V v) throws IOException;
+public interface IOTriConsumer<T, U, V> extends TTriConsumer<T, U, V, IOException> {
 }

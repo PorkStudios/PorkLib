@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -18,27 +18,17 @@
  *
  */
 
-package net.daporkchop.lib.common.function.throwing;
+package net.daporkchop.lib.common.function.exception;
 
-import net.daporkchop.lib.unsafe.PUnsafe;
-
-import java.io.IOException;
-import java.util.function.BiPredicate;
+import net.daporkchop.lib.common.function.plain.TriFunction;
+import net.daporkchop.lib.common.function.throwing.TTriFunction;
 
 /**
+ * A {@link TriFunction} which can throw an {@link Exception}.
+ *
  * @author DaPorkchop_
+ * @see TriFunction
  */
 @FunctionalInterface
-public interface EBiPredicate<T, U> extends BiPredicate<T, U> {
-    @Override
-    default boolean test(T t, U u) {
-        try {
-            return this.testThrowing(t, u);
-        } catch (Exception e) {
-            PUnsafe.throwException(e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    boolean testThrowing(T t, U u) throws Exception;
+public interface ETriFunction<T, U, V, R> extends TTriFunction<T, U, V, R, Exception> {
 }

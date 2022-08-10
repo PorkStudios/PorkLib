@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -20,26 +20,17 @@
 
 package net.daporkchop.lib.common.function.io;
 
-import net.daporkchop.lib.unsafe.PUnsafe;
-import net.daporkchop.lib.unsafe.PUnsafe;
+import net.daporkchop.lib.common.function.throwing.TBiConsumer;
 
 import java.io.IOException;
 import java.util.function.BiConsumer;
 
 /**
+ * A {@link BiConsumer} which can throw an {@link IOException}.
+ *
  * @author DaPorkchop_
+ * @see BiConsumer
  */
 @FunctionalInterface
-public interface IOBiConsumer<T, U> extends BiConsumer<T, U> {
-    @Override
-    default void accept(T t, U u) {
-        try {
-            this.acceptThrowing(t, u);
-        } catch (IOException e) {
-            PUnsafe.throwException(e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    void acceptThrowing(T t, U u) throws IOException;
+public interface IOBiConsumer<T, U> extends TBiConsumer<T, U, IOException> {
 }

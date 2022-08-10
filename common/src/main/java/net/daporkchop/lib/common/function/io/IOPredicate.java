@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -20,25 +20,17 @@
 
 package net.daporkchop.lib.common.function.io;
 
-import net.daporkchop.lib.unsafe.PUnsafe;
+import net.daporkchop.lib.common.function.throwing.TPredicate;
 
 import java.io.IOException;
 import java.util.function.Predicate;
 
 /**
+ * A {@link Predicate} which can throw an {@link IOException}.
+ *
  * @author DaPorkchop_
+ * @see Predicate
  */
 @FunctionalInterface
-public interface IOPredicate<T> extends Predicate<T> {
-    @Override
-    default boolean test(T t) {
-        try {
-            return this.testThrowing(t);
-        } catch (IOException e) {
-            PUnsafe.throwException(e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    boolean testThrowing(T t) throws IOException;
+public interface IOPredicate<T> extends TPredicate<T, IOException> {
 }

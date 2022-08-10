@@ -18,19 +18,17 @@
  *
  */
 
-package net.daporkchop.lib.common.function.io;
+package net.daporkchop.lib.common.function.exception;
 
-import net.daporkchop.lib.common.function.throwing.TFunction;
-
-import java.io.IOException;
-import java.util.function.Function;
+import net.daporkchop.lib.common.function.plain.QuadConsumer;
+import net.daporkchop.lib.common.function.throwing.TQuadConsumer;
 
 /**
- * A {@link Function} which can throw an {@link IOException}.
+ * A {@link QuadConsumer} which can throw an {@link Exception}.
  *
  * @author DaPorkchop_
- * @see Function
+ * @see QuadConsumer
  */
 @FunctionalInterface
-public interface IOFunction<T, R> extends TFunction<T, R, IOException> {
+public interface EQuadConsumer<T, U, V, W> extends TQuadConsumer<T, U, V, W, Exception> {
 }

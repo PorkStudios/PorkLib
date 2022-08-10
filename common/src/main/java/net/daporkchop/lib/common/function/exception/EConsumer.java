@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -18,27 +18,18 @@
  *
  */
 
-package net.daporkchop.lib.common.function.throwing;
+package net.daporkchop.lib.common.function.exception;
 
-import net.daporkchop.lib.common.function.plain.QuadConsumer;
-import net.daporkchop.lib.unsafe.PUnsafe;
+import net.daporkchop.lib.common.function.throwing.TConsumer;
 
-import java.io.IOException;
+import java.util.function.Consumer;
 
 /**
+ * A {@link Consumer} which can throw an {@link Exception}.
+ *
  * @author DaPorkchop_
+ * @see Consumer
  */
 @FunctionalInterface
-public interface EQuadConsumer<T, U, V, W> extends QuadConsumer<T, U, V, W> {
-    @Override
-    default void accept(T t, U u, V v, W w) {
-        try {
-            this.acceptThrowing(t, u, v, w);
-        } catch (Exception e) {
-            PUnsafe.throwException(e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    void acceptThrowing(T t, U u, V v, W w) throws Exception;
+public interface EConsumer<T> extends TConsumer<T, Exception> {
 }

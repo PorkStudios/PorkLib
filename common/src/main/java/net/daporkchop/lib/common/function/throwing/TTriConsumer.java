@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -20,25 +20,25 @@
 
 package net.daporkchop.lib.common.function.throwing;
 
+import net.daporkchop.lib.common.function.plain.TriConsumer;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
-import java.io.IOException;
-import java.util.function.BinaryOperator;
-
 /**
+ * A {@link TriConsumer} which can throw a {@link Throwable}. The type of {@link Throwable} which is thrown is defined by a type parameter.
+ *
  * @author DaPorkchop_
+ * @see TriConsumer
  */
 @FunctionalInterface
-public interface EBinaryOperator<T> extends BinaryOperator<T> {
+public interface TTriConsumer<T, U, V, E extends Throwable> extends TriConsumer<T, U, V> {
     @Override
-    default T apply(T t, T t2) {
+    default void accept(T t, U u, V v) {
         try {
-            return this.applyThrowing(t, t2);
-        } catch (Exception e) {
-            PUnsafe.throwException(e);
-            throw new RuntimeException(e);
+            this.acceptThrowing(t, u, v);
+        } catch (Throwable e) { //rethrow
+            throw PUnsafe.throwException(e);
         }
     }
 
-    T applyThrowing(T t, T t2) throws Exception;
+    void acceptThrowing(T t, U u, V v) throws E;
 }

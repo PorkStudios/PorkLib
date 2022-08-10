@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -18,29 +18,16 @@
  *
  */
 
-package net.daporkchop.lib.common.function.throwing;
+package net.daporkchop.lib.common.function.exception;
 
-import net.daporkchop.lib.unsafe.PUnsafe;
-
-import java.io.IOException;
-import java.util.function.Function;
+import net.daporkchop.lib.common.function.throwing.TRunnable;
 
 /**
- * A {@link Function} that can throw an {@link IOException}
+ * A {@link Runnable} which can throw an {@link Exception}.
  *
  * @author DaPorkchop_
+ * @see Runnable
  */
 @FunctionalInterface
-public interface EFunction<T, R> extends Function<T, R> {
-    @Override
-    default R apply(T t) {
-        try {
-            return this.applyThrowing(t);
-        } catch (Exception e) {
-            PUnsafe.throwException(e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    R applyThrowing(T t) throws Exception;
+public interface ERunnable extends TRunnable<Exception> {
 }

@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -22,23 +22,24 @@ package net.daporkchop.lib.common.function.throwing;
 
 import net.daporkchop.lib.unsafe.PUnsafe;
 
-import java.io.IOException;
-import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
+ * A {@link Function} which can throw a {@link Throwable}. The type of {@link Throwable} which is thrown is defined by a type parameter.
+ *
  * @author DaPorkchop_
+ * @see Function
  */
 @FunctionalInterface
-public interface EBiConsumer<T, U> extends BiConsumer<T, U> {
+public interface TFunction<T, R, E extends Throwable> extends Function<T, R> {
     @Override
-    default void accept(T t, U u) {
+    default R apply(T t) {
         try {
-            this.acceptThrowing(t, u);
-        } catch (Exception e) {
-            PUnsafe.throwException(e);
-            throw new RuntimeException(e);
+            return this.applyThrowing(t);
+        } catch (Throwable e) { //rethrow
+            throw PUnsafe.throwException(e);
         }
     }
 
-    void acceptThrowing(T t, U u) throws Exception;
+    R applyThrowing(T t) throws E;
 }

@@ -668,8 +668,9 @@ public class PUnsafe {
     // THROW EXCEPTIONS
     //
 
-    public void throwException(Throwable t) {
+    public Error throwException(Throwable t) {
         UNSAFE.throwException(t);
+        throw new AssertionError("impossible", t); //this code can never be reached
     }
 
     //

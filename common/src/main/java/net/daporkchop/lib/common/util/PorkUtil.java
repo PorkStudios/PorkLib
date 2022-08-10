@@ -71,7 +71,7 @@ public class PorkUtil {
     public final HandledPool<StringBuilder> STRINGBUILDER_POOL = HandledPool.threadLocal(StringBuilder::new, 4); //TODO: make this soft
 
     public final DateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-    public final String PORKLIB_VERSION = preventInline("0.5.7-SNAPSHOT"); //TODO: set this dynamically
+    public final String PORKLIB_VERSION = preventInline("0.5.8-SNAPSHOT"); //TODO: set this dynamically
     public final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
 
     public final boolean[] EMPTY_BOOLEAN_ARRAY = new boolean[0];

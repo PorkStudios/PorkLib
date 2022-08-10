@@ -1842,8 +1842,8 @@ public class PTypes {
         }
     }
 
-    public static Stream<Type> allInheritedSupertypes(@NonNull Class<?> clazz) {
-        return allRawSupertypes(clazz).map(rawSupertype -> inheritedGenericSupertype(clazz, rawSupertype));
+    public static Stream<Type> allInheritedSupertypes(@NonNull Type type) {
+        return allRawSupertypes(raw(type)).map(rawSupertype -> inheritedGenericSupertype(type, rawSupertype));
     }
 
     /**

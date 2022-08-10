@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -39,7 +39,6 @@ import java.io.Closeable;
 import java.io.DataOutput;
 import java.io.EOFException;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -48,6 +47,8 @@ import java.nio.channels.ClosedChannelException;
 import java.nio.channels.GatheringByteChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import static java.lang.Math.*;
 import static net.daporkchop.lib.common.util.PValidation.*;
@@ -107,14 +108,42 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
     }
 
     /**
-     * @see #wrapBuffered(File)
+     * @see #wrap(Path)
      */
     static DataOut wrap(@NonNull File file) throws IOException {
+        return wrap(file.toPath());
+    }
+
+    /**
+     * @see #wrapBuffered(Path)
+     */
+    static DataOut wrapBuffered(@NonNull File file) throws IOException {
+        return wrapBuffered(file.toPath());
+    }
+
+    /**
+     * @see #wrapBuffered(Path, int)
+     */
+    static DataOut wrapBuffered(@NonNull File file, int bufferSize) throws IOException {
+        return wrapBuffered(file.toPath(), bufferSize);
+    }
+
+    /**
+     * @see #wrapUnbuffered(Path)
+     */
+    static DataOut wrapUnbuffered(@NonNull File file) throws IOException {
+        return wrapUnbuffered(file.toPath());
+    }
+
+    /**
+     * @see #wrapBuffered(Path)
+     */
+    static DataOut wrap(@NonNull Path file) throws IOException {
         return wrapBuffered(file);
     }
 
     /**
-     * Gets a {@link DataOut} for writing to a {@link File}.
+     * Gets a {@link DataOut} for writing to a {@link Path}.
      * <p>
      * This stream will additionally be buffered for faster write access, using the default buffer size of 8192 bytes.
      *
@@ -122,12 +151,12 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @return a buffered {@link DataOut} that will write to the given file
      * @throws IOException if an IO exception occurs you dummy
      */
-    static DataOut wrapBuffered(@NonNull File file) throws IOException {
-        return wrap(new BufferedOutputStream(new FileOutputStream(file)));
+    static DataOut wrapBuffered(@NonNull Path file) throws IOException {
+        return wrap(new BufferedOutputStream(Files.newOutputStream(file)));
     }
 
     /**
-     * Gets a {@link DataOut} for writing to a {@link File}.
+     * Gets a {@link DataOut} for writing to a {@link Path}.
      * <p>
      * This stream will additionally be buffered for faster write access, using the given buffer size.
      *
@@ -136,12 +165,12 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @return a buffered {@link DataOut} that will write to the given file
      * @throws IOException if an IO exception occurs you dummy
      */
-    static DataOut wrapBuffered(@NonNull File file, int bufferSize) throws IOException {
-        return wrap(new BufferedOutputStream(new FileOutputStream(file), bufferSize));
+    static DataOut wrapBuffered(@NonNull Path file, int bufferSize) throws IOException {
+        return wrap(new BufferedOutputStream(Files.newOutputStream(file), bufferSize));
     }
 
     /**
-     * Gets a {@link DataOut} for writing to a {@link File}.
+     * Gets a {@link DataOut} for writing to a {@link Path}.
      * <p>
      * {@link DataOut} instances returned by this method will NOT be buffered.
      *
@@ -149,8 +178,30 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @return a direct {@link DataOut} that will write to the given file
      * @throws IOException if an IO exception occurs you dummy
      */
-    static DataOut wrapNonBuffered(@NonNull File file) throws IOException {
-        return wrap(new FileOutputStream(file));
+    static DataOut wrapUnbuffered(@NonNull Path file) throws IOException {
+        return wrap(Files.newOutputStream(file));
+    }
+
+    /**
+     * Gets a {@link DataOut} which writes to the given {@code byte[]}.
+     *
+     * @param arr the {@code byte[]} to write to
+     * @return the wrapped {@code byte[]}
+     */
+    static DataOut wrap(@NonNull byte[] arr) {
+        return wrap(ByteBuffer.wrap(arr));
+    }
+
+    /**
+     * Gets a {@link DataOut} which writes to the given slice of the given {@code byte[]}.
+     *
+     * @param arr the {@code byte[]} to write to
+     * @param off the offset in the array to begin writing at
+     * @param len the maximum number of bytes to write
+     * @return the wrapped {@code byte[]}
+     */
+    static DataOut wrap(@NonNull byte[] arr, int off, int len) {
+        return wrap(ByteBuffer.wrap(arr, off, len));
     }
 
     /**
@@ -255,10 +306,10 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * Writes a {@code short} in the given {@link ByteOrder}.
      *
      * @see #writeShort(int)
-     * @see #writeShortLE(int) 
+     * @see #writeShortLE(int)
      */
     default void writeShort(int v, @NonNull ByteOrder order) throws IOException {
-        if (order == ByteOrder.BIG_ENDIAN)  {
+        if (order == ByteOrder.BIG_ENDIAN) {
             this.writeShort(v);
         } else {
             this.writeShortLE(v);
@@ -287,7 +338,7 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @see #writeCharLE(int)
      */
     default void writeChar(int v, @NonNull ByteOrder order) throws IOException {
-        if (order == ByteOrder.BIG_ENDIAN)  {
+        if (order == ByteOrder.BIG_ENDIAN) {
             this.writeChar(v);
         } else {
             this.writeCharLE(v);
@@ -316,7 +367,7 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @see #writeIntLE(int)
      */
     default void writeInt(int v, @NonNull ByteOrder order) throws IOException {
-        if (order == ByteOrder.BIG_ENDIAN)  {
+        if (order == ByteOrder.BIG_ENDIAN) {
             this.writeInt(v);
         } else {
             this.writeIntLE(v);
@@ -345,7 +396,7 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @see #writeLongLE(long)
      */
     default void writeLong(long v, @NonNull ByteOrder order) throws IOException {
-        if (order == ByteOrder.BIG_ENDIAN)  {
+        if (order == ByteOrder.BIG_ENDIAN) {
             this.writeLong(v);
         } else {
             this.writeLongLE(v);
@@ -377,7 +428,7 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @see #writeFloatLE(float)
      */
     default void writeFloat(float f, @NonNull ByteOrder order) throws IOException {
-        if (order == ByteOrder.BIG_ENDIAN)  {
+        if (order == ByteOrder.BIG_ENDIAN) {
             this.writeFloat(f);
         } else {
             this.writeFloatLE(f);
@@ -409,7 +460,7 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @see #writeDoubleLE(double)
      */
     default void writeDouble(double d, @NonNull ByteOrder order) throws IOException {
-        if (order == ByteOrder.BIG_ENDIAN)  {
+        if (order == ByteOrder.BIG_ENDIAN) {
             this.writeDouble(d);
         } else {
             this.writeDoubleLE(d);
@@ -636,12 +687,13 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
     /**
      * Writes a Mojang-style VarInt.
      * <p>
-     * As described at https://wiki.vg/index.php?title=Protocol&oldid=14204#VarInt_and_VarLong
+     * As described at <a href="https://wiki.vg/index.php?title=Protocol&oldid=14204#VarInt_and_VarLong">
+     * https://wiki.vg/index.php?title=Protocol&oldid=14204#VarInt_and_VarLong</a>.
      *
      * @param value the value to write
      */
     default void writeVarInt(int value) throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get())   {
+        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
             byte[] arr = handle.get();
             int i = 0;
             do {
@@ -668,12 +720,13 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
     /**
      * Writes a Mojang-style VarLong.
      * <p>
-     * As described at https://wiki.vg/index.php?title=Protocol&oldid=14204#VarInt_and_VarLong
+     * As described at <a href="https://wiki.vg/index.php?title=Protocol&oldid=14204#VarInt_and_VarLong">
+     * https://wiki.vg/index.php?title=Protocol&oldid=14204#VarInt_and_VarLong</a>.
      *
      * @param value the value to write
      */
     default void writeVarLong(long value) throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get())   {
+        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
             byte[] arr = handle.get();
             int i = 0;
             do {
@@ -871,8 +924,8 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @return the number of bytes transferred
      * @throws EOFException if EOF is reached before the requested number of bytes can be transferred
      */
-    default long transferFromFully(@NonNull DataIn src, long count) throws IOException   {
-        if (this.transferFrom(src, count) != count)   {
+    default long transferFromFully(@NonNull DataIn src, long count) throws IOException {
+        if (this.transferFrom(src, count) != count) {
             throw new EOFException();
         }
         return count;

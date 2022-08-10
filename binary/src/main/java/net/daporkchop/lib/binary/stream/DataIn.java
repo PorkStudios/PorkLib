@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -38,7 +38,6 @@ import java.io.Closeable;
 import java.io.DataInput;
 import java.io.EOFException;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -47,6 +46,8 @@ import java.nio.channels.ClosedChannelException;
 import java.nio.channels.ScatteringByteChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.function.Function;
 
@@ -89,28 +90,56 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
     }
 
     /**
-     * @see #wrapBuffered(File)
+     * @see #wrap(Path)
      */
     static DataIn wrap(@NonNull File file) throws IOException {
+        return wrap(file.toPath());
+    }
+
+    /**
+     * @see #wrapBuffered(Path)
+     */
+    static DataIn wrapBuffered(@NonNull File file) throws IOException {
+        return wrapBuffered(file.toPath());
+    }
+
+    /**
+     * @see #wrapBuffered(Path, int)
+     */
+    static DataIn wrapBuffered(@NonNull File file, int bufferSize) throws IOException {
+        return wrapBuffered(file.toPath(), bufferSize);
+    }
+
+    /**
+     * @see #wrapUnbuffered(Path)
+     */
+    static DataIn wrapUnbuffered(@NonNull File file) throws IOException {
+        return wrapUnbuffered(file.toPath());
+    }
+
+    /**
+     * @see #wrapBuffered(Path)
+     */
+    static DataIn wrap(@NonNull Path file) throws IOException {
         return wrapBuffered(file);
     }
 
     /**
-     * Gets a {@link DataIn} for reading from a {@link File}.
+     * Gets a {@link DataIn} for reading from a {@link Path}.
      * <p>
-     * The file will additionally be wrapped in a {@link BufferedInputStream} for faster read/write access, using
-     * the default buffer size of {@link BufferedInputStream#DEFAULT_BUFFER_SIZE}.
+     * The file will additionally be wrapped in a {@link BufferedInputStream} for potentially faster read access, using the default buffer size of
+     * {@link BufferedInputStream#DEFAULT_BUFFER_SIZE}.
      *
      * @param file the file to read from
      * @return a buffered {@link DataIn} that will read from the given file
      * @throws IOException if an IO exception occurs you dummy
      */
-    static DataIn wrapBuffered(@NonNull File file) throws IOException {
-        return wrap(new BufferedInputStream(new FileInputStream(file)));
+    static DataIn wrapBuffered(@NonNull Path file) throws IOException {
+        return wrap(new BufferedInputStream(Files.newInputStream(file)));
     }
 
     /**
-     * Gets a {@link DataIn} for reading from a {@link File}.
+     * Gets a {@link DataIn} for reading from a {@link Path}.
      * <p>
      * The file will additionally be wrapped in a {@link BufferedInputStream} for faster read/write access, using
      * the given buffer size.
@@ -120,12 +149,12 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @return a buffered {@link DataIn} that will read from the given file
      * @throws IOException if an IO exception occurs you dummy
      */
-    static DataIn wrapBuffered(@NonNull File file, int bufferSize) throws IOException {
-        return wrap(new BufferedInputStream(new FileInputStream(file), bufferSize));
+    static DataIn wrapBuffered(@NonNull Path file, int bufferSize) throws IOException {
+        return wrap(new BufferedInputStream(Files.newInputStream(file), bufferSize));
     }
 
     /**
-     * Gets a {@link DataIn} for reading from a {@link File}.
+     * Gets a {@link DataIn} for reading from a {@link Path}.
      * <p>
      * {@link DataIn} instances returned from this method will NOT be buffered.
      *
@@ -133,8 +162,30 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @return a direct {@link DataIn} that will read from the given file
      * @throws IOException if an IO exception occurs you dummy
      */
-    static DataIn wrapNonBuffered(@NonNull File file) throws IOException {
-        return wrap(new FileInputStream(file));
+    static DataIn wrapUnbuffered(@NonNull Path file) throws IOException {
+        return wrap(Files.newInputStream(file));
+    }
+
+    /**
+     * Gets a {@link DataIn} which reads from the given {@code byte[]}.
+     *
+     * @param arr the {@code byte[]} to read from
+     * @return the wrapped {@code byte[]}
+     */
+    static DataIn wrap(@NonNull byte[] arr) {
+        return wrap(ByteBuffer.wrap(arr));
+    }
+
+    /**
+     * Gets a {@link DataIn} which reads from the given slice of the given {@code byte[]}.
+     *
+     * @param arr the {@code byte[]} to read from
+     * @param off the offset in the array to begin reading from
+     * @param len the maximum number of bytes to read
+     * @return the wrapped {@code byte[]}
+     */
+    static DataIn wrap(@NonNull byte[] arr, int off, int len) {
+        return wrap(ByteBuffer.wrap(arr, off, len));
     }
 
     /**
@@ -248,7 +299,7 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @see #readShort()
      * @see #readShortLE()
      */
-    default short readShort(@NonNull ByteOrder order) throws IOException    {
+    default short readShort(@NonNull ByteOrder order) throws IOException {
         return order == ByteOrder.BIG_ENDIAN ? this.readShort() : this.readShortLE();
     }
 
@@ -258,7 +309,7 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @see #readUnsignedShort()
      * @see #readUnsignedShortLE()
      */
-    default int readUnsignedShort(@NonNull ByteOrder order) throws IOException    {
+    default int readUnsignedShort(@NonNull ByteOrder order) throws IOException {
         return order == ByteOrder.BIG_ENDIAN ? this.readUnsignedShort() : this.readUnsignedShortLE();
     }
 
@@ -283,7 +334,7 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @see #readChar()
      * @see #readCharLE()
      */
-    default char readChar(@NonNull ByteOrder order) throws IOException    {
+    default char readChar(@NonNull ByteOrder order) throws IOException {
         return order == ByteOrder.BIG_ENDIAN ? this.readChar() : this.readCharLE();
     }
 
@@ -308,7 +359,7 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @see #readInt()
      * @see #readIntLE()
      */
-    default int readInt(@NonNull ByteOrder order) throws IOException    {
+    default int readInt(@NonNull ByteOrder order) throws IOException {
         return order == ByteOrder.BIG_ENDIAN ? this.readInt() : this.readIntLE();
     }
 
@@ -333,7 +384,7 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @see #readLong()
      * @see #readLongLE()
      */
-    default long readLong(@NonNull ByteOrder order) throws IOException    {
+    default long readLong(@NonNull ByteOrder order) throws IOException {
         return order == ByteOrder.BIG_ENDIAN ? this.readLong() : this.readLongLE();
     }
 
@@ -362,7 +413,7 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @see #readFloat()
      * @see #readFloatLE()
      */
-    default float readFloat(@NonNull ByteOrder order) throws IOException    {
+    default float readFloat(@NonNull ByteOrder order) throws IOException {
         return order == ByteOrder.BIG_ENDIAN ? this.readFloat() : this.readFloatLE();
     }
 
@@ -391,7 +442,7 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @see #readDouble()
      * @see #readDoubleLE()
      */
-    default double readDouble(@NonNull ByteOrder order) throws IOException    {
+    default double readDouble(@NonNull ByteOrder order) throws IOException {
         return order == ByteOrder.BIG_ENDIAN ? this.readDouble() : this.readDoubleLE();
     }
 
@@ -514,7 +565,8 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
     /**
      * Reads a Mojang-style VarInt.
      * <p>
-     * As described at https://wiki.vg/index.php?title=Protocol&oldid=14204#VarInt_and_VarLong
+     * As described at <a href="https://wiki.vg/index.php?title=Protocol&oldid=14204#VarInt_and_VarLong">
+     * https://wiki.vg/index.php?title=Protocol&oldid=14204#VarInt_and_VarLong</a>.
      *
      * @return the read value
      */
@@ -546,7 +598,8 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
     /**
      * Reads a Mojang-style VarLong.
      * <p>
-     * As described at https://wiki.vg/index.php?title=Protocol&oldid=14204#VarInt_and_VarLong
+     * As described at <a href="https://wiki.vg/index.php?title=Protocol&oldid=14204#VarInt_and_VarLong">
+     * https://wiki.vg/index.php?title=Protocol&oldid=14204#VarInt_and_VarLong</a>.
      *
      * @return the read value
      */
@@ -964,8 +1017,8 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @return the number of bytes transferred
      * @throws EOFException if EOF is reached before the requested number of bytes can be transferred
      */
-    default long transferToFully(@NonNull DataOut dst, long count) throws IOException   {
-        if (this.transferTo(dst, count) != count)   {
+    default long transferToFully(@NonNull DataOut dst, long count) throws IOException {
+        if (this.transferTo(dst, count) != count) {
             throw new EOFException();
         }
         return count;

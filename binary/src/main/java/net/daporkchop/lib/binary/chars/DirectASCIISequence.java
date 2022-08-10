@@ -28,8 +28,8 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.misc.string.PStrings;
 import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.unsafe.PUnsafe;
-import net.daporkchop.lib.unsafe.capability.Releasable;
-import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
+import net.daporkchop.lib.common.misc.release.Releasable;
+import net.daporkchop.lib.common.util.exception.AlreadyReleasedException;
 
 import java.nio.MappedByteBuffer;
 

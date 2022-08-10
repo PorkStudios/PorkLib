@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -22,7 +22,6 @@ package net.daporkchop.lib.compression.zstd.natives;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.buffer.Unpooled;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -31,7 +30,7 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
 import net.daporkchop.lib.compression.zstd.ZstdDeflateDictionary;
 import net.daporkchop.lib.unsafe.PCleaner;
-import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
+import net.daporkchop.lib.common.util.exception.AlreadyReleasedException;
 
 /**
  * @author DaPorkchop_

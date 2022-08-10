@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -22,7 +22,7 @@ package net.daporkchop.lib.collections.spliterator;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.unsafe.util.AbstractReleasable;
+import net.daporkchop.lib.common.misc.release.AbstractReleasable;
 
 import java.util.Spliterator;
 import java.util.function.Consumer;

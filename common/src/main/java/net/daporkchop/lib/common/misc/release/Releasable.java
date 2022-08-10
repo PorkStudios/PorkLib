@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -18,35 +18,29 @@
  *
  */
 
-package net.daporkchop.lib.unsafe.capability;
+package net.daporkchop.lib.common.misc.release;
+
+import net.daporkchop.lib.common.util.exception.AlreadyReleasedException;
 
 /**
- * A variant of {@link DirectMemoryHolder} which allows external access to the underlying memory
- * block owned by this instance.
+ * A type that contains resources that may be manually released.
  *
  * @author DaPorkchop_
  */
-@Deprecated
-public interface AccessibleDirectMemoryHolder extends DirectMemoryHolder {
+public interface Releasable extends AutoCloseable {
     /**
-     * @return an object (possibly {@code null}) that is used as a relative reference
-     */
-    Object memoryRef();
-
-    /**
-     * @return the offset of the direct memory relative to {@link #memoryRef()}
-     */
-    long memoryOff();
-
-    /**
-     * Gets the total size (in bytes) of the memory block addressed by this instance.
+     * Releases all resources used by this instance.
      * <p>
-     * The base address of the memory block in question may be accessed by {@link #memoryOff()}.
-     * <p>
-     * This method may be invoked safely (without throwing an exception) even if the memory has been
-     * released, however, the results are undefined.
+     * After invoking this method, this instance should be treated as invalid and one should assume that
+     * using any fields/methods defined by superclasses will result in undefined behavior, unless the
+     * superclass implementations specifically state otherwise.
      *
-     * @return the size of the memory block
+     * @throws AlreadyReleasedException if the resources used by this instance have already been released
      */
-    long memorySize();
+    void release() throws AlreadyReleasedException;
+
+    @Override
+    default void close() {
+        this.release();
+    }
 }

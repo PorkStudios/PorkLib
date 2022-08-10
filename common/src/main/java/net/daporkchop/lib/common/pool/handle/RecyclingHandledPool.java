@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -24,7 +24,7 @@ import io.netty.util.Recycler;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
-import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
+import net.daporkchop.lib.common.util.exception.AlreadyReleasedException;
 
 import java.util.function.Supplier;
 

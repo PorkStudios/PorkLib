@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -26,7 +26,7 @@ import net.daporkchop.lib.imaging.color.ColorFormatABW;
 import net.daporkchop.lib.imaging.color.ColorFormatBW;
 import net.daporkchop.lib.imaging.color.ColorFormatRGB;
 import net.daporkchop.lib.imaging.util.exception.BitmapCoordinatesOutOfBoundsException;
-import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
+import net.daporkchop.lib.common.util.exception.AlreadyReleasedException;
 
 import javax.swing.*;
 import java.awt.*;

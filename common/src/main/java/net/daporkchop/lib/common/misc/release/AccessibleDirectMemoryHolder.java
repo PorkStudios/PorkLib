@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -18,25 +18,35 @@
  *
  */
 
-package net.daporkchop.lib.unsafe.util.exception;
+package net.daporkchop.lib.common.misc.release;
 
 /**
+ * A variant of {@link DirectMemoryHolder} which allows external access to the underlying memory
+ * block owned by this instance.
+ *
  * @author DaPorkchop_
  */
-public class AlreadyReleasedException extends RuntimeException {
-    public AlreadyReleasedException() {
-        super();
-    }
+@Deprecated
+public interface AccessibleDirectMemoryHolder extends DirectMemoryHolder {
+    /**
+     * @return an object (possibly {@code null}) that is used as a relative reference
+     */
+    Object memoryRef();
 
-    public AlreadyReleasedException(String message) {
-        super(message);
-    }
+    /**
+     * @return the offset of the direct memory relative to {@link #memoryRef()}
+     */
+    long memoryOff();
 
-    public AlreadyReleasedException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public AlreadyReleasedException(Throwable cause) {
-        super(cause);
-    }
+    /**
+     * Gets the total size (in bytes) of the memory block addressed by this instance.
+     * <p>
+     * The base address of the memory block in question may be accessed by {@link #memoryOff()}.
+     * <p>
+     * This method may be invoked safely (without throwing an exception) even if the memory has been
+     * released, however, the results are undefined.
+     *
+     * @return the size of the memory block
+     */
+    long memorySize();
 }

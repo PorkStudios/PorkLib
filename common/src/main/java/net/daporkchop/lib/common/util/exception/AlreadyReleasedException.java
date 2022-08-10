@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -18,29 +18,25 @@
  *
  */
 
-package net.daporkchop.lib.unsafe.capability;
-
-import net.daporkchop.lib.unsafe.util.exception.AlreadyReleasedException;
+package net.daporkchop.lib.common.util.exception;
 
 /**
- * A type that contains resources that may be manually released.
- *
  * @author DaPorkchop_
  */
-public interface Releasable extends AutoCloseable {
-    /**
-     * Releases all resources used by this instance.
-     * <p>
-     * After invoking this method, this instance should be treated as invalid and one should assume that
-     * using any fields/methods defined by superclasses will result in undefined behavior, unless the
-     * superclass implementations specifically state otherwise.
-     *
-     * @throws AlreadyReleasedException if the resources used by this instance have already been released
-     */
-    void release() throws AlreadyReleasedException;
+public class AlreadyReleasedException extends RuntimeException {
+    public AlreadyReleasedException() {
+        super();
+    }
 
-    @Override
-    default void close() {
-        this.release();
+    public AlreadyReleasedException(String message) {
+        super(message);
+    }
+
+    public AlreadyReleasedException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public AlreadyReleasedException(Throwable cause) {
+        super(cause);
     }
 }

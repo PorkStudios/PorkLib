@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -87,8 +87,7 @@ public final class SunCleaner extends PCleaner {
         } catch (NoClassDefFoundError e)  {
             System.err.println("sun.misc.Cleaner does not exist!");
             e.printStackTrace();
-            PUnsafe.throwException(e);
-            throw new RuntimeException(e);
+            throw PUnsafe.throwException(e);
         } catch (Throwable e)   {
             throw new RuntimeException("Unable to initialize SunCleaner!", e);
         }

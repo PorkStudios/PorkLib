@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -25,7 +25,6 @@ import net.daporkchop.lib.unsafe.cleaner.Java9Cleaner;
 import net.daporkchop.lib.unsafe.cleaner.SunCleaner;
 import sun.misc.Cleaner;
 
-import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiFunction;
 
@@ -38,14 +37,8 @@ import java.util.function.BiFunction;
  * @author DaPorkchop_
  */
 public abstract class PCleaner {
-    private static final BiFunction<Object, Runnable, PCleaner> CLEANER_PROVIDER;
-
-    static {
-        int[] version = Arrays.stream(System.getProperty("java.specification.version", "1.6").split("\\.")).mapToInt(Integer::parseInt).toArray();
-        int javaVersion = version[0] == 1 ? version[1] : version[0];
-
-        CLEANER_PROVIDER = javaVersion <= 8 ? SunCleaner::new : Java9Cleaner::new;
-    }
+    @SuppressWarnings("StaticInitializerReferencesSubClass")
+    private static final BiFunction<Object, Runnable, PCleaner> CLEANER_PROVIDER = UnsafePlatformInfo.JAVA_VERSION <= 8 ? SunCleaner::new : Java9Cleaner::new;
 
     /**
      * Makes a new cleaner targeting a given object. When that object is garbage collected, the given

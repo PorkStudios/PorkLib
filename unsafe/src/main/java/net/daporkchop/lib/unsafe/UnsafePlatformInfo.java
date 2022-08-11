@@ -18,31 +18,27 @@
  *
  */
 
-package net.daporkchop.lib.common.system;
+package net.daporkchop.lib.unsafe;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
+import lombok.experimental.UtilityClass;
+
+import java.nio.ByteOrder;
+import java.util.Arrays;
 
 /**
- * An enumeration of common operating systems.
+ * Internal platform-specific information used by the {@code :unsafe} module.
  *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-public enum OperatingSystem {
-    Linux("\n"),
-    FreeBSD("\n"),
-    OpenBSD("\n"),
-    NetBSD("\n"),
-    Solaris("\n"),
-    Windows("\r\n"),
-    OSX("\r"),
-    UNKNOWN("\n");
+@UtilityClass
+class UnsafePlatformInfo {
+    public static final int JAVA_VERSION;
 
-    @NonNull
-    private final String lineEnding;
+    static {
+        int[] version = Arrays.stream(System.getProperty("java.specification.version", "1.6").split("\\.")).mapToInt(Integer::parseInt).toArray();
+        JAVA_VERSION = version[0] == 1 ? version[1] : version[0];
+    }
+
+    public static boolean IS_BIG_ENDIAN = ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN;
+    public static boolean IS_LITTLE_ENDIAN = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN;
 }

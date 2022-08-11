@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -21,10 +21,12 @@
 package net.daporkchop.lib.common.system;
 
 import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.lang.reflect.Method;
 import java.nio.ByteOrder;
 import java.util.Arrays;
+import java.util.Locale;
 
 /**
  * Contains information about the current platform, such as CPU architecture, operating system and Java version.
@@ -91,7 +93,7 @@ public class PlatformInfo {
     public final OperatingSystem OPERATING_SYSTEM;
 
     static {
-        String os = System.getProperty("os.name", "").toLowerCase().replaceAll("[^a-z0-9]+", "");
+        String os = System.getProperty("os.name", "").toLowerCase(Locale.US).replaceAll("[^a-z\\d]+", "");
 
         if (os.startsWith("linux")) {
             OPERATING_SYSTEM = OperatingSystem.Linux;
@@ -105,6 +107,8 @@ public class PlatformInfo {
             OPERATING_SYSTEM = OperatingSystem.Solaris;
         } else if (os.startsWith("windows")) {
             OPERATING_SYSTEM = OperatingSystem.Windows;
+        } else if (os.startsWith("macosx") || os.startsWith("osx") || os.startsWith("darwin")) {
+            OPERATING_SYSTEM = OperatingSystem.OSX;
         } else {
             OPERATING_SYSTEM = OperatingSystem.UNKNOWN;
         }
@@ -114,30 +118,15 @@ public class PlatformInfo {
 
     static {
         int[] version = Arrays.stream(System.getProperty("java.specification.version", "1.6").split("\\.")).mapToInt(Integer::parseInt).toArray();
-
         JAVA_VERSION = version[0] == 1 ? version[1] : version[0];
     }
 
     public final boolean IS_32BIT = ARCHITECTURE.bits() == 32;
     public final boolean IS_64BIT = ARCHITECTURE.bits() == 64;
 
-    public final boolean UNALIGNED;
-
-    static {
-        boolean unaligned = false;
-        try {
-            Class<?> bitsClass = Class.forName("java.nio.Bits", false, ClassLoader.getSystemClassLoader());
-            Method unalignedMethod = bitsClass.getDeclaredMethod("unaligned");
-            unalignedMethod.setAccessible(true);
-            unaligned = (boolean) unalignedMethod.invoke(null);
-        } catch (Exception e) {
-            unaligned = ARCHITECTURE == Architecture.x86 || ARCHITECTURE == Architecture.x86_64;
-        } finally {
-            UNALIGNED = unaligned;
-        }
-    }
+    public final boolean UNALIGNED = PUnsafe.UNALIGNED;
 
     public final ByteOrder BYTE_ORDER = ByteOrder.nativeOrder();
-    public final boolean IS_LITTLE_ENDIAN = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN;
-    public final boolean IS_BIG_ENDIAN = ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN;
+    public final boolean IS_LITTLE_ENDIAN = BYTE_ORDER == ByteOrder.LITTLE_ENDIAN;
+    public final boolean IS_BIG_ENDIAN = BYTE_ORDER == ByteOrder.BIG_ENDIAN;
 }

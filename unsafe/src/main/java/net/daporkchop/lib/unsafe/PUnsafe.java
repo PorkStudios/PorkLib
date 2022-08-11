@@ -27,10 +27,14 @@ import sun.misc.Unsafe;
 import sun.nio.ch.DirectBuffer;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.Buffer;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.ProtectionDomain;
+
+import static net.daporkchop.lib.unsafe.UnsafePlatformInfo.*;
 
 /**
  * Wrapper class around {@link Unsafe}.
@@ -40,6 +44,7 @@ import java.security.ProtectionDomain;
  *
  * @author DaPorkchop_
  */
+@SuppressWarnings({ "PointlessArithmeticExpression", "unused", "UnusedReturnValue" })
 @UtilityClass
 public class PUnsafe {
     /**
@@ -179,6 +184,43 @@ public class PUnsafe {
      */
     public final int PAGE_SIZE = UNSAFE.pageSize();
 
+    /**
+     * Whether the system allows unaligned memory accesses.
+     */
+    public final boolean UNALIGNED = AccessController.doPrivileged((PrivilegedAction<Boolean>) () -> {
+        boolean unaligned;
+        try {
+            Class<?> bitsClass = Class.forName("java.nio.Bits", false, ClassLoader.getSystemClassLoader());
+            if (UnsafePlatformInfo.JAVA_VERSION >= 9) {
+                try {
+                    Field field = bitsClass.getDeclaredField(UnsafePlatformInfo.JAVA_VERSION >= 11 ? "UNALIGNED" : "unaligned");
+                    if (field.getType() == boolean.class) {
+                        return new UnsafeStaticField(field).getBoolean();
+                    }
+                } catch (NoSuchFieldException e) {
+                    //silently ignore exception and continue
+                }
+            }
+
+            Method unalignedMethod = bitsClass.getDeclaredMethod("unaligned");
+            unalignedMethod.setAccessible(true);
+            unaligned = (boolean) unalignedMethod.invoke(null);
+        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException | SecurityException e) {
+            unaligned = false;
+        }
+
+        if (!unaligned) { //unaligned memory access isn't available, check to see if we're on x86
+            try {
+                //noinspection DynamicRegexReplaceableByCompiledPattern
+                unaligned = System.getProperty("os.arch", "").matches("^(i[3-6]86|x86(_64)?|x64|amd64)$");
+            } catch (SecurityException e) {
+                //silently ignore and continue
+            }
+        }
+
+        return unaligned;
+    });
+
     //
     // SYSTEM INFORMATION
     //
@@ -207,7 +249,6 @@ public class PUnsafe {
     // ARRAY OFFSET ACCESSORS
     //
 
-    //the computations here are in an unintuitive order to allow JIT to optimize them into FMA instructions where possible
     public long arrayBooleanElementOffset(int index) {
         return index * ARRAY_BOOLEAN_INDEX_SCALE + ARRAY_BOOLEAN_BASE_OFFSET;
     }
@@ -326,12 +367,13 @@ public class PUnsafe {
     // NON-VOLATILE OFF-HEAP ACCESSORS
     //
 
-    public int getInt(long addr) {
-        return UNSAFE.getInt(addr);
+    //for some reason the ordinary Unsafe class doesn't have a boolean variant without an object base...
+    public boolean getBoolean(long addr) {
+        return UNSAFE.getBoolean(null, addr);
     }
 
-    public void putInt(long addr, int val) {
-        UNSAFE.putInt(addr, val);
+    public void putBoolean(long addr, boolean val) {
+        UNSAFE.putBoolean(null, addr, val);
     }
 
     public byte getByte(long addr) {
@@ -356,6 +398,14 @@ public class PUnsafe {
 
     public void putChar(long addr, char val) {
         UNSAFE.putChar(addr, val);
+    }
+
+    public int getInt(long addr) {
+        return UNSAFE.getInt(addr);
+    }
+
+    public void putInt(long addr, int val) {
+        UNSAFE.putInt(addr, val);
     }
 
     public long getLong(long addr) {
@@ -849,8 +899,732 @@ public class PUnsafe {
     }
 
     //
+    // UNALIGNED MEMORY ACCESSORS
     //
-    // custom array methods
+    // unlike the ordinary get/set methods, which always operate using the native byte order and may or may not support unaligned accesses, these methods will always
+    // support unaligned accesses in exchange for potentially being slower. they're intended to be used for (de)serialization, where byte order is important and
+    // alignments are likely to differ from what the platform expects.
     //
-    //
+
+    // short
+
+    public short getUnalignedShort(long addr) {
+        if (UNALIGNED) {
+            return getShort(addr);
+        } else {
+            return IS_BIG_ENDIAN ? getUnalignedShortBE(addr) : getUnalignedShortLE(addr);
+        }
+    }
+
+    public short getUnalignedShort(Object base, long offset) {
+        if (UNALIGNED) {
+            return getShort(base, offset);
+        } else {
+            return IS_BIG_ENDIAN ? getUnalignedShortBE(base, offset) : getUnalignedShortLE(base, offset);
+        }
+    }
+
+    public void putUnalignedShort(long addr, short val) {
+        if (UNALIGNED) {
+            putShort(addr, val);
+        } else {
+            if (IS_BIG_ENDIAN) {
+                putUnalignedShortBE(addr, val);
+            } else {
+                putUnalignedShortLE(addr, val);
+            }
+        }
+    }
+
+    public void putUnalignedShort(Object base, long offset, short val) {
+        if (UNALIGNED) {
+            putShort(base, offset, val);
+        } else {
+            if (IS_BIG_ENDIAN) {
+                putUnalignedShortBE(base, offset, val);
+            } else {
+                putUnalignedShortLE(base, offset, val);
+            }
+        }
+    }
+
+    public short getUnalignedShortBE(long addr) {
+        if (UNALIGNED) {
+            short value = getShort(addr);
+            return IS_BIG_ENDIAN ? value : Short.reverseBytes(value);
+        } else {
+            return (short) ((getByte(addr + 0L) << 8) | (getByte(addr + 1L) & 0xFF));
+        }
+    }
+
+    public short getUnalignedShortBE(Object base, long offset) {
+        if (UNALIGNED) {
+            short value = getShort(base, offset);
+            return IS_BIG_ENDIAN ? value : Short.reverseBytes(value);
+        } else {
+            return (short) ((getByte(base, offset + 0L) << 8) | (getByte(base, offset + 1L) & 0xFF));
+        }
+    }
+
+    public void putUnalignedShortBE(long addr, short val) {
+        if (UNALIGNED) {
+            putShort(addr, IS_BIG_ENDIAN ? val : Short.reverseBytes(val));
+        } else {
+            putByte(addr + 0L, (byte) (val >>> 8));
+            putByte(addr + 1L, (byte) val);
+        }
+    }
+
+    public void putUnalignedShortBE(Object base, long offset, short val) {
+        if (UNALIGNED) {
+            putShort(base, offset, IS_BIG_ENDIAN ? val : Short.reverseBytes(val));
+        } else {
+            putByte(base, offset + 0L, (byte) (val >>> 8));
+            putByte(base, offset + 1L, (byte) val);
+        }
+    }
+
+    public short getUnalignedShortLE(long addr) {
+        if (UNALIGNED) {
+            short value = getShort(addr);
+            return IS_LITTLE_ENDIAN ? value : Short.reverseBytes(value);
+        } else {
+            return (short) ((getByte(addr + 0L) & 0xFF) | (getByte(addr + 1L) << 8));
+        }
+    }
+
+    public short getUnalignedShortLE(Object base, long offset) {
+        if (UNALIGNED) {
+            short value = getShort(base, offset);
+            return IS_LITTLE_ENDIAN ? value : Short.reverseBytes(value);
+        } else {
+            return (short) ((getByte(base, offset + 0L) & 0xFF) | (getByte(base, offset + 1L) << 8));
+        }
+    }
+
+    public void putUnalignedShortLE(long addr, short val) {
+        if (UNALIGNED) {
+            putShort(addr, IS_LITTLE_ENDIAN ? val : Short.reverseBytes(val));
+        } else {
+            putByte(addr + 0L, (byte) val);
+            putByte(addr + 1L, (byte) (val >>> 8));
+        }
+    }
+
+    public void putUnalignedShortLE(Object base, long offset, short val) {
+        if (UNALIGNED) {
+            putShort(base, offset, IS_LITTLE_ENDIAN ? val : Short.reverseBytes(val));
+        } else {
+            putByte(base, offset + 0L, (byte) val);
+            putByte(base, offset + 1L, (byte) (val >>> 8));
+        }
+    }
+
+    // char
+
+    public char getUnalignedChar(long addr) {
+        if (UNALIGNED) {
+            return getChar(addr);
+        } else {
+            return IS_BIG_ENDIAN ? getUnalignedCharBE(addr) : getUnalignedCharLE(addr);
+        }
+    }
+
+    public char getUnalignedChar(Object base, long offset) {
+        if (UNALIGNED) {
+            return getChar(base, offset);
+        } else {
+            return IS_BIG_ENDIAN ? getUnalignedCharBE(base, offset) : getUnalignedCharLE(base, offset);
+        }
+    }
+
+    public void putUnalignedChar(long addr, char val) {
+        if (UNALIGNED) {
+            putChar(addr, val);
+        } else {
+            if (IS_BIG_ENDIAN) {
+                putUnalignedCharBE(addr, val);
+            } else {
+                putUnalignedCharLE(addr, val);
+            }
+        }
+    }
+
+    public void putUnalignedChar(Object base, long offset, char val) {
+        if (UNALIGNED) {
+            putChar(base, offset, val);
+        } else {
+            if (IS_BIG_ENDIAN) {
+                putUnalignedCharBE(base, offset, val);
+            } else {
+                putUnalignedCharLE(base, offset, val);
+            }
+        }
+    }
+
+    public char getUnalignedCharBE(long addr) {
+        if (UNALIGNED) {
+            char value = getChar(addr);
+            return IS_BIG_ENDIAN ? value : Character.reverseBytes(value);
+        } else {
+            return (char) ((getByte(addr + 0L) << 8) | (getByte(addr + 1L) & 0xFF));
+        }
+    }
+
+    public char getUnalignedCharBE(Object base, long offset) {
+        if (UNALIGNED) {
+            char value = getChar(base, offset);
+            return IS_BIG_ENDIAN ? value : Character.reverseBytes(value);
+        } else {
+            return (char) ((getByte(base, offset + 0L) << 8) | (getByte(base, offset + 1L) & 0xFF));
+        }
+    }
+
+    public void putUnalignedCharBE(long addr, char val) {
+        if (UNALIGNED) {
+            putChar(addr, IS_BIG_ENDIAN ? val : Character.reverseBytes(val));
+        } else {
+            putByte(addr + 0L, (byte) (val >>> 8));
+            putByte(addr + 1L, (byte) val);
+        }
+    }
+
+    public void putUnalignedCharBE(Object base, long offset, char val) {
+        if (UNALIGNED) {
+            putChar(base, offset, IS_BIG_ENDIAN ? val : Character.reverseBytes(val));
+        } else {
+            putByte(base, offset + 0L, (byte) (val >>> 8));
+            putByte(base, offset + 1L, (byte) val);
+        }
+    }
+
+    public char getUnalignedCharLE(long addr) {
+        if (UNALIGNED) {
+            char value = getChar(addr);
+            return IS_LITTLE_ENDIAN ? value : Character.reverseBytes(value);
+        } else {
+            return (char) ((getByte(addr + 0L) & 0xFF) | (getByte(addr + 1L) << 8));
+        }
+    }
+
+    public char getUnalignedCharLE(Object base, long offset) {
+        if (UNALIGNED) {
+            char value = getChar(base, offset);
+            return IS_LITTLE_ENDIAN ? value : Character.reverseBytes(value);
+        } else {
+            return (char) ((getByte(base, offset + 0L) & 0xFF) | (getByte(base, offset + 1L) << 8));
+        }
+    }
+
+    public void putUnalignedCharLE(long addr, char val) {
+        if (UNALIGNED) {
+            putChar(addr, IS_LITTLE_ENDIAN ? val : Character.reverseBytes(val));
+        } else {
+            putByte(addr + 0L, (byte) val);
+            putByte(addr + 1L, (byte) (val >>> 8));
+        }
+    }
+
+    public void putUnalignedCharLE(Object base, long offset, char val) {
+        if (UNALIGNED) {
+            putChar(base, offset, IS_LITTLE_ENDIAN ? val : Character.reverseBytes(val));
+        } else {
+            putByte(base, offset + 0L, (byte) val);
+            putByte(base, offset + 1L, (byte) (val >>> 8));
+        }
+    }
+
+    // medium
+
+    public int getUnalignedUnsignedMedium(long addr) {
+        return IS_BIG_ENDIAN ? getUnalignedUnsignedMediumBE(addr) : getUnalignedUnsignedMediumLE(addr);
+    }
+
+    public int getUnalignedUnsignedMedium(Object base, long offset) {
+        return IS_BIG_ENDIAN ? getUnalignedUnsignedMediumBE(base, offset) : getUnalignedUnsignedMediumLE(base, offset);
+    }
+
+    public void putUnalignedUnsignedMedium(long addr, int val) {
+        if (IS_BIG_ENDIAN) {
+            putUnalignedUnsignedMediumBE(addr, val);
+        } else {
+            putUnalignedUnsignedMediumLE(addr, val);
+        }
+    }
+
+    public void putUnalignedUnsignedMedium(Object base, long offset, int val) {
+        if (IS_BIG_ENDIAN) {
+            putUnalignedUnsignedMediumBE(base, offset, val);
+        } else {
+            putUnalignedUnsignedMediumLE(base, offset, val);
+        }
+    }
+
+    public int getUnalignedUnsignedMediumBE(long addr) {
+        if (UNALIGNED) {
+            byte highBits = getByte(addr + 0L);
+            short lowBits = getShort(addr + 1L);
+            return ((IS_BIG_ENDIAN ? lowBits : Short.reverseBytes(lowBits)) & 0xFFFF) | ((highBits & 0xFF) << 16);
+        } else {
+            return ((getByte(addr + 0L) & 0xFF) << 16)
+                   | ((getByte(addr + 1L) & 0xFF) << 8)
+                   | (getByte(addr + 2L) & 0xFF);
+        }
+    }
+
+    public int getUnalignedUnsignedMediumBE(Object base, long offset) {
+        if (UNALIGNED) {
+            byte highBits = getByte(base, offset + 0L);
+            short lowBits = getShort(base, offset + 1L);
+            return ((IS_BIG_ENDIAN ? lowBits : Short.reverseBytes(lowBits)) & 0xFFFF) | ((highBits & 0xFF) << 16);
+        } else {
+            return ((getByte(base, offset + 0L) & 0xFF) << 16)
+                   | ((getByte(base, offset + 1L) & 0xFF) << 8)
+                   | (getByte(base, offset + 2L) & 0xFF);
+        }
+    }
+
+    public void putUnalignedUnsignedMediumBE(long addr, int val) {
+        putByte(addr + 0L, (byte) (val >>> 16));
+        putUnalignedShortBE(addr + 1L, (short) (val >>> 8));
+    }
+
+    public void putUnalignedUnsignedMediumBE(Object base, long offset, int val) {
+        putByte(base, offset + 0L, (byte) (val >>> 16));
+        putUnalignedShortBE(base, offset + 1L, (short) (val >>> 8));
+    }
+
+    public int getUnalignedUnsignedMediumLE(long addr) {
+        if (UNALIGNED) {
+            byte lowBits = getByte(addr + 0L);
+            short highBits = getShort(addr + 1L);
+            return (lowBits & 0xFF) | (((IS_LITTLE_ENDIAN ? highBits : Short.reverseBytes(highBits)) & 0xFFFF) << 8);
+        } else {
+            return (getByte(addr + 0L) & 0xFF)
+                   | ((getByte(addr + 1L) & 0xFF) << 8)
+                   | ((getByte(addr + 2L) & 0xFF) << 16);
+        }
+    }
+
+    public int getUnalignedUnsignedMediumLE(Object base, long offset) {
+        if (UNALIGNED) {
+            byte lowBits = getByte(base, offset + 0L);
+            short highBits = getShort(base, offset + 1L);
+            return (lowBits & 0xFF) | (((IS_LITTLE_ENDIAN ? highBits : Short.reverseBytes(highBits)) & 0xFFFF) << 8);
+        } else {
+            return (getByte(base, offset + 0L) & 0xFF)
+                   | ((getByte(base, offset + 1L) & 0xFF) << 8)
+                   | ((getByte(base, offset + 2L) & 0xFF) << 16);
+        }
+    }
+
+    public void putUnalignedUnsignedMediumLE(long addr, int val) {
+        putByte(addr + 0L, (byte) val);
+        putUnalignedShortLE(addr + 1L, (short) (val >>> 8));
+    }
+
+    public void putUnalignedUnsignedMediumLE(Object base, long offset, int val) {
+        putByte(base, offset + 0L, (byte) val);
+        putUnalignedShortLE(base, offset + 1L, (short) (val >>> 8));
+    }
+
+    // int
+
+    public int getUnalignedInt(long addr) {
+        if (UNALIGNED) {
+            return getInt(addr);
+        } else {
+            return IS_BIG_ENDIAN ? getUnalignedIntBE(addr) : getUnalignedIntLE(addr);
+        }
+    }
+
+    public int getUnalignedInt(Object base, long offset) {
+        if (UNALIGNED) {
+            return getInt(base, offset);
+        } else {
+            return IS_BIG_ENDIAN ? getUnalignedIntBE(base, offset) : getUnalignedIntLE(base, offset);
+        }
+    }
+
+    public void putUnalignedInt(long addr, int val) {
+        if (UNALIGNED) {
+            putInt(addr, val);
+        } else {
+            if (IS_BIG_ENDIAN) {
+                putUnalignedIntBE(addr, val);
+            } else {
+                putUnalignedIntLE(addr, val);
+            }
+        }
+    }
+
+    public void putUnalignedInt(Object base, long offset, int val) {
+        if (UNALIGNED) {
+            putInt(base, offset, val);
+        } else {
+            if (IS_BIG_ENDIAN) {
+                putUnalignedIntBE(base, offset, val);
+            } else {
+                putUnalignedIntLE(base, offset, val);
+            }
+        }
+    }
+
+    public int getUnalignedIntBE(long addr) {
+        if (UNALIGNED) {
+            int value = getInt(addr);
+            return IS_BIG_ENDIAN ? value : Integer.reverseBytes(value);
+        } else {
+            return (getByte(addr + 0L) << 24)
+                   | ((getByte(addr + 1L) & 0xFF) << 16)
+                   | ((getByte(addr + 2L) & 0xFF) << 8)
+                   | (getByte(addr + 3L) & 0xFF);
+        }
+    }
+
+    public int getUnalignedIntBE(Object base, long offset) {
+        if (UNALIGNED) {
+            int value = getInt(base, offset);
+            return IS_BIG_ENDIAN ? value : Integer.reverseBytes(value);
+        } else {
+            return (getByte(base, offset + 0L) << 24)
+                   | ((getByte(base, offset + 1L) & 0xFF) << 16)
+                   | ((getByte(base, offset + 2L) & 0xFF) << 8)
+                   | (getByte(base, offset + 3L) & 0xFF);
+        }
+    }
+
+    public void putUnalignedIntBE(long addr, int val) {
+        if (UNALIGNED) {
+            putInt(addr, IS_BIG_ENDIAN ? val : Integer.reverseBytes(val));
+        } else {
+            putByte(addr + 0L, (byte) (val >>> 24));
+            putByte(addr + 1L, (byte) (val >>> 16));
+            putByte(addr + 2L, (byte) (val >>> 8));
+            putByte(addr + 3L, (byte) val);
+        }
+    }
+
+    public void putUnalignedIntBE(Object base, long offset, int val) {
+        if (UNALIGNED) {
+            putInt(base, offset, IS_BIG_ENDIAN ? val : Integer.reverseBytes(val));
+        } else {
+            putByte(base, offset + 0L, (byte) (val >>> 24));
+            putByte(base, offset + 1L, (byte) (val >>> 16));
+            putByte(base, offset + 2L, (byte) (val >>> 8));
+            putByte(base, offset + 3L, (byte) val);
+        }
+    }
+
+    public int getUnalignedIntLE(long addr) {
+        if (UNALIGNED) {
+            int value = getInt(addr);
+            return IS_LITTLE_ENDIAN ? value : Integer.reverseBytes(value);
+        } else {
+            return (getByte(addr + 0L) & 0xFF)
+                   | ((getByte(addr + 1L) & 0xFF) << 8)
+                   | ((getByte(addr + 2L) & 0xFF) << 16)
+                   | (getByte(addr + 3L) << 24);
+        }
+    }
+
+    public int getUnalignedIntLE(Object base, long offset) {
+        if (UNALIGNED) {
+            int value = getInt(base, offset);
+            return IS_LITTLE_ENDIAN ? value : Integer.reverseBytes(value);
+        } else {
+            return (getByte(base, offset + 0L) & 0xFF)
+                   | ((getByte(base, offset + 1L) & 0xFF) << 8)
+                   | ((getByte(base, offset + 2L) & 0xFF) << 16)
+                   | (getByte(base, offset + 3L) << 24);
+        }
+    }
+
+    public void putUnalignedIntLE(long addr, int val) {
+        if (UNALIGNED) {
+            putInt(addr, IS_LITTLE_ENDIAN ? val : Integer.reverseBytes(val));
+        } else {
+            putByte(addr + 0L, (byte) val);
+            putByte(addr + 1L, (byte) (val >>> 8));
+            putByte(addr + 2L, (byte) (val >>> 16));
+            putByte(addr + 3L, (byte) (val >>> 24));
+        }
+    }
+
+    public void putUnalignedIntLE(Object base, long offset, int val) {
+        if (UNALIGNED) {
+            putInt(base, offset, IS_LITTLE_ENDIAN ? val : Integer.reverseBytes(val));
+        } else {
+            putByte(base, offset + 0L, (byte) val);
+            putByte(base, offset + 1L, (byte) (val >>> 8));
+            putByte(base, offset + 2L, (byte) (val >>> 16));
+            putByte(base, offset + 3L, (byte) (val >>> 24));
+        }
+    }
+
+    // long
+
+    public long getUnalignedLong(long addr) {
+        if (UNALIGNED) {
+            return getLong(addr);
+        } else {
+            return IS_BIG_ENDIAN ? getUnalignedLongBE(addr) : getUnalignedLongLE(addr);
+        }
+    }
+
+    public long getUnalignedLong(Object base, long offset) {
+        if (UNALIGNED) {
+            return getLong(base, offset);
+        } else {
+            return IS_BIG_ENDIAN ? getUnalignedLongBE(base, offset) : getUnalignedLongLE(base, offset);
+        }
+    }
+
+    public void putUnalignedLong(long addr, long val) {
+        if (UNALIGNED) {
+            putLong(addr, val);
+        } else {
+            if (IS_BIG_ENDIAN) {
+                putUnalignedLongBE(addr, val);
+            } else {
+                putUnalignedLongLE(addr, val);
+            }
+        }
+    }
+
+    public void putUnalignedLong(Object base, long offset, long val) {
+        if (UNALIGNED) {
+            putLong(base, offset, val);
+        } else {
+            if (IS_BIG_ENDIAN) {
+                putUnalignedLongBE(base, offset, val);
+            } else {
+                putUnalignedLongLE(base, offset, val);
+            }
+        }
+    }
+
+    public long getUnalignedLongBE(long addr) {
+        if (UNALIGNED) {
+            long value = getLong(addr);
+            return IS_BIG_ENDIAN ? value : Long.reverseBytes(value);
+        } else {
+            return ((long) getByte(addr + 0L) << 56L)
+                   | ((getByte(addr + 1L) & 0xFFL) << 48L)
+                   | ((getByte(addr + 2L) & 0xFFL) << 40L)
+                   | ((getByte(addr + 3L) & 0xFFL) << 32L)
+                   | ((getByte(addr + 4L) & 0xFFL) << 24L)
+                   | ((getByte(addr + 5L) & 0xFFL) << 16L)
+                   | ((getByte(addr + 6L) & 0xFFL) << 8L)
+                   | (getByte(addr + 7L) & 0xFFL);
+        }
+    }
+
+    public long getUnalignedLongBE(Object base, long offset) {
+        if (UNALIGNED) {
+            long value = getLong(base, offset);
+            return IS_BIG_ENDIAN ? value : Long.reverseBytes(value);
+        } else {
+            return ((long) getByte(base, offset + 0L) << 56L)
+                   | ((getByte(base, offset + 1L) & 0xFFL) << 48L)
+                   | ((getByte(base, offset + 2L) & 0xFFL) << 40L)
+                   | ((getByte(base, offset + 3L) & 0xFFL) << 32L)
+                   | ((getByte(base, offset + 4L) & 0xFFL) << 24L)
+                   | ((getByte(base, offset + 5L) & 0xFFL) << 16L)
+                   | ((getByte(base, offset + 6L) & 0xFFL) << 8L)
+                   | (getByte(base, offset + 7L) & 0xFFL);
+        }
+    }
+
+    public void putUnalignedLongBE(long addr, long val) {
+        if (UNALIGNED) {
+            putLong(addr, IS_BIG_ENDIAN ? val : Long.reverseBytes(val));
+        } else {
+            putByte(addr + 0L, (byte) (val >>> 56L));
+            putByte(addr + 1L, (byte) (val >>> 48L));
+            putByte(addr + 2L, (byte) (val >>> 40L));
+            putByte(addr + 3L, (byte) (val >>> 32L));
+            putByte(addr + 4L, (byte) (val >>> 24L));
+            putByte(addr + 5L, (byte) (val >>> 16L));
+            putByte(addr + 6L, (byte) (val >>> 8L));
+            putByte(addr + 7L, (byte) val);
+        }
+    }
+
+    public void putUnalignedLongBE(Object base, long offset, long val) {
+        if (UNALIGNED) {
+            putLong(base, offset, IS_BIG_ENDIAN ? val : Long.reverseBytes(val));
+        } else {
+            putByte(base, offset + 0L, (byte) (val >>> 56L));
+            putByte(base, offset + 1L, (byte) (val >>> 48L));
+            putByte(base, offset + 2L, (byte) (val >>> 40L));
+            putByte(base, offset + 3L, (byte) (val >>> 32L));
+            putByte(base, offset + 4L, (byte) (val >>> 24L));
+            putByte(base, offset + 5L, (byte) (val >>> 16L));
+            putByte(base, offset + 6L, (byte) (val >>> 8L));
+            putByte(base, offset + 7L, (byte) val);
+        }
+    }
+
+    public long getUnalignedLongLE(long addr) {
+        if (UNALIGNED) {
+            long value = getLong(addr);
+            return IS_LITTLE_ENDIAN ? value : Long.reverseBytes(value);
+        } else {
+            return (getByte(addr + 0L) & 0xFFL)
+                   | ((getByte(addr + 1L) & 0xFFL) << 8L)
+                   | ((getByte(addr + 2L) & 0xFFL) << 16L)
+                   | ((getByte(addr + 3L) & 0xFFL) << 24L)
+                   | ((getByte(addr + 4L) & 0xFFL) << 32L)
+                   | ((getByte(addr + 5L) & 0xFFL) << 40L)
+                   | ((getByte(addr + 6L) & 0xFFL) << 48L)
+                   | ((long) getByte(addr + 7L) << 56L);
+        }
+    }
+
+    public long getUnalignedLongLE(Object base, long offset) {
+        if (UNALIGNED) {
+            long value = getLong(base, offset);
+            return IS_LITTLE_ENDIAN ? value : Long.reverseBytes(value);
+        } else {
+            return (getByte(base, offset + 0L) & 0xFFL)
+                   | ((getByte(base, offset + 1L) & 0xFFL) << 8L)
+                   | ((getByte(base, offset + 2L) & 0xFFL) << 16L)
+                   | ((getByte(base, offset + 3L) & 0xFFL) << 24L)
+                   | ((getByte(base, offset + 4L) & 0xFFL) << 32L)
+                   | ((getByte(base, offset + 5L) & 0xFFL) << 40L)
+                   | ((getByte(base, offset + 6L) & 0xFFL) << 48L)
+                   | ((long) getByte(base, offset + 7L) << 56L);
+        }
+    }
+
+    public void putUnalignedLongLE(long addr, long val) {
+        if (UNALIGNED) {
+            putLong(addr, IS_LITTLE_ENDIAN ? val : Long.reverseBytes(val));
+        } else {
+            putByte(addr + 0L, (byte) val);
+            putByte(addr + 1L, (byte) (val >>> 8L));
+            putByte(addr + 2L, (byte) (val >>> 16L));
+            putByte(addr + 3L, (byte) (val >>> 24L));
+            putByte(addr + 4L, (byte) (val >>> 32L));
+            putByte(addr + 5L, (byte) (val >>> 40L));
+            putByte(addr + 6L, (byte) (val >>> 48L));
+            putByte(addr + 7L, (byte) (val >>> 56L));
+        }
+    }
+
+    public void putUnalignedLongLE(Object base, long offset, long val) {
+        if (UNALIGNED) {
+            putLong(base, offset, IS_LITTLE_ENDIAN ? val : Long.reverseBytes(val));
+        } else {
+            putByte(base, offset + 0L, (byte) val);
+            putByte(base, offset + 1L, (byte) (val >>> 8L));
+            putByte(base, offset + 2L, (byte) (val >>> 16L));
+            putByte(base, offset + 3L, (byte) (val >>> 24L));
+            putByte(base, offset + 4L, (byte) (val >>> 32L));
+            putByte(base, offset + 5L, (byte) (val >>> 40L));
+            putByte(base, offset + 6L, (byte) (val >>> 48L));
+            putByte(base, offset + 7L, (byte) (val >>> 56L));
+        }
+    }
+
+    // float
+
+    public float getUnalignedFloat(long addr) {
+        return Float.intBitsToFloat(getUnalignedInt(addr));
+    }
+
+    public float getUnalignedFloat(Object base, long offset) {
+        return Float.intBitsToFloat(getUnalignedInt(base, offset));
+    }
+
+    public void putUnalignedFloat(long addr, float val) {
+        putUnalignedInt(addr, Float.floatToRawIntBits(val));
+    }
+
+    public void putUnalignedFloat(Object base, long offset, float val) {
+        putUnalignedInt(base, offset, Float.floatToRawIntBits(val));
+    }
+
+    public float getUnalignedFloatBE(long addr) {
+        return Float.intBitsToFloat(getUnalignedIntBE(addr));
+    }
+
+    public float getUnalignedFloatBE(Object base, long offset) {
+        return Float.intBitsToFloat(getUnalignedIntBE(base, offset));
+    }
+
+    public void putUnalignedFloatBE(long addr, float val) {
+        putUnalignedIntBE(addr, Float.floatToRawIntBits(val));
+    }
+
+    public void putUnalignedFloatBE(Object base, long offset, float val) {
+        putUnalignedIntBE(base, offset, Float.floatToRawIntBits(val));
+    }
+
+    public float getUnalignedFloatLE(long addr) {
+        return Float.intBitsToFloat(getUnalignedIntLE(addr));
+    }
+
+    public float getUnalignedFloatLE(Object base, long offset) {
+        return Float.intBitsToFloat(getUnalignedIntLE(base, offset));
+    }
+
+    public void putUnalignedFloatLE(long addr, float val) {
+        putUnalignedIntLE(addr, Float.floatToRawIntBits(val));
+    }
+
+    public void putUnalignedFloatLE(Object base, long offset, float val) {
+        putUnalignedIntLE(base, offset, Float.floatToRawIntBits(val));
+    }
+
+    // double
+
+    public double getUnalignedDouble(long addr) {
+        return Double.longBitsToDouble(getUnalignedLong(addr));
+    }
+
+    public double getUnalignedDouble(Object base, long offset) {
+        return Double.longBitsToDouble(getUnalignedLong(base, offset));
+    }
+
+    public void putUnalignedDouble(long addr, double val) {
+        putUnalignedLong(addr, Double.doubleToRawLongBits(val));
+    }
+
+    public void putUnalignedDouble(Object base, long offset, double val) {
+        putUnalignedLong(base, offset, Double.doubleToRawLongBits(val));
+    }
+
+    public double getUnalignedDoubleBE(long addr) {
+        return Double.longBitsToDouble(getUnalignedLongBE(addr));
+    }
+
+    public double getUnalignedDoubleBE(Object base, long offset) {
+        return Double.longBitsToDouble(getUnalignedLongBE(base, offset));
+    }
+
+    public void putUnalignedDoubleBE(long addr, double val) {
+        putUnalignedLongBE(addr, Double.doubleToRawLongBits(val));
+    }
+
+    public void putUnalignedDoubleBE(Object base, long offset, double val) {
+        putUnalignedLongBE(base, offset, Double.doubleToRawLongBits(val));
+    }
+
+    public double getUnalignedDoubleLE(long addr) {
+        return Double.longBitsToDouble(getUnalignedLongLE(addr));
+    }
+
+    public double getUnalignedDoubleLE(Object base, long offset) {
+        return Double.longBitsToDouble(getUnalignedLongLE(base, offset));
+    }
+
+    public void putUnalignedDoubleLE(long addr, double val) {
+        putUnalignedLongLE(addr, Double.doubleToRawLongBits(val));
+    }
+
+    public void putUnalignedDoubleLE(Object base, long offset, double val) {
+        putUnalignedLongLE(base, offset, Double.doubleToRawLongBits(val));
+    }
 }

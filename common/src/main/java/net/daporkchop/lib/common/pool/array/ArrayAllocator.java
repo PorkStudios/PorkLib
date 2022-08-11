@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2021 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -21,6 +21,7 @@
 package net.daporkchop.lib.common.pool.array;
 
 import lombok.NonNull;
+import net.daporkchop.lib.common.annotation.NotThreadSafe;
 import net.daporkchop.lib.common.pool.handle.HandledPool;
 import net.daporkchop.lib.common.reference.ReferenceStrength;
 
@@ -33,6 +34,7 @@ import java.util.function.IntFunction;
  * @author DaPorkchop_
  * @see HandledPool
  */
+@NotThreadSafe
 public interface ArrayAllocator<T> {
     /**
      * Creates a new global {@link ArrayAllocator} which groups arrays based on their size in powers of 2.

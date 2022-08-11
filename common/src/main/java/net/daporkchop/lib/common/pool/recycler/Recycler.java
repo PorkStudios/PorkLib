@@ -21,6 +21,8 @@
 package net.daporkchop.lib.common.pool.recycler;
 
 import lombok.NonNull;
+import net.daporkchop.lib.common.annotation.NotThreadSafe;
+import net.daporkchop.lib.common.annotation.ThreadSafe;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -34,6 +36,7 @@ import java.util.function.Supplier;
  *
  * @author DaPorkchop_
  */
+@NotThreadSafe
 public interface Recycler<T> {
     /**
      * Creates a new pooling {@link Recycler} which will pool an unlimited number of instances.
@@ -80,7 +83,7 @@ public interface Recycler<T> {
      * @param <T>     the type of object to pool
      * @return a new unpooled {@link Recycler}
      */
-    static <T> Recycler<T> unpooled(@NonNull Supplier<? extends T> creator) {
+    static <T> Recycler<T> unpooled(@NonNull @ThreadSafe Supplier<? extends T> creator) {
         return new UnpooledRecycler<T>() {
             @Override
             public T allocateNew() {
@@ -97,7 +100,7 @@ public interface Recycler<T> {
      * @param <T>       the type of object to pool
      * @return a new unpooled {@link Recycler}
      */
-    static <T> Recycler<T> unpooled(@NonNull Supplier<? extends T> creator, @NonNull Consumer<? super T> finalizer) {
+    static <T> Recycler<T> unpooled(@NonNull @ThreadSafe Supplier<? extends T> creator, @NonNull @ThreadSafe Consumer<? super T> finalizer) {
         return new UnpooledRecycler<T>() {
             @Override
             public T allocateNew() {

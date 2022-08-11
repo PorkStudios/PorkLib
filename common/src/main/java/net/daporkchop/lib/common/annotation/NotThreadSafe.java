@@ -18,25 +18,25 @@
  *
  */
 
-package net.daporkchop.lib.common.pool.recycler;
+package net.daporkchop.lib.common.annotation;
 
-import lombok.NonNull;
-import net.daporkchop.lib.common.annotation.ThreadSafe;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * A simple {@link Recycler} which doesn't do any pooling at all, but simply allocates the instances as they're requested.
+ * Indicates that the annotated element is not thread-safe, and that unless documented otherwise, external synchronization mechanisms must be employed for safe access
+ * from multiple concurrent threads.
+ * <p>
+ * Unlike its counterpart, {@link ThreadSafe @ThreadSafe}, this annotation does not strictly require that the target may not be thread-safe, but only that the user must
+ * assume it is not unless specifically documented otherwise. Thus, it may be overridden by {@link ThreadSafe}.
+ * <p>
+ * For types, this applies to all methods, both inherited and declared, as well as all subtypes.
  *
  * @author DaPorkchop_
  */
-@ThreadSafe
-public abstract class UnpooledRecycler<T> implements AbstractRecycler<T> {
-    @Override
-    public T allocate() {
-        return this.allocateNew();
-    }
-
-    @Override
-    public void release(@NonNull T value) {
-        this.reset(value);
-    }
+@Retention(RetentionPolicy.CLASS)
+@Target({ ElementType.TYPE, ElementType.METHOD, ElementType.TYPE_PARAMETER, ElementType.TYPE_USE })
+public @interface NotThreadSafe {
 }

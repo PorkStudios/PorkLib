@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2021 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -22,6 +22,7 @@ package net.daporkchop.lib.common.misc.threadlocal;
 
 import io.netty.util.concurrent.FastThreadLocal;
 import lombok.NonNull;
+import net.daporkchop.lib.common.annotation.ThreadSafe;
 
 import java.util.function.Supplier;
 
@@ -32,6 +33,7 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
  *
  * @author DaPorkchop_
  */
+@ThreadSafe
 public interface TL<T> {
     /**
      * Creates a new thread-local variable, automatically selecting the best implementation to use.
@@ -66,7 +68,7 @@ public interface TL<T> {
      * @param <T>             the value type
      * @return the new thread-local variable
      */
-    static <T> TL<T> initializedWith(@NonNull Supplier<T> initialSupplier) {
+    static <T> TL<T> initializedWith(@NonNull @ThreadSafe Supplier<T> initialSupplier) {
         return NETTY_PRESENT
                 ? new NettyFastTL.WithInitializer<>(initialSupplier)
                 : new JavaTL.WithInitializer<>(initialSupplier);

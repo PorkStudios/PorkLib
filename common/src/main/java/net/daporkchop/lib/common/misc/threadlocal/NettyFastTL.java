@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2021 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -25,6 +25,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.annotation.ThreadSafe;
 
 import java.util.function.Supplier;
 
@@ -55,7 +56,7 @@ public class NettyFastTL<T> extends FastThreadLocal<T> implements TL<T> {
     @RequiredArgsConstructor
     public static class WithInitializer<T> extends NettyFastTL<T> {
         @NonNull
-        protected final Supplier<T> initialSupplier;
+        protected final @ThreadSafe Supplier<T> initialSupplier;
 
         @Override
         protected T initialValue() {

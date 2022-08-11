@@ -124,7 +124,7 @@ public class PlatformInfo {
     public final boolean IS_32BIT = ARCHITECTURE.bits() == 32;
     public final boolean IS_64BIT = ARCHITECTURE.bits() == 64;
 
-    public final boolean UNALIGNED = PUnsafe.UNALIGNED;
+    public final boolean UNALIGNED = PUnsafe.isUnalignedAccessSupported();
 
     public final ByteOrder BYTE_ORDER = ByteOrder.nativeOrder();
     public final boolean IS_LITTLE_ENDIAN = BYTE_ORDER == ByteOrder.LITTLE_ENDIAN;

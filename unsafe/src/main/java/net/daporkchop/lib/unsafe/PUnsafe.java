@@ -50,7 +50,7 @@ public class PUnsafe {
     /**
      * A reference to {@link Unsafe}.
      */
-    public final Unsafe UNSAFE = AccessController.doPrivileged((PrivilegedAction<Unsafe>) () -> {
+    private final Unsafe UNSAFE = AccessController.doPrivileged((PrivilegedAction<Unsafe>) () -> {
         try {
             Field field = Unsafe.class.getDeclaredField("theUnsafe");
             field.setAccessible(true);
@@ -72,122 +72,149 @@ public class PUnsafe {
         }
     });
 
-    //
-    // ARRAY BASE OFFSETS
-    //
+    //the following deprecated fields will be marked as private eventually
 
     /**
-     * The value of {@code arrayBaseOffset(boolean[].class)}.
+     * @deprecated use {@link #arrayBooleanBaseOffset()}
      */
+    @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
     public final long ARRAY_BOOLEAN_BASE_OFFSET = UNSAFE.arrayBaseOffset(boolean[].class);
 
     /**
-     * The value of {@code arrayBaseOffset(byte[].class)}.
+     * @deprecated use {@link #arrayByteBaseOffset()}
      */
+    @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
     public final long ARRAY_BYTE_BASE_OFFSET = UNSAFE.arrayBaseOffset(byte[].class);
 
     /**
-     * The value of {@code arrayBaseOffset(short[].class)}.
+     * @deprecated use {@link #arrayShortBaseOffset()}
      */
+    @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
     public final long ARRAY_SHORT_BASE_OFFSET = UNSAFE.arrayBaseOffset(short[].class);
 
     /**
-     * The value of {@code arrayBaseOffset(char[].class)}.
+     * @deprecated use {@link #arrayCharBaseOffset()}
      */
+    @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
     public final long ARRAY_CHAR_BASE_OFFSET = UNSAFE.arrayBaseOffset(char[].class);
 
     /**
-     * The value of {@code arrayBaseOffset(int[].class)}.
+     * @deprecated use {@link #arrayIntBaseOffset()}
      */
+    @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
     public final long ARRAY_INT_BASE_OFFSET = UNSAFE.arrayBaseOffset(int[].class);
 
     /**
-     * The value of {@code arrayBaseOffset(long[].class)}.
+     * @deprecated use {@link #arrayLongBaseOffset()}
      */
+    @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
     public final long ARRAY_LONG_BASE_OFFSET = UNSAFE.arrayBaseOffset(long[].class);
 
     /**
-     * The value of {@code arrayBaseOffset(float[].class)}.
+     * @deprecated use {@link #arrayFloatBaseOffset()}
      */
+    @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
     public final long ARRAY_FLOAT_BASE_OFFSET = UNSAFE.arrayBaseOffset(float[].class);
 
     /**
-     * The value of {@code arrayBaseOffset(double[].class)}.
+     * @deprecated use {@link #arrayDoubleBaseOffset()}
      */
+    @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
     public final long ARRAY_DOUBLE_BASE_OFFSET = UNSAFE.arrayBaseOffset(double[].class);
 
     /**
-     * The value of {@code arrayBaseOffset(Object[].class)}.
+     * @deprecated use {@link #arrayObjectBaseOffset()}
      */
+    @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
     public final long ARRAY_OBJECT_BASE_OFFSET = UNSAFE.arrayBaseOffset(Object[].class);
 
-    //
-    // ARRAY INDEX SCALES
-    //
-
     /**
-     * The value of {@code arrayIndexScale(boolean[].class)}.
+     * @deprecated use {@link #arrayBooleanIndexScale()}
      */
+    @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
     public final long ARRAY_BOOLEAN_INDEX_SCALE = UNSAFE.arrayIndexScale(boolean[].class);
 
     /**
-     * The value of {@code arrayIndexScale(byte[].class)}.
+     * @deprecated use {@link #arrayByteIndexScale()}
      */
+    @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
     public final long ARRAY_BYTE_INDEX_SCALE = UNSAFE.arrayIndexScale(byte[].class);
 
     /**
-     * The value of {@code arrayIndexScale(short[].class)}.
+     * @deprecated use {@link #arrayShortIndexScale()}
      */
+    @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
     public final long ARRAY_SHORT_INDEX_SCALE = UNSAFE.arrayIndexScale(short[].class);
 
     /**
-     * The value of {@code arrayIndexScale(char[].class)}.
+     * @deprecated use {@link #arrayCharIndexScale()}
      */
+    @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
     public final long ARRAY_CHAR_INDEX_SCALE = UNSAFE.arrayIndexScale(char[].class);
 
     /**
-     * The value of {@code arrayIndexScale(int[].class)}.
+     * @deprecated use {@link #arrayIntIndexScale()}
      */
+    @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
     public final long ARRAY_INT_INDEX_SCALE = UNSAFE.arrayIndexScale(int[].class);
 
     /**
-     * The value of {@code arrayIndexScale(long[].class)}.
+     * @deprecated use {@link #arrayLongIndexScale()}
      */
+    @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
     public final long ARRAY_LONG_INDEX_SCALE = UNSAFE.arrayIndexScale(long[].class);
 
     /**
-     * The value of {@code arrayIndexScale(float[].class)}.
+     * @deprecated use {@link #arrayFloatIndexScale()}
      */
+    @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
     public final long ARRAY_FLOAT_INDEX_SCALE = UNSAFE.arrayIndexScale(float[].class);
 
     /**
-     * The value of {@code arrayIndexScale(double[].class)}.
+     * @deprecated use {@link #arrayDoubleIndexScale()}
      */
+    @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
     public final long ARRAY_DOUBLE_INDEX_SCALE = UNSAFE.arrayIndexScale(double[].class);
 
     /**
-     * The value of {@code arrayIndexScale(Object[].class)}.
+     * @deprecated use {@link #arrayObjectIndexScale()}
      */
+    @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
     public final long ARRAY_OBJECT_INDEX_SCALE = UNSAFE.arrayIndexScale(Object[].class);
 
-    //
-    // ARCHITECTURE INFORMATION
-    //
-
     /**
-     * The value of {@link Unsafe#addressSize()}.
+     * @deprecated use {@link #addressSize()}
      */
+    @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
     public final int ADDRESS_SIZE = UNSAFE.addressSize();
 
     /**
-     * The value of {@link Unsafe#pageSize()}.
+     * @deprecated use {@link #pageSize()}
      */
+    @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
     public final int PAGE_SIZE = UNSAFE.pageSize();
 
-    /**
-     * Whether the system allows unaligned memory accesses.
-     */
-    public final boolean UNALIGNED = AccessController.doPrivileged((PrivilegedAction<Boolean>) () -> {
+    private final boolean UNALIGNED = AccessController.doPrivileged((PrivilegedAction<Boolean>) () -> {
         boolean unaligned;
         try {
             Class<?> bitsClass = Class.forName("java.nio.Bits", false, ClassLoader.getSystemClassLoader());
@@ -222,6 +249,165 @@ public class PUnsafe {
     });
 
     //
+    // ARRAY BASE OFFSETS
+    //
+
+    /**
+     * @return the value of {@code arrayBaseOffset(boolean[].class)}
+     */
+    public long arrayBooleanBaseOffset() {
+        return ARRAY_BOOLEAN_BASE_OFFSET;
+    }
+
+    /**
+     * @return the value of {@code arrayBaseOffset(byte[].class)}
+     */
+    public long arrayByteBaseOffset() {
+        return ARRAY_BYTE_BASE_OFFSET;
+    }
+
+    /**
+     * @return the value of {@code arrayBaseOffset(short[].class)}
+     */
+    public long arrayShortBaseOffset() {
+        return ARRAY_SHORT_BASE_OFFSET;
+    }
+
+    /**
+     * @return the value of {@code arrayBaseOffset(char[].class)}
+     */
+    public long arrayCharBaseOffset() {
+        return ARRAY_CHAR_BASE_OFFSET;
+    }
+
+    /**
+     * @return the value of {@code arrayBaseOffset(int[].class)}
+     */
+    public long arrayIntBaseOffset() {
+        return ARRAY_INT_BASE_OFFSET;
+    }
+
+    /**
+     * @return the value of {@code arrayBaseOffset(long[].class)}
+     */
+    public long arrayLongBaseOffset() {
+        return ARRAY_LONG_BASE_OFFSET;
+    }
+
+    /**
+     * @return the value of {@code arrayBaseOffset(float[].class)}
+     */
+    public long arrayFloatBaseOffset() {
+        return ARRAY_FLOAT_BASE_OFFSET;
+    }
+
+    /**
+     * @return the value of {@code arrayBaseOffset(double[].class)}
+     */
+    public long arrayDoubleBaseOffset() {
+        return ARRAY_DOUBLE_BASE_OFFSET;
+    }
+
+    /**
+     * @return the value of {@code arrayBaseOffset(Object[].class)}
+     */
+    public long arrayObjectBaseOffset() {
+        return ARRAY_OBJECT_BASE_OFFSET;
+    }
+
+    //
+    // ARRAY INDEX SCALES
+    //
+
+    /**
+     * @return the value of {@code arrayIndexScale(boolean[].class)}
+     */
+    public long arrayBooleanIndexScale() {
+        return ARRAY_BOOLEAN_INDEX_SCALE;
+    }
+
+    /**
+     * @return the value of {@code arrayIndexScale(byte[].class)}
+     */
+    public long arrayByteIndexScale() {
+        return ARRAY_BYTE_INDEX_SCALE;
+    }
+
+    /**
+     * @return the value of {@code arrayIndexScale(short[].class)}
+     */
+    public long arrayShortIndexScale() {
+        return ARRAY_SHORT_INDEX_SCALE;
+    }
+
+    /**
+     * @return the value of {@code arrayIndexScale(char[].class)}
+     */
+    public long arrayCharIndexScale() {
+        return ARRAY_CHAR_INDEX_SCALE;
+    }
+
+    /**
+     * @return the value of {@code arrayIndexScale(int[].class)}
+     */
+    public long arrayIntIndexScale() {
+        return ARRAY_INT_INDEX_SCALE;
+    }
+
+    /**
+     * @return the value of {@code arrayIndexScale(long[].class)}
+     */
+    public long arrayLongIndexScale() {
+        return ARRAY_LONG_INDEX_SCALE;
+    }
+
+    /**
+     * @return the value of {@code arrayIndexScale(float[].class)}
+     */
+    public long arrayFloatIndexScale() {
+        return ARRAY_FLOAT_INDEX_SCALE;
+    }
+
+    /**
+     * @return the value of {@code arrayIndexScale(double[].class)}
+     */
+    public long arrayDoubleIndexScale() {
+        return ARRAY_DOUBLE_INDEX_SCALE;
+    }
+
+    /**
+     * @return the value of {@code arrayIndexScale(Object[].class)}
+     */
+    public long arrayObjectIndexScale() {
+        return ARRAY_OBJECT_INDEX_SCALE;
+    }
+
+    //
+    // ARCHITECTURE INFORMATION
+    //
+
+    /**
+     * @return the value of {@link Unsafe#addressSize()}.
+     */
+    public int addressSize() {
+        return ADDRESS_SIZE;
+    }
+
+    /**
+     * @return the value of {@link Unsafe#pageSize()}.
+     */
+    public int pageSize() {
+        return PAGE_SIZE;
+    }
+
+    /**
+     * @return whether the current system supports unaligned memory access
+     */
+    public boolean isUnalignedAccessSupported() {
+        return UNALIGNED;
+    }
+
+    //
     // SYSTEM INFORMATION
     //
 
@@ -237,6 +423,7 @@ public class PUnsafe {
         return UNSAFE.objectFieldOffset(field);
     }
 
+    //TODO: it seems this isn't supported when running in a graalvm native image
     public Object staticFieldBase(Field field) {
         return UNSAFE.staticFieldBase(field);
     }

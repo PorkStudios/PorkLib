@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -24,7 +24,7 @@ import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.AbstractDirectDataIn;
 import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
@@ -64,10 +64,14 @@ final class NativeZlibInflateStream extends AbstractDirectDataIn {
 
     @Override
     protected int read0() throws IOException {
-        try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_TINY_BUFFER_POOL.get()) {
-            long addr = PUnsafe.pork_directBufferAddress(handle.get());
-            return this.read0(addr, 1L) == 1L ? PUnsafe.getByte(addr) & 0xFF : -1;
-        }
+        Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
+        ByteBuffer buf = recycler.allocate();
+
+        long addr = PUnsafe.pork_directBufferAddress(buf);
+        int result = this.read0(addr, 1L) == 1L ? PUnsafe.getByte(addr) & 0xFF : -1;
+
+        recycler.release(buf); //release the buffer to the recycler
+        return result;
     }
 
     @Override
@@ -83,14 +87,14 @@ final class NativeZlibInflateStream extends AbstractDirectDataIn {
             }
             int blockSize = min(length - totalRead, Integer.MAX_VALUE);
             this.lastStatus = this.buf.hasMemoryAddress() ?
-                              updateD2H0(this.ctx,
-                                      this.buf.memoryAddress() + this.buf.readerIndex(), this.buf.readableBytes(),
-                                      dst, start + totalRead, blockSize,
-                                      Z_NO_FLUSH) :
-                              updateH2H0(this.ctx,
-                                      this.buf.array(), this.buf.arrayOffset() + this.buf.readerIndex(), this.buf.readableBytes(),
-                                      dst, start + totalRead, blockSize,
-                                      Z_NO_FLUSH);
+                    updateD2H0(this.ctx,
+                            this.buf.memoryAddress() + this.buf.readerIndex(), this.buf.readableBytes(),
+                            dst, start + totalRead, blockSize,
+                            Z_NO_FLUSH) :
+                    updateH2H0(this.ctx,
+                            this.buf.array(), this.buf.arrayOffset() + this.buf.readerIndex(), this.buf.readableBytes(),
+                            dst, start + totalRead, blockSize,
+                            Z_NO_FLUSH);
 
             this.buf.skipBytes(toInt(this.inflater.getRead(), "read"));
             totalRead += toInt(this.inflater.getWritten(), "written");
@@ -111,14 +115,14 @@ final class NativeZlibInflateStream extends AbstractDirectDataIn {
             }
             int blockSize = toInt(min(length - totalRead, Integer.MAX_VALUE));
             this.lastStatus = this.buf.hasMemoryAddress() ?
-                              updateD2D0(this.ctx,
-                                      this.buf.memoryAddress() + this.buf.readerIndex(), this.buf.readableBytes(),
-                                      addr + totalRead, blockSize,
-                                      Z_NO_FLUSH) :
-                              updateH2D0(this.ctx,
-                                      this.buf.array(), this.buf.arrayOffset() + this.buf.readerIndex(), this.buf.readableBytes(),
-                                      addr + totalRead, blockSize,
-                                      Z_NO_FLUSH);
+                    updateD2D0(this.ctx,
+                            this.buf.memoryAddress() + this.buf.readerIndex(), this.buf.readableBytes(),
+                            addr + totalRead, blockSize,
+                            Z_NO_FLUSH) :
+                    updateH2D0(this.ctx,
+                            this.buf.array(), this.buf.arrayOffset() + this.buf.readerIndex(), this.buf.readableBytes(),
+                            addr + totalRead, blockSize,
+                            Z_NO_FLUSH);
 
             this.buf.skipBytes(toInt(this.inflater.getRead(), "read"));
             totalRead += toInt(this.inflater.getWritten(), "written");

@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -24,7 +24,7 @@ import io.netty.buffer.ByteBuf;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.compression.zstd.Zstd;
 import net.daporkchop.lib.compression.zstd.ZstdDeflateDictionary;
@@ -63,6 +63,12 @@ final class NativeZstd extends NativeFeature<ZstdProvider> implements ZstdProvid
 
     static final int FRAME_HEADER_SIZE_MAX = 18;
 
+    static {
+        if (PorkUtil.bufferSize() < FRAME_HEADER_SIZE_MAX) {
+            throw new AssertionError("PorkUtil.bufferSize() must be at least " + FRAME_HEADER_SIZE_MAX);
+        }
+    }
+
     protected final ZstdDeflaterOptions deflateOptions = new ZstdDeflaterOptions(this);
     protected final ZstdInflaterOptions inflateOptions = new ZstdInflaterOptions(this);
 
@@ -73,12 +79,14 @@ final class NativeZstd extends NativeFeature<ZstdProvider> implements ZstdProvid
         if (src.hasMemoryAddress()) {
             contentSize = frameContentSize0(src.memoryAddress() + src.readerIndex(), src.readableBytes());
         } else {
-            try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_TINY_BUFFER_POOL.get()) {
-                ByteBuffer buffer = handle.get();
-                buffer.position(0).limit(min(src.readableBytes(), FRAME_HEADER_SIZE_MAX));
-                src.getBytes(src.readerIndex(), buffer);
-                contentSize = frameContentSize0(PUnsafe.pork_directBufferAddress(buffer), buffer.limit());
-            }
+            Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
+            ByteBuffer buf = recycler.allocate();
+
+            buf.limit(min(src.readableBytes(), FRAME_HEADER_SIZE_MAX));
+            src.getBytes(src.readerIndex(), buf);
+            contentSize = frameContentSize0(PUnsafe.pork_directBufferAddress(buf), buf.limit());
+
+            recycler.release(buf); //release the buffer to the recycler
         }
 
         if (contentSize >= 0L) {

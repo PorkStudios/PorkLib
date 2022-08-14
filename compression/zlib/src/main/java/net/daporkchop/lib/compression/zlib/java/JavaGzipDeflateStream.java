@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -23,7 +23,7 @@ package net.daporkchop.lib.compression.zlib.java;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PorkUtil;
 
 import java.io.IOException;
@@ -80,11 +80,15 @@ class JavaGzipDeflateStream extends JavaZlibDeflateStream {
             }
         }
 
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] trailer = handle.get();
+        { //write trailer
+            Recycler<byte[]> recycler = PorkUtil.heapBufferRecycler();
+            byte[] trailer = recycler.allocate();
+
             this.writeInt((int) this.crc.getValue(), trailer, 0);
             this.writeInt(this.def.getTotalIn(), trailer, 4);
             this.out.write(trailer, 0, 8);
+
+            recycler.release(trailer); //release the buffer to the recycler
         }
 
         this.out.close();

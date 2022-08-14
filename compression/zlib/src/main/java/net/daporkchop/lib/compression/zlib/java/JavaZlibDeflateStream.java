@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -24,7 +24,7 @@ import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.AbstractHeapDataOut;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PorkUtil;
 
 import java.io.IOException;
@@ -55,12 +55,20 @@ class JavaZlibDeflateStream extends AbstractHeapDataOut {
         if (dict != null && dict.isReadable()) {
             if (dict.hasArray()) {
                 this.def.setDictionary(dict.array(), dict.arrayOffset(), dict.readableBytes());
-            } else {
-                try (Handle<byte[]> handle = PorkUtil.BUFFER_POOL.get()) {
-                    byte[] arr = handle.get();
-                    int len = min(dict.readableBytes(), PorkUtil.BUFFER_SIZE);
+            } else { //copy the dictionary contents onto the heap
+                if (dict.readableBytes() <= PorkUtil.bufferSize()) { //dictionary is small enough to fit into a recycled buffer
+                    Recycler<byte[]> recycler = PorkUtil.heapBufferRecycler();
+                    byte[] arr = recycler.allocate();
+
+                    int len = min(dict.readableBytes(), PorkUtil.bufferSize());
                     dict.getBytes(dict.readerIndex(), arr, 0, len);
                     this.def.setDictionary(arr, 0, len);
+
+                    recycler.release(arr); //release the buffer to the recycler
+                } else { //we need to allocate our own buffer
+                    byte[] arr = new byte[dict.readableBytes()];
+                    dict.readBytes(arr);
+                    this.def.setDictionary(arr);
                 }
             }
         }
@@ -68,11 +76,13 @@ class JavaZlibDeflateStream extends AbstractHeapDataOut {
 
     @Override
     protected void write0(int b) throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            arr[0] = (byte) b;
-            this.write0(arr, 0, 1);
-        }
+        Recycler<byte[]> recycler = PorkUtil.heapBufferRecycler();
+        byte[] buf = recycler.allocate();
+
+        buf[0] = (byte) b;
+        this.write0(buf, 0, 1);
+
+        recycler.release(buf); //release the buffer to the recycler
     }
 
     @Override

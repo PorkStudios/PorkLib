@@ -29,14 +29,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
-import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.common.util.exception.AlreadyReleasedException;
 import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
 import net.daporkchop.lib.compression.zlib.ZlibDeflater;
 import net.daporkchop.lib.compression.zlib.options.ZlibDeflaterOptions;
 import net.daporkchop.lib.unsafe.PCleaner;
 import net.daporkchop.lib.unsafe.PUnsafe;
-import net.daporkchop.lib.common.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -150,7 +150,7 @@ final class NativeZlibDeflater extends AbstractRefCounted.Synchronized implement
 
         long session = this.createSessionAndSetDict(dict);
         try {
-            while (true){
+            while (true) {
                 int status = this.update(src, dst, Z_FINISH);
 
                 //increase indices
@@ -181,12 +181,19 @@ final class NativeZlibDeflater extends AbstractRefCounted.Synchronized implement
         } else if (dict.hasMemoryAddress()) {
             //dictionary is direct (this is fast)
             return newSession0(this.ctx, dict.memoryAddress() + dict.readerIndex(), dict.readableBytes());
-        } else {
-            //dictionary isn't direct, we have to manually copy it into a new buffer
-            try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_BUFFER_POOL.get()) {
-                //this buffer is more than large enough to handle the largest valid dictionary, if a dictionary is WAY too large it'll probably break but you shouldn't be trying to do that in the first place :P
-                ByteBuffer buffer = handle.get();
-                buffer.clear().limit(min(buffer.capacity(), dict.readableBytes()));
+        } else { //dictionary isn't direct, we have to manually copy it into a new buffer
+            if (dict.readableBytes() <= PorkUtil.bufferSize()) { //dictionary is small enough to fit into a recycled buffer
+                Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
+                ByteBuffer buffer = recycler.allocate();
+
+                buffer.limit(min(buffer.capacity(), dict.readableBytes()));
+                dict.getBytes(dict.readerIndex(), buffer);
+                long session = newSession0(this.ctx, PUnsafe.pork_directBufferAddress(buffer.position(0)), buffer.limit());
+
+                recycler.release(buffer); //release the buffer to the recycler
+                return session;
+            } else { //dictionary is very large, we need to allocate a new temporary direct buffer
+                ByteBuffer buffer = ByteBuffer.allocateDirect(dict.readableBytes());
                 dict.getBytes(dict.readerIndex(), buffer);
                 return newSession0(this.ctx, PUnsafe.pork_directBufferAddress(buffer.position(0)), buffer.limit());
             }

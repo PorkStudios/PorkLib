@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2021 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -24,7 +24,7 @@ import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.AbstractDirectDataOut;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
@@ -73,12 +73,14 @@ final class NativeZstdDeflateStream extends AbstractDirectDataOut {
 
     @Override
     protected void write0(int b) throws IOException {
-        try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_TINY_BUFFER_POOL.get()) {
-            ByteBuffer buffer = handle.get();
-            long addr = PUnsafe.pork_directBufferAddress(buffer.clear());
-            buffer.put((byte) b);
-            this.write0(addr, 1L);
-        }
+        Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
+        ByteBuffer buf = recycler.allocate();
+
+        long addr = PUnsafe.pork_directBufferAddress(buf);
+        buf.put((byte) b);
+        this.write0(addr, 1L);
+
+        recycler.release(buf); //release the buffer to the recycler
     }
 
     @Override
@@ -131,12 +133,12 @@ final class NativeZstdDeflateStream extends AbstractDirectDataOut {
         long remaining;
         do {
             remaining = this.buf.hasMemoryAddress() ?
-                        updateD2D0(this.ctx, 0L, 0,
-                                this.buf.memoryAddress() + this.buf.writerIndex(), this.buf.writableBytes(),
-                                ZSTD_e_flush) :
-                        updateD2H0(this.ctx, 0L, 0,
-                                this.buf.array(), this.buf.arrayOffset() + this.buf.writerIndex(), this.buf.writableBytes(),
-                                ZSTD_e_flush);
+                    updateD2D0(this.ctx, 0L, 0,
+                            this.buf.memoryAddress() + this.buf.writerIndex(), this.buf.writableBytes(),
+                            ZSTD_e_flush) :
+                    updateD2H0(this.ctx, 0L, 0,
+                            this.buf.array(), this.buf.arrayOffset() + this.buf.writerIndex(), this.buf.writableBytes(),
+                            ZSTD_e_flush);
             this.buf.writerIndex(this.buf.writerIndex() + toInt(this.deflater.getWritten(), "written"));
             this.drain();
         } while (remaining != 0L);
@@ -151,12 +153,12 @@ final class NativeZstdDeflateStream extends AbstractDirectDataOut {
             long remaining;
             do {
                 remaining = this.buf.hasMemoryAddress() ?
-                            updateD2D0(this.ctx, 0L, 0,
-                                    this.buf.memoryAddress() + this.buf.writerIndex(), this.buf.writableBytes(),
-                                    ZSTD_e_end) :
-                            updateD2H0(this.ctx, 0L, 0,
-                                    this.buf.array(), this.buf.arrayOffset() + this.buf.writerIndex(), this.buf.writableBytes(),
-                                    ZSTD_e_end);
+                        updateD2D0(this.ctx, 0L, 0,
+                                this.buf.memoryAddress() + this.buf.writerIndex(), this.buf.writableBytes(),
+                                ZSTD_e_end) :
+                        updateD2H0(this.ctx, 0L, 0,
+                                this.buf.array(), this.buf.arrayOffset() + this.buf.writerIndex(), this.buf.writableBytes(),
+                                ZSTD_e_end);
                 this.buf.writerIndex(this.buf.writerIndex() + toInt(this.deflater.getWritten(), "written"));
                 this.drain();
             } while (remaining != 0L);

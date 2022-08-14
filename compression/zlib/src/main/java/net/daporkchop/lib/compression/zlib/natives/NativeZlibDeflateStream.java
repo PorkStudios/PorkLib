@@ -24,7 +24,7 @@ import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.AbstractDirectDataOut;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
@@ -68,12 +68,14 @@ final class NativeZlibDeflateStream extends AbstractDirectDataOut {
 
     @Override
     protected void write0(int b) throws IOException {
-        try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_TINY_BUFFER_POOL.get()) {
-            ByteBuffer buffer = handle.get();
-            long addr = PUnsafe.pork_directBufferAddress(buffer.clear());
-            buffer.put((byte) b);
-            this.write0(addr, 1L);
-        }
+        Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
+        ByteBuffer buf = recycler.allocate();
+
+        long addr = PUnsafe.pork_directBufferAddress(buf);
+        buf.put((byte) b);
+        this.write0(addr, 1L);
+
+        recycler.release(buf); //release the buffer to the recycler
     }
 
     @Override

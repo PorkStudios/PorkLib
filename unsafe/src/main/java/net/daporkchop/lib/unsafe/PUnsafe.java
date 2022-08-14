@@ -249,6 +249,137 @@ public class PUnsafe {
     });
 
     //
+    // ASSERTIONS
+    //
+    // these are intended to be invoked once in the static initializer of classes which rely on certain JVM/architecture implementation details in order to work correctly
+    //
+
+    /**
+     * Ensures that unaligned memory accesses are supported.
+     * <p>
+     * This assertion is not necessary for any of the {@code getUnaligned*} or {@code putUnaligned*} methods, as they will operate correctly in either case.
+     *
+     * @throws AssertionError if unaligned memory accesses are not supported
+     */
+    public void requireUnalignedAccess() throws AssertionError {
+        if (!UNALIGNED) {
+            throw new AssertionError("unaligned memory accesses not supported!");
+        }
+    }
+
+    /**
+     * Ensures that primitive array elements are tightly packed in memory.
+     *
+     * @throws AssertionError if any primitive array types are not stored tightly packed in memory
+     */
+    public void requireTightlyPackedPrimitiveArrays() throws AssertionError {
+        requireTightlyPackedBooleanArrays();
+        requireTightlyPackedByteArrays();
+        requireTightlyPackedShortArrays();
+        requireTightlyPackedCharArrays();
+        requireTightlyPackedIntArrays();
+        requireTightlyPackedLongArrays();
+        requireTightlyPackedFloatArrays();
+        requireTightlyPackedDoubleArrays();
+    }
+
+    /**
+     * Ensures that {@code boolean[]} elements are tightly packed in memory.
+     *
+     * @throws AssertionError if {@code boolean[]} elements are not tightly packed in memory
+     *                        ** @see #requireTightlyPackedPrimitiveArrays()
+     */
+    public void requireTightlyPackedBooleanArrays() throws AssertionError {
+        if (arrayBooleanIndexScale() != Byte.BYTES) { //we assume boolean[] elements always occupy a full byte in memory
+            throw new AssertionError("boolean[] is not tightly packed!");
+        }
+    }
+
+    /**
+     * Ensures that {@code byte[]} elements are tightly packed in memory.
+     *
+     * @throws AssertionError if {@code byte[]} elements are not tightly packed in memory
+     * @see #requireTightlyPackedPrimitiveArrays()
+     */
+    public void requireTightlyPackedByteArrays() throws AssertionError {
+        if (arrayByteIndexScale() != Byte.BYTES) {
+            throw new AssertionError("byte[] is not tightly packed!");
+        }
+    }
+
+    /**
+     * Ensures that {@code short[]} elements are tightly packed in memory.
+     *
+     * @throws AssertionError if {@code short[]} elements are not tightly packed in memory
+     * @see #requireTightlyPackedPrimitiveArrays()
+     */
+    public void requireTightlyPackedShortArrays() throws AssertionError {
+        if (arrayShortIndexScale() != Short.BYTES) {
+            throw new AssertionError("short[] is not tightly packed!");
+        }
+    }
+
+    /**
+     * Ensures that {@code char[]} elements are tightly packed in memory.
+     *
+     * @throws AssertionError if {@code char[]} elements are not tightly packed in memory
+     * @see #requireTightlyPackedPrimitiveArrays()
+     */
+    public void requireTightlyPackedCharArrays() throws AssertionError {
+        if (arrayCharIndexScale() != Character.BYTES) {
+            throw new AssertionError("char[] is not tightly packed!");
+        }
+    }
+
+    /**
+     * Ensures that {@code int[]} elements are tightly packed in memory.
+     *
+     * @throws AssertionError if {@code int[]} elements are not tightly packed in memory
+     * @see #requireTightlyPackedPrimitiveArrays()
+     */
+    public void requireTightlyPackedIntArrays() throws AssertionError {
+        if (arrayIntIndexScale() != Integer.BYTES) {
+            throw new AssertionError("int[] is not tightly packed!");
+        }
+    }
+
+    /**
+     * Ensures that {@code long[]} elements are tightly packed in memory.
+     *
+     * @throws AssertionError if {@code long[]} elements are not tightly packed in memory
+     * @see #requireTightlyPackedPrimitiveArrays()
+     */
+    public void requireTightlyPackedLongArrays() throws AssertionError {
+        if (arrayLongIndexScale() != Long.BYTES) {
+            throw new AssertionError("long[] is not tightly packed!");
+        }
+    }
+
+    /**
+     * Ensures that {@code float[]} elements are tightly packed in memory.
+     *
+     * @throws AssertionError if {@code float[]} elements are not tightly packed in memory
+     * @see #requireTightlyPackedPrimitiveArrays()
+     */
+    public void requireTightlyPackedFloatArrays() throws AssertionError {
+        if (arrayFloatIndexScale() != Float.BYTES) {
+            throw new AssertionError("float[] is not tightly packed!");
+        }
+    }
+
+    /**
+     * Ensures that {@code double[]} elements are tightly packed in memory.
+     *
+     * @throws AssertionError if {@code double[]} elements are not tightly packed in memory
+     * @see #requireTightlyPackedPrimitiveArrays()
+     */
+    public void requireTightlyPackedDoubleArrays() throws AssertionError {
+        if (arrayDoubleIndexScale() != Double.BYTES) {
+            throw new AssertionError("double[] is not tightly packed!");
+        }
+    }
+
+    //
     // ARRAY BASE OFFSETS
     //
 
@@ -1057,7 +1188,17 @@ public class PUnsafe {
         return (V) v;
     }
 
+    /**
+     * Gets the memory address of the given direct {@link Buffer}'s contents.
+     * <p>
+     * If the given {@link Buffer} is not direct, the behavior is undefined.
+     *
+     * @param buffer the {@link Buffer}
+     * @return the {@link Buffer}'s contents' memory address
+     */
     public long pork_directBufferAddress(Buffer buffer) {
+        assert buffer.isDirect() : "not a direct buffer: " + buffer;
+
         return PUnsafe.getLong(buffer, DIRECT_BUFFER_ADDRESS_OFFSET);
     }
 
@@ -1319,100 +1460,6 @@ public class PUnsafe {
             putByte(base, offset + 0L, (byte) val);
             putByte(base, offset + 1L, (byte) (val >>> 8));
         }
-    }
-
-    // medium
-
-    public int getUnalignedUnsignedMedium(long addr) {
-        return IS_BIG_ENDIAN ? getUnalignedUnsignedMediumBE(addr) : getUnalignedUnsignedMediumLE(addr);
-    }
-
-    public int getUnalignedUnsignedMedium(Object base, long offset) {
-        return IS_BIG_ENDIAN ? getUnalignedUnsignedMediumBE(base, offset) : getUnalignedUnsignedMediumLE(base, offset);
-    }
-
-    public void putUnalignedUnsignedMedium(long addr, int val) {
-        if (IS_BIG_ENDIAN) {
-            putUnalignedUnsignedMediumBE(addr, val);
-        } else {
-            putUnalignedUnsignedMediumLE(addr, val);
-        }
-    }
-
-    public void putUnalignedUnsignedMedium(Object base, long offset, int val) {
-        if (IS_BIG_ENDIAN) {
-            putUnalignedUnsignedMediumBE(base, offset, val);
-        } else {
-            putUnalignedUnsignedMediumLE(base, offset, val);
-        }
-    }
-
-    public int getUnalignedUnsignedMediumBE(long addr) {
-        if (UNALIGNED) {
-            byte highBits = getByte(addr + 0L);
-            short lowBits = getShort(addr + 1L);
-            return ((IS_BIG_ENDIAN ? lowBits : Short.reverseBytes(lowBits)) & 0xFFFF) | ((highBits & 0xFF) << 16);
-        } else {
-            return ((getByte(addr + 0L) & 0xFF) << 16)
-                   | ((getByte(addr + 1L) & 0xFF) << 8)
-                   | (getByte(addr + 2L) & 0xFF);
-        }
-    }
-
-    public int getUnalignedUnsignedMediumBE(Object base, long offset) {
-        if (UNALIGNED) {
-            byte highBits = getByte(base, offset + 0L);
-            short lowBits = getShort(base, offset + 1L);
-            return ((IS_BIG_ENDIAN ? lowBits : Short.reverseBytes(lowBits)) & 0xFFFF) | ((highBits & 0xFF) << 16);
-        } else {
-            return ((getByte(base, offset + 0L) & 0xFF) << 16)
-                   | ((getByte(base, offset + 1L) & 0xFF) << 8)
-                   | (getByte(base, offset + 2L) & 0xFF);
-        }
-    }
-
-    public void putUnalignedUnsignedMediumBE(long addr, int val) {
-        putByte(addr + 0L, (byte) (val >>> 16));
-        putUnalignedShortBE(addr + 1L, (short) (val >>> 8));
-    }
-
-    public void putUnalignedUnsignedMediumBE(Object base, long offset, int val) {
-        putByte(base, offset + 0L, (byte) (val >>> 16));
-        putUnalignedShortBE(base, offset + 1L, (short) (val >>> 8));
-    }
-
-    public int getUnalignedUnsignedMediumLE(long addr) {
-        if (UNALIGNED) {
-            byte lowBits = getByte(addr + 0L);
-            short highBits = getShort(addr + 1L);
-            return (lowBits & 0xFF) | (((IS_LITTLE_ENDIAN ? highBits : Short.reverseBytes(highBits)) & 0xFFFF) << 8);
-        } else {
-            return (getByte(addr + 0L) & 0xFF)
-                   | ((getByte(addr + 1L) & 0xFF) << 8)
-                   | ((getByte(addr + 2L) & 0xFF) << 16);
-        }
-    }
-
-    public int getUnalignedUnsignedMediumLE(Object base, long offset) {
-        if (UNALIGNED) {
-            byte lowBits = getByte(base, offset + 0L);
-            short highBits = getShort(base, offset + 1L);
-            return (lowBits & 0xFF) | (((IS_LITTLE_ENDIAN ? highBits : Short.reverseBytes(highBits)) & 0xFFFF) << 8);
-        } else {
-            return (getByte(base, offset + 0L) & 0xFF)
-                   | ((getByte(base, offset + 1L) & 0xFF) << 8)
-                   | ((getByte(base, offset + 2L) & 0xFF) << 16);
-        }
-    }
-
-    public void putUnalignedUnsignedMediumLE(long addr, int val) {
-        putByte(addr + 0L, (byte) val);
-        putUnalignedShortLE(addr + 1L, (short) (val >>> 8));
-    }
-
-    public void putUnalignedUnsignedMediumLE(Object base, long offset, int val) {
-        putByte(base, offset + 0L, (byte) val);
-        putUnalignedShortLE(base, offset + 1L, (short) (val >>> 8));
     }
 
     // int

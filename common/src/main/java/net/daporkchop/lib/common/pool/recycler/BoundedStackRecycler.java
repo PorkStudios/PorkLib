@@ -20,30 +20,26 @@
 
 package net.daporkchop.lib.common.pool.recycler;
 
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
-import java.util.ArrayDeque;
-
 /**
- * A pooling {@link Recycler} backed by a single unbounded stack.
+ * A pooling {@link Recycler} backed by a single stack with a maximum size.
  *
  * @author DaPorkchop_
  */
-@NoArgsConstructor
-public abstract class UnboundedStackRecycler<T> extends ArrayDeque<T> implements AbstractRecycler<T> { //inherit directly from ArrayDeque to avoid an extra indirection
-    protected UnboundedStackRecycler(int numElements) {
-        super(numElements);
-    }
+public abstract class BoundedStackRecycler<T> extends UnboundedStackRecycler<T> {
+    protected final int maxSize;
 
-    @Override
-    public T allocate() {
-        return super.isEmpty() ? this.allocateNew() : super.pop();
+    public BoundedStackRecycler(int maxSize) {
+        super(maxSize);
+
+        this.maxSize = maxSize;
     }
 
     @Override
     public void release(@NonNull T value) {
-        this.reset(value);
-        this.push(value);
+        if (this.size() < this.maxSize) {
+            super.release(value);
+        }
     }
 }

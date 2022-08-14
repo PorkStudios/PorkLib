@@ -77,6 +77,46 @@ public interface Recycler<T> {
     }
 
     /**
+     * Creates a new pooling {@link Recycler} which will pool up to the given number of instances.
+     *
+     * @param creator a function to use for creating new {@link T} instances
+     * @param maxSize the maximum number of instances to pool
+     * @param <T>     the type of object to pool
+     * @return a new pooling {@link Recycler}
+     */
+    static <T> Recycler<T> bounded(@NonNull Supplier<? extends T> creator, int maxSize) {
+        return new BoundedStackRecycler<T>(maxSize) {
+            @Override
+            public T allocateNew() {
+                return creator.get();
+            }
+        };
+    }
+
+    /**
+     * Creates a new pooling {@link Recycler} which will pool up to the given number of instances.
+     *
+     * @param creator a function to use for creating new {@link T} instances
+     * @param finalizer a function to use to reset {@link T} instances when they're released
+     * @param maxSize the maximum number of instances to pool
+     * @param <T>     the type of object to pool
+     * @return a new pooling {@link Recycler}
+     */
+    static <T> Recycler<T> bounded(@NonNull Supplier<? extends T> creator, @NonNull Consumer<? super T> finalizer, int maxSize) {
+        return new BoundedStackRecycler<T>(maxSize) {
+            @Override
+            public T allocateNew() {
+                return creator.get();
+            }
+
+            @Override
+            public void reset(@NonNull T value) {
+                finalizer.accept(value);
+            }
+        };
+    }
+
+    /**
      * Creates a new {@link Recycler} which simply allocates a new instance for each request.
      *
      * @param creator a function to use for creating new {@link T} instances

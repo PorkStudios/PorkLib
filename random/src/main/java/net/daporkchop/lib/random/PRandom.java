@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -176,7 +176,7 @@ public interface PRandom {
      * @param bound  the maximum value to generate (exclusive)
      * @return a random long between the given minimum and maximum values
      */
-    long nextLong(int origin, int bound);
+    long nextLong(long origin, long bound);
 
     /**
      * @return a random float in the range {@code 0} - {@code 1}

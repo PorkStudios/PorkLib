@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -21,7 +21,6 @@
 package net.daporkchop.lib.random.impl;
 
 import lombok.NonNull;
-import net.daporkchop.lib.common.system.PlatformInfo;
 import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.random.PRandom;
 import net.daporkchop.lib.unsafe.PUnsafe;
@@ -35,7 +34,7 @@ import java.util.Random;
  */
 public abstract class AbstractFastPRandom extends Random implements PRandom {
     protected static final double DOUBLE_UNIT = 0x1.0p-53;
-    protected static final float  FLOAT_UNIT  = 0x1.0p-24f;
+    protected static final float FLOAT_UNIT = 0x1.0p-24f;
 
     protected double nextGaussian = Double.NaN;
 
@@ -68,104 +67,67 @@ public abstract class AbstractFastPRandom extends Random implements PRandom {
     @Override
     public void nextBytes(@NonNull byte[] dst, int start, int length) {
         PValidation.checkRangeLen(dst.length, start, length);
-        if (length == 0)   {
+        if (length == 0) {
             return;
         }
 
-        if (PlatformInfo.IS_64BIT)  {
-            if (PlatformInfo.IS_LITTLE_ENDIAN && length >= 8 * 2)     {
-                this.nextBytes64Fast(dst, start, length);
-            } else {
-                this.nextBytes64(dst, start, length);
-            }
-        } else if (PlatformInfo.IS_32BIT)   {
-            if (PlatformInfo.IS_LITTLE_ENDIAN && length >=  4 * 2) {
-                this.nextBytes32Fast(dst, start, length);
-            } else {
-                this.nextBytes32(dst, start, length);
-            }
-        } else {
-            //fallback for unknown systems
-            this.nextBytes32(dst, start, length);
-        }
+        this.nextBytes64LE(dst, start, length);
     }
 
-    protected final void nextBytes64Fast(byte[] dst, int start, int length) {
-        long i = PUnsafe.ARRAY_BYTE_BASE_OFFSET + start; //current address
-        final long end = PUnsafe.ARRAY_BYTE_BASE_OFFSET + start + length; //final address (exclusive)
+    protected final void nextBytes64LE(byte[] dst, int start, int length) {
+        if (PUnsafe.isUnalignedAccessSupported() && PUnsafe.arrayByteIndexScale() == Byte.BYTES) {
+            long i = PUnsafe.arrayByteBaseOffset() + start; //current address
+            final long end = PUnsafe.arrayByteBaseOffset() + start + length; //final address (exclusive)
 
-        if (!PlatformInfo.UNALIGNED && (i & 0x7) != 0) {
-            //pad to next word boundary on platforms that don't support unaligned memory access
-            long val = this.nextLong();
-            length -= i & 0x7;
-            do {
-                //this will never run more than 7 times, so val will never be fully consumed
-                PUnsafe.putByte(dst, i++, (byte) val);
-                val >>>= 8L;
-            } while (i < end && (i & 0x7) != 0);
-        }
+            for (int words = length >>> 3; words > 0; i += 8L, words--) {
+                //generate entire words at a time
+                PUnsafe.putUnalignedLongLE(dst, i, this.nextLong());
+            }
 
-        for (int words = length >>> 3; words > 0; i += 8L, words--) {
-            //generate entire words at a time
-            PUnsafe.putLong(dst, i, this.nextLong());
-        }
-
-        int bytes = length & 0x7; //number of single bytes remaining after word-filling
-        if (bytes != 0) {
-            //fill remaining bytes
-            long val = this.nextLong();
-            do {
-                PUnsafe.putByte(dst, i++, (byte) val);
-                val >>>= 8L;
-            } while (i < end);
-        }
-    }
-
-    protected final void nextBytes64(byte[] dst, int start, int length) {
-        for (int i = start; i < length; )   {
-            int n = Math.min(length - i, 8);
-            for (long rnd = this.nextLong(); n-- > 0; rnd >>>= 8L, n--) {
-                dst[i++] = (byte) rnd;
+            int bytes = length & 0x7; //number of single bytes remaining after word-filling
+            if (bytes != 0) {
+                //fill remaining bytes
+                long val = this.nextLong();
+                do {
+                    PUnsafe.putByte(dst, i++, (byte) val);
+                    val >>>= 8L;
+                } while (i < end);
+            }
+        } else { //fall back to regular approach
+            for (int i = start; i < length; ) {
+                int n = Math.min(length - i, 8);
+                for (long rnd = this.nextLong(); n-- > 0; rnd >>>= 8L, n--) {
+                    dst[i++] = (byte) rnd;
+                }
             }
         }
     }
 
-    protected final void nextBytes32Fast(byte[] dst, int start, int length) {
-        long i = PUnsafe.ARRAY_BYTE_BASE_OFFSET + start; //current address
-        final long end = PUnsafe.ARRAY_BYTE_BASE_OFFSET + start + length; //final address (exclusive)
+    protected final void nextBytes32LE(byte[] dst, int start, int length) {
+        if (PUnsafe.isUnalignedAccessSupported() && PUnsafe.arrayByteIndexScale() == Byte.BYTES) {
+            long i = PUnsafe.arrayByteBaseOffset() + start; //current address
+            final long end = PUnsafe.arrayByteBaseOffset() + start + length; //final address (exclusive)
 
-        if (!PlatformInfo.UNALIGNED && (i & 0x3) != 0) {
-            //pad to next word boundary on platforms that don't support unaligned memory access
-            length -= i & 0x3;
-            int val = this.nextInt();
-            do {
-                //this will never run more than 3 times, so val will never be fully consumed
-                PUnsafe.putByte(dst, i++, (byte) val);
-                val >>>= 8;
-            } while (i < end && (i & 0x3) != 0);
-        }
+            for (int words = length >>> 2; words > 0; i += 4L, words--) {
+                //generate entire words at a time
+                PUnsafe.putUnalignedIntLE(dst, i, this.nextInt());
+            }
 
-        for (int words = length >>> 2; words > 0; i += 4L, words--) {
-            //generate entire words at a time
-            PUnsafe.putInt(dst, i, this.nextInt());
-        }
-
-        int bytes = length & 0x3; //number of single bytes remaining after word-filling
-        if (bytes != 0) {
-            //fill remaining bytes
-            int val = this.nextInt();
-            do {
-                PUnsafe.putByte(dst, i++, (byte) val);
-                val >>>= 8;
-            } while (i < end);
-        }
-    }
-
-    protected final void nextBytes32(byte[] dst, int start, int length) {
-        for (int i = start; i < length; )   {
-            int n = Math.min(length - i, 4);
-            for (int rnd = this.nextInt(); n-- > 0; rnd >>>= 8, n--) {
-                dst[i++] = (byte) rnd;
+            int bytes = length & 0x3; //number of single bytes remaining after word-filling
+            if (bytes != 0) {
+                //fill remaining bytes
+                int val = this.nextInt();
+                do {
+                    PUnsafe.putByte(dst, i++, (byte) val);
+                    val >>>= 8;
+                } while (i < end);
+            }
+        } else { //fall back to regular approach
+            for (int i = start; i < length; ) {
+                int n = Math.min(length - i, 4);
+                for (int rnd = this.nextInt(); n-- > 0; rnd >>>= 8, n--) {
+                    dst[i++] = (byte) rnd;
+                }
             }
         }
     }
@@ -196,7 +158,8 @@ public abstract class AbstractFastPRandom extends Random implements PRandom {
         if ((bound & m) == 0) {
             r &= m;
         } else {
-            for (int u = r >>> 1; u + m - (r = u % bound) < 0; u = this.nextInt() >>> 1) ;
+            for (int u = r >>> 1; u + m - (r = u % bound) < 0; u = this.nextInt() >>> 1)
+                ;
         }
         return r;
     }
@@ -213,7 +176,8 @@ public abstract class AbstractFastPRandom extends Random implements PRandom {
         if ((n & m) == 0) {
             r = (r & m) + origin;
         } else if (n > 0) {
-            for (int u = r >>> 1; u + m - (r = u % n) < 0; u = this.nextInt() >>> 1) ;
+            for (int u = r >>> 1; u + m - (r = u % n) < 0; u = this.nextInt() >>> 1)
+                ;
             r += origin;
         } else {
             while (r < origin || r >= bound) {
@@ -244,13 +208,14 @@ public abstract class AbstractFastPRandom extends Random implements PRandom {
         if ((bound & m) == 0L) {
             r &= m;
         } else {
-            for (long u = r >>> 1; u + m - (r = u % bound) < 0L; u = this.nextLong() >>> 1) ;
+            for (long u = r >>> 1; u + m - (r = u % bound) < 0L; u = this.nextLong() >>> 1)
+                ;
         }
         return r;
     }
 
     @Override
-    public long nextLong(int origin, int bound) {
+    public long nextLong(long origin, long bound) {
         if (bound <= origin) {
             throw new IllegalArgumentException("max must be greater than min");
         }
@@ -260,7 +225,8 @@ public abstract class AbstractFastPRandom extends Random implements PRandom {
         if ((n & m) == 0L) {
             r = (r & m) + origin;
         } else if (n > 0L) {
-            for (long u = r >>> 1L; u + m - (r = u % n) < 0L; u = this.nextLong() >>> 1L) ;
+            for (long u = r >>> 1L; u + m - (r = u % n) < 0L; u = this.nextLong() >>> 1L)
+                ;
             r += origin;
         } else {
             while (r < origin || r >= bound) {

@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -26,6 +26,7 @@ import net.daporkchop.lib.random.PRandom;
 import net.daporkchop.lib.random.impl.FastJavaPRandom;
 import net.daporkchop.lib.random.impl.FastPRandom;
 import net.daporkchop.lib.random.impl.ThreadLocalPRandom;
+import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
 
@@ -48,19 +49,39 @@ public class RandomTest {
         PRandom r1 = new FastPRandom(1234L);
         PRandom r2 = new FastPRandom(1234L);
 
-        Assume.assumeTrue(r1.nextBoolean() == r2.nextBoolean());
-        Assume.assumeTrue(r1.nextInt() == r2.nextInt());
-        Assume.assumeTrue(r1.nextLong() == r2.nextLong());
-        Assume.assumeTrue(r1.nextFloat() == r2.nextFloat());
-        Assume.assumeTrue(r1.nextGaussianFloat() == r2.nextGaussianFloat());
-        Assume.assumeTrue(r1.nextDouble() == r2.nextDouble());
-        Assume.assumeTrue(r1.nextGaussianDouble() == r2.nextGaussianDouble());
+        Assert.assertEquals(r1.nextBoolean(), r2.nextBoolean());
+        Assert.assertEquals(r1.nextInt(), r2.nextInt());
+        Assert.assertEquals(r1.nextLong(), r2.nextLong());
+        Assert.assertEquals(r1.nextFloat(), r2.nextFloat(), 0.0f);
+        Assert.assertEquals(r1.nextGaussianFloat(), r2.nextGaussianFloat(), 0.0f);
+        Assert.assertEquals(r1.nextDouble(), r2.nextDouble(), 0.0d);
+        Assert.assertEquals(r1.nextGaussianDouble(), r2.nextGaussianDouble(), 0.0d);
 
         byte[] b1 = new byte[ThreadLocalPRandom.current().nextInt(1024, 2048)];
         byte[] b2 = b1.clone();
         r1.nextBytes(b1);
         r2.nextBytes(b2);
-        Assume.assumeTrue(Arrays.equals(b1, b2));
+        Assert.assertArrayEquals(b1, b2);
+    }
+
+    @Test
+    public void testFastJavaRandomCorrect()    {
+        PRandom r1 = new FastJavaPRandom(1234L);
+        Random r2 = new Random(1234L);
+
+        Assert.assertEquals(r1.nextBoolean(), r2.nextBoolean());
+        Assert.assertEquals(r1.nextInt(), r2.nextInt());
+        Assert.assertEquals(r1.nextLong(), r2.nextLong());
+        Assert.assertEquals(r1.nextFloat(), r2.nextFloat(), 0.0f);
+        Assert.assertEquals(r1.nextGaussianFloat(), (float) r2.nextGaussian(), 0.0f);
+        Assert.assertEquals(r1.nextDouble(), r2.nextDouble(), 0.0d);
+        Assert.assertEquals(r1.nextGaussianDouble(), r2.nextGaussian(), 0.0d);
+
+        byte[] b1 = new byte[ThreadLocalPRandom.current().nextInt(1024, 2048)];
+        byte[] b2 = b1.clone();
+        r1.nextBytes(b1);
+        r2.nextBytes(b2);
+        Assert.assertArrayEquals(b1, b2);
     }
 
     @Test

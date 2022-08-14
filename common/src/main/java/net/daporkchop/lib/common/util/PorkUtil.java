@@ -25,6 +25,8 @@ import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.function.throwing.TConsumer;
 import net.daporkchop.lib.common.pool.handle.HandledPool;
+import net.daporkchop.lib.common.pool.recycler.Recycler;
+import net.daporkchop.lib.common.reference.cache.Cached;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -60,14 +62,31 @@ import static net.daporkchop.lib.common.util.PValidation.*;
 //TODO: clean this up a bit
 @UtilityClass
 public class PorkUtil {
-    public final int TINY_BUFFER_SIZE = 32;
-    public final int BUFFER_SIZE = 65536;
+    /**
+     * @deprecated use {@link #bufferSize()}
+     */
+    @Deprecated
+    public final int TINY_BUFFER_SIZE = Integer.getInteger("net.daporkchop.lib.common.util.PorkUtil.TINY_BUFFER_SIZE", 32);
 
+    /**
+     * @deprecated use {@link #bufferSize()}
+     */
+    @Deprecated
+    public final int BUFFER_SIZE = Integer.getInteger("net.daporkchop.lib.common.util.PorkUtil.BUFFER_SIZE", 65536);
+
+    @Deprecated
     public final HandledPool<byte[]> TINY_BUFFER_POOL = HandledPool.threadLocal(() -> new byte[TINY_BUFFER_SIZE], 4);
+    @Deprecated
     public final HandledPool<ByteBuffer> DIRECT_TINY_BUFFER_POOL = HandledPool.threadLocal(() -> ByteBuffer.allocateDirect(TINY_BUFFER_SIZE), 4);
+    @Deprecated
     public final HandledPool<byte[]> BUFFER_POOL = HandledPool.threadLocal(() -> new byte[BUFFER_SIZE], 4);
+    @Deprecated
     public final HandledPool<ByteBuffer> DIRECT_BUFFER_POOL = HandledPool.threadLocal(() -> ByteBuffer.allocateDirect(BUFFER_SIZE), 4);
 
+    private final Cached<Recycler<byte[]>> BUFFER_RECYCLER = Cached.threadLocal(() -> Recycler.bounded(() -> new byte[BUFFER_SIZE], 4));
+    private final Cached<Recycler<ByteBuffer>> DIRECT_BUFFER_RECYCLER = Cached.threadLocal(() -> Recycler.bounded(() -> ByteBuffer.allocateDirect(BUFFER_SIZE), ByteBuffer::clear, 4));
+
+    @Deprecated
     public final HandledPool<StringBuilder> STRINGBUILDER_POOL = HandledPool.threadLocal(StringBuilder::new, 4); //TODO: make this soft
 
     public final DateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
@@ -85,6 +104,37 @@ public class PorkUtil {
     public final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
 
     public final boolean NETTY_PRESENT = classExistsWithName("io.netty.util.concurrent.FastThreadLocal");
+
+    /**
+     * @return the size in bytes of a buffer
+     * @see #heapBufferRecycler()
+     * @see #directBufferRecycler()
+     */
+    public static int bufferSize() {
+        return BUFFER_SIZE;
+    }
+
+    /**
+     * Gets a {@link Recycler} for on-heap buffers. These are {@code byte[]}s with a length of {@link #bufferSize()}.
+     * <p>
+     * The returned {@link Recycler} is only valid in the current thread!
+     *
+     * @return a {@link Recycler} for on-heap buffers
+     */
+    public static Recycler<byte[]> heapBufferRecycler() {
+        return BUFFER_RECYCLER.get();
+    }
+
+    /**
+     * Gets a {@link Recycler} for off-heap buffers. These are direct {@link ByteBuffer}s with a capacity of {@link #bufferSize()}.
+     * <p>
+     * The returned {@link Recycler} is only valid in the current thread!
+     *
+     * @return a {@link Recycler} for off-heap buffers
+     */
+    public static Recycler<ByteBuffer> directBufferRecycler() {
+        return DIRECT_BUFFER_RECYCLER.get();
+    }
 
     /**
      * Casts the given value to the target type without any compile-time warnings or errors.

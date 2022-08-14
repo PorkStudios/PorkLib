@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -24,7 +24,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.misc.Cloneable;
 import net.daporkchop.lib.common.misc.string.PStrings;
-import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.nbt.util.NBTObjectParser;
 
@@ -125,12 +125,14 @@ public abstract class Tag<T extends Tag<T>> implements Cloneable<T> {
 
     @Override
     public String toString() {
-        try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get()) {
-            StringBuilder builder = handle.get();
-            builder.setLength(0);
-            this.toString(builder, 0, null, -1);
-            return builder.toString();
-        }
+        Recycler<StringBuilder> recycler = PorkUtil.stringBuilderRecycler();
+        StringBuilder builder = recycler.allocate();
+
+        this.toString(builder, 0, null, -1);
+
+        String result = builder.toString();
+        recycler.release(builder); //return builder to the recycler
+        return result;
     }
 
     protected void toString(StringBuilder builder, int depth, String name, int index) {

@@ -1,6 +1,6 @@
 _headers_
 
-import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.primitive.collections.Abstract_P1_Collection;
 import net.daporkchop.lib.primitive.collections._P1_Collection;
@@ -163,23 +163,25 @@ public abstract class Abstract_P0__P1_Map_G_ implements _P0__P1_Map_G_ {<1!%
             return "{}";
         }
 
-        try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get())  {
-            StringBuilder builder = handle.get();
-            builder.setLength(0);
-            builder.append('{');
+        Recycler<StringBuilder> recycler = PorkUtil.stringBuilderRecycler();
+        StringBuilder builder = recycler.allocate();
+        builder.append('{');
 
-            while (true)    {
-                Entry_G_ entry = itr.next();
-                _p0_ key = entry.getKey();
-                _p1_ value = entry.getValue();
-                builder.append(<0%key == this ? "(this _P0__P1_Map)" : %>key);
-                builder.append('=');
-                builder.append(<1%value == this ? "(this _P0__P1_Map)" : %>value);
-                if (!itr.hasNext()) {
-                    return builder.append('}').toString();
-                }
-                builder.append(',').append(' ');
+        while (true) {
+            Entry_G_ entry = itr.next();
+            _p0_ key = entry.getKey();
+            _p1_ value = entry.getValue();
+            builder.append(<0%key == this ? "(this _P0__P1_Map)" : %>key);
+            builder.append('=');
+            builder.append(<1%value == this ? "(this _P0__P1_Map)" : %>value);
+            if (!itr.hasNext()) {
+                builder.append('}');
+
+                String result = builder.toString();
+                recycler.release(builder); //return builder to the recycler
+                return result;
             }
+            builder.append(',').append(' ');
         }
     }
 

@@ -22,9 +22,10 @@ package net.daporkchop.lib.http.util;
 
 import io.netty.util.internal.StringUtil;
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.misc.string.PStrings;
-import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.encoding.Hexadecimal;
 import net.daporkchop.lib.http.util.exception.HttpException;
@@ -55,16 +56,16 @@ public class URLEncoding {
         return encode(text, false);
     }
 
+    @SneakyThrows(IOException.class)
     public String encode(@NonNull CharSequence text, boolean preserveSlash) {
-        try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get()) {
-            StringBuilder builder = handle.get();
-            builder.setLength(0);
-            encode(builder, text, preserveSlash);
-            return builder.toString();
-        } catch (IOException e) {
-            //can't happen
-            throw new IllegalStateException(e);
-        }
+        Recycler<StringBuilder> recycler = PorkUtil.stringBuilderRecycler();
+        StringBuilder builder = recycler.allocate();
+
+        encode(builder, text, preserveSlash);
+
+        String result = builder.toString();
+        recycler.release(builder); //return builder to the recycler
+        return result;
     }
 
     public CharSequence encodeToCharSequence(@NonNull CharSequence text) {
@@ -167,12 +168,14 @@ public class URLEncoding {
     }
 
     public String decode(@NonNull CharSequence text) throws HttpException {
-        try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get()) {
-            StringBuilder builder = handle.get();
-            builder.setLength(0);
-            decode(builder, text);
-            return builder.toString();
-        }
+        Recycler<StringBuilder> recycler = PorkUtil.stringBuilderRecycler();
+        StringBuilder builder = recycler.allocate();
+
+        decode(builder, text);
+
+        String result = builder.toString();
+        recycler.release(builder); //return builder to the recycler
+        return result;
     }
 
     public CharSequence decodeToCharSequence(@NonNull CharSequence text) throws HttpException {

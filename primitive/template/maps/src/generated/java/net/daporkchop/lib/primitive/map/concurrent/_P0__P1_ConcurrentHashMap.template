@@ -1,6 +1,7 @@
 _headers_
 
-import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.misc.string.PStrings;
+import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.primitive.collections.Abstract_P1_Collection;
 import net.daporkchop.lib.primitive.collections._P1_Collection;<2custom%
@@ -365,30 +366,33 @@ public class <0Object2custom%_P0__P1_Concurrent<2custom%Custom%><3uncached%Uncac
             return "{}";
         }
 
-        try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get())  {
-            StringBuilder builder = handle.get();
-            builder.setLength(0);
-            builder.append('{');
+        Recycler<StringBuilder> recycler = PorkUtil.stringBuilderRecycler();
+        StringBuilder builder = recycler.allocate();
+        builder.append('{');
 
-            int f = table.length;
-            Traverser_G_ it = new Traverser<%<>%>(table, f, 0, f);
-            Node_G_ node = it.advance();
-            while (true)    {
-                _p0_ key = node.key;
-                _p1_ value = node.value;
-                builder.append(<0%key == this ? "(this _P0__P1_Map)" : %>key);
-                builder.append('=');
-                builder.append(<1%value == this ? "(this _P0__P1_Map)" : %>value);
-                if ((node = it.advance()) == null)  {
-                    break;
-                }
-                builder.append(',').append(' ');
+        int f = table.length;
+        Traverser_G_ it = new Traverser<%<>%>(table, f, 0, f);
+        Node_G_ node = it.advance();
+        while (true)    {
+            _p0_ key = node.key;
+            _p1_ value = node.value;
+            builder.append(<0%key == this ? "(this _P0__P1_Map)" : %>key);
+            builder.append('=');
+            builder.append(<1%value == this ? "(this _P0__P1_Map)" : %>value);
+            if ((node = it.advance()) == null)  {
+                break;
             }
-            if (builder.length() > 1)   {
-                builder.setLength(builder.length() - 2);
-            }
-            return builder.append('}').toString();
+            builder.append(',').append(' ');
         }
+        if (builder.length() > 1)   {
+            PStrings.setLength(builder, builder.length() - 2);
+        }
+
+        builder.append('}');
+
+        String result = builder.toString();
+        recycler.release(builder); //return builder to the recycler
+        return result;
     }
 
     @Override

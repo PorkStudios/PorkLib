@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -21,8 +21,9 @@
 package net.daporkchop.lib.minecraft.text;
 
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.logging.console.TextFormat;
 import net.daporkchop.lib.logging.format.component.TextComponent;
@@ -42,20 +43,20 @@ import static net.daporkchop.lib.logging.format.TextStyle.*;
  */
 @UtilityClass
 public class MCTextEncoder {
+    @SneakyThrows(IOException.class)
     public String encode(@NonNull MCTextType type, @NonNull TextComponent component) {
         if (component instanceof MCTextRoot && ((MCTextRoot) component).getType() == type) {
             //return ((MCTextRoot) component).getOriginal();
         }
 
-        try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get()) {
-            StringBuilder builder = handle.get();
-            builder.setLength(0);
-            encode(type, builder, component);
-            return builder.toString();
-        } catch (IOException e) {
-            //impossible
-            throw new IllegalStateException(e);
-        }
+        Recycler<StringBuilder> recycler = PorkUtil.stringBuilderRecycler();
+        StringBuilder builder = recycler.allocate();
+
+        encode(type, builder, component);
+
+        String result = builder.toString();
+        recycler.release(builder); //return builder to the recycler
+        return result;
     }
 
     public void encode(@NonNull MCTextType type, @NonNull Appendable dst, @NonNull TextComponent component) throws IOException {
@@ -103,16 +104,16 @@ public class MCTextEncoder {
                     dst.append('§').append(newColor.code());
                 }
 
-                if (isBold(newStyle))   {
+                if (isBold(newStyle)) {
                     dst.append('§').append('l');
                 }
-                if (isItalic(newStyle))   {
+                if (isItalic(newStyle)) {
                     dst.append('§').append('o');
                 }
-                if (isUnderline(newStyle))   {
+                if (isUnderline(newStyle)) {
                     dst.append('§').append('n');
                 }
-                if (isStrikethrough(newStyle))   {
+                if (isStrikethrough(newStyle)) {
                     dst.append('§').append('m');
                 }
             }

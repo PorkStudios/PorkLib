@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -20,7 +20,7 @@
 
 package net.daporkchop.lib.natives.util.exception;
 
-import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.system.PlatformInfo;
 import net.daporkchop.lib.common.util.PorkUtil;
 
@@ -40,16 +40,18 @@ public final class NativeFeaturesUnavailableException extends RuntimeException {
 
     @Override
     public String getMessage() {
-        try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get()) {
-            StringBuilder builder = handle.get();
-            builder.setLength(0);
-            builder.append("Arch: ").append(PlatformInfo.ARCHITECTURE.name())
-                    .append(", OS: ").append(PlatformInfo.OPERATING_SYSTEM.name());
-            String msg = super.getMessage();
-            if (msg != null) {
-                builder.append(", ").append(msg);
-            }
-            return builder.toString();
+        Recycler<StringBuilder> recycler = PorkUtil.stringBuilderRecycler();
+        StringBuilder builder = recycler.allocate();
+
+        builder.append("Arch: ").append(PlatformInfo.ARCHITECTURE.name())
+                .append(", OS: ").append(PlatformInfo.OPERATING_SYSTEM.name());
+        String msg = super.getMessage();
+        if (msg != null) {
+            builder.append(", ").append(msg);
         }
+
+        String result = builder.toString();
+        recycler.release(builder); //return builder to the recycler
+        return result;
     }
 }

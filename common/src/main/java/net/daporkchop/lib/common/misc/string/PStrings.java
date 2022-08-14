@@ -22,7 +22,7 @@ package net.daporkchop.lib.common.misc.string;
 
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.system.PlatformInfo;
 import net.daporkchop.lib.common.util.PArrays;
 import net.daporkchop.lib.common.util.PorkUtil;
@@ -48,7 +48,10 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
 @UtilityClass
 public class PStrings {
     private final long J8_STRING_VALUE_OFFSET = PlatformInfo.JAVA_VERSION > 8 ? -1L : PUnsafe.pork_getOffset(String.class, "value");
-    private final long J8_ABSTRACTSTRINGBUILDER_VALUE_OFFSET = PlatformInfo.JAVA_VERSION > 8 ? -1L : PUnsafe.pork_getOffset(classForName("java.lang.AbstractStringBuilder"), "value");
+    private final long J8_ABSTRACTSTRINGBUILDER_VALUE_OFFSET = PlatformInfo.JAVA_VERSION
+                                                               > 8 ? -1L : PUnsafe.pork_getOffset(classForName("java.lang.AbstractStringBuilder"), "value");
+    private final long J8_ABSTRACTSTRINGBUILDER_COUNT_OFFSET = PlatformInfo.JAVA_VERSION
+                                                               > 8 ? -1L : PUnsafe.pork_getOffset(classForName("java.lang.AbstractStringBuilder"), "count");
 
     /**
      * Wraps the given {@code char[]} into a {@link String}.
@@ -249,22 +252,22 @@ public class PStrings {
             args = PorkUtil.EMPTY_OBJECT_ARRAY;
         }
 
-        try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get()) {
-            StringBuilder builder = handle.get();
-            builder.setLength(0);
+        Recycler<StringBuilder> recycler = PorkUtil.stringBuilderRecycler();
+        StringBuilder builder = recycler.allocate();
 
-            for (int i = 0, length = template.length(), j = 0; i < length; i++) {
-                char c = template.charAt(i);
-                if (c == '%' && i + 1 < length && template.charAt(i + 1) == 's') {
-                    builder.append(j < args.length ? args[j++] : null);
-                    i++;
-                } else {
-                    builder.append(c);
-                }
+        for (int i = 0, length = template.length(), j = 0; i < length; i++) {
+            char c = template.charAt(i);
+            if (c == '%' && i + 1 < length && template.charAt(i + 1) == 's') {
+                builder.append(j < args.length ? args[j++] : null);
+                i++;
+            } else {
+                builder.append(c);
             }
-
-            return builder.toString();
         }
+
+        String result = builder.toString();
+        recycler.release(builder); //return builder to the recycler
+        return result;
     }
 
     /**
@@ -290,14 +293,14 @@ public class PStrings {
      * @return a {@link String} containing the formatted text
      */
     public static String fastFormat(@NonNull String template, Object... args) {
-        try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get()) {
-            StringBuilder builder = handle.get();
-            builder.setLength(0);
+        Recycler<StringBuilder> recycler = PorkUtil.stringBuilderRecycler();
+        StringBuilder builder = recycler.allocate();
 
-            new Formatter(builder, Locale.US).format(template, args);
+        new Formatter(builder, Locale.US).format(template, args);
 
-            return builder.toString();
-        }
+        String result = builder.toString();
+        recycler.release(builder); //return builder to the recycler
+        return result;
     }
 
     /**
@@ -333,6 +336,68 @@ public class PStrings {
         //make all subsequent letters lower-case
         for (int i = 1; i < len; i++) {
             text[off + i] = Character.toLowerCase(text[off + i]);
+        }
+    }
+
+    /**
+     * Sets the given {@link StringBuilder}'s length to {@code 0}.
+     *
+     * @param builder the {@link StringBuilder} to clear
+     */
+    public static void clear(@NonNull StringBuilder builder) {
+        if (J8_ABSTRACTSTRINGBUILDER_COUNT_OFFSET >= 0L) { //we can unsafely update the count field without zero-ing out the contents
+            //no need for index checks, the index 0 is always within bounds
+            PUnsafe.putInt(builder, J8_ABSTRACTSTRINGBUILDER_COUNT_OFFSET, 0);
+        } else { //we can't unwrap using unsafe, fall back to regular java
+            builder.setLength(0);
+        }
+    }
+
+    /**
+     * Sets the given {@link StringBuffer}'s length to {@code 0}.
+     *
+     * @param buffer the {@link StringBuffer} to clear
+     */
+    public static void clear(@NonNull StringBuffer buffer) {
+        if (J8_ABSTRACTSTRINGBUILDER_COUNT_OFFSET >= 0L) { //we can unsafely update the count field without zero-ing out the contents
+            synchronized (buffer) {
+                //no need for index checks, the index 0 is always within bounds
+                PUnsafe.putInt(buffer, J8_ABSTRACTSTRINGBUILDER_COUNT_OFFSET, 0);
+            }
+        } else { //we can't unwrap using unsafe, fall back to regular java
+            buffer.setLength(0);
+        }
+    }
+
+    /**
+     * Sets the given {@link StringBuilder}'s length to the given value.
+     *
+     * @param builder the {@link StringBuilder} to set the length of
+     * @param length  the new length
+     */
+    public static void setLength(@NonNull StringBuilder builder, int length) {
+        if (J8_ABSTRACTSTRINGBUILDER_COUNT_OFFSET >= 0L) { //we can unsafely update the count field without zero-ing out the contents
+            checkIndex(builder.capacity(), length); //validate index
+            PUnsafe.putInt(builder, J8_ABSTRACTSTRINGBUILDER_COUNT_OFFSET, length);
+        } else { //we can't unwrap using unsafe, fall back to regular java
+            builder.setLength(length);
+        }
+    }
+
+    /**
+     * Sets the given {@link StringBuffer}'s length to the given value.
+     *
+     * @param buffer the {@link StringBuffer} to set the length of
+     * @param length the new length
+     */
+    public static void setLength(@NonNull StringBuffer buffer, int length) {
+        if (J8_ABSTRACTSTRINGBUILDER_COUNT_OFFSET >= 0L) { //we can unsafely update the count field without zero-ing out the contents
+            synchronized (buffer) {
+                checkIndex(buffer.capacity(), length); //validate index
+                PUnsafe.putInt(buffer, J8_ABSTRACTSTRINGBUILDER_COUNT_OFFSET, length);
+            }
+        } else { //we can't unwrap using unsafe, fall back to regular java
+            buffer.setLength(length);
         }
     }
 }

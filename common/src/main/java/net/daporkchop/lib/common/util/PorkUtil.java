@@ -24,8 +24,10 @@ import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.function.throwing.TConsumer;
+import net.daporkchop.lib.common.misc.string.PStrings;
 import net.daporkchop.lib.common.pool.handle.HandledPool;
 import net.daporkchop.lib.common.pool.recycler.Recycler;
+import net.daporkchop.lib.common.reference.ReferenceStrength;
 import net.daporkchop.lib.common.reference.cache.Cached;
 
 import javax.swing.ImageIcon;
@@ -89,6 +91,8 @@ public class PorkUtil {
     @Deprecated
     public final HandledPool<StringBuilder> STRINGBUILDER_POOL = HandledPool.threadLocal(StringBuilder::new, 4); //TODO: make this soft
 
+    private final Cached<Recycler<StringBuilder>> STRINGBUILDER_RECYCLER = Cached.threadLocal(() -> Recycler.bounded(StringBuilder::new, PStrings::clear, 4), ReferenceStrength.SOFT);
+
     public final DateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
     public final String PORKLIB_VERSION = preventInline("0.5.8-SNAPSHOT"); //TODO: set this dynamically
     public final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
@@ -128,12 +132,27 @@ public class PorkUtil {
     /**
      * Gets a {@link Recycler} for off-heap buffers. These are direct {@link ByteBuffer}s with a capacity of {@link #bufferSize()}.
      * <p>
+     * {@link ByteBuffer}s {@link Recycler#allocate() allocated} by the returned {@link Recycler} are always {@link ByteBuffer#clear() clear}.
+     * <p>
      * The returned {@link Recycler} is only valid in the current thread!
      *
      * @return a {@link Recycler} for off-heap buffers
      */
     public static Recycler<ByteBuffer> directBufferRecycler() {
         return DIRECT_BUFFER_RECYCLER.get();
+    }
+
+    /**
+     * Gets a {@link Recycler} for {@link StringBuilder}s.
+     * <p>
+     * {@link StringBuilder}s {@link Recycler#allocate() allocated} by the returned {@link Recycler} are always empty.
+     * <p>
+     * The returned {@link Recycler} is only valid in the current thread!
+     *
+     * @return a {@link Recycler} for {@link StringBuilder}s
+     */
+    public static Recycler<StringBuilder> stringBuilderRecycler() {
+        return STRINGBUILDER_RECYCLER.get();
     }
 
     /**

@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -23,7 +23,7 @@ package net.daporkchop.lib.minecraft.text.parser;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.logging.console.TextFormat;
 import net.daporkchop.lib.logging.format.TextStyle;
@@ -51,43 +51,44 @@ public class LegacyTextParser implements MCFormatParser {
 
         TextFormat format = new TextFormat();
         boolean expectingCode = false;
-        try (Handle<StringBuilder> handle = PorkUtil.STRINGBUILDER_POOL.get()) {
-            StringBuilder builder = handle.get();
-            builder.setLength(0);
 
-            int nextChar;
-            while ((nextChar = reader.read()) != -1) {
-                if (expectingCode) {
-                    FormattingCode code = FormattingCode.lookup((char) nextChar);
-                    if (code == null) {
-                        throw new IllegalArgumentException(String.format("Invalid formatting code: %c", (char) nextChar));
-                    }
+        Recycler<StringBuilder> recycler = PorkUtil.stringBuilderRecycler();
+        StringBuilder builder = recycler.allocate();
 
-                    if (code.isColor()) {
-                        format.setTextColor(((ChatColor) code).awtColor()).setStyle(0);
-                    } else {
-                        if (code == BOLD) {
-                            format.setStyle(format.getStyle() | TextStyle.BOLD);
-                        } else if (code == STRIKETHROUGH) {
-                            format.setStyle(format.getStyle() | TextStyle.STRIKETHROUGH);
-                        } else if (code == UNDERLINE) {
-                            format.setStyle(format.getStyle() | TextStyle.UNDERLINE);
-                        } else if (code == ITALIC) {
-                            format.setStyle(format.getStyle() | TextStyle.ITALIC);
-                        } else if (code == RESET) {
-                            format.setStyle(0).setTextColor(null);
-                        }
-                    }
-                    expectingCode = false;
-                } else if (nextChar == '§') {
-                    createComponent(root, builder, format);
-                    expectingCode = true;
-                } else {
-                    builder.append((char) nextChar);
+        int nextChar;
+        while ((nextChar = reader.read()) != -1) {
+            if (expectingCode) {
+                FormattingCode code = FormattingCode.lookup((char) nextChar);
+                if (code == null) {
+                    throw new IllegalArgumentException(String.format("Invalid formatting code: %c", (char) nextChar));
                 }
+
+                if (code.isColor()) {
+                    format.setTextColor(((ChatColor) code).awtColor()).setStyle(0);
+                } else {
+                    if (code == BOLD) {
+                        format.setStyle(format.getStyle() | TextStyle.BOLD);
+                    } else if (code == STRIKETHROUGH) {
+                        format.setStyle(format.getStyle() | TextStyle.STRIKETHROUGH);
+                    } else if (code == UNDERLINE) {
+                        format.setStyle(format.getStyle() | TextStyle.UNDERLINE);
+                    } else if (code == ITALIC) {
+                        format.setStyle(format.getStyle() | TextStyle.ITALIC);
+                    } else if (code == RESET) {
+                        format.setStyle(0).setTextColor(null);
+                    }
+                }
+                expectingCode = false;
+            } else if (nextChar == '§') {
+                createComponent(root, builder, format);
+                expectingCode = true;
+            } else {
+                builder.append((char) nextChar);
             }
-            createComponent(root, builder, format);
         }
+        createComponent(root, builder, format);
+
+        recycler.release(builder); //return builder to the recycler
         return root;
     }
 

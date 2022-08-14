@@ -29,8 +29,7 @@ import net.daporkchop.lib.binary.stream.netty.NonGrowingDirectByteBufOut;
 import net.daporkchop.lib.binary.stream.nio.DirectBufferOut;
 import net.daporkchop.lib.binary.stream.nio.HeapBufferOut;
 import net.daporkchop.lib.binary.stream.stream.StreamOut;
-import net.daporkchop.lib.common.pool.handle.Handle;
-import net.daporkchop.lib.common.system.PlatformInfo;
+import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
@@ -510,18 +509,21 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
         if (length == 0) {
             return 0L;
         }
-        try (Handle<byte[]> handle = PorkUtil.BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            int total = 0;
-            do {
-                int blockSize = min(length - total, PorkUtil.BUFFER_SIZE);
-                for (int i = 0; i < blockSize; i++) {
-                    arr[i] = (byte) text.charAt(start + total + i);
-                }
-                this.write(arr, 0, blockSize);
-                total += blockSize;
-            } while (total < length);
-        }
+
+        Recycler<byte[]> recycler = PorkUtil.heapBufferRecycler();
+        byte[] buf = recycler.allocate();
+
+        int total = 0;
+        do {
+            int blockSize = min(length - total, PorkUtil.bufferSize());
+            for (int i = 0; i < blockSize; i++) {
+                buf[i] = (byte) text.charAt(start + total + i);
+            }
+            this.write(buf, 0, blockSize);
+            total += blockSize;
+        } while (total < length);
+
+        recycler.release(buf); //release the buffer to the recycler
         return length;
     }
 
@@ -557,23 +559,22 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
         if (length == 0) {
             return 0L;
         }
-        try (Handle<byte[]> handle = PorkUtil.BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            int total = 0;
-            do {
-                int blockSize = min(length - total, PorkUtil.BUFFER_SIZE / Character.BYTES);
-                for (int i = 0; i < blockSize; i++) {
-                    if (PlatformInfo.IS_BIG_ENDIAN) {
-                        PUnsafe.putChar(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET + i * Character.BYTES, text.charAt(total + i));
-                    } else {
-                        PUnsafe.putChar(arr, PUnsafe.ARRAY_BYTE_BASE_OFFSET + i * Character.BYTES, Character.reverseBytes(text.charAt(total + i)));
-                    }
-                }
-                this.write(arr, 0, blockSize * Character.BYTES);
-                total += blockSize;
-            } while (total < length);
-        }
-        return length << 1L;
+
+        Recycler<byte[]> recycler = PorkUtil.heapBufferRecycler();
+        byte[] buf = recycler.allocate();
+
+        int total = 0;
+        do {
+            int blockSize = min(length - total, PorkUtil.bufferSize() / Character.BYTES);
+            for (int i = 0; i < blockSize; i++) {
+                PUnsafe.putUnalignedCharBE(buf, PUnsafe.arrayCharElementOffset(i), text.charAt(total + i));
+            }
+            this.write(buf, 0, blockSize * Character.BYTES);
+            total += blockSize;
+        } while (total < length);
+
+        recycler.release(buf); //release the buffer to the recycler
+        return (long) length << 1L;
     }
 
     /**
@@ -693,19 +694,21 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @param value the value to write
      */
     default void writeVarInt(int value) throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            int i = 0;
-            do {
-                byte temp = (byte) (value & 0b01111111);
-                value >>>= 7;
-                if (value != 0) {
-                    temp |= 0b10000000;
-                }
-                arr[i++] = temp;
-            } while (value != 0);
-            this.write(arr, 0, i);
-        }
+        Recycler<byte[]> recycler = PorkUtil.heapBufferRecycler();
+        byte[] buf = recycler.allocate();
+
+        int i = 0;
+        do {
+            byte temp = (byte) (value & 0b01111111);
+            value >>>= 7;
+            if (value != 0) {
+                temp |= 0b10000000;
+            }
+            buf[i++] = temp;
+        } while (value != 0);
+        this.write(buf, 0, i);
+
+        recycler.release(buf); //release the buffer to the recycler
     }
 
     /**
@@ -726,19 +729,21 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @param value the value to write
      */
     default void writeVarLong(long value) throws IOException {
-        try (Handle<byte[]> handle = PorkUtil.TINY_BUFFER_POOL.get()) {
-            byte[] arr = handle.get();
-            int i = 0;
-            do {
-                byte temp = (byte) (value & 0b01111111);
-                value >>>= 7L;
-                if (value != 0) {
-                    temp |= 0b10000000;
-                }
-                arr[i++] = temp;
-            } while (value != 0);
-            this.write(arr, 0, i);
-        }
+        Recycler<byte[]> recycler = PorkUtil.heapBufferRecycler();
+        byte[] buf = recycler.allocate();
+
+        int i = 0;
+        do {
+            byte temp = (byte) (value & 0b01111111);
+            value >>>= 7L;
+            if (value != 0) {
+                temp |= 0b10000000;
+            }
+            buf[i++] = temp;
+        } while (value != 0);
+        this.write(buf, 0, i);
+
+        recycler.release(buf); //release the buffer to the recycler
     }
 
     /**

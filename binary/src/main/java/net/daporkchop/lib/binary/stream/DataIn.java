@@ -29,6 +29,7 @@ import net.daporkchop.lib.binary.stream.nio.HeapBufferIn;
 import net.daporkchop.lib.binary.stream.stream.StreamIn;
 import net.daporkchop.lib.binary.stream.wrapper.DataInAsInputStream;
 import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
@@ -513,10 +514,14 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
     default String readString(long size, @NonNull Charset charset) throws IOException {
         //TODO: it's possible for the encoded form to be more than 2^31-1 bytes without the decoded form being too large for a String
         int length = PValidation.toInt(size, "size");
-        if (length <= PorkUtil.BUFFER_SIZE) {
-            try (Handle<byte[]> handle = PorkUtil.BUFFER_POOL.get()) {
-                return new String(this.fill(handle.get(), 0, length), 0, length, charset);
-            }
+        if (length <= PorkUtil.bufferSize()) { //sequence small enough that it can fit in a recycled buffer
+            Recycler<byte[]> recycler = PorkUtil.heapBufferRecycler();
+            byte[] buf = recycler.allocate();
+
+            String result = new String(this.fill(buf, 0, length), 0, length, charset);
+
+            recycler.release(buf); //release the buffer to the recycler
+            return result;
         } else {
             return new String(this.fill(new byte[length]), charset);
         }

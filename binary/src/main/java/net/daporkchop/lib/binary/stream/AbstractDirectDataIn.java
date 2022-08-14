@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -21,12 +21,10 @@
 package net.daporkchop.lib.binary.stream;
 
 import lombok.NonNull;
-import net.daporkchop.lib.common.pool.handle.Handle;
-import net.daporkchop.lib.common.system.PlatformInfo;
+import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
-import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -39,26 +37,34 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  * @author DaPorkchop_
  */
 public abstract class AbstractDirectDataIn extends AbstractDataIn {
+    static {
+        //we copy data between byte[]s and direct buffers
+        PUnsafe.requireTightlyPackedPrimitiveArrays();
+    }
+
     @Override
     protected int read0(@NonNull byte[] dst, int start, int length) throws IOException {
-        try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_BUFFER_POOL.get()) {
-            long addr = PUnsafe.pork_directBufferAddress(handle.get());
-            int total = 0;
-            boolean first = true;
-            do {
-                int read = toInt(this.read0(addr, min(length - total, PorkUtil.BUFFER_SIZE)));
-                if (read <= 0) {
-                    return read < 0 && first ? read : total;
-                }
+        Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
+        ByteBuffer buf = recycler.allocate();
 
-                //copy to heap buffer
-                PUnsafe.copyMemory(null, addr, dst, PUnsafe.ARRAY_BYTE_BASE_OFFSET + start + total, read);
+        long addr = PUnsafe.pork_directBufferAddress(buf);
+        int total = 0;
+        boolean first = true;
+        do {
+            int read = toInt(this.read0(addr, min(length - total, PorkUtil.bufferSize())));
+            if (read <= 0) {
+                return read < 0 && first ? read : total;
+            }
 
-                total += read;
-                first = false;
-            } while (total < length);
-            return total;
-        }
+            //copy to heap buffer
+            PUnsafe.copyMemory(null, addr, dst, PUnsafe.arrayByteElementOffset(start + total), read);
+
+            total += read;
+            first = false;
+        } while (total < length);
+
+        recycler.release(buf); //release the buffer to the recycler
+        return total;
     }
 
     @Override
@@ -74,106 +80,82 @@ public abstract class AbstractDirectDataIn extends AbstractDataIn {
 
     @Override
     public short readShort() throws IOException {
-        try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_TINY_BUFFER_POOL.get()) {
-            ByteBuffer buf = (ByteBuffer) handle.get().position(0).limit(Short.BYTES);
-            this.readFully(buf);
-            if (PlatformInfo.IS_BIG_ENDIAN) {
-                return PUnsafe.getShort(PUnsafe.pork_directBufferAddress(buf));
-            } else {
-                return Short.reverseBytes(PUnsafe.getShort(PUnsafe.pork_directBufferAddress(buf)));
-            }
-        }
+        Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
+        ByteBuffer buf = recycler.allocate();
+        this.readFully((ByteBuffer) buf.limit(Short.BYTES)); //read exactly Short.BYTES into the buffer
+        short val = PUnsafe.getUnalignedShortBE(PUnsafe.pork_directBufferAddress(buf));
+        recycler.release(buf); //release the buffer to the recycler
+        return val;
     }
 
     @Override
     public short readShortLE() throws IOException {
-        try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_TINY_BUFFER_POOL.get()) {
-            ByteBuffer buf = (ByteBuffer) handle.get().position(0).limit(Short.BYTES);
-            this.readFully(buf);
-            if (PlatformInfo.IS_LITTLE_ENDIAN) {
-                return PUnsafe.getShort(PUnsafe.pork_directBufferAddress(buf));
-            } else {
-                return Short.reverseBytes(PUnsafe.getShort(PUnsafe.pork_directBufferAddress(buf)));
-            }
-        }
+        Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
+        ByteBuffer buf = recycler.allocate();
+        this.readFully((ByteBuffer) buf.limit(Short.BYTES)); //read exactly Short.BYTES into the buffer
+        short val = PUnsafe.getUnalignedShortLE(PUnsafe.pork_directBufferAddress(buf));
+        recycler.release(buf); //release the buffer to the recycler
+        return val;
     }
 
     @Override
     public char readChar() throws IOException {
-        try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_TINY_BUFFER_POOL.get()) {
-            ByteBuffer buf = (ByteBuffer) handle.get().position(0).limit(Character.BYTES);
-            this.readFully(buf);
-            if (PlatformInfo.IS_BIG_ENDIAN) {
-                return PUnsafe.getChar(PUnsafe.pork_directBufferAddress(buf));
-            } else {
-                return Character.reverseBytes(PUnsafe.getChar(PUnsafe.pork_directBufferAddress(buf)));
-            }
-        }
+        Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
+        ByteBuffer buf = recycler.allocate();
+        this.readFully((ByteBuffer) buf.limit(Character.BYTES)); //read exactly Character.BYTES into the buffer
+        char val = PUnsafe.getUnalignedCharBE(PUnsafe.pork_directBufferAddress(buf));
+        recycler.release(buf); //release the buffer to the recycler
+        return val;
     }
 
     @Override
     public char readCharLE() throws IOException {
-        try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_TINY_BUFFER_POOL.get()) {
-            ByteBuffer buf = (ByteBuffer) handle.get().position(0).limit(Character.BYTES);
-            this.readFully(buf);
-            if (PlatformInfo.IS_LITTLE_ENDIAN) {
-                return PUnsafe.getChar(PUnsafe.pork_directBufferAddress(buf));
-            } else {
-                return Character.reverseBytes(PUnsafe.getChar(PUnsafe.pork_directBufferAddress(buf)));
-            }
-        }
+        Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
+        ByteBuffer buf = recycler.allocate();
+        this.readFully((ByteBuffer) buf.limit(Character.BYTES)); //read exactly Character.BYTES into the buffer
+        char val = PUnsafe.getUnalignedCharLE(PUnsafe.pork_directBufferAddress(buf));
+        recycler.release(buf); //release the buffer to the recycler
+        return val;
     }
 
     @Override
     public int readInt() throws IOException {
-        try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_TINY_BUFFER_POOL.get()) {
-            ByteBuffer buf = (ByteBuffer) handle.get().position(0).limit(Integer.BYTES);
-            this.readFully(buf);
-            if (PlatformInfo.IS_BIG_ENDIAN) {
-                return PUnsafe.getInt(PUnsafe.pork_directBufferAddress(buf));
-            } else {
-                return Integer.reverseBytes(PUnsafe.getInt(PUnsafe.pork_directBufferAddress(buf)));
-            }
-        }
+        Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
+        ByteBuffer buf = recycler.allocate();
+        this.readFully((ByteBuffer) buf.limit(Integer.BYTES)); //read exactly Integer.BYTES into the buffer
+        int val = PUnsafe.getUnalignedIntBE(PUnsafe.pork_directBufferAddress(buf));
+        recycler.release(buf); //release the buffer to the recycler
+        return val;
     }
 
     @Override
     public int readIntLE() throws IOException {
-        try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_TINY_BUFFER_POOL.get()) {
-            ByteBuffer buf = (ByteBuffer) handle.get().position(0).limit(Integer.BYTES);
-            this.readFully(buf);
-            if (PlatformInfo.IS_LITTLE_ENDIAN) {
-                return PUnsafe.getInt(PUnsafe.pork_directBufferAddress(buf));
-            } else {
-                return Integer.reverseBytes(PUnsafe.getInt(PUnsafe.pork_directBufferAddress(buf)));
-            }
-        }
+        Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
+        ByteBuffer buf = recycler.allocate();
+        this.readFully((ByteBuffer) buf.limit(Integer.BYTES)); //read exactly Integer.BYTES into the buffer
+        int val = PUnsafe.getUnalignedIntLE(PUnsafe.pork_directBufferAddress(buf));
+        recycler.release(buf); //release the buffer to the recycler
+        return val;
     }
 
     @Override
     public long readLong() throws IOException {
-        try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_TINY_BUFFER_POOL.get()) {
-            ByteBuffer buf = (ByteBuffer) handle.get().position(0).limit(Long.BYTES);
-            this.readFully(buf);
-            if (PlatformInfo.IS_BIG_ENDIAN) {
-                return PUnsafe.getLong(PUnsafe.pork_directBufferAddress(buf));
-            } else {
-                return Long.reverseBytes(PUnsafe.getLong(PUnsafe.pork_directBufferAddress(buf)));
-            }
-        }
+        Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
+        ByteBuffer buf = recycler.allocate();
+        this.readFully((ByteBuffer) buf.limit(Long.BYTES)); //read exactly Long.BYTES into the buffer
+        long val = PUnsafe.getUnalignedLongBE(PUnsafe.pork_directBufferAddress(buf));
+        recycler.release(buf); //release the buffer to the recycler
+        return val;
     }
 
     @Override
     public long readLongLE() throws IOException {
-        try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_TINY_BUFFER_POOL.get()) {
-            ByteBuffer buf = (ByteBuffer) handle.get().position(0).limit(Long.BYTES);
-            this.readFully(buf);
-            if (PlatformInfo.IS_LITTLE_ENDIAN) {
-                return PUnsafe.getLong(PUnsafe.pork_directBufferAddress(buf));
-            } else {
-                return Long.reverseBytes(PUnsafe.getLong(PUnsafe.pork_directBufferAddress(buf)));
-            }
-        }
+        Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
+        ByteBuffer buf = recycler.allocate();
+        this.readFully((ByteBuffer) buf.limit(Long.BYTES)); //read exactly Long.BYTES into the buffer
+        long val = PUnsafe.getUnalignedLongLE(PUnsafe.pork_directBufferAddress(buf));
+        recycler.release(buf); //release the buffer to the recycler
+        return val;
     }
 
     //
@@ -184,44 +166,49 @@ public abstract class AbstractDirectDataIn extends AbstractDataIn {
 
     @Override
     protected long skip0(long count) throws IOException {
-        try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_BUFFER_POOL.get()) {
-            long addr = PUnsafe.pork_directBufferAddress(handle.get());
-            long total = 0L;
-            boolean first = true;
-            do {
-                long read = this.read0(addr, min(count - total, PorkUtil.BUFFER_SIZE));
-                if (read <= 0L) {
-                    return read < 0L && first ? read : total;
-                }
+        Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
+        ByteBuffer buf = recycler.allocate();
 
-                total += read;
-                first = false;
-            } while (total < count);
-            return total;
-        }
+        long addr = PUnsafe.pork_directBufferAddress(buf);
+        long total = 0L;
+        boolean first = true;
+        do {
+            long read = this.read0(addr, min(count - total, PorkUtil.bufferSize()));
+            if (read <= 0L) {
+                return read < 0L && first ? read : total;
+            }
+
+            total += read;
+            first = false;
+        } while (total < count);
+
+        recycler.release(buf); //release the buffer to the recycler
+        return total;
     }
 
     @Override
     protected long transfer0(@NonNull DataOut dst, long count) throws IOException {
-        try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_BUFFER_POOL.get()) {
-            ByteBuffer buffer = handle.get();
-            long addr = PUnsafe.pork_directBufferAddress(buffer);
-            long total = 0L;
-            boolean first = true;
-            do {
-                int read = toInt(this.read0(addr, count < 0L ? PorkUtil.BUFFER_SIZE : min(count - total, PorkUtil.BUFFER_SIZE)));
-                if (read <= 0) {
-                    return read < 0 && first ? read : total;
-                }
+        Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
+        ByteBuffer buf = recycler.allocate();
 
-                //write to dst
-                buffer.position(0).limit(read);
-                dst.write(buffer);
+        long addr = PUnsafe.pork_directBufferAddress(buf);
+        long total = 0L;
+        boolean first = true;
+        do {
+            int read = toInt(this.read0(addr, count < 0L ? PorkUtil.bufferSize() : min(count - total, PorkUtil.bufferSize())));
+            if (read <= 0) {
+                return read < 0 && first ? read : total;
+            }
 
-                total += read;
-                first = false;
-            } while (count < 0L || total < count);
-            return total;
-        }
+            //write to dst
+            buf.position(0).limit(read);
+            dst.write(buf);
+
+            total += read;
+            first = false;
+        } while (count < 0L || total < count);
+
+        recycler.release(buf); //release the buffer to the recycler
+        return total;
     }
 }

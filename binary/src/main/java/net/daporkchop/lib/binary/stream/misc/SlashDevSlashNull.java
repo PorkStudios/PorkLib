@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -28,19 +28,18 @@ import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.binary.stream.wrapper.DataInAsInputStream;
 import net.daporkchop.lib.binary.stream.wrapper.DataOutAsOutputStream;
-import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.function.Function;
 
-import static java.lang.Math.min;
+import static java.lang.Math.*;
 import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
@@ -299,7 +298,7 @@ public final class SlashDevSlashNull implements DataIn, DataOut {
         int writerIndex = dst.writerIndex();
         if (dst.hasMemoryAddress()) {
             PUnsafe.setMemory(dst.memoryAddress() + writerIndex, count, (byte) 0);
-        } else if (dst.hasArray())  {
+        } else if (dst.hasArray()) {
             Arrays.fill(dst.array(), dst.arrayOffset() + writerIndex, dst.arrayOffset() + writerIndex + count, (byte) 0);
         } else {
             for (int i = 0; i < count; i++) {
@@ -317,7 +316,7 @@ public final class SlashDevSlashNull implements DataIn, DataOut {
         dst.ensureWritable(start + length - writerIndex);
         if (dst.hasMemoryAddress()) {
             PUnsafe.setMemory(dst.memoryAddress() + start, length, (byte) 0);
-        } else if (dst.hasArray())  {
+        } else if (dst.hasArray()) {
             Arrays.fill(dst.array(), dst.arrayOffset() + start, dst.arrayOffset() + start + length, (byte) 0);
         } else {
             for (int i = 0; i < length; i++) {
@@ -349,32 +348,36 @@ public final class SlashDevSlashNull implements DataIn, DataOut {
 
     @Override
     public long transferTo(@NonNull DataOut dst, long count) throws IOException {
-        if (positive(count, "count") == 0L)  {
+        if (positive(count, "count") == 0L) {
             return 0L;
         }
 
         long total = 0L;
         if (dst.isDirect()) {
-            try (Handle<ByteBuffer> handle = PorkUtil.DIRECT_BUFFER_POOL.get())    {
-                ByteBuffer buffer = handle.get();
-                PUnsafe.setMemory(PUnsafe.pork_directBufferAddress(buffer.clear()), PorkUtil.BUFFER_SIZE, (byte) 0);
-                do {
-                    int blockSize = (int) min(count - total, PorkUtil.BUFFER_SIZE);
-                    buffer.position(0).limit(blockSize);
-                    dst.write(buffer);
-                    total += blockSize;
-                } while (total < count);
-            }
+            Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
+            ByteBuffer buf = recycler.allocate();
+
+            PUnsafe.setMemory(PUnsafe.pork_directBufferAddress(buf.clear()), PorkUtil.bufferSize(), (byte) 0);
+            do {
+                int blockSize = (int) min(count - total, PorkUtil.bufferSize());
+                buf.limit(blockSize);
+                dst.write(buf);
+                total += blockSize;
+            } while (total < count);
+
+            recycler.release(buf); //release the buffer to the recycler
         } else {
-            try (Handle<byte[]> handle = PorkUtil.BUFFER_POOL.get())    {
-                byte[] arr = handle.get();
-                Arrays.fill(arr, (byte) 0);
-                do {
-                    int blockSize = (int) min(count - total, PorkUtil.BUFFER_SIZE);
-                    dst.write(arr, 0, blockSize);
-                    total += blockSize;
-                } while (total < count);
-            }
+            Recycler<byte[]> recycler = PorkUtil.heapBufferRecycler();
+            byte[] buf = recycler.allocate();
+
+            Arrays.fill(buf, (byte) 0);
+            do {
+                int blockSize = (int) min(count - total, PorkUtil.bufferSize());
+                dst.write(buf, 0, blockSize);
+                total += blockSize;
+            } while (total < count);
+
+            recycler.release(buf); //release the buffer to the recycler
         }
         return total;
     }
@@ -636,7 +639,7 @@ public final class SlashDevSlashNull implements DataIn, DataOut {
     public void flush() throws IOException {
     }
 
-    private static final class InputStream extends DataInAsInputStream  {
+    private static final class InputStream extends DataInAsInputStream {
         public InputStream() {
             super(INSTANCE);
         }
@@ -674,7 +677,7 @@ public final class SlashDevSlashNull implements DataIn, DataOut {
         }
     }
 
-    private static final class OutputStream extends DataOutAsOutputStream    {
+    private static final class OutputStream extends DataOutAsOutputStream {
         public OutputStream() {
             super(INSTANCE);
         }

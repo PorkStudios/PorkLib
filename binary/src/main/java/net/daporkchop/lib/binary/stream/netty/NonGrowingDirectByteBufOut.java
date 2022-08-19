@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -24,6 +24,7 @@ import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 
@@ -53,5 +54,64 @@ public class NonGrowingDirectByteBufOut extends DirectByteBufOut {
     protected void write0(long addr, long length) throws IOException {
         checkIndex(this.delegate.isWritable(toInt(length, "length")));
         super.write0(addr, length);
+    }
+
+    @Override
+    public long writeText(@NonNull CharSequence text, @NonNull Charset charset) throws IOException {
+        return this.writeText(text, 0, text.length(), charset); //delegate to non-accelerated version
+    }
+
+    @Override
+    public void writeByte(int b) throws IOException {
+        checkIndex(this.delegate.isWritable(Byte.BYTES));
+        super.writeByte(b);
+    }
+
+    @Override
+    public void writeShort(int v) throws IOException {
+        checkIndex(this.delegate.isWritable(Short.BYTES));
+        super.writeShort(v);
+    }
+
+    @Override
+    public void writeShortLE(int v) throws IOException {
+        checkIndex(this.delegate.isWritable(Short.BYTES));
+        super.writeShortLE(v);
+    }
+
+    @Override
+    public void writeChar(int v) throws IOException {
+        checkIndex(this.delegate.isWritable(Character.BYTES));
+        super.writeChar(v);
+    }
+
+    @Override
+    public void writeCharLE(int v) throws IOException {
+        checkIndex(this.delegate.isWritable(Character.BYTES));
+        super.writeCharLE(v);
+    }
+
+    @Override
+    public void writeInt(int v) throws IOException {
+        checkIndex(this.delegate.isWritable(Integer.BYTES));
+        super.writeInt(v);
+    }
+
+    @Override
+    public void writeIntLE(int v) throws IOException {
+        checkIndex(this.delegate.isWritable(Integer.BYTES));
+        super.writeIntLE(v);
+    }
+
+    @Override
+    public void writeLong(long v) throws IOException {
+        checkIndex(this.delegate.isWritable(Long.BYTES));
+        super.writeLong(v);
+    }
+
+    @Override
+    public void writeLongLE(long v) throws IOException {
+        checkIndex(this.delegate.isWritable(Long.BYTES));
+        super.writeLongLE(v);
     }
 }

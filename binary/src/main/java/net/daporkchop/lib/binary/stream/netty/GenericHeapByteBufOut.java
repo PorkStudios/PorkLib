@@ -21,97 +21,116 @@
 package net.daporkchop.lib.binary.stream.netty;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.util.internal.PlatformDependent;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.binary.stream.AbstractHeapDataOut;
+import net.daporkchop.lib.binary.stream.DataOut;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 
+import static java.lang.Math.*;
 import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
- * Variant of {@link DirectByteBufOut} which doesn't allow the destination buffer to be grown.
+ * An implementation of {@link DataOut} that can write to any heap-based {@link ByteBuf}.
  *
  * @author DaPorkchop_
  */
-public class NonGrowingByteBufOut extends GenericHeapByteBufOut {
-    public NonGrowingByteBufOut(@NonNull ByteBuf delegate) {
-        super(delegate);
+@Getter
+@Accessors(fluent = true)
+public class GenericHeapByteBufOut extends AbstractHeapDataOut {
+    protected ByteBuf delegate;
+
+    public GenericHeapByteBufOut(@NonNull ByteBuf delegate) {
+        checkArg(!delegate.isDirect(), "delegate may not be direct!");
+        this.delegate = delegate;
     }
 
     @Override
     protected void write0(int b) throws IOException {
-        checkIndex(this.delegate.isWritable());
-        super.write0(b);
+        this.delegate.writeByte(b);
     }
 
     @Override
     protected void write0(@NonNull byte[] src, int start, int length) throws IOException {
-        checkIndex(this.delegate.isWritable(length));
-        super.write0(src, start, length);
+        int count = min(this.delegate.maxWritableBytes(), length);
+        checkIndex(count == length);
+        this.delegate.writeBytes(src, start, length);
     }
 
     @Override
     protected void write0(long addr, long length) throws IOException {
-        checkIndex(this.delegate.isWritable(toInt(length, "length")));
-        super.write0(addr, length);
+        int writerIndex = this.delegate.writerIndex();
+        int count = toInt(min(this.delegate.maxCapacity() - writerIndex, length));
+        checkIndex(count == length);
+        this.delegate.writeBytes(PlatformDependent.directBuffer(addr, count));
+    }
+
+    @Override
+    protected void flush0() throws IOException {
+        //no-op
+    }
+
+    @Override
+    protected void close0() throws IOException {
+        this.delegate.release();
+        this.delegate = null;
     }
 
     @Override
     public long writeText(@NonNull CharSequence text, @NonNull Charset charset) throws IOException {
-        return this.writeText(text, 0, text.length(), charset); //delegate to non-accelerated version
+        return this.delegate.writeCharSequence(text, charset);
     }
+
+    //
+    // primitives
+    //
 
     @Override
     public void writeByte(int b) throws IOException {
-        checkIndex(this.delegate.isWritable(Byte.BYTES));
-        super.writeByte(b);
+        this.delegate.writeByte(b);
     }
 
     @Override
     public void writeShort(int v) throws IOException {
-        checkIndex(this.delegate.isWritable(Short.BYTES));
-        super.writeShort(v);
+        this.delegate.writeShort(v);
     }
 
     @Override
     public void writeShortLE(int v) throws IOException {
-        checkIndex(this.delegate.isWritable(Short.BYTES));
-        super.writeShortLE(v);
+        this.delegate.writeShortLE(v);
     }
 
     @Override
     public void writeChar(int v) throws IOException {
-        checkIndex(this.delegate.isWritable(Character.BYTES));
-        super.writeChar(v);
+        this.delegate.writeShort(v);
     }
 
     @Override
     public void writeCharLE(int v) throws IOException {
-        checkIndex(this.delegate.isWritable(Character.BYTES));
-        super.writeCharLE(v);
+        this.delegate.writeShortLE(v);
     }
 
     @Override
     public void writeInt(int v) throws IOException {
-        checkIndex(this.delegate.isWritable(Integer.BYTES));
-        super.writeInt(v);
+        this.delegate.writeInt(v);
     }
 
     @Override
     public void writeIntLE(int v) throws IOException {
-        checkIndex(this.delegate.isWritable(Integer.BYTES));
-        super.writeIntLE(v);
+        this.delegate.writeIntLE(v);
     }
 
     @Override
     public void writeLong(long v) throws IOException {
-        checkIndex(this.delegate.isWritable(Long.BYTES));
-        super.writeLong(v);
+        this.delegate.writeLong(v);
     }
 
     @Override
     public void writeLongLE(long v) throws IOException {
-        checkIndex(this.delegate.isWritable(Long.BYTES));
-        super.writeLongLE(v);
+        this.delegate.writeLongLE(v);
     }
 }

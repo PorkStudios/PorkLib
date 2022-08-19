@@ -21,13 +21,13 @@
 package net.daporkchop.lib.binary.stream.netty;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.util.internal.PlatformDependent;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.binary.stream.AbstractDirectDataIn;
+import net.daporkchop.lib.binary.stream.AbstractHeapDataIn;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -37,17 +37,17 @@ import static java.lang.Math.*;
 import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
- * An implementation of {@link DataIn} that can read from a direct {@link ByteBuf}.
+ * An implementation of {@link DataIn} that can read from any heap-based {@link ByteBuf}.
  *
  * @author DaPorkchop_
  */
 @Getter
 @Accessors(fluent = true)
-public class DirectByteBufIn extends AbstractDirectDataIn {
+public class GenericHeapByteBufIn extends AbstractHeapDataIn {
     protected ByteBuf delegate;
 
-    public DirectByteBufIn(@NonNull ByteBuf delegate) {
-        checkArg(delegate.hasMemoryAddress(), "delegate must be direct!");
+    public GenericHeapByteBufIn(@NonNull ByteBuf delegate) {
+        checkArg(!delegate.isDirect(), "delegate may not be direct!");
         this.delegate = delegate;
     }
 
@@ -74,12 +74,10 @@ public class DirectByteBufIn extends AbstractDirectDataIn {
     @Override
     protected long read0(long addr, long length) throws IOException {
         int count = toInt(min(this.delegate.readableBytes(), length));
-        int readerIndex = this.delegate.readerIndex();
         if (count <= 0) {
             return RESULT_EOF;
         }
-        PUnsafe.copyMemory(this.delegate.memoryAddress() + readerIndex, addr, count);
-        this.delegate.skipBytes(count);
+        this.delegate.readBytes(PlatformDependent.directBuffer(addr, count));
         return count;
     }
 

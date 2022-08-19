@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -24,7 +24,7 @@ import io.netty.buffer.ByteBuf;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.binary.stream.AbstractHeapDataOut;
+import net.daporkchop.lib.binary.stream.AbstractDirectDataOut;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
@@ -41,12 +41,11 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  */
 @Getter
 @Accessors(fluent = true)
-public class DirectByteBufOut extends AbstractHeapDataOut {
+public class DirectByteBufOut extends AbstractDirectDataOut {
     protected ByteBuf delegate;
 
     public DirectByteBufOut(@NonNull ByteBuf delegate) {
         checkArg(delegate.hasMemoryAddress(), "delegate must be direct!");
-        this.delegate = delegate;
     }
 
     @Override
@@ -85,5 +84,54 @@ public class DirectByteBufOut extends AbstractHeapDataOut {
     @Override
     public long writeText(@NonNull CharSequence text, @NonNull Charset charset) throws IOException {
         return this.delegate.writeCharSequence(text, charset);
+    }
+
+    //
+    // primitives
+    //
+
+    @Override
+    public void writeByte(int b) throws IOException {
+        this.delegate.writeByte(b);
+    }
+
+    @Override
+    public void writeShort(int v) throws IOException {
+        this.delegate.writeShort(v);
+    }
+
+    @Override
+    public void writeShortLE(int v) throws IOException {
+        this.delegate.writeShortLE(v);
+    }
+
+    @Override
+    public void writeChar(int v) throws IOException {
+        this.delegate.writeShort(v);
+    }
+
+    @Override
+    public void writeCharLE(int v) throws IOException {
+        this.delegate.writeShortLE(v);
+    }
+
+    @Override
+    public void writeInt(int v) throws IOException {
+        this.delegate.writeInt(v);
+    }
+
+    @Override
+    public void writeIntLE(int v) throws IOException {
+        this.delegate.writeIntLE(v);
+    }
+
+    @Override
+    public void writeLong(long v) throws IOException {
+        this.delegate.writeLong(v);
+    }
+
+    @Override
+    public void writeLongLE(long v) throws IOException {
+        this.delegate.writeLongLE(v);
     }
 }

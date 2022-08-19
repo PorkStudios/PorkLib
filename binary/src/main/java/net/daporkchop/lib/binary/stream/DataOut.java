@@ -22,13 +22,14 @@ package net.daporkchop.lib.binary.stream;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.netty.ByteBufOut;
+import net.daporkchop.lib.binary.stream.netty.GenericHeapByteBufOut;
 import net.daporkchop.lib.binary.stream.netty.DirectByteBufOut;
 import net.daporkchop.lib.binary.stream.netty.NonGrowingByteBufOut;
 import net.daporkchop.lib.binary.stream.netty.NonGrowingDirectByteBufOut;
 import net.daporkchop.lib.binary.stream.nio.DirectBufferOut;
 import net.daporkchop.lib.binary.stream.nio.HeapBufferOut;
 import net.daporkchop.lib.binary.stream.stream.StreamOut;
+import net.daporkchop.lib.common.annotation.NotThreadSafe;
 import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
@@ -64,6 +65,7 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  * @author DaPorkchop_
  * @see DataIn
  */
+@NotThreadSafe
 public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
     //
     //
@@ -241,7 +243,8 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      *
      * @param buf    the {@link ByteBuf} to write to
      * @param retain if {@code true}: when the {@link DataOut} is closed (using {@link DataOut#close()}), the {@link ByteBuf} will not be released
-     * @param grow   whether or not the buffer should be allowed to grow
+     * @param grow   whether
+     *              the buffer should be allowed to grow
      * @return a {@link DataOut} that can write data to the {@link ByteBuf}
      */
     static DataOut wrap(@NonNull ByteBuf buf, boolean retain, boolean grow) {
@@ -251,7 +254,7 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
         if (buf.hasMemoryAddress()) {
             return grow ? new DirectByteBufOut(buf) : new NonGrowingDirectByteBufOut(buf);
         } else {
-            return grow ? new ByteBufOut(buf) : new NonGrowingByteBufOut(buf);
+            return grow ? new GenericHeapByteBufOut(buf) : new NonGrowingByteBufOut(buf);
         }
     }
 
@@ -408,7 +411,7 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @param f the float to write
      */
     default void writeFloat(float f) throws IOException {
-        this.writeInt(Float.floatToIntBits(f));
+        this.writeInt(Float.floatToRawIntBits(f));
     }
 
     /**
@@ -417,7 +420,7 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @param f the float to write
      */
     default void writeFloatLE(float f) throws IOException {
-        this.writeIntLE(Float.floatToIntBits(f));
+        this.writeIntLE(Float.floatToRawIntBits(f));
     }
 
     /**
@@ -440,7 +443,7 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @param d the double to write
      */
     default void writeDouble(double d) throws IOException {
-        this.writeLong(Double.doubleToLongBits(d));
+        this.writeLong(Double.doubleToRawLongBits(d));
     }
 
     /**
@@ -449,7 +452,7 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @param d the double to write
      */
     default void writeDoubleLE(double d) throws IOException {
-        this.writeLongLE(Double.doubleToLongBits(d));
+        this.writeLongLE(Double.doubleToRawLongBits(d));
     }
 
     /**

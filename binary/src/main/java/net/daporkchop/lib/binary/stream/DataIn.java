@@ -22,13 +22,13 @@ package net.daporkchop.lib.binary.stream;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.netty.ByteBufIn;
+import net.daporkchop.lib.binary.stream.netty.GenericHeapByteBufIn;
 import net.daporkchop.lib.binary.stream.netty.DirectByteBufIn;
 import net.daporkchop.lib.binary.stream.nio.DirectBufferIn;
 import net.daporkchop.lib.binary.stream.nio.HeapBufferIn;
 import net.daporkchop.lib.binary.stream.stream.StreamIn;
 import net.daporkchop.lib.binary.stream.wrapper.DataInAsInputStream;
-import net.daporkchop.lib.common.pool.handle.Handle;
+import net.daporkchop.lib.common.annotation.NotThreadSafe;
 import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.common.util.PorkUtil;
@@ -67,6 +67,7 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  * @author DaPorkchop_
  * @see DataOut
  */
+@NotThreadSafe
 public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
     //
     //
@@ -222,7 +223,7 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
         if (retain) {
             buf.retain();
         }
-        return buf.hasMemoryAddress() ? new DirectByteBufIn(buf) : new ByteBufIn(buf);
+        return buf.hasMemoryAddress() ? new DirectByteBufIn(buf) : new GenericHeapByteBufIn(buf);
     }
 
     //

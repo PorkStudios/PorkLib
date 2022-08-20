@@ -147,7 +147,7 @@ public class ZlibTest {
                 ByteBuf src = buffers[0].writeBytes(this.text);
                 ByteBuf dst = buffers[1].ensureWritable(deflater.provider().compressBound(src.readableBytes()));
 
-                try (DataOut out = deflater.compressionStream(DataOut.wrap(dst))) {
+                try (DataOut out = deflater.compressionStream(DataOut.wrapView(dst))) {
                     out.write(src);
                 }
             });
@@ -159,7 +159,7 @@ public class ZlibTest {
                 ByteBuf dict = buffers[2];
                 SlashDevSlashNull.INSTANCE.read(dict, 1024);
 
-                try (DataOut out = deflater.compressionStream(DataOut.wrap(dst), dict)) {
+                try (DataOut out = deflater.compressionStream(DataOut.wrapView(dst), dict)) {
                     out.write(src);
                 }
             });
@@ -171,7 +171,7 @@ public class ZlibTest {
                 ByteBuf dict = buffers[2];
                 SlashDevSlashNull.INSTANCE.read(dict, 1024);
 
-                try (DataOut out = deflater.compressionStream(DataOut.wrap(dst), dict)) {
+                try (DataOut out = deflater.compressionStream(DataOut.wrapView(dst), dict)) {
                     out.flush();
                     out.flush();
                     out.write(src);
@@ -188,7 +188,7 @@ public class ZlibTest {
                 ByteBuf src = buffers[0].writeBytes(this.text);
                 ByteBuf dst = buffers[1].ensureWritable(deflater.provider().compressBound(src.readableBytes()));
 
-                try (OutputStream out = deflater.compressionStream(DataOut.wrap(dst)).asOutputStream()) {
+                try (OutputStream out = deflater.compressionStream(DataOut.wrapView(dst)).asOutputStream()) {
                     src.readBytes(out, src.readableBytes());
                 }
             });
@@ -198,7 +198,7 @@ public class ZlibTest {
                 ByteBuf src = buffers[0].writeBytes(this.text);
                 ByteBuf dst = buffers[1].ensureWritable(deflater.provider().compressBound(src.readableBytes()));
 
-                try (OutputStream out = new BufferedOutputStream(deflater.compressionStream(DataOut.wrap(dst)).asOutputStream())) {
+                try (OutputStream out = new BufferedOutputStream(deflater.compressionStream(DataOut.wrapView(dst)).asOutputStream())) {
                     src.readBytes(out, src.readableBytes());
                 }
             });
@@ -208,7 +208,7 @@ public class ZlibTest {
                 ByteBuf src = buffers[0].writeBytes(this.text);
                 ByteBuf dst = buffers[1].ensureWritable(deflater.provider().compressBound(src.readableBytes()));
 
-                try (OutputStream out = new BufferedOutputStream(deflater.compressionStream(DataOut.wrap(dst)).asOutputStream())) {
+                try (OutputStream out = new BufferedOutputStream(deflater.compressionStream(DataOut.wrapView(dst)).asOutputStream())) {
                     src.readBytes(out, src.readableBytes());
                     out.flush();
                 }
@@ -223,7 +223,7 @@ public class ZlibTest {
                 ByteBuf src = buffers[0].writeBytes(this.gzipped);
                 ByteBuf dst = buffers[1].ensureWritable(8192);
 
-                try (DataIn in = inflater.decompressionStream(DataIn.wrap(src))) {
+                try (DataIn in = inflater.decompressionStream(DataIn.wrapView(src))) {
                     in.read(dst);
                     checkState(in.remaining() == 0L, "there was more data remaining!");
                 }

@@ -135,7 +135,7 @@ final class NativeZstdDeflater extends AbstractRefCounted.Synchronized implement
             //the other cases are too much of a pain to implement by hand
             int srcReaderIndex = src.readerIndex();
             int dstWriterIndex = dst.writerIndex();
-            try (DataOut out = this.compressionStream(DataOut.wrap(dst, true, false), null, -1, dict, level)) {
+            try (DataOut out = this.compressionStream(DataOut.wrapViewNonGrowing(dst), null, -1, dict, level)) {
                 out.write(src);
                 return true;
             } catch (IOException e) {
@@ -280,7 +280,7 @@ final class NativeZstdDeflater extends AbstractRefCounted.Synchronized implement
             //the other cases are too much of a pain to implement by hand
             int srcReaderIndex = src.readerIndex();
             int dstWriterIndex = dst.writerIndex();
-            try (DataOut out = this.compressionStream(DataOut.wrap(dst, true, false), null, -1, dict)) {
+            try (DataOut out = this.compressionStream(DataOut.wrapViewNonGrowing(dst), null, -1, dict)) {
                 out.write(src);
                 return true;
             } catch (IOException e) {
@@ -347,7 +347,7 @@ final class NativeZstdDeflater extends AbstractRefCounted.Synchronized implement
 
         if (!(src.hasMemoryAddress() || src.hasArray()) || !(dst.hasMemoryAddress() || dst.hasArray())) {
             //the other cases are too much of a pain to implement by hand
-            try (DataOut out = this.compressionStream(DataOut.wrap(dst, true, true), null, -1, dict, level)) {
+            try (DataOut out = this.compressionStream(DataOut.wrapView(dst), null, -1, dict, level)) {
                 out.write(src);
                 return;
             } catch (IOException e) {
@@ -366,7 +366,7 @@ final class NativeZstdDeflater extends AbstractRefCounted.Synchronized implement
 
         if (!(src.hasMemoryAddress() || src.hasArray()) || !(dst.hasMemoryAddress() || dst.hasArray())) {
             //the other cases are too much of a pain to implement by hand
-            try (DataOut out = this.compressionStream(DataOut.wrap(dst, true, true), null, -1, dict)) {
+            try (DataOut out = this.compressionStream(DataOut.wrapView(dst), null, -1, dict)) {
                 out.write(src);
                 return;
             } catch (IOException e) {

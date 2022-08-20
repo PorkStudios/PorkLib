@@ -78,7 +78,7 @@ final class JavaZlibDeflater extends AbstractRefCounted.Synchronized implements 
         checkArg(dst.isWritable(), "dst is not writable!");
         int srcReaderIndex = src.readerIndex();
         int dstWriterIndex = dst.writerIndex();
-        try (DataOut out = this.compressionStream(DataOut.wrap(dst, true, grow), dict)) {
+        try (DataOut out = this.compressionStream(grow ? DataOut.wrapView(dst) : DataOut.wrapViewNonGrowing(dst), dict)) {
             out.write(src);
         } catch (IOException e) {
             //shouldn't be possible

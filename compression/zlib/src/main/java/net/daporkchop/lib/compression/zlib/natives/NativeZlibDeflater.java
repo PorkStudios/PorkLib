@@ -95,7 +95,7 @@ final class NativeZlibDeflater extends AbstractRefCounted.Synchronized implement
             //the other cases are too much of a pain to implement by hand
             int srcReaderIndex = src.readerIndex();
             int dstWriterIndex = dst.writerIndex();
-            try (DataOut out = this.compressionStream(DataOut.wrap(dst, true, false), dict)) {
+            try (DataOut out = this.compressionStream(DataOut.wrapViewNonGrowing(dst), dict)) {
                 out.write(src);
                 return true;
             } catch (IOException e) {
@@ -139,7 +139,7 @@ final class NativeZlibDeflater extends AbstractRefCounted.Synchronized implement
 
         if (!(src.hasMemoryAddress() || src.hasArray()) || !(dst.hasMemoryAddress() || dst.hasArray())) {
             //the other cases are too much of a pain to implement by hand
-            try (DataOut out = this.compressionStream(DataOut.wrap(dst, true), dict)) {
+            try (DataOut out = this.compressionStream(DataOut.wrapView(dst), dict)) {
                 out.write(src);
                 return;
             } catch (IOException e) {

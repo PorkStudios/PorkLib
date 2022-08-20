@@ -29,13 +29,13 @@ import java.nio.charset.Charset;
 import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
- * Variant of {@link DirectByteBufOut} which doesn't allow the destination buffer to be grown.
+ * Variant of {@link GenericHeapByteBufOut} which doesn't allow the destination buffer to be grown.
  *
  * @author DaPorkchop_
  */
-public class NonGrowingDirectByteBufOut extends DirectByteBufOut {
-    public NonGrowingDirectByteBufOut(@NonNull ByteBuf delegate) {
-        super(delegate);
+public class NonGrowingGenericHeapByteBufOut extends GenericHeapByteBufOut {
+    public NonGrowingGenericHeapByteBufOut(@NonNull ByteBuf delegate, boolean autoRelease) {
+        super(delegate, autoRelease);
     }
 
     @Override

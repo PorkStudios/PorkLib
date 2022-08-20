@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -48,12 +48,12 @@ public class ObjectTreeTest {
         try (InputStream in = ObjectTreeTest.class.getResourceAsStream("/hello_world.nbt")) {
             arr = StreamUtil.toByteArray(in);
         }
-        CompoundTag tag = NBTFormat.BIG_ENDIAN.readCompound(DataIn.wrap(Unpooled.wrappedBuffer(arr)));
+        CompoundTag tag = NBTFormat.BIG_ENDIAN.readCompound(DataIn.wrapView(Unpooled.wrappedBuffer(arr)));
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         NBTFormat.BIG_ENDIAN.writeCompound(DataOut.wrap(baos), tag);
         checkState(Arrays.equals(arr, baos.toByteArray()));
-        CompoundTag tag2 = NBTFormat.BIG_ENDIAN.readCompound(DataIn.wrap(Unpooled.wrappedBuffer(baos.toByteArray())));
+        CompoundTag tag2 = NBTFormat.BIG_ENDIAN.readCompound(DataIn.wrapView(Unpooled.wrappedBuffer(baos.toByteArray())));
         checkState(tag.equals(tag2));
     }
 
@@ -63,12 +63,12 @@ public class ObjectTreeTest {
         try (InputStream in = new GZIPInputStream(ObjectTreeTest.class.getResourceAsStream("/bigtest.nbt"))) {
             arr = StreamUtil.toByteArray(in);
         }
-        CompoundTag tag = NBTFormat.BIG_ENDIAN.readCompound(DataIn.wrap(Unpooled.wrappedBuffer(arr)));
+        CompoundTag tag = NBTFormat.BIG_ENDIAN.readCompound(DataIn.wrapView(Unpooled.wrappedBuffer(arr)));
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         NBTFormat.BIG_ENDIAN.writeCompound(DataOut.wrap(baos), tag);
         checkState(Arrays.equals(arr, baos.toByteArray()));
-        CompoundTag tag2 = NBTFormat.BIG_ENDIAN.readCompound(DataIn.wrap(Unpooled.wrappedBuffer(baos.toByteArray())));
+        CompoundTag tag2 = NBTFormat.BIG_ENDIAN.readCompound(DataIn.wrapView(Unpooled.wrappedBuffer(baos.toByteArray())));
         checkState(tag.equals(tag2));
     }
 
@@ -78,12 +78,12 @@ public class ObjectTreeTest {
         try (InputStream in = ObjectTreeTest.class.getResourceAsStream("/runtime_block_states.dat")) {
             arr = StreamUtil.toByteArray(in);
         }
-        ListTag<CompoundTag> tag = NBTFormat.LITTLE_ENDIAN.readList(DataIn.wrap(Unpooled.wrappedBuffer(arr)));
+        ListTag<CompoundTag> tag = NBTFormat.LITTLE_ENDIAN.readList(DataIn.wrapView(Unpooled.wrappedBuffer(arr)));
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         NBTFormat.LITTLE_ENDIAN.writeList(DataOut.wrap(baos), tag);
         checkState(Arrays.equals(arr, baos.toByteArray()));
-        ListTag<CompoundTag> tag2 = NBTFormat.LITTLE_ENDIAN.readList(DataIn.wrap(Unpooled.wrappedBuffer(baos.toByteArray())));
+        ListTag<CompoundTag> tag2 = NBTFormat.LITTLE_ENDIAN.readList(DataIn.wrapView(Unpooled.wrappedBuffer(baos.toByteArray())));
         checkState(tag.equals(tag2));
     }
 
@@ -93,12 +93,12 @@ public class ObjectTreeTest {
         try (InputStream in = ObjectTreeTest.class.getResourceAsStream("/biome_definitions.dat")) {
             arr = StreamUtil.toByteArray(in);
         }
-        CompoundTag tag = NBTFormat.VARINT.readCompound(DataIn.wrap(Unpooled.wrappedBuffer(arr)));
+        CompoundTag tag = NBTFormat.VARINT.readCompound(DataIn.wrapView(Unpooled.wrappedBuffer(arr)));
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         NBTFormat.VARINT.writeCompound(DataOut.wrap(baos), tag);
         checkState(Arrays.equals(arr, baos.toByteArray()));
-        CompoundTag tag2 = NBTFormat.VARINT.readCompound(DataIn.wrap(Unpooled.wrappedBuffer(baos.toByteArray())));
+        CompoundTag tag2 = NBTFormat.VARINT.readCompound(DataIn.wrapView(Unpooled.wrappedBuffer(baos.toByteArray())));
         checkState(tag.equals(tag2));
     }
 
@@ -130,13 +130,13 @@ public class ObjectTreeTest {
             try (InputStream in = ObjectTreeTest.class.getResourceAsStream("/hello_world.nbt")) {
                 arr = StreamUtil.toByteArray(in);
             }
-            CompoundTag tag = NBTFormat.BIG_ENDIAN.readCompound(DataIn.wrap(Unpooled.wrappedBuffer(arr)));
+            CompoundTag tag = NBTFormat.BIG_ENDIAN.readCompound(DataIn.wrapView(Unpooled.wrappedBuffer(arr)));
 
             encoder.putTag(tag.name(), tag)
                     .startListCompound("hello worlds", 2)
                     .appendTag(tag).appendTag(tag).close();
         }
 
-        System.out.println(NBTFormat.VARINT.readCompound(DataIn.wrap(Unpooled.wrappedBuffer(baos.toByteArray()))));
+        System.out.println(NBTFormat.VARINT.readCompound(DataIn.wrapView(Unpooled.wrappedBuffer(baos.toByteArray()))));
     }
 }

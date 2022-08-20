@@ -22,14 +22,16 @@ package net.daporkchop.lib.binary.stream;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.netty.GenericDirectByteBufOut;
 import net.daporkchop.lib.binary.stream.netty.GenericHeapByteBufOut;
-import net.daporkchop.lib.binary.stream.netty.DirectByteBufOut;
-import net.daporkchop.lib.binary.stream.netty.NonGrowingByteBufOut;
-import net.daporkchop.lib.binary.stream.netty.NonGrowingDirectByteBufOut;
+import net.daporkchop.lib.binary.stream.netty.NonGrowingGenericHeapByteBufOut;
+import net.daporkchop.lib.binary.stream.netty.NonGrowingGenericDirectByteBufOut;
 import net.daporkchop.lib.binary.stream.nio.DirectBufferOut;
 import net.daporkchop.lib.binary.stream.nio.HeapBufferOut;
 import net.daporkchop.lib.binary.stream.stream.StreamOut;
+import net.daporkchop.lib.common.annotation.AliasOwnership;
 import net.daporkchop.lib.common.annotation.NotThreadSafe;
+import net.daporkchop.lib.common.annotation.TransferOwnership;
 import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
@@ -216,46 +218,102 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
     }
 
     /**
-     * Wraps a {@link ByteBuf} into a {@link DataOut} for writing.
-     * <p>
-     * When the {@link DataOut} is closed (using {@link DataOut#close()}), the {@link ByteBuf} will not be released.
-     *
-     * @param buf the {@link ByteBuf} to write to
-     * @return a {@link DataOut} that can write data to the {@link ByteBuf}
+     * @deprecated use one of {@link #wrapView}, {@link #wrapReleasing}, {@link #wrapViewNonGrowing} or {@link #wrapReleasingNonGrowing}
      */
+    @Deprecated
     static DataOut wrap(@NonNull ByteBuf buf) {
         return wrap(buf, true, true);
     }
 
     /**
-     * Wraps a {@link ByteBuf} into a {@link DataOut} for writing.
-     *
-     * @param buf    the {@link ByteBuf} to write to
-     * @param retain if {@code true}: when the {@link DataOut} is closed (using {@link DataOut#close()}), the {@link ByteBuf} will not be released
-     * @return a {@link DataOut} that can write data to the {@link ByteBuf}
+     * @deprecated use one of {@link #wrapView}, {@link #wrapReleasing}, {@link #wrapViewNonGrowing} or {@link #wrapReleasingNonGrowing}
      */
+    @Deprecated
     static DataOut wrap(@NonNull ByteBuf buf, boolean retain) {
         return wrap(buf, retain, true);
     }
 
     /**
-     * Wraps a {@link ByteBuf} into a {@link DataOut} for writing.
-     *
-     * @param buf    the {@link ByteBuf} to write to
-     * @param retain if {@code true}: when the {@link DataOut} is closed (using {@link DataOut#close()}), the {@link ByteBuf} will not be released
-     * @param grow   whether
-     *              the buffer should be allowed to grow
-     * @return a {@link DataOut} that can write data to the {@link ByteBuf}
+     * @deprecated use one of {@link #wrapView}, {@link #wrapReleasing}, {@link #wrapViewNonGrowing} or {@link #wrapReleasingNonGrowing}
      */
+    @Deprecated
     static DataOut wrap(@NonNull ByteBuf buf, boolean retain, boolean grow) {
         if (retain) {
             buf.retain();
         }
         if (buf.hasMemoryAddress()) {
-            return grow ? new DirectByteBufOut(buf) : new NonGrowingDirectByteBufOut(buf);
+            return grow ? new GenericDirectByteBufOut(buf, true) : new NonGrowingGenericDirectByteBufOut(buf, true);
         } else {
-            return grow ? new GenericHeapByteBufOut(buf) : new NonGrowingByteBufOut(buf);
+            return grow ? new GenericHeapByteBufOut(buf, true) : new NonGrowingGenericHeapByteBufOut(buf, true);
         }
+    }
+
+    /**
+     * Wraps a {@link ByteBuf} into a {@link DataOut} for writing.
+     * <p>
+     * When the {@link DataOut} is {@link DataOut#close() closed}, the {@link ByteBuf} will <strong>not</strong> be {@link ByteBuf#release() released}.
+     * <p>
+     * As ownership of the {@link ByteBuf} is {@link AliasOwnership aliased} to the returned {@link DataOut}, the user must not {@link ByteBuf#release() released} the
+     * {@link ByteBuf} until the returned {@link DataOut} has been {@link DataOut#close() closed}.
+     *
+     * @param buf    the {@link ByteBuf} to write to
+     * @return a {@link DataOut} that can write data to the {@link ByteBuf}
+     * @see #wrapViewNonGrowing(ByteBuf)
+     */
+    static DataOut wrapView(@NonNull @AliasOwnership ByteBuf buf) {
+        return buf.isDirect()
+                ? new GenericDirectByteBufOut(buf, false)
+                : new GenericHeapByteBufOut(buf, false);
+    }
+
+    /**
+     * Wraps a {@link ByteBuf} into a {@link DataOut} for writing.
+     * <p>
+     * When the {@link DataOut} is {@link DataOut#close() closed}, the {@link ByteBuf} will be {@link ByteBuf#release() released}.
+     *
+     * @param buf    the {@link ByteBuf} to write to
+     * @return a {@link DataOut} that can write data to the {@link ByteBuf}
+     * @see #wrapReleasingNonGrowing(ByteBuf)
+     */
+    static DataOut wrapReleasing(@NonNull @TransferOwnership ByteBuf buf) {
+        return buf.isDirect()
+                ? new GenericDirectByteBufOut(buf, true)
+                : new GenericHeapByteBufOut(buf, true);
+    }
+
+    /**
+     * Wraps a {@link ByteBuf} into a {@link DataOut} for writing. Writing to the returned {@link DataOut} will never cause the {@link ByteBuf}'s internal storage to be
+     * grown, even if its {@link ByteBuf#capacity() capacity} is currently less than its {@link ByteBuf#maxCapacity() maximum capacity}.
+     * <p>
+     * When the {@link DataOut} is {@link DataOut#close() closed}, the {@link ByteBuf} will <strong>not</strong> be {@link ByteBuf#release() released}.
+     * <p>
+     * As ownership of the {@link ByteBuf} is {@link AliasOwnership aliased} to the returned {@link DataOut}, the user must not {@link ByteBuf#release() released} the
+     * {@link ByteBuf} until the returned {@link DataOut} has been {@link DataOut#close() closed}.
+     *
+     * @param buf    the {@link ByteBuf} to write to
+     * @return a {@link DataOut} that can write data to the {@link ByteBuf}
+     * @see #wrapView(ByteBuf)
+     */
+    static DataOut wrapViewNonGrowing(@NonNull @AliasOwnership ByteBuf buf) {
+        return buf.isDirect()
+                ? new NonGrowingGenericDirectByteBufOut(buf, false)
+                : new NonGrowingGenericHeapByteBufOut(buf, false);
+    }
+
+    /**
+     * Wraps a {@link ByteBuf} into a {@link DataOut} for writing. Writing to the returned {@link DataOut} will never cause the {@link ByteBuf}'s internal storage to be
+     *      * grown, even if its {@link ByteBuf#capacity() capacity} is currently less than its {@link ByteBuf#maxCapacity() maximum capacity}.
+     * <p>
+     * When the {@link DataOut} is {@link DataOut#close() closed}, the {@link ByteBuf} will be {@link ByteBuf#release() released}.
+     *
+     * @param buf    the {@link ByteBuf} to write to
+     * @return a {@link DataOut} that can write data to the {@link ByteBuf}
+     * @see #wrapReleasing(ByteBuf)
+     */
+    static DataOut wrapReleasingNonGrowing(@NonNull @TransferOwnership ByteBuf buf) {
+        return buf.isDirect()
+                ? new NonGrowingGenericDirectByteBufOut(buf, true)
+                : new NonGrowingGenericHeapByteBufOut(buf, true);
     }
 
     //

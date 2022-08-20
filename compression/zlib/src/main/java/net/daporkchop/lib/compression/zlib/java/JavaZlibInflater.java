@@ -78,8 +78,8 @@ final class JavaZlibInflater extends AbstractRefCounted.Synchronized implements 
         checkArg(dst.isWritable(), "dst is not writable!");
         int srcReaderIndex = src.readerIndex();
         int dstWriterIndex = dst.writerIndex();
-        try (DataIn in = this.decompressionStream(DataIn.wrap(src), dict);
-             DataOut out = DataOut.wrap(dst, true, grow)) {
+        try (DataIn in = this.decompressionStream(DataIn.wrapView(src), dict);
+             DataOut out = grow ? DataOut.wrapView(dst) : DataOut.wrapViewNonGrowing(dst)) {
             in.transferTo(out);
         } catch (IOException e) {
             throw new RuntimeException(e);

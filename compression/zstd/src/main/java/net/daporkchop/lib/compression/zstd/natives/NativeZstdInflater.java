@@ -131,8 +131,8 @@ final class NativeZstdInflater extends AbstractRefCounted.Synchronized implement
             //the other cases are too much of a pain to implement by hand
             int srcReaderIndex = src.readerIndex();
             int dstWriterIndex = dst.writerIndex();
-            try (DataIn in = this.decompressionStream(DataIn.wrap(src), null, -1, dict);
-                 DataOut out = DataOut.wrap(dst, true, false)) {
+            try (DataIn in = this.decompressionStream(DataIn.wrapView(src), null, -1, dict);
+                 DataOut out = DataOut.wrapViewNonGrowing(dst)) {
                 out.transferFrom(in);
                 return true;
             } catch (IOException e) {
@@ -243,8 +243,8 @@ final class NativeZstdInflater extends AbstractRefCounted.Synchronized implement
             //the other cases are too much of a pain to implement by hand
             int srcReaderIndex = src.readerIndex();
             int dstWriterIndex = dst.writerIndex();
-            try (DataIn in = this.decompressionStream(DataIn.wrap(src), null, -1, dict);
-                 DataOut out = DataOut.wrap(dst, true, false)) {
+            try (DataIn in = this.decompressionStream(DataIn.wrapView(src), null, -1, dict);
+                 DataOut out = DataOut.wrapViewNonGrowing(dst)) {
                 out.transferFrom(in);
                 return true;
             } catch (IOException e) {
@@ -347,8 +347,8 @@ final class NativeZstdInflater extends AbstractRefCounted.Synchronized implement
 
         if (!(src.hasMemoryAddress() || src.hasArray()) || !(dst.hasMemoryAddress() || dst.hasArray())) {
             //the other cases are too much of a pain to implement by hand
-            try (DataIn in = this.decompressionStream(DataIn.wrap(src), null, -1, dict);
-                 DataOut out = DataOut.wrap(dst, true)) {
+            try (DataIn in = this.decompressionStream(DataIn.wrapView(src), null, -1, dict);
+                 DataOut out = DataOut.wrapView(dst)) {
                 out.transferFrom(in);
                 return;
             } catch (IOException e) {
@@ -367,8 +367,8 @@ final class NativeZstdInflater extends AbstractRefCounted.Synchronized implement
 
         if (!(src.hasMemoryAddress() || src.hasArray()) || !(dst.hasMemoryAddress() || dst.hasArray())) {
             //the other cases are too much of a pain to implement by hand
-            try (DataIn in = this.decompressionStream(DataIn.wrap(src), null, -1, dict);
-                 DataOut out = DataOut.wrap(dst, true)) {
+            try (DataIn in = this.decompressionStream(DataIn.wrapView(src), null, -1, dict);
+                 DataOut out = DataOut.wrapView(dst)) {
                 out.transferFrom(in);
                 return;
             } catch (IOException e) {

@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -169,7 +169,7 @@ public class ZstdTest {
                 ByteBuf src = buffers[0].writeBytes(this.text);
                 ByteBuf dst = buffers[1].ensureWritable(deflater.provider().compressBound(src.readableBytes()));
 
-                try (DataOut out = deflater.compressionStream(DataOut.wrap(dst))) {
+                try (DataOut out = deflater.compressionStream(DataOut.wrapView(dst))) {
                     out.write(src);
                 }
             });
@@ -179,7 +179,7 @@ public class ZstdTest {
                 ByteBuf dict = buffers[2];
                 SlashDevSlashNull.INSTANCE.read(dict, 1024);
 
-                try (DataOut out = deflater.compressionStream(DataOut.wrap(dst), dict)) {
+                try (DataOut out = deflater.compressionStream(DataOut.wrapView(dst), dict)) {
                     out.write(src);
                 }
             });
@@ -193,7 +193,7 @@ public class ZstdTest {
                 ByteBuf src = buffers[0].writeBytes(this.zstd);
                 ByteBuf dst = buffers[1].ensureWritable(8192);
 
-                try (DataIn in = inflater.decompressionStream(DataIn.wrap(src))) {
+                try (DataIn in = inflater.decompressionStream(DataIn.wrapView(src))) {
                     in.read(dst);
                     checkState(in.remaining() == 0L, "there was more data remaining!");
                 }

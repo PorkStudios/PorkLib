@@ -43,10 +43,12 @@ import static net.daporkchop.lib.common.util.PValidation.*;
 @Accessors(fluent = true)
 public class GenericHeapByteBufOut extends AbstractHeapDataOut {
     protected ByteBuf delegate;
+    protected final boolean autoRelease;
 
-    public GenericHeapByteBufOut(@NonNull ByteBuf delegate) {
+    public GenericHeapByteBufOut(@NonNull ByteBuf delegate, boolean autoRelease) {
         checkArg(!delegate.isDirect(), "delegate may not be direct!");
         this.delegate = delegate;
+        this.autoRelease = autoRelease;
     }
 
     @Override
@@ -76,7 +78,9 @@ public class GenericHeapByteBufOut extends AbstractHeapDataOut {
 
     @Override
     protected void close0() throws IOException {
-        this.delegate.release();
+        if (this.autoRelease) {
+            this.delegate.release();
+        }
         this.delegate = null;
     }
 

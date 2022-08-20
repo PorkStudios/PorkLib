@@ -22,13 +22,15 @@ package net.daporkchop.lib.binary.stream;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.netty.GenericDirectByteBufIn;
 import net.daporkchop.lib.binary.stream.netty.GenericHeapByteBufIn;
-import net.daporkchop.lib.binary.stream.netty.DirectByteBufIn;
 import net.daporkchop.lib.binary.stream.nio.DirectBufferIn;
 import net.daporkchop.lib.binary.stream.nio.HeapBufferIn;
 import net.daporkchop.lib.binary.stream.stream.StreamIn;
 import net.daporkchop.lib.binary.stream.wrapper.DataInAsInputStream;
+import net.daporkchop.lib.common.annotation.AliasOwnership;
 import net.daporkchop.lib.common.annotation.NotThreadSafe;
+import net.daporkchop.lib.common.annotation.TransferOwnership;
 import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.common.util.PorkUtil;
@@ -201,29 +203,53 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
     }
 
     /**
-     * Wraps a {@link ByteBuf} into a {@link DataIn} for reading.
-     * <p>
-     * When the {@link DataIn} is closed (using {@link DataIn#close()}), the {@link ByteBuf} will not be released.
-     *
-     * @param buf the {@link ByteBuf} to read from
-     * @return a {@link DataIn} that can read data from the {@link ByteBuf}
+     * @deprecated use {@link #wrapView(ByteBuf)} or {@link #wrapReleasing(ByteBuf)}
      */
+    @Deprecated
     static DataIn wrap(@NonNull ByteBuf buf) {
         return wrap(buf, true);
     }
 
     /**
-     * Wraps a {@link ByteBuf} into a {@link DataIn} for reading.
-     *
-     * @param buf    the {@link ByteBuf} to read from
-     * @param retain if {@code true}: when the {@link DataIn} is closed (using {@link DataIn#close()}), the {@link ByteBuf} will not be released
-     * @return a {@link DataIn} that can read data from the {@link ByteBuf}
+     * @deprecated use {@link #wrapView(ByteBuf)} or {@link #wrapReleasing(ByteBuf)}
      */
+    @Deprecated
     static DataIn wrap(@NonNull ByteBuf buf, boolean retain) {
         if (retain) {
             buf.retain();
         }
-        return buf.hasMemoryAddress() ? new DirectByteBufIn(buf) : new GenericHeapByteBufIn(buf);
+        return buf.hasMemoryAddress() ? new GenericDirectByteBufIn(buf, true) : new GenericHeapByteBufIn(buf, true);
+    }
+
+    /**
+     * Wraps a {@link ByteBuf} into a {@link DataIn} for reading.
+     * <p>
+     * When the {@link DataIn} is {@link DataIn#close() closed}, the {@link ByteBuf} will <strong>not</strong> be {@link ByteBuf#release() released}.
+     * <p>
+     * As ownership of the {@link ByteBuf} is {@link AliasOwnership aliased} to the returned {@link DataIn}, the user must not {@link ByteBuf#release() released} the
+     * {@link ByteBuf} until the returned {@link DataIn} has been {@link DataIn#close() closed}.
+     *
+     * @param buf the {@link ByteBuf} to read from
+     * @return a {@link DataIn} that can read data from the {@link ByteBuf}
+     */
+    static DataIn wrapView(@NonNull @AliasOwnership ByteBuf buf) {
+        return buf.isDirect()
+                ? new GenericDirectByteBufIn(buf, false)
+                : new GenericHeapByteBufIn(buf, false);
+    }
+
+    /**
+     * Wraps a {@link ByteBuf} into a {@link DataIn} for reading.
+     * <p>
+     * When the {@link DataIn} is {@link DataIn#close() closed}, the {@link ByteBuf} will be {@link ByteBuf#release() released}.
+     *
+     * @param buf the {@link ByteBuf} to read from
+     * @return a {@link DataIn} that can read data from the {@link ByteBuf}
+     */
+    static DataIn wrapReleasing(@NonNull @TransferOwnership ByteBuf buf) {
+        return buf.isDirect()
+                ? new GenericDirectByteBufIn(buf, true)
+                : new GenericHeapByteBufIn(buf, true);
     }
 
     //

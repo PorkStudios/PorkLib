@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -43,6 +43,15 @@ import static java.lang.Math.*;
 @Getter
 @Accessors(fluent = true)
 public class StreamIn extends AbstractHeapDataIn {
+    static {
+        //InputStream#read() returns -1 on EOF, while AbstractDataIn#read0() returns RESULT_EOF. there is no practical reason for me to change this, but let's
+        //  double-check to be safe.
+        //noinspection ConstantConditions
+        if (-1 != RESULT_EOF) {
+            throw new AssertionError("RESULT_EOF must be -1!");
+        }
+    }
+
     @NonNull
     protected final InputStream delegate;
 

@@ -58,7 +58,7 @@ public class GenericHeapByteBufIn extends AbstractHeapDataIn {
         if (this.delegate.isReadable()) {
             return this.delegate.readByte() & 0xFF;
         } else {
-            return -1;
+            return RESULT_EOF;
         }
     }
 

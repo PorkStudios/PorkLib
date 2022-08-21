@@ -68,7 +68,7 @@ final class NativeZlibInflateStream extends AbstractDirectDataIn {
         ByteBuffer buf = recycler.allocate();
 
         long addr = PUnsafe.pork_directBufferAddress(buf);
-        int result = this.read0(addr, 1L) == 1L ? PUnsafe.getByte(addr) & 0xFF : -1;
+        int result = this.read0(addr, 1L) == 1L ? PUnsafe.getByte(addr) & 0xFF : RESULT_EOF;
 
         recycler.release(buf); //release the buffer to the recycler
         return result;

@@ -24,8 +24,9 @@ import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.netty.GenericDirectByteBufIn;
 import net.daporkchop.lib.binary.stream.netty.GenericHeapByteBufIn;
-import net.daporkchop.lib.binary.stream.nio.DirectBufferIn;
-import net.daporkchop.lib.binary.stream.nio.HeapBufferIn;
+import net.daporkchop.lib.binary.stream.nio.ArrayHeapBufferIn;
+import net.daporkchop.lib.binary.stream.nio.GenericDirectBufferIn;
+import net.daporkchop.lib.binary.stream.nio.GenericHeapBufferIn;
 import net.daporkchop.lib.binary.stream.stream.StreamIn;
 import net.daporkchop.lib.binary.stream.wrapper.DataInAsInputStream;
 import net.daporkchop.lib.common.annotation.AliasOwnership;
@@ -199,7 +200,9 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @return the wrapped buffer as a {@link DataIn}
      */
     static DataIn wrap(@NonNull ByteBuffer buffer) {
-        return buffer.isDirect() ? new DirectBufferIn(buffer) : new HeapBufferIn(buffer);
+        return buffer.isDirect()
+                ? new GenericDirectBufferIn(buffer)
+                : buffer.hasArray() ? new ArrayHeapBufferIn(buffer) : new GenericHeapBufferIn(buffer);
     }
 
     /**

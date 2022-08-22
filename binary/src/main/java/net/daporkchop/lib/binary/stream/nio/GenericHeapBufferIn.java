@@ -23,34 +23,38 @@ package net.daporkchop.lib.binary.stream.nio;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.binary.stream.AbstractDirectDataIn;
+import net.daporkchop.lib.binary.stream.AbstractHeapDataIn;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.util.PNioBuffers;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
+import java.io.EOFException;
 import java.io.IOException;
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 
 import static java.lang.Math.*;
 import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
- * An implementation of {@link DataIn} that can read from a direct {@link ByteBuffer}.
+ * An implementation of {@link DataIn} that can read from any heap-based {@link ByteBuffer}.
  *
  * @author DaPorkchop_
  */
 @Getter
 @Accessors(fluent = true)
-public class DirectBufferIn extends AbstractDirectDataIn {
+public class GenericHeapBufferIn extends AbstractHeapDataIn {
     protected ByteBuffer delegate;
 
-    public DirectBufferIn(@NonNull ByteBuffer delegate) {
-        checkArg(delegate.isDirect(), "delegate must be direct!");
+    public GenericHeapBufferIn(@NonNull ByteBuffer delegate) {
+        checkArg(!delegate.isDirect(), "delegate may not be direct!");
         this.delegate = delegate;
     }
 
     @Override
     protected int read0() throws IOException {
+        //BufferUnderflowException can't be thrown because we never call get() unless hasRemaining() is true
         if (this.delegate.hasRemaining()) {
             return this.delegate.get() & 0xFF;
         } else {
@@ -60,6 +64,7 @@ public class DirectBufferIn extends AbstractDirectDataIn {
 
     @Override
     protected int read0(@NonNull byte[] dst, int start, int length) throws IOException {
+        //BufferUnderflowException can't be thrown because we never read more than remaining()
         int count = min(this.delegate.remaining(), length);
         if (count <= 0) {
             return RESULT_EOF;
@@ -71,25 +76,33 @@ public class DirectBufferIn extends AbstractDirectDataIn {
 
     @Override
     protected long read0(long addr, long length) throws IOException {
+        //BufferUnderflowException can't be thrown because we never read more than remaining()
         int count = toInt(min(this.delegate.remaining(), length));
-        int position = this.delegate.position();
         if (count <= 0) {
             return RESULT_EOF;
         }
-        PUnsafe.copyMemory(PUnsafe.pork_directBufferAddress(this.delegate) + position, addr, count);
-        this.delegate.position(position + count);
+
+        //we don't have direct access to the array, so we'll have to fall back to copying one byte at a time
+        //  (JIT might be smart enough to optimize this into a sequential memory copy, but don't bank on it - that's why we have ArrayHeapBufferIn)
+        int position = PNioBuffers.skipForRead(this.delegate, count);
+        for (int i = 0; i < count; i++) {
+            PUnsafe.putByte(addr + i, this.delegate.get(position + i));
+        }
+
         return count;
     }
 
     @Override
     protected long skip0(long count) throws IOException {
+        //BufferUnderflowException can't be thrown because we never skip more than remaining()
         int countI = (int) min(count, this.delegate.remaining());
-        this.delegate.position(this.delegate.position() + countI);
+        PNioBuffers.skipForRead(this.delegate, countI); //count is always at least 1L, so it'll always be valid
         return countI;
     }
 
     @Override
     protected long transfer0(@NonNull DataOut dst, long count) throws IOException {
+        //BufferUnderflowException can't be thrown because we never transfer more than remaining()
         if (count < 0L || count > this.delegate.remaining()) {
             count = this.delegate.remaining();
         }
@@ -109,5 +122,18 @@ public class DirectBufferIn extends AbstractDirectDataIn {
     @Override
     protected void close0() throws IOException {
         this.delegate = null;
+    }
+
+    //
+    // primitives
+    //
+
+    @Override
+    public byte readByte() throws IOException {
+        try {
+            return this.delegate.get();
+        } catch (BufferUnderflowException e) {
+            throw new EOFException();
+        }
     }
 }

@@ -26,8 +26,9 @@ import net.daporkchop.lib.binary.stream.netty.GenericDirectByteBufOut;
 import net.daporkchop.lib.binary.stream.netty.GenericHeapByteBufOut;
 import net.daporkchop.lib.binary.stream.netty.NonGrowingGenericDirectByteBufOut;
 import net.daporkchop.lib.binary.stream.netty.NonGrowingGenericHeapByteBufOut;
-import net.daporkchop.lib.binary.stream.nio.DirectBufferOut;
-import net.daporkchop.lib.binary.stream.nio.HeapBufferOut;
+import net.daporkchop.lib.binary.stream.nio.ArrayHeapBufferOut;
+import net.daporkchop.lib.binary.stream.nio.GenericDirectBufferOut;
+import net.daporkchop.lib.binary.stream.nio.GenericHeapBufferOut;
 import net.daporkchop.lib.binary.stream.stream.StreamOut;
 import net.daporkchop.lib.common.annotation.AliasOwnership;
 import net.daporkchop.lib.common.annotation.NotThreadSafe;
@@ -43,6 +44,7 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.ClosedChannelException;
@@ -209,12 +211,17 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
 
     /**
      * Wraps a {@link ByteBuffer} to make it a {@link DataOut}.
+     * <p>
+     * Writes to the {@link DataOut} which would require the {@link ByteBuffer}'s {@link ByteBuffer#position() position} to exceed its
+     * {@link ByteBuffer#capacity() capacity} will throw an {@link IOException} with a {@link Throwable#getCause() cause} of {@link BufferOverflowException}.
      *
      * @param buffer the buffer to wrap
      * @return the wrapped buffer
      */
     static DataOut wrap(@NonNull ByteBuffer buffer) {
-        return buffer.isDirect() ? new DirectBufferOut(buffer) : new HeapBufferOut(buffer);
+        return buffer.isDirect()
+                ? new GenericDirectBufferOut(buffer)
+                : buffer.hasArray() ? new ArrayHeapBufferOut(buffer) : new GenericHeapBufferOut(buffer);
     }
 
     /**

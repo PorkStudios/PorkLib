@@ -82,15 +82,18 @@ final class JavaZlibInflater extends AbstractRefCounted.Synchronized implements 
              DataOut out = grow ? DataOut.wrapView(dst) : DataOut.wrapViewNonGrowing(dst)) {
             in.transferTo(out);
         } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (IndexOutOfBoundsException e) {
-            if (grow) {
-                throw new IllegalStateException(e); //shouldn't be possible...
-            } else {
-                src.readerIndex(srcReaderIndex);
-                dst.writerIndex(dstWriterIndex);
-                return false;
+            if (e.getCause() instanceof IndexOutOfBoundsException) { //too much data was written!
+                if (grow) { //buffer reached its maximum capacity
+                    throw (IndexOutOfBoundsException) e.getCause();
+                } else { //buffer reached capacity and isn't allowed to grow
+                    src.readerIndex(srcReaderIndex);
+                    dst.writerIndex(dstWriterIndex);
+                    return false;
+                }
             }
+
+            //shouldn't be possible
+            throw new RuntimeException(e);
         }
         return true;
     }

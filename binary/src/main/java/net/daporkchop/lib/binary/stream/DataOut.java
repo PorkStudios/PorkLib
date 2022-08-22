@@ -24,8 +24,8 @@ import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.netty.GenericDirectByteBufOut;
 import net.daporkchop.lib.binary.stream.netty.GenericHeapByteBufOut;
-import net.daporkchop.lib.binary.stream.netty.NonGrowingGenericHeapByteBufOut;
 import net.daporkchop.lib.binary.stream.netty.NonGrowingGenericDirectByteBufOut;
+import net.daporkchop.lib.binary.stream.netty.NonGrowingGenericHeapByteBufOut;
 import net.daporkchop.lib.binary.stream.nio.DirectBufferOut;
 import net.daporkchop.lib.binary.stream.nio.HeapBufferOut;
 import net.daporkchop.lib.binary.stream.stream.StreamOut;
@@ -255,8 +255,11 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * <p>
      * As ownership of the {@link ByteBuf} is {@link AliasOwnership aliased} to the returned {@link DataOut}, the user must not {@link ByteBuf#release() released} the
      * {@link ByteBuf} until the returned {@link DataOut} has been {@link DataOut#close() closed}.
+     * <p>
+     * Writes to the {@link DataOut} which would require the {@link ByteBuf}'s {@link ByteBuf#writerIndex() writer index} to exceed its
+     * {@link ByteBuf#maxCapacity() maximum capacity} will throw an {@link IOException} with a {@link Throwable#getCause() cause} of {@link IndexOutOfBoundsException}.
      *
-     * @param buf    the {@link ByteBuf} to write to
+     * @param buf the {@link ByteBuf} to write to
      * @return a {@link DataOut} that can write data to the {@link ByteBuf}
      * @see #wrapViewNonGrowing(ByteBuf)
      */
@@ -270,8 +273,11 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * Wraps a {@link ByteBuf} into a {@link DataOut} for writing.
      * <p>
      * When the {@link DataOut} is {@link DataOut#close() closed}, the {@link ByteBuf} will be {@link ByteBuf#release() released}.
+     * <p>
+     * Writes to the {@link DataOut} which would require the {@link ByteBuf}'s {@link ByteBuf#writerIndex() writer index} to exceed its
+     * {@link ByteBuf#maxCapacity() maximum capacity} will throw an {@link IOException} with a {@link Throwable#getCause() cause} of {@link IndexOutOfBoundsException}.
      *
-     * @param buf    the {@link ByteBuf} to write to
+     * @param buf the {@link ByteBuf} to write to
      * @return a {@link DataOut} that can write data to the {@link ByteBuf}
      * @see #wrapReleasingNonGrowing(ByteBuf)
      */
@@ -283,14 +289,16 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
 
     /**
      * Wraps a {@link ByteBuf} into a {@link DataOut} for writing. Writing to the returned {@link DataOut} will never cause the {@link ByteBuf}'s internal storage to be
-     * grown, even if its {@link ByteBuf#capacity() capacity} is currently less than its {@link ByteBuf#maxCapacity() maximum capacity}.
+     * grown, even if its {@link ByteBuf#capacity() capacity} is currently less than its {@link ByteBuf#maxCapacity() maximum capacity}. Instead, writes to the
+     * {@link DataOut} which would cause the {@link ByteBuf}'s {@link ByteBuf#writerIndex() writer index} to exceed its {@link ByteBuf#capacity()}, and therefore require
+     * its internal storage to be grown, will throw an {@link IOException} with a {@link Throwable#getCause() cause} of {@link IndexOutOfBoundsException}.
      * <p>
      * When the {@link DataOut} is {@link DataOut#close() closed}, the {@link ByteBuf} will <strong>not</strong> be {@link ByteBuf#release() released}.
      * <p>
      * As ownership of the {@link ByteBuf} is {@link AliasOwnership aliased} to the returned {@link DataOut}, the user must not {@link ByteBuf#release() released} the
      * {@link ByteBuf} until the returned {@link DataOut} has been {@link DataOut#close() closed}.
      *
-     * @param buf    the {@link ByteBuf} to write to
+     * @param buf the {@link ByteBuf} to write to
      * @return a {@link DataOut} that can write data to the {@link ByteBuf}
      * @see #wrapView(ByteBuf)
      */
@@ -302,11 +310,13 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
 
     /**
      * Wraps a {@link ByteBuf} into a {@link DataOut} for writing. Writing to the returned {@link DataOut} will never cause the {@link ByteBuf}'s internal storage to be
-     *      * grown, even if its {@link ByteBuf#capacity() capacity} is currently less than its {@link ByteBuf#maxCapacity() maximum capacity}.
+     * grown, even if its {@link ByteBuf#capacity() capacity} is currently less than its {@link ByteBuf#maxCapacity() maximum capacity}. Instead, writes to the
+     * {@link DataOut} which would cause the {@link ByteBuf}'s {@link ByteBuf#writerIndex() writer index} to exceed its {@link ByteBuf#capacity()}, and therefore require
+     * its internal storage to be grown, will throw an {@link IOException} with a {@link Throwable#getCause() cause} of {@link IndexOutOfBoundsException}.
      * <p>
      * When the {@link DataOut} is {@link DataOut#close() closed}, the {@link ByteBuf} will be {@link ByteBuf#release() released}.
      *
-     * @param buf    the {@link ByteBuf} to write to
+     * @param buf the {@link ByteBuf} to write to
      * @return a {@link DataOut} that can write data to the {@link ByteBuf}
      * @see #wrapReleasing(ByteBuf)
      */

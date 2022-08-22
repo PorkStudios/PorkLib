@@ -25,6 +25,7 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
@@ -81,17 +82,18 @@ final class JavaZlibDeflater extends AbstractRefCounted.Synchronized implements 
         try (DataOut out = this.compressionStream(grow ? DataOut.wrapView(dst) : DataOut.wrapViewNonGrowing(dst), dict)) {
             out.write(src);
         } catch (IOException e) {
+            if (e.getCause() instanceof IndexOutOfBoundsException) { //too much data was written!
+                if (grow) { //buffer reached its maximum capacity
+                    throw (IndexOutOfBoundsException) e.getCause();
+                } else { //buffer reached capacity and isn't allowed to grow
+                    src.readerIndex(srcReaderIndex);
+                    dst.writerIndex(dstWriterIndex);
+                    return false;
+                }
+            }
+
             //shouldn't be possible
             throw new RuntimeException(e);
-        } catch (IndexOutOfBoundsException e) {
-            if (grow) {
-                //this means that the buffer got way too big, should be re-thrown
-                throw e;
-            } else {
-                src.readerIndex(srcReaderIndex);
-                dst.writerIndex(dstWriterIndex);
-                return false;
-            }
         }
         return true;
     }

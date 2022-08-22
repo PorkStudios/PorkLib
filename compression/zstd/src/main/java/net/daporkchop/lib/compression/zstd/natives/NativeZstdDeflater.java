@@ -139,12 +139,14 @@ final class NativeZstdDeflater extends AbstractRefCounted.Synchronized implement
                 out.write(src);
                 return true;
             } catch (IOException e) {
+                if (e.getCause() instanceof IndexOutOfBoundsException) { //buffer reached capacity and isn't allowed to grow
+                    src.readerIndex(srcReaderIndex);
+                    dst.writerIndex(dstWriterIndex);
+                    return false;
+                }
+
                 //shouldn't be possible
                 throw new RuntimeException(e);
-            } catch (IndexOutOfBoundsException e) {
-                src.readerIndex(srcReaderIndex);
-                dst.writerIndex(dstWriterIndex);
-                return false;
             }
         }
 
@@ -284,12 +286,14 @@ final class NativeZstdDeflater extends AbstractRefCounted.Synchronized implement
                 out.write(src);
                 return true;
             } catch (IOException e) {
+                if (e.getCause() instanceof IndexOutOfBoundsException) { //buffer reached capacity and isn't allowed to grow
+                    src.readerIndex(srcReaderIndex);
+                    dst.writerIndex(dstWriterIndex);
+                    return false;
+                }
+
                 //shouldn't be possible
                 throw new RuntimeException(e);
-            } catch (IndexOutOfBoundsException e) {
-                src.readerIndex(srcReaderIndex);
-                dst.writerIndex(dstWriterIndex);
-                return false;
             }
         }
 

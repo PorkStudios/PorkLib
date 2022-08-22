@@ -51,24 +51,43 @@ public class GenericDirectByteBufOut extends AbstractDirectDataOut {
         this.autoRelease = autoRelease;
     }
 
+    //we catch IndexOutOfBoundsException rather than checking maxWritableBytes() because AbstractByteBuf#ensureWritable0() invokes AbstractByteBuf#ensureAccessible(),
+    //  and access checks (which are enabled by default) involve a volatile load. as far as i am aware, which would prevent the automatic bounds checks in
+    //  AbstractByteBuf#ensureWritable0() from being optimized away once inlined, so if we did
+    //  'if (maxWritableBytes() < blah) throw new IOException(new IndexOutOfBoundsException());', it'd essentially result in bounds being checked twice for every read.
+    //  since exceeding a buffer's bounds will be a rare occurrence, and exception handlers incur zero performance penalties when not used
+    //  (see https://shipilev.net/blog/2014/exceptional-performance/), catching IndexOutOfBoundsException and throwing an EOFException should be fastest.
+
     @Override
     protected void write0(int b) throws IOException {
-        this.delegate.writeByte(b);
+        try {
+            this.delegate.writeByte(b);
+        } catch (IndexOutOfBoundsException e) {
+            throw new IOException("buffer maxCapacity() exceeded", e);
+        }
     }
 
     @Override
     protected void write0(@NonNull byte[] src, int start, int length) throws IOException {
-        int count = min(this.delegate.maxWritableBytes(), length);
-        checkIndex(count == length);
-        this.delegate.writeBytes(src, start, length);
+        try {
+            int count = min(this.delegate.maxWritableBytes(), length);
+            checkIndex(count == length);
+            this.delegate.writeBytes(src, start, length);
+        } catch (IndexOutOfBoundsException e) {
+            throw new IOException("buffer maxCapacity() exceeded", e);
+        }
     }
 
     @Override
     protected void write0(long addr, long length) throws IOException {
-        int writerIndex = this.delegate.writerIndex();
-        int count = toInt(min(this.delegate.maxCapacity() - writerIndex, length));
-        checkIndex(count == length);
-        this.delegate.writeBytes(PlatformDependent.directBuffer(addr, count));
+        try {
+            int writerIndex = this.delegate.writerIndex();
+            int count = toInt(min(this.delegate.maxCapacity() - writerIndex, length));
+            checkIndex(count == length);
+            this.delegate.writeBytes(PlatformDependent.directBuffer(addr, count));
+        } catch (IndexOutOfBoundsException e) {
+            throw new IOException("buffer maxCapacity() exceeded", e);
+        }
     }
 
     @Override
@@ -86,7 +105,11 @@ public class GenericDirectByteBufOut extends AbstractDirectDataOut {
 
     @Override
     public long writeText(@NonNull CharSequence text, @NonNull Charset charset) throws IOException {
-        return this.delegate.writeCharSequence(text, charset);
+        try {
+            return this.delegate.writeCharSequence(text, charset);
+        } catch (IndexOutOfBoundsException e) {
+            throw new IOException("buffer maxCapacity() exceeded", e);
+        }
     }
 
     //
@@ -95,46 +118,82 @@ public class GenericDirectByteBufOut extends AbstractDirectDataOut {
 
     @Override
     public void writeByte(int b) throws IOException {
-        this.delegate.writeByte(b);
+        try {
+            this.delegate.writeByte(b);
+        } catch (IndexOutOfBoundsException e) {
+            throw new IOException("buffer maxCapacity() exceeded", e);
+        }
     }
 
     @Override
     public void writeShort(int v) throws IOException {
-        this.delegate.writeShort(v);
+        try {
+            this.delegate.writeShort(v);
+        } catch (IndexOutOfBoundsException e) {
+            throw new IOException("buffer maxCapacity() exceeded", e);
+        }
     }
 
     @Override
     public void writeShortLE(int v) throws IOException {
-        this.delegate.writeShortLE(v);
+        try {
+            this.delegate.writeShortLE(v);
+        } catch (IndexOutOfBoundsException e) {
+            throw new IOException("buffer maxCapacity() exceeded", e);
+        }
     }
 
     @Override
     public void writeChar(int v) throws IOException {
-        this.delegate.writeShort(v);
+        try {
+            this.delegate.writeShort(v);
+        } catch (IndexOutOfBoundsException e) {
+            throw new IOException("buffer maxCapacity() exceeded", e);
+        }
     }
 
     @Override
     public void writeCharLE(int v) throws IOException {
-        this.delegate.writeShortLE(v);
+        try {
+            this.delegate.writeShortLE(v);
+        } catch (IndexOutOfBoundsException e) {
+            throw new IOException("buffer maxCapacity() exceeded", e);
+        }
     }
 
     @Override
     public void writeInt(int v) throws IOException {
-        this.delegate.writeInt(v);
+        try {
+            this.delegate.writeInt(v);
+        } catch (IndexOutOfBoundsException e) {
+            throw new IOException("buffer maxCapacity() exceeded", e);
+        }
     }
 
     @Override
     public void writeIntLE(int v) throws IOException {
-        this.delegate.writeIntLE(v);
+        try {
+            this.delegate.writeIntLE(v);
+        } catch (IndexOutOfBoundsException e) {
+            throw new IOException("buffer maxCapacity() exceeded", e);
+        }
     }
 
     @Override
     public void writeLong(long v) throws IOException {
-        this.delegate.writeLong(v);
+        try {
+            this.delegate.writeLong(v);
+        } catch (IndexOutOfBoundsException e) {
+            throw new IOException("buffer maxCapacity() exceeded", e);
+        }
     }
 
     @Override
     public void writeLongLE(long v) throws IOException {
-        this.delegate.writeLongLE(v);
+        try {
+            this.delegate.writeLongLE(v);
+        } catch (IndexOutOfBoundsException e) {
+            throw new IOException("buffer maxCapacity() exceeded", e);
+        }
     }
 }

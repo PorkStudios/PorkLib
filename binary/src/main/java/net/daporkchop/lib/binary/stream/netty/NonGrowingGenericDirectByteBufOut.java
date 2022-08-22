@@ -38,21 +38,29 @@ public class NonGrowingGenericDirectByteBufOut extends GenericDirectByteBufOut {
         super(delegate, autoRelease);
     }
 
+    protected void checkWritable(int count) throws IOException {
+        if (!this.delegate.isWritable(count)) {
+            throw new IOException("buffer isn't allowed to grow!", new IndexOutOfBoundsException(String.format(
+                    "writerIndex(%d) + minWritableBytes(%d) exceeds capacity(%d): %s",
+                    this.delegate.writerIndex(), count, this.delegate.capacity(), this.delegate)));
+        }
+    }
+
     @Override
     protected void write0(int b) throws IOException {
-        checkIndex(this.delegate.isWritable());
+        this.checkWritable(1);
         super.write0(b);
     }
 
     @Override
     protected void write0(@NonNull byte[] src, int start, int length) throws IOException {
-        checkIndex(this.delegate.isWritable(length));
+        this.checkWritable(length);
         super.write0(src, start, length);
     }
 
     @Override
     protected void write0(long addr, long length) throws IOException {
-        checkIndex(this.delegate.isWritable(toInt(length, "length")));
+        this.checkWritable(toInt(length, "length"));
         super.write0(addr, length);
     }
 
@@ -63,55 +71,55 @@ public class NonGrowingGenericDirectByteBufOut extends GenericDirectByteBufOut {
 
     @Override
     public void writeByte(int b) throws IOException {
-        checkIndex(this.delegate.isWritable(Byte.BYTES));
+        this.checkWritable(Byte.BYTES);
         super.writeByte(b);
     }
 
     @Override
     public void writeShort(int v) throws IOException {
-        checkIndex(this.delegate.isWritable(Short.BYTES));
+        this.checkWritable(Short.BYTES);
         super.writeShort(v);
     }
 
     @Override
     public void writeShortLE(int v) throws IOException {
-        checkIndex(this.delegate.isWritable(Short.BYTES));
+        this.checkWritable(Short.BYTES);
         super.writeShortLE(v);
     }
 
     @Override
     public void writeChar(int v) throws IOException {
-        checkIndex(this.delegate.isWritable(Character.BYTES));
+        this.checkWritable(Character.BYTES);
         super.writeChar(v);
     }
 
     @Override
     public void writeCharLE(int v) throws IOException {
-        checkIndex(this.delegate.isWritable(Character.BYTES));
+        this.checkWritable(Character.BYTES);
         super.writeCharLE(v);
     }
 
     @Override
     public void writeInt(int v) throws IOException {
-        checkIndex(this.delegate.isWritable(Integer.BYTES));
+        this.checkWritable(Integer.BYTES);
         super.writeInt(v);
     }
 
     @Override
     public void writeIntLE(int v) throws IOException {
-        checkIndex(this.delegate.isWritable(Integer.BYTES));
+        this.checkWritable(Integer.BYTES);
         super.writeIntLE(v);
     }
 
     @Override
     public void writeLong(long v) throws IOException {
-        checkIndex(this.delegate.isWritable(Long.BYTES));
+        this.checkWritable(Long.BYTES);
         super.writeLong(v);
     }
 
     @Override
     public void writeLongLE(long v) throws IOException {
-        checkIndex(this.delegate.isWritable(Long.BYTES));
+        this.checkWritable(Long.BYTES);
         super.writeLongLE(v);
     }
 }

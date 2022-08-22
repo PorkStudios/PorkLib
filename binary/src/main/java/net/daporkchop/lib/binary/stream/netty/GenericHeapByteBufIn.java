@@ -55,6 +55,7 @@ public class GenericHeapByteBufIn extends AbstractHeapDataIn {
 
     @Override
     protected int read0() throws IOException {
+        //IndexOutOfBoundsException can't be thrown because we never call readByte() unless isReadable() is true
         if (this.delegate.isReadable()) {
             return this.delegate.readByte() & 0xFF;
         } else {
@@ -64,6 +65,7 @@ public class GenericHeapByteBufIn extends AbstractHeapDataIn {
 
     @Override
     protected int read0(@NonNull byte[] dst, int start, int length) throws IOException {
+        //IndexOutOfBoundsException can't be thrown because we never read more than readableBytes()
         int count = min(this.delegate.readableBytes(), length);
         if (count <= 0) {
             return RESULT_EOF;
@@ -75,6 +77,7 @@ public class GenericHeapByteBufIn extends AbstractHeapDataIn {
 
     @Override
     protected long read0(long addr, long length) throws IOException {
+        //IndexOutOfBoundsException can't be thrown because we never read more than readableBytes()
         int count = toInt(min(this.delegate.readableBytes(), length));
         if (count <= 0) {
             return RESULT_EOF;
@@ -85,6 +88,7 @@ public class GenericHeapByteBufIn extends AbstractHeapDataIn {
 
     @Override
     protected long skip0(long count) throws IOException {
+        //IndexOutOfBoundsException can't be thrown because we never skip more than readableBytes()
         int countI = (int) min(this.delegate.readableBytes(), count);
         this.delegate.skipBytes(countI);
         return countI;
@@ -92,6 +96,7 @@ public class GenericHeapByteBufIn extends AbstractHeapDataIn {
 
     @Override
     protected long transfer0(@NonNull DataOut dst, long count) throws IOException {
+        //IndexOutOfBoundsException can't be thrown because we never transfer more than readableBytes()
         if (count < 0L || count > this.delegate.readableBytes()) {
             count = this.delegate.readableBytes();
         }

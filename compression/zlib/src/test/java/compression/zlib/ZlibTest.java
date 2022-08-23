@@ -26,9 +26,8 @@ import lombok.NonNull;
 import net.daporkchop.lib.binary.oio.StreamUtil;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.binary.stream.misc.SlashDevSlashNull;
+import net.daporkchop.lib.binary.stream.misc.SlashDevSlashZero;
 import net.daporkchop.lib.common.function.io.IOConsumer;
-import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.compression.context.PDeflater;
 import net.daporkchop.lib.compression.context.PInflater;
 import net.daporkchop.lib.compression.zlib.Zlib;
@@ -95,7 +94,7 @@ public class ZlibTest {
                 ByteBuf src = buffers[0].writeBytes(this.text);
                 ByteBuf dst = buffers[1].ensureWritable(deflater.provider().compressBound(src.readableBytes()));
                 ByteBuf dict = buffers[2];
-                SlashDevSlashNull.INSTANCE.read(dict, 1024);
+                SlashDevSlashZero.getDataIn().read(dict, 1024);
 
                 checkState(deflater.compress(src, dst, dict), "compression failed!");
             });
@@ -111,7 +110,7 @@ public class ZlibTest {
                 ByteBuf src = buffers[0].writeBytes(this.text);
                 ByteBuf dst = buffers[1];
                 ByteBuf dict = buffers[2];
-                SlashDevSlashNull.INSTANCE.read(dict, 1024);
+                SlashDevSlashZero.getDataIn().read(dict, 1024);
 
                 deflater.compressGrowing(src, dst, dict);
             });
@@ -157,7 +156,7 @@ public class ZlibTest {
                 ByteBuf src = buffers[0].writeBytes(this.text);
                 ByteBuf dst = buffers[1].ensureWritable(deflater.provider().compressBound(src.readableBytes()));
                 ByteBuf dict = buffers[2];
-                SlashDevSlashNull.INSTANCE.read(dict, 1024);
+                SlashDevSlashZero.getDataIn().read(dict, 1024);
 
                 try (DataOut out = deflater.compressionStream(DataOut.wrapView(dst), dict)) {
                     out.write(src);
@@ -169,7 +168,7 @@ public class ZlibTest {
                 ByteBuf src = buffers[0].writeBytes(this.text);
                 ByteBuf dst = buffers[1].ensureWritable(deflater.provider().compressBound(src.readableBytes()));
                 ByteBuf dict = buffers[2];
-                SlashDevSlashNull.INSTANCE.read(dict, 1024);
+                SlashDevSlashZero.getDataIn().read(dict, 1024);
 
                 try (DataOut out = deflater.compressionStream(DataOut.wrapView(dst), dict)) {
                     out.flush();

@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2021 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -24,12 +24,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.misc.SlashDevSlashNull;
 import net.daporkchop.lib.logging.format.FormatParser;
 import net.daporkchop.lib.logging.format.MessageFormatter;
-import net.daporkchop.lib.logging.format.MessagePrinter;
-import net.daporkchop.lib.logging.format.TextStyle;
-import net.daporkchop.lib.logging.format.component.TextComponent;
-import net.daporkchop.lib.logging.format.component.TextComponentString;
 
-import java.awt.Color;
 import java.io.PrintWriter;
 import java.util.Set;
 import java.util.StringJoiner;
@@ -54,7 +49,7 @@ public interface Logger {
      * @param linePrinter a callback function that will be invoked once for each line
      */
     static void getStackTrace(@NonNull Throwable throwable, @NonNull Consumer<String> linePrinter) {
-        throwable.printStackTrace(new PrintWriter(SlashDevSlashNull.OUTPUT_STREAM, true) {
+        throwable.printStackTrace(new PrintWriter(SlashDevSlashNull.getOutputStream(), true) {
             @Override
             public void println(Object x) {
                 linePrinter.accept(String.valueOf(x).replace("\t", "    "));

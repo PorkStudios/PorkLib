@@ -28,15 +28,18 @@ import net.daporkchop.lib.binary.chars.ZeroCharSequence;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.binary.stream.wrapper.DataInAsInputStream;
+import net.daporkchop.lib.common.annotation.param.NotNegative;
 import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.ReadOnlyBufferException;
+import java.nio.channels.ClosedChannelException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -95,152 +98,152 @@ public final class SlashDevSlashZero implements DataIn {
     //
 
     @Override
-    public int read() {
+    public int read() throws ClosedChannelException, IOException {
         return 0;
     }
 
     @Override
-    public boolean readBoolean() {
+    public boolean readBoolean() throws ClosedChannelException, EOFException, IOException {
         return false;
     }
 
     @Override
-    public byte readByte() {
+    public byte readByte() throws ClosedChannelException, EOFException, IOException {
         return 0;
     }
 
     @Override
-    public int readUnsignedByte() {
+    public int readUnsignedByte() throws ClosedChannelException, EOFException, IOException {
         return 0;
     }
 
     @Override
-    public short readShort() {
+    public short readShort() throws ClosedChannelException, EOFException, IOException {
         return 0;
     }
 
     @Override
-    public int readUnsignedShort() {
+    public int readUnsignedShort() throws ClosedChannelException, EOFException, IOException {
         return 0;
     }
 
     @Override
-    public short readShortLE() {
+    public short readShortLE() throws ClosedChannelException, EOFException, IOException {
         return 0;
     }
 
     @Override
-    public int readUnsignedShortLE() {
+    public int readUnsignedShortLE() throws ClosedChannelException, EOFException, IOException {
         return 0;
     }
 
     @Override
-    public short readShort(@NonNull ByteOrder order) {
+    public short readShort(@NonNull ByteOrder order) throws ClosedChannelException, EOFException, IOException {
         return 0;
     }
 
     @Override
-    public int readUnsignedShort(@NonNull ByteOrder order) {
+    public int readUnsignedShort(@NonNull ByteOrder order) throws ClosedChannelException, EOFException, IOException {
         return 0;
     }
 
     @Override
-    public char readChar() {
+    public char readChar() throws ClosedChannelException, EOFException, IOException {
         return 0;
     }
 
     @Override
-    public char readCharLE() {
+    public char readCharLE() throws ClosedChannelException, EOFException, IOException {
         return 0;
     }
 
     @Override
-    public char readChar(@NonNull ByteOrder order) {
+    public char readChar(@NonNull ByteOrder order) throws ClosedChannelException, EOFException, IOException {
         return 0;
     }
 
     @Override
-    public int readInt() {
+    public int readInt() throws ClosedChannelException, EOFException, IOException {
         return 0;
     }
 
     @Override
-    public int readIntLE() {
+    public int readIntLE() throws ClosedChannelException, EOFException, IOException {
         return 0;
     }
 
     @Override
-    public int readInt(@NonNull ByteOrder order) {
+    public int readInt(@NonNull ByteOrder order) throws ClosedChannelException, EOFException, IOException {
         return 0;
     }
 
     @Override
-    public long readLong() {
+    public long readLong() throws ClosedChannelException, EOFException, IOException {
         return 0;
     }
 
     @Override
-    public long readLongLE() {
+    public long readLongLE() throws ClosedChannelException, EOFException, IOException {
         return 0;
     }
 
     @Override
-    public long readLong(@NonNull ByteOrder order) {
+    public long readLong(@NonNull ByteOrder order) throws ClosedChannelException, EOFException, IOException {
         return 0;
     }
 
     @Override
-    public float readFloat() {
+    public float readFloat() throws ClosedChannelException, EOFException, IOException {
         return 0;
     }
 
     @Override
-    public float readFloatLE() {
+    public float readFloatLE() throws ClosedChannelException, EOFException, IOException {
         return 0;
     }
 
     @Override
-    public float readFloat(@NonNull ByteOrder order) {
+    public float readFloat(@NonNull ByteOrder order) throws ClosedChannelException, EOFException, IOException {
         return 0;
     }
 
     @Override
-    public double readDouble() {
+    public double readDouble() throws ClosedChannelException, EOFException, IOException {
         return 0;
     }
 
     @Override
-    public double readDoubleLE() {
+    public double readDoubleLE() throws ClosedChannelException, EOFException, IOException {
         return 0;
     }
 
     @Override
-    public double readDouble(@NonNull ByteOrder order) {
+    public double readDouble(@NonNull ByteOrder order) throws ClosedChannelException, EOFException, IOException {
         return 0;
     }
 
     @Override
-    public String readUTF() {
+    public String readUTF() throws ClosedChannelException, EOFException, IOException {
         return ""; //the length prefix was 0, so we return empty string
     }
 
     @Override
-    public String readVarUTF() {
+    public String readVarUTF() throws ClosedChannelException, EOFException, IOException {
         return ""; //the length prefix was 0, so we return empty string
     }
 
     @Override
-    public String readString(@NonNull Charset charset) {
+    public String readString(@NonNull Charset charset) throws ClosedChannelException, EOFException, IOException {
         return ""; //the length prefix was 0, so we return empty string
     }
 
     @Override
-    public String readVarString(@NonNull Charset charset) {
+    public String readVarString(@NonNull Charset charset) throws ClosedChannelException, EOFException, IOException {
         return ""; //the length prefix was 0, so we return empty string
     }
 
     @Override
-    public String readString(long size, @NonNull Charset charset) throws IOException {
+    public String readString(@NotNegative long size, @NonNull Charset charset) throws ClosedChannelException, EOFException, IOException {
         if (notNegative(size, "size") == 0L) {
             return ""; //empty string lol
         }
@@ -260,7 +263,7 @@ public final class SlashDevSlashZero implements DataIn {
     }
 
     @Override
-    public CharSequence readText(long size, @NonNull Charset charset) throws IOException {
+    public CharSequence readText(long size, @NonNull Charset charset) throws ClosedChannelException, EOFException, IOException {
         if (notNegative(size, "size") == 0L) {
             return "";
         } else if (charset == StandardCharsets.US_ASCII || charset == StandardCharsets.ISO_8859_1 //always one byte per char
@@ -275,48 +278,48 @@ public final class SlashDevSlashZero implements DataIn {
     }
 
     @Override
-    public <E extends Enum<E>> E readEnum(@NonNull Function<String, E> f) {
+    public <E extends Enum<E>> E readEnum(@NonNull Function<String, E> f) throws ClosedChannelException, EOFException, IOException {
         return null; //readBoolean() returned false, so we return null
     }
 
     @Override
-    public int readVarInt() {
+    public int readVarInt() throws ClosedChannelException, EOFException, IOException {
         return 0;
     }
 
     @Override
-    public int readVarIntZigZag() {
+    public int readVarIntZigZag() throws ClosedChannelException, EOFException, IOException {
         return 0;
     }
 
     @Override
-    public long readVarLong() {
+    public long readVarLong() throws ClosedChannelException, EOFException, IOException {
         return 0;
     }
 
     @Override
-    public long readVarLongZigZag() {
+    public long readVarLongZigZag() throws ClosedChannelException, EOFException, IOException {
         return 0;
     }
 
     @Override
-    public int read(@NonNull byte[] dst, int start, int length) {
+    public int read(@NonNull byte[] dst, int start, int length) throws ClosedChannelException, IOException {
         Arrays.fill(dst, start, start + length, (byte) 0);
         return length;
     }
 
     @Override
-    public void readFully(@NonNull byte[] dst, int start, int length) {
+    public void readFully(@NonNull byte[] dst, int start, int length) throws ClosedChannelException, EOFException, IOException {
         Arrays.fill(dst, start, start + length, (byte) 0);
     }
 
     @Override
-    public byte[] toByteArray() {
+    public byte[] toByteArray() throws ClosedChannelException, IOException {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public int read(@NonNull ByteBuffer dst) {
+    public int read(@NonNull ByteBuffer dst) throws ClosedChannelException, IOException {
         if (dst.isReadOnly()) {
             throw new ReadOnlyBufferException();
         }
@@ -332,9 +335,8 @@ public final class SlashDevSlashZero implements DataIn {
     }
 
     @Override
-    public int read(@NonNull ByteBuf dst, int count) {
-        notNegative(count, "count");
-        dst.ensureWritable(count);
+    public int read(@NonNull ByteBuf dst, int count) throws ClosedChannelException, IOException {
+        dst.ensureWritable(notNegative(count, "count"));
         int writerIndex = dst.writerIndex();
         if (dst.hasMemoryAddress()) {
             PUnsafe.setMemory(dst.memoryAddress() + writerIndex, count, (byte) 0);
@@ -350,45 +352,56 @@ public final class SlashDevSlashZero implements DataIn {
     }
 
     @Override
-    public int read(@NonNull ByteBuf dst, int start, int length) {
-        checkRangeLen(dst.maxCapacity(), start, length);
-        int writerIndex = dst.writerIndex();
-        dst.ensureWritable(start + length - writerIndex);
+    public int read(@NonNull ByteBuf dst, int offset, int length) throws ClosedChannelException, IOException {
+        checkRangeLen(dst.capacity(), offset, length);
+
         if (dst.hasMemoryAddress()) {
-            PUnsafe.setMemory(dst.memoryAddress() + start, length, (byte) 0);
+            PUnsafe.setMemory(dst.memoryAddress() + offset, length, (byte) 0);
         } else if (dst.hasArray()) {
-            Arrays.fill(dst.array(), dst.arrayOffset() + start, dst.arrayOffset() + start + length, (byte) 0);
+            Arrays.fill(dst.array(), dst.arrayOffset() + offset, dst.arrayOffset() + offset + length, (byte) 0);
         } else {
             for (int i = 0; i < length; i++) {
-                dst.setByte(start + i, 0);
+                dst.setByte(offset + i, 0);
             }
         }
         return length;
     }
 
     @Override
-    public int readFully(@NonNull ByteBuffer dst) {
+    public int readFully(@NonNull ByteBuffer dst) throws ClosedChannelException, EOFException, IOException {
         return this.read(dst);
     }
 
     @Override
-    public int readFully(@NonNull ByteBuf dst, int count) {
-        return this.read(dst, count);
+    public int readFully(@NonNull ByteBuf dst, int count) throws ClosedChannelException, EOFException, IOException {
+        try {
+            return this.read(dst, count);
+        } catch (ClosedChannelException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
-    public int readFully(@NonNull ByteBuf dst, int start, int length) {
-        return this.read(dst, start, length);
+    public int readFully(@NonNull ByteBuf dst, int start, int length) throws ClosedChannelException, EOFException, IOException {
+        try {
+            return this.read(dst, start, length);
+        } catch (ClosedChannelException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
-    public long transferTo(@NonNull DataOut dst) {
+    public long transferTo(@NonNull DataOut dst) throws ClosedChannelException, IOException {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public long transferTo(@NonNull DataOut dst, long count) throws IOException {
-        if (positive(count, "count") == 0L) {
+    public long transferTo(@NonNull DataOut dst, long count) throws ClosedChannelException, IOException {
+        if (notNegative(count, "count") == 0L) {
             return 0L;
         }
 
@@ -423,29 +436,39 @@ public final class SlashDevSlashZero implements DataIn {
     }
 
     @Override
-    public InputStream asInputStream() {
+    public InputStream asInputStream() throws ClosedChannelException, IOException {
         return InputStreamImpl.INPUT_STREAM_INSTANCE;
     }
 
     @Override
-    public long remaining() {
+    public long remaining() throws ClosedChannelException, IOException {
         return Long.MAX_VALUE;
     }
 
     @Override
-    public int skipBytes(int n) {
-        return n;
+    public int skipBytes(int n) throws ClosedChannelException, IOException {
+        return max(n, 0);
     }
 
     @Override
-    public long skipBytes(long n) {
-        return n;
+    public long skipBytes(long n) throws ClosedChannelException, IOException {
+        return max(n, 0L);
+    }
+
+    @Override
+    public int skipBytesFully(int n) throws ClosedChannelException, EOFException, IOException {
+        return max(n, 0);
+    }
+
+    @Override
+    public long skipBytesFully(long n) throws ClosedChannelException, EOFException, IOException {
+        return max(n, 0L);
     }
 
     /**
      * Implementation of {@link InputStream} which emulates the behavior of UNIX's {@code /dev/zero}.
      * <p>
-     * Used by {@link SlashDevSlashZero#asInputStream()}.
+     * Used by {@link DataIn#asInputStream()}.
      *
      * @author DaPorkchop_
      */
@@ -481,7 +504,7 @@ public final class SlashDevSlashZero implements DataIn {
 
         @Override
         public int available() {
-            return 0;
+            return Integer.MAX_VALUE;
         }
 
         @Override

@@ -24,15 +24,13 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.binary.oio.StreamUtil;
 import net.daporkchop.lib.binary.stream.AbstractHeapDataIn;
 import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.common.annotation.param.Positive;
 
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
-
-import static java.lang.Math.*;
+import java.nio.channels.ClosedChannelException;
 
 /**
  * Wraps an {@link InputStream} as a {@link DataIn}.
@@ -61,7 +59,7 @@ public class StreamIn extends AbstractHeapDataIn {
     }
 
     @Override
-    protected int read0(@NonNull byte[] dst, int start, int length) throws IOException {
+    protected int read0(@NonNull byte[] dst, int start, @Positive int length) throws IOException {
         int totalRead = this.delegate.read(dst, start, length);
         if (totalRead < 0)  {
             return RESULT_EOF;
@@ -77,7 +75,7 @@ public class StreamIn extends AbstractHeapDataIn {
     }
 
     @Override
-    protected long skip0(long count) throws IOException {
+    protected long skip0(@Positive long count) throws IOException {
         return this.delegate.skip(count);
     }
 
@@ -92,7 +90,8 @@ public class StreamIn extends AbstractHeapDataIn {
     }
 
     @Override
-    public InputStream asInputStream() {
+    public InputStream asInputStream() throws ClosedChannelException, IOException {
+        this.ensureOpen();
         return this.delegate;
     }
 
@@ -108,6 +107,7 @@ public class StreamIn extends AbstractHeapDataIn {
 
         @Override
         protected void close0() throws IOException {
+            //no-op
         }
     }
 }

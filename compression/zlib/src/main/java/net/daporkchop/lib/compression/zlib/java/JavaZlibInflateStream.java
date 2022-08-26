@@ -24,6 +24,7 @@ import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.AbstractHeapDataIn;
 import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.common.annotation.param.Positive;
 import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
@@ -31,6 +32,7 @@ import net.daporkchop.lib.unsafe.PUnsafe;
 import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
 import java.util.ConcurrentModificationException;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
@@ -94,7 +96,7 @@ class JavaZlibInflateStream extends AbstractHeapDataIn {
     }
 
     @Override
-    protected int read0(@NonNull byte[] dst, int start, int length) throws IOException {
+    protected int read0(@NonNull byte[] dst, int start, @Positive int length) throws IOException {
         if (this.eof) {
             return RESULT_EOF;
         }
@@ -148,7 +150,7 @@ class JavaZlibInflateStream extends AbstractHeapDataIn {
     }
 
     @Override
-    protected void ensureOpen() throws IOException {
+    protected void ensureOpen() throws ClosedChannelException {
         super.ensureOpen();
         this.ensureValidSession();
     }

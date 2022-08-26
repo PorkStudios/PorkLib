@@ -224,7 +224,7 @@ public class ZlibTest {
 
                 try (DataIn in = inflater.decompressionStream(DataIn.wrapView(src))) {
                     in.read(dst);
-                    checkState(in.remaining() == 0L, "there was more data remaining!");
+                    checkState(in.read() < 0, "there was more data remaining!");
                 }
             });
         }

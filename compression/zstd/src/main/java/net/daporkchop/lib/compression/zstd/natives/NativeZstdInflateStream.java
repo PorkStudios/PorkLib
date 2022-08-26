@@ -24,6 +24,7 @@ import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.AbstractDirectDataIn;
 import net.daporkchop.lib.binary.stream.DataIn;
+import net.daporkchop.lib.common.annotation.param.Positive;
 import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
@@ -31,6 +32,7 @@ import net.daporkchop.lib.unsafe.PUnsafe;
 import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
 import java.util.ConcurrentModificationException;
 
 import static java.lang.Math.*;
@@ -84,7 +86,7 @@ final class NativeZstdInflateStream extends AbstractDirectDataIn {
     }
 
     /*@Override
-    protected int read0(@NonNull byte[] dst, int start, int length) throws IOException {
+    protected int read0(@NonNull byte[] dst, int start, @Positive int length) throws IOException {
         if (this.lastStatus == 0L && this.eof) {
             return RESULT_EOF;
         }
@@ -112,7 +114,7 @@ final class NativeZstdInflateStream extends AbstractDirectDataIn {
     }*/
 
     @Override
-    protected long read0(long addr, long length) throws IOException {
+    protected long read0(long addr, @Positive long length) throws IOException {
         if (this.lastStatus == 0L && this.eof) {
             return RESULT_EOF;
         }
@@ -166,7 +168,7 @@ final class NativeZstdInflateStream extends AbstractDirectDataIn {
     }
 
     @Override
-    protected void ensureOpen() throws IOException {
+    protected void ensureOpen() throws ClosedChannelException {
         super.ensureOpen();
         this.ensureValidSession();
     }

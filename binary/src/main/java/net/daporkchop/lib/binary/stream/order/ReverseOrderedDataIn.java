@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -20,12 +20,12 @@
 
 package net.daporkchop.lib.binary.stream.order;
 
-import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.wrapper.ForwardingDataIn;
 
+import java.io.EOFException;
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.nio.channels.ClosedChannelException;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -41,77 +41,77 @@ public class ReverseOrderedDataIn extends ForwardingDataIn {
     }
 
     @Override
-    public short readShort() throws IOException {
+    public short readShort() throws ClosedChannelException, EOFException, IOException {
         return this.delegate.readShortLE();
     }
 
     @Override
-    public int readUnsignedShort() throws IOException {
+    public int readUnsignedShort() throws ClosedChannelException, EOFException, IOException {
         return this.delegate.readUnsignedShortLE();
     }
 
     @Override
-    public short readShortLE() throws IOException {
+    public short readShortLE() throws ClosedChannelException, EOFException, IOException {
         return this.delegate.readShort();
     }
 
     @Override
-    public int readUnsignedShortLE() throws IOException {
+    public int readUnsignedShortLE() throws ClosedChannelException, EOFException, IOException {
         return this.delegate.readUnsignedShort();
     }
 
     @Override
-    public char readChar() throws IOException {
+    public char readChar() throws ClosedChannelException, EOFException, IOException {
         return this.delegate.readCharLE();
     }
 
     @Override
-    public char readCharLE() throws IOException {
+    public char readCharLE() throws ClosedChannelException, EOFException, IOException {
         return this.delegate.readChar();
     }
 
     @Override
-    public int readInt() throws IOException {
+    public int readInt() throws ClosedChannelException, EOFException, IOException {
         return this.delegate.readIntLE();
     }
 
     @Override
-    public int readIntLE() throws IOException {
+    public int readIntLE() throws ClosedChannelException, EOFException, IOException {
         return this.delegate.readInt();
     }
 
     @Override
-    public long readLong() throws IOException {
+    public long readLong() throws ClosedChannelException, EOFException, IOException {
         return this.delegate.readLongLE();
     }
 
     @Override
-    public long readLongLE() throws IOException {
+    public long readLongLE() throws ClosedChannelException, EOFException, IOException {
         return this.delegate.readLong();
     }
 
     @Override
-    public float readFloat() throws IOException {
+    public float readFloat() throws ClosedChannelException, EOFException, IOException {
         return this.delegate.readFloatLE();
     }
 
     @Override
-    public float readFloatLE() throws IOException {
+    public float readFloatLE() throws ClosedChannelException, EOFException, IOException {
         return this.delegate.readFloat();
     }
 
     @Override
-    public double readDouble() throws IOException {
+    public double readDouble() throws ClosedChannelException, EOFException, IOException {
         return this.delegate.readDoubleLE();
     }
 
     @Override
-    public double readDoubleLE() throws IOException {
+    public double readDoubleLE() throws ClosedChannelException, EOFException, IOException {
         return this.delegate.readDouble();
     }
 
     @Override
-    public String readUTF() throws IOException {
+    public String readUTF() throws ClosedChannelException, EOFException, IOException {
         return this.readString(this.readUnsignedShort(), StandardCharsets.UTF_8);
     }
 

@@ -23,7 +23,7 @@ package net.daporkchop.lib.binary.stream;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.wrapper.DataInAsInputStream;
-import net.daporkchop.lib.common.util.PValidation;
+import net.daporkchop.lib.common.annotation.param.Positive;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.EOFException;
@@ -47,13 +47,13 @@ public abstract class AbstractDataIn implements DataIn {
     protected boolean closed = false;
 
     @Override
-    public int read() throws IOException {
+    public int read() throws ClosedChannelException, IOException {
         this.ensureOpen();
         return this.read0();
     }
 
     @Override
-    public int readUnsignedByte() throws IOException {
+    public int readUnsignedByte() throws ClosedChannelException, EOFException, IOException {
         this.ensureOpen();
         int b = this.read0();
         if (b >= 0) {
@@ -63,17 +63,10 @@ public abstract class AbstractDataIn implements DataIn {
         }
     }
 
-    /**
-     * Reads exactly one unsigned byte.
-     *
-     * @return an unsigned byte, or {@link #RESULT_EOF} if EOF is reached
-     */
-    protected abstract int read0() throws IOException;
-
     @Override
-    public int read(@NonNull byte[] dst, int start, int length) throws IOException {
+    public int read(@NonNull byte[] dst, int start, int length) throws ClosedChannelException, IOException {
         this.ensureOpen();
-        PValidation.checkRangeLen(dst.length, start, length);
+        checkRangeLen(dst.length, start, length);
         if (length == 0) {
             return 0;
         }
@@ -81,7 +74,7 @@ public abstract class AbstractDataIn implements DataIn {
     }
 
     @Override
-    public int read(@NonNull ByteBuffer dst) throws IOException {
+    public int read(@NonNull ByteBuffer dst) throws ClosedChannelException, IOException {
         this.ensureOpen();
         int remaining = dst.remaining();
         if (remaining <= 0) {
@@ -99,24 +92,27 @@ public abstract class AbstractDataIn implements DataIn {
     }
 
     @Override
-    public int read(@NonNull ByteBuf dst, int start, int length) throws IOException {
+    public int read(@NonNull ByteBuf dst, int offset, int length) throws ClosedChannelException, IOException {
         this.ensureOpen();
-        checkRangeLen(dst.maxCapacity(), start, length);
-        if (length == 0) {
-            return 0;
-        }
-        dst.ensureWritable(start + length - dst.writerIndex());
+        checkRangeLen(dst.capacity(), offset, length);
 
         int read;
         if (dst.hasMemoryAddress()) {
-            read = toInt(this.read0(dst.memoryAddress() + start, length));
+            read = toInt(this.read0(dst.memoryAddress() + offset, length));
         } else if (dst.hasArray()) {
-            read = this.read0(dst.array(), dst.arrayOffset() + start, length);
+            read = this.read0(dst.array(), dst.arrayOffset() + offset, length);
         } else {
-            read = dst.setBytes(start, this, length);
+            read = dst.setBytes(offset, this, length);
         }
         return read;
     }
+
+    /**
+     * Reads exactly one unsigned byte.
+     *
+     * @return an unsigned byte, or {@link #RESULT_EOF} if EOF is reached
+     */
+    protected abstract int read0() throws IOException;
 
     /**
      * Reads between {@code 0} and {@code length} bytes into the given {@code byte[]}.
@@ -130,7 +126,7 @@ public abstract class AbstractDataIn implements DataIn {
      * @param length the number of bytes to read. Will always be at least {@code 1}
      * @return the actual number of bytes read or {@link #RESULT_EOF}
      */
-    protected abstract int read0(@NonNull byte[] dst, int start, int length) throws IOException;
+    protected abstract int read0(@NonNull byte[] dst, int start, @Positive int length) throws IOException;
 
     /**
      * Reads between {@code 0L} and {@code length} bytes into the given memory address.
@@ -143,7 +139,7 @@ public abstract class AbstractDataIn implements DataIn {
      * @param length the number of bytes to read. Will always be at least {@code 1L}
      * @return the actual number of bytes read or {@link #RESULT_EOF}
      */
-    protected abstract long read0(long addr, long length) throws IOException;
+    protected abstract long read0(long addr, @Positive long length) throws IOException;
 
     /**
      * Makes a best-effort attempt to skip the requested number of bytes.
@@ -153,27 +149,27 @@ public abstract class AbstractDataIn implements DataIn {
      * If EOF was already reached, this method will return {@code 0}.
      *
      * @param count the number of bytes to skip. Will always be at least {@code 1L}
-     * @return the number of bytes actually skipped, possibly {@code 0}
+     * @return the number of bytes actually skipped, possibly {@code 0L}
      */
-    protected abstract long skip0(long count) throws IOException;
+    protected abstract long skip0(@Positive long count) throws IOException;
 
     /**
-     * Transfers between {@code 0} and {@code count} bytes to the given {@link DataOut}.
+     * Transfers between {@code 0L} and {@code count} bytes to the given {@link DataOut}.
      * <p>
      * This will continue to read until the requested number of bytes have been transferred or EOF is reached.
      * <p>
      * If EOF was already reached, this method will always return {@link #RESULT_EOF}.
      *
      * @param dst   the {@link DataOut} to write data to
-     * @param count the maximum number of bytes to transfer. If negative, data should be transferred until EOF is reached. Will never be {@code 0}
+     * @param count the maximum number of bytes to transfer
      * @return the actual number of bytes transferred or {@link #RESULT_EOF}
      */
-    protected abstract long transfer0(@NonNull DataOut dst, long count) throws IOException;
+    protected abstract long transfer0(@NonNull DataOut dst, @Positive long count) throws IOException;
 
     /**
      * Gets an estimate of the number of bytes that may be read.
      * <p>
-     * If EOF has been reached, this method may return either {@code 0} or {@code -1}.
+     * If EOF has been reached, this method will always return {@code 0L}.
      *
      * @return an estimate of the number of bytes that may be read
      */
@@ -183,8 +179,6 @@ public abstract class AbstractDataIn implements DataIn {
      * Actually closes this {@link DataIn}.
      * <p>
      * This method is guaranteed to only be called once, regardless of outcome.
-     *
-     * @throws IOException if an IO exception occurs you dummy
      */
     protected abstract void close0() throws IOException;
 
@@ -193,22 +187,25 @@ public abstract class AbstractDataIn implements DataIn {
     }
 
     @Override
-    public long transferTo(@NonNull DataOut dst) throws IOException {
+    public long transferTo(@NonNull DataOut dst) throws ClosedChannelException, IOException {
         this.ensureOpen();
-        return this.transfer0(dst, -1L);
+        long transferred = this.transfer0(dst, Long.MAX_VALUE);
+        checkState(transferred != Long.MAX_VALUE, "somehow, we've transferred 2^63-1 bytes and there's still more left...");
+        return transferred;
     }
 
     @Override
-    public long transferTo(@NonNull DataOut dst, long count) throws IOException {
+    public long transferTo(@NonNull DataOut dst, long count) throws ClosedChannelException, IOException {
         this.ensureOpen();
-        if (positive(count, "count") == 0L) {
+        if (notNegative(count, "count") == 0L) {
             return 0L;
         }
         return this.transfer0(dst, count);
     }
 
     @Override
-    public InputStream asInputStream() {
+    public InputStream asInputStream() throws ClosedChannelException, IOException {
+        this.ensureOpen();
         InputStream inputStream = this.inputStream;
         if (inputStream == null) {
             this.inputStream = inputStream = this.asStream0();
@@ -217,27 +214,27 @@ public abstract class AbstractDataIn implements DataIn {
     }
 
     @Override
-    public long remaining() throws IOException {
+    public long remaining() throws ClosedChannelException, IOException {
         this.ensureOpen();
         return this.remaining0();
     }
 
     @Override
-    public int skipBytes(int n) throws IOException {
+    public int skipBytes(int n) throws ClosedChannelException, IOException {
         this.ensureOpen();
-        if (positive(n, "n") == 0) {
+        if (n <= 0) {
             return 0;
         }
         return toInt(this.skip0(n));
     }
 
     @Override
-    public long skipBytes(long n) throws IOException {
+    public long skipBytes(long n) throws ClosedChannelException, IOException {
         this.ensureOpen();
-        if (positive(n, "n") == 0L) {
+        if (n <= 0L) {
             return 0L;
         }
-        return toInt(this.skip0(n));
+        return this.skip0(n);
     }
 
     @Override
@@ -263,7 +260,7 @@ public abstract class AbstractDataIn implements DataIn {
         }
     }
 
-    protected void ensureOpen() throws IOException {
+    protected void ensureOpen() throws ClosedChannelException {
         if (!this.isOpen()) {
             throw new ClosedChannelException();
         }

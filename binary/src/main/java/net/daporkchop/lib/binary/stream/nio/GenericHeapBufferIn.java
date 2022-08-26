@@ -27,12 +27,14 @@ import net.daporkchop.lib.binary.stream.AbstractHeapDataIn;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.binary.util.PNioBuffers;
+import net.daporkchop.lib.common.annotation.param.Positive;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.EOFException;
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
 
 import static java.lang.Math.*;
 import static net.daporkchop.lib.common.util.PValidation.*;
@@ -63,7 +65,7 @@ public class GenericHeapBufferIn extends AbstractHeapDataIn {
     }
 
     @Override
-    protected int read0(@NonNull byte[] dst, int start, int length) throws IOException {
+    protected int read0(@NonNull byte[] dst, int start, @Positive int length) throws IOException {
         //BufferUnderflowException can't be thrown because we never read more than remaining()
         int count = min(this.delegate.remaining(), length);
         if (count <= 0) {
@@ -75,7 +77,7 @@ public class GenericHeapBufferIn extends AbstractHeapDataIn {
     }
 
     @Override
-    protected long read0(long addr, long length) throws IOException {
+    protected long read0(long addr, @Positive long length) throws IOException {
         //BufferUnderflowException can't be thrown because we never read more than remaining()
         int count = toInt(min(this.delegate.remaining(), length));
         if (count <= 0) {
@@ -93,7 +95,7 @@ public class GenericHeapBufferIn extends AbstractHeapDataIn {
     }
 
     @Override
-    protected long skip0(long count) throws IOException {
+    protected long skip0(@Positive long count) throws IOException {
         //BufferUnderflowException can't be thrown because we never skip more than remaining()
         int countI = (int) min(count, this.delegate.remaining());
         PNioBuffers.skipForRead(this.delegate, countI); //count is always at least 1L, so it'll always be valid
@@ -101,11 +103,9 @@ public class GenericHeapBufferIn extends AbstractHeapDataIn {
     }
 
     @Override
-    protected long transfer0(@NonNull DataOut dst, long count) throws IOException {
+    protected long transfer0(@NonNull DataOut dst, @Positive long count) throws IOException {
         //BufferUnderflowException can't be thrown because we never transfer more than remaining()
-        if (count < 0L || count > this.delegate.remaining()) {
-            count = this.delegate.remaining();
-        }
+        count = min(count, this.delegate.remaining());
         int oldLimit = this.delegate.limit();
         this.delegate.limit(this.delegate.position() + (int) count);
         int read = dst.write(this.delegate);
@@ -129,7 +129,9 @@ public class GenericHeapBufferIn extends AbstractHeapDataIn {
     //
 
     @Override
-    public byte readByte() throws IOException {
+    public byte readByte() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         try {
             return this.delegate.get();
         } catch (BufferUnderflowException e) {

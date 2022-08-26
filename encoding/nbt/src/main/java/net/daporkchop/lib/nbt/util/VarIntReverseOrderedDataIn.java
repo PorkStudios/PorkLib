@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -20,13 +20,12 @@
 
 package net.daporkchop.lib.nbt.util;
 
-import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.order.ReverseOrderedDataIn;
 
+import java.io.EOFException;
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
+import java.nio.channels.ClosedChannelException;
 
 /**
  * Extension of {@link ReverseOrderedDataIn} which uses VarInts for ints and longs.
@@ -39,17 +38,17 @@ public class VarIntReverseOrderedDataIn extends ReverseOrderedDataIn {
     }
 
     @Override
-    public int readInt() throws IOException {
+    public int readInt() throws ClosedChannelException, EOFException, IOException {
         return this.readVarIntZigZag();
     }
 
     @Override
-    public long readLong() throws IOException {
+    public long readLong() throws ClosedChannelException, EOFException, IOException {
         return this.readVarLongZigZag();
     }
 
     @Override
-    public String readUTF() throws IOException {
+    public String readUTF() throws ClosedChannelException, EOFException, IOException {
         return this.readVarUTF();
     }
 }

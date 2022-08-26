@@ -193,7 +193,7 @@ public class ZstdTest {
 
                 try (DataIn in = inflater.decompressionStream(DataIn.wrapView(src))) {
                     in.read(dst);
-                    checkState(in.remaining() == 0L, "there was more data remaining!");
+                    checkState(in.read() < 0, "there was more data remaining!");
                 }
 
                 for (int i = 0; i < this.text.length; i++) {

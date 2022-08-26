@@ -21,11 +21,14 @@
 package net.daporkchop.lib.binary.stream;
 
 import lombok.NonNull;
+import net.daporkchop.lib.common.annotation.param.Positive;
 import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
+import java.io.EOFException;
 import java.io.IOException;
+import java.nio.channels.ClosedChannelException;
 
 import static java.lang.Math.*;
 
@@ -41,7 +44,7 @@ public abstract class AbstractHeapDataIn extends AbstractDataIn {
     }
 
     @Override
-    protected long read0(long addr, long length) throws IOException {
+    protected long read0(long addr, @Positive long length) throws IOException {
         Recycler<byte[]> recycler = PorkUtil.heapBufferRecycler();
         byte[] buf = recycler.allocate();
 
@@ -76,7 +79,9 @@ public abstract class AbstractHeapDataIn extends AbstractDataIn {
     //
 
     @Override
-    public short readShort() throws IOException {
+    public short readShort() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         Recycler<byte[]> recycler = PorkUtil.heapBufferRecycler();
         byte[] buf = recycler.allocate();
         this.readFully(buf, 0, Short.BYTES); //read exactly Short.BYTES into the buffer
@@ -86,7 +91,9 @@ public abstract class AbstractHeapDataIn extends AbstractDataIn {
     }
 
     @Override
-    public short readShortLE() throws IOException {
+    public short readShortLE() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         Recycler<byte[]> recycler = PorkUtil.heapBufferRecycler();
         byte[] buf = recycler.allocate();
         this.readFully(buf, 0, Short.BYTES); //read exactly Short.BYTES into the buffer
@@ -96,7 +103,9 @@ public abstract class AbstractHeapDataIn extends AbstractDataIn {
     }
 
     @Override
-    public char readChar() throws IOException {
+    public char readChar() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         Recycler<byte[]> recycler = PorkUtil.heapBufferRecycler();
         byte[] buf = recycler.allocate();
         this.readFully(buf, 0, Character.BYTES); //read exactly Character.BYTES into the buffer
@@ -106,7 +115,9 @@ public abstract class AbstractHeapDataIn extends AbstractDataIn {
     }
 
     @Override
-    public char readCharLE() throws IOException {
+    public char readCharLE() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         Recycler<byte[]> recycler = PorkUtil.heapBufferRecycler();
         byte[] buf = recycler.allocate();
         this.readFully(buf, 0, Character.BYTES); //read exactly Character.BYTES into the buffer
@@ -116,7 +127,9 @@ public abstract class AbstractHeapDataIn extends AbstractDataIn {
     }
 
     @Override
-    public int readInt() throws IOException {
+    public int readInt() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         Recycler<byte[]> recycler = PorkUtil.heapBufferRecycler();
         byte[] buf = recycler.allocate();
         this.readFully(buf, 0, Integer.BYTES); //read exactly Integer.BYTES into the buffer
@@ -126,7 +139,9 @@ public abstract class AbstractHeapDataIn extends AbstractDataIn {
     }
 
     @Override
-    public int readIntLE() throws IOException {
+    public int readIntLE() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         Recycler<byte[]> recycler = PorkUtil.heapBufferRecycler();
         byte[] buf = recycler.allocate();
         this.readFully(buf, 0, Integer.BYTES); //read exactly Integer.BYTES into the buffer
@@ -136,7 +151,9 @@ public abstract class AbstractHeapDataIn extends AbstractDataIn {
     }
 
     @Override
-    public long readLong() throws IOException {
+    public long readLong() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         Recycler<byte[]> recycler = PorkUtil.heapBufferRecycler();
         byte[] buf = recycler.allocate();
         this.readFully(buf, 0, Long.BYTES); //read exactly Long.BYTES into the buffer
@@ -146,7 +163,9 @@ public abstract class AbstractHeapDataIn extends AbstractDataIn {
     }
 
     @Override
-    public long readLongLE() throws IOException {
+    public long readLongLE() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         Recycler<byte[]> recycler = PorkUtil.heapBufferRecycler();
         byte[] buf = recycler.allocate();
         this.readFully(buf, 0, Long.BYTES); //read exactly Long.BYTES into the buffer
@@ -162,7 +181,7 @@ public abstract class AbstractHeapDataIn extends AbstractDataIn {
     //
 
     @Override
-    protected long skip0(long count) throws IOException {
+    protected long skip0(@Positive long count) throws IOException {
         Recycler<byte[]> recycler = PorkUtil.heapBufferRecycler();
         byte[] buf = recycler.allocate();
 
@@ -183,23 +202,24 @@ public abstract class AbstractHeapDataIn extends AbstractDataIn {
     }
 
     @Override
-    protected long transfer0(@NonNull DataOut dst, long count) throws IOException {
+    protected long transfer0(@NonNull DataOut dst, @Positive long count) throws IOException {
         Recycler<byte[]> recycler = PorkUtil.heapBufferRecycler();
         byte[] buf = recycler.allocate();
 
         long total = 0L;
-        boolean first = true;
         do {
             int read = this.read0(buf, 0, count < 0L ? PorkUtil.bufferSize() : (int) min(count - total, PorkUtil.bufferSize()));
-            if (read <= 0) {
-                return read < 0 && first ? read : total;
+            switch (read) {
+                case RESULT_EOF:
+                    return total == 0L ? RESULT_EOF : total;
+                case 0:
+                    return total;
             }
 
             //write to dst
             dst.write(buf, 0, read);
 
             total += read;
-            first = false;
         } while (count < 0L || total < count);
 
         recycler.release(buf); //release the buffer to the recycler

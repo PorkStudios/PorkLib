@@ -23,12 +23,14 @@ package net.daporkchop.lib.binary.stream.nio;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.util.PNioBuffers;
+import net.daporkchop.lib.common.annotation.param.Positive;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.EOFException;
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
 
 import static java.lang.Math.*;
 import static net.daporkchop.lib.common.util.PValidation.*;
@@ -56,7 +58,7 @@ public class ArrayHeapBufferIn extends GenericHeapBufferIn {
     }
 
     @Override
-    protected long read0(long addr, long length) throws IOException {
+    protected long read0(long addr, @Positive long length) throws IOException {
         //BufferUnderflowException can't be thrown because we never read more than remaining()
         int count = toInt(min(this.delegate.remaining(), length));
         if (count <= 0) {
@@ -80,7 +82,9 @@ public class ArrayHeapBufferIn extends GenericHeapBufferIn {
     //
 
     @Override
-    public short readShort() throws IOException {
+    public short readShort() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         try {
             int position = PNioBuffers.skipForRead(this.delegate, Short.BYTES);
             return PUnsafe.getUnalignedShortBE(this.array, PUnsafe.arrayByteElementOffset(this.arrayOffset + position));
@@ -90,7 +94,9 @@ public class ArrayHeapBufferIn extends GenericHeapBufferIn {
     }
 
     @Override
-    public short readShortLE() throws IOException {
+    public short readShortLE() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         try {
             int position = PNioBuffers.skipForRead(this.delegate, Short.BYTES);
             return PUnsafe.getUnalignedShortLE(this.array, PUnsafe.arrayByteElementOffset(this.arrayOffset + position));
@@ -100,7 +106,9 @@ public class ArrayHeapBufferIn extends GenericHeapBufferIn {
     }
 
     @Override
-    public char readChar() throws IOException {
+    public char readChar() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         try {
             int position = PNioBuffers.skipForRead(this.delegate, Character.BYTES);
             return PUnsafe.getUnalignedCharBE(this.array, PUnsafe.arrayByteElementOffset(this.arrayOffset + position));
@@ -110,7 +118,9 @@ public class ArrayHeapBufferIn extends GenericHeapBufferIn {
     }
 
     @Override
-    public char readCharLE() throws IOException {
+    public char readCharLE() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         try {
             int position = PNioBuffers.skipForRead(this.delegate, Character.BYTES);
             return PUnsafe.getUnalignedCharLE(this.array, PUnsafe.arrayByteElementOffset(this.arrayOffset + position));
@@ -120,7 +130,9 @@ public class ArrayHeapBufferIn extends GenericHeapBufferIn {
     }
 
     @Override
-    public int readInt() throws IOException {
+    public int readInt() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         try {
             int position = PNioBuffers.skipForRead(this.delegate, Integer.BYTES);
             return PUnsafe.getUnalignedIntBE(this.array, PUnsafe.arrayByteElementOffset(this.arrayOffset + position));
@@ -130,7 +142,9 @@ public class ArrayHeapBufferIn extends GenericHeapBufferIn {
     }
 
     @Override
-    public int readIntLE() throws IOException {
+    public int readIntLE() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         try {
             int position = PNioBuffers.skipForRead(this.delegate, Integer.BYTES);
             return PUnsafe.getUnalignedIntLE(this.array, PUnsafe.arrayByteElementOffset(this.arrayOffset + position));
@@ -140,7 +154,9 @@ public class ArrayHeapBufferIn extends GenericHeapBufferIn {
     }
 
     @Override
-    public long readLong() throws IOException {
+    public long readLong() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         try {
             int position = PNioBuffers.skipForRead(this.delegate, Long.BYTES);
             return PUnsafe.getUnalignedLongBE(this.array, PUnsafe.arrayByteElementOffset(this.arrayOffset + position));
@@ -150,7 +166,9 @@ public class ArrayHeapBufferIn extends GenericHeapBufferIn {
     }
 
     @Override
-    public long readLongLE() throws IOException {
+    public long readLongLE() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         try {
             int position = PNioBuffers.skipForRead(this.delegate, Long.BYTES);
             return PUnsafe.getUnalignedLongLE(this.array, PUnsafe.arrayByteElementOffset(this.arrayOffset + position));

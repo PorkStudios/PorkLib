@@ -174,33 +174,33 @@ public class TestWrappingByteBuffer {
 
         //byte
         this.forEachByteOrder(buffer, () -> {
-            this.<Byte>testReadPass(buffer, ByteBuffer::put, DataIn::readByte, r -> (byte) r.nextInt());
+            this.<Byte>testReadPass(buffer, ByteBuffer::put, dataIn -> dataIn.readByte(), r -> (byte) r.nextInt());
             this.<Byte>testReadPass(buffer, ByteBuffer::put, in -> (byte) in.readUnsignedByte(), r -> (byte) r.nextInt());
         });
 
         //short
-        this.<Short>testReadPass(buffer.order(ByteOrder.BIG_ENDIAN), ByteBuffer::putShort, DataIn::readShort, r -> (short) r.nextInt());
-        this.<Short>testReadPass(buffer.order(ByteOrder.LITTLE_ENDIAN), ByteBuffer::putShort, DataIn::readShortLE, r -> (short) r.nextInt());
+        this.<Short>testReadPass(buffer.order(ByteOrder.BIG_ENDIAN), ByteBuffer::putShort, dataIn -> dataIn.readShort(), r -> (short) r.nextInt());
+        this.<Short>testReadPass(buffer.order(ByteOrder.LITTLE_ENDIAN), ByteBuffer::putShort, dataIn -> dataIn.readShortLE(), r -> (short) r.nextInt());
 
         //char
-        this.<Character>testReadPass(buffer.order(ByteOrder.BIG_ENDIAN), ByteBuffer::putChar, DataIn::readChar, r -> (char) r.nextInt());
-        this.<Character>testReadPass(buffer.order(ByteOrder.LITTLE_ENDIAN), ByteBuffer::putChar, DataIn::readCharLE, r -> (char) r.nextInt());
+        this.<Character>testReadPass(buffer.order(ByteOrder.BIG_ENDIAN), ByteBuffer::putChar, dataIn -> dataIn.readChar(), r -> (char) r.nextInt());
+        this.<Character>testReadPass(buffer.order(ByteOrder.LITTLE_ENDIAN), ByteBuffer::putChar, dataIn -> dataIn.readCharLE(), r -> (char) r.nextInt());
 
         //int
-        this.testReadPass(buffer.order(ByteOrder.BIG_ENDIAN), ByteBuffer::putInt, DataIn::readInt, Random::nextInt);
-        this.testReadPass(buffer.order(ByteOrder.LITTLE_ENDIAN), ByteBuffer::putInt, DataIn::readIntLE, Random::nextInt);
+        this.testReadPass(buffer.order(ByteOrder.BIG_ENDIAN), ByteBuffer::putInt, dataIn -> dataIn.readInt(), Random::nextInt);
+        this.testReadPass(buffer.order(ByteOrder.LITTLE_ENDIAN), ByteBuffer::putInt, dataIn -> dataIn.readIntLE(), Random::nextInt);
 
         //long
-        this.testReadPass(buffer.order(ByteOrder.BIG_ENDIAN), ByteBuffer::putLong, DataIn::readLong, Random::nextLong);
-        this.testReadPass(buffer.order(ByteOrder.LITTLE_ENDIAN), ByteBuffer::putLong, DataIn::readLongLE, Random::nextLong);
+        this.testReadPass(buffer.order(ByteOrder.BIG_ENDIAN), ByteBuffer::putLong, dataIn -> dataIn.readLong(), Random::nextLong);
+        this.testReadPass(buffer.order(ByteOrder.LITTLE_ENDIAN), ByteBuffer::putLong, dataIn -> dataIn.readLongLE(), Random::nextLong);
 
         //float
-        this.testReadPass(buffer.order(ByteOrder.BIG_ENDIAN), ByteBuffer::putFloat, DataIn::readFloat, Random::nextFloat);
-        this.testReadPass(buffer.order(ByteOrder.LITTLE_ENDIAN), ByteBuffer::putFloat, DataIn::readFloatLE, Random::nextFloat);
+        this.testReadPass(buffer.order(ByteOrder.BIG_ENDIAN), ByteBuffer::putFloat, dataIn -> dataIn.readFloat(), Random::nextFloat);
+        this.testReadPass(buffer.order(ByteOrder.LITTLE_ENDIAN), ByteBuffer::putFloat, dataIn -> dataIn.readFloatLE(), Random::nextFloat);
 
         //double
-        this.testReadPass(buffer.order(ByteOrder.BIG_ENDIAN), ByteBuffer::putDouble, DataIn::readDouble, Random::nextDouble);
-        this.testReadPass(buffer.order(ByteOrder.LITTLE_ENDIAN), ByteBuffer::putDouble, DataIn::readDoubleLE, Random::nextDouble);
+        this.testReadPass(buffer.order(ByteOrder.BIG_ENDIAN), ByteBuffer::putDouble, dataIn -> dataIn.readDouble(), Random::nextDouble);
+        this.testReadPass(buffer.order(ByteOrder.LITTLE_ENDIAN), ByteBuffer::putDouble, dataIn -> dataIn.readDoubleLE(), Random::nextDouble);
 
         //TODO: add tests for other methods!
     }

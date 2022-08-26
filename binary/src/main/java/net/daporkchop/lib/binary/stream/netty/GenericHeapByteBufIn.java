@@ -28,9 +28,11 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.AbstractHeapDataIn;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.common.annotation.param.Positive;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.nio.channels.ClosedChannelException;
 import java.nio.charset.Charset;
 
 import static java.lang.Math.*;
@@ -64,7 +66,7 @@ public class GenericHeapByteBufIn extends AbstractHeapDataIn {
     }
 
     @Override
-    protected int read0(@NonNull byte[] dst, int start, int length) throws IOException {
+    protected int read0(@NonNull byte[] dst, int start, @Positive int length) throws IOException {
         //IndexOutOfBoundsException can't be thrown because we never read more than readableBytes()
         int count = min(this.delegate.readableBytes(), length);
         if (count <= 0) {
@@ -76,7 +78,7 @@ public class GenericHeapByteBufIn extends AbstractHeapDataIn {
     }
 
     @Override
-    protected long read0(long addr, long length) throws IOException {
+    protected long read0(long addr, @Positive long length) throws IOException {
         //IndexOutOfBoundsException can't be thrown because we never read more than readableBytes()
         int count = toInt(min(this.delegate.readableBytes(), length));
         if (count <= 0) {
@@ -87,7 +89,7 @@ public class GenericHeapByteBufIn extends AbstractHeapDataIn {
     }
 
     @Override
-    protected long skip0(long count) throws IOException {
+    protected long skip0(@Positive long count) throws IOException {
         //IndexOutOfBoundsException can't be thrown because we never skip more than readableBytes()
         int countI = (int) min(this.delegate.readableBytes(), count);
         this.delegate.skipBytes(countI);
@@ -95,11 +97,9 @@ public class GenericHeapByteBufIn extends AbstractHeapDataIn {
     }
 
     @Override
-    protected long transfer0(@NonNull DataOut dst, long count) throws IOException {
+    protected long transfer0(@NonNull DataOut dst, @Positive long count) throws IOException {
         //IndexOutOfBoundsException can't be thrown because we never transfer more than readableBytes()
-        if (count < 0L || count > this.delegate.readableBytes()) {
-            count = this.delegate.readableBytes();
-        }
+        count = min(count, this.delegate.readableBytes());
         int read = this.delegate.readBytes(dst, (int) count);
         checkState(read == count, "only transferred %s/%s bytes?!?", read, count);
         return count;
@@ -126,9 +126,11 @@ public class GenericHeapByteBufIn extends AbstractHeapDataIn {
     //  EOFException should be fastest.
 
     @Override
-    public CharSequence readText(long size, @NonNull Charset charset) throws IOException {
+    public CharSequence readText(long size, @NonNull Charset charset) throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         try {
-            return this.delegate.readCharSequence(toInt(size, "size"), charset);
+            return this.delegate.readCharSequence(toInt(notNegative(size, "size"), "size"), charset);
         } catch (IndexOutOfBoundsException e) {
             throw new EOFException();
         }
@@ -139,7 +141,9 @@ public class GenericHeapByteBufIn extends AbstractHeapDataIn {
     //
 
     @Override
-    public byte readByte() throws IOException {
+    public byte readByte() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         try {
             return this.delegate.readByte();
         } catch (IndexOutOfBoundsException e) {
@@ -148,7 +152,9 @@ public class GenericHeapByteBufIn extends AbstractHeapDataIn {
     }
 
     @Override
-    public int readUnsignedByte() throws IOException {
+    public int readUnsignedByte() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         try {
             return this.delegate.readUnsignedByte();
         } catch (IndexOutOfBoundsException e) {
@@ -157,7 +163,9 @@ public class GenericHeapByteBufIn extends AbstractHeapDataIn {
     }
 
     @Override
-    public short readShort() throws IOException {
+    public short readShort() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         try {
             return this.delegate.readShort();
         } catch (IndexOutOfBoundsException e) {
@@ -166,7 +174,9 @@ public class GenericHeapByteBufIn extends AbstractHeapDataIn {
     }
 
     @Override
-    public short readShortLE() throws IOException {
+    public short readShortLE() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         try {
             return this.delegate.readShortLE();
         } catch (IndexOutOfBoundsException e) {
@@ -175,7 +185,9 @@ public class GenericHeapByteBufIn extends AbstractHeapDataIn {
     }
 
     @Override
-    public int readUnsignedShort() throws IOException {
+    public int readUnsignedShort() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         try {
             return this.delegate.readUnsignedShort();
         } catch (IndexOutOfBoundsException e) {
@@ -184,7 +196,9 @@ public class GenericHeapByteBufIn extends AbstractHeapDataIn {
     }
 
     @Override
-    public int readUnsignedShortLE() throws IOException {
+    public int readUnsignedShortLE() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         try {
             return this.delegate.readUnsignedShortLE();
         } catch (IndexOutOfBoundsException e) {
@@ -193,7 +207,9 @@ public class GenericHeapByteBufIn extends AbstractHeapDataIn {
     }
 
     @Override
-    public char readChar() throws IOException {
+    public char readChar() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         try {
             return (char) this.delegate.readShort();
         } catch (IndexOutOfBoundsException e) {
@@ -202,7 +218,9 @@ public class GenericHeapByteBufIn extends AbstractHeapDataIn {
     }
 
     @Override
-    public char readCharLE() throws IOException {
+    public char readCharLE() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         try {
             return (char) this.delegate.readShortLE();
         } catch (IndexOutOfBoundsException e) {
@@ -211,7 +229,9 @@ public class GenericHeapByteBufIn extends AbstractHeapDataIn {
     }
 
     @Override
-    public int readInt() throws IOException {
+    public int readInt() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         try {
             return this.delegate.readInt();
         } catch (IndexOutOfBoundsException e) {
@@ -220,7 +240,9 @@ public class GenericHeapByteBufIn extends AbstractHeapDataIn {
     }
 
     @Override
-    public int readIntLE() throws IOException {
+    public int readIntLE() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         try {
             return this.delegate.readIntLE();
         } catch (IndexOutOfBoundsException e) {
@@ -229,7 +251,9 @@ public class GenericHeapByteBufIn extends AbstractHeapDataIn {
     }
 
     @Override
-    public long readLong() throws IOException {
+    public long readLong() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         try {
             return this.delegate.readLong();
         } catch (IndexOutOfBoundsException e) {
@@ -238,7 +262,9 @@ public class GenericHeapByteBufIn extends AbstractHeapDataIn {
     }
 
     @Override
-    public long readLongLE() throws IOException {
+    public long readLongLE() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         try {
             return this.delegate.readLongLE();
         } catch (IndexOutOfBoundsException e) {

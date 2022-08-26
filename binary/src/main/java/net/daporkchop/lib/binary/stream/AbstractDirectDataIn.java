@@ -21,12 +21,15 @@
 package net.daporkchop.lib.binary.stream;
 
 import lombok.NonNull;
+import net.daporkchop.lib.common.annotation.param.Positive;
 import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
 
 import static java.lang.Math.*;
 import static net.daporkchop.lib.common.util.PValidation.*;
@@ -43,7 +46,7 @@ public abstract class AbstractDirectDataIn extends AbstractDataIn {
     }
 
     @Override
-    protected int read0(@NonNull byte[] dst, int start, int length) throws IOException {
+    protected int read0(@NonNull byte[] dst, int start, @Positive int length) throws IOException {
         Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
         ByteBuffer buf = recycler.allocate();
 
@@ -79,7 +82,9 @@ public abstract class AbstractDirectDataIn extends AbstractDataIn {
     //
 
     @Override
-    public short readShort() throws IOException {
+    public short readShort() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
         ByteBuffer buf = recycler.allocate();
         this.readFully((ByteBuffer) buf.limit(Short.BYTES)); //read exactly Short.BYTES into the buffer
@@ -89,7 +94,9 @@ public abstract class AbstractDirectDataIn extends AbstractDataIn {
     }
 
     @Override
-    public short readShortLE() throws IOException {
+    public short readShortLE() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
         ByteBuffer buf = recycler.allocate();
         this.readFully((ByteBuffer) buf.limit(Short.BYTES)); //read exactly Short.BYTES into the buffer
@@ -99,7 +106,9 @@ public abstract class AbstractDirectDataIn extends AbstractDataIn {
     }
 
     @Override
-    public char readChar() throws IOException {
+    public char readChar() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
         ByteBuffer buf = recycler.allocate();
         this.readFully((ByteBuffer) buf.limit(Character.BYTES)); //read exactly Character.BYTES into the buffer
@@ -109,7 +118,9 @@ public abstract class AbstractDirectDataIn extends AbstractDataIn {
     }
 
     @Override
-    public char readCharLE() throws IOException {
+    public char readCharLE() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
         ByteBuffer buf = recycler.allocate();
         this.readFully((ByteBuffer) buf.limit(Character.BYTES)); //read exactly Character.BYTES into the buffer
@@ -119,7 +130,9 @@ public abstract class AbstractDirectDataIn extends AbstractDataIn {
     }
 
     @Override
-    public int readInt() throws IOException {
+    public int readInt() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
         ByteBuffer buf = recycler.allocate();
         this.readFully((ByteBuffer) buf.limit(Integer.BYTES)); //read exactly Integer.BYTES into the buffer
@@ -129,7 +142,9 @@ public abstract class AbstractDirectDataIn extends AbstractDataIn {
     }
 
     @Override
-    public int readIntLE() throws IOException {
+    public int readIntLE() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
         ByteBuffer buf = recycler.allocate();
         this.readFully((ByteBuffer) buf.limit(Integer.BYTES)); //read exactly Integer.BYTES into the buffer
@@ -139,7 +154,9 @@ public abstract class AbstractDirectDataIn extends AbstractDataIn {
     }
 
     @Override
-    public long readLong() throws IOException {
+    public long readLong() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
         ByteBuffer buf = recycler.allocate();
         this.readFully((ByteBuffer) buf.limit(Long.BYTES)); //read exactly Long.BYTES into the buffer
@@ -149,7 +166,9 @@ public abstract class AbstractDirectDataIn extends AbstractDataIn {
     }
 
     @Override
-    public long readLongLE() throws IOException {
+    public long readLongLE() throws ClosedChannelException, EOFException, IOException {
+        this.ensureOpen();
+
         Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
         ByteBuffer buf = recycler.allocate();
         this.readFully((ByteBuffer) buf.limit(Long.BYTES)); //read exactly Long.BYTES into the buffer
@@ -165,7 +184,7 @@ public abstract class AbstractDirectDataIn extends AbstractDataIn {
     //
 
     @Override
-    protected long skip0(long count) throws IOException {
+    protected long skip0(@Positive long count) throws IOException {
         Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
         ByteBuffer buf = recycler.allocate();
 
@@ -187,17 +206,19 @@ public abstract class AbstractDirectDataIn extends AbstractDataIn {
     }
 
     @Override
-    protected long transfer0(@NonNull DataOut dst, long count) throws IOException {
+    protected long transfer0(@NonNull DataOut dst, @Positive long count) throws IOException {
         Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
         ByteBuffer buf = recycler.allocate();
 
         long addr = PUnsafe.pork_directBufferAddress(buf);
         long total = 0L;
-        boolean first = true;
         do {
-            int read = toInt(this.read0(addr, count < 0L ? PorkUtil.bufferSize() : min(count - total, PorkUtil.bufferSize())));
-            if (read <= 0) {
-                return read < 0 && first ? read : total;
+            int read = toInt(this.read0(addr, min(count - total, PorkUtil.bufferSize())));
+            switch (read) {
+                case RESULT_EOF:
+                    return total == 0L ? RESULT_EOF : total;
+                case 0:
+                    return total;
             }
 
             //write to dst
@@ -205,8 +226,7 @@ public abstract class AbstractDirectDataIn extends AbstractDataIn {
             dst.write(buf);
 
             total += read;
-            first = false;
-        } while (count < 0L || total < count);
+        } while (total < count);
 
         recycler.release(buf); //release the buffer to the recycler
         return total;

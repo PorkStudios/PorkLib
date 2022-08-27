@@ -20,11 +20,14 @@
 
 package net.daporkchop.lib.binary.stream;
 
+import net.daporkchop.lib.binary.util.NoMoreSpaceException;
+import net.daporkchop.lib.common.annotation.param.Positive;
 import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
+import java.nio.channels.ClosedChannelException;
 
 import static java.lang.Math.*;
 
@@ -40,7 +43,7 @@ public abstract class AbstractHeapDataOut extends AbstractDataOut {
     }
 
     @Override
-    protected void write0(long addr, long length) throws IOException {
+    protected void write0(long addr, @Positive long length) throws NoMoreSpaceException, IOException {
         Recycler<byte[]> recycler = PorkUtil.heapBufferRecycler();
         byte[] buf = recycler.allocate();
 
@@ -71,7 +74,9 @@ public abstract class AbstractHeapDataOut extends AbstractDataOut {
     //
 
     @Override
-    public void writeShort(int v) throws IOException {
+    public void writeShort(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.ensureOpen();
+
         Recycler<byte[]> recycler = PorkUtil.heapBufferRecycler();
         byte[] buf = recycler.allocate();
         PUnsafe.putUnalignedShortBE(buf, PUnsafe.arrayByteBaseOffset(), (short) v);
@@ -80,7 +85,9 @@ public abstract class AbstractHeapDataOut extends AbstractDataOut {
     }
 
     @Override
-    public void writeShortLE(int v) throws IOException {
+    public void writeShortLE(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.ensureOpen();
+
         Recycler<byte[]> recycler = PorkUtil.heapBufferRecycler();
         byte[] buf = recycler.allocate();
         PUnsafe.putUnalignedShortLE(buf, PUnsafe.arrayByteBaseOffset(), (short) v);
@@ -89,7 +96,9 @@ public abstract class AbstractHeapDataOut extends AbstractDataOut {
     }
 
     @Override
-    public void writeChar(int v) throws IOException {
+    public void writeChar(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.ensureOpen();
+
         Recycler<byte[]> recycler = PorkUtil.heapBufferRecycler();
         byte[] buf = recycler.allocate();
         PUnsafe.putUnalignedCharBE(buf, PUnsafe.arrayByteBaseOffset(), (char) v);
@@ -98,7 +107,9 @@ public abstract class AbstractHeapDataOut extends AbstractDataOut {
     }
 
     @Override
-    public void writeCharLE(int v) throws IOException {
+    public void writeCharLE(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.ensureOpen();
+
         Recycler<byte[]> recycler = PorkUtil.heapBufferRecycler();
         byte[] buf = recycler.allocate();
         PUnsafe.putUnalignedCharLE(buf, PUnsafe.arrayByteBaseOffset(), (char) v);
@@ -107,7 +118,9 @@ public abstract class AbstractHeapDataOut extends AbstractDataOut {
     }
 
     @Override
-    public void writeInt(int v) throws IOException {
+    public void writeInt(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.ensureOpen();
+
         Recycler<byte[]> recycler = PorkUtil.heapBufferRecycler();
         byte[] buf = recycler.allocate();
         PUnsafe.putUnalignedIntBE(buf, PUnsafe.arrayByteBaseOffset(), v);
@@ -116,7 +129,9 @@ public abstract class AbstractHeapDataOut extends AbstractDataOut {
     }
 
     @Override
-    public void writeIntLE(int v) throws IOException {
+    public void writeIntLE(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.ensureOpen();
+
         Recycler<byte[]> recycler = PorkUtil.heapBufferRecycler();
         byte[] buf = recycler.allocate();
         PUnsafe.putUnalignedIntLE(buf, PUnsafe.arrayByteBaseOffset(), v);
@@ -125,7 +140,9 @@ public abstract class AbstractHeapDataOut extends AbstractDataOut {
     }
 
     @Override
-    public void writeLong(long v) throws IOException {
+    public void writeLong(long v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.ensureOpen();
+
         Recycler<byte[]> recycler = PorkUtil.heapBufferRecycler();
         byte[] buf = recycler.allocate();
         PUnsafe.putUnalignedLongBE(buf, PUnsafe.arrayByteBaseOffset(), v);
@@ -134,7 +151,9 @@ public abstract class AbstractHeapDataOut extends AbstractDataOut {
     }
 
     @Override
-    public void writeLongLE(long v) throws IOException {
+    public void writeLongLE(long v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.ensureOpen();
+
         Recycler<byte[]> recycler = PorkUtil.heapBufferRecycler();
         byte[] buf = recycler.allocate();
         PUnsafe.putUnalignedLongLE(buf, PUnsafe.arrayByteBaseOffset(), v);

@@ -25,12 +25,15 @@ import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.AbstractHeapDataOut;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.util.NoMoreSpaceException;
 import net.daporkchop.lib.binary.util.PNioBuffers;
+import net.daporkchop.lib.common.annotation.param.Positive;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 
@@ -51,25 +54,25 @@ public class GenericHeapBufferOut extends AbstractHeapDataOut {
     }
 
     @Override
-    protected void write0(int b) throws IOException {
+    protected void write0(int b) throws NoMoreSpaceException, IOException {
         try {
             this.delegate.put((byte) b);
         } catch (BufferOverflowException e) {
-            throw new IOException(e);
+            throw new NoMoreSpaceException(e);
         }
     }
 
     @Override
-    protected void write0(@NonNull byte[] src, int start, int length) throws IOException {
+    protected void write0(@NonNull byte[] src, int start, @Positive int length) throws NoMoreSpaceException, IOException {
         try {
             this.delegate.put(src, start, length);
         } catch (BufferOverflowException e) {
-            throw new IOException(e);
+            throw new NoMoreSpaceException(e);
         }
     }
 
     @Override
-    protected void write0(long addr, long length) throws IOException {
+    protected void write0(long addr, @Positive long length) throws NoMoreSpaceException, IOException {
         try {
             //we don't have direct access to the array, so we'll have to fall back to copying one byte at a time
             //  (JIT might be smart enough to optimize this into a sequential memory copy, but don't bank on it - that's why we have ArrayHeapBufferOut)
@@ -78,7 +81,7 @@ public class GenericHeapBufferOut extends AbstractHeapDataOut {
                 PUnsafe.putByte(addr + i, this.delegate.get(position + i));
             }
         } catch (BufferOverflowException e) {
-            throw new IOException(e);
+            throw new NoMoreSpaceException(e);
         }
     }
 
@@ -97,11 +100,13 @@ public class GenericHeapBufferOut extends AbstractHeapDataOut {
     //
 
     @Override
-    public void writeByte(int b) throws IOException {
+    public void writeByte(int b) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.ensureOpen();
+
         try {
             this.delegate.put((byte) b);
         } catch (BufferOverflowException e) {
-            throw new IOException(e);
+            throw new NoMoreSpaceException(e);
         }
     }
 }

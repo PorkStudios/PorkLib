@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -26,6 +26,8 @@ import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.AbstractHeapDataOut;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.util.NoMoreSpaceException;
+import net.daporkchop.lib.common.annotation.param.Positive;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -43,12 +45,12 @@ public class StreamOut extends AbstractHeapDataOut {
     protected final OutputStream delegate;
 
     @Override
-    protected void write0(int b) throws IOException {
+    protected void write0(int b) throws NoMoreSpaceException, IOException {
         this.delegate.write(b);
     }
 
     @Override
-    protected void write0(@NonNull byte[] src, int start, int length) throws IOException {
+    protected void write0(@NonNull byte[] src, int start, @Positive int length) throws NoMoreSpaceException, IOException {
         this.delegate.write(src, start, length);
     }
 
@@ -74,6 +76,7 @@ public class StreamOut extends AbstractHeapDataOut {
 
         @Override
         protected void close0() throws IOException {
+            //no-op
         }
     }
 }

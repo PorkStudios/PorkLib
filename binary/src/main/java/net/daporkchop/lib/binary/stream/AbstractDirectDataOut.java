@@ -21,12 +21,15 @@
 package net.daporkchop.lib.binary.stream;
 
 import lombok.NonNull;
+import net.daporkchop.lib.binary.util.NoMoreSpaceException;
+import net.daporkchop.lib.common.annotation.param.Positive;
 import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
 
 import static java.lang.Math.*;
 
@@ -42,7 +45,7 @@ public abstract class AbstractDirectDataOut extends AbstractDataOut {
     }
 
     @Override
-    protected void write0(@NonNull byte[] src, int start, int length) throws IOException {
+    protected void write0(@NonNull byte[] src, int start, @Positive int length) throws NoMoreSpaceException, IOException {
         Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
         ByteBuffer buf = recycler.allocate();
 
@@ -74,7 +77,9 @@ public abstract class AbstractDirectDataOut extends AbstractDataOut {
     //
 
     @Override
-    public void writeShort(int v) throws IOException {
+    public void writeShort(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.ensureOpen();
+
         Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
         ByteBuffer buf = recycler.allocate();
         PUnsafe.putUnalignedShortBE(PUnsafe.pork_directBufferAddress(buf), (short) v);
@@ -83,7 +88,9 @@ public abstract class AbstractDirectDataOut extends AbstractDataOut {
     }
 
     @Override
-    public void writeShortLE(int v) throws IOException {
+    public void writeShortLE(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.ensureOpen();
+
         Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
         ByteBuffer buf = recycler.allocate();
         PUnsafe.putUnalignedShortLE(PUnsafe.pork_directBufferAddress(buf), (short) v);
@@ -92,7 +99,9 @@ public abstract class AbstractDirectDataOut extends AbstractDataOut {
     }
 
     @Override
-    public void writeChar(int v) throws IOException {
+    public void writeChar(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.ensureOpen();
+
         Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
         ByteBuffer buf = recycler.allocate();
         PUnsafe.putUnalignedCharBE(PUnsafe.pork_directBufferAddress(buf), (char) v);
@@ -101,7 +110,9 @@ public abstract class AbstractDirectDataOut extends AbstractDataOut {
     }
 
     @Override
-    public void writeCharLE(int v) throws IOException {
+    public void writeCharLE(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.ensureOpen();
+
         Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
         ByteBuffer buf = recycler.allocate();
         PUnsafe.putUnalignedCharLE(PUnsafe.pork_directBufferAddress(buf), (char) v);
@@ -110,7 +121,9 @@ public abstract class AbstractDirectDataOut extends AbstractDataOut {
     }
 
     @Override
-    public void writeInt(int v) throws IOException {
+    public void writeInt(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.ensureOpen();
+
         Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
         ByteBuffer buf = recycler.allocate();
         PUnsafe.putUnalignedIntBE(PUnsafe.pork_directBufferAddress(buf), v);
@@ -119,7 +132,9 @@ public abstract class AbstractDirectDataOut extends AbstractDataOut {
     }
 
     @Override
-    public void writeIntLE(int v) throws IOException {
+    public void writeIntLE(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.ensureOpen();
+
         Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
         ByteBuffer buf = recycler.allocate();
         PUnsafe.putUnalignedIntLE(PUnsafe.pork_directBufferAddress(buf), v);
@@ -128,7 +143,9 @@ public abstract class AbstractDirectDataOut extends AbstractDataOut {
     }
 
     @Override
-    public void writeLong(long v) throws IOException {
+    public void writeLong(long v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.ensureOpen();
+
         Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
         ByteBuffer buf = recycler.allocate();
         PUnsafe.putUnalignedLongBE(PUnsafe.pork_directBufferAddress(buf), v);
@@ -137,7 +154,9 @@ public abstract class AbstractDirectDataOut extends AbstractDataOut {
     }
 
     @Override
-    public void writeLongLE(long v) throws IOException {
+    public void writeLongLE(long v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.ensureOpen();
+
         Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
         ByteBuffer buf = recycler.allocate();
         PUnsafe.putUnalignedLongLE(PUnsafe.pork_directBufferAddress(buf), v);

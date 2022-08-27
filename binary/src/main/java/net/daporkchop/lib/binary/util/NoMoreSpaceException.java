@@ -18,36 +18,31 @@
  *
  */
 
-package net.daporkchop.lib.nbt.util;
+package net.daporkchop.lib.binary.util;
 
-import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.binary.stream.order.ReverseOrderedDataOut;
-import net.daporkchop.lib.binary.util.NoMoreSpaceException;
-
+import java.io.EOFException;
 import java.io.IOException;
-import java.nio.channels.ClosedChannelException;
 
 /**
+ * Signals that the destination has insufficient space remaining during a write.
+ *
  * @author DaPorkchop_
+ * @see EOFException
  */
-public class VarIntReverseOrderedDataOut extends ReverseOrderedDataOut {
-    public VarIntReverseOrderedDataOut(DataOut delegate) {
-        super(delegate);
+public class NoMoreSpaceException extends IOException {
+    public NoMoreSpaceException() {
+        super();
     }
 
-    @Override
-    public void writeInt(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
-        this.writeVarIntZigZag(v);
+    public NoMoreSpaceException(String message) {
+        super(message);
     }
 
-    @Override
-    public void writeLong(long v) throws ClosedChannelException, NoMoreSpaceException, IOException {
-        this.writeVarLongZigZag(v);
+    public NoMoreSpaceException(String message, Throwable cause) {
+        super(message, cause);
     }
 
-    @Override
-    public void writeUTF(@NonNull String text) throws ClosedChannelException, NoMoreSpaceException, IOException {
-        this.writeVarUTF(text);
+    public NoMoreSpaceException(Throwable cause) {
+        super(cause);
     }
 }

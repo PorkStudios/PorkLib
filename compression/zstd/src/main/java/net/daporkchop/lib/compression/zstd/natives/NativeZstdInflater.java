@@ -26,17 +26,19 @@ import io.netty.buffer.PooledByteBufAllocator;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.util.NoMoreSpaceException;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
 import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.common.util.exception.AlreadyReleasedException;
 import net.daporkchop.lib.compression.zstd.ZstdInflateDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdInflater;
 import net.daporkchop.lib.compression.zstd.options.ZstdInflaterOptions;
 import net.daporkchop.lib.unsafe.PCleaner;
 import net.daporkchop.lib.unsafe.PUnsafe;
-import net.daporkchop.lib.common.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
 import java.util.ConcurrentModificationException;
@@ -124,6 +126,7 @@ final class NativeZstdInflater extends AbstractRefCounted.Synchronized implement
     }
 
     @Override
+    @SneakyThrows(IOException.class)
     public synchronized boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) {
         this.ensureNotReleased();
 
@@ -135,15 +138,10 @@ final class NativeZstdInflater extends AbstractRefCounted.Synchronized implement
                  DataOut out = DataOut.wrapViewNonGrowing(dst)) {
                 out.transferFrom(in);
                 return true;
-            } catch (IOException e) {
-                if (e.getCause() instanceof IndexOutOfBoundsException) { //buffer reached capacity and isn't allowed to grow
-                    src.readerIndex(srcReaderIndex);
-                    dst.writerIndex(dstWriterIndex);
-                    return false;
-                }
-
-                //shouldn't be possible
-                throw new RuntimeException(e);
+            } catch (NoMoreSpaceException e) { //buffer reached capacity and isn't allowed to grow
+                src.readerIndex(srcReaderIndex);
+                dst.writerIndex(dstWriterIndex);
+                return false;
             }
         }
 
@@ -238,6 +236,7 @@ final class NativeZstdInflater extends AbstractRefCounted.Synchronized implement
     }
 
     @Override
+    @SneakyThrows(IOException.class)
     public synchronized boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdInflateDictionary dict) {
         this.ensureNotReleased();
 
@@ -249,15 +248,10 @@ final class NativeZstdInflater extends AbstractRefCounted.Synchronized implement
                  DataOut out = DataOut.wrapViewNonGrowing(dst)) {
                 out.transferFrom(in);
                 return true;
-            } catch (IOException e) {
-                if (e.getCause() instanceof IndexOutOfBoundsException) { //buffer reached capacity and isn't allowed to grow
-                    src.readerIndex(srcReaderIndex);
-                    dst.writerIndex(dstWriterIndex);
-                    return false;
-                }
-
-                //shouldn't be possible
-                throw new RuntimeException(e);
+            } catch (NoMoreSpaceException e) { //buffer reached capacity and isn't allowed to grow
+                src.readerIndex(srcReaderIndex);
+                dst.writerIndex(dstWriterIndex);
+                return false;
             }
         }
 

@@ -28,6 +28,7 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.AbstractHeapDataIn;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.util.NoMoreSpaceException;
 import net.daporkchop.lib.common.annotation.param.Positive;
 
 import java.io.EOFException;
@@ -97,7 +98,7 @@ public class GenericHeapByteBufIn extends AbstractHeapDataIn {
     }
 
     @Override
-    protected long transfer0(@NonNull DataOut dst, @Positive long count) throws IOException {
+    protected long transfer0(@NonNull DataOut dst, @Positive long count) throws NoMoreSpaceException, IOException {
         //IndexOutOfBoundsException can't be thrown because we never transfer more than readableBytes()
         count = min(count, this.delegate.readableBytes());
         int read = this.delegate.readBytes(dst, (int) count);

@@ -26,8 +26,10 @@ import io.netty.buffer.PooledByteBufAllocator;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.util.NoMoreSpaceException;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
 import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PorkUtil;
@@ -86,6 +88,7 @@ final class NativeZlibDeflater extends AbstractRefCounted.Synchronized implement
     }
 
     @Override
+    @SneakyThrows(IOException.class)
     public boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) {
         this.ensureNotReleased();
         checkArg(src.isReadable(), "src is not readable!");
@@ -98,15 +101,10 @@ final class NativeZlibDeflater extends AbstractRefCounted.Synchronized implement
             try (DataOut out = this.compressionStream(DataOut.wrapViewNonGrowing(dst), dict)) {
                 out.write(src);
                 return true;
-            } catch (IOException e) {
-                if (e.getCause() instanceof IndexOutOfBoundsException) { //buffer reached capacity and isn't allowed to grow
-                    src.readerIndex(srcReaderIndex);
-                    dst.writerIndex(dstWriterIndex);
-                    return false;
-                }
-
-                //shouldn't be possible
-                throw new RuntimeException(e);
+            } catch (NoMoreSpaceException e) { //buffer reached capacity and isn't allowed to grow
+                src.readerIndex(srcReaderIndex);
+                dst.writerIndex(dstWriterIndex);
+                return false;
             }
         }
 

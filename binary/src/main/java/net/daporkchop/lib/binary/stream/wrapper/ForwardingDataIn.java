@@ -27,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.util.NoMoreSpaceException;
 import net.daporkchop.lib.common.annotation.param.NotNegative;
 
 import java.io.EOFException;
@@ -332,17 +333,17 @@ public abstract class ForwardingDataIn implements DataIn {
     }
 
     @Override
-    public long transferTo(@NonNull DataOut dst) throws ClosedChannelException, IOException {
+    public long transferTo(@NonNull DataOut dst) throws ClosedChannelException, NoMoreSpaceException, IOException {
         return this.delegate.transferTo(dst);
     }
 
     @Override
-    public long transferTo(@NonNull DataOut dst, long count) throws ClosedChannelException, IOException {
+    public long transferTo(@NonNull DataOut dst, long count) throws ClosedChannelException, NoMoreSpaceException, IOException {
         return this.delegate.transferTo(dst, count);
     }
 
     @Override
-    public long transferToFully(@NonNull DataOut dst, long count) throws ClosedChannelException, EOFException, IOException {
+    public long transferToFully(@NonNull DataOut dst, long count) throws ClosedChannelException, EOFException, NoMoreSpaceException, IOException {
         return this.delegate.transferToFully(dst, count);
     }
 

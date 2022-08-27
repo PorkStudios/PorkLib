@@ -27,8 +27,11 @@ import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.AbstractHeapDataOut;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.util.NoMoreSpaceException;
+import net.daporkchop.lib.common.annotation.param.Positive;
 
 import java.io.IOException;
+import java.nio.channels.ClosedChannelException;
 import java.nio.charset.Charset;
 
 import static java.lang.Math.*;
@@ -59,34 +62,34 @@ public class GenericHeapByteBufOut extends AbstractHeapDataOut {
     //  (see https://shipilev.net/blog/2014/exceptional-performance/), catching IndexOutOfBoundsException and throwing an EOFException should be fastest.
 
     @Override
-    protected void write0(int b) throws IOException {
+    protected void write0(int b) throws NoMoreSpaceException, IOException {
         try {
             this.delegate.writeByte(b);
         } catch (IndexOutOfBoundsException e) {
-            throw new IOException("buffer maxCapacity() exceeded", e);
+            throw new NoMoreSpaceException(e);
         }
     }
 
     @Override
-    protected void write0(@NonNull byte[] src, int start, int length) throws IOException {
+    protected void write0(@NonNull byte[] src, int start, @Positive int length) throws NoMoreSpaceException, IOException {
         try {
             int count = min(this.delegate.maxWritableBytes(), length);
             checkIndex(count == length);
             this.delegate.writeBytes(src, start, length);
         } catch (IndexOutOfBoundsException e) {
-            throw new IOException("buffer maxCapacity() exceeded", e);
+            throw new NoMoreSpaceException(e);
         }
     }
 
     @Override
-    protected void write0(long addr, long length) throws IOException {
+    protected void write0(long addr, @Positive long length) throws NoMoreSpaceException, IOException {
         try {
             int writerIndex = this.delegate.writerIndex();
             int count = toInt(min(this.delegate.maxCapacity() - writerIndex, length));
             checkIndex(count == length);
             this.delegate.writeBytes(PlatformDependent.directBuffer(addr, count));
         } catch (IndexOutOfBoundsException e) {
-            throw new IOException("buffer maxCapacity() exceeded", e);
+            throw new NoMoreSpaceException(e);
         }
     }
 
@@ -104,11 +107,13 @@ public class GenericHeapByteBufOut extends AbstractHeapDataOut {
     }
 
     @Override
-    public long writeText(@NonNull CharSequence text, @NonNull Charset charset) throws IOException {
+    public long writeText(@NonNull CharSequence text, @NonNull Charset charset) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.ensureOpen();
+
         try {
             return this.delegate.writeCharSequence(text, charset);
         } catch (IndexOutOfBoundsException e) {
-            throw new IOException("buffer maxCapacity() exceeded", e);
+            throw new NoMoreSpaceException(e);
         }
     }
 
@@ -117,83 +122,101 @@ public class GenericHeapByteBufOut extends AbstractHeapDataOut {
     //
 
     @Override
-    public void writeByte(int b) throws IOException {
+    public void writeByte(int b) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.ensureOpen();
+
         try {
             this.delegate.writeByte(b);
         } catch (IndexOutOfBoundsException e) {
-            throw new IOException("buffer maxCapacity() exceeded", e);
+            throw new NoMoreSpaceException(e);
         }
     }
 
     @Override
-    public void writeShort(int v) throws IOException {
+    public void writeShort(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.ensureOpen();
+
         try {
             this.delegate.writeShort(v);
         } catch (IndexOutOfBoundsException e) {
-            throw new IOException("buffer maxCapacity() exceeded", e);
+            throw new NoMoreSpaceException(e);
         }
     }
 
     @Override
-    public void writeShortLE(int v) throws IOException {
+    public void writeShortLE(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.ensureOpen();
+
         try {
             this.delegate.writeShortLE(v);
         } catch (IndexOutOfBoundsException e) {
-            throw new IOException("buffer maxCapacity() exceeded", e);
+            throw new NoMoreSpaceException(e);
         }
     }
 
     @Override
-    public void writeChar(int v) throws IOException {
+    public void writeChar(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.ensureOpen();
+
         try {
             this.delegate.writeShort(v);
         } catch (IndexOutOfBoundsException e) {
-            throw new IOException("buffer maxCapacity() exceeded", e);
+            throw new NoMoreSpaceException(e);
         }
     }
 
     @Override
-    public void writeCharLE(int v) throws IOException {
+    public void writeCharLE(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.ensureOpen();
+
         try {
             this.delegate.writeShortLE(v);
         } catch (IndexOutOfBoundsException e) {
-            throw new IOException("buffer maxCapacity() exceeded", e);
+            throw new NoMoreSpaceException(e);
         }
     }
 
     @Override
-    public void writeInt(int v) throws IOException {
+    public void writeInt(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.ensureOpen();
+
         try {
             this.delegate.writeInt(v);
         } catch (IndexOutOfBoundsException e) {
-            throw new IOException("buffer maxCapacity() exceeded", e);
+            throw new NoMoreSpaceException(e);
         }
     }
 
     @Override
-    public void writeIntLE(int v) throws IOException {
+    public void writeIntLE(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.ensureOpen();
+
         try {
             this.delegate.writeIntLE(v);
         } catch (IndexOutOfBoundsException e) {
-            throw new IOException("buffer maxCapacity() exceeded", e);
+            throw new NoMoreSpaceException(e);
         }
     }
 
     @Override
-    public void writeLong(long v) throws IOException {
+    public void writeLong(long v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.ensureOpen();
+
         try {
             this.delegate.writeLong(v);
         } catch (IndexOutOfBoundsException e) {
-            throw new IOException("buffer maxCapacity() exceeded", e);
+            throw new NoMoreSpaceException(e);
         }
     }
 
     @Override
-    public void writeLongLE(long v) throws IOException {
+    public void writeLongLE(long v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.ensureOpen();
+
         try {
             this.delegate.writeLongLE(v);
         } catch (IndexOutOfBoundsException e) {
-            throw new IOException("buffer maxCapacity() exceeded", e);
+            throw new NoMoreSpaceException(e);
         }
     }
 }

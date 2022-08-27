@@ -28,13 +28,14 @@ import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.util.NoMoreSpaceException;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
 import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.common.util.exception.AlreadyReleasedException;
 import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
 import net.daporkchop.lib.compression.zlib.ZlibDeflater;
 import net.daporkchop.lib.compression.zlib.ZlibMode;
 import net.daporkchop.lib.compression.zlib.options.ZlibDeflaterOptions;
-import net.daporkchop.lib.common.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
 import java.util.zip.Deflater;
@@ -74,6 +75,7 @@ final class JavaZlibDeflater extends AbstractRefCounted.Synchronized implements 
         checkState(this.compress0(src, dst, dict, true), "compress0() returned false when it should have grown!");
     }
 
+    @SneakyThrows(IOException.class)
     protected synchronized boolean compress0(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict, boolean grow) {
         checkArg(src.isReadable(), "src is not readable!");
         checkArg(dst.isWritable(), "dst is not writable!");
@@ -81,19 +83,14 @@ final class JavaZlibDeflater extends AbstractRefCounted.Synchronized implements 
         int dstWriterIndex = dst.writerIndex();
         try (DataOut out = this.compressionStream(grow ? DataOut.wrapView(dst) : DataOut.wrapViewNonGrowing(dst), dict)) {
             out.write(src);
-        } catch (IOException e) {
-            if (e.getCause() instanceof IndexOutOfBoundsException) { //too much data was written!
-                if (grow) { //buffer reached its maximum capacity
-                    throw (IndexOutOfBoundsException) e.getCause();
-                } else { //buffer reached capacity and isn't allowed to grow
-                    src.readerIndex(srcReaderIndex);
-                    dst.writerIndex(dstWriterIndex);
-                    return false;
-                }
+        } catch (NoMoreSpaceException e) { //too much data was written!
+            if (grow) { //buffer reached its maximum capacity
+                throw new IndexOutOfBoundsException("writerIndex + minWritableBytes exceeds maxCapacity: " + dst);
+            } else { //buffer reached capacity and isn't allowed to grow
+                src.readerIndex(srcReaderIndex);
+                dst.writerIndex(dstWriterIndex);
+                return false;
             }
-
-            //shouldn't be possible
-            throw new RuntimeException(e);
         }
         return true;
     }

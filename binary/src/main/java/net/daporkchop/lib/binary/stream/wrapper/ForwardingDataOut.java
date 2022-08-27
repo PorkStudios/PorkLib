@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -27,11 +27,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.util.NoMoreSpaceException;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.channels.ClosedChannelException;
 import java.nio.charset.Charset;
 
 /**
@@ -47,262 +50,277 @@ public abstract class ForwardingDataOut implements DataOut {
     protected final DataOut delegate;
 
     @Override
-    public void write(int b) throws IOException {
+    public void write(int b) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.delegate.write(b);
     }
 
     @Override
-    public void writeBoolean(boolean b) throws IOException {
+    public void writeBoolean(boolean b) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.delegate.writeBoolean(b);
     }
 
     @Override
-    public void writeByte(int b) throws IOException {
+    public void writeByte(int b) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.delegate.writeByte(b);
     }
 
     @Override
-    public void writeShort(int v) throws IOException {
+    public void writeShort(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.delegate.writeShort(v);
     }
 
     @Override
-    public void writeShortLE(int v) throws IOException {
+    public void writeShortLE(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.delegate.writeShortLE(v);
     }
 
     @Override
-    public void writeShort(int v, @NonNull ByteOrder order) throws IOException {
+    public void writeShort(int v, @NonNull ByteOrder order) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.delegate.writeShort(v, order);
     }
 
     @Override
-    public void writeChar(int v) throws IOException {
+    public void writeChar(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.delegate.writeChar(v);
     }
 
     @Override
-    public void writeCharLE(int v) throws IOException {
+    public void writeCharLE(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.delegate.writeCharLE(v);
     }
 
     @Override
-    public void writeChar(int v, @NonNull ByteOrder order) throws IOException {
+    public void writeChar(int v, @NonNull ByteOrder order) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.delegate.writeChar(v, order);
     }
 
     @Override
-    public void writeInt(int v) throws IOException {
+    public void writeInt(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.delegate.writeInt(v);
     }
 
     @Override
-    public void writeIntLE(int v) throws IOException {
+    public void writeIntLE(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.delegate.writeIntLE(v);
     }
 
     @Override
-    public void writeInt(int v, @NonNull ByteOrder order) throws IOException {
+    public void writeInt(int v, @NonNull ByteOrder order) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.delegate.writeInt(v, order);
     }
 
     @Override
-    public void writeLong(long v) throws IOException {
+    public void writeLong(long v) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.delegate.writeLong(v);
     }
 
     @Override
-    public void writeLongLE(long v) throws IOException {
+    public void writeLongLE(long v) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.delegate.writeLongLE(v);
     }
 
     @Override
-    public void writeLong(long v, @NonNull ByteOrder order) throws IOException {
+    public void writeLong(long v, @NonNull ByteOrder order) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.delegate.writeLong(v, order);
     }
 
     @Override
-    public void writeFloat(float f) throws IOException {
-        this.delegate.writeFloat(f);
+    public void writeFloat(float v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.delegate.writeFloat(v);
     }
 
     @Override
-    public void writeFloatLE(float f) throws IOException {
-        this.delegate.writeFloatLE(f);
+    public void writeFloatLE(float v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.delegate.writeFloatLE(v);
     }
 
     @Override
-    public void writeFloat(float f, @NonNull ByteOrder order) throws IOException {
-        this.delegate.writeFloat(f, order);
+    public void writeFloat(float v, @NonNull ByteOrder order) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.delegate.writeFloat(v, order);
     }
 
     @Override
-    public void writeDouble(double d) throws IOException {
-        this.delegate.writeDouble(d);
+    public void writeDouble(double v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.delegate.writeDouble(v);
     }
 
     @Override
-    public void writeDoubleLE(double d) throws IOException {
-        this.delegate.writeDoubleLE(d);
+    public void writeDoubleLE(double v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.delegate.writeDoubleLE(v);
     }
 
     @Override
-    public void writeDouble(double d, @NonNull ByteOrder order) throws IOException {
-        this.delegate.writeDouble(d, order);
+    public void writeDouble(double v, @NonNull ByteOrder order) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.delegate.writeDouble(v, order);
     }
 
     @Override
-    public void writeBytes(@NonNull String text) throws IOException {
+    public void writeBytes(@NonNull String text) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.delegate.writeBytes(text);
     }
 
     @Override
-    public long writeBytes(@NonNull CharSequence text) throws IOException {
+    public long writeBytes(@NonNull CharSequence text) throws ClosedChannelException, NoMoreSpaceException, IOException {
         return this.delegate.writeBytes(text);
     }
 
     @Override
-    public long writeBytes(@NonNull CharSequence text, int start, int length) throws IOException {
-        return this.delegate.writeBytes(text, start, length);
+    public long writeBytes(@NonNull CharSequence text, int offset, int length) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        return this.delegate.writeBytes(text, offset, length);
     }
 
     @Override
-    public void writeChars(@NonNull String text) throws IOException {
+    public void writeChars(@NonNull String text) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.delegate.writeChars(text);
     }
 
     @Override
-    public long writeChars(@NonNull CharSequence text) throws IOException {
+    public long writeChars(@NonNull CharSequence text) throws ClosedChannelException, NoMoreSpaceException, IOException {
         return this.delegate.writeChars(text);
     }
 
     @Override
-    public long writeChars(@NonNull CharSequence text, int start, int length) throws IOException {
-        return this.delegate.writeChars(text, start, length);
+    public long writeChars(@NonNull CharSequence text, int offset, int length) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        return this.delegate.writeChars(text, offset, length);
     }
 
     @Override
-    public void writeUTF(@NonNull String text) throws IOException {
+    public void writeCharsLE(@NonNull String text) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.delegate.writeCharsLE(text);
+    }
+
+    @Override
+    public long writeCharsLE(@NonNull CharSequence text) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        return this.delegate.writeCharsLE(text);
+    }
+
+    @Override
+    public long writeCharsLE(@NonNull CharSequence text, int offset, int length) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        return this.delegate.writeCharsLE(text, offset, length);
+    }
+
+    @Override
+    public void writeUTF(@NonNull String text) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.delegate.writeUTF(text);
     }
 
     @Override
-    public void writeUTF(@NonNull CharSequence text) throws IOException {
+    public void writeUTF(@NonNull CharSequence text) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.delegate.writeUTF(text);
     }
 
     @Override
-    public void writeVarUTF(@NonNull CharSequence text) throws IOException {
+    public void writeVarUTF(@NonNull CharSequence text) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.delegate.writeVarUTF(text);
     }
 
     @Override
-    public void writeString(@NonNull CharSequence text, @NonNull Charset charset) throws IOException {
+    public void writeString(@NonNull CharSequence text, @NonNull Charset charset) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.delegate.writeString(text, charset);
     }
 
     @Override
-    public void writeVarString(@NonNull CharSequence text, @NonNull Charset charset) throws IOException {
+    public void writeVarString(@NonNull CharSequence text, @NonNull Charset charset) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.delegate.writeVarString(text, charset);
     }
 
     @Override
-    public long writeText(@NonNull CharSequence text, @NonNull Charset charset) throws IOException {
+    public long writeText(@NonNull CharSequence text, @NonNull Charset charset) throws ClosedChannelException, NoMoreSpaceException, IOException {
         return this.delegate.writeText(text, charset);
     }
 
     @Override
-    public long writeText(@NonNull CharSequence text, int start, int length, @NonNull Charset charset) throws IOException {
-        return this.delegate.writeText(text, start, length, charset);
+    public long writeText(@NonNull CharSequence text, int offset, int length, @NonNull Charset charset) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        return this.delegate.writeText(text, offset, length, charset);
     }
 
     @Override
-    public <E extends Enum<E>> void writeEnum(@NonNull E e) throws IOException {
+    public <E extends Enum<E>> void writeEnum(@NonNull E e) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.delegate.writeEnum(e);
     }
 
     @Override
-    public void writeVarInt(int value) throws IOException {
+    public void writeVarInt(int value) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.delegate.writeVarInt(value);
     }
 
     @Override
-    public void writeVarIntZigZag(int value) throws IOException {
+    public void writeVarIntZigZag(int value) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.delegate.writeVarIntZigZag(value);
     }
 
     @Override
-    public void writeVarLong(long value) throws IOException {
+    public void writeVarLong(long value) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.delegate.writeVarLong(value);
     }
 
     @Override
-    public void writeVarLongZigZag(long value) throws IOException {
+    public void writeVarLongZigZag(long value) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.delegate.writeVarLongZigZag(value);
     }
 
     @Override
-    public void write(@NonNull byte[] src) throws IOException {
+    public void write(@NonNull byte[] src) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.delegate.write(src);
     }
 
     @Override
-    public void write(@NonNull byte[] src, int start, int length) throws IOException {
-        this.delegate.write(src, start, length);
+    public void write(@NonNull byte[] src, int offset, int length) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.delegate.write(src, offset, length);
     }
 
     @Override
-    public int write(@NonNull ByteBuffer src) throws IOException {
+    public int write(@NonNull ByteBuffer src) throws ClosedChannelException, NoMoreSpaceException, IOException {
         return this.delegate.write(src);
     }
 
     @Override
-    public long write(@NonNull ByteBuffer[] srcs) throws IOException {
+    public long write(@NonNull ByteBuffer[] srcs) throws ClosedChannelException, NoMoreSpaceException, IOException {
         return this.delegate.write(srcs);
     }
 
     @Override
-    public long write(@NonNull ByteBuffer[] srcs, int offset, int length) throws IOException {
+    public long write(@NonNull ByteBuffer[] srcs, int offset, int length) throws ClosedChannelException, NoMoreSpaceException, IOException {
         return this.delegate.write(srcs, offset, length);
     }
 
     @Override
-    public int write(@NonNull ByteBuf src) throws IOException {
+    public int write(@NonNull ByteBuf src) throws ClosedChannelException, NoMoreSpaceException, IOException {
         return this.delegate.write(src);
     }
 
     @Override
-    public int write(@NonNull ByteBuf src, int count) throws IOException {
+    public int write(@NonNull ByteBuf src, int count) throws ClosedChannelException, NoMoreSpaceException, IOException {
         return this.delegate.write(src, count);
     }
 
     @Override
-    public int write(@NonNull ByteBuf src, int start, int length) throws IOException {
-        return this.delegate.write(src, start, length);
+    public int write(@NonNull ByteBuf src, int offset, int length) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        return this.delegate.write(src, offset, length);
     }
 
     @Override
-    public long transferFrom(@NonNull DataIn src) throws IOException {
+    public long transferFrom(@NonNull DataIn src) throws ClosedChannelException, NoMoreSpaceException, IOException {
         return this.delegate.transferFrom(src);
     }
 
     @Override
-    public long transferFrom(@NonNull DataIn src, long count) throws IOException {
+    public long transferFrom(@NonNull DataIn src, long count) throws ClosedChannelException, NoMoreSpaceException, IOException {
         return this.delegate.transferFrom(src, count);
     }
 
     @Override
-    public long transferFromFully(@NonNull DataIn src, long count) throws IOException {
+    public long transferFromFully(@NonNull DataIn src, long count) throws ClosedChannelException, EOFException, NoMoreSpaceException, IOException {
         return this.delegate.transferFromFully(src, count);
     }
 
     @Override
-    public OutputStream asOutputStream() throws IOException {
+    public OutputStream asOutputStream() throws ClosedChannelException, IOException {
         return this.delegate.asOutputStream();
     }
 
     @Override
-    public void flush() throws IOException {
+    public void flush() throws ClosedChannelException, IOException {
         this.delegate.flush();
     }
 

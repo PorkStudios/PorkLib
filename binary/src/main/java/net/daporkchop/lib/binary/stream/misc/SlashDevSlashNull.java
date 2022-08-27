@@ -27,12 +27,14 @@ import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.binary.stream.wrapper.DataOutAsOutputStream;
+import net.daporkchop.lib.binary.util.NoMoreSpaceException;
 import net.daporkchop.lib.binary.util.PNioBuffers;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.channels.ClosedChannelException;
 import java.nio.charset.Charset;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
@@ -87,242 +89,282 @@ public final class SlashDevSlashNull implements DataOut {
     //
 
     @Override
-    public void write(int b) {
+    public void write(int b) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //no-op
     }
 
     @Override
-    public void writeBoolean(boolean b) {
+    public void writeBoolean(boolean b) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //no-op
     }
 
     @Override
-    public void writeByte(int b) {
+    public void writeByte(int b) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //no-op
     }
 
     @Override
-    public void writeShort(int v) {
+    public void writeShort(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //no-op
     }
 
     @Override
-    public void writeShortLE(int v) {
+    public void writeShortLE(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //no-op
     }
 
     @Override
-    public void writeShort(int v, @NonNull ByteOrder order) {
+    public void writeShort(int v, @NonNull ByteOrder order) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //no-op
     }
 
     @Override
-    public void writeChar(int v) {
+    public void writeChar(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //no-op
     }
 
     @Override
-    public void writeCharLE(int v) {
+    public void writeCharLE(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //no-op
     }
 
     @Override
-    public void writeChar(int v, @NonNull ByteOrder order) {
+    public void writeChar(int v, @NonNull ByteOrder order) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //no-op
     }
 
     @Override
-    public void writeInt(int v) {
+    public void writeInt(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //no-op
     }
 
     @Override
-    public void writeIntLE(int v) {
+    public void writeIntLE(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //no-op
     }
 
     @Override
-    public void writeInt(int v, @NonNull ByteOrder order) {
+    public void writeInt(int v, @NonNull ByteOrder order) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //no-op
     }
 
     @Override
-    public void writeLong(long v) {
+    public void writeLong(long v) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //no-op
     }
 
     @Override
-    public void writeLongLE(long v) {
+    public void writeLongLE(long v) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //no-op
     }
 
     @Override
-    public void writeLong(long v, @NonNull ByteOrder order) {
+    public void writeLong(long v, @NonNull ByteOrder order) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //no-op
     }
 
     @Override
-    public void writeFloat(float f) {
+    public void writeFloat(float v) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //no-op
     }
 
     @Override
-    public void writeFloatLE(float f) {
+    public void writeFloatLE(float v) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //no-op
     }
 
     @Override
-    public void writeFloat(float f, @NonNull ByteOrder order) {
+    public void writeFloat(float v, @NonNull ByteOrder order) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //no-op
     }
 
     @Override
-    public void writeDouble(double d) {
+    public void writeDouble(double v) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //no-op
     }
 
     @Override
-    public void writeDoubleLE(double d) {
+    public void writeDoubleLE(double v) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //no-op
     }
 
     @Override
-    public void writeDouble(double d, @NonNull ByteOrder order) {
+    public void writeDouble(double v, @NonNull ByteOrder order) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //no-op
     }
 
     @Override
-    public void writeBytes(@NonNull String text) {
+    public void writeBytes(@NonNull String text) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //no-op
     }
 
     @Override
-    public long writeBytes(@NonNull CharSequence text) {
+    public long writeBytes(@NonNull CharSequence text) throws ClosedChannelException, NoMoreSpaceException, IOException {
         return text.length();
     }
 
     @Override
-    public long writeBytes(@NonNull CharSequence text, int start, int length) {
-        checkRangeLen(text.length(), start, length);
+    public long writeBytes(@NonNull CharSequence text, int offset, int length) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        checkRangeLen(text.length(), offset, length);
         return length;
     }
 
     @Override
-    public void writeChars(@NonNull String text) {
+    public void writeChars(@NonNull String text) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //no-op
     }
 
     @Override
-    public long writeChars(@NonNull CharSequence text) {
+    public long writeChars(@NonNull CharSequence text) throws ClosedChannelException, NoMoreSpaceException, IOException {
         return (long) text.length() << 1L;
     }
 
     @Override
-    public long writeChars(@NonNull CharSequence text, int start, int length) {
-        checkRangeLen(text.length(), start, length);
+    public long writeChars(@NonNull CharSequence text, int offset, int length) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        checkRangeLen(text.length(), offset, length);
         return (long) length << 1L;
     }
 
     @Override
-    public void writeUTF(@NonNull String text) {
+    public void writeCharsLE(@NonNull String text) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //no-op
     }
 
     @Override
-    public void writeUTF(@NonNull CharSequence text) {
+    public long writeCharsLE(@NonNull CharSequence text) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        return (long) text.length() << 1L;
+    }
+
+    @Override
+    public long writeCharsLE(@NonNull CharSequence text, int offset, int length) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        checkRangeLen(text.length(), offset, length);
+        return (long) length << 1L;
+    }
+
+    @Override
+    public void writeUTF(@NonNull String text) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //no-op
     }
 
     @Override
-    public void writeVarUTF(@NonNull CharSequence text) {
+    public void writeUTF(@NonNull CharSequence text) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //no-op
     }
 
     @Override
-    public void writeString(@NonNull CharSequence text, @NonNull Charset charset) {
+    public void writeVarUTF(@NonNull CharSequence text) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //no-op
     }
 
     @Override
-    public void writeVarString(@NonNull CharSequence text, @NonNull Charset charset) {
+    public void writeString(@NonNull CharSequence text, @NonNull Charset charset) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //no-op
     }
 
     @Override
-    public long writeText(@NonNull CharSequence text, @NonNull Charset charset) {
+    public void writeVarString(@NonNull CharSequence text, @NonNull Charset charset) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        //no-op
+    }
+
+    @Override
+    public long writeText(@NonNull CharSequence text, @NonNull Charset charset) throws ClosedChannelException, NoMoreSpaceException, IOException {
         return text.length();
     }
 
     @Override
-    public long writeText(@NonNull CharSequence text, int start, int length, @NonNull Charset charset) {
-        checkRangeLen(text.length(), start, length);
+    public long writeText(@NonNull CharSequence text, int offset, int length, @NonNull Charset charset) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        checkRangeLen(text.length(), offset, length);
         return length;
     }
 
     @Override
-    public <E extends Enum<E>> void writeEnum(@NonNull E e) {
+    public <E extends Enum<E>> void writeEnum(@NonNull E e) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //no-op
     }
 
     @Override
-    public void writeVarInt(int value) {
+    public void writeVarInt(int value) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //no-op
     }
 
     @Override
-    public void writeVarIntZigZag(int value) {
+    public void writeVarIntZigZag(int value) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //no-op
     }
 
     @Override
-    public void writeVarLong(long value) {
+    public void writeVarLong(long value) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //no-op
     }
 
     @Override
-    public void writeVarLongZigZag(long value) {
+    public void writeVarLongZigZag(long value) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //no-op
     }
 
     @Override
-    public void write(@NonNull byte[] src) {
+    public void write(@NonNull byte[] src) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //no-op
     }
 
     @Override
-    public void write(@NonNull byte[] src, int start, int length) {
+    public void write(@NonNull byte[] src, int offset, int length) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //no-op
     }
 
     @Override
-    public int write(@NonNull ByteBuffer src) {
+    public int write(@NonNull ByteBuffer src) throws ClosedChannelException, NoMoreSpaceException, IOException {
         int remaining = src.remaining();
         PNioBuffers.skipForRead(src, remaining);
         return remaining;
     }
 
     @Override
-    public int write(@NonNull ByteBuf src) {
+    public long write(@NonNull ByteBuffer[] srcs) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        long total = 0L;
+        for (ByteBuffer src : srcs) {
+            int remaining = src.remaining();
+            PNioBuffers.skipForRead(src, remaining);
+            total += remaining;
+        }
+        return total;
+    }
+
+    @Override
+    public long write(@NonNull ByteBuffer[] srcs, int offset, int length) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        checkRangeLen(srcs.length, offset, length);
+        long total = 0L;
+        for (int i = 0; i < length; i++) {
+            ByteBuffer src = srcs[offset + i];
+            int remaining = src.remaining();
+            PNioBuffers.skipForRead(src, remaining);
+            total += remaining;
+        }
+        return total;
+    }
+
+    @Override
+    public int write(@NonNull ByteBuf src) throws ClosedChannelException, NoMoreSpaceException, IOException {
         int readableBytes = src.readableBytes();
         src.skipBytes(readableBytes);
         return readableBytes;
     }
 
     @Override
-    public int write(@NonNull ByteBuf src, int count) {
+    public int write(@NonNull ByteBuf src, int count) throws ClosedChannelException, NoMoreSpaceException, IOException {
         checkRangeLen(src.writerIndex(), src.readerIndex(), count);
         src.skipBytes(count);
         return count;
     }
 
     @Override
-    public int write(@NonNull ByteBuf src, int start, int length) {
-        checkRangeLen(src.writerIndex(), start, length);
+    public int write(@NonNull ByteBuf src, int offset, int length) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        checkRangeLen(src.writerIndex(), offset, length);
         return length;
     }
 
     @Override
-    public long transferFrom(@NonNull DataIn src) throws IOException {
+    public long transferFrom(@NonNull DataIn src) throws ClosedChannelException, NoMoreSpaceException, IOException {
         long total = 0L;
         long skipped;
         do {
@@ -333,7 +375,11 @@ public final class SlashDevSlashNull implements DataOut {
     }
 
     @Override
-    public long transferFrom(@NonNull DataIn src, long count) throws IOException {
+    public long transferFrom(@NonNull DataIn src, long count) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        if (notNegative(count, "count") == 0L) {
+            return 0L;
+        }
+
         long total = 0L;
         long skipped;
         do {
@@ -344,19 +390,19 @@ public final class SlashDevSlashNull implements DataOut {
     }
 
     @Override
-    public OutputStream asOutputStream() {
+    public OutputStream asOutputStream() throws ClosedChannelException, IOException {
         return OutputStreamImpl.OUTPUT_STREAM_INSTANCE;
     }
 
     @Override
-    public void flush() {
+    public void flush() throws ClosedChannelException, IOException {
         //no-op
     }
 
     /**
      * Implementation of {@link OutputStream} which emulates the behavior of UNIX's {@code /dev/null}.
      * <p>
-     * Used by {@link SlashDevSlashNull#asOutputStream()}.
+     * Used by {@link DataOut#asOutputStream()}.
      *
      * @author DaPorkchop_
      */

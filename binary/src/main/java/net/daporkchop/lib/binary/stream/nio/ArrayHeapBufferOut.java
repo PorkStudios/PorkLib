@@ -24,12 +24,15 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.util.NoMoreSpaceException;
 import net.daporkchop.lib.binary.util.PNioBuffers;
+import net.daporkchop.lib.common.annotation.param.Positive;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 
@@ -58,14 +61,14 @@ public class ArrayHeapBufferOut extends GenericHeapBufferOut {
     }
 
     @Override
-    protected void write0(long addr, long length) throws IOException {
+    protected void write0(long addr, @Positive long length) throws NoMoreSpaceException, IOException {
         try {
             int position = PNioBuffers.skipForWrite(this.delegate, toInt(length, "length"));
 
             //copy directly from off-heap memory to the array
             PUnsafe.copyMemory(null, addr, this.array, PUnsafe.arrayByteElementOffset(this.arrayOffset + position), length);
         } catch (BufferOverflowException e) {
-            throw new IOException(e);
+            throw new NoMoreSpaceException(e);
         }
     }
 
@@ -80,82 +83,98 @@ public class ArrayHeapBufferOut extends GenericHeapBufferOut {
     //
 
     @Override
-    public void writeShort(int v) throws IOException {
+    public void writeShort(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.ensureOpen();
+
         try {
             int position = PNioBuffers.skipForWrite(this.delegate, Short.BYTES);
             PUnsafe.putUnalignedShortBE(this.array, PUnsafe.arrayByteElementOffset(this.arrayOffset + position), (short) v);
         } catch (BufferOverflowException e) {
-            throw new IOException(e);
+            throw new NoMoreSpaceException(e);
         }
     }
 
     @Override
-    public void writeShortLE(int v) throws IOException {
+    public void writeShortLE(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.ensureOpen();
+
         try {
             int position = PNioBuffers.skipForWrite(this.delegate, Short.BYTES);
             PUnsafe.putUnalignedShortLE(this.array, PUnsafe.arrayByteElementOffset(this.arrayOffset + position), (short) v);
         } catch (BufferOverflowException e) {
-            throw new IOException(e);
+            throw new NoMoreSpaceException(e);
         }
     }
 
     @Override
-    public void writeChar(int v) throws IOException {
+    public void writeChar(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.ensureOpen();
+
         try {
             int position = PNioBuffers.skipForWrite(this.delegate, Character.BYTES);
             PUnsafe.putUnalignedCharBE(this.array, PUnsafe.arrayByteElementOffset(this.arrayOffset + position), (char) v);
         } catch (BufferOverflowException e) {
-            throw new IOException(e);
+            throw new NoMoreSpaceException(e);
         }
     }
 
     @Override
-    public void writeCharLE(int v) throws IOException {
+    public void writeCharLE(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.ensureOpen();
+
         try {
             int position = PNioBuffers.skipForWrite(this.delegate, Character.BYTES);
             PUnsafe.putUnalignedCharLE(this.array, PUnsafe.arrayByteElementOffset(this.arrayOffset + position), (char) v);
         } catch (BufferOverflowException e) {
-            throw new IOException(e);
+            throw new NoMoreSpaceException(e);
         }
     }
 
     @Override
-    public void writeInt(int v) throws IOException {
+    public void writeInt(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.ensureOpen();
+
         try {
             int position = PNioBuffers.skipForWrite(this.delegate, Integer.BYTES);
             PUnsafe.putUnalignedIntBE(this.array, PUnsafe.arrayByteElementOffset(this.arrayOffset + position), v);
         } catch (BufferOverflowException e) {
-            throw new IOException(e);
+            throw new NoMoreSpaceException(e);
         }
     }
 
     @Override
-    public void writeIntLE(int v) throws IOException {
+    public void writeIntLE(int v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.ensureOpen();
+
         try {
             int position = PNioBuffers.skipForWrite(this.delegate, Integer.BYTES);
             PUnsafe.putUnalignedIntLE(this.array, PUnsafe.arrayByteElementOffset(this.arrayOffset + position), v);
         } catch (BufferOverflowException e) {
-            throw new IOException(e);
+            throw new NoMoreSpaceException(e);
         }
     }
 
     @Override
-    public void writeLong(long v) throws IOException {
+    public void writeLong(long v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.ensureOpen();
+
         try {
             int position = PNioBuffers.skipForWrite(this.delegate, Long.BYTES);
             PUnsafe.putUnalignedLongBE(this.array, PUnsafe.arrayByteElementOffset(this.arrayOffset + position), v);
         } catch (BufferOverflowException e) {
-            throw new IOException(e);
+            throw new NoMoreSpaceException(e);
         }
     }
 
     @Override
-    public void writeLongLE(long v) throws IOException {
+    public void writeLongLE(long v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.ensureOpen();
+
         try {
             int position = PNioBuffers.skipForWrite(this.delegate, Long.BYTES);
             PUnsafe.putUnalignedLongLE(this.array, PUnsafe.arrayByteElementOffset(this.arrayOffset + position), v);
         } catch (BufferOverflowException e) {
-            throw new IOException(e);
+            throw new NoMoreSpaceException(e);
         }
     }
 }

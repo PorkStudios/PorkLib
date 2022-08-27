@@ -29,6 +29,7 @@ import net.daporkchop.lib.binary.stream.nio.GenericDirectBufferIn;
 import net.daporkchop.lib.binary.stream.nio.GenericHeapBufferIn;
 import net.daporkchop.lib.binary.stream.stream.StreamIn;
 import net.daporkchop.lib.binary.stream.wrapper.DataInAsInputStream;
+import net.daporkchop.lib.binary.util.NoMoreSpaceException;
 import net.daporkchop.lib.common.annotation.AliasOwnership;
 import net.daporkchop.lib.common.annotation.NotThreadSafe;
 import net.daporkchop.lib.common.annotation.TransferOwnership;
@@ -1166,8 +1167,9 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @param dst the {@link DataOut} to transfer data to
      * @return the number of bytes transferred, or {@code -1L} if EOF was already reached
      * @throws ClosedChannelException if the channel was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining in the destination
      */
-    long transferTo(@NonNull DataOut dst) throws ClosedChannelException, IOException;
+    long transferTo(@NonNull DataOut dst) throws ClosedChannelException, NoMoreSpaceException, IOException;
 
     /**
      * Transfers data from this {@link DataIn} to the given {@link DataOut}.
@@ -1180,8 +1182,9 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @return the number of bytes transferred, or {@code -1L} if EOF was already reached
      * @throws ClosedChannelException   if the channel was already closed
      * @throws IllegalArgumentException if the given {@code count} is negative
+     * @throws NoMoreSpaceException   if there is insufficient space remaining in the destination
      */
-    long transferTo(@NonNull DataOut dst, long count) throws ClosedChannelException, IOException;
+    long transferTo(@NonNull DataOut dst, long count) throws ClosedChannelException, NoMoreSpaceException, IOException;
 
     /**
      * Transfers data from this {@link DataIn} to the given {@link DataOut}.
@@ -1193,8 +1196,9 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @return the number of bytes transferred
      * @throws ClosedChannelException if the channel was already closed
      * @throws EOFException           if EOF is reached before the requested number of bytes can be transferred
+     * @throws NoMoreSpaceException   if there is insufficient space remaining in the destination
      */
-    default long transferToFully(@NonNull DataOut dst, long count) throws ClosedChannelException, EOFException, IOException {
+    default long transferToFully(@NonNull DataOut dst, long count) throws ClosedChannelException, EOFException, NoMoreSpaceException, IOException {
         if (this.transferTo(dst, count) != count) {
             throw new EOFException();
         }

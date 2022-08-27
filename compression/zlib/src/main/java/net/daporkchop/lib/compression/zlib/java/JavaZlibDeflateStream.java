@@ -24,10 +24,13 @@ import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.AbstractHeapDataOut;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.util.NoMoreSpaceException;
+import net.daporkchop.lib.common.annotation.param.Positive;
 import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PorkUtil;
 
 import java.io.IOException;
+import java.nio.channels.ClosedChannelException;
 import java.util.ConcurrentModificationException;
 import java.util.zip.Deflater;
 
@@ -75,7 +78,7 @@ class JavaZlibDeflateStream extends AbstractHeapDataOut {
     }
 
     @Override
-    protected void write0(int b) throws IOException {
+    protected void write0(int b) throws NoMoreSpaceException, IOException {
         Recycler<byte[]> recycler = PorkUtil.heapBufferRecycler();
         byte[] buf = recycler.allocate();
 
@@ -86,7 +89,7 @@ class JavaZlibDeflateStream extends AbstractHeapDataOut {
     }
 
     @Override
-    protected void write0(@NonNull byte[] src, int start, int length) throws IOException {
+    protected void write0(@NonNull byte[] src, int start, @Positive int length) throws NoMoreSpaceException, IOException {
         this.def.setInput(src, start, length);
         while (!this.def.needsInput()) {
             int len = this.def.deflate(this.buf.array(), this.buf.arrayOffset(), this.buf.capacity());
@@ -126,7 +129,7 @@ class JavaZlibDeflateStream extends AbstractHeapDataOut {
     }
 
     @Override
-    protected void ensureOpen() throws IOException {
+    protected void ensureOpen() throws ClosedChannelException {
         super.ensureOpen();
         this.ensureValidSession();
     }

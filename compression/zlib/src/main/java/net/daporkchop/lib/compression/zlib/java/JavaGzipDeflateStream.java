@@ -23,6 +23,8 @@ package net.daporkchop.lib.compression.zlib.java;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.util.NoMoreSpaceException;
+import net.daporkchop.lib.common.annotation.param.Positive;
 import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PorkUtil;
 
@@ -63,7 +65,7 @@ class JavaGzipDeflateStream extends JavaZlibDeflateStream {
     }
 
     @Override
-    protected void write0(@NonNull byte[] src, int start, int length) throws IOException {
+    protected void write0(@NonNull byte[] src, int start, @Positive int length) throws NoMoreSpaceException, IOException {
         super.write0(src, start, length);
         this.crc.update(src, start, length);
     }

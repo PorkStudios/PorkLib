@@ -26,6 +26,7 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.AbstractHeapDataIn;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.util.NoMoreSpaceException;
 import net.daporkchop.lib.binary.util.PNioBuffers;
 import net.daporkchop.lib.common.annotation.param.Positive;
 import net.daporkchop.lib.unsafe.PUnsafe;
@@ -103,7 +104,7 @@ public class GenericHeapBufferIn extends AbstractHeapDataIn {
     }
 
     @Override
-    protected long transfer0(@NonNull DataOut dst, @Positive long count) throws IOException {
+    protected long transfer0(@NonNull DataOut dst, @Positive long count) throws NoMoreSpaceException, IOException {
         //BufferUnderflowException can't be thrown because we never transfer more than remaining()
         count = min(count, this.delegate.remaining());
         int oldLimit = this.delegate.limit();

@@ -23,6 +23,7 @@ package net.daporkchop.lib.binary.stream;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.wrapper.DataInAsInputStream;
+import net.daporkchop.lib.binary.util.NoMoreSpaceException;
 import net.daporkchop.lib.common.annotation.param.Positive;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
@@ -164,7 +165,7 @@ public abstract class AbstractDataIn implements DataIn {
      * @param count the maximum number of bytes to transfer
      * @return the actual number of bytes transferred or {@link #RESULT_EOF}
      */
-    protected abstract long transfer0(@NonNull DataOut dst, @Positive long count) throws IOException;
+    protected abstract long transfer0(@NonNull DataOut dst, @Positive long count) throws NoMoreSpaceException, IOException;
 
     /**
      * Gets an estimate of the number of bytes that may be read.
@@ -187,7 +188,7 @@ public abstract class AbstractDataIn implements DataIn {
     }
 
     @Override
-    public long transferTo(@NonNull DataOut dst) throws ClosedChannelException, IOException {
+    public long transferTo(@NonNull DataOut dst) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.ensureOpen();
         long transferred = this.transfer0(dst, Long.MAX_VALUE);
         checkState(transferred != Long.MAX_VALUE, "somehow, we've transferred 2^63-1 bytes and there's still more left...");
@@ -195,7 +196,7 @@ public abstract class AbstractDataIn implements DataIn {
     }
 
     @Override
-    public long transferTo(@NonNull DataOut dst, long count) throws ClosedChannelException, IOException {
+    public long transferTo(@NonNull DataOut dst, long count) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.ensureOpen();
         if (notNegative(count, "count") == 0L) {
             return 0L;

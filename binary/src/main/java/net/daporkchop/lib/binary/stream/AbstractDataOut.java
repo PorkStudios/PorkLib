@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -23,6 +23,8 @@ package net.daporkchop.lib.binary.stream;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.wrapper.DataOutAsOutputStream;
+import net.daporkchop.lib.binary.util.NoMoreSpaceException;
+import net.daporkchop.lib.common.annotation.param.Positive;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
@@ -38,38 +40,34 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  * @author DaPorkchop_
  */
 public abstract class AbstractDataOut implements DataOut {
-    protected static final int RESULT_BLOCKING = -1;
-
     protected OutputStream outputStream;
 
     protected boolean closed = false;
 
     @Override
-    public void write(int b) throws IOException {
+    public void write(int b) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.ensureOpen();
         this.write0(b);
     }
 
-    /**
-     * Writes exactly one unsigned byte.
-     */
-    protected abstract void write0(int b) throws IOException;
-
     @Override
-    public void write(@NonNull byte[] src, int start, int length) throws IOException {
+    public void write(@NonNull byte[] src, int offset, int length) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.ensureOpen();
-        checkRangeLen(src.length, start, length);
-        if (length == 0) {
-            return;
-        } else if (length == 1) {
-            this.write0(src[start]);
-        } else {
-            this.write0(src, start, length);
+        checkRangeLen(src.length, offset, length);
+
+        switch (length) {
+            case 0:
+                return;
+            case 1:
+                this.write0(src[offset]);
+                return;
+            default:
+                this.write0(src, offset, length);
         }
     }
 
     @Override
-    public int write(@NonNull ByteBuffer src) throws IOException {
+    public int write(@NonNull ByteBuffer src) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.ensureOpen();
         int remaining = src.remaining();
         if (remaining <= 0) {
@@ -87,22 +85,27 @@ public abstract class AbstractDataOut implements DataOut {
     }
 
     @Override
-    public int write(@NonNull ByteBuf src, int start, int length) throws IOException {
+    public int write(@NonNull ByteBuf src, int offset, int length) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.ensureOpen();
-        checkRangeLen(src.capacity(), start, length);
+        checkRangeLen(src.capacity(), offset, length);
         if (length == 0) {
             return 0;
         }
 
         if (src.hasMemoryAddress()) {
-            this.write0(src.memoryAddress() + start, length);
+            this.write0(src.memoryAddress() + offset, length);
         } else if (src.hasArray()) {
-            this.write0(src.array(), src.arrayOffset() + start, length);
+            this.write0(src.array(), src.arrayOffset() + offset, length);
         } else {
-            src.getBytes(start, this, length);
+            src.getBytes(offset, this, length);
         }
         return length;
     }
+
+    /**
+     * Writes exactly one unsigned byte.
+     */
+    protected abstract void write0(int b) throws NoMoreSpaceException, IOException;
 
     /**
      * Writes exactly {@code length} bytes from the given {@code byte[]}.
@@ -113,7 +116,7 @@ public abstract class AbstractDataOut implements DataOut {
      * @param start  the first index to start writing data from
      * @param length the number of bytes to write. Will always be at least {@code 1}
      */
-    protected abstract void write0(@NonNull byte[] src, int start, int length) throws IOException;
+    protected abstract void write0(@NonNull byte[] src, int start, @Positive int length) throws NoMoreSpaceException, IOException;
 
     /**
      * Writes exactly {@code length} bytes from the given memory address.
@@ -123,7 +126,7 @@ public abstract class AbstractDataOut implements DataOut {
      * @param addr   the base memory address to write data from
      * @param length the number of bytes to write. Will always be at least {@code 1L}
      */
-    protected abstract void write0(long addr, long length) throws IOException;
+    protected abstract void write0(long addr, @Positive long length) throws NoMoreSpaceException, IOException;
 
     /**
      * Flushes any data buffered by this {@link DataOut}.
@@ -144,19 +147,20 @@ public abstract class AbstractDataOut implements DataOut {
     }
 
     @Override
-    public long transferFrom(@NonNull DataIn src) throws IOException {
+    public long transferFrom(@NonNull DataIn src) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.ensureOpen();
         return src.transferTo(this);
     }
 
     @Override
-    public long transferFrom(@NonNull DataIn src, long count) throws IOException {
+    public long transferFrom(@NonNull DataIn src, long count) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.ensureOpen();
-        return src.transferTo(this, count);
+        return src.transferTo(this, notNegative(count, "count"));
     }
 
     @Override
-    public final OutputStream asOutputStream() {
+    public final OutputStream asOutputStream() throws ClosedChannelException, IOException {
+        this.ensureOpen();
         OutputStream outputStream = this.outputStream;
         if (outputStream == null) {
             this.outputStream = outputStream = this.asStream0();
@@ -165,7 +169,7 @@ public abstract class AbstractDataOut implements DataOut {
     }
 
     @Override
-    public final void flush() throws IOException {
+    public final void flush() throws ClosedChannelException, IOException {
         this.ensureOpen();
         this.flush0();
     }
@@ -193,7 +197,7 @@ public abstract class AbstractDataOut implements DataOut {
         }
     }
 
-    protected void ensureOpen() throws IOException {
+    protected void ensureOpen() throws ClosedChannelException {
         if (!this.isOpen()) {
             throw new ClosedChannelException();
         }

@@ -28,6 +28,7 @@ import net.daporkchop.lib.binary.chars.ZeroCharSequence;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.binary.stream.wrapper.DataInAsInputStream;
+import net.daporkchop.lib.binary.util.NoMoreSpaceException;
 import net.daporkchop.lib.common.annotation.param.NotNegative;
 import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PorkUtil;
@@ -395,12 +396,12 @@ public final class SlashDevSlashZero implements DataIn {
     }
 
     @Override
-    public long transferTo(@NonNull DataOut dst) throws ClosedChannelException, IOException {
+    public long transferTo(@NonNull DataOut dst) throws ClosedChannelException, NoMoreSpaceException, IOException {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public long transferTo(@NonNull DataOut dst, long count) throws ClosedChannelException, IOException {
+    public long transferTo(@NonNull DataOut dst, long count) throws ClosedChannelException, NoMoreSpaceException, IOException {
         if (notNegative(count, "count") == 0L) {
             return 0L;
         }

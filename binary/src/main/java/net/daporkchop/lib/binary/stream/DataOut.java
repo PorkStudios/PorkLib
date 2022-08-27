@@ -30,6 +30,7 @@ import net.daporkchop.lib.binary.stream.nio.ArrayHeapBufferOut;
 import net.daporkchop.lib.binary.stream.nio.GenericDirectBufferOut;
 import net.daporkchop.lib.binary.stream.nio.GenericHeapBufferOut;
 import net.daporkchop.lib.binary.stream.stream.StreamOut;
+import net.daporkchop.lib.binary.util.NoMoreSpaceException;
 import net.daporkchop.lib.common.annotation.AliasOwnership;
 import net.daporkchop.lib.common.annotation.NotThreadSafe;
 import net.daporkchop.lib.common.annotation.TransferOwnership;
@@ -44,7 +45,6 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.ClosedChannelException;
@@ -154,7 +154,6 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      *
      * @param file the file to write to
      * @return a buffered {@link DataOut} that will write to the given file
-     * @throws IOException if an IO exception occurs you dummy
      */
     static DataOut wrapBuffered(@NonNull Path file) throws IOException {
         return wrap(new BufferedOutputStream(Files.newOutputStream(file)));
@@ -168,7 +167,6 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @param file       the file to write to
      * @param bufferSize the size of the buffer to use
      * @return a buffered {@link DataOut} that will write to the given file
-     * @throws IOException if an IO exception occurs you dummy
      */
     static DataOut wrapBuffered(@NonNull Path file, int bufferSize) throws IOException {
         return wrap(new BufferedOutputStream(Files.newOutputStream(file), bufferSize));
@@ -181,7 +179,6 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      *
      * @param file the file to write to
      * @return a direct {@link DataOut} that will write to the given file
-     * @throws IOException if an IO exception occurs you dummy
      */
     static DataOut wrapUnbuffered(@NonNull Path file) throws IOException {
         return wrap(Files.newOutputStream(file));
@@ -213,7 +210,9 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * Wraps a {@link ByteBuffer} to make it a {@link DataOut}.
      * <p>
      * Writes to the {@link DataOut} which would require the {@link ByteBuffer}'s {@link ByteBuffer#position() position} to exceed its
-     * {@link ByteBuffer#capacity() capacity} will throw an {@link IOException} with a {@link Throwable#getCause() cause} of {@link BufferOverflowException}.
+     * {@link ByteBuffer#capacity() capacity} will throw a {@link NoMoreSpaceException}.
+     * <p>
+     * The {@link ByteBuffer}'s configured {@link ByteBuffer#order() byte order} will have no effect on the returned {@link DataOut}.
      *
      * @param buffer the buffer to wrap
      * @return the wrapped buffer
@@ -264,13 +263,17 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * {@link ByteBuf} until the returned {@link DataOut} has been {@link DataOut#close() closed}.
      * <p>
      * Writes to the {@link DataOut} which would require the {@link ByteBuf}'s {@link ByteBuf#writerIndex() writer index} to exceed its
-     * {@link ByteBuf#maxCapacity() maximum capacity} will throw an {@link IOException} with a {@link Throwable#getCause() cause} of {@link IndexOutOfBoundsException}.
+     * {@link ByteBuf#maxCapacity() maximum capacity} will throw a {@link NoMoreSpaceException}.
+     * <p>
+     * The {@link ByteBuf}'s configured {@link ByteBuf#order() byte order} will have no effect on the returned {@link DataOut}.
      *
      * @param buf the {@link ByteBuf} to write to
      * @return a {@link DataOut} that can write data to the {@link ByteBuf}
      * @see #wrapViewNonGrowing(ByteBuf)
      */
     static DataOut wrapView(@NonNull @AliasOwnership ByteBuf buf) {
+        buf = buf.order(ByteOrder.BIG_ENDIAN); //make sure buffer is big-endian (this should do nothing 99% of the time)
+
         return buf.isDirect()
                 ? new GenericDirectByteBufOut(buf, false)
                 : new GenericHeapByteBufOut(buf, false);
@@ -282,13 +285,17 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * When the {@link DataOut} is {@link DataOut#close() closed}, the {@link ByteBuf} will be {@link ByteBuf#release() released}.
      * <p>
      * Writes to the {@link DataOut} which would require the {@link ByteBuf}'s {@link ByteBuf#writerIndex() writer index} to exceed its
-     * {@link ByteBuf#maxCapacity() maximum capacity} will throw an {@link IOException} with a {@link Throwable#getCause() cause} of {@link IndexOutOfBoundsException}.
+     * {@link ByteBuf#maxCapacity() maximum capacity} will throw a {@link NoMoreSpaceException}.
+     * <p>
+     * The {@link ByteBuf}'s configured {@link ByteBuf#order() byte order} will have no effect on the returned {@link DataOut}.
      *
      * @param buf the {@link ByteBuf} to write to
      * @return a {@link DataOut} that can write data to the {@link ByteBuf}
      * @see #wrapReleasingNonGrowing(ByteBuf)
      */
     static DataOut wrapReleasing(@NonNull @TransferOwnership ByteBuf buf) {
+        buf = buf.order(ByteOrder.BIG_ENDIAN); //make sure buffer is big-endian (this should do nothing 99% of the time)
+
         return buf.isDirect()
                 ? new GenericDirectByteBufOut(buf, true)
                 : new GenericHeapByteBufOut(buf, true);
@@ -298,18 +305,22 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * Wraps a {@link ByteBuf} into a {@link DataOut} for writing. Writing to the returned {@link DataOut} will never cause the {@link ByteBuf}'s internal storage to be
      * grown, even if its {@link ByteBuf#capacity() capacity} is currently less than its {@link ByteBuf#maxCapacity() maximum capacity}. Instead, writes to the
      * {@link DataOut} which would cause the {@link ByteBuf}'s {@link ByteBuf#writerIndex() writer index} to exceed its {@link ByteBuf#capacity()}, and therefore require
-     * its internal storage to be grown, will throw an {@link IOException} with a {@link Throwable#getCause() cause} of {@link IndexOutOfBoundsException}.
+     * its internal storage to be grown, will throw a {@link NoMoreSpaceException}.
      * <p>
      * When the {@link DataOut} is {@link DataOut#close() closed}, the {@link ByteBuf} will <strong>not</strong> be {@link ByteBuf#release() released}.
      * <p>
      * As ownership of the {@link ByteBuf} is {@link AliasOwnership aliased} to the returned {@link DataOut}, the user must not {@link ByteBuf#release() released} the
      * {@link ByteBuf} until the returned {@link DataOut} has been {@link DataOut#close() closed}.
+     * <p>
+     * The {@link ByteBuf}'s configured {@link ByteBuf#order() byte order} will have no effect on the returned {@link DataOut}.
      *
      * @param buf the {@link ByteBuf} to write to
      * @return a {@link DataOut} that can write data to the {@link ByteBuf}
      * @see #wrapView(ByteBuf)
      */
     static DataOut wrapViewNonGrowing(@NonNull @AliasOwnership ByteBuf buf) {
+        buf = buf.order(ByteOrder.BIG_ENDIAN); //make sure buffer is big-endian (this should do nothing 99% of the time)
+
         return buf.isDirect()
                 ? new NonGrowingGenericDirectByteBufOut(buf, false)
                 : new NonGrowingGenericHeapByteBufOut(buf, false);
@@ -319,15 +330,19 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * Wraps a {@link ByteBuf} into a {@link DataOut} for writing. Writing to the returned {@link DataOut} will never cause the {@link ByteBuf}'s internal storage to be
      * grown, even if its {@link ByteBuf#capacity() capacity} is currently less than its {@link ByteBuf#maxCapacity() maximum capacity}. Instead, writes to the
      * {@link DataOut} which would cause the {@link ByteBuf}'s {@link ByteBuf#writerIndex() writer index} to exceed its {@link ByteBuf#capacity()}, and therefore require
-     * its internal storage to be grown, will throw an {@link IOException} with a {@link Throwable#getCause() cause} of {@link IndexOutOfBoundsException}.
+     * its internal storage to be grown, will throw a {@link NoMoreSpaceException}.
      * <p>
      * When the {@link DataOut} is {@link DataOut#close() closed}, the {@link ByteBuf} will be {@link ByteBuf#release() released}.
+     * <p>
+     * The {@link ByteBuf}'s configured {@link ByteBuf#order() byte order} will have no effect on the returned {@link DataOut}.
      *
      * @param buf the {@link ByteBuf} to write to
      * @return a {@link DataOut} that can write data to the {@link ByteBuf}
      * @see #wrapReleasing(ByteBuf)
      */
     static DataOut wrapReleasingNonGrowing(@NonNull @TransferOwnership ByteBuf buf) {
+        buf = buf.order(ByteOrder.BIG_ENDIAN); //make sure buffer is big-endian (this should do nothing 99% of the time)
+
         return buf.isDirect()
                 ? new NonGrowingGenericDirectByteBufOut(buf, true)
                 : new NonGrowingGenericHeapByteBufOut(buf, true);
@@ -340,13 +355,18 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
     //
 
     /**
-     * Writes a single unsigned byte.
+     * Writes a single byte.
+     * <p>
+     * Only the 8 least significant bits of the {@code int} parameter are written, the rest will be silently discarded.
      *
      * @param b the byte to write
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
      * @see DataOutput#write(int)
      * @see OutputStream#write(int)
      */
-    void write(int b) throws IOException;
+    @Override
+    void write(int b) throws ClosedChannelException, NoMoreSpaceException, IOException;
 
     //
     //
@@ -354,38 +374,73 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
     //
     //
 
+    /**
+     * Writes a single byte: {@code 0} if the given {@code boolean} is {@code false}, and {@code 1} if it is {@code true}.
+     *
+     * @param b the byte to write
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
+     * @see DataOutput#write(int)
+     * @see OutputStream#write(int)
+     */
     @Override
-    default void writeBoolean(boolean b) throws IOException {
+    default void writeBoolean(boolean b) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.write(b ? 1 : 0);
     }
 
+    /**
+     * Writes a single byte.
+     * <p>
+     * Only the 8 least significant bits of the {@code int} parameter are written, the rest will be silently discarded.
+     *
+     * @param b the byte to write
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
+     * @see DataOutput#writeByte(int)
+     * @see OutputStream#write(int)
+     */
     @Override
-    default void writeByte(int b) throws IOException {
+    default void writeByte(int b) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.write(b);
     }
 
     /**
      * Writes a big-endian {@code short}.
+     * <p>
+     * Only the 16 least significant bits of the {@code int} parameter are written, the rest will be silently discarded.
      *
+     * @param v the {@code short} to write
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
      * @see DataOutput#writeShort(int)
      */
     @Override
-    void writeShort(int v) throws IOException;
+    void writeShort(int v) throws ClosedChannelException, NoMoreSpaceException, IOException;
 
     /**
      * Writes a little-endian {@code short}.
+     * <p>
+     * Only the 16 least significant bits of the {@code int} parameter are written, the rest will be silently discarded.
      *
-     * @see #writeShort(int)
-     */
-    void writeShortLE(int v) throws IOException;
-
-    /**
-     * Writes a {@code short} in the given {@link ByteOrder}.
-     *
+     * @param v the {@code short} to write
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
      * @see #writeShort(int)
      * @see #writeShortLE(int)
      */
-    default void writeShort(int v, @NonNull ByteOrder order) throws IOException {
+    void writeShortLE(int v) throws ClosedChannelException, NoMoreSpaceException, IOException;
+
+    /**
+     * Writes a {@code short} in the given {@link ByteOrder}.
+     * <p>
+     * Only the 16 least significant bits of the {@code int} parameter are written, the rest will be silently discarded.
+     *
+     * @param v the {@code short} to write
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
+     * @see DataOutput#writeShort(int)
+     */
+    default void writeShort(int v, @NonNull ByteOrder order) throws ClosedChannelException, NoMoreSpaceException, IOException {
         if (order == ByteOrder.BIG_ENDIAN) {
             this.writeShort(v);
         } else {
@@ -395,26 +450,41 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
 
     /**
      * Writes a big-endian {@code char}.
+     * <p>
+     * Only the 16 least significant bits of the {@code int} parameter are written, the rest will be silently discarded.
      *
+     * @param v the {@code char} to write
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
      * @see DataOutput#writeChar(int)
      */
     @Override
-    void writeChar(int v) throws IOException;
+    void writeChar(int v) throws ClosedChannelException, NoMoreSpaceException, IOException;
 
     /**
      * Writes a little-endian {@code char}.
+     * <p>
+     * Only the 16 least significant bits of the {@code int} parameter are written, the rest will be silently discarded.
      *
-     * @see #writeChar(int)
+     * @param v the {@code char} to write
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
+     * @see DataOutput#writeChar(int)
      */
-    void writeCharLE(int v) throws IOException;
+    void writeCharLE(int v) throws ClosedChannelException, NoMoreSpaceException, IOException;
 
     /**
      * Writes a {@code char} in the given {@link ByteOrder}.
+     * <p>
+     * Only the 16 least significant bits of the {@code int} parameter are written, the rest will be silently discarded.
      *
+     * @param v the {@code char} to write
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
      * @see #writeChar(int)
      * @see #writeCharLE(int)
      */
-    default void writeChar(int v, @NonNull ByteOrder order) throws IOException {
+    default void writeChar(int v, @NonNull ByteOrder order) throws ClosedChannelException, NoMoreSpaceException, IOException {
         if (order == ByteOrder.BIG_ENDIAN) {
             this.writeChar(v);
         } else {
@@ -425,25 +495,34 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
     /**
      * Writes a big-endian {@code int}.
      *
+     * @param v the {@code int} to write
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
      * @see DataOutput#writeInt(int)
      */
     @Override
-    void writeInt(int v) throws IOException;
+    void writeInt(int v) throws ClosedChannelException, NoMoreSpaceException, IOException;
 
     /**
      * Writes a little-endian {@code int}.
      *
+     * @param v the {@code int} to write
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
      * @see DataOutput#writeInt(int)
      */
-    void writeIntLE(int v) throws IOException;
+    void writeIntLE(int v) throws ClosedChannelException, NoMoreSpaceException, IOException;
 
     /**
-     * Writes am {@code int} in the given {@link ByteOrder}.
+     * Writes an {@code int} in the given {@link ByteOrder}.
      *
+     * @param v the {@code int} to write
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
      * @see #writeInt(int)
      * @see #writeIntLE(int)
      */
-    default void writeInt(int v, @NonNull ByteOrder order) throws IOException {
+    default void writeInt(int v, @NonNull ByteOrder order) throws ClosedChannelException, NoMoreSpaceException, IOException {
         if (order == ByteOrder.BIG_ENDIAN) {
             this.writeInt(v);
         } else {
@@ -454,25 +533,34 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
     /**
      * Writes a big-endian {@code long}.
      *
+     * @param v the {@code long} to write
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
      * @see DataOutput#writeLong(long)
      */
     @Override
-    void writeLong(long v) throws IOException;
+    void writeLong(long v) throws ClosedChannelException, NoMoreSpaceException, IOException;
 
     /**
      * Writes a little-endian {@code long}.
      *
+     * @param v the {@code long} to write
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
      * @see DataOutput#writeLong(long)
      */
-    void writeLongLE(long v) throws IOException;
+    void writeLongLE(long v) throws ClosedChannelException, NoMoreSpaceException, IOException;
 
     /**
      * Writes a {@code long} in the given {@link ByteOrder}.
      *
+     * @param v the {@code long} to write
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
      * @see #writeLong(long)
      * @see #writeLongLE(long)
      */
-    default void writeLong(long v, @NonNull ByteOrder order) throws IOException {
+    default void writeLong(long v, @NonNull ByteOrder order) throws ClosedChannelException, NoMoreSpaceException, IOException {
         if (order == ByteOrder.BIG_ENDIAN) {
             this.writeLong(v);
         } else {
@@ -481,66 +569,86 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
     }
 
     /**
-     * Writes a big-endian float (32-bit floating point) value.
+     * Writes a big-endian {@code float}.
      *
-     * @param f the float to write
+     * @param v the {@code float} to write
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
+     * @see DataOutput#writeFloat(float)
      */
-    default void writeFloat(float f) throws IOException {
-        this.writeInt(Float.floatToRawIntBits(f));
+    @Override
+    default void writeFloat(float v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.writeInt(Float.floatToRawIntBits(v));
     }
 
     /**
-     * Writes a little-endian float (32-bit floating point) value.
+     * Writes a little-endian {@code float}.
      *
-     * @param f the float to write
+     * @param v the {@code float} to write
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
+     * @see DataOutput#writeFloat(float)
      */
-    default void writeFloatLE(float f) throws IOException {
-        this.writeIntLE(Float.floatToRawIntBits(f));
+    default void writeFloatLE(float v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.writeIntLE(Float.floatToRawIntBits(v));
     }
 
     /**
      * Writes a {@code float} in the given {@link ByteOrder}.
      *
+     * @param v the {@code float} to write
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
      * @see #writeFloat(float)
      * @see #writeFloatLE(float)
      */
-    default void writeFloat(float f, @NonNull ByteOrder order) throws IOException {
+    default void writeFloat(float v, @NonNull ByteOrder order) throws ClosedChannelException, NoMoreSpaceException, IOException {
         if (order == ByteOrder.BIG_ENDIAN) {
-            this.writeFloat(f);
+            this.writeFloat(v);
         } else {
-            this.writeFloatLE(f);
+            this.writeFloatLE(v);
         }
     }
 
     /**
-     * Writes a big-endian double (64-bit floating point) value.
+     * Writes a big-endian {@code double}.
      *
-     * @param d the double to write
+     * @param v the {@code double} to write
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
+     * @see DataOutput#writeDouble(double)
      */
-    default void writeDouble(double d) throws IOException {
-        this.writeLong(Double.doubleToRawLongBits(d));
+    @Override
+    default void writeDouble(double v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.writeLong(Double.doubleToRawLongBits(v));
     }
 
     /**
-     * Writes a little-endian double (64-bit floating point) value.
+     * Writes a little-endian {@code double}.
      *
-     * @param d the double to write
+     * @param v the {@code double} to write
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
+     * @see DataOutput#writeDouble(double)
      */
-    default void writeDoubleLE(double d) throws IOException {
-        this.writeLongLE(Double.doubleToRawLongBits(d));
+    default void writeDoubleLE(double v) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.writeLongLE(Double.doubleToRawLongBits(v));
     }
 
     /**
      * Writes a {@code double} in the given {@link ByteOrder}.
      *
+     * @param v the {@code double} to write
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
      * @see #writeDouble(double)
      * @see #writeDoubleLE(double)
      */
-    default void writeDouble(double d, @NonNull ByteOrder order) throws IOException {
+    default void writeDouble(double v, @NonNull ByteOrder order) throws ClosedChannelException, NoMoreSpaceException, IOException {
         if (order == ByteOrder.BIG_ENDIAN) {
-            this.writeDouble(d);
+            this.writeDouble(v);
         } else {
-            this.writeDoubleLE(d);
+            this.writeDoubleLE(v);
         }
     }
 
@@ -551,39 +659,53 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
     //
 
     /**
-     * Proxy method to {@link #writeBytes(CharSequence)}.
+     * Writes the characters in the given {@link String} in the {@code ISO-8859-1} charset. Only one byte is written per character, the upper 8 bits of each character are
+     * silently discarded.
      *
+     * @param text the {@link String} to write
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
      * @see DataOutput#writeBytes(String)
+     * @see #writeBytes(CharSequence)
      */
     @Override
-    default void writeBytes(@NonNull String text) throws IOException {
+    default void writeBytes(@NonNull String text) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.writeBytes(text, 0, text.length());
     }
 
     /**
-     * Writes the lower 8 bits of every character in the given {@link CharSequence}.
+     * Writes the characters in the given {@link CharSequence} in the {@code ISO-8859-1} charset. Only one byte is written per character, the upper 8 bits of each
+     * character are silently discarded.
      *
      * @param text the {@link CharSequence} to write
-     * @return the number of bytes written
-     * @see #writeBytes(String)
-     * @see DataOutput#writeBytes(String)
+     * @return the number of bytes written. This will always be the value of {@link CharSequence#length()}
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
+     * @see #writeBytes(CharSequence, int, int)
      */
-    default long writeBytes(@NonNull CharSequence text) throws IOException {
+    default long writeBytes(@NonNull CharSequence text) throws ClosedChannelException, NoMoreSpaceException, IOException {
         return this.writeBytes(text, 0, text.length());
     }
 
     /**
-     * Writes the lower 8 bits of the characters in the given range of the given {@link CharSequence}.
+     * Writes the characters in the given range of the given {@link CharSequence} in the {@code ISO-8859-1} charset. Only one byte is written per character, the upper 8
+     * bits of each character are silently discarded.
      *
      * @param text   the {@link CharSequence} to write
-     * @param start  the index of the first character to write
+     * @param offset the index of the first character to write
      * @param length the number of characters to write
-     * @return the number of bytes written
-     * @see #writeBytes(String)
-     * @see DataOutput#writeBytes(String)
+     * @return the number of bytes written. This will always be the value of the {@code length} parameter
+     * @throws ClosedChannelException    if the {@link DataOut} was already closed
+     * @throws IndexOutOfBoundsException if the given {@code offset} and {@code length} do not describe a valid region of the given {@link CharSequence}
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
+     * @see #writeBytes(CharSequence)
      */
-    default long writeBytes(@NonNull CharSequence text, int start, int length) throws IOException {
-        checkRangeLen(text.length(), start, length);
+    default long writeBytes(@NonNull CharSequence text, int offset, int length) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        if (!this.isOpen()) {
+            throw new ClosedChannelException();
+        }
+
+        checkRangeLen(text.length(), offset, length);
         if (length == 0) {
             return 0L;
         }
@@ -595,7 +717,7 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
         do {
             int blockSize = min(length - total, PorkUtil.bufferSize());
             for (int i = 0; i < blockSize; i++) {
-                buf[i] = (byte) text.charAt(start + total + i);
+                buf[i] = (byte) text.charAt(offset + total + i);
             }
             this.write(buf, 0, blockSize);
             total += blockSize;
@@ -605,35 +727,57 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
         return length;
     }
 
+    /**
+     * Writes the characters in the given {@link String} in the {@code UTF-16BE} charset.
+     * <p>
+     * Unlike {@link #writeBytes(String)}, this method does not discard any data.
+     *
+     * @param text the {@link String} to write
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
+     * @see DataOutput#writeChars(String)
+     * @see #writeChars(CharSequence)
+     */
     @Override
-    default void writeChars(@NonNull String text) throws IOException {
+    default void writeChars(@NonNull String text) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.writeChars(text, 0, text.length());
     }
 
     /**
-     * Writes every character in the given {@link CharSequence} in the UTF-16BE charset.
+     * Writes the characters in the given {@link CharSequence} in the {@code UTF-16BE} charset.
+     * <p>
+     * Unlike {@link #writeBytes(CharSequence)}, this method does not discard any data.
      *
      * @param text the {@link CharSequence} to write
-     * @return the number of bytes written
-     * @see #writeChars(String)
-     * @see DataOutput#writeChars(String)
+     * @return the number of bytes written. This will always be the value of {@link CharSequence#length()}, multiplied by {@code 2}
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
+     * @see #writeChars(CharSequence, int, int)
      */
-    default long writeChars(@NonNull CharSequence text) throws IOException {
+    default long writeChars(@NonNull CharSequence text) throws ClosedChannelException, NoMoreSpaceException, IOException {
         return this.writeChars(text, 0, text.length());
     }
 
     /**
-     * Writes the characters in the given range of the given {@link CharSequence} in the UTF-16BE charset.
+     * Writes the characters in the given range of the given {@link CharSequence} in the {@code UTF-16BE} charset.
+     * <p>
+     * Unlike {@link #writeBytes(CharSequence, int, int)}, this method does not discard any data.
      *
      * @param text   the {@link CharSequence} to write
-     * @param start  the index of the first character to write
+     * @param offset the index of the first character to write
      * @param length the number of characters to write
-     * @return the number of bytes written
-     * @see #writeChars(String)
-     * @see DataOutput#writeChars(String)
+     * @return the number of bytes written. This will always be the value of the {@code length} parameter, multiplied by {@code 2}
+     * @throws ClosedChannelException    if the {@link DataOut} was already closed
+     * @throws IndexOutOfBoundsException if the given {@code offset} and {@code length} do not describe a valid region of the given {@link CharSequence}
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
+     * @see #writeChars(CharSequence)
      */
-    default long writeChars(@NonNull CharSequence text, int start, int length) throws IOException {
-        checkRangeLen(text.length(), start, length);
+    default long writeChars(@NonNull CharSequence text, int offset, int length) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        if (!this.isOpen()) {
+            throw new ClosedChannelException();
+        }
+
+        checkRangeLen(text.length(), offset, length);
         if (length == 0) {
             return 0L;
         }
@@ -656,42 +800,126 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
     }
 
     /**
-     * Writes a UTF-8 encoded {@link String}, with a 16-bit length prefix
+     * Writes the characters in the given {@link String} in the {@code UTF-16LE} charset.
+     * <p>
+     * Unlike {@link #writeBytes(String)}, this method does not discard any data.
      *
+     * @param text the {@link String} to write
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
+     * @see #writeCharsLE(CharSequence)
+     */
+    default void writeCharsLE(@NonNull String text) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        this.writeCharsLE(text, 0, text.length());
+    }
+
+    /**
+     * Writes the characters in the given {@link CharSequence} in the {@code UTF-16LE} charset.
+     * <p>
+     * Unlike {@link #writeBytes(CharSequence)}, this method does not discard any data.
+     *
+     * @param text the {@link CharSequence} to write
+     * @return the number of bytes written. This will always be the value of {@link CharSequence#length()}, multiplied by {@code 2}
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
+     * @see #writeCharsLE(CharSequence, int, int)
+     */
+    default long writeCharsLE(@NonNull CharSequence text) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        return this.writeCharsLE(text, 0, text.length());
+    }
+
+    /**
+     * Writes the characters in the given range of the given {@link CharSequence} in the {@code UTF-16LE} charset.
+     * <p>
+     * Unlike {@link #writeBytes(CharSequence, int, int)}, this method does not discard any data.
+     *
+     * @param text   the {@link CharSequence} to write
+     * @param offset the index of the first character to write
+     * @param length the number of characters to write
+     * @return the number of bytes written. This will always be the value of the {@code length} parameter, multiplied by {@code 2}
+     * @throws ClosedChannelException    if the {@link DataOut} was already closed
+     * @throws IndexOutOfBoundsException if the given {@code offset} and {@code length} do not describe a valid region of the given {@link CharSequence}
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
+     * @see #writeCharsLE(CharSequence)
+     */
+    default long writeCharsLE(@NonNull CharSequence text, int offset, int length) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        if (!this.isOpen()) {
+            throw new ClosedChannelException();
+        }
+
+        checkRangeLen(text.length(), offset, length);
+        if (length == 0) {
+            return 0L;
+        }
+
+        Recycler<byte[]> recycler = PorkUtil.heapBufferRecycler();
+        byte[] buf = recycler.allocate();
+
+        int total = 0;
+        do {
+            int blockSize = min(length - total, PorkUtil.bufferSize() / Character.BYTES);
+            for (int i = 0; i < blockSize; i++) {
+                PUnsafe.putUnalignedCharLE(buf, PUnsafe.arrayCharElementOffset(i), text.charAt(total + i));
+            }
+            this.write(buf, 0, blockSize * Character.BYTES);
+            total += blockSize;
+        } while (total < length);
+
+        recycler.release(buf); //release the buffer to the recycler
+        return (long) length << 1L;
+    }
+
+    /**
+     * Writes a {@code UTF-8} encoded {@link String} with an {@link #writeShort(int) unsigned 16-bit big-endian} length prefix.
+     *
+     * @param text the {@link String} to write
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
      * @see DataOutput#writeUTF(String)
+     * @see #writeVarUTF(CharSequence)
      */
     @Override
-    default void writeUTF(@NonNull String text) throws IOException {
+    default void writeUTF(@NonNull String text) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.writeString(text, StandardCharsets.UTF_8);
     }
 
     /**
-     * Writes a UTF-8 encoded {@link CharSequence} with a 16-bit length prefix.
-     * <p>
-     * Depending on the {@link Charset} used, certain optimizations may be applied. It is therefore recommended to use values from {@link StandardCharsets}
-     * if possible.
+     * Writes a {@code UTF-8} encoded {@link CharSequence} with an {@link #writeShort(int) unsigned 16-bit big-endian} length prefix.
+     *
+     * @param text the {@link CharSequence} to write
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
+     * @see DataOutput#writeUTF(String)
+     * @see #writeVarUTF(CharSequence)
      */
-    default void writeUTF(@NonNull CharSequence text) throws IOException {
+    default void writeUTF(@NonNull CharSequence text) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.writeString(text, StandardCharsets.UTF_8);
     }
 
     /**
-     * Writes a UTF-8 encoded {@link CharSequence} with a varlong length prefix.
-     * <p>
-     * Depending on the {@link Charset} used, certain optimizations may be applied. It is therefore recommended to use values from {@link StandardCharsets}
-     * if possible.
+     * Writes a {@code UTF-8} encoded {@link CharSequence} with a {@link #writeVarLong(long) VarLong} length prefix.
+     *
+     * @param text the {@link CharSequence} to write
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
+     * @see DataOutput#writeUTF(String)
+     * @see #writeUTF(CharSequence)
      */
-    default void writeVarUTF(@NonNull CharSequence text) throws IOException {
+    default void writeVarUTF(@NonNull CharSequence text) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.writeVarString(text, StandardCharsets.UTF_8);
     }
 
     /**
-     * Writes a {@link CharSequence} with a 16-bit length prefix, encoded using the given {@link Charset}.
-     * <p>
-     * Depending on the {@link Charset} used, certain optimizations may be applied. It is therefore recommended to use values from {@link StandardCharsets}
-     * if possible.
+     * Writes a {@link CharSequence} with an {@link #writeShort(int) unsigned 16-bit big-endian}, encoded using the given {@link Charset}.
+     *
+     * @param text    the {@link CharSequence} to write
+     * @param charset the {@link Charset} to encode the text with. Depending on the {@link Charset} used, certain optimizations may be applied. It is therefore
+     *                recommended to use values from {@link StandardCharsets} if possible
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
+     * @see #writeVarString(CharSequence, Charset)
      */
-    default void writeString(@NonNull CharSequence text, @NonNull Charset charset) throws IOException {
+    default void writeString(@NonNull CharSequence text, @NonNull Charset charset) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //TODO: optimize
         byte[] arr = text.toString().getBytes(charset);
         checkArg(arr.length <= Character.MAX_VALUE, "encoded value is too large (%d > %d)", arr.length, Character.MAX_VALUE);
@@ -700,12 +928,16 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
     }
 
     /**
-     * Writes a {@link CharSequence} with a varlong length prefix, encoded using the given {@link Charset}.
-     * <p>
-     * Depending on the {@link Charset} used, certain optimizations may be applied. It is therefore recommended to use values from {@link StandardCharsets}
-     * if possible.
+     * Writes a {@link CharSequence} with a {@link #writeVarLong(long) VarLong} length prefix, encoded using the given {@link Charset}.
+     *
+     * @param text    the {@link CharSequence} to write
+     * @param charset the {@link Charset} to encode the text with. Depending on the {@link Charset} used, certain optimizations may be applied. It is therefore
+     *                recommended to use values from {@link StandardCharsets} if possible
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
+     * @see #writeString(CharSequence, Charset)
      */
-    default void writeVarString(@NonNull CharSequence text, @NonNull Charset charset) throws IOException {
+    default void writeVarString(@NonNull CharSequence text, @NonNull Charset charset) throws ClosedChannelException, NoMoreSpaceException, IOException {
         //TODO: optimize
         byte[] arr = text.toString().getBytes(charset);
         this.writeVarLong(arr.length);
@@ -716,15 +948,16 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * Writes every character in the given {@link CharSequence} using the given {@link Charset}.
      * <p>
      * It will not be length-prefixed, meaning that it will not be able to be read directly using the corresponding method in {@link DataIn}.
-     * <p>
-     * Depending on the {@link Charset} used, certain optimizations may be applied. It is therefore recommended to use values from {@link StandardCharsets}
-     * if possible.
      *
      * @param text    the {@link CharSequence} to write
-     * @param charset the {@link Charset} to encode the text using
+     * @param charset the {@link Charset} to encode the text with. Depending on the {@link Charset} used, certain optimizations may be applied. It is therefore
+     *                recommended to use values from {@link StandardCharsets} if possible
      * @return the number of bytes written
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
+     * @see #writeText(CharSequence, int, int, Charset)
      */
-    default long writeText(@NonNull CharSequence text, @NonNull Charset charset) throws IOException {
+    default long writeText(@NonNull CharSequence text, @NonNull Charset charset) throws ClosedChannelException, NoMoreSpaceException, IOException {
         return this.writeText(text, 0, text.length(), charset);
     }
 
@@ -732,22 +965,27 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * Writes the characters in the given range of the given {@link CharSequence} using the given {@link Charset}.
      * <p>
      * It will not be length-prefixed, meaning that it will not be able to be read directly using the corresponding method in {@link DataIn}.
-     * <p>
-     * Depending on the {@link Charset} used, certain optimizations may be applied. It is therefore recommended to use values from {@link StandardCharsets}
-     * if possible.
      *
      * @param text    the {@link CharSequence} to write
-     * @param start   the index of the first character to write
+     * @param offset  the index of the first character to write
      * @param length  the number of characters to write
-     * @param charset the {@link Charset} to encode the text using
+     * @param charset the {@link Charset} to encode the text with. Depending on the {@link Charset} used, certain optimizations may be applied. It is therefore
+     *                recommended to use values from {@link StandardCharsets} if possible
      * @return the number of bytes written
+     * @throws ClosedChannelException    if the {@link DataOut} was already closed
+     * @throws IndexOutOfBoundsException if the given {@code offset} and {@code length} do not describe a valid region of the given {@link CharSequence}
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
+     * @see #writeText(CharSequence, Charset)
      */
-    default long writeText(@NonNull CharSequence text, int start, int length, @NonNull Charset charset) throws IOException {
-        if (charset == StandardCharsets.UTF_16BE) {
-            return this.writeChars(text, start, length);
+    default long writeText(@NonNull CharSequence text, int offset, int length, @NonNull Charset charset) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        if (charset == StandardCharsets.US_ASCII || charset == StandardCharsets.ISO_8859_1) {
+            return this.writeBytes(text, offset, length);
+        } else if (charset == StandardCharsets.UTF_16BE) {
+            return this.writeChars(text, offset, length);
         }
+
         //TODO: optimize
-        byte[] b = text.toString().getBytes(charset);
+        byte[] b = text.subSequence(offset, offset + length).toString().getBytes(charset);
         this.write(b);
         return b.length;
     }
@@ -757,9 +995,11 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      *
      * @param e   the value to write
      * @param <E> the type of the enum
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
      */
     @Deprecated
-    default <E extends Enum<E>> void writeEnum(@NonNull E e) throws IOException {
+    default <E extends Enum<E>> void writeEnum(@NonNull E e) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.writeUTF(e.name());
     }
 
@@ -770,8 +1010,10 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * https://wiki.vg/index.php?title=Protocol&oldid=14204#VarInt_and_VarLong</a>.
      *
      * @param value the value to write
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
      */
-    default void writeVarInt(int value) throws IOException {
+    default void writeVarInt(int value) throws ClosedChannelException, NoMoreSpaceException, IOException {
         Recycler<byte[]> recycler = PorkUtil.heapBufferRecycler();
         byte[] buf = recycler.allocate();
 
@@ -793,8 +1035,10 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * Writes a VarInt with ZigZag encoding.
      *
      * @param value the value to write
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
      */
-    default void writeVarIntZigZag(int value) throws IOException {
+    default void writeVarIntZigZag(int value) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.writeVarInt((value << 1) ^ (value >> 31));
     }
 
@@ -805,8 +1049,10 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * https://wiki.vg/index.php?title=Protocol&oldid=14204#VarInt_and_VarLong</a>.
      *
      * @param value the value to write
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
      */
-    default void writeVarLong(long value) throws IOException {
+    default void writeVarLong(long value) throws ClosedChannelException, NoMoreSpaceException, IOException {
         Recycler<byte[]> recycler = PorkUtil.heapBufferRecycler();
         byte[] buf = recycler.allocate();
 
@@ -828,8 +1074,10 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * Writes a VarLong with ZigZag encoding.
      *
      * @param value the value to write
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
      */
-    default void writeVarLongZigZag(long value) throws IOException {
+    default void writeVarLongZigZag(long value) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.writeVarLong((value << 1L) ^ (value >> 63L));
     }
 
@@ -843,9 +1091,11 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * Writes the entire contents of the given {@code byte[]}.
      *
      * @param src the {@code byte[]} to write
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
      */
     @Override
-    default void write(@NonNull byte[] src) throws IOException {
+    default void write(@NonNull byte[] src) throws ClosedChannelException, NoMoreSpaceException, IOException {
         this.write(src, 0, src.length);
     }
 
@@ -853,11 +1103,13 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * Writes the entire contents of the given region of the given {@code byte[]}.
      *
      * @param src    the {@code byte[]} to write
-     * @param start  the index of the first byte to write
+     * @param offset the index of the first byte to write
      * @param length the number of bytes to write
+     * @throws ClosedChannelException if the {@link DataOut} was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
      */
     @Override
-    void write(@NonNull byte[] src, int start, int length) throws IOException;
+    void write(@NonNull byte[] src, int offset, int length) throws ClosedChannelException, NoMoreSpaceException, IOException;
 
     //
     //
@@ -873,10 +1125,10 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @param src the {@link ByteBuffer} to write data from
      * @return the number of bytes written
      * @throws ClosedChannelException if the channel was already closed
-     * @throws IOException            if an IO exception occurs you dummy
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
      */
     @Override
-    int write(@NonNull ByteBuffer src) throws IOException;
+    int write(@NonNull ByteBuffer src) throws ClosedChannelException, NoMoreSpaceException, IOException;
 
     /**
      * Writes data from the given {@link ByteBuffer}s.
@@ -886,10 +1138,10 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @param srcs the {@link ByteBuffer}s to write data from
      * @return the number of bytes written
      * @throws ClosedChannelException if the channel was already closed
-     * @throws IOException            if an IO exception occurs you dummy
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
      */
     @Override
-    default long write(@NonNull ByteBuffer[] srcs) throws IOException {
+    default long write(@NonNull ByteBuffer[] srcs) throws ClosedChannelException, NoMoreSpaceException, IOException {
         return this.write(srcs, 0, srcs.length);
     }
 
@@ -902,14 +1154,16 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @param offset the index of the first {@link ByteBuffer} to write data from
      * @param length the number of {@link ByteBuffer}s to read write from
      * @return the number of bytes written
-     * @throws ClosedChannelException if the channel was already closed
-     * @throws IOException            if an IO exception occurs you dummy
+     * @throws ClosedChannelException    if the channel was already closed
+     * @throws IndexOutOfBoundsException if the given {@code offset} and {@code length} do not describe a valid region of the given {@code srcs} array
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
      */
     @Override
-    default long write(@NonNull ByteBuffer[] srcs, int offset, int length) throws IOException {
+    default long write(@NonNull ByteBuffer[] srcs, int offset, int length) throws ClosedChannelException, NoMoreSpaceException, IOException {
         if (!this.isOpen()) {
             throw new ClosedChannelException();
         }
+
         checkRangeLen(srcs.length, offset, length);
         long l = 0L;
         for (int i = 0; i < length; i++) {
@@ -928,9 +1182,9 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @param src the {@link ByteBuf} to write data from
      * @return the number of bytes written
      * @throws ClosedChannelException if the channel was already closed
-     * @throws IOException            if an IO exception occurs you dummy
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
      */
-    default int write(@NonNull ByteBuf src) throws IOException {
+    default int write(@NonNull ByteBuf src) throws ClosedChannelException, NoMoreSpaceException, IOException {
         return this.write(src, src.readableBytes());
     }
 
@@ -945,9 +1199,13 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @param count the number of bytes to write
      * @return the number of bytes written
      * @throws ClosedChannelException if the channel was already closed
-     * @throws IOException            if an IO exception occurs you dummy
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
      */
-    default int write(@NonNull ByteBuf src, int count) throws IOException {
+    default int write(@NonNull ByteBuf src, int count) throws ClosedChannelException, NoMoreSpaceException, IOException {
+        if (notNegative(count, "count") == 0) {
+            return 0;
+        }
+
         this.write(src, src.readerIndex(), count);
         src.skipBytes(count);
         return count;
@@ -961,13 +1219,14 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * This method will not increase the buffer's {@link ByteBuf#readerIndex()}.
      *
      * @param src    the {@link ByteBuf} to write data from
-     * @param start  the index of the first byte to write
+     * @param offset the index of the first byte to write
      * @param length the number of bytes to write
      * @return the number of bytes written
-     * @throws ClosedChannelException if the channel was already closed
-     * @throws IOException            if an IO exception occurs you dummy
+     * @throws ClosedChannelException    if the channel was already closed
+     * @throws IndexOutOfBoundsException if the given {@code offset} and {@code length} do not describe a valid region of the given {@link ByteBuf}'s current capacity
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
      */
-    int write(@NonNull ByteBuf src, int start, int length) throws IOException;
+    int write(@NonNull ByteBuf src, int offset, int length) throws ClosedChannelException, NoMoreSpaceException, IOException;
 
     //
     //
@@ -982,8 +1241,10 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      *
      * @param src the {@link DataIn} to transfer data from
      * @return the number of bytes transferred, or {@code -1} if the given {@link DataIn} had already reached EOF
+     * @throws ClosedChannelException if the channel was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
      */
-    long transferFrom(@NonNull DataIn src) throws IOException;
+    long transferFrom(@NonNull DataIn src) throws ClosedChannelException, NoMoreSpaceException, IOException;
 
     /**
      * Transfers data from the given {@link DataIn} to this {@link DataOut}.
@@ -994,8 +1255,10 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @param src   the {@link DataIn} to transfer data from
      * @param count the number of bytes to transfer
      * @return the number of bytes transferred, or {@code -1} if the given {@link DataIn} had already reached EOF
+     * @throws ClosedChannelException if the channel was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
      */
-    long transferFrom(@NonNull DataIn src, long count) throws IOException;
+    long transferFrom(@NonNull DataIn src, long count) throws ClosedChannelException, NoMoreSpaceException, IOException;
 
     /**
      * Transfers data from the given {@link DataIn} to this {@link DataOut}.
@@ -1005,9 +1268,11 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @param src   the {@link DataIn} to transfer data from
      * @param count the number of bytes to transfer
      * @return the number of bytes transferred
-     * @throws EOFException if EOF is reached before the requested number of bytes can be transferred
+     * @throws EOFException           if EOF is reached before the requested number of bytes can be transferred
+     * @throws ClosedChannelException if the channel was already closed
+     * @throws NoMoreSpaceException   if there is insufficient space remaining
      */
-    default long transferFromFully(@NonNull DataIn src, long count) throws IOException {
+    default long transferFromFully(@NonNull DataIn src, long count) throws ClosedChannelException, EOFException, NoMoreSpaceException, IOException {
         if (this.transferFrom(src, count) != count) {
             throw new EOFException();
         }
@@ -1022,36 +1287,38 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * Closing the resulting {@link OutputStream} will also close this {@link DataOut} instance, and vice-versa.
      *
      * @return an {@link OutputStream} that may be used in place of this {@link DataOut} instance
+     * @throws ClosedChannelException if the channel was already closed
      */
-    OutputStream asOutputStream() throws IOException;
+    OutputStream asOutputStream() throws ClosedChannelException, IOException;
 
     /**
      * If this {@link DataOut} uses some kind of write buffer: attempts to flush all currently buffered data.
      *
+     * @throws ClosedChannelException if the channel was already closed
      * @see OutputStream#flush()
      */
-    void flush() throws IOException;
+    void flush() throws ClosedChannelException, IOException;
 
     /**
-     * Checks whether or not this {@link DataOut} uses direct memory internally.
+     * Checks whether this {@link DataOut} is optimized for native (off-heap) memory.
      * <p>
      * If {@code true}, then using native buffers when writing to this {@link DataOut} is likely to provide a performance boost.
      * <p>
-     * Note that it is possible for both {@link #isDirect()} and {@link #isHeap()} to return {@code false}.
+     * Note that it is possible for both {@link #isDirect()} and {@link #isHeap()} to return the same value.
      *
-     * @return whether or not this {@link DataOut} uses direct memory internally
+     * @return whether this {@link DataOut} is optimized for native (off-heap) memory
      * @see #isHeap()
      */
     boolean isDirect();
 
     /**
-     * Checks whether or not this {@link DataOut} uses heap memory internally.
+     * Checks whether this {@link DataOut} is optimized for on-heap memory.
      * <p>
-     * If {@code true}, then using heap buffers when writing to this {@link DataOut} is likely to provide a performance boost.
+     * If {@code true}, then using on-heap buffers or {@code byte[]}s when writing to this {@link DataOut} is likely to provide a performance boost.
      * <p>
-     * Note that it is possible for both {@link #isDirect()} and {@link #isHeap()} to return {@code false}.
+     * Note that it is possible for both {@link #isDirect()} and {@link #isHeap()} to return the same value.
      *
-     * @return whether or not this {@link DataOut} uses heap memory internally
+     * @return whether this {@link DataOut} is optimized for on-heap memory
      * @see #isDirect()
      */
     boolean isHeap();

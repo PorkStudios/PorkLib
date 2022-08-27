@@ -24,12 +24,15 @@ import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.AbstractDirectDataOut;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.binary.util.NoMoreSpaceException;
+import net.daporkchop.lib.common.annotation.param.Positive;
 import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
 import java.util.ConcurrentModificationException;
 
 import static java.lang.Math.*;
@@ -51,7 +54,7 @@ final class NativeZlibDeflateStream extends AbstractDirectDataOut {
     /**
      * Indicates whether or not the stream is currently flushed. This is set to {@code false} on every write.
      * <p>
-     * This prevents exceptions when {@link #flush()} is called multiple times consecutively, as zlib expects more data to be written to the
+     * This prevents exceptions when {@link DataOut#flush()} is called multiple times consecutively, as zlib expects more data to be written to the
      * stream after a successful {@link NativeZlib#Z_SYNC_FLUSH}.
      */
     boolean flushed = false;
@@ -67,7 +70,7 @@ final class NativeZlibDeflateStream extends AbstractDirectDataOut {
     }
 
     @Override
-    protected void write0(int b) throws IOException {
+    protected void write0(int b) throws NoMoreSpaceException, IOException {
         Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
         ByteBuffer buf = recycler.allocate();
 
@@ -79,7 +82,7 @@ final class NativeZlibDeflateStream extends AbstractDirectDataOut {
     }
 
     @Override
-    protected void write0(@NonNull byte[] src, int start, int length) throws IOException {
+    protected void write0(@NonNull byte[] src, int start, @Positive int length) throws NoMoreSpaceException, IOException {
         this.flushed = false;
 
         int total = 0;
@@ -101,7 +104,7 @@ final class NativeZlibDeflateStream extends AbstractDirectDataOut {
     }
 
     @Override
-    protected void write0(long addr, long length) throws IOException {
+    protected void write0(long addr, @Positive long length) throws NoMoreSpaceException, IOException {
         this.flushed = false;
 
         long total = 0L;
@@ -179,7 +182,7 @@ final class NativeZlibDeflateStream extends AbstractDirectDataOut {
     }
 
     @Override
-    protected void ensureOpen() throws IOException {
+    protected void ensureOpen() throws ClosedChannelException {
         super.ensureOpen();
         this.ensureValidSession();
     }

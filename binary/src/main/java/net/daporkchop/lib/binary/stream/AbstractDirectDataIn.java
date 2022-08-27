@@ -21,6 +21,7 @@
 package net.daporkchop.lib.binary.stream;
 
 import lombok.NonNull;
+import net.daporkchop.lib.binary.util.NoMoreSpaceException;
 import net.daporkchop.lib.common.annotation.param.Positive;
 import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PorkUtil;
@@ -206,7 +207,7 @@ public abstract class AbstractDirectDataIn extends AbstractDataIn {
     }
 
     @Override
-    protected long transfer0(@NonNull DataOut dst, @Positive long count) throws IOException {
+    protected long transfer0(@NonNull DataOut dst, @Positive long count) throws NoMoreSpaceException, IOException {
         Recycler<ByteBuffer> recycler = PorkUtil.directBufferRecycler();
         ByteBuffer buf = recycler.allocate();
 

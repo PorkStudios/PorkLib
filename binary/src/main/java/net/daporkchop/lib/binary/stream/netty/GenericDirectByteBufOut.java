@@ -31,6 +31,7 @@ import net.daporkchop.lib.binary.util.NoMoreSpaceException;
 import net.daporkchop.lib.common.annotation.param.Positive;
 
 import java.io.IOException;
+import java.nio.ByteOrder;
 import java.nio.channels.ClosedChannelException;
 import java.nio.charset.Charset;
 
@@ -48,8 +49,10 @@ public class GenericDirectByteBufOut extends AbstractDirectDataOut {
     protected ByteBuf delegate;
     protected final boolean autoRelease;
 
+    @SuppressWarnings("deprecation")
     public GenericDirectByteBufOut(@NonNull ByteBuf delegate, boolean autoRelease) {
         checkArg(delegate.isDirect(), "delegate must be direct!");
+        checkArg(delegate.order() == ByteOrder.BIG_ENDIAN, "delegate must be big-endian!");
         this.delegate = delegate;
         this.autoRelease = autoRelease;
     }
@@ -72,25 +75,21 @@ public class GenericDirectByteBufOut extends AbstractDirectDataOut {
 
     @Override
     protected void write0(@NonNull byte[] src, int start, @Positive int length) throws NoMoreSpaceException, IOException {
-        try {
-            int count = min(this.delegate.maxWritableBytes(), length);
-            checkIndex(count == length);
-            this.delegate.writeBytes(src, start, length);
-        } catch (IndexOutOfBoundsException e) {
-            throw new NoMoreSpaceException(e);
+        if (length > this.delegate.maxWritableBytes()) {
+            throw new NoMoreSpaceException();
         }
+
+        this.delegate.writeBytes(src, start, length);
     }
 
     @Override
-    protected void write0(long addr, @Positive long length) throws NoMoreSpaceException, IOException {
-        try {
-            int writerIndex = this.delegate.writerIndex();
-            int count = toInt(min(this.delegate.maxCapacity() - writerIndex, length));
-            checkIndex(count == length);
-            this.delegate.writeBytes(PlatformDependent.directBuffer(addr, count));
-        } catch (IndexOutOfBoundsException e) {
-            throw new NoMoreSpaceException(e);
+    protected void write0(long addr, @Positive long _length) throws NoMoreSpaceException, IOException {
+        int length = toInt(_length, "length");
+        if (length > this.delegate.maxWritableBytes()) {
+            throw new NoMoreSpaceException();
         }
+
+        this.delegate.writeBytes(PlatformDependent.directBuffer(addr, length));
     }
 
     @Override

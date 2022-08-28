@@ -33,6 +33,7 @@ import net.daporkchop.lib.common.annotation.param.Positive;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.nio.ByteOrder;
 import java.nio.channels.ClosedChannelException;
 import java.nio.charset.Charset;
 
@@ -50,8 +51,10 @@ public class GenericHeapByteBufIn extends AbstractHeapDataIn {
     protected ByteBuf delegate;
     protected final boolean autoRelease;
 
+    @SuppressWarnings("deprecation")
     public GenericHeapByteBufIn(@NonNull ByteBuf delegate, boolean autoRelease) {
         checkArg(!delegate.isDirect(), "delegate may not be direct!");
+        checkArg(delegate.order() == ByteOrder.BIG_ENDIAN, "delegate must be big-endian!");
         this.delegate = delegate;
         this.autoRelease = autoRelease;
     }
@@ -93,7 +96,7 @@ public class GenericHeapByteBufIn extends AbstractHeapDataIn {
     protected long skip0(@Positive long count) throws IOException {
         //IndexOutOfBoundsException can't be thrown because we never skip more than readableBytes()
         int countI = (int) min(this.delegate.readableBytes(), count);
-        this.delegate.skipBytes(countI);
+        this.delegate.readerIndex(this.delegate.readerIndex() + countI);
         return countI;
     }
 

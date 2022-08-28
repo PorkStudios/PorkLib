@@ -21,7 +21,10 @@
 package net.daporkchop.lib.binary.stream;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.CompositeByteBuf;
 import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.netty.AddressDirectByteBufOut;
+import net.daporkchop.lib.binary.stream.netty.ArrayHeapByteBufOut;
 import net.daporkchop.lib.binary.stream.netty.GenericDirectByteBufOut;
 import net.daporkchop.lib.binary.stream.netty.GenericHeapByteBufOut;
 import net.daporkchop.lib.binary.stream.netty.NonGrowingGenericDirectByteBufOut;
@@ -266,17 +269,21 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * {@link ByteBuf#maxCapacity() maximum capacity} will throw a {@link NoMoreSpaceException}.
      * <p>
      * The {@link ByteBuf}'s configured {@link ByteBuf#order() byte order} will have no effect on the returned {@link DataOut}.
+     * <p>
+     * If the given {@link ByteBuf} is a {@link CompositeByteBuf composite buffer}, components may not be added to or removed from the buffer until the returned
+     * {@link DataOut} is closed.
      *
      * @param buf the {@link ByteBuf} to write to
      * @return a {@link DataOut} that can write data to the {@link ByteBuf}
      * @see #wrapViewNonGrowing(ByteBuf)
      */
+    @SuppressWarnings("deprecation")
     static DataOut wrapView(@NonNull @AliasOwnership ByteBuf buf) {
         buf = buf.order(ByteOrder.BIG_ENDIAN); //make sure buffer is big-endian (this should do nothing 99% of the time)
 
         return buf.isDirect()
-                ? new GenericDirectByteBufOut(buf, false)
-                : new GenericHeapByteBufOut(buf, false);
+                ? buf.hasMemoryAddress() ? new AddressDirectByteBufOut(buf, false) : new GenericDirectByteBufOut(buf, false)
+                : buf.hasArray() ? new ArrayHeapByteBufOut(buf, false) : new GenericHeapByteBufOut(buf, false);
     }
 
     /**
@@ -288,17 +295,21 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * {@link ByteBuf#maxCapacity() maximum capacity} will throw a {@link NoMoreSpaceException}.
      * <p>
      * The {@link ByteBuf}'s configured {@link ByteBuf#order() byte order} will have no effect on the returned {@link DataOut}.
+     * <p>
+     * If the given {@link ByteBuf} is a {@link CompositeByteBuf composite buffer}, components may not be added to or removed from the buffer until the returned
+     * {@link DataOut} is closed.
      *
      * @param buf the {@link ByteBuf} to write to
      * @return a {@link DataOut} that can write data to the {@link ByteBuf}
      * @see #wrapReleasingNonGrowing(ByteBuf)
      */
+    @SuppressWarnings("deprecation")
     static DataOut wrapReleasing(@NonNull @TransferOwnership ByteBuf buf) {
         buf = buf.order(ByteOrder.BIG_ENDIAN); //make sure buffer is big-endian (this should do nothing 99% of the time)
 
         return buf.isDirect()
-                ? new GenericDirectByteBufOut(buf, true)
-                : new GenericHeapByteBufOut(buf, true);
+                ? buf.hasMemoryAddress() ? new AddressDirectByteBufOut(buf, true) : new GenericDirectByteBufOut(buf, true)
+                : buf.hasArray() ? new ArrayHeapByteBufOut(buf, true) : new GenericHeapByteBufOut(buf, true);
     }
 
     /**
@@ -313,11 +324,15 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * {@link ByteBuf} until the returned {@link DataOut} has been {@link DataOut#close() closed}.
      * <p>
      * The {@link ByteBuf}'s configured {@link ByteBuf#order() byte order} will have no effect on the returned {@link DataOut}.
+     * <p>
+     * If the given {@link ByteBuf} is a {@link CompositeByteBuf composite buffer}, components may not be added to or removed from the buffer until the returned
+     * {@link DataOut} is closed.
      *
      * @param buf the {@link ByteBuf} to write to
      * @return a {@link DataOut} that can write data to the {@link ByteBuf}
      * @see #wrapView(ByteBuf)
      */
+    @SuppressWarnings("deprecation")
     static DataOut wrapViewNonGrowing(@NonNull @AliasOwnership ByteBuf buf) {
         buf = buf.order(ByteOrder.BIG_ENDIAN); //make sure buffer is big-endian (this should do nothing 99% of the time)
 
@@ -335,11 +350,15 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * When the {@link DataOut} is {@link DataOut#close() closed}, the {@link ByteBuf} will be {@link ByteBuf#release() released}.
      * <p>
      * The {@link ByteBuf}'s configured {@link ByteBuf#order() byte order} will have no effect on the returned {@link DataOut}.
+     * <p>
+     * If the given {@link ByteBuf} is a {@link CompositeByteBuf composite buffer}, components may not be added to or removed from the buffer until the returned
+     * {@link DataOut} is closed.
      *
      * @param buf the {@link ByteBuf} to write to
      * @return a {@link DataOut} that can write data to the {@link ByteBuf}
      * @see #wrapReleasing(ByteBuf)
      */
+    @SuppressWarnings("deprecation")
     static DataOut wrapReleasingNonGrowing(@NonNull @TransferOwnership ByteBuf buf) {
         buf = buf.order(ByteOrder.BIG_ENDIAN); //make sure buffer is big-endian (this should do nothing 99% of the time)
 
@@ -697,7 +716,7 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @return the number of bytes written. This will always be the value of the {@code length} parameter
      * @throws ClosedChannelException    if the {@link DataOut} was already closed
      * @throws IndexOutOfBoundsException if the given {@code offset} and {@code length} do not describe a valid region of the given {@link CharSequence}
-     * @throws NoMoreSpaceException   if there is insufficient space remaining
+     * @throws NoMoreSpaceException      if there is insufficient space remaining
      * @see #writeBytes(CharSequence)
      */
     default long writeBytes(@NonNull CharSequence text, int offset, int length) throws ClosedChannelException, NoMoreSpaceException, IOException {
@@ -769,7 +788,7 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @return the number of bytes written. This will always be the value of the {@code length} parameter, multiplied by {@code 2}
      * @throws ClosedChannelException    if the {@link DataOut} was already closed
      * @throws IndexOutOfBoundsException if the given {@code offset} and {@code length} do not describe a valid region of the given {@link CharSequence}
-     * @throws NoMoreSpaceException   if there is insufficient space remaining
+     * @throws NoMoreSpaceException      if there is insufficient space remaining
      * @see #writeChars(CharSequence)
      */
     default long writeChars(@NonNull CharSequence text, int offset, int length) throws ClosedChannelException, NoMoreSpaceException, IOException {
@@ -839,7 +858,7 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @return the number of bytes written. This will always be the value of the {@code length} parameter, multiplied by {@code 2}
      * @throws ClosedChannelException    if the {@link DataOut} was already closed
      * @throws IndexOutOfBoundsException if the given {@code offset} and {@code length} do not describe a valid region of the given {@link CharSequence}
-     * @throws NoMoreSpaceException   if there is insufficient space remaining
+     * @throws NoMoreSpaceException      if there is insufficient space remaining
      * @see #writeCharsLE(CharSequence)
      */
     default long writeCharsLE(@NonNull CharSequence text, int offset, int length) throws ClosedChannelException, NoMoreSpaceException, IOException {
@@ -974,7 +993,7 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @return the number of bytes written
      * @throws ClosedChannelException    if the {@link DataOut} was already closed
      * @throws IndexOutOfBoundsException if the given {@code offset} and {@code length} do not describe a valid region of the given {@link CharSequence}
-     * @throws NoMoreSpaceException   if there is insufficient space remaining
+     * @throws NoMoreSpaceException      if there is insufficient space remaining
      * @see #writeText(CharSequence, Charset)
      */
     default long writeText(@NonNull CharSequence text, int offset, int length, @NonNull Charset charset) throws ClosedChannelException, NoMoreSpaceException, IOException {
@@ -1156,7 +1175,7 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @return the number of bytes written
      * @throws ClosedChannelException    if the channel was already closed
      * @throws IndexOutOfBoundsException if the given {@code offset} and {@code length} do not describe a valid region of the given {@code srcs} array
-     * @throws NoMoreSpaceException   if there is insufficient space remaining
+     * @throws NoMoreSpaceException      if there is insufficient space remaining
      */
     @Override
     default long write(@NonNull ByteBuffer[] srcs, int offset, int length) throws ClosedChannelException, NoMoreSpaceException, IOException {
@@ -1224,7 +1243,7 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @return the number of bytes written
      * @throws ClosedChannelException    if the channel was already closed
      * @throws IndexOutOfBoundsException if the given {@code offset} and {@code length} do not describe a valid region of the given {@link ByteBuf}'s current capacity
-     * @throws NoMoreSpaceException   if there is insufficient space remaining
+     * @throws NoMoreSpaceException      if there is insufficient space remaining
      */
     int write(@NonNull ByteBuf src, int offset, int length) throws ClosedChannelException, NoMoreSpaceException, IOException;
 

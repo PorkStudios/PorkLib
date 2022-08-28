@@ -21,7 +21,10 @@
 package net.daporkchop.lib.binary.stream;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.CompositeByteBuf;
 import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.netty.AddressDirectByteBufIn;
+import net.daporkchop.lib.binary.stream.netty.ArrayHeapByteBufIn;
 import net.daporkchop.lib.binary.stream.netty.GenericDirectByteBufIn;
 import net.daporkchop.lib.binary.stream.netty.GenericHeapByteBufIn;
 import net.daporkchop.lib.binary.stream.nio.ArrayHeapBufferIn;
@@ -235,16 +238,20 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * {@link ByteBuf} until the returned {@link DataIn} has been {@link DataIn#close() closed}.
      * <p>
      * The {@link ByteBuf}'s configured {@link ByteBuf#order() byte order} will have no effect on the returned {@link DataOut}.
+     * <p>
+     * If the given {@link ByteBuf} is a {@link CompositeByteBuf composite buffer}, components may not be added to or removed from the buffer until the returned
+     * {@link DataIn} is closed.
      *
      * @param buf the {@link ByteBuf} to read from
      * @return a {@link DataIn} that can read data from the {@link ByteBuf}
      */
+    @SuppressWarnings("deprecation")
     static DataIn wrapView(@NonNull @AliasOwnership ByteBuf buf) {
         buf = buf.order(ByteOrder.BIG_ENDIAN); //make sure buffer is big-endian (this should do nothing 99% of the time)
 
         return buf.isDirect()
-                ? new GenericDirectByteBufIn(buf, false)
-                : new GenericHeapByteBufIn(buf, false);
+                ? buf.hasMemoryAddress() ? new AddressDirectByteBufIn(buf, false) : new GenericDirectByteBufIn(buf, false)
+                : buf.hasArray() ? new ArrayHeapByteBufIn(buf, false) : new GenericHeapByteBufIn(buf, false);
     }
 
     /**
@@ -253,16 +260,20 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * When the {@link DataIn} is {@link DataIn#close() closed}, the {@link ByteBuf} will be {@link ByteBuf#release() released}.
      * <p>
      * The {@link ByteBuf}'s configured {@link ByteBuf#order() byte order} will have no effect on the returned {@link DataOut}.
+     * <p>
+     * If the given {@link ByteBuf} is a {@link CompositeByteBuf composite buffer}, components may not be added to or removed from the buffer until the returned
+     * {@link DataIn} is closed.
      *
      * @param buf the {@link ByteBuf} to read from
      * @return a {@link DataIn} that can read data from the {@link ByteBuf}
      */
+    @SuppressWarnings("deprecation")
     static DataIn wrapReleasing(@NonNull @TransferOwnership ByteBuf buf) {
         buf = buf.order(ByteOrder.BIG_ENDIAN); //make sure buffer is big-endian (this should do nothing 99% of the time)
 
         return buf.isDirect()
-                ? new GenericDirectByteBufIn(buf, true)
-                : new GenericHeapByteBufIn(buf, true);
+                ? buf.hasMemoryAddress() ? new AddressDirectByteBufIn(buf, true) : new GenericDirectByteBufIn(buf, true)
+                : buf.hasArray() ? new ArrayHeapByteBufIn(buf, true) : new GenericHeapByteBufIn(buf, true);
     }
 
     //
@@ -1182,7 +1193,7 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @return the number of bytes transferred, or {@code -1L} if EOF was already reached
      * @throws ClosedChannelException   if the channel was already closed
      * @throws IllegalArgumentException if the given {@code count} is negative
-     * @throws NoMoreSpaceException   if there is insufficient space remaining in the destination
+     * @throws NoMoreSpaceException     if there is insufficient space remaining in the destination
      */
     long transferTo(@NonNull DataOut dst, long count) throws ClosedChannelException, NoMoreSpaceException, IOException;
 

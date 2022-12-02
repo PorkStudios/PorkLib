@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2021 DaPorkchop_
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -20,6 +20,7 @@
 
 package common;
 
+import net.daporkchop.lib.common.annotation.param.NotNegative;
 import net.daporkchop.lib.common.pool.array.ArrayAllocator;
 import net.daporkchop.lib.common.reference.ReferenceStrength;
 import org.junit.Test;
@@ -29,10 +30,33 @@ import static net.daporkchop.lib.common.util.PValidation.*;
 /**
  * @author DaPorkchop_
  */
-public class ArrayAllocatorTest {
+public abstract class Pow2ArrayAllocatorTest {
+    public static class Strong extends Pow2ArrayAllocatorTest {
+        @Override
+        protected ArrayAllocator<byte[]> createByteAllocator() {
+            return ArrayAllocator.pow2(byte[]::new, ReferenceStrength.STRONG, 2);
+        }
+    }
+
+    public static class Soft extends Pow2ArrayAllocatorTest {
+        @Override
+        protected ArrayAllocator<byte[]> createByteAllocator() {
+            return ArrayAllocator.pow2(byte[]::new, ReferenceStrength.SOFT, 2);
+        }
+    }
+
+    public static class Weak extends Pow2ArrayAllocatorTest {
+        @Override
+        protected ArrayAllocator<byte[]> createByteAllocator() {
+            return ArrayAllocator.pow2(byte[]::new, ReferenceStrength.WEAK, 2);
+        }
+    }
+
+    protected abstract ArrayAllocator<byte[]> createByteAllocator();
+
     @Test
     public void testAlloc() {
-        ArrayAllocator<byte[]> alloc = ArrayAllocator.pow2(byte[]::new, ReferenceStrength.STRONG, 2);
+        ArrayAllocator<byte[]> alloc = this.createByteAllocator();
         byte[] arr; //this is totally unsafe, never do this in real code
 
         arr = alloc.atLeast(31);
@@ -73,6 +97,28 @@ public class ArrayAllocatorTest {
             checkState(arr2.length == 16, "array length was %d, expected 16", arr2.length);
         } finally {
             alloc.release(arr2);
+        }
+    }
+
+    @Test
+    public void testAlloc_edgeCasesForLength_atLeast() {
+        ArrayAllocator<byte[]> alloc = this.createByteAllocator();
+
+        for (int len = 0; len < 64; len++) {
+            byte[] arr = alloc.atLeast(len);
+            checkState(arr.length >= len, "array length was %d, expected at least %d", arr.length, len);
+            alloc.release(arr);
+        }
+    }
+
+    @Test
+    public void testAlloc_edgeCasesForLength_exactly() {
+        ArrayAllocator<byte[]> alloc = this.createByteAllocator();
+
+        for (int len = 0; len < 64; len++) {
+            byte[] arr = alloc.exactly(len);
+            checkState(arr.length == len, "array length was %d, expected exactly %d", arr.length, len);
+            alloc.release(arr);
         }
     }
 }

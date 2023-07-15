@@ -7,9 +7,10 @@ export TOPDIR		:=	$(CURDIR)
 export TOOLCHAINS	:=	$(CURDIR)/toolchain
 export COMMONSRC	:=	$(CURDIR)/src/main/native
 
-export CFLAGS		:=	-shared -Ofast -ffast-math -fPIC -ffunction-sections -fdata-sections -fvisibility=hidden
+FLAGS				:=	-shared -fPIC -ffunction-sections -fdata-sections -fvisibility=hidden
+export CFLAGS		:=	$(FLAGS) -Ofast -ffast-math
 export CXXFLAGS		:=	$(CFLAGS)
-export LDFLAGS		:=	$(CFLAGS) -Wl,--gc-sections
+export LDFLAGS		:=	$(FLAGS) -O3 -Wl,--gc-sections
 
 ifndef PORKLIB_NATIVES_DEBUG
 export CFLAGS		:=	$(CFLAGS)

@@ -103,7 +103,7 @@ allprojects {
 
     publishing {
         repositories {
-            if (project.hasProperty("opencollabMavenUsername") && project.hasProperty("opencollabMavenPassword")) {
+            /*if (project.hasProperty("opencollabMavenUsername") && project.hasProperty("opencollabMavenPassword")) {
                 maven {
                     credentials {
                         username = "$opencollabMavenUsername"
@@ -113,7 +113,7 @@ allprojects {
                     name = "NukkitX"
                     url = version.endsWith("SNAPSHOT") ? "https://repo.opencollab.dev/maven-snapshots/" : "https://repo.opencollab.dev/release/"
                 }
-            }
+            }*/
             if (project.hasProperty("daporkchopMavenUsername") && project.hasProperty("daporkchopMavenPassword")) {
                 maven {
                     credentials {

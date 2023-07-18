@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2021 DaPorkchop_
+ * Copyright (c) 2018-2023 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -36,9 +36,11 @@ import net.daporkchop.lib.minecraft.world.format.anvil.AnvilWorldManager;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 @RequiredArgsConstructor
@@ -85,14 +87,28 @@ public class WorldScanner {
         WorldManager manager = this.world.manager();
         if (manager instanceof AnvilWorldManager) {
             AnvilWorldManager anvilWorldManager = (AnvilWorldManager) manager;
-            Collection<Vec2i> regions = anvilWorldManager.getRegions();
-            estimatedTotal.set(regions.size() * 32L * 32L);
-            Stream<Vec2i> stream = parallel ? regions.parallelStream() : regions.stream();
+            Collection<Vec2i> regions = this.getRegionPositions(anvilWorldManager);
+            estimatedTotal.set(regions.size() * (32L * 32L));
+            Stream<Vec2i> regionStream = parallel ? regions.parallelStream() : regions.stream();
+
+            ThreadLocal<BitSet> visitableChunksInRegionThreadLocal = ThreadLocal.withInitial(() -> new BitSet(32 * 32));
             if (!this.processorsNeighboring.isEmpty()) {
                 ThreadLocal<BorderingWorld> worldThreadLocal = ThreadLocal.withInitial(() -> new BorderingWorld(this.world.dimension(), this.world.getSave(), this.world.manager()));
-                stream.forEach(pos -> {
+                regionStream.forEach(pos -> {
                     int xx = pos.getX() << 5;
                     int zz = pos.getY() << 5;
+
+                    //compute mask indicating which chunks should be visited
+                    BitSet visitableChunksMask = visitableChunksInRegionThreadLocal.get();
+                    visitableChunksMask.set(0, 32 * 32);
+                    this.maskVisitableChunksInRegion(pos.getX(), pos.getY(), xx, zz, visitableChunksMask);
+
+                    if (visitableChunksMask.isEmpty()) { //no chunks are being visited, thus nothing needs to be loaded
+                        estimatedTotal.addAndGet(-32L * 32L);
+                        return;
+                    }
+                    //TODO: we could avoid loading some chunks if not all chunks are being visited
+
                     BorderingWorld world = worldThreadLocal.get();
                     world.offsetX = xx;
                     world.offsetZ = zz;
@@ -107,7 +123,7 @@ public class WorldScanner {
                     for (int x = 0; x < 32; x++) {
                         for (int z = 0; z < 32; z++) {
                             Chunk chunk = world.chunks[(x + 1) * 34 + z + 1];
-                            if (!chunk.loaded()) {
+                            if (!visitableChunksMask.get(x * 32 + z) || !chunk.loaded()) {
                                 continue;
                             }
                             long current = curr.getAndIncrement();
@@ -126,13 +142,19 @@ public class WorldScanner {
                     }
                 });
             } else {
-                stream.forEach(pos -> {
+                regionStream.forEach(pos -> {
                     int xx = pos.getX() << 5;
                     int zz = pos.getY() << 5;
+
+                    //compute mask indicating which chunks should be visited
+                    BitSet visitableChunksMask = visitableChunksInRegionThreadLocal.get();
+                    visitableChunksMask.set(0, 32 * 32);
+                    this.maskVisitableChunksInRegion(pos.getX(), pos.getY(), xx, zz, visitableChunksMask);
+
                     for (int x = 0; x < 32; x++) {
                         for (int z = 0; z < 32; z++) {
-                            Chunk chunk = this.world.column(xx + x, zz + z);
-                            if (chunk.load(false)) {
+                            Chunk chunk;
+                            if (visitableChunksMask.get(x * 32 + z) && (chunk = this.world.column(xx + x, zz + z)).load(false)) {
                                 long current = curr.getAndIncrement();
                                 for (ChunkProcessor processor : this.processors) {
                                     processor.handle(current, estimatedTotal.get(), chunk);
@@ -150,6 +172,14 @@ public class WorldScanner {
         }
 
         return this;
+    }
+
+    protected Collection<Vec2i> getRegionPositions(AnvilWorldManager anvilWorldManager) {
+        return anvilWorldManager.getRegions();
+    }
+
+    protected void maskVisitableChunksInRegion(int regionX, int regionZ, int baseChunkX, int baseChunkZ, BitSet mask) {
+        //no-op
     }
 
     @RequiredArgsConstructor

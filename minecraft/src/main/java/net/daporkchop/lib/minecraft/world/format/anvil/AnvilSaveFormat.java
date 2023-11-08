@@ -104,7 +104,7 @@ public class AnvilSaveFormat implements SaveFormat {
                 matcher.reset(file.getName());
             }
             if (matcher.find()) {
-                callback.accept(Integer.parseInt(matcher.group(1)), new AnvilWorldManager(this, file));
+                callback.accept(Integer.parseInt(matcher.group(1)), new AnvilWorldManager(this, new File(file, "region")));
             }
         }
     }

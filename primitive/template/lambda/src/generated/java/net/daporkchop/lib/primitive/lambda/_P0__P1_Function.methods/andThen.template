@@ -1,0 +1,7 @@
+    /**
+     * @see Function#andThen(Function)
+     */
+    default<2% _GP2_%> _P0__P2_Function_G0,2_ andThen<2!%To_P2_%>(@NonNull _P1__P2_Function_G1super2extends_ after) {
+        return v -> after.apply<2!%As_P2_%>(this.apply<1!%As_P1_%>(v));
+    }
+

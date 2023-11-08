@@ -1,15 +1,21 @@
 /*
- * Adapted from the Wizardry License
+ * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_
  *
- * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software
+ * is furnished to do so, subject to the following conditions:
  *
- * The persons and/or organizations are also disallowed from sub-licensing and/or trademarking this software without explicit permission from DaPorkchop_.
+ * Any persons and/or organizations using this software must include the above copyright notice and this permission notice,
+ * provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
  *
- * Any persons and/or organizations using this software must disclose their source code and have it publicly available, include this license, provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package net.daporkchop.lib.hash.alg;
@@ -30,6 +36,18 @@ public class SHA1 extends BlockDigest {
     private static final int Y2 = 0x6ed9eba1;
     private static final int Y3 = 0x8f1bbcdc;
     private static final int Y4 = 0xca62c1d6;
+
+    private static int f(int u, int v, int w) {
+        return (u & v) | ((~u) & w);
+    }
+
+    private static int h(int u, int v, int w) {
+        return u ^ v ^ w;
+    }
+
+    private static int g(int u, int v, int w) {
+        return (u & v) | (u & w) | (v & w);
+    }
     private int H1;
     private int H2;
     private int H3;
@@ -106,18 +124,6 @@ public class SHA1 extends BlockDigest {
         for (int i = 0; i != this.X.length; i++) {
             this.X[i] = 0;
         }
-    }
-
-    private static int f(int u, int v, int w) {
-        return (u & v) | ((~u) & w);
-    }
-
-    private static int h(int u, int v, int w) {
-        return u ^ v ^ w;
-    }
-
-    private static int g(int u, int v, int w) {
-        return (u & v) | (u & w) | (v & w);
     }
 
     @Override

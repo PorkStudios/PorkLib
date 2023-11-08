@@ -1,15 +1,20 @@
 /*
- * Adapted from the Wizardry License
+ * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_
  *
- * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software
+ * is furnished to do so, subject to the following conditions:
  *
- * The persons and/or organizations are also disallowed from sub-licensing and/or trademarking this software without explicit permission from DaPorkchop_.
+ * Any persons and/or organizations using this software must include the above copyright notice and this permission notice,
+ * provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
  *
- * Any persons and/or organizations using this software must disclose their source code and have it publicly available, include this license, provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  */
 
@@ -18,7 +23,6 @@ package net.daporkchop.lib.crypto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.Data;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.crypto.cipher.Cipher;
@@ -28,7 +32,6 @@ import net.daporkchop.lib.crypto.cipher.block.CipherPadding;
 import net.daporkchop.lib.crypto.cipher.block.CipherType;
 import net.daporkchop.lib.crypto.cipher.stream.StreamCipherType;
 import net.daporkchop.lib.crypto.exchange.ECDHHelper;
-import net.daporkchop.lib.crypto.key.CipherKey;
 import net.daporkchop.lib.crypto.key.EllipticCurveKeyPair;
 import net.daporkchop.lib.crypto.key.KeySerialization;
 import net.daporkchop.lib.crypto.keygen.KeyGen;
@@ -36,7 +39,6 @@ import net.daporkchop.lib.crypto.sig.ec.CurveType;
 import net.daporkchop.lib.crypto.sig.ec.EllipticCurveKeyCache;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -45,7 +47,47 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 @NoArgsConstructor
 @Getter
-public class CryptographySettings implements Data {
+public class CryptographySettings {
+    /**
+     * @see #random(Random)
+     */
+    public static CryptographySettings random() {
+        return random(ThreadLocalRandom.current());
+    }
+
+    /**
+     * Creates a new instance of {@link CryptographySettings} with randomly chosen settings.
+     * <p>
+     * This doesn't really have many practical applications aside from unit tests.
+     *
+     * @param random an instance of {@link Random} for choosing random numbers
+     * @return an instance of {@link CryptographySettings} with randomly chosen settings
+     */
+    public static CryptographySettings random(@NonNull Random random) {
+        CurveType curveType = CurveType.values()[random.nextInt(CurveType.values().length)];
+        switch (random.nextInt(3)) {
+            case 0: //block cipher
+                return new CryptographySettings(
+                        curveType,
+                        CipherType.values()[random.nextInt(CipherType.values().length)],
+                        CipherMode.values()[random.nextInt(CipherMode.values().length)],
+                        CipherPadding.values()[random.nextInt(CipherPadding.values().length)]
+                );
+            case 1: //stream cipher
+                return new CryptographySettings(
+                        curveType,
+                        StreamCipherType.values()[random.nextInt(StreamCipherType.values().length)]
+                );
+            case 2: //pseudo-stream cipher
+                return new CryptographySettings(
+                        curveType,
+                        CipherType.values()[random.nextInt(CipherType.values().length)],
+                        CipherMode.streamableModes()[random.nextInt(CipherMode.streamableModes().length)]
+                );
+            default:
+                throw new IllegalStateException();
+        }
+    }
     private EllipticCurveKeyPair keyPair;
     private CipherType cipherType;
     private CipherMode cipherMode;
@@ -104,49 +146,11 @@ public class CryptographySettings implements Data {
         this.streamCipherType = cryptographySettings.streamCipherType;
     }
 
-    /**
-     * @see #random(Random)
-     */
-    public static CryptographySettings random() {
-        return random(ThreadLocalRandom.current());
+    public CryptographySettings(@NonNull DataIn in) throws IOException {
+        this.read(in);
     }
 
-    /**
-     * Creates a new instance of {@link CryptographySettings} with randomly chosen settings.
-     * <p>
-     * This doesn't really have many practical applications aside from unit tests.
-     *
-     * @param random an instance of {@link Random} for choosing random numbers
-     * @return an instance of {@link CryptographySettings} with randomly chosen settings
-     */
-    public static CryptographySettings random(@NonNull Random random) {
-        CurveType curveType = CurveType.values()[random.nextInt(CurveType.values().length)];
-        switch (random.nextInt(3)) {
-            case 0: //block cipher
-                return new CryptographySettings(
-                        curveType,
-                        CipherType.values()[random.nextInt(CipherType.values().length)],
-                        CipherMode.values()[random.nextInt(CipherMode.values().length)],
-                        CipherPadding.values()[random.nextInt(CipherPadding.values().length)]
-                );
-            case 1: //stream cipher
-                return new CryptographySettings(
-                        curveType,
-                        StreamCipherType.values()[random.nextInt(StreamCipherType.values().length)]
-                );
-            case 2: //pseudo-stream cipher
-                return new CryptographySettings(
-                        curveType,
-                        CipherType.values()[random.nextInt(CipherType.values().length)],
-                        CipherMode.streamableModes()[random.nextInt(CipherMode.streamableModes().length)]
-                );
-            default:
-                throw new IllegalStateException();
-        }
-    }
-
-    @Override
-    public void read(DataIn in) throws IOException {
+    public void read(@NonNull DataIn in) throws IOException {
         this.keyPair = in.readBoolean() ? KeySerialization.decodeEC(in, true, false) : null;
         if (this.keyPair != null) {
             this.cipherType = in.readEnum(CipherType::valueOf);
@@ -156,8 +160,7 @@ public class CryptographySettings implements Data {
         }
     }
 
-    @Override
-    public void write(DataOut out) throws IOException {
+    public void write(@NonNull DataOut out) throws IOException {
         if (this.keyPair == null) {
             out.writeBoolean(false);
         } else {

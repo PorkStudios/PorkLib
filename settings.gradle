@@ -1,38 +1,71 @@
 /*
- * Adapted from the Wizardry License
+ * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
- * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software
+ * is furnished to do so, subject to the following conditions:
  *
- * The persons and/or organizations are also disallowed from sub-licensing and/or trademarking this software without explicit permission from DaPorkchop_.
+ * Any persons and/or organizations using this software must include the above copyright notice and this permission notice,
+ * provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
  *
- * Any persons and/or organizations using this software must disclose their source code and have it publicly available, include this license, provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  */
 
 rootProject.name = 'PorkLib'
 
 include 'binary'
-include 'crypto'
+include 'collections'
 include 'common'
-include 'db'
+include 'compression'
+include 'compression:zlib'
+include 'compression:zstd'
+include 'concurrent'
+include 'crypto'
 include 'encoding'
+include 'encoding:config'
+include 'encoding:nbt'
+include 'gui'
 include 'hash'
 include 'http'
+include 'http:http-netty'
+include 'imaging'
+include 'logging'
 include 'math'
-include 'minecraft'
-include 'minecraft:minecraft-text'
-include 'minecraft:minecraft-worldscanner'
-include 'nbt'
-include 'network'
+include 'minecraft-text'
+include 'natives'
+include 'netty'
 include 'noise'
 include 'primitive'
 include 'primitive:generator'
-include 'logging'
+include 'primitive:collections'
+include 'primitive:common'
+include 'primitive:iterators'
+include 'primitive:lambda'
+include 'primitive:lists'
+include 'primitive:maps'
+include 'primitive:sets'
+include 'primitive:streams'
+include 'random'
+include 'reflection'
+include 'unsafe'
 
-findProject(':minecraft:minecraft-worldscanner')?.name = 'minecraft-worldscanner'
-findProject(':minecraft:minecraft-text')?.name = 'minecraft-text'
-
+findProject(':compression:zlib')?.name = 'compression-zlib'
+findProject(':compression:zstd')?.name = 'compression-zstd'
+findProject(':encoding:config')?.name = 'config'
+findProject(':encoding:nbt')?.name = 'nbt'
+findProject(':http:http-netty')?.name = 'http-netty'
+findProject(':primitive:collections')?.name = 'primitive-collections'
+findProject(':primitive:common')?.name = 'primitive-common'
+findProject(':primitive:iterators')?.name = 'primitive-iterators'
+findProject(':primitive:lambda')?.name = 'primitive-lambda'
+findProject(':primitive:lists')?.name = 'primitive-lists'
+findProject(':primitive:maps')?.name = 'primitive-maps'
+findProject(':primitive:sets')?.name = 'primitive-sets'
+findProject(':primitive:streams')?.name = 'primitive-streams'

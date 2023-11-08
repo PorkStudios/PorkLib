@@ -1,0 +1,18 @@
+ifndef PORKLIB_NATIVES_DEBUG
+# release mode
+export CFLAGS		:=	$(CFLAGS)
+export CXXFLAGS		:=	$(CXXFLAGS)
+export LDFLAGS		:=	$(LDFLAGS)
+else
+# debug mode
+export CFLAGS		:=	$(CFLAGS)
+export CXXFLAGS		:=	$(CXXFLAGS)
+export LDFLAGS		:=	$(LDFLAGS)
+endif
+
+export CC		:= arm-linux-gnueabihf-gcc
+export CXX		:= arm-linux-gnueabihf-g++
+export LD		:= arm-linux-gnueabihf-g++
+export STRIP	:= arm-linux-gnueabihf-strip
+
+export EXT	:=	so

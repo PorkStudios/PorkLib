@@ -1,0 +1,9 @@
+{
+  "imports": [
+    "static net.daporkchop.lib.common.util.PValidation.*",
+    "static net.daporkchop.lib.primitive.common.PrimitiveHelper.*",
+    "static primitive.PrimitiveTestHelper.*",
+    "lombok.*",
+    "org.junit.*"
+  ]
+}

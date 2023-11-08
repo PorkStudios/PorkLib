@@ -1,0 +1,26 @@
+_headers_
+
+/**
+ * A function that accepts a single _nameP0_ and returns _nameP1_.
+ *
+ * @see Function
+ * @author DaPorkchop_
+ */
+@FunctionalInterface
+public interface _P0__P1_Function_G_ {
+    /**
+     * @see Function#apply(Object)
+     */
+    _p1_ apply<1!%As_P1_%>(_p0_ t);
+
+_Mcompose_
+
+_MandThen_<0_nameP1_%
+
+    /**
+     * @see Function#identity()
+     */
+    static<0% _GP0_%> _P0__P1_Function_G0,0_ identity() {
+        return t -> t;
+    }%>
+}

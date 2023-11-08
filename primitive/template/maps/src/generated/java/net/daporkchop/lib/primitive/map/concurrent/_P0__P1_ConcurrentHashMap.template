@@ -1,0 +1,1454 @@
+_headers_
+
+import net.daporkchop.lib.common.misc.string.PStrings;
+import net.daporkchop.lib.common.pool.recycler.Recycler;
+import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.primitive.collections.Abstract_P1_Collection;
+import net.daporkchop.lib.primitive.collections._P1_Collection;<2custom%
+import net.daporkchop.lib.primitive.common.strategy.hash._P0_HashStrategy;%>
+import net.daporkchop.lib.primitive.iterators._P0_Iterator;
+import net.daporkchop.lib.primitive.iterators._P1_Iterator;
+import net.daporkchop.lib.primitive.lambda._P0_Consumer;
+import net.daporkchop.lib.primitive.lambda._P1_Consumer;
+import net.daporkchop.lib.primitive.lambda._P0__P1_Consumer;
+import net.daporkchop.lib.primitive.lambda._P0__P1_Function;
+import net.daporkchop.lib.primitive.lambda._P0__P1__P1_Function;
+import net.daporkchop.lib.primitive.lambda._P1__P1__P1_Function;
+import net.daporkchop.lib.primitive.map._P0__P1_Map;
+import net.daporkchop.lib.primitive.map._P0__P1_ConcurrentMap;
+import net.daporkchop.lib.primitive.set.Abstract_P0_Set;
+import net.daporkchop.lib.primitive.set._P0_Set;
+
+import java.util.AbstractSet;
+import java.util.Iterator;
+import java.util.function.Consumer;
+
+import static net.daporkchop.lib.primitive.map.concurrent.ConcurrentHashMapHelper.*;
+
+/**
+ * Implementation of {@link _P0__P1_ConcurrentMap} backed by a hash table.
+ * <p>
+ * The implementation is based on the OpenJDK 8 implementation of {@link java.util.concurrent.ConcurrentHashMap}, with various
+ * performance tweaks and simplifications.
+ * <p>
+ * Tree nodes are not currently implemented. Poor hash functions are therefore likely to cause a significant loss in performance.<0%<2custom%
+ * <p>
+ * Keys provided to any functions under this class must be a subtype of the key type, as otherwise the provided {@link _P0_HashStrategy} may be
+ * unable to process them.%>%>
+ *
+ * @author DaPorkchop_
+ */
+public class <0Object2custom%_P0__P1_Concurrent<2custom%Custom%><3uncached%Uncached%>HashMap%><0Object!%<2custom!%<3uncached%_P0__P1_Concurrent<2custom%Custom%>HashMap%>%>%>_G_ extends AbstractConcurrentHashMap<<0Object2custom%_P0__P1_Concurrent<2custom%Custom%><3uncached%Uncached%>HashMap%><0Object!%<2custom!%<3uncached%_P0__P1_Concurrent<2custom%Custom%>HashMap%>%>%>.Node_G_> implements _P0__P1_ConcurrentMap_G_ {<1!%
+    @Getter
+    @Accessors(fluent = true)
+    protected final _p1_ defaultValue;
+%><2custom%
+    protected final _P0_HashStrategy_G0super_ strategy;
+%>
+    protected transient KeySetView_G_ keySet;
+    protected transient ValuesView_G_ values;
+    protected transient EntrySetView_G_ entrySet;
+
+    public <0Object2custom%_P0__P1_Concurrent<2custom%Custom%><3uncached%Uncached%>HashMap%><0Object!%<2custom!%<3uncached%_P0__P1_Concurrent<2custom%Custom%>HashMap%>%>%>(<1!%_p1_ defaultValue%><1!%<2custom%, %>%><2custom%@NonNull _P0_HashStrategy_G0super_ strategy%>) {
+        this(<1!%defaultValue, %>DEFAULT_CAPACITY<2custom%, strategy%>);
+    }
+
+    public <0Object2custom%_P0__P1_Concurrent<2custom%Custom%><3uncached%Uncached%>HashMap%><0Object!%<2custom!%<3uncached%_P0__P1_Concurrent<2custom%Custom%>HashMap%>%>%>(<1!%_p1_ defaultValue, %>int initialCapacity<2custom%, @NonNull _P0_HashStrategy_G0super_ strategy%>) {<1!%
+        this.defaultValue = defaultValue;%><2custom%
+        this.strategy = strategy;%>
+        this.sizeCtl = (notNegative(initialCapacity, "initialCapacity") >= (MAXIMUM_CAPACITY >>> 1)
+                ? MAXIMUM_CAPACITY
+                : tableSizeFor(initialCapacity + (initialCapacity >>> 1) + 1));
+    }
+
+    public <0Object2custom%_P0__P1_Concurrent<2custom%Custom%><3uncached%Uncached%>HashMap%><0Object!%<2custom!%<3uncached%_P0__P1_Concurrent<2custom%Custom%>HashMap%>%>%>(@NonNull _P0__P1_Map_Gextends_ m<2custom%, @NonNull _P0_HashStrategy_G0super_ strategy%>) {
+        this(<1!%m.defaultValue(), %>DEFAULT_CAPACITY<2custom%, strategy%>);
+        this.putAll(m);
+    }<1!%
+
+    @Override
+    public final <0Object2custom%_P0__P1_Concurrent<2custom%Custom%><3uncached%Uncached%>HashMap%><0Object!%<2custom!%<3uncached%_P0__P1_Concurrent<2custom%Custom%>HashMap%>%>%>_G_ defaultValue(_p1_ defaultValue)   {
+        throw new UnsupportedOperationException();
+    }%>
+
+    @Override<%
+    @SuppressWarnings("unchecked")%>
+    protected Node_G_[] allocateTable(int length) {
+        return <%(Node_G_[]) %>new Node[length];
+    }
+
+    @Override
+    public _p1_ get(_nameP0_ key)   {
+        return this.getOrDefault(key, <1!%this.defaultValue%><1%null%>);
+    }
+
+    @Override<0%<2custom%
+    @SuppressWarnings("unchecked")%>%>
+    public _p1_ getOrDefault(_nameP0_ key, _p1_ defaultValue)   {<2custom%
+        _P0_HashStrategy_G0super_ strategy = this.strategy;%>
+        int hash = <2custom%strategy.%>hash(<0%<2custom%(_p0_) %>%>key) & HASH_BITS;
+        Node_G_[] table = this.table;
+        if (table == null || table.length <= 0)  {
+            return defaultValue;
+        }
+        Node_G_ node = getArrayVolatile(table, hash & (table.length - 1));
+        if (node == null)   {
+            return defaultValue;
+        } else if (<3cached%hash == node.hash && %><2custom%strategy.%>eq(<0%<2custom%(_p0_) %>%>key, node.key)) {
+            return node.value;
+        } else if (<3cached%node.hash < 0%><3uncached%node.getClass() != Node.class%>)    { //special node
+            return (node = node.find(hash, key<2custom%, strategy%>)) != null ? node.value : defaultValue;
+        }
+        while ((node = node.next) != null)  {
+            if (<3cached%hash == node.hash && %><2custom%strategy.%>eq(<0%<2custom%(_p0_) %>%>key, node.key)) {
+                return node.value;
+            }
+        }
+        return defaultValue;
+    }
+
+    @Override
+    public boolean containsKey(_nameP0_ key)    {
+        _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;
+        return this.getOrDefault(key, defaultValue) != defaultValue;
+    }
+
+    @Override
+    public boolean containsValue(_nameP1_ value)    {
+        checkArg(value != <1!%this.defaultValue%><1%null%>, "value (%s) may not be default value!", value);
+        Node_G_[] table = this.table;
+        if (table != null)  {
+            Traverser_G_ it = new Traverser<%<>%>(table, table.length, 0, table.length);
+            for (Node_G_ node = it.advance(); node != null; node = it.advance())    {<2custom%
+                //we don't use the user-supplied hash strategy here since we're comparing values%>
+                if (eq(value, node.value))  {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public _p1_ put(_p0_ key, _p1_ value)   {
+        return this.putVal(key, value, false);
+    }
+
+    protected _p1_ putVal(_p0_ key, _p1_ value, boolean onlyIfAbsent)   {<2custom%
+        _P0_HashStrategy_G0super_ strategy = this.strategy;%>
+        _p1_ defaultValue = <1!%this.defaultValue()%><1%null%>;
+        checkArg(value != defaultValue, "value (%s) may not be default value!", value);
+        int hash = <2custom%strategy.%>hash(key) & HASH_BITS;
+        int binCount = 0;
+        Node_G_[] table = this.table;
+        while (true)    {
+            if (table == null || table.length == 0) {
+                table = this.initTable();
+                continue;
+            }
+            int index = hash & (table.length - 1);
+            Node_G_ node = getArrayVolatile(table, index);
+            if (node == null)   {
+                if (casArray(table, index, null, new Node<%<>%>(<3cached%hash, %>key, value, null)))   {
+                    break; //bin is empty, we can CAS the entry right into it with no additional synchronization logic
+                }
+            } else if (<3cached%node.hash == FORWARDING%><3uncached%node instanceof ForwardingNode%>)  { //node is a ForwardingNode
+                table = this.helpTransfer(table, node);
+            } else {
+                _p1_ oldValue = defaultValue;
+                //noinspection SynchronizationOnLocalVariableOrMethodParameter
+                synchronized (node) {
+                    if (getArrayVolatile(table, index) == node) {
+                        if (<3cached%node.hash >= 0%><3uncached%node.getClass() == Node.class%>) { //node is a regular node
+                            binCount = 1;
+                            for (Node_G_ child = node;; binCount++) {
+                                if (<3cached%hash == child.hash && %><2custom%strategy.%>eq(key, child.key))   {
+                                    oldValue = child.value;
+                                    if (!onlyIfAbsent)  {
+                                        child.value = value;
+                                    }
+                                    break;
+                                }
+                                Node_G_ prev = child;
+                                if ((child = child.next) == null)   {
+                                    prev.next = new Node<%<>%>(<3cached%hash, %>key, value, null);
+                                    break;
+                                }
+                            }
+                        }/* else if (node instanceof TreeBin) { //TODO
+                            binCount = 2;
+                            Node_G_ node = ((TreeBin_G_) node).putTreeVal(hash, key, value);
+                            if (node != null)   {
+                                oldValue = node.value;
+                                if (!onlyIfAbsent)  {
+                                    child.value = value;
+                                }
+                            }
+                        }*/
+                    }
+                }
+                if (binCount != 0)  {
+                    if (binCount >= TREEIFY_THRESHOLD)  {
+                        //TODO: this.treeifyBin(table, index);
+                    }
+                    if (oldValue != defaultValue)    {
+                        return oldValue;
+                    }
+                    break;
+                }
+            }
+        }
+        this.addCount(1L, binCount);
+        return defaultValue;
+    }
+
+    @Override
+    public void putAll(@NonNull _P0__P1_Map_Gextends_ m)    {
+        this.tryPresize(m.size());
+        m.forEach((k, v) -> this.putVal(k, v, false));
+    }
+
+    @Override
+    public _p1_ remove(_nameP0_ key)    {
+        _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;
+        return this.replaceNode(key, defaultValue, defaultValue);
+    }
+<0%<2custom%
+    @SuppressWarnings("unchecked")%>%>
+    protected _p1_ replaceNode(_nameP0_ key, _p1_ value, _nameP1_ cv)   {<2custom%
+        _P0_HashStrategy_G0super_ strategy = this.strategy;%>
+        int hash = <2custom%strategy.%>hash(<0%<2custom%(_p0_) %>%>key) & HASH_BITS;
+        _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;
+        Node_G_[] table = this.table;
+        while (true)    {
+            if (table == null || table.length == 0) {
+                break;
+            }
+            int i = hash & (table.length - 1);
+            Node_G_ f = getArrayVolatile(table, i);
+            if (f == null)  {
+                break;
+            } else if (<3cached%f.hash == FORWARDING%><3uncached%f instanceof ForwardingNode%>) { //f is a ForwardingNode
+                table = this.helpTransfer(table, f);
+            } else {
+                _p1_ oldValue = defaultValue;
+                boolean validated = false;
+                //noinspection SynchronizationOnLocalVariableOrMethodParameter
+                synchronized (f)    {
+                    if (getArrayVolatile(table, i) == f)    {
+                        if (<3cached%f.hash >= 0%><3uncached%f.getClass() == Node.class%>)    { //f is a regular node
+                            validated = true;
+                            for (Node_G_ node = f, prev = null;;)   {
+                                if (<3cached%hash == node.hash && %><2custom%strategy.%>eq(<0%<2custom%(_p0_) %>%>key, node.key)) {
+                                    _p1_ nodeValue = node.value;<2custom%
+                                    //we don't use the user-supplied hash strategy here since we're comparing values%>
+                                    if (cv == defaultValue || eq(cv, nodeValue))    {
+                                        oldValue = nodeValue;
+                                        if (value != defaultValue)  {
+                                            node.value = value;
+                                        } else if (prev != null)    {
+                                            prev.next = node.next;
+                                        } else {
+                                            setArrayVolatile(table, i, node.next);
+                                        }
+                                    }
+                                    break;
+                                }
+                                prev = node;
+                                if ((node = node.next) == null) {
+                                    break;
+                                }
+                            }
+                        }/* else if (f instanceof TreeBin)    { //TODO
+                            validated = true;
+                            TreeBin_G_ t = (TreeNode_G_) f;
+                            if (t.root != null) {
+                                TreeNode_G_ p = t.root.findTreeNode(hash, key<0%, null%>);
+                                if (p != null)  {
+                                    _p1_ nodeValue = p.value;<2custom%
+                                    //we don't use the user-supplied hash strategy here since we're comparing values%>
+                                    if (cv == defaultValue || eq(cv, nodeValue))    {
+                                        oldValue = nodeValue;
+                                        if (value != defaultValue)  {
+                                            node.value = value;
+                                        } else if (t.removeTreeNode(p)) {
+                                            setArrayVolatile(table, i, untreeify(t.first));
+                                        }
+                                    }
+                                }
+                            }
+                        }*/
+                    }
+                }
+                if (validated)  {
+                    if (oldValue != defaultValue)   {
+                        if (value == defaultValue)  {
+                            this.addCount(-1L, -1);
+                        }
+                        return oldValue;
+                    }
+                    break;
+                }
+            }
+        }
+        return defaultValue;
+    }
+
+    @Override
+    public void clear() {
+        long delta = 0L;
+        int i = 0;
+        Node_G_[] table = this.table;
+        while (table != null && i < table.length)   {
+            Node_G_ node = getArrayVolatile(table, i);
+            if (node == null)   {
+                i++;
+            } else if (<3cached%node.hash == FORWARDING%><3uncached%node instanceof ForwardingNode%>)  { //node is a ForwardingNode
+                table = this.helpTransfer(table, node);
+                i = 0;
+            } else {
+                //noinspection SynchronizationOnLocalVariableOrMethodParameter
+                synchronized (node)    {
+                    if (getArrayVolatile(table, i) != node) {
+                        continue;
+                    }
+                    Node_G_ p = <3cached%node.hash >= 0%><3uncached%node.getClass() == Node.class%> //node is a regular node
+                                ? node/* : node instanceof TreeBin ? ((TreeBin_G_) node).first*/ : null; //TODO
+                    while (p != null)   {
+                        delta--;
+                        p = p.next;
+                    }
+                    setArrayVolatile(table, i++, null);
+                }
+            }
+        }
+        if (delta != 0L)    {
+            this.addCount(delta, -1);
+        }
+    }
+
+    @Override
+    public _P0_Set_GP0_ keySet()    {
+        KeySetView_G_ keySet = this.keySet;
+        return keySet == null ? this.keySet = new KeySetView<%<>%>(this) : keySet;
+    }
+
+    @Override
+    public _P1_Collection_GP1_ values() {
+        ValuesView_G_ values = this.values;
+        return values == null ? this.values = new ValuesView<%<>%>(this) : values;
+    }
+
+    @Override
+    public Set<Entry_G_> entrySet()    {
+        EntrySetView_G_ entrySet = this.entrySet;
+        return entrySet == null ? this.entrySet = new EntrySetView<%<>%>(this) : entrySet;
+    }
+
+    @Override
+    public int hashCode()   {
+        int h = 0;
+        Node_G_[] table = this.table;
+        if (table != null)  {<2custom%
+            _P0_HashStrategy_G0super_ strategy = this.strategy;%>
+            Traverser_G_ it = new Traverser<%<>%>(table, table.length, 0, table.length);
+            for (Node_G_ node = it.advance(); node != null; node = it.advance())    {
+                h += <3cached%node.hash%><3uncached%<2custom%strategy.%>hash(node.key)%> ^ hash(node.value);
+            }
+        }
+        return h;
+    }
+
+    @Override
+    public String toString()    {
+        Node_G_[] table = this.table;
+        if (table == null)  {
+            return "{}";
+        }
+
+        Recycler<StringBuilder> recycler = PorkUtil.stringBuilderRecycler();
+        StringBuilder builder = recycler.allocate();
+        builder.append('{');
+
+        int f = table.length;
+        Traverser_G_ it = new Traverser<%<>%>(table, f, 0, f);
+        Node_G_ node = it.advance();
+        while (true)    {
+            _p0_ key = node.key;
+            _p1_ value = node.value;
+            builder.append(<0%key == this ? "(this _P0__P1_Map)" : %>key);
+            builder.append('=');
+            builder.append(<1%value == this ? "(this _P0__P1_Map)" : %>value);
+            if ((node = it.advance()) == null)  {
+                break;
+            }
+            builder.append(',').append(' ');
+        }
+        if (builder.length() > 1)   {
+            PStrings.setLength(builder, builder.length() - 2);
+        }
+
+        builder.append('}');
+
+        String result = builder.toString();
+        recycler.release(builder); //return builder to the recycler
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this)  {
+            return true;
+        } else if (o instanceof _P0__P1_Map)    {<%
+            @SuppressWarnings("unchecked")%>
+            _P0__P1_Map_G_ m = (_P0__P1_Map_G_) o;
+            Node_G_[] table = this.table;
+            if (table == null)  {
+                return m.isEmpty();
+            }
+            int f = table.length;
+            Traverser_G_ it = new Traverser<%<>%>(table, f, 0, f);
+            for (Node_G_ node = it.advance(); node != null; node = it.advance())    {<2custom%
+                //we don't use the user-supplied hash strategy here since we're comparing values%>
+                if (!eq(node.value, m.get(node.key)))   {
+                    return false;
+                }
+            }
+            _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;
+            for (Entry_G_ e : m.entrySet()) {
+                _p1_ v = e.getValue();<2custom%
+                //we don't use the user-supplied hash strategy here since we're comparing values%>
+                if (v == defaultValue || !eq(this.get(e.getKey()), v))  {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public _p1_ putIfAbsent(_p0_ key, _p1_ value)  {
+        return this.putVal(key, value, true);
+    }
+
+    @Override
+    public boolean remove(_nameP0_ key, _nameP1_ value)    {
+        _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;
+        return value != defaultValue && this.replaceNode(key, defaultValue, value) != defaultValue;
+    }
+
+    @Override
+    public boolean replace(_p0_ key, _p1_ oldValue, _p1_ newValue)  {
+        _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;
+        checkArg(oldValue != defaultValue, "oldValue (%s) may not be default value!", defaultValue);
+        checkArg(newValue != defaultValue, "newValue (%s) may not be default value!", defaultValue);
+        return this.replaceNode(key, newValue, oldValue) != defaultValue;
+    }
+
+    @Override
+    public _p1_ replace(_p0_ key, _p1_ value)  {
+        _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;
+        checkArg(value != defaultValue, "value (%s) may not be default value!", defaultValue);
+        return this.replaceNode(key, value, defaultValue);
+    }
+
+    @Override
+    public void forEach(@NonNull _P0__P1_Consumer_Gsuper_ action)  {
+        Node_G_[] table = this.table;
+        if (table != null)  {
+            Traverser_G_ it = new Traverser<%<>%>(table, table.length, 0, table.length);
+            for (Node_G_ node = it.advance(); node != null; node = it.advance())    {
+                action.accept(node.key, node.value);
+            }
+        }
+    }
+
+    @Override
+    public void replaceAll(@NonNull _P0__P1__P1_Function_G0super1super1extends_ function) {
+        Node_G_[] table = this.table;
+        if (table != null)  {
+            _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;
+            Traverser_G_ it = new Traverser<%<>%>(table, table.length, 0, table.length);
+            for (Node_G_ node = it.advance(); node != null; node = it.advance())    {
+                _p0_ key = node.key;
+                _p1_ oldValue = node.value;
+                while (true)    {
+                    _p1_ newValue = function.apply<1!%As_P1_%>(key, oldValue);
+                    checkArg(newValue != defaultValue, "value (%s) may not be default value!", defaultValue);
+                    if (this.replaceNode(key, newValue, oldValue) != defaultValue || (oldValue = this.get(key)) == defaultValue)    {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public _p1_ computeIfAbsent(_p0_ key, @NonNull _P0__P1_Function_G0super1extends_ mappingFunction)  {<2custom%
+        _P0_HashStrategy_G0super_ strategy = this.strategy;%>
+        _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;
+        int hash = <2custom%strategy.%>hash(key) & HASH_BITS;
+        _p1_ value = defaultValue;
+        int binCount = 0;
+        Node_G_[] table = this.table;
+        while (true)    {
+            if (table == null || table.length == 0) {
+                table = this.initTable();
+                continue;
+            }
+            int i = hash & (table.length - 1);
+            Node_G_ f = getArrayVolatile(table, i);
+            if (f == null)  { //root of bin
+                Node_G_ r = new ReservationNode<%<>%>();
+                //noinspection SynchronizationOnLocalVariableOrMethodParameter
+                synchronized (r)    { //obtain lock before putting node into table to ensure that no other thread manages to grab it first
+                    if (casArray(table, i, null, r))    {
+                        binCount = 1;
+                        Node_G_ node = null;
+                        try {
+                            if ((value = mappingFunction.apply<1!%As_P1_%>(key)) != defaultValue)   {
+                                node = new Node<%<>%>(<3cached%hash, %>key, value, null);
+                            }
+                        } finally {
+                            setArrayVolatile(table, i, node);
+                        }
+                    }
+                }
+                if (binCount != 0)  {
+                    break;
+                }
+            } else if (<3cached%f.hash == FORWARDING%><3uncached%f instanceof ForwardingNode%>) { //f is a ForwardingNode
+                table = this.helpTransfer(table, f);
+            } else {
+                { //attempt to get existing entry before locking the entire bin (reduces contention when entry is already present)
+                    Node_G_ node = f.find(hash, key<2custom%, strategy%>);
+                    if (node != null)   {
+                        return node.value;
+                    }
+                }
+                boolean added = false;
+                //noinspection SynchronizationOnLocalVariableOrMethodParameter
+                synchronized (f)    {
+                    if (getArrayVolatile(table, i) == f)    {
+                        if (<3cached%f.hash >= 0%><3uncached%f.getClass() == Node.class%>)    { //f is a regular node
+                            binCount = 1;
+                            for (Node_G_ node = f;; binCount++) {
+                                if (<3cached%hash == node.hash && %><2custom%strategy.%>eq(key, node.key)) {
+                                    value = node.value;
+                                    break;
+                                }
+                                Node_G_ prev = node;
+                                if ((node = node.next) == null) {
+                                    if ((value = mappingFunction.apply<1!%As_P1_%>(key)) != defaultValue)   {
+                                        added = true;
+                                        prev.next = new Node<%<>%>(<3cached%hash, %>key, value, null);
+                                    }
+                                    break;
+                                }
+                            }
+                        }/* else if (f instanceof TreeBin)    { //TODO
+                            binCount = 2;
+                            TreeBin_G_ t = (TreeBin_G_) f;
+                            TreeNode_G_ p;
+                            if (t.root != null && (p = t.root.findTreeNode(hash, key<0%, null%>)) != null) {
+                                value = p.value;
+                            } else if ((value = mappingFunction.apply<1!%As_P1_%>(key)) != defaultValue)    {
+                                added = true;
+                                t.putTreeVal(hash, key, value);
+                            }
+                        }*/
+                    }
+                }
+                if (binCount != 0)  {
+                    if (binCount >= TREEIFY_THRESHOLD)  {
+                        //TODO: this.treeifyBin(table, i);
+                    }
+                    if (!added) {
+                        return value;
+                    }
+                    break;
+                }
+            }
+        }
+        if (value != defaultValue)  {
+            this.addCount(1L, binCount);
+        }
+        return value;
+    }
+
+    @Override
+    public _p1_ computeIfPresent(_p0_ key, @NonNull _P0__P1__P1_Function_G0super1super1extends_ remappingFunction) {<2custom%
+        _P0_HashStrategy_G0super_ strategy = this.strategy;%>
+        _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;
+        int hash = <2custom%strategy.%>hash(key) & HASH_BITS;
+        _p1_ value = defaultValue;
+        int delta = 0;
+        int binCount = 0;
+        Node_G_[] table = this.table;
+        while (true)    {
+            if (table == null || table.length == 0)  {
+                table = this.initTable();
+                continue;
+            }
+            int i = hash & (table.length - 1);
+            Node_G_ f = getArrayVolatile(table, i);
+            if (f == null)   {
+                break; //bin is null, we can be certain the key is absent
+            } else if (<3cached%f.hash == FORWARDING%><3uncached%f instanceof ForwardingNode%>)  { //f is a ForwardingNode
+                table = this.helpTransfer(table, f);
+            } else {
+                if (f.find(hash, key<2custom%, strategy%>) == null)  { //check for existing entry before locking the entire bin (reduces contention when entry is not present)
+                    break;
+                }
+                //noinspection SynchronizationOnLocalVariableOrMethodParameter
+                synchronized (f)    {
+                    if (getArrayVolatile(table, i) == f)    {
+                        if (<3cached%f.hash >= 0%><3uncached%f.getClass() == Node.class%>)    { //f is a regular node
+                            binCount = 1;
+                            for (Node_G_ node = f, prev = null;; binCount++)    {
+                                if (<3cached%hash == node.hash && %><2custom%strategy.%>eq(key, node.key)) {
+                                    if ((value = remappingFunction.apply<1!%As_P1_%>(key, node.value)) != defaultValue) {
+                                        node.value = value;
+                                    } else {
+                                        delta = -1;
+                                        if (prev != null)   {
+                                            prev.next = node.next;
+                                        } else {
+                                            setArrayVolatile(table, i, node.next);
+                                        }
+                                    }
+                                    break;
+                                }
+                                prev = node;
+                                if ((node = node.next) == null) {
+                                    break;
+                                }
+                            }
+                        }/* else if (f instanceof TreeBin)    { //TODO
+                            binCount = 2;
+                            TreeBin_G_ t = (TreeBin_G_) f;
+                            if (t.root != null) {
+                                TreeNode_G_ p = t.root.findTreeNode(hash, key<0%, null%>);
+                                if (p != null){
+                                    if ((value = remappingFunction.apply<1!%As_P1_%>(key, p.value)) != defaultValue)    {
+                                        p.value = value;
+                                    } else {
+                                        delta = -1;
+                                        if (t.removeTreeNode(p))    {
+                                            setArrayVolatile(table, i, untreeify(t.first));
+                                        }
+                                    }
+                                }
+                            }
+                        }*/
+                    }
+                }
+                if (binCount != 0)  {
+                    break;
+                }
+            }
+        }
+        if (delta != 0) {
+            this.addCount(delta, binCount);
+        }
+        return value;
+    }
+
+    @Override
+    public _p1_ compute(_p0_ key, @NonNull _P0__P1__P1_Function_G0super1super1extends_ remappingFunction) {<2custom%
+        _P0_HashStrategy_G0super_ strategy = this.strategy;%>
+        _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;
+        int hash = <2custom%strategy.%>hash(key) & HASH_BITS;
+        _p1_ value = defaultValue;
+        int delta = 0;
+        int binCount = 0;
+        Node_G_[] table = this.table;
+        while (true)    {
+            if (table == null || table.length == 0)  {
+                table = this.initTable();
+                continue;
+            }
+            int i = hash & (table.length - 1);
+            Node_G_ f = getArrayVolatile(table, i);
+            if (f == null)  {
+                Node_G_ r = new ReservationNode<%<>%>();
+                //noinspection SynchronizationOnLocalVariableOrMethodParameter
+                synchronized (r)    {
+                    if (casArray(table, i, null, r))    {
+                        binCount = 1;
+                        Node_G_ node = null;
+                        try {
+                            if ((value = remappingFunction.apply<1!%As_P1_%>(key, defaultValue)) != defaultValue)   {
+                                delta = 1;
+                                node = new Node<%<>%>(<3cached%hash, %>key, value, null);
+                            }
+                        } finally {
+                            setArrayVolatile(table, i, node);
+                        }
+                    }
+                }
+                if (binCount != 0)  {
+                    break;
+                }
+            } else if (<3cached%f.hash == FORWARDING%><3uncached%f instanceof ForwardingNode%>) { //f is a ForwardingNode
+                table = this.helpTransfer(table, f);
+            } else {
+                //noinspection SynchronizationOnLocalVariableOrMethodParameter
+                synchronized (f)    {
+                    if (getArrayVolatile(table, i) == f)    {
+                        if (<3cached%f.hash >= 0%><3uncached%f.getClass() == Node.class%>)    { //f is a regular node
+                            binCount = 1;
+                            for (Node_G_ node = f, prev = null;; binCount++)    {
+                                if (<3cached%hash == node.hash && %><2custom%strategy.%>eq(key, node.key)) {
+                                    if ((value = remappingFunction.apply<1!%As_P1_%>(key, node.value)) != defaultValue) {
+                                        node.value = value;
+                                    } else {
+                                        delta = -1;
+                                        if (prev != null)   {
+                                            prev.next = node.next;
+                                        } else {
+                                            setArrayVolatile(table, i, node.next);
+                                        }
+                                    }
+                                    break;
+                                }
+                                prev = node;
+                                if ((node = node.next) == null) {
+                                    if ((value = remappingFunction.apply<1!%As_P1_%>(key, defaultValue)) != defaultValue) {
+                                        delta = 1;
+                                        prev.next = new Node<%<>%>(<3cached%hash, %>key, value, null);
+                                    }
+                                    break;
+                                }
+                            }
+                        }/* else if (f instanceof TreeNode) { //TODO
+                            binCount = 1;
+                            TreeBin_G_ t = (TreeBin_G_) f;
+                            TreeNode_G_ p = t.root != null ? r.findTreeNode(hash, key<0%, null%>) : null;
+                            _p1_ oldValue = p != null : p.value : defaultValue;
+                            if ((value = remappingFunction.apply<1!%As_P1_%>(key, oldValue)) != defaultValue)   {
+                                if (p != null)  {
+                                    p.value = value;
+                                } else {
+                                    delta = 1;
+                                    t.putTreeVal(hash, key, value);
+                                }
+                            } else if (p != null)   {
+                                delta = -1;
+                                if (t.removeTreeNode(p))    {
+                                    setArrayVolatile(table, i, untreeify(t.first));
+                                }
+                            }
+                        }*/
+                    }
+                }
+                if (binCount != 0)  {
+                    if (binCount >= TREEIFY_THRESHOLD){
+                        //TODO: this.treeifyBin(table, i);
+                    }
+                    break;
+                }
+            }
+        }
+        if (delta != 0) {
+            this.addCount(delta, binCount);
+        }
+        return value;
+    }
+
+    @Override
+    public _p1_ merge(_p0_ key, _p1_ vin, @NonNull _P1__P1__P1_Function_G1super1super1extends_ remappingFunction) {<2custom%
+        _P0_HashStrategy_G0super_ strategy = this.strategy;%>
+        _p1_ defaultValue = <1!%this.defaultValue%><1%null%>;
+        checkArg(vin != defaultValue, "value (%s) may not be default value!", defaultValue);
+        int hash = <2custom%strategy.%>hash(key) & HASH_BITS;
+        _p1_ value = defaultValue;
+        int delta = 0;
+        int binCount = 0;
+        Node_G_[] table = this.table;
+        while (true)    {
+            if (table == null || table.length == 0)  {
+                table = this.initTable();
+                continue;
+            }
+            int i = hash & (table.length - 1);
+            Node_G_ f = getArrayVolatile(table, i);
+            if (f == null)  {
+                if (casArray(table, i, null, new Node<%<>%>(<3cached%hash, %>key, vin, null))) {
+                    delta = 1;
+                    value = vin;
+                    break;
+                }
+            } else if (<3cached%f.hash == FORWARDING%><3uncached%f instanceof ForwardingNode%>) { //f is a ForwardingNode
+                table = this.helpTransfer(table, f);
+            } else {
+                //noinspection SynchronizationOnLocalVariableOrMethodParameter
+                synchronized (f)    {
+                    if (getArrayVolatile(table, i) == f)    {
+                        if (<3cached%f.hash >= 0%><3uncached%f.getClass() == Node.class%>)    { //f is a regular node
+                            binCount = 1;
+                            for (Node_G_ node = f, prev = null;; binCount++)    {
+                                if (<3cached%hash == node.hash && %><2custom%strategy.%>eq(key, node.key)) {
+                                    if ((value = remappingFunction.apply<1!%As_P1_%>(node.value, vin)) != defaultValue)    {
+                                        node.value = value;
+                                    } else {
+                                        delta = -1;
+                                        if (prev != null)   {
+                                            prev.next = node.next;
+                                        } else {
+                                            setArrayVolatile(table, i, node.next);
+                                        }
+                                    }
+                                    break;
+                                }
+                                prev = node;
+                                if ((node = node.next) == null) {
+                                    delta = 1;
+                                    prev.next = new Node<%<>%>(<3cached%hash, %>key, value = vin, null);
+                                    break;
+                                }
+                            }
+                        }/* else if (f instanceof TreeBin)    { //TODO
+                            binCount = 2;
+                            TreeBin_G_ t = (TreeBin_G_) f;
+                            TreeNode_G_ p = t.root != null ? t.root.findTreeNode(hash, key<1%, null%>) : null;
+                            if ((value = p == null ? vin : remappingFunction.apply<1!%As_P1_%>(p.value, vin)) != defaultValue)  {
+                                if (p != null)  {
+                                    p.value = value;
+                                } else {
+                                    delta = 1;
+                                    t.putTreeVal(hash, key, value);
+                                }
+                            } else if (p != null)   {
+                                delta = -1;
+                                if (t.removeTreeNode(p))    {
+                                    setArrayVolatile(table, i, untreeify(t.first));
+                                }
+                            }
+                        }*/
+                    }
+                }
+                if (binCount != 0)  {
+                    if (binCount >= TREEIFY_THRESHOLD)  {
+                        //TODO: this.treeifyBin(table, i);
+                    }
+                    break;
+                }
+            }
+        }
+        if (delta != 0) {
+            this.addCount(delta, binCount);
+        }
+        return value;
+    }
+
+    protected Node_G_[] helpTransfer(Node_G_[] table, Node_G_ f)    {
+        Node_G_[] nextTable;
+        if (table != null && f instanceof ForwardingNode && (nextTable = ((ForwardingNode_G_) f).nextTable) != null)    {
+            int stamp = resizeStamp(table.length);
+            int sizeCtl;
+            //noinspection ArrayEquality
+            while (nextTable == this.nextTable && table == this.table && (sizeCtl = this.sizeCtl) < 0)  {
+                //noinspection ConstantConditions
+                if ((sizeCtl >>> RESIZE_STAMP_SHIFT) != stamp || sizeCtl == stamp + 1 || sizeCtl == stamp + MAX_RESIZERS || this.transferIndex <= 0)   {
+                    break;
+                } else if (PUnsafe.compareAndSwapInt(this, SIZECTL, sizeCtl, sizeCtl + 1))  {
+                    this.transfer(table, nextTable);
+                    break;
+                }
+            }
+            return nextTable;
+        }
+        return this.table;
+    }
+
+    @Override
+    protected void transfer(Node_G_[] table, Node_G_[] nextTable)   {<2custom%<3uncached%
+        _P0_HashStrategy_G0super_ strategy = this.strategy;%>%>
+        int n = table.length;
+        int stride = Math.max(NCPU > 1 ? (n >>> 3) / NCPU : n, MIN_TRANSFER_STRIDE);
+        if (nextTable == null)  {
+            try {<%
+                @SuppressWarnings("unchecked")
+                Node_G_[] nt = (Node_G_[]) new Node[n << 1];%>
+                nextTable = <%nt%><!%new Node[n << 1]%>;
+            } catch (Throwable ignored) {
+                this.sizeCtl = Integer.MAX_VALUE;
+            }
+            this.nextTable = nextTable;
+            this.transferIndex = n;
+        }
+        int nextn = nextTable.length;
+        ForwardingNode_G_ fwd = new ForwardingNode<%<>%>(nextTable);
+        boolean advance = true;
+        boolean finishing = false;
+        int i = 0;
+        int bound = 0;
+        while (true)    {
+            while (advance) {
+                int nextIndex;
+                int nextBound;
+                if (--i >= bound || finishing)  {
+                    advance = false;
+                } else if ((nextIndex = this.transferIndex) <= 0)   {
+                    i = -1;
+                    advance = false;
+                } else if (PUnsafe.compareAndSwapInt(this, TRANSFERINDEX, nextIndex, nextBound = nextIndex > stride ? nextIndex - stride : 0))  {
+                    bound = nextBound;
+                    i = nextIndex - 1;
+                    advance = false;
+                }
+            }
+            Node_G_ f;
+            if (i < 0 || i >= n || i + n >= nextn)  {
+                if (finishing)  {
+                    this.nextTable = null;
+                    this.table = nextTable;
+                    this.sizeCtl = (n << 1) - (n >>> 1);
+                    return;
+                }
+                int sizeCtl = this.sizeCtl;
+                if (PUnsafe.compareAndSwapInt(this, SIZECTL, sizeCtl, sizeCtl - 1)) {
+                    if (sizeCtl - 2 != resizeStamp(n) << RESIZE_STAMP_SHIFT)    {
+                        return;
+                    }
+                    finishing = advance = true;
+                    i = n;
+                }
+            } else if ((f = getArrayVolatile(table, i)) == null)    {
+                advance = casArray(table, i, null, fwd); //empty bin, forward it to new table
+            } else if (<3cached%f.hash == FORWARDING%><3uncached%f instanceof ForwardingNode%>)  { //f is a ForwardingNode
+                advance = true; //already processed
+            } else {
+                //noinspection SynchronizationOnLocalVariableOrMethodParameter
+                synchronized (f)    {
+                    if (getArrayVolatile(table, i) != f)    {
+                        continue;
+                    }
+                    if (<3cached%f.hash >= 0%><3uncached%f.getClass() == Node.class%>)    { //f is a regular node
+                        int runBit = <3cached%f.hash%><3uncached%<2custom%strategy.%>hash(f.key)%> & n;
+                        Node_G_ lastRun = f;
+                        for (Node_G_ node = f.next; node != null; node = node.next) {
+                            int nodeBit = <3cached%node.hash%><3uncached%<2custom%strategy.%>hash(node.key)%> & n;
+                            if (nodeBit != runBit)  {
+                                runBit = nodeBit;
+                                lastRun = node;
+                            }
+                        }
+                        Node_G_ loNode;
+                        Node_G_ hiNode;
+                        if (runBit == 0)    {
+                            loNode = lastRun;
+                            hiNode = null;
+                        } else {
+                            loNode = null;
+                            hiNode = lastRun;
+                        }
+                        for (Node_G_ node = f; node != lastRun; node = node.next)   {
+                            if ((<3cached%node.hash%><3uncached%<2custom%strategy.%>hash(node.key)%> & n) == 0)   {
+                                loNode = new Node<%<>%>(<3cached%node.hash, %>node.key, node.value, loNode);
+                            } else {
+                                hiNode = new Node<%<>%>(<3cached%node.hash, %>node.key, node.value, hiNode);
+                            }
+                        }
+                        setArrayVolatile(nextTable, i, loNode);
+                        setArrayVolatile(nextTable, i + n, hiNode);
+                        setArrayVolatile(table, i, fwd);
+                        advance = true;
+                    }/* else if (f instanceof TreeBin)    { //TODO
+                        TreeBin_G_ t = (TreeBin_G_) f;
+                        TreeNode_G_ lo = null, loTail = null;
+                        TreeNode_G_ hi = null, hiTail = null;
+                        int lc = 0, hc = 0;
+                        for (Node_G_ node = t.first; node != null; node = node.next)    {
+                            TreeNode_G_ p = new TreeNode<%<>%>(node.hash, node.key, node.value, null, null);
+                            if ((node.hash & n) == 0)   {
+                                if ((p.prev = loTail) == null)  {
+                                    lo = p;
+                                } else {
+                                    loTail.next = p;
+                                }
+                                loTail = p;
+                                lc++;
+                            } else {
+                                if ((p.prev = hiTail) == null)  {
+                                    hi = p;
+                                } else {
+                                    hiTail.next = p;
+                                }
+                                hiTail = p;
+                                hc++;
+                            }
+                        }
+                        Node_G_ loNode = lc <= UNTREEIFY_THRESHOLD ? untreeify(lo) : hc != 0 ? new TreeBin<%<>%>(lo) : t;
+                        Node_G_ hiNode = hc <= UNTREEIFY_THRESHOLD ? untreeify(hi) : lc != 0 ? new TreeBin<%<>%>(hi) : t;
+                        setArrayVolatile(nextTable, i, loNode);
+                        setArrayVolatile(nextTable, i + n, hiNode);
+                        setArrayVolatile(table, i, fwd);
+                        advance = true;
+                    }*/
+                }
+            }
+        }
+    }
+
+    @AllArgsConstructor
+    protected static class Node_G_ implements _P0__P1_Map.Entry_G_ {<3cached%
+        protected final int hash;%>
+        @Getter
+        protected final _p0_ key;
+        @Getter
+        protected volatile _p1_ value;
+        protected volatile Node_G_ next;
+
+        @Override
+        public final int hashCode() {<3uncached%<2custom%
+            //this doesn't use the user-supplied hash strategy for hashing keys!%>%>
+            return <3cached%this.hash%><3uncached%hash(this.key)%> ^ hash(this.value);
+        }
+
+        @Override
+        public final String toString() {
+            return this.key + "=" + this.value;
+        }
+
+        @Override
+        public final _p1_ setValue(_p1_ value) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public final boolean equals(Object o) {
+            if (o instanceof Entry)  {<%
+                @SuppressWarnings("unchecked")%>
+                Entry_G_ e = (Entry_G_) o;<2custom%
+                //this doesn't use the user-supplied hash strategy for comparing keys!%>
+                return eq(this.key, e.getKey()) && eq(this.value, e.getValue());
+            } else {
+                return false;
+            }
+        }
+<0%<2custom%
+        @SuppressWarnings("unchecked")%>%>
+        protected Node_G_ find(int hash, _nameP0_ key<2custom%, _P0_HashStrategy_G0super_ strategy%>) {
+            Node_G_ e = this;
+            do {
+                if (<3cached%hash == e.hash && %><2custom%strategy.%>eq(<0%<2custom%(_p0_) %>%>key, e.key))   {
+                    return e;
+                }
+            } while ((e = e.next) != null);
+            return null;
+        }
+    }
+
+    protected static final class ForwardingNode_G_ extends Node_G_ {
+        protected final Node_G_[] nextTable;
+
+        protected ForwardingNode(Node_G_[] nextTable)   {
+            super(<3cached%FORWARDING, %>_EP0_, _EP1_, null);
+            this.nextTable = nextTable;
+        }
+
+        @Override<0%<2custom%
+        @SuppressWarnings("unchecked")%>%>
+        protected Node_G_ find(int hash, _nameP0_ key<2custom%, _P0_HashStrategy_G0super_ strategy%>)  {
+            Node_G_[] table = this.nextTable;
+            OUT:
+            while (true)    {
+                if (table == null || table.length == 0) { //CHM also checks if key is null, but there doesn't seem to be any good reason for it...
+                    return null;
+                }
+                Node_G_ node = getArrayVolatile(table, hash & (table.length - 1));
+                if (node == null)   {
+                    return null;
+                }
+                while (true)    {
+                    if (<3cached%hash == node.hash && %><2custom%strategy.%>eq(<0%<2custom%(_p0_) %>%>key, node.key)) {
+                        return node;
+                    } else if (<3cached%node.hash < 0%><3uncached%node.getClass() != Node.class%>)   { //special node
+                        if (node instanceof ForwardingNode) {
+                            table = ((ForwardingNode_G_) node).nextTable;
+                            continue OUT;
+                        } else {
+                            return node.find(hash, key<2custom%, strategy%>);
+                        }
+                    } else if ((node = node.next) == null)  {
+                        return null;
+                    }
+                }
+            }
+        }
+    }
+
+    protected static final class ReservationNode_G_ extends Node_G_ {
+        protected ReservationNode() {
+            super(<3cached%RESERVED, %>_EP0_, _EP1_, null);
+        }
+
+        @Override
+        protected Node_G_ find(int hash, _nameP0_ key<2custom%, _P0_HashStrategy_G0super_ strategy%>) {
+            return null;
+        }
+    }
+
+    protected static class TableStack_G_ {
+        protected int length;
+        protected int index;
+        protected Node_G_[] table;
+        protected TableStack_G_ next;
+    }
+
+    protected static class Traverser_G_ {
+        protected Node_G_[] table;
+        protected Node_G_ next;
+        protected TableStack_G_ stack;
+        protected TableStack_G_ spare;
+        protected int index;
+        protected int baseIndex;
+        protected int baseLimit;
+        final int baseSize;
+
+        protected Traverser(Node_G_[] table, int size, int index, int limit)    {
+            this.table = table;
+            this.baseSize = size;
+            this.baseIndex = this.index = index;
+            this.baseLimit = limit;
+        }
+
+        protected Node_G_ advance()   {
+            Node_G_ e = this.next;
+            if (e != null)  {
+                e = e.next;
+            }
+            while (true)    {
+                if (e != null || this.baseIndex >= this.baseLimit)  {
+                    return this.next = e;
+                }
+                Node_G_[] table = this.table;
+                int index = this.index;
+                if (table == null || table.length <= index || index < 0)    {
+                    return this.next = null;
+                } else if ((e = getArrayVolatile(table, index)) != null
+                        && <3cached%e.hash < 0%><3uncached%e.getClass() != Node.class%>)  { //special node
+                    if (e instanceof ForwardingNode)    {
+                        this.table = ((ForwardingNode_G_) e).nextTable;
+                        e = null;
+                        this.pushState(table, index);
+                        continue;
+                    /*} else if (e instanceof TreeBin)    { //TODO
+                        e = ((TreeBin_G_) e).first;*/
+                    } else {
+                        e = null;
+                    }
+                }
+                if (this.stack != null) {
+                    this.recoverState(table.length);
+                } else if ((this.index = this.baseSize + index) >= table.length)    {
+                    this.index = ++this.baseIndex;
+                }
+            }
+        }
+
+        protected void pushState(Node_G_[] table, int index)    {
+            TableStack_G_ s = this.spare;
+            if (s != null)  {
+                this.spare = s.next;
+            } else {
+                s = new TableStack<%<>%>();
+            }
+            s.table = table;
+            s.length = table.length;
+            s.index = index;
+            s.next = this.stack;
+            this.stack = s;
+        }
+
+        protected void recoverState(int n)  {
+            TableStack_G_ s; int len;
+            while ((s = this.stack) != null && (this.index += (len = s.length)) >= n)   {
+                n = len;
+                this.index = s.index;
+                this.table = s.table;
+                s.table = null;
+                TableStack_G_ next = s.next;
+                s.next = this.spare;
+                this.stack = next;
+                this.spare = s;
+            }
+            if (s == null && (this.index += this.baseSize) >= n)    {
+                this.index = ++this.baseIndex;
+            }
+        }
+    }
+
+    protected static class BaseIterator_G_ extends Traverser_G_ {
+        protected final <0Object2custom%_P0__P1_Concurrent<2custom%Custom%><3uncached%Uncached%>HashMap%><0Object!%<2custom!%<3uncached%_P0__P1_Concurrent<2custom%Custom%>HashMap%>%>%>_G_ map;
+        protected Node_G_ lastReturned;
+
+        protected BaseIterator(Node_G_[] table, int size, int index, int limit, <0Object2custom%_P0__P1_Concurrent<2custom%Custom%><3uncached%Uncached%>HashMap%><0Object!%<2custom!%<3uncached%_P0__P1_Concurrent<2custom%Custom%>HashMap%>%>%>_G_ map)    {
+            super(table, size, index, limit);
+            this.map = map;
+            this.advance();
+        }
+
+        public boolean hasNext()    {
+            return this.next != null;
+        }
+
+        public void remove()    {
+            Node_G_ node = this.lastReturned;
+            checkState(node != null);
+            this.lastReturned = null;
+            _p1_ defaultValue = <1!%this.map.defaultValue%><1%null%>;
+            this.map.replaceNode(node.key, defaultValue, defaultValue);
+        }
+    }
+
+    protected static class KeyIterator_G_ extends BaseIterator_G_ implements _P0_Iterator_GP0_  {
+        protected KeyIterator(Node_G_[] table, int size, int index, int limit, <0Object2custom%_P0__P1_Concurrent<2custom%Custom%><3uncached%Uncached%>HashMap%><0Object!%<2custom!%<3uncached%_P0__P1_Concurrent<2custom%Custom%>HashMap%>%>%>_G_ map)    {
+            super(table, size, index, limit, map);
+        }
+
+        @Override
+        public _p0_ next<0!%_P0_%>()    {
+            Node_G_ node = this.next;
+            if (node == null)  {
+                throw new NoSuchElementException();
+            }
+            _p0_ key = node.key;
+            this.lastReturned = node;
+            this.advance();
+            return key;
+        }
+    }
+
+    protected static class ValueIterator_G_ extends BaseIterator_G_ implements _P1_Iterator_GP1_  {
+        protected ValueIterator(Node_G_[] table, int size, int index, int limit, <0Object2custom%_P0__P1_Concurrent<2custom%Custom%><3uncached%Uncached%>HashMap%><0Object!%<2custom!%<3uncached%_P0__P1_Concurrent<2custom%Custom%>HashMap%>%>%>_G_ map)    {
+            super(table, size, index, limit, map);
+        }
+
+        @Override
+        public _p1_ next<1!%_P1_%>()    {
+            Node_G_ node = this.next;
+            if (node == null)  {
+                throw new NoSuchElementException();
+            }
+            _p1_ value = node.value;
+            this.lastReturned = node;
+            this.advance();
+            return value;
+        }
+    }
+
+    protected static class EntryIterator_G_ extends BaseIterator_G_ implements Iterator<Entry_G_>  {
+        protected EntryIterator(Node_G_[] table, int size, int index, int limit, <0Object2custom%_P0__P1_Concurrent<2custom%Custom%><3uncached%Uncached%>HashMap%><0Object!%<2custom!%<3uncached%_P0__P1_Concurrent<2custom%Custom%>HashMap%>%>%>_G_ map)    {
+            super(table, size, index, limit, map);
+        }
+
+        @Override
+        public Entry_G_ next()    {
+            Node_G_ node = this.next;
+            if (node == null)  {
+                throw new NoSuchElementException();
+            }
+            _p0_ key = node.key;
+            _p1_ value = node.value;
+            this.lastReturned = node;
+            this.advance();
+            return new MapEntry<%<>%>(key, value, this.map);
+        }
+    }
+
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
+    protected static class MapEntry_G_ implements Entry_G_ {
+        @Getter
+        protected final _p0_ key;
+        @Getter
+        protected _p1_ value;
+        protected final <0Object2custom%_P0__P1_Concurrent<2custom%Custom%><3uncached%Uncached%>HashMap%><0Object!%<2custom!%<3uncached%_P0__P1_Concurrent<2custom%Custom%>HashMap%>%>%>_G_ map;
+
+        @Override
+        public int hashCode()   {
+            return <2custom%this.map.strategy.%>hash(this.key) ^ hash(this.value);
+        }
+
+        @Override
+        public String toString()    {
+            return this.key + "=" + this.value;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == this)  {
+                return true;
+            } else if (o instanceof Entry)  {<%
+                @SuppressWarnings("unchecked")%>
+                Entry_G_ entry = (Entry_G_) o;
+                return <2custom%this.map.strategy.%>eq(this.key, entry.getKey()) && eq(this.value, entry.getValue());
+            } else {
+                return false;
+            }
+        }
+
+        @Override
+        public _p1_ setValue(_p1_ value)    {
+            _p1_ defaultValue = <1!%this.map.defaultValue%><1%null%>;
+            checkArg(value != defaultValue, "value (%s) may not be default value!", defaultValue);
+            _p1_ v = this.value;
+            this.map.put(this.key, this.value = value);
+            return v;
+        }
+    }
+
+    @AllArgsConstructor
+    protected static class KeySetView_G_ extends Abstract_P0_Set_GP0_ {
+        protected final <0Object2custom%_P0__P1_Concurrent<2custom%Custom%><3uncached%Uncached%>HashMap%><0Object!%<2custom!%<3uncached%_P0__P1_Concurrent<2custom%Custom%>HashMap%>%>%>_G_ map;
+
+        @Override
+        public void clear() {
+            this.map.clear();
+        }
+
+        @Override
+        public int size()   {
+            return this.map.size();
+        }
+
+        @Override
+        public boolean isEmpty()    {
+            return this.map.isEmpty();
+        }
+
+        @Override
+        public boolean contains(_nameP0_ value) {
+            return this.map.containsKey(value);
+        }
+
+        @Override
+        public boolean remove(_nameP0_ value)   {
+            return this.map.remove(value) != <1!%this.map.defaultValue%><1%null%>;
+        }
+
+        @Override
+        public _P0_Iterator_GP0_ iterator() {
+            Node_G_[] table = this.map.table;
+            int f = table == null ? 0 : table.length;
+            return new KeyIterator<%<>%>(table, f, 0, f, this.map);
+        }
+
+        @Override
+        public void forEach(@NonNull _P0_Consumer_G0super_ action)   {
+            Node_G_[] table = this.map.table;
+            if (table != null)  {
+                Traverser_G_ it = new Traverser<%<>%>(table, table.length, 0, table.length);
+                for (Node_G_ node = it.advance(); node != null; node = it.advance())    {
+                    action.accept(node.key);
+                }
+            }
+        }
+    }
+
+    @AllArgsConstructor
+    protected static class ValuesView_G_ extends Abstract_P1_Collection_GP1_ {
+        protected final <0Object2custom%_P0__P1_Concurrent<2custom%Custom%><3uncached%Uncached%>HashMap%><0Object!%<2custom!%<3uncached%_P0__P1_Concurrent<2custom%Custom%>HashMap%>%>%>_G_ map;
+
+        @Override
+        public void clear() {
+            this.map.clear();
+        }
+
+        @Override
+        public int size()   {
+            return this.map.size();
+        }
+
+        @Override
+        public boolean isEmpty()    {
+            return this.map.isEmpty();
+        }
+
+        @Override
+        public boolean contains(_nameP1_ value) {
+            return this.map.containsValue(value);
+        }
+
+        @Override
+        public _P1_Iterator_GP1_ iterator() {
+            Node_G_[] table = this.map.table;
+            int f = table == null ? 0 : table.length;
+            return new ValueIterator<%<>%>(table, f, 0, f, this.map);
+        }
+
+        @Override
+        public void forEach(@NonNull _P1_Consumer_G1super_ action)   {
+            Node_G_[] table = this.map.table;
+            if (table != null)  {
+                Traverser_G_ it = new Traverser<%<>%>(table, table.length, 0, table.length);
+                for (Node_G_ node = it.advance(); node != null; node = it.advance())    {
+                    action.accept(node.value);
+                }
+            }
+        }
+    }
+
+    @AllArgsConstructor
+    protected static class EntrySetView_G_ extends AbstractSet<Entry_G_> {
+        protected final <0Object2custom%_P0__P1_Concurrent<2custom%Custom%><3uncached%Uncached%>HashMap%><0Object!%<2custom!%<3uncached%_P0__P1_Concurrent<2custom%Custom%>HashMap%>%>%>_G_ map;
+
+        @Override
+        public void clear() {
+            this.map.clear();
+        }
+
+        @Override
+        public int size()   {
+            return this.map.size();
+        }
+
+        @Override
+        public boolean isEmpty()    {
+            return this.map.isEmpty();
+        }
+
+        @Override
+        public boolean contains(Object value) {
+            if (value instanceof Entry) {<%
+                @SuppressWarnings("unchecked")%>
+                Entry_G_ entry = (Entry_G_) value;
+                _p1_ v = entry.getValue();
+                return v != <1!%this.map.defaultValue%><1%null%> && eq(v, this.map.get(entry.getKey()));
+            }
+            return false;
+        }
+
+        @Override
+        public boolean remove(Object value)   {
+            if (value instanceof Entry) {<%
+                @SuppressWarnings("unchecked")%>
+                Entry_G_ entry = (Entry_G_) value;
+                return this.map.remove(entry.getKey(), entry.getValue());
+            }
+            return false;
+        }
+
+        @Override
+        public Iterator<Entry_G_> iterator() {
+            Node_G_[] table = this.map.table;
+            int f = table == null ? 0 : table.length;
+            return new EntryIterator<%<>%>(table, f, 0, f, this.map);
+        }
+
+        @Override
+        public void forEach(@NonNull Consumer<? super Entry_G_> action)   {
+            Node_G_[] table = this.map.table;
+            if (table != null)  {
+                Traverser_G_ it = new Traverser<%<>%>(table, table.length, 0, table.length);
+                for (Node_G_ node = it.advance(); node != null; node = it.advance())    {
+                    action.accept(new MapEntry<%<>%>(node.key, node.value, this.map));
+                }
+            }
+        }
+    }
+}

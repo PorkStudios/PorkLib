@@ -1,0 +1,10 @@
+    /**
+     * Gets an instance of {@link _P0_EqualityStrategy} for {@code _nameP1_[]}s which delegates equality checks to {@link Arrays#equals(_nameP1_[], _nameP1_[])}.
+     *
+     * @return an instance of {@link _P0_EqualityStrategy}
+     */<1%
+    @SuppressWarnings("unchecked")%>
+    static<1% _GP1_%> _P0_HashStrategy<_p1_[]> array_P1_() {
+        return <1%(_P0_HashStrategy<_p1_[]>) %>_P1_ArrayHashStrategy.INSTANCE;
+    }
+

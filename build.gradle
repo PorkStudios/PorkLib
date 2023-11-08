@@ -1,67 +1,40 @@
 /*
- * Adapted from the Wizardry License
+ * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
- * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software
+ * is furnished to do so, subject to the following conditions:
  *
- * The persons and/or organizations are also disallowed from sub-licensing and/or trademarking this software without explicit permission from DaPorkchop_.
+ * Any persons and/or organizations using this software must include the above copyright notice and this permission notice,
+ * provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
  *
- * Any persons and/or organizations using this software must disclose their source code and have it publicly available, include this license, provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  */
 
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
-    }
-}
-
-plugins {
-    id 'java'
-    id 'io.franzbecker.gradle-lombok' version '1.14' apply false
-    id 'maven-publish'
-    id 'com.github.johnrengelman.shadow' version '2.0.4' apply false
-}
-
-dependencies {
-    for (Project prj : project.allprojects) {
-        if (!"PorkLib".equalsIgnoreCase(prj.name) && prj.parent.name.equalsIgnoreCase("PorkLib")) {
-            compile project(":" + prj.name)
-        }
-    }
-}
-
 allprojects {
-    apply plugin: 'java'
-    apply plugin: 'io.franzbecker.gradle-lombok'
-    apply plugin: 'maven-publish'
-    apply plugin: 'com.github.johnrengelman.shadow'
+    apply plugin: "java"
+    apply plugin: "java-library"
+    apply plugin: "maven-publish"
 
-    group 'net.daporkchop.lib'
-    version '0.2.1-SNAPSHOT'
+    group "net.daporkchop"
+    version "$porklibVersion"
 
-    sourceCompatibility = 1.8
+    compileJava {
+        sourceCompatibility = targetCompatibility = "$javaVersion"
+    }
 
-    ext {
-        apacheCommonsCompressVersion = '1.16.1'
-        bouncycastleVersion = '1.59'
-        googleHttpClientVersion = '1.23.0'
-        gsonVersion = '2.8.5'
-        guavaVersion = '27.0-jre'
-        nettyVersion = '4.1.32.Final'
-        raknetVersion = '1.2.1-SNAPSHOT'
-        sparseBitSetVersion = '1.1'
-        xzVersion = '1.8'
+    tasks.withType(JavaCompile) {
+        options.encoding = "UTF-8"
     }
 
     repositories {
-        mavenLocal()
         maven {
             name = "DaPorkchop_"
             url = "https://maven.daporkchop.net/"
@@ -69,30 +42,28 @@ allprojects {
         mavenCentral()
     }
 
-    jar {
-        from project.sourceSets.main.output
-        from(project.sourceSets.main.allSource) {
-            include '**/*.xml'
-        }
-        baseName = archivesBaseName
-    }
-
-    configurations {
-        provided
-    }
-
     sourceSets {
-        main {
-            compileClasspath += configurations.provided
+        example {
+            java {
+                compileClasspath += main.output
+                compileClasspath += main.compileClasspath
+                runtimeClasspath += main.output
+                runtimeClasspath += main.runtimeClasspath
+            }
         }
     }
 
     dependencies {
-        if (!("root".equalsIgnoreCase(project.name) || "common".equalsIgnoreCase(project.name))) {
-            compile project(":common")
+        if (!("root".equalsIgnoreCase(project.name) || "common".equalsIgnoreCase(project.name) || "unsafe".equalsIgnoreCase(project.name))) {
+            api project(":common")
         }
 
-        testCompile "junit:junit:4.12"
+        testImplementation "junit:junit:$junitVersion"
+
+        compileOnly "org.projectlombok:lombok:$lombokVersion"
+        testCompileOnly "org.projectlombok:lombok:$lombokVersion"
+        annotationProcessor "org.projectlombok:lombok:$lombokVersion"
+        testAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
     }
 
     task sourceJar(type: Jar) {
@@ -100,9 +71,34 @@ allprojects {
     }
 
     publishing {
+        repositories {
+            /*if (project.hasProperty("opencollabMavenUsername") && project.hasProperty("opencollabMavenPassword")) {
+                maven {
+                    credentials {
+                        username = "$opencollabMavenUsername"
+                        password = "$opencollabMavenPassword"
+                    }
+
+                    name = "NukkitX"
+                    url = version.endsWith("SNAPSHOT") ? "https://repo.opencollab.dev/maven-snapshots/" : "https://repo.opencollab.dev/release/"
+                }
+            }*/
+            if (project.hasProperty("daporkchopMavenUsername") && project.hasProperty("daporkchopMavenPassword")) {
+                maven {
+                    credentials {
+                        username = "$daporkchopMavenUsername"
+                        password = "$daporkchopMavenPassword"
+                    }
+
+                    name = "DaPorkchop_"
+                    url = version.endsWith("SNAPSHOT") ? "https://maven.daporkchop.net/snapshot/" : "https://maven.daporkchop.net/release/"
+                }
+            }
+        }
+
         publications {
             maven(MavenPublication) {
-                groupId = 'net.daporkchop.lib'
+                groupId = "net.daporkchop.lib"
                 artifactId = "PorkLib".equalsIgnoreCase(project.name) ? "full" : project.name
                 version = project.version
 
@@ -111,12 +107,31 @@ allprojects {
                 artifact sourceJar {
                     classifier "sources"
                 }
-                artifact shadowJar {
-                    classifier "full"
-                }
             }
         }
     }
 
-    build.dependsOn(publishToMavenLocal)
+    if (!project.name.contains("generator")) {
+        publish.dependsOn(publishToMavenLocal)
+        build.dependsOn(publish)
+    }
+
+    test {
+        testLogging {
+            //show System.out calls in tests in gradle output
+            showStandardStreams = true
+
+            showExceptions = true
+            showStackTraces = true
+            showCauses = true
+        }
+    }
+}
+
+dependencies {
+    for (Project prj : project.allprojects) {
+        if (!"PorkLib".equalsIgnoreCase(prj.name) && prj.parent.name.equalsIgnoreCase("PorkLib")) {
+            api project(":" + prj.name)
+        }
+    }
 }

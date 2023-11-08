@@ -1,15 +1,20 @@
 /*
- * Adapted from the Wizardry License
+ * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_
  *
- * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software
+ * is furnished to do so, subject to the following conditions:
  *
- * The persons and/or organizations are also disallowed from sub-licensing and/or trademarking this software without explicit permission from DaPorkchop_.
+ * Any persons and/or organizations using this software must include the above copyright notice and this permission notice,
+ * provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
  *
- * Any persons and/or organizations using this software must disclose their source code and have it publicly available, include this license, provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  */
 
@@ -17,7 +22,30 @@ package net.daporkchop.lib.crypto.cipher.block;
 
 import lombok.AllArgsConstructor;
 import org.bouncycastle.crypto.BlockCipher;
-import org.bouncycastle.crypto.engines.*;
+import org.bouncycastle.crypto.engines.AESEngine;
+import org.bouncycastle.crypto.engines.ARIAEngine;
+import org.bouncycastle.crypto.engines.BlowfishEngine;
+import org.bouncycastle.crypto.engines.CAST5Engine;
+import org.bouncycastle.crypto.engines.CAST6Engine;
+import org.bouncycastle.crypto.engines.CamelliaEngine;
+import org.bouncycastle.crypto.engines.DESEngine;
+import org.bouncycastle.crypto.engines.DSTU7624Engine;
+import org.bouncycastle.crypto.engines.GOST28147Engine;
+import org.bouncycastle.crypto.engines.GOST3412_2015Engine;
+import org.bouncycastle.crypto.engines.IDEAEngine;
+import org.bouncycastle.crypto.engines.NoekeonEngine;
+import org.bouncycastle.crypto.engines.RC2Engine;
+import org.bouncycastle.crypto.engines.RC6Engine;
+import org.bouncycastle.crypto.engines.RijndaelEngine;
+import org.bouncycastle.crypto.engines.SEEDEngine;
+import org.bouncycastle.crypto.engines.SM4Engine;
+import org.bouncycastle.crypto.engines.SerpentEngine;
+import org.bouncycastle.crypto.engines.Shacal2Engine;
+import org.bouncycastle.crypto.engines.SkipjackEngine;
+import org.bouncycastle.crypto.engines.TEAEngine;
+import org.bouncycastle.crypto.engines.ThreefishEngine;
+import org.bouncycastle.crypto.engines.TwofishEngine;
+import org.bouncycastle.crypto.engines.XTEAEngine;
 
 import java.util.function.Supplier;
 
@@ -33,8 +61,9 @@ public enum CipherType {
     DSTU_7624_128("DSTU 7624 (128-bit)", 16, () -> new DSTU7624Engine(128)),
     DSTU_7624_256("DSTU 7624 (256-bit)", 32, () -> new DSTU7624Engine(256)),
     DSTU_7624_512("DSTU 7624 (512-bit)", 64, () -> new DSTU7624Engine(512)),
-    GOST_3412_2015("GOST 3412_2015", GOST3412_2015Engine::new, 16, 32, 16),
-    GOST_28147("GOST 28147", GOST28147Engine::new, 8, 32, 8),
+    //my god these two are slow
+    //GOST_3412_2015("GOST 3412_2015", GOST3412_2015Engine::new, 16, 32, 16),
+    //GOST_28147("GOST 28147", GOST28147Engine::new, 8, 32, 8),
     IDEA("IDEA", 8, IDEAEngine::new),
     NOEKEON("Noekeon", 16, NoekeonEngine::new),
     RC2("RC2", 8, RC2Engine::new),

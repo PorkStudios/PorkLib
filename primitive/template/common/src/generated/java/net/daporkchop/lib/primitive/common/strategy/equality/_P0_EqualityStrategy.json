@@ -1,0 +1,10 @@
+{
+  "params": [
+    {
+      "type": "primitive",
+      "options": {
+        "genericName": "T"
+      }
+    }
+  ]
+}

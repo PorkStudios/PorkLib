@@ -1,0 +1,15 @@
+_headers_
+
+/**
+ * A function that returns _nameP0_.
+ *
+ * @see Supplier
+ * @author DaPorkchop_
+ */
+@FunctionalInterface
+public interface _P0_Supplier_G_ {
+    /**
+     * @see Supplier#get()
+     */
+    _p0_ get<0!%As_P0_%>();
+}

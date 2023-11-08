@@ -1,0 +1,26 @@
+{
+  "imports": [
+    "lombok.NonNull",
+    "java.util.function.Consumer"
+  ],
+  "params": [
+    {
+      "type": "primitive",
+      "options": {
+        "genericName": "T"
+      }
+    },
+    {
+      "type": "primitive",
+      "options": {
+        "genericName": "U"
+      }
+    },
+    {
+      "type": "primitive",
+      "options": {
+        "genericName": "V"
+      }
+    }
+  ]
+}

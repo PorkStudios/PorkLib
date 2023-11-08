@@ -1,0 +1,47 @@
+_headers_
+
+import net.daporkchop.lib.primitive.common.PrimitiveHelper;
+import net.daporkchop.lib.primitive.common.strategy.equality._P0_EqualityStrategy;<0%
+
+import java.util.Arrays;%>
+
+/**
+ * A strategy which is able to compute a hash code for {@code _p0_} values, and is also able to compare two {@code _p0_} values to check if they are equal.
+ *
+ * @see Object#hashCode()
+ * @see _P0_EqualityStrategy
+ * @author DaPorkchop_
+ */
+public interface _P0_HashStrategy_G_ extends _P0_EqualityStrategy_G_ {
+    /**
+     * Returns the given value's hash code.
+     *
+     * @param e the value
+     * @return the value's hash code
+     */
+    int hash(_p0_ e);
+
+    /**
+     * Returns the given value's 64-bit hash code.
+     * <p>
+     * This is an optional method for use in very large datastructures where more than 32 bits of hash are desirable.
+     *
+     * @param e the value
+     * @return the value's 64-bit hash code
+     */
+    default long hash64(_p0_ e) {
+        return this.hash(e) & 0xFFFFFFFFL;
+    }
+
+    /**
+     * Gets an instance of {@link _P0_HashStrategy} which delegates equality checks and hash calculations to {@link PrimitiveHelper}.
+     *
+     * @return an instance of {@link _P0_HashStrategy}
+     */<%
+    @SuppressWarnings("unchecked")%>
+    static<% _G_%> _P0_HashStrategy_G_ def() {
+        return <%(_P0_HashStrategy_G_) %>_P0_DefaultHashStrategy.INSTANCE;
+    }<%
+
+ _Marray_%>
+}

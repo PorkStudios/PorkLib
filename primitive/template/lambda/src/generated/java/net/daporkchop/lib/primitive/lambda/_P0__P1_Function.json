@@ -1,0 +1,20 @@
+{
+  "imports": [
+    "lombok.NonNull",
+    "java.util.function.Function"
+  ],
+  "params": [
+    {
+      "type": "primitive",
+      "options": {
+        "genericName": "T"
+      }
+    },
+    {
+      "type": "primitive",
+      "options": {
+        "genericName": "R"
+      }
+    }
+  ]
+}

@@ -1,285 +1,643 @@
 /*
- * Adapted from the Wizardry License
+ * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2022 DaPorkchop_
  *
- * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software
+ * is furnished to do so, subject to the following conditions:
  *
- * The persons and/or organizations are also disallowed from sub-licensing and/or trademarking this software without explicit permission from DaPorkchop_.
+ * Any persons and/or organizations using this software must include the above copyright notice and this permission notice,
+ * provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
  *
- * Any persons and/or organizations using this software must disclose their source code and have it publicly available, include this license, provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  */
 
 package net.daporkchop.lib.logging;
 
-import lombok.*;
-import net.daporkchop.lib.binary.UTF8;
-import net.daporkchop.lib.common.util.Formatter;
-import net.daporkchop.lib.common.util.PorkUtil;
+import lombok.NonNull;
+import net.daporkchop.lib.binary.stream.misc.SlashDevSlashNull;
+import net.daporkchop.lib.logging.format.FormatParser;
+import net.daporkchop.lib.logging.format.MessageFormatter;
 
-import java.io.*;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.HashSet;
+import java.io.PrintWriter;
 import java.util.Set;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.StringJoiner;
+import java.util.function.Consumer;
 
 /**
+ * Utility class to help with writing log messages
+ *
  * @author DaPorkchop_
  */
-@Getter
-@Builder(builderClassName = "Builder")
-public class Logger implements Logging {
-    private static final String ALERT_HEADER = "****************************************";
-    private static final String ALERT_PREFIX = "* ";
-    private static final String ALERT_FOOTER = ALERT_HEADER;
+public interface Logger {
+    //
+    //
+    // Utility methods
+    //
+    //
 
     /**
-     * A default logger instance. This will print messages from all levels to {@link System#out}.
+     * Prints the stack trace of an exception line-by-line, passing each line to a given callback function
+     *
+     * @param throwable   the exection whose stack trace should be printed
+     * @param linePrinter a callback function that will be invoked once for each line
      */
-    public static final Logger DEFAULT_LOG = builder().level(1).build();
+    static void getStackTrace(@NonNull Throwable throwable, @NonNull Consumer<String> linePrinter) {
+        throwable.printStackTrace(new PrintWriter(SlashDevSlashNull.getOutputStream(), true) {
+            @Override
+            public void println(Object x) {
+                linePrinter.accept(String.valueOf(x).replace("\t", "    "));
+            }
+        });
+    }
+
+    //
+    //
+    // Actual logging functions
+    //
+    //
 
     /**
-     * The {@link PrintStream} that messages will be written to
+     * Writes a plain message to the log.
+     *
+     * @param level   the log level to use
+     * @param message the message to be written
      */
-    @NonNull
-    @lombok.Builder.Default
-    private final PrintStream out = System.out;
+    Logger log(@NonNull LogLevel level, @NonNull String message);
 
     /**
-     * The level of log messages to be printed.
+     * Writes a formatted message to the log.
      * <p>
-     * if < 0: nothing at all
-     * if   0: only essential messages
-     * if   1: essential + warnings + notifications
-     * if   2: essential + warnings + notifications + trace
-     * if > 2: everything
+     * The message will be formatted using {@link String#format(String, Object...)}.
+     *
+     * @param level  the log level to use
+     * @param format the message to be formatted
+     * @param args   the arguments to be used for formatting
      */
-    @Setter
-    @lombok.Builder.Default
-    private int level = 3;
+    default Logger log(@NonNull LogLevel level, @NonNull String format, @NonNull Object... args) {
+        return this.log(level, String.format(format, args));
+    }
 
     /**
-     * An instance of {@link DateFormat} that will be used to format the timestamp that prefixes messages.
-     * <p>
-     * If {@code null}, the date prefix will be omitted, even if {@link Logger#prefixOrder} would add a date.
+     * Writes a plain message to the log using the {@link LogLevel#INFO} level.
+     *
+     * @param message the message to be written
      */
-    @lombok.Builder.Default
-    private final DateFormat dateFormat = new SimpleDateFormat("[dd/MM/yyyy HH:mm:ss] ");
+    default Logger info(@NonNull String message) {
+        return this.log(LogLevel.INFO, message);
+    }
 
     /**
-     * A {@link String} that will be used to format the {@link LogLevel} prefix applied to messages.
+     * Writes a formatted message to the log using the {@link LogLevel#INFO} level.
      * <p>
-     * This is given to {@link String#format(String, Object...)} with a single parameter being the name of the log level.
-     * <p>
-     * If {@code null}, the log level prefix will be omitted, even if {@link Logger#prefixOrder} would add a log level.
+     * The message will be formatted using {@link String#format(String, Object...)}.
+     *
+     * @param format the message to be formatted
+     * @param args   the arguments to be used for formatting
      */
-    @lombok.Builder.Default
-    private final String levelFormat = "[%s] ";
+    default Logger info(@NonNull String format, @NonNull Object... args) {
+        return this.log(LogLevel.INFO, String.format(format, args));
+    }
 
     /**
-     * A collection of {@link OutputStream}s that will also have the message content written to them.
-     * <p>
-     * This could be useful for e.g. logging to a file (by using a {@link java.io.FileOutputStream})
+     * Writes an exception stack trace to the log using the {@link LogLevel#INFO} level.
+     *
+     * @param throwable the exception whose stack trace should be printed
      */
-    private final Set<OutputStream> otherOutputs = new HashSet<>();
-
-    private final Lock lock = new ReentrantLock();
+    default Logger info(@NonNull Throwable throwable) {
+        StringJoiner joiner = new StringJoiner("\n");
+        getStackTrace(throwable, joiner::add);
+        return this.info(joiner.toString());
+    }
 
     /**
-     * The {@link PrefixOrder} used for prefixing the message.
+     * Writes an exception stack trace with a plain message to the log using the {@link LogLevel#INFO} level.
+     *
+     * @param message an additional message that will be displayed
+     * @param throwable the exception whose stack trace should be printed
      */
-    @NonNull
-    @lombok.Builder.Default
-    private final PrefixOrder prefixOrder = PrefixOrder.DATE_LEVEL;
-
-    {
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            try {
-                for (OutputStream out : this.otherOutputs)  {
-                    out.close();
-                }
-            } catch (IOException e)  {
-                throw this.exception(e);
-            }
-        }));
+    default Logger info(@NonNull String message, @NonNull Throwable throwable) {
+        StringJoiner joiner = new StringJoiner("\n");
+        joiner.add(message).add("");
+        getStackTrace(throwable, joiner::add);
+        return this.info(joiner.toString());
     }
 
-    public void log(@NonNull String message) {
-        this.log(message, LogLevel.INFO);
+    /**
+     * Writes an exception stack trace with a formatted message to the log using the {@link LogLevel#INFO} level.
+     * <p>
+     * The message will be formatted using {@link String#format(String, Object...)}.
+     *
+     * @param format an additional message that will be displayed
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger info(@NonNull String format, @NonNull Throwable throwable, @NonNull Object... args) {
+        StringJoiner joiner = new StringJoiner("\n");
+        joiner.add(String.format(format, args)).add("");
+        getStackTrace(throwable, joiner::add);
+        return this.info(joiner.toString());
     }
 
-    public void info(@NonNull String message) {
-        this.log(message, LogLevel.INFO);
+    /**
+     * Writes a plain message to the log using the {@link LogLevel#SUCCESS} level.
+     *
+     * @param message the message to be written
+     */
+    default Logger success(@NonNull String message) {
+        return this.log(LogLevel.SUCCESS, message);
     }
 
-    public void error(@NonNull String message) {
-        this.log(message, LogLevel.ERROR);
+    /**
+     * Writes a formatted message to the log using the {@link LogLevel#SUCCESS} level.
+     * <p>
+     * The message will be formatted using {@link String#format(String, Object...)}.
+     *
+     * @param format the message to be formatted
+     * @param args   the arguments to be used for formatting
+     */
+    default Logger success(@NonNull String format, @NonNull Object... args) {
+        return this.log(LogLevel.SUCCESS, String.format(format, args));
     }
 
-    public void fatal(@NonNull String message) {
-        this.log(message, LogLevel.FATAL);
+    /**
+     * Writes an exception stack trace to the log using the {@link LogLevel#SUCCESS} level.
+     *
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger success(@NonNull Throwable throwable) {
+        StringJoiner joiner = new StringJoiner("\n");
+        getStackTrace(throwable, joiner::add);
+        return this.success(joiner.toString());
     }
 
-    public void alert(@NonNull String message) {
-        this.log(message, LogLevel.ALERT);
+    /**
+     * Writes an exception stack trace with a plain message to the log using the {@link LogLevel#SUCCESS} level.
+     *
+     * @param message an additional message that will be displayed
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger success(@NonNull String message, @NonNull Throwable throwable) {
+        StringJoiner joiner = new StringJoiner("\n");
+        joiner.add(message).add("");
+        getStackTrace(throwable, joiner::add);
+        return this.success(joiner.toString());
     }
 
-    public void warn(@NonNull String message) {
-        this.log(message, LogLevel.WARN);
+    /**
+     * Writes an exception stack trace with a formatted message to the log using the {@link LogLevel#SUCCESS} level.
+     * <p>
+     * The message will be formatted using {@link String#format(String, Object...)}.
+     *
+     * @param format an additional message that will be displayed
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger success(@NonNull String format, @NonNull Throwable throwable, @NonNull Object... args) {
+        StringJoiner joiner = new StringJoiner("\n");
+        joiner.add(String.format(format, args)).add("");
+        getStackTrace(throwable, joiner::add);
+        return this.success(joiner.toString());
     }
 
-    public void notify(@NonNull String message) {
-        this.log(message, LogLevel.NOTIFY);
+    /**
+     * Writes a plain message to the log using the {@link LogLevel#ERROR} level.
+     *
+     * @param message the message to be written
+     */
+    default Logger error(@NonNull String message) {
+        return this.log(LogLevel.ERROR, message);
     }
 
-    public void trace(@NonNull String message) {
-        this.log(message, LogLevel.TRACE);
+    /**
+     * Writes a formatted message to the log using the {@link LogLevel#ERROR} level.
+     * <p>
+     * The message will be formatted using {@link String#format(String, Object...)}.
+     *
+     * @param format the message to be formatted
+     * @param args   the arguments to be used for formatting
+     */
+    default Logger error(@NonNull String format, @NonNull Object... args) {
+        return this.log(LogLevel.ERROR, String.format(format, args));
     }
 
-    public void debug(@NonNull String message) {
-        this.log(message, LogLevel.DEBUG);
+    /**
+     * Writes an exception stack trace to the log using the {@link LogLevel#ERROR} level.
+     *
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger error(@NonNull Throwable throwable) {
+        StringJoiner joiner = new StringJoiner("\n");
+        getStackTrace(throwable, joiner::add);
+        return this.error(joiner.toString());
     }
 
-    public void log(@NonNull String message, @NonNull LogLevel level) {
-        if (level.getLevel() <= this.level) {
-            if (message.indexOf('\n') == -1) {
-                if (level == LogLevel.ALERT)    {
-                    this.actuallyDoTheLoggingThing(this.format(ALERT_HEADER, LogLevel.ALERT).getBytes(UTF8.utf8));
-                    this.actuallyDoTheLoggingThing(this.format(ALERT_PREFIX, LogLevel.ALERT).getBytes(UTF8.utf8));
-                    this.actuallyDoTheLoggingThing(this.format(String.format("%s%s", ALERT_PREFIX, message), level).getBytes(UTF8.utf8));
-                    this.actuallyDoTheLoggingThing(this.format(ALERT_PREFIX, LogLevel.ALERT).getBytes(UTF8.utf8));
-                    this.actuallyDoTheLoggingThing(this.format(ALERT_FOOTER, LogLevel.ALERT).getBytes(UTF8.utf8));
-                    return;
-                }
-                String msg = this.format(message, level);
-                this.actuallyDoTheLoggingThing(msg.getBytes(UTF8.utf8));
-            } else {
-                this.lock.lock();
-                try {
-                    if (level == LogLevel.ALERT)    {
-                        this.actuallyDoTheLoggingThing(this.format(ALERT_HEADER, LogLevel.ALERT).getBytes(UTF8.utf8));
-                        this.actuallyDoTheLoggingThing(this.format(ALERT_PREFIX, LogLevel.ALERT).getBytes(UTF8.utf8));
-                        for (String subMsg : message.split("\n")) {
-                            this.actuallyDoTheLoggingThing(this.format(String.format("%s%s", ALERT_PREFIX, subMsg), level).getBytes(UTF8.utf8));
-                        }
-                        this.actuallyDoTheLoggingThing(this.format(ALERT_PREFIX, LogLevel.ALERT).getBytes(UTF8.utf8));
-                        this.actuallyDoTheLoggingThing(this.format(ALERT_FOOTER, LogLevel.ALERT).getBytes(UTF8.utf8));
-                        return;
-                    }
-                    for (String subMsg : message.split("\n")) {
-                        String msg = this.format(subMsg, level);
-                        this.actuallyDoTheLoggingThing(msg.getBytes(UTF8.utf8));
-                    }
-                } finally {
-                    this.lock.unlock();
-                }
-            }
-        }
+    /**
+     * Writes an exception stack trace with a plain message to the log using the {@link LogLevel#ERROR} level.
+     *
+     * @param message an additional message that will be displayed
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger error(@NonNull String message, @NonNull Throwable throwable) {
+        StringJoiner joiner = new StringJoiner("\n");
+        joiner.add(message).add("");
+        getStackTrace(throwable, joiner::add);
+        return this.error(joiner.toString());
     }
 
-    public void info(@NonNull String message, @NonNull Object... params) {
-        this.log(message, LogLevel.INFO, params);
+    /**
+     * Writes an exception stack trace with a formatted message to the log using the {@link LogLevel#ERROR} level.
+     * <p>
+     * The message will be formatted using {@link String#format(String, Object...)}.
+     *
+     * @param format an additional message that will be displayed
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger error(@NonNull String format, @NonNull Throwable throwable, @NonNull Object... args) {
+        StringJoiner joiner = new StringJoiner("\n");
+        joiner.add(String.format(format, args)).add("");
+        getStackTrace(throwable, joiner::add);
+        return this.error(joiner.toString());
     }
 
-    public void error(@NonNull String message, @NonNull Object... params) {
-        this.log(message, LogLevel.ERROR, params);
+    /**
+     * Writes a plain message to the log using the {@link LogLevel#FATAL} level.
+     *
+     * @param message the message to be written
+     */
+    default Logger fatal(@NonNull String message) {
+        return this.log(LogLevel.FATAL, message);
     }
 
-    public void fatal(@NonNull String message, @NonNull Object... params) {
-        this.log(message, LogLevel.FATAL, params);
+    /**
+     * Writes a formatted message to the log using the {@link LogLevel#FATAL} level.
+     * <p>
+     * The message will be formatted using {@link String#format(String, Object...)}.
+     *
+     * @param format the message to be formatted
+     * @param args   the arguments to be used for formatting
+     */
+    default Logger fatal(@NonNull String format, @NonNull Object... args) {
+        return this.log(LogLevel.FATAL, String.format(format, args));
     }
 
-    public void alert(@NonNull String message, @NonNull Object... params) {
-        this.log(message, LogLevel.ALERT, params);
+    /**
+     * Writes an exception stack trace to the log using the {@link LogLevel#FATAL} level.
+     *
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger fatal(@NonNull Throwable throwable) {
+        StringJoiner joiner = new StringJoiner("\n");
+        getStackTrace(throwable, joiner::add);
+        return this.fatal(joiner.toString());
     }
 
-    public void warn(@NonNull String message, @NonNull Object... params) {
-        this.log(message, LogLevel.WARN, params);
+    /**
+     * Writes an exception stack trace with a plain message to the log using the {@link LogLevel#FATAL} level.
+     *
+     * @param message an additional message that will be displayed
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger fatal(@NonNull String message, @NonNull Throwable throwable) {
+        StringJoiner joiner = new StringJoiner("\n");
+        joiner.add(message).add("");
+        getStackTrace(throwable, joiner::add);
+        return this.fatal(joiner.toString());
     }
 
-    public void notify(@NonNull String message, @NonNull Object... params) {
-        this.log(message, LogLevel.NOTIFY, params);
+    /**
+     * Writes an exception stack trace with a formatted message to the log using the {@link LogLevel#FATAL} level.
+     * <p>
+     * The message will be formatted using {@link String#format(String, Object...)}.
+     *
+     * @param format an additional message that will be displayed
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger fatal(@NonNull String format, @NonNull Throwable throwable, @NonNull Object... args) {
+        StringJoiner joiner = new StringJoiner("\n");
+        joiner.add(String.format(format, args)).add("");
+        getStackTrace(throwable, joiner::add);
+        return this.fatal(joiner.toString());
     }
 
-    public void trace(@NonNull String message, @NonNull Object... params) {
-        this.log(message, LogLevel.TRACE, params);
+    /**
+     * Writes a plain message to the log using the {@link LogLevel#ALERT} level.
+     *
+     * @param message the message to be written
+     */
+    default Logger alert(@NonNull String message) {
+        return this.log(LogLevel.ALERT, message);
     }
 
-    public void debug(@NonNull String message, @NonNull Object... params) {
-        this.log(message, LogLevel.DEBUG, params);
+    /**
+     * Writes a formatted message to the log using the {@link LogLevel#ALERT} level.
+     * <p>
+     * The message will be formatted using {@link String#format(String, Object...)}.
+     *
+     * @param format the message to be formatted
+     * @param args   the arguments to be used for formatting
+     */
+    default Logger alert(@NonNull String format, @NonNull Object... args) {
+        return this.log(LogLevel.ALERT, String.format(format, args));
     }
 
-    public void log(@NonNull String message, @NonNull LogLevel level, @NonNull Object... params) {
-        if (level.getLevel() <= this.level) {
-            this.log(Formatter.format(message, params), level);
-        }
+    /**
+     * Writes an exception stack trace to the log using the {@link LogLevel#ALERT} level.
+     *
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger alert(@NonNull Throwable throwable) {
+        StringJoiner joiner = new StringJoiner("\n");
+        getStackTrace(throwable, joiner::add);
+        return this.alert(joiner.toString());
     }
 
-    public void error(@NonNull Throwable t) {
-        this.lock.lock();
-        try {
-            // Print our stack trace
-            this.error(t.toString());
-            StackTraceElement[] trace = PorkUtil.getStackTrace(t);
-            for (StackTraceElement element : trace) {
-                this.error("\tat ${0}", element);
-            }
-
-            // Print cause, if any
-            Throwable cause = t.getCause();
-            if (cause != null) {
-                this.error("Caused by:");
-                this.error(cause);
-            }
-        } finally {
-            this.lock.unlock();
-        }
+    /**
+     * Writes an exception stack trace with a plain message to the log using the {@link LogLevel#ALERT} level.
+     *
+     * @param message an additional message that will be displayed
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger alert(@NonNull String message, @NonNull Throwable throwable) {
+        StringJoiner joiner = new StringJoiner("\n");
+        joiner.add(message).add("");
+        getStackTrace(throwable, joiner::add);
+        return this.alert(joiner.toString());
     }
 
-    public void add(@NonNull File file) {
-        this.add(file, false);
+    /**
+     * Writes an exception stack trace with a formatted message to the log using the {@link LogLevel#ALERT} level.
+     * <p>
+     * The message will be formatted using {@link String#format(String, Object...)}.
+     *
+     * @param format an additional message that will be displayed
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger alert(@NonNull String format, @NonNull Throwable throwable, @NonNull Object... args) {
+        StringJoiner joiner = new StringJoiner("\n");
+        joiner.add(String.format(format, args)).add("");
+        getStackTrace(throwable, joiner::add);
+        return this.alert(joiner.toString());
     }
 
-    public void add(@NonNull File file, boolean overwrite) {
-        try {
-            if (file.exists()) {
-                if (!file.isFile()) {
-                    throw this.exception("Not a file: ${0}", file);
-                }
-            } else {
-                File parent = file.getParentFile();
-                if (!parent.exists() && !parent.mkdirs()) {
-                    throw this.exception("Couldn't create directory: ${0}", parent);
-                } else if (!file.createNewFile()) {
-                    throw this.exception("Couldn't create file: ${0}", file);
-                }
-            }
-            this.otherOutputs.add(new BufferedOutputStream(new FileOutputStream(file, !overwrite)));
-        } catch (IOException e) {
-            throw this.exception("Unable to add log output file: ${0}", e, file);
-        }
+    /**
+     * Writes a plain message to the log using the {@link LogLevel#WARN} level.
+     *
+     * @param message the message to be written
+     */
+    default Logger warn(@NonNull String message) {
+        return this.log(LogLevel.WARN, message);
     }
 
-    protected void actuallyDoTheLoggingThing(@NonNull byte[] toWrite) {
-        this.lock.lock();
-        try {
-            this.out.write(toWrite);
-            for (OutputStream out : this.otherOutputs) {
-                out.write(toWrite);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Unable to print message", e);
-        } finally {
-            this.lock.unlock();
-        }
+    /**
+     * Writes a formatted message to the log using the {@link LogLevel#WARN} level.
+     * <p>
+     * The message will be formatted using {@link String#format(String, Object...)}.
+     *
+     * @param format the message to be formatted
+     * @param args   the arguments to be used for formatting
+     */
+    default Logger warn(@NonNull String format, @NonNull Object... args) {
+        return this.log(LogLevel.WARN, String.format(format, args));
     }
 
-    protected String format(@NonNull String message, @NonNull LogLevel level) {
-        return this.prefixOrder.getPrefixer().prefix(this.dateFormat, level, this.levelFormat, message);//.endsWith("\n") ? message : String.format("%s\n", message));
+    /**
+     * Writes an exception stack trace to the log using the {@link LogLevel#WARN} level.
+     *
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger warn(@NonNull Throwable throwable) {
+        StringJoiner joiner = new StringJoiner("\n");
+        getStackTrace(throwable, joiner::add);
+        return this.warn(joiner.toString());
+    }
+
+    /**
+     * Writes an exception stack trace with a plain message to the log using the {@link LogLevel#WARN} level.
+     *
+     * @param message an additional message that will be displayed
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger warn(@NonNull String message, @NonNull Throwable throwable) {
+        StringJoiner joiner = new StringJoiner("\n");
+        joiner.add(message).add("");
+        getStackTrace(throwable, joiner::add);
+        return this.warn(joiner.toString());
+    }
+
+    /**
+     * Writes an exception stack trace with a formatted message to the log using the {@link LogLevel#WARN} level.
+     * <p>
+     * The message will be formatted using {@link String#format(String, Object...)}.
+     *
+     * @param format an additional message that will be displayed
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger warn(@NonNull String format, @NonNull Throwable throwable, @NonNull Object... args) {
+        StringJoiner joiner = new StringJoiner("\n");
+        joiner.add(String.format(format, args)).add("");
+        getStackTrace(throwable, joiner::add);
+        return this.warn(joiner.toString());
+    }
+
+    /**
+     * Writes a plain message to the log using the {@link LogLevel#TRACE} level.
+     *
+     * @param message the message to be written
+     */
+    default Logger trace(@NonNull String message) {
+        return this.log(LogLevel.TRACE, message);
+    }
+
+    /**
+     * Writes a formatted message to the log using the {@link LogLevel#TRACE} level.
+     * <p>
+     * The message will be formatted using {@link String#format(String, Object...)}.
+     *
+     * @param format the message to be formatted
+     * @param args   the arguments to be used for formatting
+     */
+    default Logger trace(@NonNull String format, @NonNull Object... args) {
+        return this.log(LogLevel.TRACE, String.format(format, args));
+    }
+
+    /**
+     * Writes an exception stack trace to the log using the {@link LogLevel#TRACE} level.
+     *
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger trace(@NonNull Throwable throwable) {
+        StringJoiner joiner = new StringJoiner("\n");
+        getStackTrace(throwable, joiner::add);
+        return this.trace(joiner.toString());
+    }
+
+    /**
+     * Writes an exception stack trace with a plain message to the log using the {@link LogLevel#TRACE} level.
+     *
+     * @param message an additional message that will be displayed
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger trace(@NonNull String message, @NonNull Throwable throwable) {
+        StringJoiner joiner = new StringJoiner("\n");
+        joiner.add(message).add("");
+        getStackTrace(throwable, joiner::add);
+        return this.trace(joiner.toString());
+    }
+
+    /**
+     * Writes an exception stack trace with a formatted message to the log using the {@link LogLevel#TRACE} level.
+     * <p>
+     * The message will be formatted using {@link String#format(String, Object...)}.
+     *
+     * @param format an additional message that will be displayed
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger trace(@NonNull String format, @NonNull Throwable throwable, @NonNull Object... args) {
+        StringJoiner joiner = new StringJoiner("\n");
+        joiner.add(String.format(format, args)).add("");
+        getStackTrace(throwable, joiner::add);
+        return this.trace(joiner.toString());
+    }
+
+    /**
+     * Writes a plain message to the log using the {@link LogLevel#DEBUG} level.
+     *
+     * @param message the message to be written
+     */
+    default Logger debug(@NonNull String message) {
+        return this.log(LogLevel.DEBUG, message);
+    }
+
+    /**
+     * Writes a formatted message to the log using the {@link LogLevel#DEBUG} level.
+     * <p>
+     * The message will be formatted using {@link String#format(String, Object...)}.
+     *
+     * @param format the message to be formatted
+     * @param args   the arguments to be used for formatting
+     */
+    default Logger debug(@NonNull String format, @NonNull Object... args) {
+        return this.log(LogLevel.DEBUG, String.format(format, args));
+    }
+
+    /**
+     * Writes an exception stack trace to the log using the {@link LogLevel#DEBUG} level.
+     *
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger debug(@NonNull Throwable throwable) {
+        StringJoiner joiner = new StringJoiner("\n");
+        getStackTrace(throwable, joiner::add);
+        return this.debug(joiner.toString());
+    }
+
+    /**
+     * Writes an exception stack trace with a plain message to the log using the {@link LogLevel#DEBUG} level.
+     *
+     * @param message an additional message that will be displayed
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger debug(@NonNull String message, @NonNull Throwable throwable) {
+        StringJoiner joiner = new StringJoiner("\n");
+        joiner.add(message).add("");
+        getStackTrace(throwable, joiner::add);
+        return this.debug(joiner.toString());
+    }
+
+    /**
+     * Writes an exception stack trace with a formatted message to the log using the {@link LogLevel#DEBUG} level.
+     * <p>
+     * The message will be formatted using {@link String#format(String, Object...)}.
+     *
+     * @param format an additional message that will be displayed
+     * @param throwable the exception whose stack trace should be printed
+     */
+    default Logger debug(@NonNull String format, @NonNull Throwable throwable, @NonNull Object... args) {
+        StringJoiner joiner = new StringJoiner("\n");
+        joiner.add(String.format(format, args)).add("");
+        getStackTrace(throwable, joiner::add);
+        return this.debug(joiner.toString());
+    }
+
+    //
+    //
+    // Other stuff
+    //
+    //
+
+    /**
+     * Gets the currently used {@link FormatParser} for parsing formatted log messages.
+     *
+     * @return the currently used {@link FormatParser}
+     */
+    FormatParser getFormatParser();
+
+    /**
+     * Sets the currently used {@link FormatParser} for parsing formatted log messages.
+     *
+     * @param parser the new {@link FormatParser} to use
+     */
+    Logger setFormatParser(@NonNull FormatParser parser);
+
+    /**
+     * Gets the currently used {@link MessageFormatter} for formatting log messages for printing.
+     *
+     * @return the currently used {@link MessageFormatter}
+     */
+    MessageFormatter getMessageFormatter();
+
+    /**
+     * Sets the currently used {@link MessageFormatter} for formatting log messages for printing.
+     *
+     * @param formatter the new {@link MessageFormatter} to use
+     */
+    Logger setMessageFormatter(@NonNull MessageFormatter formatter);
+
+    /**
+     * Gets the levels that may be printed by this logger.
+     *
+     * @return the levels that may be printed by this logger
+     */
+    Set<LogLevel> getLogLevels();
+
+    /**
+     * Sets the levels that may be printed by this logger.
+     *
+     * @param levels the new levels that may be printed by this logger
+     */
+    Logger setLogLevels(@NonNull Set<LogLevel> levels);
+
+    /**
+     * Sets the currently used log amount.
+     *
+     * @param amount the new log amount to use
+     */
+    default Logger setLogAmount(@NonNull LogAmount amount)    {
+        return this.setLogLevels(amount.getLevelSet());
+    }
+
+    /**
+     * Creates a new channel with the given name. The returned logger will print all it's output
+     * via this one (in whatever manner the implementation chooses to do this), but will have an
+     * additional prefix in the output.
+     *
+     * @param name the name of the channel
+     * @return a channel with the given name
+     */
+    Logger channel(@NonNull String name);
+
+    /**
+     * Checks whether or not log messages with the given level should be displayed.
+     *
+     * @param level the level
+     * @return whether or not messages with the given level will be displayed
+     */
+    default boolean shouldDisplay(@NonNull LogLevel level) {
+        return this.getLogLevels().contains(level);
     }
 }

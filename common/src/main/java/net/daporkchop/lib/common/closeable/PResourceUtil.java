@@ -38,6 +38,18 @@ import java.util.stream.Stream;
  */
 @UtilityClass
 public class PResourceUtil {
+    private static <T> Iterable<T> toIterable(T[] arr) {
+        return arr != null ? Arrays.asList(arr) : null;
+    }
+
+    private static <T> Iterable<T> toIterable(T[] arr, int off, int len) {
+        return arr != null ? Arrays.asList(arr).subList(off, off + len) : null;
+    }
+
+    private static <T> Iterable<T> toIterable(Stream<T> stream) {
+        return stream != null ? PStreams.toIterable(stream) : null;
+    }
+
     //
     //
     // Bulk and/or exception-suppressing methods
@@ -85,7 +97,7 @@ public class PResourceUtil {
     /**
      * {@link AutoCloseable#close() Closes} all of the provided objects.
      * <p>
-     * Any {@code null} objects will be ignored.
+     * If the given {@link Iterable} is {@code null}, this method does nothing. Otherwise, any {@code null} objects will be ignored.
      * <p>
      * This will attempt to close every object in the given {@link Iterable}, even if one of them throws an exception.
      *
@@ -130,7 +142,7 @@ public class PResourceUtil {
     /**
      * {@link AutoCloseable#close() Closes} all of the provided objects.
      * <p>
-     * Any {@code null} objects will be ignored.
+     * If the given {@link Iterable} is {@code null}, this method does nothing. Otherwise, any {@code null} objects will be ignored.
      * <p>
      * This will attempt to close every object in the given {@link Iterable}, even if one of them throws an exception.
      * <p>
@@ -156,7 +168,7 @@ public class PResourceUtil {
     /**
      * {@link AutoCloseable#close() Closes} all of the provided objects.
      * <p>
-     * Any {@code null} objects will be ignored.
+     * If the given array is {@code null}, this method does nothing. Otherwise, any {@code null} objects will be ignored.
      * <p>
      * This will attempt to close every object in the given array, even if one of them throws an exception.
      *
@@ -164,15 +176,13 @@ public class PResourceUtil {
      * @throws Exception if an exception occurs while closing the objects
      */
     public static void closeAll(AutoCloseable... toClose) throws Exception {
-        if (toClose != null) {
-            closeAll(Arrays.asList(toClose));
-        }
+        closeAll(toIterable(toClose));
     }
 
     /**
      * {@link AutoCloseable#close() Closes} all of the provided objects.
      * <p>
-     * Any {@code null} objects will be ignored.
+     * If the given array is {@code null}, this method does nothing. Otherwise, any {@code null} objects will be ignored.
      * <p>
      * This will attempt to close every object in the given array, even if one of them throws an exception.
      * <p>
@@ -198,7 +208,7 @@ public class PResourceUtil {
     /**
      * {@link AutoCloseable#close() Closes} all of the provided objects.
      * <p>
-     * Any {@code null} objects will be ignored.
+     * If the given array is {@code null}, this method does nothing. Otherwise, any {@code null} objects will be ignored.
      * <p>
      * This will attempt to close every object in the given array, even if one of them throws an exception.
      *
@@ -208,13 +218,13 @@ public class PResourceUtil {
      * @throws Exception if an exception occurs while closing the objects
      */
     public static void closeAll(AutoCloseable[] toClose, int off, int len) throws Exception {
-        closeAll(Arrays.asList(toClose).subList(off, off + len));
+        closeAll(toIterable(toClose, off, len));
     }
 
     /**
      * {@link AutoCloseable#close() Closes} all of the provided objects.
      * <p>
-     * Any {@code null} objects will be ignored.
+     * If the given array is {@code null}, this method does nothing. Otherwise, any {@code null} objects will be ignored.
      * <p>
      * This will attempt to close every object in the given array, even if one of them throws an exception.
      * <p>
@@ -282,7 +292,7 @@ public class PResourceUtil {
     /**
      * Closes all of the provided objects using the provided close function.
      * <p>
-     * Any {@code null} objects will be ignored.
+     * If the given {@link Iterable} is {@code null}, this method does nothing. Otherwise, any {@code null} objects will be ignored.
      * <p>
      * This will attempt to close every object in the given {@link Iterable}, even if one of them throws an exception.
      *
@@ -328,7 +338,7 @@ public class PResourceUtil {
     /**
      * Closes all of the provided objects using the provided close function.
      * <p>
-     * Any {@code null} objects will be ignored.
+     * If the given {@link Iterable} is {@code null}, this method does nothing. Otherwise, any {@code null} objects will be ignored.
      * <p>
      * This will attempt to close every object in the given {@link Iterable}, even if one of them throws an exception.
      * <p>
@@ -355,7 +365,7 @@ public class PResourceUtil {
     /**
      * Closes all of the provided objects using the provided close function.
      * <p>
-     * Any {@code null} objects will be ignored.
+     * If the given array is {@code null}, this method does nothing. Otherwise, any {@code null} objects will be ignored.
      * <p>
      * This will attempt to close every object in the given array, even if one of them throws an exception.
      *
@@ -364,15 +374,13 @@ public class PResourceUtil {
      * @throws T if an exception occurs while closing the objects
      */
     public static <V, T extends Throwable> void closeAll(@NonNull TConsumer<V, T> closeFunction, V... toClose) throws T {
-        if (toClose != null) {
-            closeAll(closeFunction, Arrays.asList(toClose));
-        }
+        closeAll(closeFunction, toIterable(toClose));
     }
 
     /**
      * Closes all of the provided objects using the provided close function.
      * <p>
-     * Any {@code null} objects will be ignored.
+     * If the given array is {@code null}, this method does nothing. Otherwise, any {@code null} objects will be ignored.
      * <p>
      * This will attempt to close every object in the given array, even if one of them throws an exception.
      * <p>
@@ -399,7 +407,7 @@ public class PResourceUtil {
     /**
      * Closes all of the provided objects using the provided close function.
      * <p>
-     * Any {@code null} objects will be ignored.
+     * If the given array is {@code null}, this method does nothing. Otherwise, any {@code null} objects will be ignored.
      * <p>
      * This will attempt to close every object in the given array, even if one of them throws an exception.
      *
@@ -410,13 +418,13 @@ public class PResourceUtil {
      * @throws T if an exception occurs while closing the objects
      */
     public static <V, T extends Throwable> void closeAll(@NonNull TConsumer<V, T> closeFunction, V[] toClose, int off, int len) throws T {
-        closeAll(closeFunction, Arrays.asList(toClose).subList(off, off + len));
+        closeAll(closeFunction, toIterable(toClose, off, len));
     }
 
     /**
      * Closes all of the provided objects using the provided close function.
      * <p>
-     * Any {@code null} objects will be ignored.
+     * If the given array is {@code null}, this method does nothing. Otherwise, any {@code null} objects will be ignored.
      * <p>
      * This will attempt to close every object in the given array, even if one of them throws an exception.
      * <p>
@@ -445,7 +453,7 @@ public class PResourceUtil {
     /**
      * {@link TypedCloseable#close() Closes} all of the provided objects.
      * <p>
-     * Any {@code null} objects will be ignored.
+     * If the given {@link Iterable} is {@code null}, this method does nothing. Otherwise, any {@code null} objects will be ignored.
      * <p>
      * This will attempt to close every object in the given {@link Iterable}, even if one of them throws an exception.
      *
@@ -462,7 +470,7 @@ public class PResourceUtil {
     /**
      * {@link TypedCloseable#close() Closes} all of the provided objects.
      * <p>
-     * Any {@code null} objects will be ignored.
+     * If the given array is {@code null}, this method does nothing. Otherwise, any {@code null} objects will be ignored.
      * <p>
      * This will attempt to close every object in the given array, even if one of them throws an exception.
      *
@@ -478,7 +486,7 @@ public class PResourceUtil {
     /**
      * {@link TypedCloseable#close() Closes} all of the provided objects.
      * <p>
-     * Any {@code null} objects will be ignored.
+     * If the given array is {@code null}, this method does nothing. Otherwise, any {@code null} objects will be ignored.
      * <p>
      * This will attempt to close every object in the given array, even if one of them throws an exception.
      *
@@ -496,7 +504,7 @@ public class PResourceUtil {
     /**
      * {@link QuietCloseable#close() Closes} all of the provided objects.
      * <p>
-     * Any {@code null} objects will be ignored.
+     * If the given {@link Iterable} is {@code null}, this method does nothing. Otherwise, any {@code null} objects will be ignored.
      * <p>
      * This will attempt to close every object in the given {@link Iterable}, even if one of them throws an exception.
      *
@@ -512,7 +520,7 @@ public class PResourceUtil {
     /**
      * {@link QuietCloseable#close() Closes} all of the provided objects.
      * <p>
-     * Any {@code null} objects will be ignored.
+     * If the given array is {@code null}, this method does nothing. Otherwise, any {@code null} objects will be ignored.
      * <p>
      * This will attempt to close every object in the given array, even if one of them throws an exception.
      *
@@ -527,7 +535,7 @@ public class PResourceUtil {
     /**
      * {@link QuietCloseable#close() Closes} all of the provided objects.
      * <p>
-     * Any {@code null} objects will be ignored.
+     * If the given array is {@code null}, this method does nothing. Otherwise, any {@code null} objects will be ignored.
      * <p>
      * This will attempt to close every object in the given array, even if one of them throws an exception.
      *
@@ -556,7 +564,7 @@ public class PResourceUtil {
      * @param toClose the objects to closed
      * @return an {@link AutoCloseable}
      */
-    public static AutoCloseable lazyCloseAll(@NonNull Iterable<? extends AutoCloseable> toClose) {
+    public static AutoCloseable lazyCloseAll(Iterable<? extends AutoCloseable> toClose) {
         return () -> closeAll(toClose);
     }
 
@@ -570,7 +578,7 @@ public class PResourceUtil {
      * @return an {@link AutoCloseable}
      */
     public static AutoCloseable lazyCloseAll(Stream<? extends AutoCloseable> toClose) {
-        return lazyCloseAll(PStreams.toIterable(toClose));
+        return lazyCloseAll(toIterable(toClose));
     }
 
     /**
@@ -582,7 +590,7 @@ public class PResourceUtil {
      * @return an {@link AutoCloseable}
      */
     public static AutoCloseable lazyCloseAll(AutoCloseable... toClose) {
-        return lazyCloseAll(Arrays.asList(toClose));
+        return lazyCloseAll(toIterable(toClose));
     }
 
     /**
@@ -596,7 +604,7 @@ public class PResourceUtil {
      * @return an {@link AutoCloseable}
      */
     public static AutoCloseable lazyCloseAll(AutoCloseable[] toClose, int off, int len) {
-        return lazyCloseAll(Arrays.asList(toClose).subList(off, off + len));
+        return lazyCloseAll(toIterable(toClose, off, len));
     }
 
     /**
@@ -609,7 +617,7 @@ public class PResourceUtil {
      * @param toClose the objects to closed
      * @return a {@link TypedCloseable}
      */
-    public static <V, E extends Exception> TypedCloseable<E> lazyCloseAll(@NonNull TConsumer<V, E> closeFunction, @NonNull Iterable<? extends V> toClose) {
+    public static <V, E extends Exception> TypedCloseable<E> lazyCloseAll(@NonNull TConsumer<V, E> closeFunction, Iterable<? extends V> toClose) {
         return () -> closeAll(closeFunction, toClose);
     }
 
@@ -624,7 +632,7 @@ public class PResourceUtil {
      * @return a {@link TypedCloseable}
      */
     public static <V, E extends Exception> TypedCloseable<E> lazyCloseAll(@NonNull TConsumer<V, E> closeFunction, Stream<? extends V> toClose) {
-        return lazyCloseAll(closeFunction, PStreams.toIterable(toClose));
+        return lazyCloseAll(closeFunction, toIterable(toClose));
     }
 
     /**
@@ -637,7 +645,7 @@ public class PResourceUtil {
      * @return a {@link TypedCloseable}
      */
     public static <V, E extends Exception> TypedCloseable<E> lazyCloseAll(@NonNull TConsumer<V, E> closeFunction, V... toClose) {
-        return lazyCloseAll(closeFunction, Arrays.asList(toClose));
+        return lazyCloseAll(closeFunction, toIterable(toClose));
     }
 
     /**
@@ -652,9 +660,9 @@ public class PResourceUtil {
      * @return a {@link TypedCloseable}
      */
     public static <V, E extends Exception> TypedCloseable<E> lazyCloseAll(@NonNull TConsumer<V, E> closeFunction, V[] toClose, int off, int len) {
-        return lazyCloseAll(closeFunction, Arrays.asList(toClose).subList(off, off + len));
+        return lazyCloseAll(closeFunction, toIterable(toClose, off, len));
     }
-    
+
     /**
      * Gets a {@link TypedCloseable} which, when {@link TypedCloseable#close() closed}, will close all of the objects in the given {@link Iterable}.
      * <p>
@@ -665,7 +673,7 @@ public class PResourceUtil {
      * @return a {@link TypedCloseable}
      */
     //this has a different name thanks to Java generic erasure causing conflicts
-    public static <E extends Exception> TypedCloseable<E> lazyCloseAllTyped(@NonNull Iterable<? extends TypedCloseable<E>> toClose) {
+    public static <E extends Exception> TypedCloseable<E> lazyCloseAllTyped(Iterable<? extends TypedCloseable<E>> toClose) {
         return () -> closeAllTyped(toClose);
     }
 
@@ -679,7 +687,7 @@ public class PResourceUtil {
      * @return a {@link TypedCloseable}
      */
     public static <E extends Exception> TypedCloseable<E> lazyCloseAllTyped(Stream<? extends TypedCloseable<E>> toClose) {
-        return lazyCloseAllTyped(PStreams.toIterable(toClose));
+        return lazyCloseAllTyped(toIterable(toClose));
     }
 
     /**
@@ -692,7 +700,7 @@ public class PResourceUtil {
      */
     @SafeVarargs
     public static <E extends Exception> TypedCloseable<E> lazyCloseAll(TypedCloseable<E>... toClose) {
-        return lazyCloseAllTyped(Arrays.asList(toClose));
+        return lazyCloseAllTyped(toIterable(toClose));
     }
 
     /**
@@ -706,7 +714,7 @@ public class PResourceUtil {
      * @return a {@link TypedCloseable}
      */
     public static <E extends Exception> TypedCloseable<E> lazyCloseAll(TypedCloseable<E>[] toClose, int off, int len) {
-        return lazyCloseAllTyped(Arrays.asList(toClose).subList(off, off + len));
+        return lazyCloseAllTyped(toIterable(toClose, off, len));
     }
     
     /**
@@ -719,7 +727,7 @@ public class PResourceUtil {
      * @return a {@link QuietCloseable}
      */
     //this has a different name thanks to Java generic erasure causing conflicts
-    public static QuietCloseable lazyCloseAllQuiet(@NonNull Iterable<? extends QuietCloseable> toClose) {
+    public static QuietCloseable lazyCloseAllQuiet(Iterable<? extends QuietCloseable> toClose) {
         return () -> closeAllQuiet(toClose);
     }
 
@@ -733,7 +741,7 @@ public class PResourceUtil {
      * @return a {@link QuietCloseable}
      */
     public static QuietCloseable lazyCloseAllQuiet(Stream<? extends QuietCloseable> toClose) {
-        return lazyCloseAllQuiet(PStreams.toIterable(toClose));
+        return lazyCloseAllQuiet(toIterable(toClose));
     }
 
     /**
@@ -745,7 +753,7 @@ public class PResourceUtil {
      * @return a {@link QuietCloseable}
      */
     public static QuietCloseable lazyCloseAll(QuietCloseable... toClose) {
-        return lazyCloseAllQuiet(Arrays.asList(toClose));
+        return lazyCloseAllQuiet(toIterable(toClose));
     }
 
     /**
@@ -759,6 +767,6 @@ public class PResourceUtil {
      * @return a {@link QuietCloseable}
      */
     public static QuietCloseable lazyCloseAll(QuietCloseable[] toClose, int off, int len) {
-        return lazyCloseAllQuiet(Arrays.asList(toClose).subList(off, off + len));
+        return lazyCloseAllQuiet(toIterable(toClose, off, len));
     }
 }

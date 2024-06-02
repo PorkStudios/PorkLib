@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2022 DaPorkchop_
+ * Copyright (c) 2018-2024 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -47,14 +47,11 @@ import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.IdentityHashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-
-import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
  * Some helper methods and values that I use all over the place
@@ -354,105 +351,62 @@ public class PorkUtil {
         return constructor.newInstance();
     }
 
+    /**
+     * @deprecated use {@link CloseUtil#closeAll(Iterable)}
+     */
+    @Deprecated
     public static void closeAll(@NonNull Iterable<? extends AutoCloseable> closeables) throws Exception {
-        Exception e = null;
-        for (Iterator<? extends AutoCloseable> itr = closeables.iterator(); itr.hasNext(); ) { //iterate over all the values
-            AutoCloseable value = itr.next();
-            if (value != null) { //the value is non-null, try to close it
-                try {
-                    value.close();
-                } catch (Exception e1) { //there was an exception, save it for later
-                    if (e == null) { //this is the first exception which has occurred
-                        e = e1;
-                    } else { //add the exception onto the first exception
-                        e.addSuppressed(e1);
-                    }
-                }
-            }
-        }
-
-        if (e != null) { //at least one value threw an exception while being closed, rethrow it
-            throw e;
-        }
+        CloseUtil.closeAll(closeables);
     }
 
+    /**
+     * @deprecated use {@link CloseUtil#closeAll(AutoCloseable[])}
+     */
+    @Deprecated
     public static void closeAll(@NonNull AutoCloseable... closeables) throws Exception {
-        closeAll(closeables, 0, closeables.length);
+        CloseUtil.closeAll(closeables);
     }
 
+    /**
+     * @deprecated use {@link CloseUtil#closeAll(AutoCloseable[], int, int)}
+     */
+    @Deprecated
     public static void closeAll(@NonNull AutoCloseable[] closeables, int off, int len) throws Exception {
-        checkRangeLen(closeables.length, off, len);
-
-        Exception e = null;
-        for (int i = 0; i < len; i++) { //iterate over all the values
-            AutoCloseable value = closeables[i + off];
-            if (value != null) { //the value is non-null, try to close it
-                try {
-                    value.close();
-                } catch (Exception e1) { //there was an exception, save it for later
-                    if (e == null) { //this is the first exception which has occurred
-                        e = e1;
-                    } else { //add the exception onto the first exception
-                        e.addSuppressed(e1);
-                    }
-                }
-            }
-        }
-
-        if (e != null) { //at least one value threw an exception while being closed, rethrow it
-            throw e;
-        }
+        CloseUtil.closeAll(closeables, off, len);
     }
 
-    @SneakyThrows(Exception.class)
-    public static <T, E extends Exception> void closeAll(@NonNull TConsumer<T, E> closeFunction, @NonNull Iterable<? extends T> closeables) throws E {
-        Exception e = null;
-        for (Iterator<? extends T> itr = closeables.iterator(); itr.hasNext(); ) { //iterate over all the values
-            T value = itr.next();
-            if (value != null) { //the value is non-null, try to close it
-                try {
-                    closeFunction.acceptThrowing(value);
-                } catch (Exception e1) { //there was an exception, save it for later
-                    if (e == null) { //this is the first exception which has occurred
-                        e = e1;
-                    } else { //add the exception onto the first exception
-                        e.addSuppressed(e1);
-                    }
-                }
-            }
-        }
-
-        if (e != null) { //at least one value threw an exception while being closed, rethrow it
-            throw e;
-        }
+    /**
+     * @deprecated use {@link CloseUtil#closeAll(TConsumer, Iterable)}
+     */
+    @Deprecated
+    public static <V, T extends Exception> void closeAll(@NonNull TConsumer<V, T> closeFunction, @NonNull Iterable<? extends V> closeables) throws T {
+        CloseUtil.closeAll(closeFunction, closeables);
     }
 
-    public static <T, E extends Exception> void closeAll(@NonNull TConsumer<T, E> closeFunction, @NonNull T... closeables) throws E {
-        closeAll(closeFunction, closeables, 0, closeables.length);
+    /**
+     * @deprecated use {@link CloseUtil#closeAll(TConsumer, Object[])}
+     */
+    @Deprecated
+    public static <V, T extends Exception> void closeAll(@NonNull TConsumer<V, T> closeFunction, @NonNull V... closeables) throws T {
+        CloseUtil.closeAll(closeFunction, closeables);
     }
 
-    @SneakyThrows(Exception.class)
-    public static <T, E extends Exception> void closeAll(@NonNull TConsumer<T, E> closeFunction, @NonNull T[] closeables, int off, int len) throws E {
-        checkRangeLen(closeables.length, off, len);
+    /**
+     * @deprecated use {@link CloseUtil#closeAll(TConsumer, Object[], int, int)}
+     */
+    @Deprecated
+    public static <V, T extends Exception> void closeAll(@NonNull TConsumer<V, T> closeFunction, @NonNull V[] closeables, int off, int len) throws T {
+        CloseUtil.closeAll(closeFunction, closeables, off, len);
+    }
 
-        Exception e = null;
-        for (int i = 0; i < len; i++) { //iterate over all the values
-            T value = closeables[i + off];
-            if (value != null) { //the value is non-null, try to close it
-                try {
-                    closeFunction.acceptThrowing(value);
-                } catch (Exception e1) { //there was an exception, save it for later
-                    if (e == null) { //this is the first exception which has occurred
-                        e = e1;
-                    } else { //add the exception onto the first exception
-                        e.addSuppressed(e1);
-                    }
-                }
-            }
-        }
-
-        if (e != null) { //at least one value threw an exception while being closed, rethrow it
-            throw e;
-        }
+    /**
+     * Throws a {@link Throwable} object, bypassing all compile-time checks for throwing unchecked exceptions.
+     *
+     * @param t the {@link Throwable} to throw
+     * @return this method never returns, but its return type is {@link Error} so that control flow can be terminated using {@code throw}
+     */
+    @SneakyThrows
+    public static Error throwUnchecked(Throwable t) {
+        throw t;
     }
 }

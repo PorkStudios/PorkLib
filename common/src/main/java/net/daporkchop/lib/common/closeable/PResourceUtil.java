@@ -18,14 +18,18 @@
  *
  */
 
-package net.daporkchop.lib.common.util;
+package net.daporkchop.lib.common.closeable;
 
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.function.throwing.TConsumer;
+import net.daporkchop.lib.common.stream.PStreams;
+import net.daporkchop.lib.common.util.PorkUtil;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.stream.Stream;
 
 /**
  * Helper methods for working with closeable resources.
@@ -33,7 +37,13 @@ import java.util.Iterator;
  * @author DaPorkchop_
  */
 @UtilityClass
-public class ResourceUtil {
+public class PResourceUtil {
+    //
+    //
+    // Bulk and/or exception-suppressing methods
+    //
+    //
+
     /**
      * {@link AutoCloseable#close() Closes} the provided object.
      * <p>
@@ -430,5 +440,325 @@ public class ResourceUtil {
         }
 
         return root;
+    }
+
+    /**
+     * {@link TypedCloseable#close() Closes} all of the provided objects.
+     * <p>
+     * Any {@code null} objects will be ignored.
+     * <p>
+     * This will attempt to close every object in the given {@link Iterable}, even if one of them throws an exception.
+     *
+     * @param toClose the objects to close
+     * @throws E if an exception occurs while closing the objects
+     */
+    //this has a different name thanks to Java generic erasure causing conflicts
+    @SuppressWarnings("RedundantThrows")
+    @SneakyThrows(Exception.class)
+    public static <E extends Exception> void closeAllTyped(Iterable<? extends TypedCloseable<E>> toClose) throws E {
+        closeAll(toClose);
+    }
+
+    /**
+     * {@link TypedCloseable#close() Closes} all of the provided objects.
+     * <p>
+     * Any {@code null} objects will be ignored.
+     * <p>
+     * This will attempt to close every object in the given array, even if one of them throws an exception.
+     *
+     * @param toClose the objects to close
+     * @throws E if an exception occurs while closing the objects
+     */
+    @SuppressWarnings("RedundantThrows")
+    @SneakyThrows(Exception.class)
+    public static <E extends Exception> void closeAll(TypedCloseable<E>... toClose) throws E {
+        closeAll((AutoCloseable[]) toClose);
+    }
+
+    /**
+     * {@link TypedCloseable#close() Closes} all of the provided objects.
+     * <p>
+     * Any {@code null} objects will be ignored.
+     * <p>
+     * This will attempt to close every object in the given array, even if one of them throws an exception.
+     *
+     * @param toClose the objects to close
+     * @param off     the index of the first object to close
+     * @param len     the number of objects to close
+     * @throws E if an exception occurs while closing the objects
+     */
+    @SuppressWarnings("RedundantThrows")
+    @SneakyThrows(Exception.class)
+    public static <E extends Exception> void closeAll(TypedCloseable<E>[] toClose, int off, int len) throws E {
+        closeAll((AutoCloseable[]) toClose, off, len);
+    }
+
+    /**
+     * {@link QuietCloseable#close() Closes} all of the provided objects.
+     * <p>
+     * Any {@code null} objects will be ignored.
+     * <p>
+     * This will attempt to close every object in the given {@link Iterable}, even if one of them throws an exception.
+     *
+     * @param toClose the objects to close
+     */
+    //this has a different name thanks to Java generic erasure causing conflicts
+    @SuppressWarnings("RedundantThrows")
+    @SneakyThrows(Exception.class)
+    public static void closeAllQuiet(Iterable<? extends QuietCloseable> toClose) {
+        closeAll(toClose);
+    }
+
+    /**
+     * {@link QuietCloseable#close() Closes} all of the provided objects.
+     * <p>
+     * Any {@code null} objects will be ignored.
+     * <p>
+     * This will attempt to close every object in the given array, even if one of them throws an exception.
+     *
+     * @param toClose the objects to close
+     */
+    @SuppressWarnings("RedundantThrows")
+    @SneakyThrows(Exception.class)
+    public static void closeAll(QuietCloseable... toClose) {
+        closeAll((AutoCloseable[]) toClose);
+    }
+
+    /**
+     * {@link QuietCloseable#close() Closes} all of the provided objects.
+     * <p>
+     * Any {@code null} objects will be ignored.
+     * <p>
+     * This will attempt to close every object in the given array, even if one of them throws an exception.
+     *
+     * @param toClose the objects to close
+     * @param off     the index of the first object to close
+     * @param len     the number of objects to close
+     */
+    @SuppressWarnings("RedundantThrows")
+    @SneakyThrows(Exception.class)
+    public static void closeAll(QuietCloseable[] toClose, int off, int len) {
+        closeAll((AutoCloseable[]) toClose, off, len);
+    }
+
+    //
+    //
+    // Lazy close adapters
+    //
+    //
+
+    /**
+     * Gets an {@link AutoCloseable} which, when {@link AutoCloseable#close() closed}, will close all of the objects in the given {@link Iterable}.
+     * <p>
+     * This is intended to allow non-{@link AutoCloseable} composite types, such as {@link java.util.List}s of {@link AutoCloseable}, to be used in
+     * a {@code try-with-resources} block.
+     *
+     * @param toClose the objects to closed
+     * @return an {@link AutoCloseable}
+     */
+    public static AutoCloseable lazyCloseAll(@NonNull Iterable<? extends AutoCloseable> toClose) {
+        return () -> closeAll(toClose);
+    }
+
+    /**
+     * Gets an {@link AutoCloseable} which, when {@link AutoCloseable#close() closed}, will close all of the objects in the given {@link Stream}.
+     * <p>
+     * This is intended to allow non-{@link AutoCloseable} composite types, such as {@link java.util.List}s of {@link AutoCloseable}, to be used in
+     * a {@code try-with-resources} block.
+     *
+     * @param toClose the objects to closed
+     * @return an {@link AutoCloseable}
+     */
+    public static AutoCloseable lazyCloseAll(Stream<? extends AutoCloseable> toClose) {
+        return lazyCloseAll(PStreams.toIterable(toClose));
+    }
+
+    /**
+     * Gets an {@link AutoCloseable} which, when {@link AutoCloseable#close() closed}, will close all of the objects in the given array.
+     * <p>
+     * This is intended to allow arrays of {@link AutoCloseable} to be used in a {@code try-with-resources} block.
+     *
+     * @param toClose the objects to closed
+     * @return an {@link AutoCloseable}
+     */
+    public static AutoCloseable lazyCloseAll(AutoCloseable... toClose) {
+        return lazyCloseAll(Arrays.asList(toClose));
+    }
+
+    /**
+     * Gets an {@link AutoCloseable} which, when {@link AutoCloseable#close() closed}, will close all of the objects in the given array.
+     * <p>
+     * This is intended to allow arrays of {@link AutoCloseable} to be used in a {@code try-with-resources} block.
+     *
+     * @param toClose the objects to closed
+     * @param off     the index of the first object to close
+     * @param len     the number of objects to close
+     * @return an {@link AutoCloseable}
+     */
+    public static AutoCloseable lazyCloseAll(AutoCloseable[] toClose, int off, int len) {
+        return lazyCloseAll(Arrays.asList(toClose).subList(off, off + len));
+    }
+
+    /**
+     * Gets a {@link TypedCloseable} which, when {@link TypedCloseable#close() closed}, will close all of the objects in the given {@link Iterable} using the provided close function.
+     * <p>
+     * This is intended to allow non-{@link AutoCloseable} composite types, such as {@link java.util.List}s of {@link AutoCloseable}, to be used in
+     * a {@code try-with-resources} block.
+     *
+     * @param closeFunction the close function
+     * @param toClose the objects to closed
+     * @return a {@link TypedCloseable}
+     */
+    public static <V, E extends Exception> TypedCloseable<E> lazyCloseAll(@NonNull TConsumer<V, E> closeFunction, @NonNull Iterable<? extends V> toClose) {
+        return () -> closeAll(closeFunction, toClose);
+    }
+
+    /**
+     * Gets a {@link TypedCloseable} which, when {@link TypedCloseable#close() closed}, will close all of the objects in the given {@link Stream} using the provided close function.
+     * <p>
+     * This is intended to allow non-{@link AutoCloseable} composite types, such as {@link java.util.List}s of {@link TypedCloseable}, to be used in
+     * a {@code try-with-resources} block.
+     *
+     * @param closeFunction the close function
+     * @param toClose the objects to closed
+     * @return a {@link TypedCloseable}
+     */
+    public static <V, E extends Exception> TypedCloseable<E> lazyCloseAll(@NonNull TConsumer<V, E> closeFunction, Stream<? extends V> toClose) {
+        return lazyCloseAll(closeFunction, PStreams.toIterable(toClose));
+    }
+
+    /**
+     * Gets a {@link TypedCloseable} which, when {@link TypedCloseable#close() closed}, will close all of the objects in the given array using the provided close function.
+     * <p>
+     * This is intended to allow arrays of {@link TypedCloseable} to be used in a {@code try-with-resources} block.
+     *
+     * @param closeFunction the close function
+     * @param toClose the objects to closed
+     * @return a {@link TypedCloseable}
+     */
+    public static <V, E extends Exception> TypedCloseable<E> lazyCloseAll(@NonNull TConsumer<V, E> closeFunction, V... toClose) {
+        return lazyCloseAll(closeFunction, Arrays.asList(toClose));
+    }
+
+    /**
+     * Gets a {@link TypedCloseable} which, when {@link TypedCloseable#close() closed}, will close all of the objects in the given array using the provided close function.
+     * <p>
+     * This is intended to allow arrays of {@link TypedCloseable} to be used in a {@code try-with-resources} block.
+     *
+     * @param closeFunction the close function
+     * @param toClose the objects to closed
+     * @param off     the index of the first object to close
+     * @param len     the number of objects to close
+     * @return a {@link TypedCloseable}
+     */
+    public static <V, E extends Exception> TypedCloseable<E> lazyCloseAll(@NonNull TConsumer<V, E> closeFunction, V[] toClose, int off, int len) {
+        return lazyCloseAll(closeFunction, Arrays.asList(toClose).subList(off, off + len));
+    }
+    
+    /**
+     * Gets a {@link TypedCloseable} which, when {@link TypedCloseable#close() closed}, will close all of the objects in the given {@link Iterable}.
+     * <p>
+     * This is intended to allow non-{@link AutoCloseable} composite types, such as {@link java.util.List}s of {@link TypedCloseable}, to be used in
+     * a {@code try-with-resources} block.
+     *
+     * @param toClose the objects to closed
+     * @return a {@link TypedCloseable}
+     */
+    //this has a different name thanks to Java generic erasure causing conflicts
+    public static <E extends Exception> TypedCloseable<E> lazyCloseAllTyped(@NonNull Iterable<? extends TypedCloseable<E>> toClose) {
+        return () -> closeAllTyped(toClose);
+    }
+
+    /**
+     * Gets a {@link TypedCloseable} which, when {@link TypedCloseable#close() closed}, will close all of the objects in the given {@link Stream}.
+     * <p>
+     * This is intended to allow non-{@link AutoCloseable} composite types, such as {@link java.util.List}s of {@link TypedCloseable}, to be used in
+     * a {@code try-with-resources} block.
+     *
+     * @param toClose the objects to closed
+     * @return a {@link TypedCloseable}
+     */
+    public static <E extends Exception> TypedCloseable<E> lazyCloseAllTyped(Stream<? extends TypedCloseable<E>> toClose) {
+        return lazyCloseAllTyped(PStreams.toIterable(toClose));
+    }
+
+    /**
+     * Gets a {@link TypedCloseable} which, when {@link TypedCloseable#close() closed}, will close all of the objects in the given array.
+     * <p>
+     * This is intended to allow arrays of {@link TypedCloseable} to be used in a {@code try-with-resources} block.
+     *
+     * @param toClose the objects to closed
+     * @return a {@link TypedCloseable}
+     */
+    @SafeVarargs
+    public static <E extends Exception> TypedCloseable<E> lazyCloseAll(TypedCloseable<E>... toClose) {
+        return lazyCloseAllTyped(Arrays.asList(toClose));
+    }
+
+    /**
+     * Gets a {@link TypedCloseable} which, when {@link TypedCloseable#close() closed}, will close all of the objects in the given array.
+     * <p>
+     * This is intended to allow arrays of {@link TypedCloseable} to be used in a {@code try-with-resources} block.
+     *
+     * @param toClose the objects to closed
+     * @param off     the index of the first object to close
+     * @param len     the number of objects to close
+     * @return a {@link TypedCloseable}
+     */
+    public static <E extends Exception> TypedCloseable<E> lazyCloseAll(TypedCloseable<E>[] toClose, int off, int len) {
+        return lazyCloseAllTyped(Arrays.asList(toClose).subList(off, off + len));
+    }
+    
+    /**
+     * Gets a {@link QuietCloseable} which, when {@link QuietCloseable#close() closed}, will close all of the objects in the given {@link Iterable}.
+     * <p>
+     * This is intended to allow non-{@link AutoCloseable} composite types, such as {@link java.util.List}s of {@link QuietCloseable}, to be used in
+     * a {@code try-with-resources} block.
+     *
+     * @param toClose the objects to closed
+     * @return a {@link QuietCloseable}
+     */
+    //this has a different name thanks to Java generic erasure causing conflicts
+    public static QuietCloseable lazyCloseAllQuiet(@NonNull Iterable<? extends QuietCloseable> toClose) {
+        return () -> closeAllQuiet(toClose);
+    }
+
+    /**
+     * Gets a {@link QuietCloseable} which, when {@link QuietCloseable#close() closed}, will close all of the objects in the given {@link Stream}.
+     * <p>
+     * This is intended to allow non-{@link AutoCloseable} composite types, such as {@link java.util.List}s of {@link QuietCloseable}, to be used in
+     * a {@code try-with-resources} block.
+     *
+     * @param toClose the objects to closed
+     * @return a {@link QuietCloseable}
+     */
+    public static QuietCloseable lazyCloseAllQuiet(Stream<? extends QuietCloseable> toClose) {
+        return lazyCloseAllQuiet(PStreams.toIterable(toClose));
+    }
+
+    /**
+     * Gets a {@link QuietCloseable} which, when {@link QuietCloseable#close() closed}, will close all of the objects in the given array.
+     * <p>
+     * This is intended to allow arrays of {@link QuietCloseable} to be used in a {@code try-with-resources} block.
+     *
+     * @param toClose the objects to closed
+     * @return a {@link QuietCloseable}
+     */
+    public static QuietCloseable lazyCloseAll(QuietCloseable... toClose) {
+        return lazyCloseAllQuiet(Arrays.asList(toClose));
+    }
+
+    /**
+     * Gets a {@link QuietCloseable} which, when {@link QuietCloseable#close() closed}, will close all of the objects in the given array.
+     * <p>
+     * This is intended to allow arrays of {@link QuietCloseable} to be used in a {@code try-with-resources} block.
+     *
+     * @param toClose the objects to closed
+     * @param off     the index of the first object to close
+     * @param len     the number of objects to close
+     * @return a {@link QuietCloseable}
+     */
+    public static QuietCloseable lazyCloseAll(QuietCloseable[] toClose, int off, int len) {
+        return lazyCloseAllQuiet(Arrays.asList(toClose).subList(off, off + len));
     }
 }

@@ -23,6 +23,7 @@ package net.daporkchop.lib.common.util;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.common.closeable.PResourceUtil;
 import net.daporkchop.lib.common.function.throwing.TConsumer;
 import net.daporkchop.lib.common.misc.string.PStrings;
 import net.daporkchop.lib.common.pool.handle.HandledPool;
@@ -352,51 +353,51 @@ public class PorkUtil {
     }
 
     /**
-     * @deprecated use {@link ResourceUtil#closeAll(Iterable)}
+     * @deprecated use {@link PResourceUtil#closeAll(Iterable)}
      */
     @Deprecated
     public static void closeAll(@NonNull Iterable<? extends AutoCloseable> closeables) throws Exception {
-        ResourceUtil.closeAll(closeables);
+        PResourceUtil.closeAll(closeables);
     }
 
     /**
-     * @deprecated use {@link ResourceUtil#closeAll(AutoCloseable[])}
+     * @deprecated use {@link PResourceUtil#closeAll(AutoCloseable[])}
      */
     @Deprecated
     public static void closeAll(@NonNull AutoCloseable... closeables) throws Exception {
-        ResourceUtil.closeAll(closeables);
+        PResourceUtil.closeAll(closeables);
     }
 
     /**
-     * @deprecated use {@link ResourceUtil#closeAll(AutoCloseable[], int, int)}
+     * @deprecated use {@link PResourceUtil#closeAll(AutoCloseable[], int, int)}
      */
     @Deprecated
     public static void closeAll(@NonNull AutoCloseable[] closeables, int off, int len) throws Exception {
-        ResourceUtil.closeAll(closeables, off, len);
+        PResourceUtil.closeAll(closeables, off, len);
     }
 
     /**
-     * @deprecated use {@link ResourceUtil#closeAll(TConsumer, Iterable)}
+     * @deprecated use {@link PResourceUtil#closeAll(TConsumer, Iterable)}
      */
     @Deprecated
     public static <V, T extends Exception> void closeAll(@NonNull TConsumer<V, T> closeFunction, @NonNull Iterable<? extends V> closeables) throws T {
-        ResourceUtil.closeAll(closeFunction, closeables);
+        PResourceUtil.closeAll(closeFunction, closeables);
     }
 
     /**
-     * @deprecated use {@link ResourceUtil#closeAll(TConsumer, Object[])}
+     * @deprecated use {@link PResourceUtil#closeAll(TConsumer, Object[])}
      */
     @Deprecated
     public static <V, T extends Exception> void closeAll(@NonNull TConsumer<V, T> closeFunction, @NonNull V... closeables) throws T {
-        ResourceUtil.closeAll(closeFunction, closeables);
+        PResourceUtil.closeAll(closeFunction, closeables);
     }
 
     /**
-     * @deprecated use {@link ResourceUtil#closeAll(TConsumer, Object[], int, int)}
+     * @deprecated use {@link PResourceUtil#closeAll(TConsumer, Object[], int, int)}
      */
     @Deprecated
     public static <V, T extends Exception> void closeAll(@NonNull TConsumer<V, T> closeFunction, @NonNull V[] closeables, int off, int len) throws T {
-        ResourceUtil.closeAll(closeFunction, closeables, off, len);
+        PResourceUtil.closeAll(closeFunction, closeables, off, len);
     }
 
     /**

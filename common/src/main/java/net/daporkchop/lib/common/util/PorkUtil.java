@@ -352,51 +352,51 @@ public class PorkUtil {
     }
 
     /**
-     * @deprecated use {@link CloseUtil#closeAll(Iterable)}
+     * @deprecated use {@link ResourceUtil#closeAll(Iterable)}
      */
     @Deprecated
     public static void closeAll(@NonNull Iterable<? extends AutoCloseable> closeables) throws Exception {
-        CloseUtil.closeAll(closeables);
+        ResourceUtil.closeAll(closeables);
     }
 
     /**
-     * @deprecated use {@link CloseUtil#closeAll(AutoCloseable[])}
+     * @deprecated use {@link ResourceUtil#closeAll(AutoCloseable[])}
      */
     @Deprecated
     public static void closeAll(@NonNull AutoCloseable... closeables) throws Exception {
-        CloseUtil.closeAll(closeables);
+        ResourceUtil.closeAll(closeables);
     }
 
     /**
-     * @deprecated use {@link CloseUtil#closeAll(AutoCloseable[], int, int)}
+     * @deprecated use {@link ResourceUtil#closeAll(AutoCloseable[], int, int)}
      */
     @Deprecated
     public static void closeAll(@NonNull AutoCloseable[] closeables, int off, int len) throws Exception {
-        CloseUtil.closeAll(closeables, off, len);
+        ResourceUtil.closeAll(closeables, off, len);
     }
 
     /**
-     * @deprecated use {@link CloseUtil#closeAll(TConsumer, Iterable)}
+     * @deprecated use {@link ResourceUtil#closeAll(TConsumer, Iterable)}
      */
     @Deprecated
     public static <V, T extends Exception> void closeAll(@NonNull TConsumer<V, T> closeFunction, @NonNull Iterable<? extends V> closeables) throws T {
-        CloseUtil.closeAll(closeFunction, closeables);
+        ResourceUtil.closeAll(closeFunction, closeables);
     }
 
     /**
-     * @deprecated use {@link CloseUtil#closeAll(TConsumer, Object[])}
+     * @deprecated use {@link ResourceUtil#closeAll(TConsumer, Object[])}
      */
     @Deprecated
     public static <V, T extends Exception> void closeAll(@NonNull TConsumer<V, T> closeFunction, @NonNull V... closeables) throws T {
-        CloseUtil.closeAll(closeFunction, closeables);
+        ResourceUtil.closeAll(closeFunction, closeables);
     }
 
     /**
-     * @deprecated use {@link CloseUtil#closeAll(TConsumer, Object[], int, int)}
+     * @deprecated use {@link ResourceUtil#closeAll(TConsumer, Object[], int, int)}
      */
     @Deprecated
     public static <V, T extends Exception> void closeAll(@NonNull TConsumer<V, T> closeFunction, @NonNull V[] closeables, int off, int len) throws T {
-        CloseUtil.closeAll(closeFunction, closeables, off, len);
+        ResourceUtil.closeAll(closeFunction, closeables, off, len);
     }
 
     /**

@@ -33,9 +33,49 @@ import java.util.Iterator;
  * @author DaPorkchop_
  */
 @UtilityClass
-public class CloseUtil {
+public class ResourceUtil {
+    /**
+     * {@link AutoCloseable#close() Closes} the provided object.
+     * <p>
+     * If the provided object is {@code null}, it is ignored.
+     *
+     * @param toClose the object to close
+     * @throws Exception if an exception occurs while closing the object
+     */
+    public static void close(AutoCloseable toClose) throws Exception {
+        if (toClose != null) {
+            toClose.close();
+        }
+    }
+
+    /**
+     * {@link AutoCloseable#close() Closes} the provided object.
+     * <p>
+     * If the provided object is {@code null}, it is ignored.
+     * <p>
+     * Unlike {@link #close(AutoCloseable)}, this function does not throw exceptions. Instead, it catches them and adds them to the provided "root" exception. This
+     * is intended to be used when cleaning up resources after an exception has already been thrown, so that the original exception doesn't get hidden by any
+     * exceptions throwing while closing the values.
+     *
+     * @param root    the root exception. Any exceptions thrown while closing the object will be added to the root exception as
+     *                a suppressed exception
+     * @param toClose the object to close
+     * @return the given root exception
+     */
+    public static <T extends Throwable> T closeSuppressed(T root, AutoCloseable toClose) {
+        try {
+            close(toClose);
+        } catch (Throwable t) {
+            root.addSuppressed(t);
+        }
+
+        return root;
+    }
+
     /**
      * {@link AutoCloseable#close() Closes} all of the provided objects.
+     * <p>
+     * Any {@code null} objects will be ignored.
      * <p>
      * This will attempt to close every object in the given {@link Iterable}, even if one of them throws an exception.
      *
@@ -80,6 +120,8 @@ public class CloseUtil {
     /**
      * {@link AutoCloseable#close() Closes} all of the provided objects.
      * <p>
+     * Any {@code null} objects will be ignored.
+     * <p>
      * This will attempt to close every object in the given {@link Iterable}, even if one of them throws an exception.
      * <p>
      * Unlike {@link #closeAll(Iterable)}, this function does not throw exceptions. Instead, it catches them and adds them to the provided "root" exception. This
@@ -91,11 +133,10 @@ public class CloseUtil {
      * @param toClose the objects to close
      * @return the given root exception
      */
-    public static <T extends Throwable> T closeAllInto(T root, Iterable<? extends AutoCloseable> toClose) {
+    public static <T extends Throwable> T closeAllSuppressed(T root, Iterable<? extends AutoCloseable> toClose) {
         try {
             closeAll(toClose);
         } catch (Throwable t) {
-            //we could end up here if the iterator throws an exception
             root.addSuppressed(t);
         }
 
@@ -104,6 +145,8 @@ public class CloseUtil {
 
     /**
      * {@link AutoCloseable#close() Closes} all of the provided objects.
+     * <p>
+     * Any {@code null} objects will be ignored.
      * <p>
      * This will attempt to close every object in the given array, even if one of them throws an exception.
      *
@@ -119,6 +162,8 @@ public class CloseUtil {
     /**
      * {@link AutoCloseable#close() Closes} all of the provided objects.
      * <p>
+     * Any {@code null} objects will be ignored.
+     * <p>
      * This will attempt to close every object in the given array, even if one of them throws an exception.
      * <p>
      * Unlike {@link #closeAll(AutoCloseable[])}, this function does not throw exceptions. Instead, it catches them and adds them to the provided "root" exception. This
@@ -130,11 +175,10 @@ public class CloseUtil {
      * @param toClose the objects to close
      * @return the given root exception
      */
-    public static <T extends Throwable> T closeAllInto(T root, AutoCloseable... toClose) {
+    public static <T extends Throwable> T closeAllSuppressed(T root, AutoCloseable... toClose) {
         try {
             closeAll(toClose);
         } catch (Throwable t) {
-            //we could end up here if the iterator throws an exception
             root.addSuppressed(t);
         }
 
@@ -143,6 +187,8 @@ public class CloseUtil {
 
     /**
      * {@link AutoCloseable#close() Closes} all of the provided objects.
+     * <p>
+     * Any {@code null} objects will be ignored.
      * <p>
      * This will attempt to close every object in the given array, even if one of them throws an exception.
      *
@@ -158,6 +204,8 @@ public class CloseUtil {
     /**
      * {@link AutoCloseable#close() Closes} all of the provided objects.
      * <p>
+     * Any {@code null} objects will be ignored.
+     * <p>
      * This will attempt to close every object in the given array, even if one of them throws an exception.
      * <p>
      * Unlike {@link #closeAll(AutoCloseable[], int, int)}, this function does not throw exceptions. Instead, it catches them and adds them to the provided "root" exception. This
@@ -171,11 +219,50 @@ public class CloseUtil {
      * @param len     the number of objects to close
      * @return the given root exception
      */
-    public static <T extends Throwable> T closeAllInto(T root, AutoCloseable[] toClose, int off, int len) {
+    public static <T extends Throwable> T closeAllSuppressed(T root, AutoCloseable[] toClose, int off, int len) {
         try {
             closeAll(toClose, off, len);
         } catch (Throwable t) {
-            //we could end up here if the iterator throws an exception
+            root.addSuppressed(t);
+        }
+
+        return root;
+    }
+
+    /**
+     * Closes the provided object using the provided close function.
+     * <p>
+     * If the provided object is {@code null}, it is ignored.
+     *
+     * @param closeFunction the close function
+     * @param toClose       the object to close
+     * @throws T if an exception occurs while closing the object
+     */
+    public static <V, T extends Throwable> void close(@NonNull TConsumer<V, T> closeFunction, V toClose) throws T {
+        if (toClose != null) {
+            closeFunction.acceptThrowing(toClose);
+        }
+    }
+
+    /**
+     * Closes the provided object using the provided close function.
+     * <p>
+     * If the provided object is {@code null}, it is ignored.
+     * <p>
+     * Unlike {@link #close(AutoCloseable)}, this function does not throw exceptions. Instead, it catches them and adds them to the provided "root" exception. This
+     * is intended to be used when cleaning up resources after an exception has already been thrown, so that the original exception doesn't get hidden by any
+     * exceptions throwing while closing the values.
+     *
+     * @param root          the root exception. Any exceptions thrown while closing the object will be added to the root exception as
+     *                      a suppressed exception
+     * @param closeFunction the close function
+     * @param toClose       the object to close
+     * @return the given root exception
+     */
+    public static <V, T extends Throwable> T closeSuppressed(T root, @NonNull TConsumer<V, ?> closeFunction, V toClose) {
+        try {
+            close(closeFunction, toClose);
+        } catch (Throwable t) {
             root.addSuppressed(t);
         }
 
@@ -184,6 +271,8 @@ public class CloseUtil {
 
     /**
      * Closes all of the provided objects using the provided close function.
+     * <p>
+     * Any {@code null} objects will be ignored.
      * <p>
      * This will attempt to close every object in the given {@link Iterable}, even if one of them throws an exception.
      *
@@ -229,6 +318,8 @@ public class CloseUtil {
     /**
      * Closes all of the provided objects using the provided close function.
      * <p>
+     * Any {@code null} objects will be ignored.
+     * <p>
      * This will attempt to close every object in the given {@link Iterable}, even if one of them throws an exception.
      * <p>
      * Unlike {@link #closeAll(Iterable)}, this function does not throw exceptions. Instead, it catches them and adds them to the provided "root" exception. This
@@ -241,11 +332,10 @@ public class CloseUtil {
      * @param toClose       the objects to close
      * @return the given root exception
      */
-    public static <V, T extends Throwable> T closeAllInto(T root, @NonNull TConsumer<V, ?> closeFunction, Iterable<? extends AutoCloseable> toClose) {
+    public static <V, T extends Throwable> T closeAllSuppressed(T root, @NonNull TConsumer<V, ?> closeFunction, Iterable<? extends AutoCloseable> toClose) {
         try {
             closeAll(toClose);
         } catch (Throwable t) {
-            //we could end up here if the iterator throws an exception
             root.addSuppressed(t);
         }
 
@@ -254,6 +344,8 @@ public class CloseUtil {
 
     /**
      * Closes all of the provided objects using the provided close function.
+     * <p>
+     * Any {@code null} objects will be ignored.
      * <p>
      * This will attempt to close every object in the given array, even if one of them throws an exception.
      *
@@ -270,6 +362,8 @@ public class CloseUtil {
     /**
      * Closes all of the provided objects using the provided close function.
      * <p>
+     * Any {@code null} objects will be ignored.
+     * <p>
      * This will attempt to close every object in the given array, even if one of them throws an exception.
      * <p>
      * Unlike {@link #closeAll(AutoCloseable[])}, this function does not throw exceptions. Instead, it catches them and adds them to the provided "root" exception. This
@@ -282,11 +376,10 @@ public class CloseUtil {
      * @param toClose       the objects to close
      * @return the given root exception
      */
-    public static <V, T extends Throwable> T closeAllInto(T root, @NonNull TConsumer<V, ?> closeFunction, V... toClose) {
+    public static <V, T extends Throwable> T closeAllSuppressed(T root, @NonNull TConsumer<V, ?> closeFunction, V... toClose) {
         try {
             closeAll(closeFunction, toClose);
         } catch (Throwable t) {
-            //we could end up here if the iterator throws an exception
             root.addSuppressed(t);
         }
 
@@ -295,6 +388,8 @@ public class CloseUtil {
 
     /**
      * Closes all of the provided objects using the provided close function.
+     * <p>
+     * Any {@code null} objects will be ignored.
      * <p>
      * This will attempt to close every object in the given array, even if one of them throws an exception.
      *
@@ -311,6 +406,8 @@ public class CloseUtil {
     /**
      * Closes all of the provided objects using the provided close function.
      * <p>
+     * Any {@code null} objects will be ignored.
+     * <p>
      * This will attempt to close every object in the given array, even if one of them throws an exception.
      * <p>
      * Unlike {@link #closeAll(AutoCloseable[], int, int)}, this function does not throw exceptions. Instead, it catches them and adds them to the provided "root" exception. This
@@ -325,11 +422,10 @@ public class CloseUtil {
      * @param len           the number of objects to close
      * @return the given root exception
      */
-    public static <V, T extends Throwable> T closeAllInto(T root, @NonNull TConsumer<V, ?> closeFunction, V[] toClose, int off, int len) {
+    public static <V, T extends Throwable> T closeAllSuppressed(T root, @NonNull TConsumer<V, ?> closeFunction, V[] toClose, int off, int len) {
         try {
             closeAll(closeFunction, toClose, off, len);
         } catch (Throwable t) {
-            //we could end up here if the iterator throws an exception
             root.addSuppressed(t);
         }
 

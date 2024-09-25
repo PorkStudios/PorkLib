@@ -15,7 +15,6 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
 package net.daporkchop.lib.common.util;
@@ -1283,5 +1282,28 @@ public class PArrays {
         E[] result = Arrays.copyOf(first, first.length + second.length);
         System.arraycopy(second, 0, result, first.length, second.length);
         return result;
+    }
+
+    /**
+     * Checks if the given arrays contain the same elements as one another, comparing elements by object identity.
+     *
+     * @param a0 an array
+     * @param a1 an array
+     * @return {@code true} if the given arrays are equal
+     */
+    public boolean identityEquals(Object[] a0, Object[] a1) {
+        //noinspection ArrayEquality
+        if (a0 == a1) {
+            return true;
+        } else if (a0 == null || a1 == null || a0.length != a1.length) {
+            return false;
+        }
+
+        for (int i = 0; i < a0.length; i++) {
+            if (a0[i] != a1[i]) {
+                return false;
+            }
+        }
+        return true;
     }
 }

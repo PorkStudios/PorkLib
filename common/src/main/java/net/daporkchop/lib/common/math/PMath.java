@@ -68,58 +68,102 @@ public class PMath {
         return (byte) remainder;
     }
 
+    /**
+     * Converts the given floating-point value to an integer, rounding towards negative infinity.
+     *
+     * @param f the floating-point value
+     * @return the rounded integer value
+     */
     public static int floorI(float f) {
-        int i = (int) f;
-        return f < i ? i - 1 : i;
+        return (int) Math.floor(f);
     }
 
+    /**
+     * Converts the given floating-point value to an integer, rounding towards negative infinity.
+     *
+     * @param f the floating-point value
+     * @return the rounded integer value
+     */
     public static long floorL(float f) {
-        long l = (long) f;
-        return f < l ? l - 1L : l;
+        return (long) Math.floor(f);
     }
 
+    /**
+     * Converts the given floating-point value to an integer, rounding towards negative infinity.
+     *
+     * @param d the floating-point value
+     * @return the rounded integer value
+     */
     public static int floorI(double d) {
-        int i = (int) d;
-        return d < i ? i - 1 : i;
+        return (int) Math.floor(d);
     }
 
+    /**
+     * Converts the given floating-point value to an integer, rounding towards negative infinity.
+     *
+     * @param d the floating-point value
+     * @return the rounded integer value
+     */
     public static long floorL(double d) {
-        long l = (long) d;
-        return d < l ? l - 1L : l;
+        return (long) Math.floor(d);
     }
 
+    /**
+     * Converts the given floating-point value to an integer, rounding towards positive infinity.
+     *
+     * @param f the floating-point value
+     * @return the rounded integer value
+     */
     public static int ceilI(float f) {
-        int i = (int) f;
-        return f < i ? i : i + 1;
+        return (int) Math.ceil(f);
     }
 
+    /**
+     * Converts the given floating-point value to an integer, rounding towards positive infinity.
+     *
+     * @param f the floating-point value
+     * @return the rounded integer value
+     */
     public static long ceilL(float f) {
-        long l = (long) f;
-        return f < l ? l : l + 1L;
+        return (long) Math.ceil(f);
     }
 
+    /**
+     * Converts the given floating-point value to an integer, rounding towards positive infinity.
+     *
+     * @param d the floating-point value
+     * @return the rounded integer value
+     */
     public static int ceilI(double d) {
-        int i = (int) d;
-        return d < i ? i : i + 1;
+        return (int) Math.ceil(d);
     }
 
+    /**
+     * Converts the given floating-point value to an integer, rounding towards positive infinity.
+     *
+     * @param d the floating-point value
+     * @return the rounded integer value
+     */
     public static long ceilL(double d) {
-        long l = (long) d;
-        return d < l ? l : l + 1L;
+        return (long) Math.ceil(d);
     }
 
+    @Deprecated
     public static int roundI(float f) {
         return Math.round(f);
     }
 
+    @Deprecated
     public static long roundL(float f) {
         return Math.round(f);
     }
 
+    @Deprecated
     public static int roundI(double d) {
         return (int) Math.round(d);
     }
 
+    @Deprecated
     public static long roundL(double d) {
         return Math.round(d);
     }

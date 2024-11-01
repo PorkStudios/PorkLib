@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2022 DaPorkchop_
+ * Copyright (c) 2018-2024 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -40,9 +40,9 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
  * @author DaPorkchop_
  */
 final class ReferencedPow2ArrayAllocator<V> extends AbstractArrayAllocator<V> {
-    protected final Deque<Reference<V>>[] arenas = uncheckedCast(PArrays.filledFrom(StrongPow2ArrayAllocator.NUM_ARENAS, Deque.class, ArrayDeque::new));
-    protected final ReferenceStrength strength;
-    protected final int maxCapacity;
+    private final Deque<Reference<V>>[] arenas = uncheckedCast(PArrays.filledFrom(StrongPow2ArrayAllocator.NUM_ARENAS, Deque.class, ArrayDeque::new));
+    private final ReferenceStrength strength;
+    private final int maxCapacity;
 
     public ReferencedPow2ArrayAllocator(@NonNull IntFunction<V> lambda, @NonNull ReferenceStrength strength, int maxCapacity) {
         super(lambda);
@@ -66,14 +66,14 @@ final class ReferencedPow2ArrayAllocator<V> extends AbstractArrayAllocator<V> {
     @Override
     public V exactly(int length) {
         notNegative(length, "size");
-        if (!BinMath.isPow2(length)) {
+        if (!BinMath.hasSingleBit(length)) {
             //requested size is not a power of 2, we can't return a pooled array
             return this.createArray(length);
         }
         return this.getPooled(length);
     }
 
-    protected V getPooled(int length) {
+    private V getPooled(int length) {
         int arenaIndex = StrongPow2ArrayAllocator.arenaIndex(length);
         Deque<Reference<V>> arena = this.arenas[arenaIndex];
         V value = null;
@@ -91,7 +91,7 @@ final class ReferencedPow2ArrayAllocator<V> extends AbstractArrayAllocator<V> {
     @Override
     public void release(@NonNull V array) {
         int length = Array.getLength(array);
-        if (BinMath.isPow2(length)) {
+        if (BinMath.hasSingleBit(length)) {
             int arenaIndex = StrongPow2ArrayAllocator.arenaIndex(length);
             Deque<Reference<V>> arena = this.arenas[arenaIndex];
             synchronized (arena) {

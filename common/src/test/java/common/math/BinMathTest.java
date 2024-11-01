@@ -58,6 +58,50 @@ public class BinMathTest {
     }
 
     @Test
+    public void testHasSingleBit_Byte() {
+        assertFalse(BinMath.hasSingleBit((byte) 0));
+        for (int i = 0; i < Byte.SIZE; i++) {
+            assertTrue(BinMath.hasSingleBit((byte) (1 << i)));
+        }
+        for (int i = 0; i < Byte.SIZE - 1; i++) {
+            assertFalse(BinMath.hasSingleBit((byte) (3 << i)));
+        }
+    }
+
+    @Test
+    public void testHasSingleBit_Short() {
+        assertFalse(BinMath.hasSingleBit((short) 0));
+        for (int i = 0; i < Short.SIZE; i++) {
+            assertTrue(BinMath.hasSingleBit((short) (1 << i)));
+        }
+        for (int i = 0; i < Short.SIZE - 1; i++) {
+            assertFalse(BinMath.hasSingleBit((short) (3 << i)));
+        }
+    }
+
+    @Test
+    public void testHasSingleBit_Int() {
+        assertFalse(BinMath.hasSingleBit(0));
+        for (int i = 0; i < Integer.SIZE; i++) {
+            assertTrue(BinMath.hasSingleBit(1 << i));
+        }
+        for (int i = 0; i < Integer.SIZE - 1; i++) {
+            assertFalse(BinMath.hasSingleBit(3 << i));
+        }
+    }
+
+    @Test
+    public void testHasSingleBit_Long() {
+        assertFalse(BinMath.hasSingleBit(0L));
+        for (int i = 0; i < Integer.SIZE; i++) {
+            assertTrue(BinMath.hasSingleBit(1L << i));
+        }
+        for (int i = 0; i < Integer.SIZE - 1; i++) {
+            assertFalse(BinMath.hasSingleBit(3L << i));
+        }
+    }
+
+    @Test
     public void testUnsignedBitCeil_Int() {
         assertEquals(1, BinMath.unsignedBitCeil(0));
         assertEquals(1, BinMath.unsignedBitCeil(1));

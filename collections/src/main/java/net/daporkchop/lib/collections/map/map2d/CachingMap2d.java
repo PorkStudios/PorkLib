@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2024 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -52,7 +52,7 @@ public class CachingMap2d<V> implements Map2d<V> {
     protected       int      size;
 
     public CachingMap2d(int maxSize) {
-        if (!BinMath.isPow2(maxSize)) {
+        if (!BinMath.hasSingleBit(maxSize)) {
             throw new IllegalArgumentException(String.valueOf(maxSize));
         }
         this.keys = new long[maxSize];

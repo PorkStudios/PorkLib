@@ -27,20 +27,78 @@ import lombok.experimental.UtilityClass;
  */
 @UtilityClass
 public class BinMath {
+    /**
+     * @deprecated use {@link #hasSingleBit(long)}
+     */
+    @Deprecated
     public static boolean isPow2(long value) {
-        return value != 0L && (value & (value - 1L)) == 0L;
+        return hasSingleBit(value);
     }
 
+    /**
+     * @deprecated use {@link #hasSingleBit(int)}
+     */
+    @Deprecated
     public static boolean isPow2(int value) {
-        return value != 0 && (value & (value - 1)) == 0;
+        return hasSingleBit(value);
     }
 
+    /**
+     * @deprecated use {@link #hasSingleBit(short)}
+     */
+    @Deprecated
     public static boolean isPow2(short value) {
-        return isPow2(Short.toUnsignedInt(value));
+        return hasSingleBit(value);
     }
 
+    /**
+     * @deprecated use {@link #hasSingleBit(byte)}
+     */
+    @Deprecated
     public static boolean isPow2(byte value) {
-        return isPow2(Byte.toUnsignedInt(value));
+        return hasSingleBit(value);
+    }
+
+    /**
+     * Checks if the given value is an integral power of two.
+     *
+     * @param value the value to check
+     * @return {@code true} if the given value is an integral power of two, {@code false} otherwise
+     */
+    public static boolean hasSingleBit(byte value) {
+        return hasSingleBit(Byte.toUnsignedInt(value));
+    }
+
+    /**
+     * Checks if the given value is an integral power of two.
+     *
+     * @param value the value to check
+     * @return {@code true} if the given value is an integral power of two, {@code false} otherwise
+     */
+    public static boolean hasSingleBit(short value) {
+        return hasSingleBit(Short.toUnsignedInt(value));
+    }
+
+    /**
+     * Checks if the given value is an integral power of two.
+     *
+     * @param value the value to check
+     * @return {@code true} if the given value is an integral power of two, {@code false} otherwise
+     */
+    public static boolean hasSingleBit(int value) {
+        //popcnt is a single instruction on virtually all relevant x86-64 machines (it was introduced with SSE4.2).
+        //  ARM machines may still benefit from the old 'value != 0 && (value & (value - 1)) == 0' approach... maybe we can auto-detect?
+        return Integer.bitCount(value) == 1;
+    }
+
+    /**
+     * Checks if the given value is an integral power of two.
+     *
+     * @param value the value to check
+     * @return {@code true} if the given value is an integral power of two, {@code false} otherwise
+     */
+    public static boolean hasSingleBit(long value) {
+        return Long.bitCount(value) == 1;
     }
 
     /**

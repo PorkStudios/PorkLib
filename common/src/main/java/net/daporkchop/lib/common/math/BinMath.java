@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2024 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -36,11 +36,63 @@ public class BinMath {
     }
 
     public static boolean isPow2(short value) {
-        return value != 0 && (value & (value - 1)) == 0;
+        return isPow2(Short.toUnsignedInt(value));
     }
 
     public static boolean isPow2(byte value) {
-        return value != 0 && (value & (value - 1)) == 0;
+        return isPow2(Byte.toUnsignedInt(value));
+    }
+
+    /**
+     * Returns the smallest integral power of two not less than the given <strong>unsigned</strong> value.
+     * <p>
+     * Examples:
+     * <blockquote><pre>{@code
+     * unsignedBitCeil(0) == 1
+     * unsignedBitCeil(1) == 1
+     * unsignedBitCeil(2) == 2
+     * unsignedBitCeil(3) == 4
+     * unsignedBitCeil(4) == 4
+     * unsignedBitCeil(5) == 8
+     * unsignedBitCeil(0x7FFFFFFF) == 0x80000000
+     * unsignedBitCeil(0x80000000) == 0x80000000
+     * unsignedBitCeil(0x80000001) == &lt;undefined&gt;
+     * unsignedBitCeil(-1) == &lt;undefined&gt;
+     * }</pre></blockquote>
+     *
+     * @param value value (treated as an unsigned integer)
+     * @return the smallest integral power of two not less than the given value, or an undefined value if the value cannot be represented
+     */
+    public static int unsignedBitCeil(int value) {
+        int n = Integer.SIZE - Integer.numberOfLeadingZeros(value - 1);
+        assert n != Integer.SIZE || value == 0 : value;
+        return 1 << n;
+    }
+
+    /**
+     * Returns the smallest integral power of two not less than the given <strong>unsigned</strong> value.
+     * <p>
+     * Examples:
+     * <blockquote><pre>{@code
+     * unsignedBitCeil(0L) == 1L
+     * unsignedBitCeil(1L) == 1L
+     * unsignedBitCeil(2L) == 2L
+     * unsignedBitCeil(3L) == 4L
+     * unsignedBitCeil(4L) == 4L
+     * unsignedBitCeil(5L) == 8L
+     * unsignedBitCeil(0x7FFFFFFFFFFFFFFFL) == 0x8000000000000000L
+     * unsignedBitCeil(0x8000000000000000L) == 0x8000000000000000L
+     * unsignedBitCeil(0x8000000000000001L) == &lt;undefined&gt;
+     * unsignedBitCeil(-1L) == &lt;undefined&gt;
+     * }</pre></blockquote>
+     *
+     * @param value value (treated as an unsigned integer)
+     * @return the smallest integral power of two not less than the given value, or an undefined value if the value cannot be represented
+     */
+    public static long unsignedBitCeil(long value) {
+        int n = Long.SIZE - Long.numberOfLeadingZeros(value - 1L);
+        assert n != Long.SIZE || value == 0L : value;
+        return 1L << n;
     }
 
     /**
@@ -58,6 +110,10 @@ public class BinMath {
         return count;
     }
 
+    /**
+     * @deprecated use {@link #unsignedBitCeil(long)}
+     */
+    @Deprecated
     public static long roundToNearestPowerOf2(long value) {
         long l = value - 1L;
         l |= l >>> 1L;
@@ -69,6 +125,10 @@ public class BinMath {
         return l + 1L;
     }
 
+    /**
+     * @deprecated use {@link #unsignedBitCeil(int)}
+     */
+    @Deprecated
     public static int roundToNearestPowerOf2(int value) {
         int i = value - 1;
         i |= i >>> 1;
@@ -79,18 +139,9 @@ public class BinMath {
         return i + 1;
     }
 
-    public static short roundToNearestPowerOf2(short value) {
-        short s = (short) (value - 1);
-        s |= s >>> 1;
-        s |= s >>> 2;
-        s |= s >>> 4;
-        s |= s >>> 8;
-        return (short) (s + 1);
-    }
-
-    public static int getFromFlags(int... flags)   {
+    public static int getFromFlags(int... flags) {
         int i = 0;
-        for (int flag : flags)  {
+        for (int flag : flags) {
             i |= 1 << flag;
         }
         return i;
@@ -100,7 +151,7 @@ public class BinMath {
         return i | (1 << flag);
     }
 
-    public static boolean getFlag(int i, int flag)    {
+    public static boolean getFlag(int i, int flag) {
         return (i & (1 << flag)) != 0;
     }
 
@@ -108,11 +159,11 @@ public class BinMath {
         return (Integer.toUnsignedLong(x) << 32L) | Integer.toUnsignedLong(y);
     }
 
-    public static int unpackX(long packed)   {
+    public static int unpackX(long packed) {
         return (int) (packed >>> 32L);
     }
 
-    public static int unpackY(long packed)   {
+    public static int unpackY(long packed) {
         return (int) packed;
     }
 }

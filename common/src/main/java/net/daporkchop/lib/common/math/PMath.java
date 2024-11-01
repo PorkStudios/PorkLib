@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2024 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -21,6 +21,7 @@
 package net.daporkchop.lib.common.math;
 
 import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.common.annotation.param.NotNegative;
 
 import static java.lang.Math.*;
 
@@ -199,10 +200,12 @@ public class PMath {
         return a + (b - a) * t;
     }
 
+    @Deprecated
     public static int lerpI(int a, int b, float t) {
         return floorI(a + (b - a) * t);
     }
 
+    @Deprecated
     public static int lerpI(int a, int b, double t) {
         return floorI(a + (b - a) * t);
     }
@@ -216,5 +219,83 @@ public class PMath {
     public static int mix32(long z) {
         z = (z ^ (z >>> 33L)) * 0xFF51AFD7ED558CCDL;
         return (int) (((z ^ (z >>> 33L)) * 0xC4CEB9FE1A85EC53L) >>> 32L);
+    }
+
+    /**
+     * Computes the new capacity of a buffer/array when growing it to fit at least 1 additional element.
+     *
+     * @param oldCapacity the previous capacity
+     * @return the new capacity, guaranteed to be at least {@code oldCapacity + 1}
+     */
+    public static int growCapacity1(@NotNegative int oldCapacity) {
+        //this could theoretically be optimized more in the future
+        return growCapacityBy(oldCapacity, 1);
+    }
+
+    /**
+     * Computes the new capacity of a buffer/array when growing it to fit at least 1 additional element.
+     *
+     * @param oldCapacity the previous capacity
+     * @return the new capacity, guaranteed to be at least {@code oldCapacity + 1}
+     */
+    public static long growCapacity1(@NotNegative long oldCapacity) {
+        //this could theoretically be optimized more in the future
+        return growCapacityBy(oldCapacity, 1L);
+    }
+
+    /**
+     * Computes the new capacity of a buffer/array when growing it to fit the given number of additional elements.
+     *
+     * @param oldCapacity the previous capacity
+     * @param increment   the minimum amount by which the capacity should be increased
+     * @return the new capacity, guaranteed to be at least {@code oldCapacity + increment}
+     */
+    public static int growCapacityBy(@NotNegative int oldCapacity, @NotNegative int increment) {
+        if ((oldCapacity | increment | (oldCapacity + increment)) < 0) {
+            throw new IllegalArgumentException(badGrowCapacityBy(oldCapacity, increment));
+        }
+
+        //'oldCapacity + increment' is never negative, therefore this can never result in undefined behavior:
+        int roundedUp = BinMath.unsignedBitCeil(oldCapacity + increment);
+        if (roundedUp < 0) {
+            //the result overflowed to Integer.MIN_VALUE! however, since we know that 'oldCapacity + increment' is positive, we'll simply return
+            //  Integer.MAX_VALUE as the largest possible size.
+            return Integer.MAX_VALUE;
+        }
+
+        return roundedUp;
+    }
+
+    /**
+     * Computes the new capacity of a buffer/array when growing it to fit the given number of additional elements.
+     *
+     * @param oldCapacity the previous capacity
+     * @param increment   the minimum amount by which the capacity should be increased
+     * @return the new capacity, guaranteed to be at least {@code oldCapacity + increment}
+     */
+    public static long growCapacityBy(@NotNegative long oldCapacity, @NotNegative long increment) {
+        if ((oldCapacity | increment | (oldCapacity + increment)) < 0L) {
+            throw new IllegalArgumentException(badGrowCapacityBy(oldCapacity, increment));
+        }
+
+        //'oldCapacity + increment' is never negative, therefore this can never result in undefined behavior:
+        long roundedUp = BinMath.unsignedBitCeil(oldCapacity + increment);
+        if (roundedUp < 0L) {
+            //the result overflowed to Long.MIN_VALUE! however, since we know that 'oldCapacity + increment' is positive, we'll simply return
+            //  Long.MAX_VALUE as the largest possible size.
+            return Long.MAX_VALUE;
+        }
+
+        return roundedUp;
+    }
+
+    private static String badGrowCapacityBy(long oldCapacity, long increment) {
+        if (oldCapacity < 0) {
+            return "negative oldCapacity: " + oldCapacity;
+        } else if (increment < 0) {
+            return "negative increment: " + increment;
+        } else { //oldCapacity + increment would overflow
+            return "integer overflow: " + oldCapacity + " + " + increment;
+        }
     }
 }

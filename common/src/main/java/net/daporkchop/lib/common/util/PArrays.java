@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2021 DaPorkchop_
+ * Copyright (c) 2018-2024 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -1161,5 +1161,127 @@ public class PArrays {
         Object val = arr[i0];
         arr[i0] = arr[i1];
         arr[i1] = val;
+    }
+
+    //
+    // ARRAY CONCATENATION
+    //
+
+    /**
+     * Concatenates the two given arrays.
+     *
+     * @param first  the first array
+     * @param second the second array
+     * @return an array containing the concatenated array elements
+     */
+    public static boolean[] concat(boolean @NonNull [] first, boolean @NonNull [] second) {
+        boolean[] result = Arrays.copyOf(first, first.length + second.length);
+        System.arraycopy(second, 0, result, first.length, second.length);
+        return result;
+    }
+
+    /**
+     * Concatenates the two given arrays.
+     *
+     * @param first  the first array
+     * @param second the second array
+     * @return an array containing the concatenated array elements
+     */
+    public static byte[] concat(byte @NonNull [] first, byte @NonNull [] second) {
+        byte[] result = Arrays.copyOf(first, first.length + second.length);
+        System.arraycopy(second, 0, result, first.length, second.length);
+        return result;
+    }
+
+    /**
+     * Concatenates the two given arrays.
+     *
+     * @param first  the first array
+     * @param second the second array
+     * @return an array containing the concatenated array elements
+     */
+    public static short[] concat(short @NonNull [] first, short @NonNull [] second) {
+        short[] result = Arrays.copyOf(first, first.length + second.length);
+        System.arraycopy(second, 0, result, first.length, second.length);
+        return result;
+    }
+
+    /**
+     * Concatenates the two given arrays.
+     *
+     * @param first  the first array
+     * @param second the second array
+     * @return an array containing the concatenated array elements
+     */
+    public static char[] concat(char @NonNull [] first, char @NonNull [] second) {
+        char[] result = Arrays.copyOf(first, first.length + second.length);
+        System.arraycopy(second, 0, result, first.length, second.length);
+        return result;
+    }
+
+    /**
+     * Concatenates the two given arrays.
+     *
+     * @param first  the first array
+     * @param second the second array
+     * @return an array containing the concatenated array elements
+     */
+    public static int[] concat(int @NonNull [] first, int @NonNull [] second) {
+        int[] result = Arrays.copyOf(first, first.length + second.length);
+        System.arraycopy(second, 0, result, first.length, second.length);
+        return result;
+    }
+
+    /**
+     * Concatenates the two given arrays.
+     *
+     * @param first  the first array
+     * @param second the second array
+     * @return an array containing the concatenated array elements
+     */
+    public static long[] concat(long @NonNull [] first, long @NonNull [] second) {
+        long[] result = Arrays.copyOf(first, first.length + second.length);
+        System.arraycopy(second, 0, result, first.length, second.length);
+        return result;
+    }
+
+    /**
+     * Concatenates the two given arrays.
+     *
+     * @param first  the first array
+     * @param second the second array
+     * @return an array containing the concatenated array elements
+     */
+    public static float[] concat(float @NonNull [] first, float @NonNull [] second) {
+        float[] result = Arrays.copyOf(first, first.length + second.length);
+        System.arraycopy(second, 0, result, first.length, second.length);
+        return result;
+    }
+
+    /**
+     * Concatenates the two given arrays.
+     *
+     * @param first  the first array
+     * @param second the second array
+     * @return an array containing the concatenated array elements
+     */
+    public static double[] concat(double @NonNull [] first, double @NonNull [] second) {
+        double[] result = Arrays.copyOf(first, first.length + second.length);
+        System.arraycopy(second, 0, result, first.length, second.length);
+        return result;
+    }
+
+    /**
+     * Concatenates the two given arrays.
+     *
+     * @param first  the first array
+     * @param second the second array
+     * @param <E>    the array element type
+     * @return an array containing the concatenated array elements
+     */
+    public static <E> E[] concat(E @NonNull [] first, E @NonNull [] second) {
+        E[] result = Arrays.copyOf(first, first.length + second.length);
+        System.arraycopy(second, 0, result, first.length, second.length);
+        return result;
     }
 }

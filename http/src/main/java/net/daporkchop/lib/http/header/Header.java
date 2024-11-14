@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2024 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -24,10 +24,12 @@ import lombok.NonNull;
 
 import java.util.List;
 
+import static net.daporkchop.lib.common.util.PValidation.*;
+
 /**
  * A single HTTP header.
  * <p>
- * Implementations of this class are expected to have both {@link #hashCode()} and {@link #equals(Object)} check for case-insensitive equality between
+ * Implementations of this class are expected to have both {@link Object#hashCode()} and {@link Object#equals(Object)} check for case-insensitive equality between
  * both keys and values.
  *
  * @author DaPorkchop_
@@ -83,8 +85,13 @@ public interface Header {
 
     /**
      * @return the raw value of the HTTP header
+     * @throws RuntimeException if this is not a singleton HTTP header
      */
-    String value();
+    default String value() {
+        List<String> values = this.values();
+        checkState(values.size() == 1, "not a singleton header");
+        return values.get(0);
+    }
 
     /**
      * @return a {@link List} containing all the values of the HTTP header

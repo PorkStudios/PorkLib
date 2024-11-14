@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2024 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -60,13 +60,8 @@ public final class MultiHeaderImpl implements Header {
     }
 
     @Override
-    public String value() {
-        return this.singleton() ? this.values.get(0) : this.values.stream().collect(Collectors.joining(", "));
-    }
-
-    @Override
     public String toString() {
-        return String.format("%s: %s", this.key, this.value());
+        return this.values.stream().map((this.key + ": ")::concat).collect(Collectors.joining("\n"));
     }
 
     @Override

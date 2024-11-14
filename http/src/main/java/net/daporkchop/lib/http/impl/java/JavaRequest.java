@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2024 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -57,6 +57,7 @@ import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.util.List;
 import java.util.concurrent.CancellationException;
+import java.util.stream.Collectors;
 
 /**
  * Base implementation of {@link Request} for {@link JavaHttpClient}.
@@ -204,11 +205,8 @@ public abstract class JavaRequest<V> implements Request<V>, Runnable {
                             this,
                             StatusCode.of(this.connection.getResponseCode(), this.connection.getResponseMessage()),
                             new HeaderSnapshot(this.connection.getHeaderFields().entrySet().stream()
-                                    .map(entry -> {
-                                        String key = entry.getKey();
-                                        List<String> value = entry.getValue();
-                                        return (key == null || value.isEmpty()) ? null : Header.of(key, value);
-                                    })));
+                                    .filter(entry -> entry.getKey() != null && !entry.getValue().isEmpty())
+                                    .map(entry -> Header.of(entry.getKey(), entry.getValue()))));
 
                     if (this.builder.followRedirects() && responseHeaders.isRedirect()) {
                         url = Constants.encodeUrl(responseHeaders.redirectLocation());

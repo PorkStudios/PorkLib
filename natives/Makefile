@@ -8,7 +8,7 @@ export TOOLCHAINS	:=	$(CURDIR)/toolchain
 export COMMONSRC	:=	$(CURDIR)/src/main/native
 
 FLAGS				:=	-shared -fPIC -ffunction-sections -fdata-sections -fvisibility=hidden
-export CFLAGS		:=	$(FLAGS) -Ofast -ffast-math
+export CFLAGS		:=	$(FLAGS) -O3
 export CXXFLAGS		:=	$(CFLAGS)
 export LDFLAGS		:=	$(FLAGS) -O3 -Wl,--gc-sections
 

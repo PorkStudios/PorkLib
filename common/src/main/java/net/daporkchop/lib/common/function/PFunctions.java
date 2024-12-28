@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2022 DaPorkchop_
+ * Copyright (c) 2018-2024 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -15,7 +15,6 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
 package net.daporkchop.lib.common.function;
@@ -25,9 +24,18 @@ import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.function.exception.ESupplier;
 
 import java.lang.reflect.Constructor;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.DoubleConsumer;
 import java.util.function.Function;
+import java.util.function.IntConsumer;
+import java.util.function.LongConsumer;
+import java.util.function.ObjDoubleConsumer;
+import java.util.function.ObjIntConsumer;
+import java.util.function.ObjLongConsumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 /**
  * Some useful methods for dealing with (((functions))) i.e. in this case functional interfaces, which in most cases will be lambda expressions.
@@ -41,8 +49,10 @@ public class PFunctions {
      *
      * @param clazz the class of the exception to throw. Must have a simple no-args constructor
      * @return a {@link Function} which will throw an exception when invoked
+     * @deprecated this is pretty ugly and should never have existed in the first place!
      */
-    public <T, R> Function<T, R> throwing(@NonNull Class<? extends Throwable> clazz) {
+    @Deprecated
+    public static <T, R> Function<T, R> throwing(@NonNull Class<? extends Throwable> clazz) {
         try {
             Constructor<? extends Throwable> constructor = clazz.getDeclaredConstructor();
             constructor.setAccessible(true);
@@ -58,7 +68,7 @@ public class PFunctions {
      * @param supplier a {@link Supplier} which will supply instances of {@link Throwable} to be thrown
      * @return a {@link Function} which will throw an exception when invoked
      */
-    public <T, R> Function<T, R> throwing(@NonNull Supplier<Throwable> supplier) {
+    public static <T, R> Function<T, R> throwing(@NonNull Supplier<Throwable> supplier) {
         return t -> {
             throw new RuntimeException(supplier.get());
         };
@@ -72,15 +82,78 @@ public class PFunctions {
      * @param predicate the predicate to invert
      * @return a {@link Predicate} that will return the opposite value of whatever is returned by the original
      */
-    public <T> Predicate<T> not(@NonNull Predicate<T> predicate) {
+    public static <T> Predicate<T> not(@NonNull Predicate<T> predicate) {
         return predicate.negate();
     }
 
     /**
-     * @deprecated use {@link Function#identity()}
+     * @deprecated use {@link Function#identity()} or {@link UnaryOperator#identity()}
      */
     @Deprecated
-    public <T> Function<T, T> identity() {
+    public static <T> Function<T, T> identity() {
         return Function.identity();
+    }
+
+    /**
+     * @return a {@link Consumer} which performs no action
+     */
+    public static Runnable noopRunnable() {
+        return () -> {};
+    }
+
+    /**
+     * @return a {@link Consumer} which performs no action
+     */
+    public static <T> Consumer<T> noopConsumer() {
+        return ignored -> {};
+    }
+
+    /**
+     * @return an {@link IntConsumer} which performs no action
+     */
+    public static IntConsumer noopIntConsumer() {
+        return ignored -> {};
+    }
+
+    /**
+     * @return a {@link LongConsumer} which performs no action
+     */
+    public static LongConsumer noopLongConsumer() {
+        return ignored -> {};
+    }
+
+    /**
+     * @return a {@link DoubleConsumer} which performs no action
+     */
+    public static DoubleConsumer noopDoubleConsumer() {
+        return ignored -> {};
+    }
+
+    /**
+     * @return a {@link BiConsumer} which performs no action
+     */
+    public static <T, U> BiConsumer<T, U> noopBiConsumer() {
+        return (ignored0, ignored1) -> {};
+    }
+
+    /**
+     * @return an {@link ObjIntConsumer} which performs no action
+     */
+    public static <T> ObjIntConsumer<T> noopObjIntConsumer() {
+        return (ignored0, ignored1) -> {};
+    }
+
+    /**
+     * @return an {@link ObjLongConsumer} which performs no action
+     */
+    public static <T> ObjLongConsumer<T> noopObjLongConsumer() {
+        return (ignored0, ignored1) -> {};
+    }
+
+    /**
+     * @return an {@link ObjDoubleConsumer} which performs no action
+     */
+    public static <T> ObjDoubleConsumer<T> noopObjDoubleConsumer() {
+        return (ignored0, ignored1) -> {};
     }
 }

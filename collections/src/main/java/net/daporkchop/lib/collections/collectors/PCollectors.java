@@ -81,56 +81,56 @@ public class PCollectors {
     /**
      * @return a {@link Supplier} which returns new instances of {@link HashMap}
      */
-    public static <K, V> Supplier<? super HashMap<K, V>> hashMapFactory() {
+    public static <K, V> Supplier<HashMap<K, V>> hashMapFactory() {
         return HashMap::new;
     }
 
     /**
      * @return a {@link Supplier} which returns new instances of {@link LinkedHashMap}
      */
-    public static <K, V> Supplier<? super LinkedHashMap<K, V>> linkedHashMapFactory() {
+    public static <K, V> Supplier<LinkedHashMap<K, V>> linkedHashMapFactory() {
         return LinkedHashMap::new;
     }
 
     /**
      * @return a {@link Supplier} which returns new instances of {@link TreeMap}
      */
-    public static <K, V> Supplier<? super TreeMap<K, V>> treeMapFactory() {
+    public static <K, V> Supplier<TreeMap<K, V>> treeMapFactory() {
         return TreeMap::new;
     }
 
     /**
      * @return a {@link Supplier} which returns new instances of {@link HashSet}
      */
-    public static <E> Supplier<? super HashSet<E>> hashSetFactory() {
+    public static <E> Supplier<HashSet<E>> hashSetFactory() {
         return HashSet::new;
     }
 
     /**
      * @return a {@link Supplier} which returns new instances of {@link LinkedHashSet}
      */
-    public static <E> Supplier<? super LinkedHashSet<E>> linkedHashSetFactory() {
+    public static <E> Supplier<LinkedHashSet<E>> linkedHashSetFactory() {
         return LinkedHashSet::new;
     }
 
     /**
      * @return a {@link Supplier} which returns new instances of {@link TreeSet}
      */
-    public static <E> Supplier<? super TreeSet<E>> treeSetFactory() {
+    public static <E> Supplier<TreeSet<E>> treeSetFactory() {
         return TreeSet::new;
     }
 
     /**
      * @return a {@link Supplier} which returns new instances of {@link ArrayList}
      */
-    public static <E> Supplier<? super ArrayList<E>> arrayListFactory() {
+    public static <E> Supplier<ArrayList<E>> arrayListFactory() {
         return ArrayList::new;
     }
 
     /**
      * @return a {@link Supplier} which returns new instances of {@link LinkedList}
      */
-    public static <E> Supplier<? super LinkedList<E>> linkedListFactory() {
+    public static <E> Supplier<LinkedList<E>> linkedListFactory() {
         return LinkedList::new;
     }
 

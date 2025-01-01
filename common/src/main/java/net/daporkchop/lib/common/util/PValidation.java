@@ -20,6 +20,7 @@
 package net.daporkchop.lib.common.util;
 
 import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.common.annotation.param.NotNegative;
 
 import static java.lang.Math.*;
 import static net.daporkchop.lib.common.misc.string.PStrings.*;
@@ -1109,71 +1110,86 @@ public class PValidation {
         return b;
     }
 
-    public static int checkIndex(int totalSize, int index)  {
-        notNegative(totalSize, "totalSize");
-        checkIndex(index >= 0 && index < totalSize, "total: 0-%d, index: %d", totalSize, index);
+    public static int checkIndex(@NotNegative int totalSize, @NotNegative int index) {
+        if ((totalSize | index) < 0 || totalSize <= index) {
+            throw new IndexOutOfBoundsException(badCheckIndex(totalSize, index));
+        }
         return index;
     }
 
-    public static long checkIndex(long totalSize, long index)  {
-        notNegative(totalSize, "totalSize");
-        checkIndex(index >= 0L && index < totalSize, "total: 0-%d, index: %d", totalSize, index);
+    public static long checkIndex(@NotNegative long totalSize, @NotNegative long index) {
+        if ((totalSize | index) < 0L || totalSize <= index) {
+            throw new IndexOutOfBoundsException(badCheckIndex(totalSize, index));
+        }
         return index;
     }
 
-    public static int checkIndex(int totalStart, int totalEnd, int index)  {
+    private static String badCheckIndex(long totalSize, long index)  {
+        notNegative(totalSize, "totalSize");
+        return "total: [0, " + totalSize + "), index: " + index;
+    }
+
+    public static int checkIndex(@NotNegative int totalStart, @NotNegative int totalEnd, @NotNegative int index)  {
         notNegative(totalStart, "totalStart");
         checkArg(totalEnd > totalStart, "total range is empty or backwards (totalStart: %d, totalEnd %d)", totalStart, totalEnd);
         checkIndex(index >= totalStart && index < totalEnd, "total: %d-%d, index: %d", totalStart, totalEnd, index);
         return index;
     }
 
-    public static long checkIndex(long totalStart, long totalEnd, long index)  {
+    public static long checkIndex(@NotNegative long totalStart, @NotNegative long totalEnd, @NotNegative long index)  {
         notNegative(totalStart, "totalStart");
         checkArg(totalEnd > totalStart, "total range is empty or backwards (totalStart: %d, totalEnd %d)", totalStart, totalEnd);
         checkIndex(index >= totalStart && index < totalEnd, "total: %d-%d, index: %d", totalStart, totalEnd, index);
         return index;
     }
 
-    public static void checkRange(int totalSize, int startInclusive, int endExclusive) {
+    public static void checkRange(@NotNegative int totalSize, @NotNegative int startInclusive, @NotNegative int endExclusive) {
         notNegative(totalSize, "totalSize");
         checkIndex(endExclusive > startInclusive && startInclusive >= 0 && endExclusive <= totalSize, "total: 0-%d, range: %d-%d", totalSize, startInclusive, endExclusive);
     }
 
-    public static void checkRange(long totalSize, long startInclusive, long endExclusive) {
+    public static void checkRange(@NotNegative long totalSize, @NotNegative long startInclusive, @NotNegative long endExclusive) {
         notNegative(totalSize, "totalSize");
         checkIndex(endExclusive > startInclusive && startInclusive >= 0L && endExclusive <= totalSize, "total: 0-%d, range: %d-%d", totalSize, startInclusive, endExclusive);
     }
 
-    public static void checkRange(int totalStart, int totalEnd, int startInclusive, int endExclusive) {
+    public static void checkRange(@NotNegative int totalStart, @NotNegative int totalEnd, @NotNegative int startInclusive, @NotNegative int endExclusive) {
         notNegative(totalStart, "totalStart");
         checkArg(totalEnd > totalStart, "total range is empty or backwards (totalStart: %d, totalEnd %d)", totalStart, totalEnd);
         checkIndex(endExclusive > startInclusive && startInclusive >= totalStart && endExclusive <= totalEnd, "total: %d-%d, range: %d-%d", totalStart, totalEnd, startInclusive, endExclusive);
     }
 
-    public static void checkRange(long totalStart, long totalEnd, long startInclusive, long endExclusive) {
+    public static void checkRange(@NotNegative long totalStart, @NotNegative long totalEnd, @NotNegative long startInclusive, @NotNegative long endExclusive) {
         notNegative(totalStart, "totalStart");
         checkArg(totalEnd > totalStart, "total range is empty or backwards (totalStart: %d, totalEnd %d)", totalStart, totalEnd);
         checkIndex(endExclusive > startInclusive && startInclusive >= totalStart && endExclusive <= totalEnd, "total: %d-%d, range: %d-%d", totalStart, totalEnd, startInclusive, endExclusive);
     }
 
-    public static void checkRangeLen(int totalSize, int startInclusive, int length) {
-        notNegative(totalSize, "totalSize");
-        checkIndex(startInclusive >= 0 && length >= 0 && addExact(startInclusive, length) <= totalSize, "total: 0-%d, range: %d-%d", totalSize, startInclusive, startInclusive + length);
+    public static void checkRangeLen(@NotNegative int totalSize, @NotNegative int startInclusive, @NotNegative int length) {
+        //if (totalSize < 0 || startInclusive < 0 || length < 0 || (startInclusive + length) < 0 || (totalSize - (startInclusive + length)) < 0)
+        if ((totalSize | startInclusive | length | (startInclusive + length) | (totalSize - (startInclusive + length))) < 0) {
+            throw new IndexOutOfBoundsException(badCheckRangeLen(totalSize, startInclusive, length));
+        }
     }
 
-    public static void checkRangeLen(long totalSize, long startInclusive, long length) {
-        notNegative(totalSize, "totalSize");
-        checkIndex(startInclusive >= 0 && length >= 0L && addExact(startInclusive, length) <= totalSize, "total: 0-%d, range: %d-%d", totalSize, startInclusive, startInclusive + length);
+    public static void checkRangeLen(@NotNegative long totalSize, @NotNegative long startInclusive, @NotNegative long length) {
+        if ((totalSize | startInclusive | length | (startInclusive + length) | (totalSize - (startInclusive + length))) < 0L) {
+            throw new IndexOutOfBoundsException(badCheckRangeLen(totalSize, startInclusive, length));
+        }
     }
 
-    public static void checkRangeLen(int totalStart, int totalEnd, int startInclusive, int length) {
+    private static String badCheckRangeLen(long totalSize, long startInclusive, long length) {
+        notNegative(totalSize, "totalSize");
+        return "total: [0-" + totalSize + "), range: [" + startInclusive + ", " + (startInclusive + length) + ')';
+    }
+
+    public static void checkRangeLen(@NotNegative int totalStart, @NotNegative int totalEnd, @NotNegative int startInclusive, @NotNegative int length) {
         notNegative(totalStart, "totalStart");
         checkArg(totalEnd > totalStart, "total range is empty or backwards (totalStart: %d, totalEnd %d)", totalStart, totalEnd);
         checkIndex(startInclusive >= totalStart && length >= 0 && addExact(startInclusive, length) <= totalEnd, "total: %d-%d, range: %d-%d", totalStart, totalEnd, startInclusive, startInclusive + length);
     }
 
-    public static void checkRangeLen(long totalStart, long totalEnd, long startInclusive, long length) {
+    public static void checkRangeLen(@NotNegative long totalStart, @NotNegative long totalEnd, @NotNegative long startInclusive, @NotNegative long length) {
         notNegative(totalStart, "totalStart");
         checkArg(totalEnd > totalStart, "total range is empty or backwards (totalStart: %d, totalEnd %d)", totalStart, totalEnd);
         checkIndex(startInclusive >= totalStart && length >= 0L && addExact(startInclusive, length) <= totalEnd, "total: %d-%d, range: %d-%d", totalStart, totalEnd, startInclusive, startInclusive + length);

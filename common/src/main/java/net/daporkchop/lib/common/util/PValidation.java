@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2022 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -15,7 +15,6 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
 package net.daporkchop.lib.common.util;
@@ -934,25 +933,25 @@ public class PValidation {
 
     public static int toInt(long value) {
         int i = (int) value;
-        checkArg(i == value, "argument cannot be converted losslessly to an int (given: %d)", value);
+        checkArg((long) i == value, "argument cannot be converted losslessly to an int (given: %d)", value);
         return i;
     }
 
     public static int toInt(long value, Object name) {
         int i = (int) value;
-        checkArg(i == value, "%2$s cannot be converted losslessly to an int (given: %1$d)", value, name);
+        checkArg((long) i == value, "%2$s cannot be converted losslessly to an int (given: %1$d)", value, name);
         return i;
     }
 
     public static short toShort(char value) {
         short s = (short) value;
-        checkArg(s == value, "argument cannot be converted losslessly to a short (given: %d)", value);
+        checkArg(s >= 0, "argument cannot be converted losslessly to a short (given: %d)", value);
         return s;
     }
 
     public static short toShort(char value, Object name) {
         short s = (short) value;
-        checkArg(s == value, "%2$s cannot be converted losslessly to a short (given: %1$d)", value, name);
+        checkArg(s >= 0, "%2$s cannot be converted losslessly to a short (given: %1$d)", value, name);
         return s;
     }
 
@@ -980,37 +979,83 @@ public class PValidation {
         return s;
     }
 
+    /**
+     * @deprecated use {@link #toChar}
+     */
+    @Deprecated
     public static char tochar(short value) {
-        char c = (char) value;
-        checkArg(c == value, "argument cannot be converted losslessly to a char (given: %d)", value);
-        return c;
+        return toChar(value);
     }
 
+    /**
+     * @deprecated use {@link #toChar}
+     */
+    @Deprecated
     public static char tochar(short value, Object name) {
-        char c = (char) value;
-        checkArg(c == value, "%2$s cannot be converted losslessly to a char (given: %1$d)", value, name);
-        return c;
+        return toChar(value, name);
     }
 
+    /**
+     * @deprecated use {@link #toChar}
+     */
+    @Deprecated
     public static char tochar(int value) {
+        return toChar(value);
+    }
+
+    /**
+     * @deprecated use {@link #toChar}
+     */
+    @Deprecated
+    public static char tochar(int value, Object name) {
+        return toChar(value, name);
+    }
+
+    /**
+     * @deprecated use {@link #toChar}
+     */
+    @Deprecated
+    public static char tochar(long value) {
+        return toChar(value);
+    }
+
+    /**
+     * @deprecated use {@link #toChar}
+     */
+    @Deprecated
+    public static char tochar(long value, Object name) {
+        return toChar(value, name);
+    }
+
+    public static char toChar(short value) {
+        checkArg(value >= 0, "argument cannot be converted losslessly to a char (given: %d)", value);
+        return (char) value;
+    }
+
+    public static char toChar(short value, Object name) {
+        checkArg(value >= 0, "%2$s cannot be converted losslessly to a char (given: %1$d)", value, name);
+        return (char) value;
+    }
+
+    public static char toChar(int value) {
         char c = (char) value;
         checkArg(c == value, "argument cannot be converted losslessly to a char (given: %d)", value);
         return c;
     }
 
-    public static char tochar(int value, Object name) {
+    public static char toChar(int value, Object name) {
         char c = (char) value;
         checkArg(c == value, "%2$s cannot be converted losslessly to a char (given: %1$d)", value, name);
         return c;
     }
 
-    public static char tochar(long value) {
+    public static char toChar(long value) {
         char c = (char) value;
         checkArg(c == value, "argument cannot be converted losslessly to a char (given: %d)", value);
         return c;
     }
 
-    public static char tochar(long value, Object name) {
+    public static char toChar(long value, Object name) {
         char c = (char) value;
         checkArg(c == value, "%2$s cannot be converted losslessly to a char (given: %1$d)", value, name);
         return c;

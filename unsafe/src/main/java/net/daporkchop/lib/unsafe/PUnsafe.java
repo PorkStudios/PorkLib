@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2024 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -20,11 +20,16 @@
 package net.daporkchop.lib.unsafe;
 
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import sun.misc.Cleaner;
 import sun.misc.Unsafe;
 import sun.nio.ch.DirectBuffer;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -56,6 +61,22 @@ public class PUnsafe {
             return (Unsafe) field.get(null);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new AssertionError("Unable to obtain instance of sun.misc.Unsafe", e);
+        }
+    });
+
+    private static final Object jdk_internal_misc_Unsafe = AccessController.doPrivileged((PrivilegedAction<Object>) () -> {
+        try {
+            if (JAVA_VERSION >= 9) {
+                //acquire an instance of jdk.internal.misc.Unsafe if it's available
+                Class<?> jdk_internal_misc_Unsafe = Class.forName("jdk.internal.misc.Unsafe");
+                return MethodHandles.lookup()
+                        .findStatic(jdk_internal_misc_Unsafe, "getUnsafe", MethodType.methodType(jdk_internal_misc_Unsafe))
+                        .invoke();
+            } else {
+                return null;
+            }
+        } catch (Throwable t) {
+            throw new AssertionError("Unable to obtain instance of jdk.internal.misc.Unsafe", t);
         }
     });
 
@@ -214,25 +235,27 @@ public class PUnsafe {
     public final int PAGE_SIZE = UNSAFE.pageSize();
 
     private final boolean UNALIGNED = AccessController.doPrivileged((PrivilegedAction<Boolean>) () -> {
-        boolean unaligned;
+        boolean unaligned = false;
         try {
             Class<?> bitsClass = Class.forName("java.nio.Bits", false, ClassLoader.getSystemClassLoader());
             if (UnsafePlatformInfo.JAVA_VERSION >= 9) {
                 try {
                     Field field = bitsClass.getDeclaredField(UnsafePlatformInfo.JAVA_VERSION >= 11 ? "UNALIGNED" : "unaligned");
                     if (field.getType() == boolean.class) {
-                        return new UnsafeStaticField(field).getBoolean();
+                        unaligned = new UnsafeStaticField(field).getBoolean();
                     }
                 } catch (NoSuchFieldException e) {
                     //silently ignore exception and continue
                 }
             }
 
-            Method unalignedMethod = bitsClass.getDeclaredMethod("unaligned");
-            unalignedMethod.setAccessible(true);
-            unaligned = (boolean) unalignedMethod.invoke(null);
+            if (!unaligned) {
+                Method unalignedMethod = bitsClass.getDeclaredMethod("unaligned");
+                unalignedMethod.setAccessible(true);
+                unaligned = (boolean) unalignedMethod.invoke(null);
+            }
         } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException | SecurityException e) {
-            unaligned = false;
+            //silently ignore exception and continue
         }
 
         if (!unaligned) { //unaligned memory access isn't available, check to see if we're on x86
@@ -959,8 +982,44 @@ public class PUnsafe {
         return UNSAFE.defineClass(name, classBytes, off, len, srcLoader, domain);
     }
 
+    /**
+     * @deprecated this will no longer work on Java 17+
+     */
+    @Deprecated
     public Class<?> defineAnonymousClass(Class<?> hostClass, byte[] data, Object[] constantPoolPatches) {
         return UNSAFE.defineAnonymousClass(hostClass, data, constantPoolPatches);
+    }
+
+    private static final class DefineHiddenClass_Java15 {
+        static final MethodHandle MethodHandles$Lookup_defineHiddenClass; // (MethodHandles.Lookup, byte[], boolean, MethodHandles.Lookup.ClassOption...) -> MethodHandles.Lookup
+
+        static {
+            try {
+                Class<?> MethodHandles$Lookup$ClassOption_class = Class.forName("java.lang.invoke.MethodHandles$Lookup$ClassOption");
+                Class<?> MethodHandles$Lookup$ClassOption_arrayClass = Array.newInstance(MethodHandles$Lookup$ClassOption_class, 0).getClass();
+
+                MethodHandles$Lookup_defineHiddenClass = MethodHandles.publicLookup()
+                        .findVirtual(MethodHandles.Lookup.class, "defineHiddenClass", MethodType.methodType(MethodHandles.Lookup.class, byte[].class, boolean.class, MethodHandles$Lookup$ClassOption_arrayClass));
+            } catch (Throwable t) {
+                throw new RuntimeException(t);
+            }
+        }
+    }
+
+    @SneakyThrows
+    public MethodHandles.Lookup defineHiddenClass(MethodHandles.Lookup hostLookup, boolean initialize, byte[] data) {
+        if (JAVA_VERSION >= 15) {
+            //invoke MethodHandles.Lookup#defineHiddenClass() directly
+            return (MethodHandles.Lookup) DefineHiddenClass_Java15.MethodHandles$Lookup_defineHiddenClass.invoke(
+                    hostLookup, data, initialize);
+        } else {
+            //fall back to Unsafe#defineAnonymousClass()
+            Class<?> clazz = defineAnonymousClass(hostLookup.lookupClass(), data, null);
+            if (initialize) {
+                ensureClassInitialized(clazz);
+            }
+            return hostLookup.in(clazz);
+        }
     }
 
     //
@@ -980,39 +1039,123 @@ public class PUnsafe {
 
     //
     // UNINITIALIZED ARRAY ALLOCATION
-    // TODO: implement these (they're only supported under Java 9+)
     //
 
+    private static final MethodHandle allocateUninitializedArray; //(Class<?>, int) -> Object
+
+    static {
+        if (JAVA_VERSION >= 9) {
+            try {
+                allocateUninitializedArray = MethodHandles.lookup()
+                        .findVirtual(jdk_internal_misc_Unsafe.getClass(), "allocateUninitializedArray", MethodType.methodType(Object.class, Class.class, int.class))
+                        .bindTo(jdk_internal_misc_Unsafe);
+            } catch (Throwable t) {
+                throw new AssertionError("Unable to find jdk.internal.misc.Unsafe#allocateUninitializedArray", t);
+            }
+        } else {
+            allocateUninitializedArray = null;
+        }
+    }
+
+    @SneakyThrows
+    public Object allocateUninitializedArray(Class<?> componentType, int length) {
+        if (allocateUninitializedArray != null) { //use Java 9 intrinsic if possible
+            return allocateUninitializedArray.invokeExact(componentType, length);
+        } else { //fallback to creating a zeroed array
+            return allocateUninitializedArray0(componentType, length);
+        }
+    }
+
+    private Object allocateUninitializedArray0(Class<?> componentType, int length) {
+        if (componentType == null) {
+            throw new IllegalArgumentException("Component type is null");
+        } else if (!componentType.isPrimitive()) {
+            throw new IllegalArgumentException("Component type is not primitive");
+        } else if (length < 0) {
+            throw new IllegalArgumentException("Negative length");
+        }
+
+        if (componentType == boolean.class) return new boolean[length];
+        if (componentType == byte.class) return new byte[length];
+        if (componentType == short.class) return new short[length];
+        if (componentType == char.class) return new char[length];
+        if (componentType == int.class) return new int[length];
+        if (componentType == long.class) return new long[length];
+        if (componentType == float.class) return new float[length];
+        if (componentType == double.class) return new double[length];
+        throw new IllegalArgumentException();
+    }
+
+    @SneakyThrows
     public boolean[] allocateUninitializedBooleanArray(int length) {
-        return new boolean[length];
+        if (allocateUninitializedArray != null) { //use Java 9 intrinsic if possible
+            return (boolean[]) allocateUninitializedArray.invoke(boolean.class, length);
+        } else { //fallback to creating a zeroed array
+            return new boolean[length];
+        }
     }
 
+    @SneakyThrows
     public byte[] allocateUninitializedByteArray(int length) {
-        return new byte[length];
+        if (allocateUninitializedArray != null) { //use Java 9 intrinsic if possible
+            return (byte[]) allocateUninitializedArray.invoke(byte.class, length);
+        } else { //fallback to creating a zeroed array
+            return new byte[length];
+        }
     }
 
+    @SneakyThrows
     public short[] allocateUninitializedShortArray(int length) {
-        return new short[length];
+        if (allocateUninitializedArray != null) { //use Java 9 intrinsic if possible
+            return (short[]) allocateUninitializedArray.invoke(short.class, length);
+        } else { //fallback to creating a zeroed array
+            return new short[length];
+        }
     }
 
+    @SneakyThrows
     public char[] allocateUninitializedCharArray(int length) {
-        return new char[length];
+        if (allocateUninitializedArray != null) { //use Java 9 intrinsic if possible
+            return (char[]) allocateUninitializedArray.invoke(char.class, length);
+        } else { //fallback to creating a zeroed array
+            return new char[length];
+        }
     }
 
+    @SneakyThrows
     public int[] allocateUninitializedIntArray(int length) {
-        return new int[length];
+        if (allocateUninitializedArray != null) { //use Java 9 intrinsic if possible
+            return (int[]) allocateUninitializedArray.invoke(int.class, length);
+        } else { //fallback to creating a zeroed array
+            return new int[length];
+        }
     }
 
+    @SneakyThrows
     public long[] allocateUninitializedLongArray(int length) {
-        return new long[length];
+        if (allocateUninitializedArray != null) { //use Java 9 intrinsic if possible
+            return (long[]) allocateUninitializedArray.invoke(long.class, length);
+        } else { //fallback to creating a zeroed array
+            return new long[length];
+        }
     }
 
+    @SneakyThrows
     public float[] allocateUninitializedFloatArray(int length) {
-        return new float[length];
+        if (allocateUninitializedArray != null) { //use Java 9 intrinsic if possible
+            return (float[]) allocateUninitializedArray.invoke(float.class, length);
+        } else { //fallback to creating a zeroed array
+            return new float[length];
+        }
     }
 
+    @SneakyThrows
     public double[] allocateUninitializedDoubleArray(int length) {
-        return new double[length];
+        if (allocateUninitializedArray != null) { //use Java 9 intrinsic if possible
+            return (double[]) allocateUninitializedArray.invoke(double.class, length);
+        } else { //fallback to creating a zeroed array
+            return new double[length];
+        }
     }
 
     //

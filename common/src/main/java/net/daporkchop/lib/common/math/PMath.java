@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2024 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -15,7 +15,6 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
 package net.daporkchop.lib.common.math;
@@ -341,5 +340,73 @@ public class PMath {
         } else { //oldCapacity + increment would overflow
             return "integer overflow: " + oldCapacity + " + " + increment;
         }
+    }
+
+    /**
+     * Checks if the given {@code float}s are equal, as returned by {@link Float#equals}.
+     * <p>
+     * This differs from the {@code ==} operator in two cases:
+     * <ul>
+     *     <li>If both arguments are NaN, the result is {@code true}. The NaN payload is ignored.</li>
+     *     <li>If one argument is {@code +0.0} and the other is {@code -0.0}, the result is {@code false}.</li>
+     * </ul>
+     *
+     * @param a a {@code float}
+     * @param b a {@code float}
+     * @return {@code true} if the given {@code float}s are equal
+     */
+    public static boolean floatEquals(float a, float b) {
+        return Float.floatToIntBits(a) == Float.floatToIntBits(b);
+    }
+
+    /**
+     * Checks if the given {@code double}s are equal, as returned by {@link Double#equals}.
+     * <p>
+     * This differs from the {@code ==} operator in two cases:
+     * <ul>
+     *     <li>If both arguments are NaN, the result is {@code true}. The NaN payload is ignored.</li>
+     *     <li>If one argument is {@code +0.0} and the other is {@code -0.0}, the result is {@code false}.</li>
+     * </ul>
+     *
+     * @param a a {@code double}
+     * @param b a {@code double}
+     * @return {@code true} if the given {@code double}s are equal
+     */
+    public static boolean doubleEquals(double a, double b) {
+        return Double.doubleToLongBits(a) == Double.doubleToLongBits(b);
+    }
+
+    /**
+     * Checks if the given {@code float}s are bitwise equal.
+     * <p>
+     * This differs from the {@code ==} operator in two cases:
+     * <ul>
+     *     <li>If both arguments are NaN, the result is {@code true} iff both NaNs have the same payload.</li>
+     *     <li>If one argument is {@code +0.0} and the other is {@code -0.0}, the result is {@code false}.</li>
+     * </ul>
+     *
+     * @param a a {@code float}
+     * @param b a {@code float}
+     * @return {@code true} if the given {@code float}s are bitwise equal
+     */
+    public static boolean floatBitwiseEquals(float a, float b) {
+        return Float.floatToRawIntBits(a) == Float.floatToRawIntBits(b);
+    }
+
+    /**
+     * Checks if the given {@code double}s are bitwise equal.
+     * <p>
+     * This differs from the {@code ==} operator in two cases:
+     * <ul>
+     *     <li>If both arguments are NaN, the result is {@code true} iff both NaNs have the same payload.</li>
+     *     <li>If one argument is {@code +0.0} and the other is {@code -0.0}, the result is {@code false}.</li>
+     * </ul>
+     *
+     * @param a a {@code double}
+     * @param b a {@code double}
+     * @return {@code true} if the given {@code double}s are bitwise equal
+     */
+    public static boolean doubleBitwiseEquals(double a, double b) {
+        return Double.doubleToRawLongBits(a) == Double.doubleToRawLongBits(b);
     }
 }

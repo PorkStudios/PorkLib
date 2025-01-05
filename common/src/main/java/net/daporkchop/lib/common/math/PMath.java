@@ -20,6 +20,7 @@
 package net.daporkchop.lib.common.math;
 
 import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.common.annotation.FastMath;
 import net.daporkchop.lib.common.annotation.param.NotNegative;
 
 import static java.lang.Math.*;
@@ -408,5 +409,31 @@ public class PMath {
      */
     public static boolean doubleBitwiseEquals(double a, double b) {
         return Double.doubleToRawLongBits(a) == Double.doubleToRawLongBits(b);
+    }
+
+    /**
+     * Returns {@code a * b + c}, except that the operation may be performed with higher precision.
+     *
+     * @param a a value
+     * @param b a value
+     * @param c a value
+     * @return {@code a * b + c}
+     */
+    @FastMath
+    public static float fmaFast(float a, float b, float c) {
+        return a * b + c;
+    }
+
+    /**
+     * Returns {@code a * b + c}, except that the operation may be performed with higher precision.
+     *
+     * @param a a value
+     * @param b a value
+     * @param c a value
+     * @return {@code a * b + c}
+     */
+    @FastMath
+    public static double fmaFast(double a, double b, double c) {
+        return a * b + c;
     }
 }

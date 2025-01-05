@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2021 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -15,22 +15,30 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
 package net.daporkchop.lib.math.vector;
 
-import static net.daporkchop.lib.math.vector.Vectors.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.annotation.ValueBased;
 
 /**
  * A 3-dimensional vector with {@code float} components.
- * <p>
- * Implementations are expected to redirect {@link Object#equals(Object)}, {@link Object#hashCode()} and {@link Object#toString()} to
- * {@link #equals(Vec3f, Object)}, {@link #hashCode(Vec3f)} and {@link #toString(Vec3f)}, respectively.
  *
  * @author DaPorkchop_
  */
-public interface Vec3f {
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Getter
+@ToString
+@EqualsAndHashCode
+@Accessors(fluent = true)
+@ValueBased
+public final class Vec3f {
     /**
      * Gets a {@link Vec3f} with the given coordinates.
      *
@@ -39,83 +47,86 @@ public interface Vec3f {
      * @param z the Y coordinate
      * @return a {@link Vec3f}
      */
-    static Vec3f of(float x, float y, float z) {
-        return new Vec3fImpl(x, y, z);
-    }
-
-    static boolean equals(Vec3f _this, Object obj) {
-        if (!(obj instanceof Vec3f)) {
-            return false;
-        }
-
-        Vec3f vec = (Vec3f) obj;
-        return _this.x() == vec.x() && _this.y() == vec.y() && _this.z() == vec.z();
-    }
-
-    static int hashCode(Vec3f _this) {
-        return Float.floatToRawIntBits(_this.x()) * HASH0 + Float.floatToRawIntBits(_this.y()) * HASH1 + Float.floatToRawIntBits(_this.z()) * HASH2;
-    }
-
-    static String toString(Vec3f _this) {
-        return "Vec3f(" + _this.x() + ',' + _this.y() + ',' + _this.z() + ')';
+    public static Vec3f of(float x, float y, float z) {
+        return new Vec3f(x, y, z);
     }
 
     /**
-     * @return the vector's X component
+     * The vector's X component.
      */
-    float x();
+    private final float x;
 
     /**
-     * @return the vector's Y component
+     * The vector's Y component.
      */
-    float y();
+    private final float y;
 
     /**
-     * @return the vector's Z component
+     * The vector's Z component.
      */
-    float z();
+    private final float z;
 
-    default Vec3i toInt() {
-        return Vec3i.of((int) this.x(), (int) this.y(), (int) this.z());
+    public Vec3i toInt() {
+        return Vec3i.of((int) this.x, (int) this.y, (int) this.z);
     }
 
-    default Vec3d toDouble() {
-        return Vec3d.of((double) this.x(), (double) this.y(), (double) this.z());
+    public Vec3d toDouble() {
+        return Vec3d.of((double) this.x, (double) this.y, (double) this.z);
     }
 
-    default Vec3f neg() {
-        return of(-this.x(), -this.y(), -this.z());
+    public Vec3f neg() {
+        return of(-this.x, -this.y, -this.z);
     }
 
-    default Vec3f add(float x, float y, float z) {
-        return of(this.x() + x, this.y() + y, this.z() + z);
+    public Vec3f abs() {
+        return of(Math.abs(this.x), Math.abs(this.y), Math.abs(this.z));
     }
 
-    default Vec3f add(Vec3f vec) {
-        return of(this.x() + vec.x(), this.y() + vec.y(), this.z() + vec.z());
+    public Vec3f add(float v) {
+        return of(this.x + v, this.y + v, this.z + v);
     }
 
-    default Vec3f sub(float x, float y, float z) {
-        return of(this.x() - x, this.y() - y, this.z() - z);
+    public Vec3f add(float x, float y, float z) {
+        return of(this.x + x, this.y + y, this.z + z);
     }
 
-    default Vec3f sub(Vec3f vec) {
-        return of(this.x() - vec.x(), this.y() - vec.y(), this.z() - vec.z());
+    public Vec3f add(Vec3f vec) {
+        return of(this.x + vec.x, this.y + vec.y, this.z + vec.z);
     }
 
-    default Vec3f mul(float x, float y, float z) {
-        return of(this.x() * x, this.y() * y, this.z() * z);
+    public Vec3f sub(float v) {
+        return of(this.x - v, this.y - v, this.z - v);
     }
 
-    default Vec3f mul(Vec3f vec) {
-        return of(this.x() * vec.x(), this.y() * vec.y(), this.z() * vec.z());
+    public Vec3f sub(float x, float y, float z) {
+        return of(this.x - x, this.y - y, this.z - z);
     }
 
-    default Vec3f div(float x, float y, float z) {
-        return of(this.x() / x, this.y() / y, this.z() / z);
+    public Vec3f sub(Vec3f vec) {
+        return of(this.x - vec.x, this.y - vec.y, this.z - vec.z);
     }
 
-    default Vec3f div(Vec3f vec) {
-        return of(this.x() / vec.x(), this.y() / vec.y(), this.z() / vec.z());
+    public Vec3f mul(float v) {
+        return of(this.x * v, this.y * v, this.z * v);
+    }
+
+    public Vec3f mul(float x, float y, float z) {
+        return of(this.x * x, this.y * y, this.z * z);
+    }
+
+    public Vec3f mul(Vec3f vec) {
+        return of(this.x * vec.x, this.y * vec.y, this.z * vec.z);
+    }
+
+    public Vec3f div(float v) {
+        return of(this.x / v, this.y / v, this.z / v);
+    }
+
+    public Vec3f div(float x, float y, float z) {
+        return of(this.x / x, this.y / y, this.z / z);
+    }
+
+    public Vec3f div(Vec3f vec) {
+        return of(this.x / vec.x, this.y / vec.y, this.z / vec.z);
     }
 }

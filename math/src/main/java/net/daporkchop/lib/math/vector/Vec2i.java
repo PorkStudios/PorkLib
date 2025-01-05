@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2021 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -15,22 +15,30 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
 package net.daporkchop.lib.math.vector;
 
-import static net.daporkchop.lib.math.vector.Vectors.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.annotation.ValueBased;
 
 /**
  * A 2-dimensional vector with {@code int} components.
- * <p>
- * Implementations are expected to redirect {@link Object#equals(Object)}, {@link Object#hashCode()} and {@link Object#toString()} to
- * {@link #equals(Vec2i, Object)}, {@link #hashCode(Vec2i)} and {@link #toString(Vec2i)}, respectively.
  *
  * @author DaPorkchop_
  */
-public interface Vec2i {
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Getter
+@ToString
+@EqualsAndHashCode
+@Accessors(fluent = true)
+@ValueBased
+public final class Vec2i {
     /**
      * Gets a {@link Vec2i} with the given coordinates.
      *
@@ -38,78 +46,81 @@ public interface Vec2i {
      * @param y the Y coordinate
      * @return a {@link Vec2i}
      */
-    static Vec2i of(int x, int y) {
-        return new Vectors.Vec2iImpl(x, y);
-    }
-
-    static boolean equals(Vec2i _this, Object obj) {
-        if (!(obj instanceof Vec2i)) {
-            return false;
-        }
-
-        Vec2i vec = (Vec2i) obj;
-        return _this.x() == vec.x() && _this.y() == vec.y();
-    }
-
-    static int hashCode(Vec2i _this) {
-        return _this.x() * HASH0 + _this.y() * HASH1;
-    }
-
-    static String toString(Vec2i _this) {
-        return "Vec2i(" + _this.x() + ',' + _this.y() + ')';
+    public static Vec2i of(int x, int y) {
+        return new Vec2i(x, y);
     }
 
     /**
-     * @return the vector's X component
+     * The vector's X component.
      */
-    int x();
+    private final int x;
 
     /**
-     * @return the vector's Y component
+     * The vector's Y component.
      */
-    int y();
+    private final int y;
 
-    default Vec2f toFloat() {
-        return Vec2f.of((float) this.x(), (float) this.y());
+    public Vec2f toFloat() {
+        return Vec2f.of((float) this.x, (float) this.y);
     }
 
-    default Vec2d toDouble() {
-        return Vec2d.of((double) this.x(), (double) this.y());
+    public Vec2d toDouble() {
+        return Vec2d.of((double) this.x, (double) this.y);
     }
 
-    default Vec2i neg() {
-        return of(-this.x(), -this.y());
+    public Vec2i neg() {
+        return of(-this.x, -this.y);
     }
 
-    default Vec2i add(int x, int y) {
-        return of(this.x() + x, this.y() + y);
+    public Vec2i abs() {
+        return of(Math.abs(this.x), Math.abs(this.y));
     }
 
-    default Vec2i add(Vec2i vec) {
-        return of(this.x() + vec.x(), this.y() + vec.y());
+    public Vec2i add(int v) {
+        return of(this.x + v, this.y + v);
     }
 
-    default Vec2i sub(int x, int y) {
-        return of(this.x() - x, this.y() - y);
+    public Vec2i add(int x, int y) {
+        return of(this.x + x, this.y + y);
     }
 
-    default Vec2i sub(Vec2i vec) {
-        return of(this.x() - vec.x(), this.y() - vec.y());
+    public Vec2i add(Vec2i vec) {
+        return of(this.x + vec.x, this.y + vec.y);
     }
 
-    default Vec2i mul(int x, int y) {
-        return of(this.x() * x, this.y() * y);
+    public Vec2i sub(int v) {
+        return of(this.x - v, this.y - v);
     }
 
-    default Vec2i mul(Vec2i vec) {
-        return of(this.x() * vec.x(), this.y() * vec.y());
+    public Vec2i sub(int x, int y) {
+        return of(this.x - x, this.y - y);
     }
 
-    default Vec2i div(int x, int y) {
-        return of(this.x() / x, this.y() / y);
+    public Vec2i sub(Vec2i vec) {
+        return of(this.x - vec.x, this.y - vec.y);
     }
 
-    default Vec2i div(Vec2i vec) {
-        return of(this.x() / vec.x(), this.y() / vec.y());
+    public Vec2i mul(int v) {
+        return of(this.x * v, this.y * v);
+    }
+
+    public Vec2i mul(int x, int y) {
+        return of(this.x * x, this.y * y);
+    }
+
+    public Vec2i mul(Vec2i vec) {
+        return of(this.x * vec.x, this.y * vec.y);
+    }
+
+    public Vec2i div(int v) {
+        return of(this.x / v, this.y / v);
+    }
+
+    public Vec2i div(int x, int y) {
+        return of(this.x / x, this.y / y);
+    }
+
+    public Vec2i div(Vec2i vec) {
+        return of(this.x / vec.x, this.y / vec.y);
     }
 }

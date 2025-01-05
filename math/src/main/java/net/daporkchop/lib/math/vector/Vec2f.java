@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2021 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -15,22 +15,30 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
 package net.daporkchop.lib.math.vector;
 
-import static net.daporkchop.lib.math.vector.Vectors.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.annotation.ValueBased;
 
 /**
  * A 2-dimensional vector with {@code float} components.
- * <p>
- * Implementations are expected to redirect {@link Object#equals(Object)}, {@link Object#hashCode()} and {@link Object#toString()} to
- * {@link #equals(Vec2f, Object)}, {@link #hashCode(Vec2f)} and {@link #toString(Vec2f)}, respectively.
  *
  * @author DaPorkchop_
  */
-public interface Vec2f {
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Getter
+@ToString
+@EqualsAndHashCode
+@Accessors(fluent = true)
+@ValueBased
+public final class Vec2f {
     /**
      * Gets a {@link Vec2f} with the given coordinates.
      *
@@ -38,78 +46,81 @@ public interface Vec2f {
      * @param y the Y coordinate
      * @return a {@link Vec2f}
      */
-    static Vec2f of(float x, float y) {
-        return new Vec2fImpl(x, y);
-    }
-
-    static boolean equals(Vec2f _this, Object obj) {
-        if (!(obj instanceof Vec2f)) {
-            return false;
-        }
-
-        Vec2f vec = (Vec2f) obj;
-        return _this.x() == vec.x() && _this.y() == vec.y();
-    }
-
-    static int hashCode(Vec2f _this) {
-        return Float.floatToRawIntBits(_this.x()) * HASH0 + Float.floatToRawIntBits(_this.y()) * HASH1;
-    }
-
-    static String toString(Vec2f _this) {
-        return "Vec2f(" + _this.x() + ',' + _this.y() + ')';
+    public static Vec2f of(float x, float y) {
+        return new Vec2f(x, y);
     }
 
     /**
-     * @return the vector's X component
+     * The vector's X component.
      */
-    float x();
+    private final float x;
 
     /**
-     * @return the vector's Y component
+     * The vector's Y component.
      */
-    float y();
+    private final float y;
 
-    default Vec2i toInt() {
-        return Vec2i.of((int) this.x(), (int) this.y());
+    public Vec2i toInt() {
+        return Vec2i.of((int) this.x, (int) this.y);
     }
 
-    default Vec2d toDouble() {
-        return Vec2d.of((double) this.x(), (double) this.y());
+    public Vec2d toDouble() {
+        return Vec2d.of((double) this.x, (double) this.y);
     }
 
-    default Vec2f neg() {
-        return of(-this.x(), -this.y());
+    public Vec2f neg() {
+        return of(-this.x, -this.y);
     }
 
-    default Vec2f add(float x, float y) {
-        return of(this.x() + x, this.y() + y);
+    public Vec2f abs() {
+        return of(Math.abs(this.x), Math.abs(this.y));
     }
 
-    default Vec2f add(Vec2f vec) {
-        return of(this.x() + vec.x(), this.y() + vec.y());
+    public Vec2f add(float v) {
+        return of(this.x + v, this.y + v);
     }
 
-    default Vec2f sub(float x, float y) {
-        return of(this.x() - x, this.y() - y);
+    public Vec2f add(float x, float y) {
+        return of(this.x + x, this.y + y);
     }
 
-    default Vec2f sub(Vec2f vec) {
-        return of(this.x() - vec.x(), this.y() - vec.y());
+    public Vec2f add(Vec2f vec) {
+        return of(this.x + vec.x, this.y + vec.y);
     }
 
-    default Vec2f mul(float x, float y) {
-        return of(this.x() * x, this.y() * y);
+    public Vec2f sub(float v) {
+        return of(this.x - v, this.y - v);
     }
 
-    default Vec2f mul(Vec2f vec) {
-        return of(this.x() * vec.x(), this.y() * vec.y());
+    public Vec2f sub(float x, float y) {
+        return of(this.x - x, this.y - y);
     }
 
-    default Vec2f div(float x, float y) {
-        return of(this.x() / x, this.y() / y);
+    public Vec2f sub(Vec2f vec) {
+        return of(this.x - vec.x, this.y - vec.y);
     }
 
-    default Vec2f div(Vec2f vec) {
-        return of(this.x() / vec.x(), this.y() / vec.y());
+    public Vec2f mul(float v) {
+        return of(this.x * v, this.y * v);
+    }
+
+    public Vec2f mul(float x, float y) {
+        return of(this.x * x, this.y * y);
+    }
+
+    public Vec2f mul(Vec2f vec) {
+        return of(this.x * vec.x, this.y * vec.y);
+    }
+
+    public Vec2f div(float v) {
+        return of(this.x / v, this.y / v);
+    }
+
+    public Vec2f div(float x, float y) {
+        return of(this.x / x, this.y / y);
+    }
+
+    public Vec2f div(Vec2f vec) {
+        return of(this.x / vec.x, this.y / vec.y);
     }
 }

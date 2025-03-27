@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2024 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -95,14 +95,50 @@ public class PorkUtil {
     public final String PORKLIB_VERSION = preventInline("0.5.8-SNAPSHOT"); //TODO: set this dynamically
     public final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
 
+    /**
+     * @deprecated use {@link #emptyBooleanArray()}
+     */
+    @Deprecated
     public final boolean[] EMPTY_BOOLEAN_ARRAY = new boolean[0];
+    /**
+     * @deprecated use {@link #emptyByteArray()}
+     */
+    @Deprecated
     public final byte[] EMPTY_BYTE_ARRAY = new byte[0];
+    /**
+     * @deprecated use {@link #emptyShortArray()}
+     */
+    @Deprecated
     public final short[] EMPTY_SHORT_ARRAY = new short[0];
+    /**
+     * @deprecated use {@link #emptyCharArray()}
+     */
+    @Deprecated
     public final char[] EMPTY_CHAR_ARRAY = new char[0];
+    /**
+     * @deprecated use {@link #emptyIntArray()}
+     */
+    @Deprecated
     public final int[] EMPTY_INT_ARRAY = new int[0];
+    /**
+     * @deprecated use {@link #emptyLongArray()}
+     */
+    @Deprecated
     public final long[] EMPTY_LONG_ARRAY = new long[0];
+    /**
+     * @deprecated use {@link #emptyFloatArray()}
+     */
+    @Deprecated
     public final float[] EMPTY_FLOAT_ARRAY = new float[0];
+    /**
+     * @deprecated use {@link #emptyDoubleArray()}
+     */
+    @Deprecated
     public final double[] EMPTY_DOUBLE_ARRAY = new double[0];
+    /**
+     * @deprecated use {@link #emptyObjectArray()}
+     */
+    @Deprecated
     public final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
 
     public final boolean NETTY_PRESENT = classExistsWithName("io.netty.util.concurrent.FastThreadLocal");
@@ -151,6 +187,69 @@ public class PorkUtil {
      */
     public static Recycler<StringBuilder> stringBuilderRecycler() {
         return STRINGBUILDER_RECYCLER.get();
+    }
+
+    /**
+     * @return an empty {@code boolean[]} instance
+     */
+    public static boolean[] emptyBooleanArray() {
+        return EMPTY_BOOLEAN_ARRAY;
+    }
+
+    /**
+     * @return an empty {@code byte[]} instance
+     */
+    public static byte[] emptyByteArray() {
+        return EMPTY_BYTE_ARRAY;
+    }
+
+    /**
+     * @return an empty {@code short[]} instance
+     */
+    public static short[] emptyShortArray() {
+        return EMPTY_SHORT_ARRAY;
+    }
+
+    /**
+     * @return an empty {@code char[]} instance
+     */
+    public static char[] emptyCharArray() {
+        return EMPTY_CHAR_ARRAY;
+    }
+
+    /**
+     * @return an empty {@code int[]} instance
+     */
+    public static int[] emptyIntArray() {
+        return EMPTY_INT_ARRAY;
+    }
+
+    /**
+     * @return an empty {@code long[]} instance
+     */
+    public static long[] emptyLongArray() {
+        return EMPTY_LONG_ARRAY;
+    }
+
+    /**
+     * @return an empty {@code float[]} instance
+     */
+    public static float[] emptyFloatArray() {
+        return EMPTY_FLOAT_ARRAY;
+    }
+
+    /**
+     * @return an empty {@code double[]} instance
+     */
+    public static double[] emptyDoubleArray() {
+        return EMPTY_DOUBLE_ARRAY;
+    }
+
+    /**
+     * @return an empty {@code Object[]} instance
+     */
+    public static Object[] emptyObjectArray() {
+        return EMPTY_OBJECT_ARRAY;
     }
 
     /**

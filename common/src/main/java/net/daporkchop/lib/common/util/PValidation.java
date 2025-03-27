@@ -15,6 +15,7 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  */
 
 package net.daporkchop.lib.common.util;
@@ -1131,14 +1132,14 @@ public class PValidation {
 
     public static int checkIndex(@NotNegative int totalStart, @NotNegative int totalEnd, @NotNegative int index)  {
         notNegative(totalStart, "totalStart");
-        checkArg(totalEnd > totalStart, "total range is empty or backwards (totalStart: %d, totalEnd %d)", totalStart, totalEnd);
+        checkArg(totalEnd >= totalStart, "total range is backwards (totalStart: %d, totalEnd %d)", totalStart, totalEnd);
         checkIndex(index >= totalStart && index < totalEnd, "total: %d-%d, index: %d", totalStart, totalEnd, index);
         return index;
     }
 
     public static long checkIndex(@NotNegative long totalStart, @NotNegative long totalEnd, @NotNegative long index)  {
         notNegative(totalStart, "totalStart");
-        checkArg(totalEnd > totalStart, "total range is empty or backwards (totalStart: %d, totalEnd %d)", totalStart, totalEnd);
+        checkArg(totalEnd >= totalStart, "total range is backwards (totalStart: %d, totalEnd %d)", totalStart, totalEnd);
         checkIndex(index >= totalStart && index < totalEnd, "total: %d-%d, index: %d", totalStart, totalEnd, index);
         return index;
     }
@@ -1150,19 +1151,19 @@ public class PValidation {
 
     public static void checkRange(@NotNegative long totalSize, @NotNegative long startInclusive, @NotNegative long endExclusive) {
         notNegative(totalSize, "totalSize");
-        checkIndex(endExclusive > startInclusive && startInclusive >= 0L && endExclusive <= totalSize, "total: 0-%d, range: %d-%d", totalSize, startInclusive, endExclusive);
+        checkIndex(endExclusive >= startInclusive && startInclusive >= 0L && endExclusive <= totalSize, "total: 0-%d, range: %d-%d", totalSize, startInclusive, endExclusive);
     }
 
     public static void checkRange(@NotNegative int totalStart, @NotNegative int totalEnd, @NotNegative int startInclusive, @NotNegative int endExclusive) {
         notNegative(totalStart, "totalStart");
-        checkArg(totalEnd > totalStart, "total range is empty or backwards (totalStart: %d, totalEnd %d)", totalStart, totalEnd);
-        checkIndex(endExclusive > startInclusive && startInclusive >= totalStart && endExclusive <= totalEnd, "total: %d-%d, range: %d-%d", totalStart, totalEnd, startInclusive, endExclusive);
+        checkArg(totalEnd >= totalStart, "total range is backwards (totalStart: %d, totalEnd %d)", totalStart, totalEnd);
+        checkIndex(endExclusive >= startInclusive && startInclusive >= totalStart && endExclusive <= totalEnd, "total: %d-%d, range: %d-%d", totalStart, totalEnd, startInclusive, endExclusive);
     }
 
     public static void checkRange(@NotNegative long totalStart, @NotNegative long totalEnd, @NotNegative long startInclusive, @NotNegative long endExclusive) {
         notNegative(totalStart, "totalStart");
-        checkArg(totalEnd > totalStart, "total range is empty or backwards (totalStart: %d, totalEnd %d)", totalStart, totalEnd);
-        checkIndex(endExclusive > startInclusive && startInclusive >= totalStart && endExclusive <= totalEnd, "total: %d-%d, range: %d-%d", totalStart, totalEnd, startInclusive, endExclusive);
+        checkArg(totalEnd >= totalStart, "total range is backwards (totalStart: %d, totalEnd %d)", totalStart, totalEnd);
+        checkIndex(endExclusive >= startInclusive && startInclusive >= totalStart && endExclusive <= totalEnd, "total: %d-%d, range: %d-%d", totalStart, totalEnd, startInclusive, endExclusive);
     }
 
     public static void checkRangeLen(@NotNegative int totalSize, @NotNegative int startInclusive, @NotNegative int length) {

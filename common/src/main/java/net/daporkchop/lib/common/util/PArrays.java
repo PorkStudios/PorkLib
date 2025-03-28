@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2024 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -15,12 +15,14 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  */
 
 package net.daporkchop.lib.common.util;
 
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.common.math.PMath;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.lang.reflect.Array;
@@ -57,7 +59,7 @@ public class PArrays {
      *
      * @param arr the array
      */
-    public void shuffle(@NonNull boolean[] arr) {
+    public static void shuffle(boolean @NonNull [] arr) {
         shuffle(arr, ThreadLocalRandom.current());
     }
 
@@ -67,7 +69,7 @@ public class PArrays {
      * @param arr    the array
      * @param random the {@link Random} to use
      */
-    public void shuffle(@NonNull boolean[] arr, @NonNull Random random) {
+    public static void shuffle(boolean @NonNull [] arr, @NonNull Random random) {
         for (int i = 0, length = arr.length; i < length; i++) {
             swap(arr, i, random.nextInt(length));
         }
@@ -80,7 +82,7 @@ public class PArrays {
      * @param random the {@link IntUnaryOperator} to use as a source of random numbers. Given an exclusive upper bound, it should return a random number uniformly
      *               distributed in the range {@code [0-bound)}, as with {@link Random#nextInt(int)}.
      */
-    public void shuffle(@NonNull boolean[] arr, @NonNull IntUnaryOperator random) {
+    public static void shuffle(boolean @NonNull [] arr, @NonNull IntUnaryOperator random) {
         for (int i = 0, length = arr.length; i < length; i++) {
             swap(arr, i, random.applyAsInt(length));
         }
@@ -91,7 +93,7 @@ public class PArrays {
      *
      * @param arr the array
      */
-    public void shuffle(@NonNull byte[] arr) {
+    public static void shuffle(byte @NonNull [] arr) {
         shuffle(arr, ThreadLocalRandom.current());
     }
 
@@ -101,7 +103,7 @@ public class PArrays {
      * @param arr    the array
      * @param random the {@link Random} to use
      */
-    public void shuffle(@NonNull byte[] arr, @NonNull Random random) {
+    public static void shuffle(byte @NonNull [] arr, @NonNull Random random) {
         for (int i = 0, length = arr.length; i < length; i++) {
             swap(arr, i, random.nextInt(length));
         }
@@ -114,7 +116,7 @@ public class PArrays {
      * @param random the {@link IntUnaryOperator} to use as a source of random numbers. Given an exclusive upper bound, it should return a random number uniformly
      *               distributed in the range {@code [0-bound)}, as with {@link Random#nextInt(int)}.
      */
-    public void shuffle(@NonNull byte[] arr, @NonNull IntUnaryOperator random) {
+    public static void shuffle(byte @NonNull [] arr, @NonNull IntUnaryOperator random) {
         for (int i = 0, length = arr.length; i < length; i++) {
             swap(arr, i, random.applyAsInt(length));
         }
@@ -125,7 +127,7 @@ public class PArrays {
      *
      * @param arr the array
      */
-    public void shuffle(@NonNull short[] arr) {
+    public static void shuffle(short @NonNull [] arr) {
         shuffle(arr, ThreadLocalRandom.current());
     }
 
@@ -135,7 +137,7 @@ public class PArrays {
      * @param arr    the array
      * @param random the {@link Random} to use
      */
-    public void shuffle(@NonNull short[] arr, @NonNull Random random) {
+    public static void shuffle(short @NonNull [] arr, @NonNull Random random) {
         for (int i = 0, length = arr.length; i < length; i++) {
             swap(arr, i, random.nextInt(length));
         }
@@ -148,7 +150,7 @@ public class PArrays {
      * @param random the {@link IntUnaryOperator} to use as a source of random numbers. Given an exclusive upper bound, it should return a random number uniformly
      *               distributed in the range {@code [0-bound)}, as with {@link Random#nextInt(int)}.
      */
-    public void shuffle(@NonNull short[] arr, @NonNull IntUnaryOperator random) {
+    public static void shuffle(short @NonNull [] arr, @NonNull IntUnaryOperator random) {
         for (int i = 0, length = arr.length; i < length; i++) {
             swap(arr, i, random.applyAsInt(length));
         }
@@ -159,7 +161,7 @@ public class PArrays {
      *
      * @param arr the array
      */
-    public void shuffle(@NonNull char[] arr) {
+    public static void shuffle(char @NonNull [] arr) {
         shuffle(arr, ThreadLocalRandom.current());
     }
 
@@ -169,7 +171,7 @@ public class PArrays {
      * @param arr    the array
      * @param random the {@link Random} to use
      */
-    public void shuffle(@NonNull char[] arr, @NonNull Random random) {
+    public static void shuffle(char @NonNull [] arr, @NonNull Random random) {
         for (int i = 0, length = arr.length; i < length; i++) {
             swap(arr, i, random.nextInt(length));
         }
@@ -182,7 +184,7 @@ public class PArrays {
      * @param random the {@link IntUnaryOperator} to use as a source of random numbers. Given an exclusive upper bound, it should return a random number uniformly
      *               distributed in the range {@code [0-bound)}, as with {@link Random#nextInt(int)}.
      */
-    public void shuffle(@NonNull char[] arr, @NonNull IntUnaryOperator random) {
+    public static void shuffle(char @NonNull [] arr, @NonNull IntUnaryOperator random) {
         for (int i = 0, length = arr.length; i < length; i++) {
             swap(arr, i, random.applyAsInt(length));
         }
@@ -193,7 +195,7 @@ public class PArrays {
      *
      * @param arr the array
      */
-    public void shuffle(@NonNull int[] arr) {
+    public static void shuffle(int @NonNull [] arr) {
         shuffle(arr, ThreadLocalRandom.current());
     }
 
@@ -203,7 +205,7 @@ public class PArrays {
      * @param arr    the array
      * @param random the {@link Random} to use
      */
-    public void shuffle(@NonNull int[] arr, @NonNull Random random) {
+    public static void shuffle(int @NonNull [] arr, @NonNull Random random) {
         for (int i = 0, length = arr.length; i < length; i++) {
             swap(arr, i, random.nextInt(length));
         }
@@ -216,7 +218,7 @@ public class PArrays {
      * @param random the {@link IntUnaryOperator} to use as a source of random numbers. Given an exclusive upper bound, it should return a random number uniformly
      *               distributed in the range {@code [0-bound)}, as with {@link Random#nextInt(int)}.
      */
-    public void shuffle(@NonNull int[] arr, @NonNull IntUnaryOperator random) {
+    public static void shuffle(int @NonNull [] arr, @NonNull IntUnaryOperator random) {
         for (int i = 0, length = arr.length; i < length; i++) {
             swap(arr, i, random.applyAsInt(length));
         }
@@ -227,7 +229,7 @@ public class PArrays {
      *
      * @param arr the array
      */
-    public void shuffle(@NonNull long[] arr) {
+    public static void shuffle(long @NonNull [] arr) {
         shuffle(arr, ThreadLocalRandom.current());
     }
 
@@ -237,7 +239,7 @@ public class PArrays {
      * @param arr    the array
      * @param random the {@link Random} to use
      */
-    public void shuffle(@NonNull long[] arr, @NonNull Random random) {
+    public static void shuffle(long @NonNull [] arr, @NonNull Random random) {
         for (int i = 0, length = arr.length; i < length; i++) {
             swap(arr, i, random.nextInt(length));
         }
@@ -250,7 +252,7 @@ public class PArrays {
      * @param random the {@link IntUnaryOperator} to use as a source of random numbers. Given an exclusive upper bound, it should return a random number uniformly
      *               distributed in the range {@code [0-bound)}, as with {@link Random#nextInt(int)}.
      */
-    public void shuffle(@NonNull long[] arr, @NonNull IntUnaryOperator random) {
+    public static void shuffle(long @NonNull [] arr, @NonNull IntUnaryOperator random) {
         for (int i = 0, length = arr.length; i < length; i++) {
             swap(arr, i, random.applyAsInt(length));
         }
@@ -261,7 +263,7 @@ public class PArrays {
      *
      * @param arr the array
      */
-    public void shuffle(@NonNull float[] arr) {
+    public static void shuffle(float @NonNull [] arr) {
         shuffle(arr, ThreadLocalRandom.current());
     }
 
@@ -271,7 +273,7 @@ public class PArrays {
      * @param arr    the array
      * @param random the {@link Random} to use
      */
-    public void shuffle(@NonNull float[] arr, @NonNull Random random) {
+    public static void shuffle(float @NonNull [] arr, @NonNull Random random) {
         for (int i = 0, length = arr.length; i < length; i++) {
             swap(arr, i, random.nextInt(length));
         }
@@ -284,7 +286,7 @@ public class PArrays {
      * @param random the {@link IntUnaryOperator} to use as a source of random numbers. Given an exclusive upper bound, it should return a random number uniformly
      *               distributed in the range {@code [0-bound)}, as with {@link Random#nextInt(int)}.
      */
-    public void shuffle(@NonNull float[] arr, @NonNull IntUnaryOperator random) {
+    public static void shuffle(float @NonNull [] arr, @NonNull IntUnaryOperator random) {
         for (int i = 0, length = arr.length; i < length; i++) {
             swap(arr, i, random.applyAsInt(length));
         }
@@ -295,7 +297,7 @@ public class PArrays {
      *
      * @param arr the array
      */
-    public void shuffle(@NonNull double[] arr) {
+    public static void shuffle(double @NonNull [] arr) {
         shuffle(arr, ThreadLocalRandom.current());
     }
 
@@ -305,7 +307,7 @@ public class PArrays {
      * @param arr    the array
      * @param random the {@link Random} to use
      */
-    public void shuffle(@NonNull double[] arr, @NonNull Random random) {
+    public static void shuffle(double @NonNull [] arr, @NonNull Random random) {
         for (int i = 0, length = arr.length; i < length; i++) {
             swap(arr, i, random.nextInt(length));
         }
@@ -318,7 +320,7 @@ public class PArrays {
      * @param random the {@link IntUnaryOperator} to use as a source of random numbers. Given an exclusive upper bound, it should return a random number uniformly
      *               distributed in the range {@code [0-bound)}, as with {@link Random#nextInt(int)}.
      */
-    public void shuffle(@NonNull double[] arr, @NonNull IntUnaryOperator random) {
+    public static void shuffle(double @NonNull [] arr, @NonNull IntUnaryOperator random) {
         for (int i = 0, length = arr.length; i < length; i++) {
             swap(arr, i, random.applyAsInt(length));
         }
@@ -329,7 +331,7 @@ public class PArrays {
      *
      * @param arr the array
      */
-    public void shuffle(@NonNull Object[] arr) {
+    public static void shuffle(Object @NonNull [] arr) {
         shuffle(arr, ThreadLocalRandom.current());
     }
 
@@ -339,7 +341,7 @@ public class PArrays {
      * @param arr    the array
      * @param random the {@link Random} to use
      */
-    public void shuffle(@NonNull Object[] arr, @NonNull Random random) {
+    public static void shuffle(Object @NonNull [] arr, @NonNull Random random) {
         for (int i = 0, length = arr.length; i < length; i++) {
             swap(arr, i, random.nextInt(length));
         }
@@ -352,7 +354,7 @@ public class PArrays {
      * @param random the {@link IntUnaryOperator} to use as a source of random numbers. Given an exclusive upper bound, it should return a random number uniformly
      *               distributed in the range {@code [0-bound)}, as with {@link Random#nextInt(int)}.
      */
-    public void shuffle(@NonNull Object[] arr, @NonNull IntUnaryOperator random) {
+    public static void shuffle(Object @NonNull [] arr, @NonNull IntUnaryOperator random) {
         for (int i = 0, length = arr.length; i < length; i++) {
             swap(arr, i, random.applyAsInt(length));
         }
@@ -369,7 +371,7 @@ public class PArrays {
      * @param value  the default value for elements in the new array
      * @return the new array
      */
-    public boolean[] filled(int length, boolean value) {
+    public static boolean[] filled(int length, boolean value) {
         boolean[] arr = PUnsafe.allocateUninitializedBooleanArray(length);
         Arrays.fill(arr, value);
         return arr;
@@ -382,7 +384,7 @@ public class PArrays {
      * @param value  the default value for elements in the new array
      * @return the new array
      */
-    public byte[] filled(int length, byte value) {
+    public static byte[] filled(int length, byte value) {
         byte[] arr = PUnsafe.allocateUninitializedByteArray(length);
         Arrays.fill(arr, value);
         return arr;
@@ -395,7 +397,7 @@ public class PArrays {
      * @param value  the default value for elements in the new array
      * @return the new array
      */
-    public short[] filled(int length, short value) {
+    public static short[] filled(int length, short value) {
         short[] arr = PUnsafe.allocateUninitializedShortArray(length);
         Arrays.fill(arr, value);
         return arr;
@@ -408,7 +410,7 @@ public class PArrays {
      * @param value  the default value for elements in the new array
      * @return the new array
      */
-    public char[] filled(int length, char value) {
+    public static char[] filled(int length, char value) {
         char[] arr = PUnsafe.allocateUninitializedCharArray(length);
         Arrays.fill(arr, value);
         return arr;
@@ -421,7 +423,7 @@ public class PArrays {
      * @param value  the default value for elements in the new array
      * @return the new array
      */
-    public int[] filled(int length, int value) {
+    public static int[] filled(int length, int value) {
         int[] arr = PUnsafe.allocateUninitializedIntArray(length);
         Arrays.fill(arr, value);
         return arr;
@@ -434,7 +436,7 @@ public class PArrays {
      * @param value  the default value for elements in the new array
      * @return the new array
      */
-    public long[] filled(int length, long value) {
+    public static long[] filled(int length, long value) {
         long[] arr = PUnsafe.allocateUninitializedLongArray(length);
         Arrays.fill(arr, value);
         return arr;
@@ -447,7 +449,7 @@ public class PArrays {
      * @param value  the default value for elements in the new array
      * @return the new array
      */
-    public float[] filled(int length, float value) {
+    public static float[] filled(int length, float value) {
         float[] arr = PUnsafe.allocateUninitializedFloatArray(length);
         Arrays.fill(arr, value);
         return arr;
@@ -460,7 +462,7 @@ public class PArrays {
      * @param value  the default value for elements in the new array
      * @return the new array
      */
-    public double[] filled(int length, double value) {
+    public static double[] filled(int length, double value) {
         double[] arr = PUnsafe.allocateUninitializedDoubleArray(length);
         Arrays.fill(arr, value);
         return arr;
@@ -474,7 +476,7 @@ public class PArrays {
      * @param value         the default value for elements in the new array
      * @return the new array
      */
-    public <T> T[] filled(int length, @NonNull Class<T> componentType, T value) {
+    public static <T> T[] filled(int length, @NonNull Class<T> componentType, T value) {
         T[] arr = uncheckedCast(Array.newInstance(componentType, length));
         if (value != null) { //array elements are initialized to null by default, so we only have to fill the array if the default value is non-null
             Arrays.fill(arr, value);
@@ -490,7 +492,7 @@ public class PArrays {
      * @param value        the default value for elements in the new array
      * @return the new array
      */
-    public <T> T[] filled(int length, @NonNull IntFunction<T[]> arrayCreator, T value) {
+    public static <T> T[] filled(int length, @NonNull IntFunction<T[]> arrayCreator, T value) {
         T[] arr = arrayCreator.apply(length);
         if (value != null) { //array elements are initialized to null by default, so we only have to fill the array if the default value is non-null
             Arrays.fill(arr, value);
@@ -509,7 +511,7 @@ public class PArrays {
      * @see #filled(int, Class, Object)
      * @see #filled(int, IntFunction, Object)
      */
-    public <T> T[] filledUnchecked(int length, @NonNull T value) {
+    public static <T> T[] filledUnchecked(int length, @NonNull T value) {
         return filled(length, PorkUtil.<Class<T>>uncheckedCast(value.getClass()), value);
     }
 
@@ -526,7 +528,7 @@ public class PArrays {
      * @param supplier a {@link BooleanSupplier} which supplies the default value for each element in the array
      * @return the new array
      */
-    public boolean[] filledFrom(int length, @NonNull BooleanSupplier supplier) {
+    public static boolean[] filledFrom(int length, @NonNull BooleanSupplier supplier) {
         boolean[] arr = PUnsafe.allocateUninitializedBooleanArray(length);
         for (int i = 0; i < length; i++) {
             arr[i] = supplier.getAsBoolean();
@@ -547,7 +549,7 @@ public class PArrays {
      * @param supplier a {@link IntSupplier} which supplies the default value for each element in the array
      * @return the new array
      */
-    public int[] filledFrom(int length, @NonNull IntSupplier supplier) {
+    public static int[] filledFrom(int length, @NonNull IntSupplier supplier) {
         int[] arr = PUnsafe.allocateUninitializedIntArray(length);
         for (int i = 0; i < length; i++) {
             arr[i] = supplier.getAsInt();
@@ -564,7 +566,7 @@ public class PArrays {
      * @param supplier a {@link LongSupplier} which supplies the default value for each element in the array
      * @return the new array
      */
-    public long[] filledFrom(int length, @NonNull LongSupplier supplier) {
+    public static long[] filledFrom(int length, @NonNull LongSupplier supplier) {
         long[] arr = PUnsafe.allocateUninitializedLongArray(length);
         for (int i = 0; i < length; i++) {
             arr[i] = supplier.getAsLong();
@@ -583,7 +585,7 @@ public class PArrays {
      * @param supplier a {@link DoubleSupplier} which supplies the default value for each element in the array
      * @return the new array
      */
-    public double[] filledFrom(int length, @NonNull DoubleSupplier supplier) {
+    public static double[] filledFrom(int length, @NonNull DoubleSupplier supplier) {
         double[] arr = PUnsafe.allocateUninitializedDoubleArray(length);
         for (int i = 0; i < length; i++) {
             arr[i] = supplier.getAsDouble();
@@ -601,7 +603,7 @@ public class PArrays {
      * @param supplier      a {@link Supplier} which supplies the default value for each element in the array
      * @return the new array
      */
-    public <T> T[] filledFrom(int length, @NonNull Class<T> componentType, @NonNull Supplier<? extends T> supplier) {
+    public static <T> T[] filledFrom(int length, @NonNull Class<T> componentType, @NonNull Supplier<? extends T> supplier) {
         T[] arr = uncheckedCast(Array.newInstance(componentType, length));
         for (int i = 0; i < length; i++) {
             arr[i] = supplier.get();
@@ -619,7 +621,7 @@ public class PArrays {
      * @param supplier     a {@link Supplier} which supplies the default value for each element in the array
      * @return the new array
      */
-    public <T> T[] filledFrom(int length, @NonNull IntFunction<T[]> arrayCreator, @NonNull Supplier<? extends T> supplier) {
+    public static <T> T[] filledFrom(int length, @NonNull IntFunction<T[]> arrayCreator, @NonNull Supplier<? extends T> supplier) {
         T[] arr = arrayCreator.apply(length);
         for (int i = 0; i < length; i++) {
             arr[i] = supplier.get();
@@ -638,7 +640,7 @@ public class PArrays {
      * @param function a {@link IntPredicate} which computes the default value for each element in the array from the element index
      * @return the new array
      */
-    public boolean[] filledBy(int length, @NonNull IntPredicate function) {
+    public static boolean[] filledBy(int length, @NonNull IntPredicate function) {
         boolean[] arr = PUnsafe.allocateUninitializedBooleanArray(length);
         for (int i = 0; i < length; i++) {
             arr[i] = function.test(i);
@@ -657,7 +659,7 @@ public class PArrays {
      * @param function a {@link IntUnaryOperator} which computes the default value for each element in the array from the element index
      * @return the new array
      */
-    public int[] filledBy(int length, @NonNull IntUnaryOperator function) {
+    public static int[] filledBy(int length, @NonNull IntUnaryOperator function) {
         int[] arr = PUnsafe.allocateUninitializedIntArray(length);
         for (int i = 0; i < length; i++) {
             arr[i] = function.applyAsInt(i);
@@ -672,7 +674,7 @@ public class PArrays {
      * @param function a {@link IntToLongFunction} which computes the default value for each element in the array from the element index
      * @return the new array
      */
-    public long[] filledBy(int length, @NonNull IntToLongFunction function) {
+    public static long[] filledBy(int length, @NonNull IntToLongFunction function) {
         long[] arr = PUnsafe.allocateUninitializedLongArray(length);
         for (int i = 0; i < length; i++) {
             arr[i] = function.applyAsLong(i);
@@ -689,7 +691,7 @@ public class PArrays {
      * @param function a {@link IntToDoubleFunction} which computes the default value for each element in the array from the element index
      * @return the new array
      */
-    public double[] filledBy(int length, @NonNull IntToDoubleFunction function) {
+    public static double[] filledBy(int length, @NonNull IntToDoubleFunction function) {
         double[] arr = PUnsafe.allocateUninitializedDoubleArray(length);
         for (int i = 0; i < length; i++) {
             arr[i] = function.applyAsDouble(i);
@@ -705,7 +707,7 @@ public class PArrays {
      * @param function      a {@link IntFunction} which computes the default value for each element in the array from the element index
      * @return the new array
      */
-    public <T> T[] filledBy(int length, @NonNull Class<T> componentType, @NonNull IntFunction<? extends T> function) {
+    public static <T> T[] filledBy(int length, @NonNull Class<T> componentType, @NonNull IntFunction<? extends T> function) {
         T[] arr = uncheckedCast(Array.newInstance(componentType, length));
         for (int i = 0; i < length; i++) {
             arr[i] = function.apply(i);
@@ -721,7 +723,7 @@ public class PArrays {
      * @param function     a {@link IntFunction} which computes the default value for each element in the array from the element index
      * @return the new array
      */
-    public <T> T[] filledBy(int length, @NonNull IntFunction<T[]> arrayCreator, @NonNull IntFunction<? extends T> function) {
+    public static <T> T[] filledBy(int length, @NonNull IntFunction<T[]> arrayCreator, @NonNull IntFunction<? extends T> function) {
         T[] arr = arrayCreator.apply(length);
         for (int i = 0; i < length; i++) {
             arr[i] = function.apply(i);
@@ -740,7 +742,7 @@ public class PArrays {
      * @param val the value to search for
      * @return the index at which the value was found, or {@code -1} if not present
      */
-    public int linearSearch(@NonNull boolean[] arr, boolean val) {
+    public static int linearSearch(boolean @NonNull [] arr, boolean val) {
         return linearSearch(arr, 0, arr.length, val);
     }
 
@@ -753,7 +755,7 @@ public class PArrays {
      * @param val  the value to search for
      * @return the index at which the value was found, or {@code -1} if not present
      */
-    public int linearSearch(@NonNull boolean[] arr, int from, int to, boolean val) {
+    public static int linearSearch(boolean @NonNull [] arr, int from, int to, boolean val) {
         checkRange(arr.length, from, to);
         for (int i = from; i < to; i++) {
             if (arr[i] == val) {
@@ -770,7 +772,7 @@ public class PArrays {
      * @param val the value to search for
      * @return the index at which the value was found, or {@code -1} if not present
      */
-    public int linearSearch(@NonNull byte[] arr, byte val) {
+    public static int linearSearch(byte @NonNull [] arr, byte val) {
         return linearSearch(arr, 0, arr.length, val);
     }
 
@@ -783,7 +785,7 @@ public class PArrays {
      * @param val  the value to search for
      * @return the index at which the value was found, or {@code -1} if not present
      */
-    public int linearSearch(@NonNull byte[] arr, int from, int to, byte val) {
+    public static int linearSearch(byte @NonNull [] arr, int from, int to, byte val) {
         checkRange(arr.length, from, to);
         for (int i = from; i < to; i++) {
             if (arr[i] == val) {
@@ -800,7 +802,7 @@ public class PArrays {
      * @param val the value to search for
      * @return the index at which the value was found, or {@code -1} if not present
      */
-    public int linearSearch(@NonNull short[] arr, short val) {
+    public static int linearSearch(short @NonNull [] arr, short val) {
         return linearSearch(arr, 0, arr.length, val);
     }
 
@@ -813,7 +815,7 @@ public class PArrays {
      * @param val  the value to search for
      * @return the index at which the value was found, or {@code -1} if not present
      */
-    public int linearSearch(@NonNull short[] arr, int from, int to, short val) {
+    public static int linearSearch(short @NonNull [] arr, int from, int to, short val) {
         checkRange(arr.length, from, to);
         for (int i = from; i < to; i++) {
             if (arr[i] == val) {
@@ -830,7 +832,7 @@ public class PArrays {
      * @param val the value to search for
      * @return the index at which the value was found, or {@code -1} if not present
      */
-    public int linearSearch(@NonNull char[] arr, char val) {
+    public static int linearSearch(char @NonNull [] arr, char val) {
         return linearSearch(arr, 0, arr.length, val);
     }
 
@@ -843,7 +845,7 @@ public class PArrays {
      * @param val  the value to search for
      * @return the index at which the value was found, or {@code -1} if not present
      */
-    public int linearSearch(@NonNull char[] arr, int from, int to, char val) {
+    public static int linearSearch(char @NonNull [] arr, int from, int to, char val) {
         checkRange(arr.length, from, to);
         for (int i = from; i < to; i++) {
             if (arr[i] == val) {
@@ -860,7 +862,7 @@ public class PArrays {
      * @param val the value to search for
      * @return the index at which the value was found, or {@code -1} if not present
      */
-    public int linearSearch(@NonNull int[] arr, int val) {
+    public static int linearSearch(int @NonNull [] arr, int val) {
         return linearSearch(arr, 0, arr.length, val);
     }
 
@@ -873,7 +875,7 @@ public class PArrays {
      * @param val  the value to search for
      * @return the index at which the value was found, or {@code -1} if not present
      */
-    public int linearSearch(@NonNull int[] arr, int from, int to, int val) {
+    public static int linearSearch(int @NonNull [] arr, int from, int to, int val) {
         checkRange(arr.length, from, to);
         for (int i = from; i < to; i++) {
             if (arr[i] == val) {
@@ -890,7 +892,7 @@ public class PArrays {
      * @param val the value to search for
      * @return the index at which the value was found, or {@code -1} if not present
      */
-    public int linearSearch(@NonNull long[] arr, long val) {
+    public static int linearSearch(long @NonNull [] arr, long val) {
         return linearSearch(arr, 0, arr.length, val);
     }
 
@@ -903,7 +905,7 @@ public class PArrays {
      * @param val  the value to search for
      * @return the index at which the value was found, or {@code -1} if not present
      */
-    public int linearSearch(@NonNull long[] arr, int from, int to, long val) {
+    public static int linearSearch(long @NonNull [] arr, int from, int to, long val) {
         checkRange(arr.length, from, to);
         for (int i = from; i < to; i++) {
             if (arr[i] == val) {
@@ -915,17 +917,21 @@ public class PArrays {
 
     /**
      * Does a linear search to find the first index in the array containing the given value.
+     * <p>
+     * Values are compared using the {@code ==} operator.
      *
      * @param arr the array to search
      * @param val the value to search for
      * @return the index at which the value was found, or {@code -1} if not present
      */
-    public int linearSearch(@NonNull float[] arr, float val) {
-        return linearSearch(arr, 0, arr.length, val);
+    public static int linearSearchDefault(float @NonNull [] arr, float val) {
+        return linearSearchDefault(arr, 0, arr.length, val);
     }
 
     /**
      * Does a linear search to find the first index in the array containing the given value.
+     * <p>
+     * Values are compared using the {@code ==} operator.
      *
      * @param arr  the array to search
      * @param from the first index in the array to search (inclusive)
@@ -933,7 +939,7 @@ public class PArrays {
      * @param val  the value to search for
      * @return the index at which the value was found, or {@code -1} if not present
      */
-    public int linearSearch(@NonNull float[] arr, int from, int to, float val) {
+    public static int linearSearchDefault(float @NonNull [] arr, int from, int to, float val) {
         checkRange(arr.length, from, to);
         for (int i = from; i < to; i++) {
             if (arr[i] == val) {
@@ -945,17 +951,21 @@ public class PArrays {
 
     /**
      * Does a linear search to find the first index in the array containing the given value.
+     * <p>
+     * Values are compared using {@link PMath#floatEquals(float, float)}.
      *
      * @param arr the array to search
      * @param val the value to search for
      * @return the index at which the value was found, or {@code -1} if not present
      */
-    public int linearSearch(@NonNull double[] arr, double val) {
-        return linearSearch(arr, 0, arr.length, val);
+    public static int linearSearchEquals(float @NonNull [] arr, float val) {
+        return linearSearchEquals(arr, 0, arr.length, val);
     }
 
     /**
      * Does a linear search to find the first index in the array containing the given value.
+     * <p>
+     * Values are compared using {@link PMath#floatEquals(float, float)}.
      *
      * @param arr  the array to search
      * @param from the first index in the array to search (inclusive)
@@ -963,7 +973,75 @@ public class PArrays {
      * @param val  the value to search for
      * @return the index at which the value was found, or {@code -1} if not present
      */
-    public int linearSearch(@NonNull double[] arr, int from, int to, double val) {
+    public static int linearSearchEquals(float @NonNull [] arr, int from, int to, float val) {
+        checkRange(arr.length, from, to);
+        for (int i = from; i < to; i++) {
+            if (PMath.floatEquals(arr[i], val)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Does a linear search to find the first index in the array containing the given value.
+     * <p>
+     * Values are compared using {@link PMath#floatBitwiseEquals(float, float)}.
+     *
+     * @param arr the array to search
+     * @param val the value to search for
+     * @return the index at which the value was found, or {@code -1} if not present
+     */
+    public static int linearSearchBitwiseEquals(float @NonNull [] arr, float val) {
+        return linearSearchBitwiseEquals(arr, 0, arr.length, val);
+    }
+
+    /**
+     * Does a linear search to find the first index in the array containing the given value.
+     * <p>
+     * Values are compared using {@link PMath#floatBitwiseEquals(float, float)}.
+     *
+     * @param arr  the array to search
+     * @param from the first index in the array to search (inclusive)
+     * @param to   the final index in the array to search (exclusive)
+     * @param val  the value to search for
+     * @return the index at which the value was found, or {@code -1} if not present
+     */
+    public static int linearSearchBitwiseEquals(float @NonNull [] arr, int from, int to, float val) {
+        checkRange(arr.length, from, to);
+        for (int i = from; i < to; i++) {
+            if (PMath.floatBitwiseEquals(arr[i], val)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Does a linear search to find the first index in the array containing the given value.
+     * <p>
+     * Values are compared using the {@code ==} operator.
+     *
+     * @param arr the array to search
+     * @param val the value to search for
+     * @return the index at which the value was found, or {@code -1} if not present
+     */
+    public static int linearSearchDefault(double @NonNull [] arr, double val) {
+        return linearSearchDefault(arr, 0, arr.length, val);
+    }
+
+    /**
+     * Does a linear search to find the first index in the array containing the given value.
+     * <p>
+     * Values are compared using the {@code ==} operator.
+     *
+     * @param arr  the array to search
+     * @param from the first index in the array to search (inclusive)
+     * @param to   the final index in the array to search (exclusive)
+     * @param val  the value to search for
+     * @return the index at which the value was found, or {@code -1} if not present
+     */
+    public static int linearSearchDefault(double @NonNull [] arr, int from, int to, double val) {
         checkRange(arr.length, from, to);
         for (int i = from; i < to; i++) {
             if (arr[i] == val) {
@@ -975,17 +1053,21 @@ public class PArrays {
 
     /**
      * Does a linear search to find the first index in the array containing the given value.
+     * <p>
+     * Values are compared using {@link PMath#doubleEquals(double, double)}.
      *
      * @param arr the array to search
      * @param val the value to search for
      * @return the index at which the value was found, or {@code -1} if not present
      */
-    public int linearSearch(@NonNull Object[] arr, Object val) {
-        return linearSearch(arr, 0, arr.length, val);
+    public static int linearSearchEquals(double @NonNull [] arr, double val) {
+        return linearSearchEquals(arr, 0, arr.length, val);
     }
 
     /**
      * Does a linear search to find the first index in the array containing the given value.
+     * <p>
+     * Values are compared using {@link PMath#doubleEquals(double, double)}.
      *
      * @param arr  the array to search
      * @param from the first index in the array to search (inclusive)
@@ -993,12 +1075,81 @@ public class PArrays {
      * @param val  the value to search for
      * @return the index at which the value was found, or {@code -1} if not present
      */
-    public int linearSearch(@NonNull Object[] arr, int from, int to, Object val) {
+    public static int linearSearchEquals(double @NonNull [] arr, int from, int to, double val) {
+        checkRange(arr.length, from, to);
+        for (int i = from; i < to; i++) {
+            if (PMath.doubleEquals(arr[i], val)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Does a linear search to find the first index in the array containing the given value.
+     * <p>
+     * Values are compared using {@link PMath#doubleBitwiseEquals(double, double)}.
+     *
+     * @param arr the array to search
+     * @param val the value to search for
+     * @return the index at which the value was found, or {@code -1} if not present
+     */
+    public static int linearSearchBitwiseEquals(double @NonNull [] arr, double val) {
+        return linearSearchBitwiseEquals(arr, 0, arr.length, val);
+    }
+
+    /**
+     * Does a linear search to find the first index in the array containing the given value.
+     * <p>
+     * Values are compared using {@link PMath#doubleBitwiseEquals(double, double)}.
+     *
+     * @param arr  the array to search
+     * @param from the first index in the array to search (inclusive)
+     * @param to   the final index in the array to search (exclusive)
+     * @param val  the value to search for
+     * @return the index at which the value was found, or {@code -1} if not present
+     */
+    public static int linearSearchBitwiseEquals(double @NonNull [] arr, int from, int to, double val) {
+        checkRange(arr.length, from, to);
+        for (int i = from; i < to; i++) {
+            if (PMath.doubleBitwiseEquals(arr[i], val)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Does a linear search to find the first index in the array containing the given value.
+     * <p>
+     * Values are compared using {@link java.util.Objects#equals(Object, Object)}.
+     *
+     * @param arr the array to search
+     * @param val the value to search for
+     * @return the index at which the value was found, or {@code -1} if not present
+     */
+    public static int linearSearch(Object @NonNull [] arr, Object val) {
+        return linearSearch(arr, 0, arr.length, val);
+    }
+
+    /**
+     * Does a linear search to find the first index in the array containing the given value.
+     * <p>
+     * Values are compared using {@link java.util.Objects#equals(Object, Object)}.
+     *
+     * @param arr  the array to search
+     * @param from the first index in the array to search (inclusive)
+     * @param to   the final index in the array to search (exclusive)
+     * @param val  the value to search for
+     * @return the index at which the value was found, or {@code -1} if not present
+     */
+    public static int linearSearch(Object @NonNull [] arr, int from, int to, Object val) {
+        checkRange(arr.length, from, to);
+
         if (val == null) { //if value is null, equality is effectively by identity
             return linearSearchIdentity(arr, from, to, null);
         }
 
-        checkRange(arr.length, from, to);
         for (int i = from; i < to; i++) {
             if (arr[i] != null && val.equals(arr[i])) {
                 return i;
@@ -1010,20 +1161,20 @@ public class PArrays {
     /**
      * Does a linear search to find the first index in the array containing the given value.
      * <p>
-     * Equality is checked by object identity, not {@link Object#equals(Object)}.
+     * Values are compared using the {@code ==} operator.
      *
      * @param arr the array to search
      * @param val the value to search for
      * @return the index at which the value was found, or {@code -1} if not present
      */
-    public int linearSearchIdentity(@NonNull Object[] arr, Object val) {
+    public static int linearSearchIdentity(Object @NonNull [] arr, Object val) {
         return linearSearchIdentity(arr, 0, arr.length, val);
     }
 
     /**
      * Does a linear search to find the first index in the array containing the given value.
      * <p>
-     * Equality is checked by object identity, not {@link Object#equals(Object)}.
+     * Values are compared using the {@code ==} operator.
      *
      * @param arr  the array to search
      * @param from the first index in the array to search (inclusive)
@@ -1031,7 +1182,7 @@ public class PArrays {
      * @param val  the value to search for
      * @return the index at which the value was found, or {@code -1} if not present
      */
-    public int linearSearchIdentity(@NonNull Object[] arr, int from, int to, Object val) {
+    public static int linearSearchIdentity(Object @NonNull [] arr, int from, int to, Object val) {
         checkRange(arr.length, from, to);
         for (int i = from; i < to; i++) {
             if (arr[i] == val) {
@@ -1039,6 +1190,378 @@ public class PArrays {
             }
         }
         return -1;
+    }
+
+    //
+    // CONTAINS
+    //
+
+    /**
+     * Does a linear search to check if the given array contains the given value.
+     *
+     * @param arr the array to search
+     * @param val the value to search for
+     * @return {@code true} if the value was found, or {@code false} if not present
+     */
+    public static boolean contains(boolean @NonNull [] arr, boolean val) {
+        return contains(arr, 0, arr.length, val);
+    }
+
+    /**
+     * Does a linear search to check if the given array contains the given value.
+     *
+     * @param arr  the array to search
+     * @param from the first index in the array to search (inclusive)
+     * @param to   the final index in the array to search (exclusive)
+     * @param val  the value to search for
+     * @return {@code true} if the value was found, or {@code false} if not present
+     */
+    public static boolean contains(boolean @NonNull [] arr, int from, int to, boolean val) {
+        return linearSearch(arr, from, to, val) >= 0;
+    }
+
+    /**
+     * Does a linear search to check if the given array contains the given value.
+     *
+     * @param arr the array to search
+     * @param val the value to search for
+     * @return {@code true} if the value was found, or {@code false} if not present
+     */
+    public static boolean contains(byte @NonNull [] arr, byte val) {
+        return contains(arr, 0, arr.length, val);
+    }
+
+    /**
+     * Does a linear search to check if the given array contains the given value.
+     *
+     * @param arr  the array to search
+     * @param from the first index in the array to search (inclusive)
+     * @param to   the final index in the array to search (exclusive)
+     * @param val  the value to search for
+     * @return {@code true} if the value was found, or {@code false} if not present
+     */
+    public static boolean contains(byte @NonNull [] arr, int from, int to, byte val) {
+        return linearSearch(arr, from, to, val) >= 0;
+    }
+
+    /**
+     * Does a linear search to check if the given array contains the given value.
+     *
+     * @param arr the array to search
+     * @param val the value to search for
+     * @return {@code true} if the value was found, or {@code false} if not present
+     */
+    public static boolean contains(short @NonNull [] arr, short val) {
+        return contains(arr, 0, arr.length, val);
+    }
+
+    /**
+     * Does a linear search to check if the given array contains the given value.
+     *
+     * @param arr  the array to search
+     * @param from the first index in the array to search (inclusive)
+     * @param to   the final index in the array to search (exclusive)
+     * @param val  the value to search for
+     * @return {@code true} if the value was found, or {@code false} if not present
+     */
+    public static boolean contains(short @NonNull [] arr, int from, int to, short val) {
+        return linearSearch(arr, from, to, val) >= 0;
+    }
+
+    /**
+     * Does a linear search to check if the given array contains the given value.
+     *
+     * @param arr the array to search
+     * @param val the value to search for
+     * @return {@code true} if the value was found, or {@code false} if not present
+     */
+    public static boolean contains(char @NonNull [] arr, char val) {
+        return contains(arr, 0, arr.length, val);
+    }
+
+    /**
+     * Does a linear search to check if the given array contains the given value.
+     *
+     * @param arr  the array to search
+     * @param from the first index in the array to search (inclusive)
+     * @param to   the final index in the array to search (exclusive)
+     * @param val  the value to search for
+     * @return {@code true} if the value was found, or {@code false} if not present
+     */
+    public static boolean contains(char @NonNull [] arr, int from, int to, char val) {
+        return linearSearch(arr, from, to, val) >= 0;
+    }
+
+    /**
+     * Does a linear search to check if the given array contains the given value.
+     *
+     * @param arr the array to search
+     * @param val the value to search for
+     * @return {@code true} if the value was found, or {@code false} if not present
+     */
+    public static boolean contains(int @NonNull [] arr, int val) {
+        return contains(arr, 0, arr.length, val);
+    }
+
+    /**
+     * Does a linear search to check if the given array contains the given value.
+     *
+     * @param arr  the array to search
+     * @param from the first index in the array to search (inclusive)
+     * @param to   the final index in the array to search (exclusive)
+     * @param val  the value to search for
+     * @return {@code true} if the value was found, or {@code false} if not present
+     */
+    public static boolean contains(int @NonNull [] arr, int from, int to, int val) {
+        return linearSearch(arr, from, to, val) >= 0;
+    }
+
+    /**
+     * Does a linear search to check if the given array contains the given value.
+     *
+     * @param arr the array to search
+     * @param val the value to search for
+     * @return {@code true} if the value was found, or {@code false} if not present
+     */
+    public static boolean contains(long @NonNull [] arr, long val) {
+        return contains(arr, 0, arr.length, val);
+    }
+
+    /**
+     * Does a linear search to check if the given array contains the given value.
+     *
+     * @param arr  the array to search
+     * @param from the first index in the array to search (inclusive)
+     * @param to   the final index in the array to search (exclusive)
+     * @param val  the value to search for
+     * @return {@code true} if the value was found, or {@code false} if not present
+     */
+    public static boolean contains(long @NonNull [] arr, int from, int to, long val) {
+        return linearSearch(arr, from, to, val) >= 0;
+    }
+
+    /**
+     * Does a linear search to check if the given array contains the given value.
+     * <p>
+     * Values are compared using the {@code ==} operator.
+     *
+     * @param arr the array to search
+     * @param val the value to search for
+     * @return {@code true} if the value was found, or {@code false} if not present
+     */
+    public static boolean containsDefault(float @NonNull [] arr, float val) {
+        return containsDefault(arr, 0, arr.length, val);
+    }
+
+    /**
+     * Does a linear search to check if the given array contains the given value.
+     * <p>
+     * Values are compared using the {@code ==} operator.
+     *
+     * @param arr  the array to search
+     * @param from the first index in the array to search (inclusive)
+     * @param to   the final index in the array to search (exclusive)
+     * @param val  the value to search for
+     * @return {@code true} if the value was found, or {@code false} if not present
+     */
+    public static boolean containsDefault(float @NonNull [] arr, int from, int to, float val) {
+        return linearSearchDefault(arr, from, to, val) >= 0;
+    }
+
+    /**
+     * Does a linear search to check if the given array contains the given value.
+     * <p>
+     * Values are compared using {@link PMath#floatEquals(float, float)}.
+     *
+     * @param arr the array to search
+     * @param val the value to search for
+     * @return {@code true} if the value was found, or {@code false} if not present
+     */
+    public static boolean containsEquals(float @NonNull [] arr, float val) {
+        return containsEquals(arr, 0, arr.length, val);
+    }
+
+    /**
+     * Does a linear search to check if the given array contains the given value.
+     * <p>
+     * Values are compared using {@link PMath#floatEquals(float, float)}.
+     *
+     * @param arr  the array to search
+     * @param from the first index in the array to search (inclusive)
+     * @param to   the final index in the array to search (exclusive)
+     * @param val  the value to search for
+     * @return {@code true} if the value was found, or {@code false} if not present
+     */
+    public static boolean containsEquals(float @NonNull [] arr, int from, int to, float val) {
+        return linearSearchEquals(arr, from, to, val) >= 0;
+    }
+
+    /**
+     * Does a linear search to check if the given array contains the given value.
+     * <p>
+     * Values are compared using {@link PMath#floatBitwiseEquals(float, float)}.
+     *
+     * @param arr the array to search
+     * @param val the value to search for
+     * @return {@code true} if the value was found, or {@code false} if not present
+     */
+    public static boolean containsBitwiseEquals(float @NonNull [] arr, float val) {
+        return containsBitwiseEquals(arr, 0, arr.length, val);
+    }
+
+    /**
+     * Does a linear search to check if the given array contains the given value.
+     * <p>
+     * Values are compared using {@link PMath#floatBitwiseEquals(float, float)}.
+     *
+     * @param arr  the array to search
+     * @param from the first index in the array to search (inclusive)
+     * @param to   the final index in the array to search (exclusive)
+     * @param val  the value to search for
+     * @return {@code true} if the value was found, or {@code false} if not present
+     */
+    public static boolean containsBitwiseEquals(float @NonNull [] arr, int from, int to, float val) {
+        return linearSearchBitwiseEquals(arr, from, to, val) >= 0;
+    }
+
+    /**
+     * Does a linear search to check if the given array contains the given value.
+     * <p>
+     * Values are compared using the {@code ==} operator.
+     *
+     * @param arr the array to search
+     * @param val the value to search for
+     * @return {@code true} if the value was found, or {@code false} if not present
+     */
+    public static boolean containsDefault(double @NonNull [] arr, double val) {
+        return containsDefault(arr, 0, arr.length, val);
+    }
+
+    /**
+     * Does a linear search to check if the given array contains the given value.
+     * <p>
+     * Values are compared using the {@code ==} operator.
+     *
+     * @param arr  the array to search
+     * @param from the first index in the array to search (inclusive)
+     * @param to   the final index in the array to search (exclusive)
+     * @param val  the value to search for
+     * @return {@code true} if the value was found, or {@code false} if not present
+     */
+    public static boolean containsDefault(double @NonNull [] arr, int from, int to, double val) {
+        return linearSearchDefault(arr, from, to, val) >= 0;
+    }
+
+    /**
+     * Does a linear search to check if the given array contains the given value.
+     * <p>
+     * Values are compared using {@link PMath#doubleEquals(double, double)}.
+     *
+     * @param arr the array to search
+     * @param val the value to search for
+     * @return {@code true} if the value was found, or {@code false} if not present
+     */
+    public static boolean containsEquals(double @NonNull [] arr, double val) {
+        return containsEquals(arr, 0, arr.length, val);
+    }
+
+    /**
+     * Does a linear search to check if the given array contains the given value.
+     * <p>
+     * Values are compared using {@link PMath#doubleEquals(double, double)}.
+     *
+     * @param arr  the array to search
+     * @param from the first index in the array to search (inclusive)
+     * @param to   the final index in the array to search (exclusive)
+     * @param val  the value to search for
+     * @return {@code true} if the value was found, or {@code false} if not present
+     */
+    public static boolean containsEquals(double @NonNull [] arr, int from, int to, double val) {
+        return linearSearchEquals(arr, from, to, val) >= 0;
+    }
+
+    /**
+     * Does a linear search to check if the given array contains the given value.
+     * <p>
+     * Values are compared using {@link PMath#doubleBitwiseEquals(double, double)}.
+     *
+     * @param arr the array to search
+     * @param val the value to search for
+     * @return {@code true} if the value was found, or {@code false} if not present
+     */
+    public static boolean containsBitwiseEquals(double @NonNull [] arr, double val) {
+        return containsBitwiseEquals(arr, 0, arr.length, val);
+    }
+
+    /**
+     * Does a linear search to check if the given array contains the given value.
+     * <p>
+     * Values are compared using {@link PMath#doubleBitwiseEquals(double, double)}.
+     *
+     * @param arr  the array to search
+     * @param from the first index in the array to search (inclusive)
+     * @param to   the final index in the array to search (exclusive)
+     * @param val  the value to search for
+     * @return {@code true} if the value was found, or {@code false} if not present
+     */
+    public static boolean containsBitwiseEquals(double @NonNull [] arr, int from, int to, double val) {
+        return linearSearchBitwiseEquals(arr, from, to, val) >= 0;
+    }
+
+    /**
+     * Does a linear search to check if the given array contains the given value.
+     * <p>
+     * Values are compared using {@link java.util.Objects#equals(Object, Object)}.
+     *
+     * @param arr the array to search
+     * @param val the value to search for
+     * @return {@code true} if the value was found, or {@code false} if not present
+     */
+    public static boolean contains(Object @NonNull [] arr, Object val) {
+        return contains(arr, 0, arr.length, val);
+    }
+
+    /**
+     * Does a linear search to check if the given array contains the given value.
+     * <p>
+     * Values are compared using {@link java.util.Objects#equals(Object, Object)}.
+     *
+     * @param arr  the array to search
+     * @param from the first index in the array to search (inclusive)
+     * @param to   the final index in the array to search (exclusive)
+     * @param val  the value to search for
+     * @return {@code true} if the value was found, or {@code false} if not present
+     */
+    public static boolean contains(Object @NonNull [] arr, int from, int to, Object val) {
+        return linearSearch(arr, from, to, val) >= 0;
+    }
+
+    /**
+     * Does a linear search to check if the given array contains the given value.
+     * <p>
+     * Values are compared using the {@code ==} operator.
+     *
+     * @param arr the array to search
+     * @param val the value to search for
+     * @return {@code true} if the value was found, or {@code false} if not present
+     */
+    public static boolean containsIdentity(Object @NonNull [] arr, Object val) {
+        return containsIdentity(arr, 0, arr.length, val);
+    }
+
+    /**
+     * Does a linear search to check if the given array contains the given value.
+     * <p>
+     * Values are compared using the {@code ==} operator.
+     *
+     * @param arr  the array to search
+     * @param from the first index in the array to search (inclusive)
+     * @param to   the final index in the array to search (exclusive)
+     * @param val  the value to search for
+     * @return {@code true} if the value was found, or {@code false} if not present
+     */
+    public static boolean containsIdentity(Object @NonNull [] arr, int from, int to, Object val) {
+        return linearSearchIdentity(arr, from, to, val) >= 0;
     }
 
     //
@@ -1052,7 +1575,7 @@ public class PArrays {
      * @param i0  an array index
      * @param i1  an array index
      */
-    public void swap(@NonNull boolean[] arr, int i0, int i1) {
+    public static void swap(boolean @NonNull [] arr, int i0, int i1) {
         boolean val = arr[i0];
         arr[i0] = arr[i1];
         arr[i1] = val;
@@ -1065,7 +1588,7 @@ public class PArrays {
      * @param i0  an array index
      * @param i1  an array index
      */
-    public void swap(@NonNull byte[] arr, int i0, int i1) {
+    public static void swap(byte @NonNull [] arr, int i0, int i1) {
         byte val = arr[i0];
         arr[i0] = arr[i1];
         arr[i1] = val;
@@ -1078,7 +1601,7 @@ public class PArrays {
      * @param i0  an array index
      * @param i1  an array index
      */
-    public void swap(@NonNull short[] arr, int i0, int i1) {
+    public static void swap(short @NonNull [] arr, int i0, int i1) {
         short val = arr[i0];
         arr[i0] = arr[i1];
         arr[i1] = val;
@@ -1091,7 +1614,7 @@ public class PArrays {
      * @param i0  an array index
      * @param i1  an array index
      */
-    public void swap(@NonNull char[] arr, int i0, int i1) {
+    public static void swap(char @NonNull [] arr, int i0, int i1) {
         char val = arr[i0];
         arr[i0] = arr[i1];
         arr[i1] = val;
@@ -1104,7 +1627,7 @@ public class PArrays {
      * @param i0  an array index
      * @param i1  an array index
      */
-    public void swap(@NonNull int[] arr, int i0, int i1) {
+    public static void swap(int @NonNull [] arr, int i0, int i1) {
         int val = arr[i0];
         arr[i0] = arr[i1];
         arr[i1] = val;
@@ -1117,7 +1640,7 @@ public class PArrays {
      * @param i0  an array index
      * @param i1  an array index
      */
-    public void swap(@NonNull long[] arr, int i0, int i1) {
+    public static void swap(long @NonNull [] arr, int i0, int i1) {
         long val = arr[i0];
         arr[i0] = arr[i1];
         arr[i1] = val;
@@ -1130,7 +1653,7 @@ public class PArrays {
      * @param i0  an array index
      * @param i1  an array index
      */
-    public void swap(@NonNull float[] arr, int i0, int i1) {
+    public static void swap(float @NonNull [] arr, int i0, int i1) {
         float val = arr[i0];
         arr[i0] = arr[i1];
         arr[i1] = val;
@@ -1143,7 +1666,7 @@ public class PArrays {
      * @param i0  an array index
      * @param i1  an array index
      */
-    public void swap(@NonNull double[] arr, int i0, int i1) {
+    public static void swap(double @NonNull [] arr, int i0, int i1) {
         double val = arr[i0];
         arr[i0] = arr[i1];
         arr[i1] = val;
@@ -1156,7 +1679,7 @@ public class PArrays {
      * @param i0  an array index
      * @param i1  an array index
      */
-    public void swap(@NonNull Object[] arr, int i0, int i1) {
+    public static void swap(Object @NonNull [] arr, int i0, int i1) {
         Object val = arr[i0];
         arr[i0] = arr[i1];
         arr[i1] = val;
@@ -1291,7 +1814,7 @@ public class PArrays {
      * @param a1 an array
      * @return {@code true} if the given arrays are equal
      */
-    public boolean identityEquals(Object[] a0, Object[] a1) {
+    public static boolean identityEquals(Object[] a0, Object[] a1) {
         //noinspection ArrayEquality
         if (a0 == a1) {
             return true;

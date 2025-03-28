@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2024 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -24,9 +24,11 @@ import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * Helper methods for working with {@link java.util.List Lists}.
@@ -50,8 +52,159 @@ public class PLists {
      */
     public static boolean isImmutable(@NonNull List<?> list) {
         return list == Collections.emptyList()
+                || Collections$SingletonList.isInstance(list)
                 || Collections$UnmodifiableList.isInstance(list)
                 || Collections$UnmodifiableRandomAccessList.isInstance(list);
+    }
+
+    /**
+     * Obtains an immutable, empty {@link List} instance.
+     * <p>
+     * The returned object may not be unique.
+     *
+     * @return an immutable, empty {@link List}
+     */
+    public static <E> List<E> immutable() {
+        return Collections.emptyList();
+    }
+
+    /**
+     * Obtains an immutable {@link List} instance containing the given element.
+     * <p>
+     * The returned object may not be unique.
+     *
+     * @param v0 the element at index {@code 0}
+     * @return an immutable {@link List} containing the given element
+     */
+    public static <E> List<E> immutable(E v0) {
+        return Collections.singletonList(v0);
+    }
+
+    /**
+     * Obtains an immutable {@link List} instance containing the given elements.
+     * <p>
+     * The returned object may not be unique.
+     *
+     * @param elements the list elements
+     * @return an immutable {@link List} containing the given elements
+     */
+    @SafeVarargs
+    public static <E> List<E> immutable(E @NonNull ... elements) {
+        return immutableCopy(elements);
+    }
+
+    /**
+     * Obtains an immutable {@link List} instance containing the given elements.
+     * <p>
+     * The returned object may not be unique.
+     *
+     * @param elements the list elements
+     * @return an immutable {@link List} containing the given elements
+     */
+    public static <E> List<E> immutableCopy(E @NonNull [] elements) {
+        switch (elements.length) {
+            case 0:
+                return immutable();
+            case 1:
+                return immutable(elements[0]);
+            default:
+                return Collections.unmodifiableList(new ArrayList<>(Arrays.asList(elements)));
+        }
+    }
+
+    /**
+     * Obtains an immutable {@link List} instance containing the given elements.
+     * <p>
+     * The returned object may not be unique.
+     *
+     * @param elements the list elements
+     * @return an immutable {@link List} containing the given elements
+     */
+    public static <E> List<E> immutableCopy(@NonNull List<E> elements) {
+        if (isImmutable(elements)) {
+            return elements;
+        }
+
+        switch (elements.size()) {
+            case 0:
+                return immutable();
+            case 1:
+                return immutable(elements.get(0));
+            default:
+                return Collections.unmodifiableList(new ArrayList<>(elements));
+        }
+    }
+
+    private static <E> List<E> immutableMove(ArrayList<E> elements) {
+        switch (elements.size()) {
+            case 0:
+                return immutable();
+            case 1:
+                return immutable(elements.get(0));
+            default:
+                elements.trimToSize();
+                return Collections.unmodifiableList(elements);
+        }
+    }
+
+    /**
+     * Obtains a mutable, empty {@link List} instance.
+     * <p>
+     * The returned object may not be unique.
+     *
+     * @return an immutable, empty {@link List}
+     */
+    public static <E> List<E> mutable() {
+        return new ArrayList<>();
+    }
+
+    /**
+     * Obtains a mutable {@link List} instance initialized with the given element.
+     * <p>
+     * The returned {@link List} is guaranteed to be unique, mutable and random-access.
+     *
+     * @param v0 the element at index {@code 0}
+     * @return an immutable {@link List} initialized with the given element
+     */
+    public static <E> List<E> mutable(E v0) {
+        return new ArrayList<>(Collections.singletonList(v0));
+    }
+
+    /**
+     * Obtains a mutable {@link List} instance initialized with the given elements.
+     * <p>
+     * The returned {@link List} is guaranteed to be unique, mutable and random-access.
+     *
+     * @param elements the list elements
+     * @return an immutable {@link List} initialized with the given elements
+     */
+    @SafeVarargs
+    public static <E> List<E> mutable(E @NonNull ... elements) {
+        return mutableCopy(elements);
+    }
+
+    /**
+     * Obtains a mutable {@link List} instance initialized with the given elements.
+     * <p>
+     * The returned {@link List} is guaranteed to be unique, mutable and random-access.
+     *
+     * @param elements the list elements
+     * @return an immutable {@link List} initialized with the given elements
+     */
+    public static <E> List<E> mutableCopy(E @NonNull [] elements) {
+        return new ArrayList<>(Arrays.asList(elements));
+    }
+
+    /**
+     * Obtains a mutable {@link List} instance initialized with the given elements.
+     * <p>
+     * The returned {@link List} is guaranteed to be unique, mutable and random-access.
+     *
+     * @param elements the list elements
+     * @return an immutable {@link List} initialized with the given elements
+     */
+    public static <E> List<E> mutableCopy(@NonNull List<E> elements) {
+        return new ArrayList<>(elements);
     }
 
     /**
@@ -127,10 +280,57 @@ public class PLists {
         return Collections.unmodifiableList(concatArrayList(first, firstSize, second, secondSize));
     }
 
-    private static <E> ArrayList<E> concatArrayList(List<E> first, int firstSize, List<E> second, int secondSize) {
+    private static <E> ArrayList<E> concatArrayList(@NonNull List<E> first, int firstSize, @NonNull List<E> second, int secondSize) {
         ArrayList<E> result = new ArrayList<>(firstSize + secondSize);
         result.addAll(first);
         result.addAll(second);
+        return result;
+    }
+
+    /**
+     * Maps the elements in the given {@link List} to new values according to the given function, and returns a {@link List} containing the resulting values.
+     * <p>
+     * The returned {@link List} <i>may</i> be immutable.
+     *
+     * @param src    the {@link List} containing the original values
+     * @param mapper the mapping function
+     * @return the resulting {@link List}
+     */
+    public static <T, R> List<R> map(@NonNull List<? extends T> src, @NonNull Function<? super T, ? extends R> mapper) {
+        return mapArrayList(src, mapper);
+    }
+
+    /**
+     * Maps the elements in the given {@link List} to new values according to the given function, and returns a {@link List} containing the resulting values.
+     * <p>
+     * The returned {@link List} is guaranteed to be unique, mutable and random-access.
+     *
+     * @param src    the {@link List} containing the original values
+     * @param mapper the mapping function
+     * @return the resulting {@link List}
+     */
+    public static <T, R> List<R> mapMutable(@NonNull List<? extends T> src, @NonNull Function<? super T, ? extends R> mapper) {
+        return mapArrayList(src, mapper);
+    }
+
+    /**
+     * Maps the elements in the given {@link List} to new values according to the given function, and returns a {@link List} containing the resulting values.
+     * <p>
+     * The returned {@link List} is guaranteed to be immutable, and <i>may</i> be identical to the input list.
+     *
+     * @param src    the {@link List} containing the original values
+     * @param mapper the mapping function
+     * @return the resulting {@link List}
+     */
+    public static <T, R> List<R> mapImmutable(@NonNull List<? extends T> src, @NonNull Function<? super T, ? extends R> mapper) {
+        return immutableMove(mapArrayList(src, mapper));
+    }
+
+    private static <T, R> ArrayList<R> mapArrayList(@NonNull List<? extends T> src, @NonNull Function<? super T, ? extends R> mapper) {
+        ArrayList<R> result = new ArrayList<>(src.size());
+        for (T value : src) {
+            result.add(mapper.apply(value));
+        }
         return result;
     }
 }

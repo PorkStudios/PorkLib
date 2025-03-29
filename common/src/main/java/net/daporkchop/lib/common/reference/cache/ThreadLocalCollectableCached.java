@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2021 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -18,23 +18,48 @@
  *
  */
 
-package net.daporkchop.lib.common.reference;
+package net.daporkchop.lib.common.reference.cache;
 
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.misc.threadlocal.TL;
+import net.daporkchop.lib.common.reference.ReferenceStrength;
+
+import java.lang.ref.Reference;
+import java.util.Objects;
+import java.util.function.Supplier;
 
 /**
- * A strong {@link Reference} to an object instance.
- *
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
-public class StrongReference<T> implements Reference<T> {
-    @NonNull
-    private final T referent;
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+@Accessors(fluent = true)
+final class ThreadLocalCollectableCached<T> implements Cached<T> {
+    private final TL<Reference<T>> tl = TL.create();
+
+    @Getter
+    private final @NonNull Supplier<T> factory;
+    private final @NonNull ReferenceStrength strength;
 
     @Override
     public T get() {
-        return this.referent;
+        Reference<T> ref = this.tl.get();
+        T value;
+        if (ref != null && (value = ref.get()) != null) {
+            return value;
+        }
+
+        return this.compute();
+    }
+
+    private T compute() {
+        //we don't need to re-check the current value here, there's no races since everything is thread-local
+
+        T value = Objects.requireNonNull(this.factory.get());
+        this.tl.set(this.strength.createReference(value));
+        return value;
     }
 }

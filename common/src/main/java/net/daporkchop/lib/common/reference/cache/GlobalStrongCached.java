@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2021 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -26,6 +26,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 
+import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
@@ -33,26 +34,29 @@ import java.util.function.Supplier;
  */
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 @Accessors(fluent = true)
-class GlobalStrongCached<T> implements Cached<T> {
+final class GlobalStrongCached<T> implements Cached<T> {
     @Getter
     @NonNull
-    protected final Supplier<T> factory;
+    private final Supplier<T> factory;
 
-    protected T value;
+    private volatile T value;
 
     @Override
     public T get() {
         T value = this.value;
-        if (value == null) { //value is unset, compute it
-            value = this.compute();
+        if (value != null) { //value is unset, compute it
+            return value;
         }
 
-        return value;
+        return this.compute();
     }
 
-    protected synchronized T compute() {
-        return this.value == null
-                ? this.value = this.factory.get() //compute and save the value
-                : this.value; //value has already been computed by another thread, return it
+    private synchronized T compute() {
+        T value = this.value;
+        if (value != null) { //value has already been computed by another thread, return it
+            return value;
+        }
+
+        return this.value = Objects.requireNonNull(this.factory.get()); //compute and save the value
     }
 }

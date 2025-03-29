@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2021 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -32,7 +32,7 @@ import java.lang.ref.Reference;
  * be called at some point after the referent is collected <strong>if</strong> the reference itself has not been collected. If the reference is collected
  * earlier or at the same time as the referent, it will not run.
  * <p>
- * This is not magic. {@link #handle()} will only be called automatically if invoked externally, such as through {@link PReferenceHandler}.
+ * This is not magic. {@link #handle()} will only be called automatically if invoked externally, such as through {@link PReferenceQueues}.
  *
  * @author DaPorkchop_
  */

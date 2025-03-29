@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2021 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -20,22 +20,12 @@
 
 package net.daporkchop.lib.common.reference;
 
-import lombok.NonNull;
-
-import java.lang.ref.ReferenceQueue;
+import java.lang.ref.Reference;
 
 /**
- * A soft {@link Reference} to an object instance.
- *
  * @author DaPorkchop_
- * @see java.lang.ref.SoftReference
  */
-public class SoftReference<T> extends java.lang.ref.SoftReference<T> implements Reference<T> {
-    public SoftReference(@NonNull T referent) {
-        super(referent);
-    }
-
-    public SoftReference(@NonNull T referent, ReferenceQueue<? super T> queue) {
-        super(referent, queue);
-    }
+@FunctionalInterface
+public interface ReferenceHandler<T> {
+    void handleReference(Reference<T> reference);
 }

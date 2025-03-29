@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2021 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -55,9 +55,7 @@ public interface Cached<T> {
      * @param factory the {@link Supplier} to use. May never return {@code null}
      */
     static <T> Cached<T> global(@NonNull Supplier<T> factory, @NonNull ReferenceStrength strength) {
-        return strength == ReferenceStrength.STRONG
-                ? new GlobalStrongCached<>(factory)
-                : new GlobalReferencedCached<>(factory, strength);
+        return new GlobalCollectableCached<>(factory, strength);
     }
 
     /**
@@ -82,9 +80,7 @@ public interface Cached<T> {
      * @param factory the {@link Supplier} to use. May never return {@code null}
      */
     static <T> Cached<T> threadLocal(@NonNull Supplier<T> factory, @NonNull ReferenceStrength strength) {
-        return strength == ReferenceStrength.STRONG
-                ? new ThreadLocalStrongCached<>(factory)
-                : new ThreadLocalReferencedCached<>(factory, strength);
+        return new ThreadLocalCollectableCached<>(factory, strength);
     }
 
     /**

@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2021 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -20,14 +20,12 @@
 
 package net.daporkchop.lib.common.reference;
 
+import java.lang.ref.Reference;
+
 /**
- * Like {@link java.lang.ref.Reference}, but allows custom sub-classes.
- *
  * @author DaPorkchop_
  */
-public interface Reference<T> {
-    /**
-     * @return the referent, or {@code null} if it has been garbage-collected
-     */
-    T get();
+@FunctionalInterface
+public interface ParameterizedReferenceHandler<T, P> {
+    void handleReference(Reference<T> reference, P param);
 }

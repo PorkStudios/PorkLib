@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2021 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -35,28 +35,26 @@ import java.util.function.Supplier;
  */
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 @Accessors(fluent = true)
-class ThreadLocalStrongCached<T> implements Cached<T> {
-    protected final TL<T> tl = TL.create();
+final class ThreadLocalStrongCached<T> implements Cached<T> {
+    private final TL<T> tl = TL.create();
 
     @Getter
-    @NonNull
-    protected final Supplier<T> factory;
+    private final @NonNull Supplier<T> factory;
 
     @Override
     public T get() {
         T value = this.tl.get();
-        if (value == null) { //value is unset, compute it
-            value = this.compute();
+        if (value != null) {
+            return value;
         }
 
-        return value;
+        return this.compute();
     }
 
-    protected T compute() {
-        //compute value
-        T value = Objects.requireNonNull(this.factory.get());
+    private T compute() {
+        //we don't need to re-check the current value here, there's no races since everything is thread-local
 
-        //save value
+        T value = Objects.requireNonNull(this.factory.get());
         this.tl.set(value);
         return value;
     }

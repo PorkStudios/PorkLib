@@ -23,18 +23,12 @@ package net.daporkchop.lib.common.misc.classvalue;
 import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.common.misc.mutable.MutableReference;
-import net.daporkchop.lib.common.reference.HandleableReference;
-import net.daporkchop.lib.common.reference.PReferenceHandler;
-import net.daporkchop.lib.common.reference.Reference;
+import net.daporkchop.lib.common.reference.ParameterizedReferenceHandler;
 import net.daporkchop.lib.common.reference.ReferenceStrength;
 import net.daporkchop.lib.common.util.PorkUtil;
 
-import java.lang.ref.ReferenceQueue;
-import java.lang.ref.WeakReference;
+import java.lang.ref.Reference;
 import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
@@ -42,9 +36,8 @@ import java.util.function.Function;
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
-final class SimpleCollectablePClassValue<T> extends ClassValue<Object> implements PClassValue<T> {
-    //TODO: currently, this neither sets collected Reference objects to null, nor is it able to completely remove expired
-    //      entries from the underlying ClassValue
+final class BasicCollectableClassValue<T> extends ClassValue<Object> implements PClassValue<T>, ParameterizedReferenceHandler<T, AtomicReference<Reference<T>>> {
+    //TODO: currently, this isn't able to completely remove collected entries from the underlying ClassValue
 
     private final @NonNull Function<? super Class<?>, ? extends T> factory;
     private final @NonNull ReferenceStrength strength;
@@ -53,27 +46,23 @@ final class SimpleCollectablePClassValue<T> extends ClassValue<Object> implement
     public T get(Class<?> type) {
         AtomicReference<Reference<T>> indirectReference = PorkUtil.uncheckedCast(super.get(type));
         Reference<T> reference = indirectReference.get();
-        if (reference != null) {
-            T value = reference.get();
-            if (value != null) {
-                return value;
-            }
+        T value;
+        if (reference != null && (value = reference.get()) != null) {
+            return value;
         }
 
-        return this.getSlowPath(type, indirectReference);
+        return this.compute(type, indirectReference);
     }
 
-    private T getSlowPath(Class<?> type, AtomicReference<Reference<T>> indirectReference) {
+    private T compute(Class<?> type, AtomicReference<Reference<T>> indirectReference) {
         T nextValue = Objects.requireNonNull(this.factory.apply(type));
-        Reference<T> nextReference = this.strength.createReference(nextValue);
+        Reference<T> nextReference = this.strength.createReference(nextValue, this, indirectReference);
 
         while (true) {
             Reference<T> prevReference = indirectReference.get();
-            if (prevReference != null) {
-                T value = prevReference.get();
-                if (value != null) {
-                    return value;
-                }
+            T value;
+            if (prevReference != null && (value = prevReference.get()) != null) {
+                return value;
             }
 
             if (indirectReference.compareAndSet(prevReference, nextReference)) {
@@ -85,5 +74,11 @@ final class SimpleCollectablePClassValue<T> extends ClassValue<Object> implement
     @Override
     protected Object computeValue(Class<?> type) {
         return new AtomicReference<Reference<T>>(null);
+    }
+
+    @Override
+    public void handleReference(Reference<T> reference, AtomicReference<Reference<T>> param) {
+        //null out the reference to allow it to be garbage-collected as well
+        param.compareAndSet(reference, null);
     }
 }

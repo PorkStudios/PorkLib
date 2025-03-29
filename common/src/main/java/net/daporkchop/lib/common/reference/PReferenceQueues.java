@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2021 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -23,19 +23,17 @@ package net.daporkchop.lib.common.reference;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.misc.threadfactory.PThreadFactories;
+import net.daporkchop.lib.common.util.PorkUtil;
 
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.util.concurrent.ThreadFactory;
-import java.util.function.BiFunction;
-
-import static net.daporkchop.lib.common.util.PorkUtil.*;
 
 /**
  * @author DaPorkchop_
  */
 @UtilityClass
-public class PReferenceHandler {
+public class PReferenceQueues {
     /*
      * Implementation note:
      *
@@ -57,34 +55,28 @@ public class PReferenceHandler {
     }
 
     /**
-     * Equivalent to calling {@link #createReference(Object, BiFunction, int)} with a {@code cost} of {@code 1}.
+     * Equivalent to calling {@link #getHandlingReferenceQueue(int)} with a {@code cost} of {@code 1}.
      */
-    public <T, R extends Reference<T> & HandleableReference> R createReference(@NonNull T referent, @NonNull BiFunction<T, ReferenceQueue<? super T>, R> factory) {
-        return createReference(referent, factory, 1);
+    public static <T> ReferenceQueue<T> getHandlingReferenceQueue() {
+        return getHandlingReferenceQueue(1);
     }
 
     /**
-     * Creates a new {@link Reference} which is also a {@link HandleableReference}.
-     * <p>
-     * The reference will be {@link HandleableReference#handle()}ed as defined by {@link HandleableReference}.
+     * Gets a {@link ReferenceQueue} which automatically invokes {@link HandleableReference#handle()} on any {@link HandleableReference}s added to it.
      *
-     * @param referent the referent
-     * @param factory  a {@link BiFunction} which will create the reference
-     * @param cost     the estimated cost of invoking {@link HandleableReference#handle()} on the reference. This may be an arbitrary
-     *                 positive {@code int}, where higher values indicate a more expensive operation. It may be used to help load-balancing
-     *                 across multiple handler threads.
-     * @param <T>      the referent type
-     * @param <R>      the reference type
-     * @return the created reference
+     * @param cost the estimated cost of invoking {@link HandleableReference#handle()} on the reference. This may be an arbitrary
+     *             positive {@code int}, where higher values indicate a more expensive operation. It may be used to help load-balancing
+     *             across multiple handler threads.
+     * @return a {@link ReferenceQueue}
      */
-    public <T, R extends Reference<T> & HandleableReference> R createReference(@NonNull T referent, @NonNull BiFunction<T, ReferenceQueue<? super T>, R> factory, int cost) {
-        return factory.apply(referent, uncheckedCast(CURRENT_HANDLER.queue));
+    public static <T> ReferenceQueue<T> getHandlingReferenceQueue(int cost) {
+        return PorkUtil.uncheckedCast(CURRENT_HANDLER.queue);
     }
 
     /**
      * @author DaPorkchop_
      */
-    private class Handler implements Runnable {
+    private final class Handler implements Runnable {
         private final ReferenceQueue<?> queue = new ReferenceQueue<>();
 
         /**

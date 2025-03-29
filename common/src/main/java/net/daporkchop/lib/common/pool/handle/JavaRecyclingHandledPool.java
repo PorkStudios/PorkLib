@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2021 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -31,10 +31,10 @@ import java.util.function.Supplier;
  * @author DaPorkchop_
  */
 final class JavaRecyclingHandledPool<V> implements HandledPool<V> {
-    private final ThreadLocal<BasicHandledPool<V>> tl;
+    private final ThreadLocal<BasicStrongHandledPool<V>> tl;
 
     public JavaRecyclingHandledPool(@NonNull Supplier<V> factory, int maxCapacityPerThread) {
-        this.tl = ThreadLocal.withInitial(() -> new BasicHandledPool<>(factory, ReferenceStrength.STRONG, maxCapacityPerThread));
+        this.tl = ThreadLocal.withInitial(() -> new BasicStrongHandledPool<>(factory, maxCapacityPerThread));
     }
 
     @Override

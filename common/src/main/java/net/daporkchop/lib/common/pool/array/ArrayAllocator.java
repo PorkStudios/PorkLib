@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2022 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -38,36 +38,56 @@ import java.util.function.IntFunction;
 public interface ArrayAllocator<T> {
     /**
      * Creates a new global {@link ArrayAllocator} which groups arrays based on their size in powers of 2.
+     * <p>
+     * The returned {@link ArrayAllocator} will keep strong references to the arrays.
      *
-     * @param lambda        a lambda function (e.g. {@code Object[]::new}) to use for creating new array instances
-     * @param strength the {@link ReferenceStrength} that arrays will be stored with
+     * @param lambda      a lambda function (e.g. {@code Object[]::new}) to use for creating new array instances
+     * @param maxCapacity the maximum internal storage capacity of the allocator per power of 2
+     * @param <T>         the array type
+     * @return a new global {@link ArrayAllocator}
+     */
+    static <T> ArrayAllocator<T> pow2(@NonNull IntFunction<T> lambda, int maxCapacity) {
+        return new StrongPow2ArrayAllocator<>(lambda, maxCapacity);
+    }
+
+    /**
+     * Creates a new global {@link ArrayAllocator} which groups arrays based on their size in powers of 2.
+     * <p>
+     * The returned {@link ArrayAllocator} will keep strong references to the arrays.
+     *
+     * @param componentType the array component type
      * @param maxCapacity   the maximum internal storage capacity of the allocator per power of 2
      * @param <T>           the array type
      * @return a new global {@link ArrayAllocator}
      */
+    static <T> ArrayAllocator<T> pow2(@NonNull Class<?> componentType, int maxCapacity) {
+        return new StrongPow2ArrayAllocator<>(componentType, maxCapacity);
+    }
+
+    /**
+     * Creates a new global {@link ArrayAllocator} which groups arrays based on their size in powers of 2.
+     *
+     * @param lambda      a lambda function (e.g. {@code Object[]::new}) to use for creating new array instances
+     * @param strength    the {@link ReferenceStrength} that arrays will be stored with
+     * @param maxCapacity the maximum internal storage capacity of the allocator per power of 2
+     * @param <T>         the array type
+     * @return a new global {@link ArrayAllocator}
+     */
     static <T> ArrayAllocator<T> pow2(@NonNull IntFunction<T> lambda, @NonNull ReferenceStrength strength, int maxCapacity) {
-        if (strength == ReferenceStrength.STRONG) {
-            return new StrongPow2ArrayAllocator<T>(lambda, maxCapacity);
-        } else {
-            return new ReferencedPow2ArrayAllocator<>(lambda, strength, maxCapacity);
-        }
+        return new CollectablePow2ArrayAllocator<>(lambda, strength, maxCapacity);
     }
 
     /**
      * Creates a new global {@link ArrayAllocator} which groups arrays based on their size in powers of 2.
      *
      * @param componentType the array component type
-     * @param strength the {@link ReferenceStrength} that arrays will be stored with
+     * @param strength      the {@link ReferenceStrength} that arrays will be stored with
      * @param maxCapacity   the maximum internal storage capacity of the allocator per power of 2
      * @param <T>           the array type
      * @return a new global {@link ArrayAllocator}
      */
     static <T> ArrayAllocator<T> pow2(@NonNull Class<?> componentType, @NonNull ReferenceStrength strength, int maxCapacity) {
-        if (strength == ReferenceStrength.STRONG) {
-            return new StrongPow2ArrayAllocator<T>(componentType, maxCapacity);
-        } else {
-            return new ReferencedPow2ArrayAllocator<>(componentType, strength, maxCapacity);
-        }
+        return new CollectablePow2ArrayAllocator<>(componentType, strength, maxCapacity);
     }
 
     /**

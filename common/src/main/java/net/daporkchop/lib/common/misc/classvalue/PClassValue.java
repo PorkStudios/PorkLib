@@ -36,7 +36,7 @@ public interface PClassValue<T> {
      * @return a new {@link ClassValue}
      */
     static <T> PClassValue<T> create(@NonNull Function<? super Class<?>, ? extends T> factory) {
-        return new SimplePClassValue<>(factory);
+        return new BasicStrongClassValue<>(factory);
     }
 
     /**
@@ -49,9 +49,7 @@ public interface PClassValue<T> {
      * @return a new {@link ClassValue}
      */
     static <T> PClassValue<T> create(@NonNull Function<? super Class<?>, ? extends T> factory, @NonNull ReferenceStrength strength) {
-        return strength == ReferenceStrength.STRONG
-                ? create(factory)
-                : new SimpleCollectablePClassValue<>(factory, strength);
+        return new BasicCollectableClassValue<>(factory, strength);
     }
 
     /**

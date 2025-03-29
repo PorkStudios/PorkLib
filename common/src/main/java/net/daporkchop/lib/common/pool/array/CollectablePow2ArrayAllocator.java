@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2024 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -22,10 +22,10 @@ package net.daporkchop.lib.common.pool.array;
 
 import lombok.NonNull;
 import net.daporkchop.lib.common.math.BinMath;
-import net.daporkchop.lib.common.reference.Reference;
 import net.daporkchop.lib.common.reference.ReferenceStrength;
 import net.daporkchop.lib.common.util.PArrays;
 
+import java.lang.ref.Reference;
 import java.lang.reflect.Array;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -39,19 +39,19 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
  *
  * @author DaPorkchop_
  */
-final class ReferencedPow2ArrayAllocator<V> extends AbstractArrayAllocator<V> {
+final class CollectablePow2ArrayAllocator<V> extends AbstractArrayAllocator<V> {
     private final Deque<Reference<V>>[] arenas = uncheckedCast(PArrays.filledFrom(StrongPow2ArrayAllocator.NUM_ARENAS, Deque.class, ArrayDeque::new));
     private final ReferenceStrength strength;
     private final int maxCapacity;
 
-    public ReferencedPow2ArrayAllocator(@NonNull IntFunction<V> lambda, @NonNull ReferenceStrength strength, int maxCapacity) {
+    public CollectablePow2ArrayAllocator(@NonNull IntFunction<V> lambda, @NonNull ReferenceStrength strength, int maxCapacity) {
         super(lambda);
 
         this.strength = strength;
         this.maxCapacity = positive(maxCapacity, "maxCapacity");
     }
 
-    public ReferencedPow2ArrayAllocator(@NonNull Class<?> componentClass, @NonNull ReferenceStrength strength, int maxCapacity) {
+    public CollectablePow2ArrayAllocator(@NonNull Class<?> componentClass, @NonNull ReferenceStrength strength, int maxCapacity) {
         super(componentClass);
 
         this.strength = strength;

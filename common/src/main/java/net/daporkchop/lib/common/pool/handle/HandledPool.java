@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2021 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -21,7 +21,6 @@
 package net.daporkchop.lib.common.pool.handle;
 
 import lombok.NonNull;
-import net.daporkchop.lib.common.reference.ReferenceStrength;
 
 import java.util.function.Supplier;
 
@@ -36,13 +35,12 @@ public interface HandledPool<V> {
      * Creates a new global {@link HandledPool}.
      *
      * @param factory       a {@link Supplier} for new value instances
-     * @param strength the {@link ReferenceStrength} to use for storing references to values
      * @param maxCapacity   the maximum number of values to be stored
      * @param <V>           the value type
      * @return a new global {@link HandledPool}
      */
-    static <V> HandledPool<V> global(@NonNull Supplier<V> factory, @NonNull ReferenceStrength strength, int maxCapacity) {
-        return new BasicHandledPool<>(factory, strength, maxCapacity);
+    static <V> HandledPool<V> global(@NonNull Supplier<V> factory, int maxCapacity) {
+        return new BasicStrongHandledPool<>(factory, maxCapacity);
     }
 
     /**

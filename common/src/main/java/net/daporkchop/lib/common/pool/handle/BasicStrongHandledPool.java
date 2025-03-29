@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2022 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -23,12 +23,11 @@ package net.daporkchop.lib.common.pool.handle;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
-import net.daporkchop.lib.common.reference.Reference;
-import net.daporkchop.lib.common.reference.ReferenceStrength;
 import net.daporkchop.lib.common.util.exception.AlreadyReleasedException;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
@@ -38,45 +37,39 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  *
  * @author DaPorkchop_
  */
-final class BasicHandledPool<V> implements HandledPool<V> {
-    private final Deque<Reference<V>> deque;
+final class BasicStrongHandledPool<V> implements HandledPool<V> {
+    private final Deque<V> deque;
     private final Supplier<V> factory;
-    private final ReferenceStrength strength;
     private final int maxCapacity;
 
-    public BasicHandledPool(@NonNull Supplier<V> factory, @NonNull ReferenceStrength strength, int maxCapacity) {
+    public BasicStrongHandledPool(@NonNull Supplier<V> factory, int maxCapacity) {
         this.deque = new ArrayDeque<>(positive(maxCapacity, "maxCapacity"));
         this.factory = factory;
-        this.strength = strength;
         this.maxCapacity = maxCapacity;
     }
 
     @Override
     public synchronized Handle<V> get() {
-        V value = null;
-        Reference<V> ref;
-        while ((ref = this.deque.poll()) != null && (value = ref.get()) == null) {
-        }
-        if (value == null)  {
-            value = this.factory.get();
-            ref = this.strength.createReference(value);
+        V value = this.deque.poll();
+        if (value == null) {
+            value = Objects.requireNonNull(this.factory.get());
         }
         //important to create new instance because of reference-counting
-        return new HandleImpl(value, ref);
+        return new HandleImpl(value);
     }
 
+    /**
+     * @author DaPorkchop_
+     */
     @RequiredArgsConstructor
     private final class HandleImpl extends AbstractRefCounted implements Handle<V> {
-        @NonNull
-        protected final V value;
-        @NonNull
-        protected final Reference<V> ref;
+        private final @NonNull V value;
 
         @Override
         protected void doRelease() {
-            synchronized (BasicHandledPool.this) {
-                if (BasicHandledPool.this.deque.size() < BasicHandledPool.this.maxCapacity) {
-                    BasicHandledPool.this.deque.addFirst(this.ref);
+            synchronized (BasicStrongHandledPool.this) {
+                if (BasicStrongHandledPool.this.deque.size() < BasicStrongHandledPool.this.maxCapacity) {
+                    BasicStrongHandledPool.this.deque.addFirst(this.value);
                 }
             }
         }

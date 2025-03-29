@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2021 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -18,24 +18,25 @@
  *
  */
 
-package net.daporkchop.lib.common.reference;
+package net.daporkchop.lib.common.misc.classvalue;
 
+import lombok.AccessLevel;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
-import java.lang.ref.ReferenceQueue;
+import java.util.function.Function;
 
 /**
- * A weak {@link Reference} to an object instance.
+ * Basic implementation of {@link ClassValue}/{@link PClassValue} which computes values using a user-supplied {@link Function}.
  *
  * @author DaPorkchop_
- * @see java.lang.ref.WeakReference
  */
-public class WeakReference<T> extends java.lang.ref.WeakReference<T> implements Reference<T> {
-    public WeakReference(@NonNull T referent) {
-        super(referent);
-    }
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+final class BasicStrongClassValue<T> extends ClassValue<T> implements PClassValue<T> {
+    private final @NonNull Function<? super Class<?>, ? extends T> factory;
 
-    public WeakReference(@NonNull T referent, ReferenceQueue<? super T> queue) {
-        super(referent, queue);
+    @Override
+    protected T computeValue(Class<?> type) {
+        return this.factory.apply(type);
     }
 }

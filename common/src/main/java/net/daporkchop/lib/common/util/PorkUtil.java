@@ -92,7 +92,7 @@ public class PorkUtil {
     private final Cached<Recycler<StringBuilder>> STRINGBUILDER_RECYCLER = Cached.threadLocal(() -> Recycler.bounded(StringBuilder::new, PStrings::clear, 4), ReferenceStrength.SOFT);
 
     public final DateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-    public final String PORKLIB_VERSION = preventInline("0.5.8-SNAPSHOT"); //TODO: set this dynamically
+    public final String PORKLIB_VERSION = preventInline("0.5.9-SNAPSHOT"); //TODO: set this dynamically
     public final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
 
     /**

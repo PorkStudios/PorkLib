@@ -970,23 +970,65 @@ public class PUnsafe {
     // CLASS MANAGEMENT
     //
 
-    public boolean shouldBeInitialized(Class<?> clazz) {
+    public static boolean shouldBeInitialized(Class<?> clazz) {
         return UNSAFE.shouldBeInitialized(clazz);
     }
 
-    public void ensureClassInitialized(Class<?> clazz) {
+    public static void ensureClassInitialized(Class<?> clazz) {
         UNSAFE.ensureClassInitialized(clazz);
-    }
-
-    public Class<?> defineClass(String name, byte[] classBytes, int off, int len, ClassLoader srcLoader, ProtectionDomain domain) {
-        return UNSAFE.defineClass(name, classBytes, off, len, srcLoader, domain);
     }
 
     /**
      * @deprecated this will no longer work on Java 17+
      */
     @Deprecated
-    public Class<?> defineAnonymousClass(Class<?> hostClass, byte[] data, Object[] constantPoolPatches) {
+    public static Class<?> defineClass(String name, byte[] classBytes, int off, int len, ClassLoader srcLoader, ProtectionDomain domain) {
+        return UNSAFE.defineClass(name, classBytes, off, len, srcLoader, domain);
+    }
+
+    private static final class DefineClass_Java9 {
+        static final MethodHandle MethodHandles$Lookup_defineClass; // (MethodHandles.Lookup, byte[]) -> Class
+
+        static {
+            try {
+                MethodHandles$Lookup_defineClass = MethodHandles.publicLookup()
+                        .findVirtual(MethodHandles.Lookup.class, "defineClass", MethodType.methodType(Class.class, byte[].class));
+            } catch (Throwable t) {
+                throw new AssertionError("Unable to find java.lang.invoke.MethodHandles$Lookup#defineClass", t);
+            }
+        }
+    }
+
+    /**
+     * Defines a class in the same {@link ClassLoader} and with the same {@link ProtectionDomain} as the given host class.
+     * <p>
+     * Note that the given class data must contain a class whose name must be in the same package as the host class.
+     *
+     * @param hostLookup a {@link MethodHandles.Lookup} whose {@link MethodHandles.Lookup#lookupClass()} is the host class. Must have {@link MethodHandles.Lookup#PACKAGE package} access!
+     * @param name       the class' binary name, e.g. {@code "java.lang.String"}
+     * @param data       a {@code byte[]} containing the class data
+     * @return the defined {@link Class}
+     */
+    @SneakyThrows
+    public static Class<?> defineClass(MethodHandles.Lookup hostLookup, String name, byte[] data) {
+        if (JAVA_VERSION >= 9) {
+            //invoke MethodHandles.Lookup#defineClass() directly
+            return (Class<?>) DefineClass_Java9.MethodHandles$Lookup_defineClass.invokeExact(hostLookup, data);
+        } else {
+            //fall back to Unsafe#defineClass()
+            if ((hostLookup.lookupModes() & MethodHandles.Lookup.PACKAGE) == 0) {
+                throw new IllegalArgumentException("Lookup must have PACKAGE access!");
+            }
+
+            return defineClass(name, data, 0, data.length, hostLookup.lookupClass().getClassLoader(), hostLookup.lookupClass().getProtectionDomain());
+        }
+    }
+
+    /**
+     * @deprecated this will no longer work on Java 17+
+     */
+    @Deprecated
+    public static Class<?> defineAnonymousClass(Class<?> hostClass, byte[] data, Object[] constantPoolPatches) {
         return UNSAFE.defineAnonymousClass(hostClass, data, constantPoolPatches);
     }
 
@@ -1001,24 +1043,40 @@ public class PUnsafe {
                 MethodHandles$Lookup_defineHiddenClass = MethodHandles.publicLookup()
                         .findVirtual(MethodHandles.Lookup.class, "defineHiddenClass", MethodType.methodType(MethodHandles.Lookup.class, byte[].class, boolean.class, MethodHandles$Lookup$ClassOption_arrayClass));
             } catch (Throwable t) {
-                throw new RuntimeException(t);
+                throw new AssertionError("Unable to find java.lang.invoke.MethodHandles$Lookup#defineHiddenClass", t);
             }
         }
     }
 
+    /**
+     * Defines a hidden class in the context of the given host class.
+     * <p>
+     * Hidden classes are defined in the same {@link ClassLoader} as the host class, but cannot be referred to by name. They are eligible for garbage collection once no longer
+     * referenced, even if their host {@link ClassLoader} is still referenced. This makes them a more performant alternative to separate {@link ClassLoader} when defining
+     * generated classes at runtime.
+     * <p>
+     * Note that the given class data must contain a class whose name must be in the same package as the host class.
+     * <p>
+     * Note that for compatibility reasons with older Java versions, and unlike the Java 15 API, the returned {@link MethodHandles.Lookup} is <strong>not</strong> guaranteed
+     * to have full privilege or original access. Only public and package-private class members of the hidden class are guaranteed to be accessible with the returned lookup.
+     *
+     * @param hostLookup a {@link MethodHandles.Lookup} whose {@link MethodHandles.Lookup#lookupClass()} is the host class. Must have full privilege access!
+     * @param initialize if {@code true} the class will be initialized
+     * @param data       a {@code byte[]} containing the class data
+     * @return a {@link MethodHandles.Lookup} whose {@link MethodHandles.Lookup#lookupClass()} is the newly defined class
+     */
     @SneakyThrows
-    public MethodHandles.Lookup defineHiddenClass(MethodHandles.Lookup hostLookup, boolean initialize, byte[] data) {
+    public static MethodHandles.Lookup defineHiddenClass(MethodHandles.Lookup hostLookup, boolean initialize, byte[] data) {
         if (JAVA_VERSION >= 15) {
             //invoke MethodHandles.Lookup#defineHiddenClass() directly
-            return (MethodHandles.Lookup) DefineHiddenClass_Java15.MethodHandles$Lookup_defineHiddenClass.invoke(
-                    hostLookup, data, initialize);
+            return (MethodHandles.Lookup) DefineHiddenClass_Java15.MethodHandles$Lookup_defineHiddenClass.invoke(hostLookup, data, initialize);
         } else {
             //fall back to Unsafe#defineAnonymousClass()
             Class<?> clazz = defineAnonymousClass(hostLookup.lookupClass(), data, null);
             if (initialize) {
                 ensureClassInitialized(clazz);
             }
-            return hostLookup.in(clazz);
+            return hostLookup.in(clazz); //this unfortunately won't return a Lookup with original (or even private) access, but that's probably fine for most users
         }
     }
 
@@ -1026,15 +1084,10 @@ public class PUnsafe {
     // UNINITIALIZED CLASS ALLOCATION
     //
 
-    public <T> T allocateInstance(Class<T> clazz) {
-        try {
-            @SuppressWarnings("unchecked")
-            T val = (T) UNSAFE.allocateInstance(clazz);
-            return val;
-        } catch (InstantiationException e) {
-            UNSAFE.throwException(e);
-            throw new AssertionError("impossible", e);
-        }
+    @SuppressWarnings("unchecked")
+    @SneakyThrows(InstantiationException.class)
+    public static <T> T allocateInstance(Class<T> clazz) {
+        return (T) UNSAFE.allocateInstance(clazz);
     }
 
     //
@@ -1058,7 +1111,7 @@ public class PUnsafe {
     }
 
     @SneakyThrows
-    public Object allocateUninitializedArray(Class<?> componentType, int length) {
+    public static Object allocateUninitializedArray(Class<?> componentType, int length) {
         if (allocateUninitializedArray != null) { //use Java 9 intrinsic if possible
             return allocateUninitializedArray.invokeExact(componentType, length);
         } else { //fallback to creating a zeroed array
@@ -1066,7 +1119,7 @@ public class PUnsafe {
         }
     }
 
-    private Object allocateUninitializedArray0(Class<?> componentType, int length) {
+    private static Object allocateUninitializedArray0(Class<?> componentType, int length) {
         if (componentType == null) {
             throw new IllegalArgumentException("Component type is null");
         } else if (!componentType.isPrimitive()) {
@@ -1087,72 +1140,72 @@ public class PUnsafe {
     }
 
     @SneakyThrows
-    public boolean[] allocateUninitializedBooleanArray(int length) {
+    public static boolean[] allocateUninitializedBooleanArray(int length) {
         if (allocateUninitializedArray != null) { //use Java 9 intrinsic if possible
-            return (boolean[]) allocateUninitializedArray.invoke(boolean.class, length);
+            return (boolean[]) allocateUninitializedArray.invokeExact(boolean.class, length);
         } else { //fallback to creating a zeroed array
             return new boolean[length];
         }
     }
 
     @SneakyThrows
-    public byte[] allocateUninitializedByteArray(int length) {
+    public static byte[] allocateUninitializedByteArray(int length) {
         if (allocateUninitializedArray != null) { //use Java 9 intrinsic if possible
-            return (byte[]) allocateUninitializedArray.invoke(byte.class, length);
+            return (byte[]) allocateUninitializedArray.invokeExact(byte.class, length);
         } else { //fallback to creating a zeroed array
             return new byte[length];
         }
     }
 
     @SneakyThrows
-    public short[] allocateUninitializedShortArray(int length) {
+    public static short[] allocateUninitializedShortArray(int length) {
         if (allocateUninitializedArray != null) { //use Java 9 intrinsic if possible
-            return (short[]) allocateUninitializedArray.invoke(short.class, length);
+            return (short[]) allocateUninitializedArray.invokeExact(short.class, length);
         } else { //fallback to creating a zeroed array
             return new short[length];
         }
     }
 
     @SneakyThrows
-    public char[] allocateUninitializedCharArray(int length) {
+    public static char[] allocateUninitializedCharArray(int length) {
         if (allocateUninitializedArray != null) { //use Java 9 intrinsic if possible
-            return (char[]) allocateUninitializedArray.invoke(char.class, length);
+            return (char[]) allocateUninitializedArray.invokeExact(char.class, length);
         } else { //fallback to creating a zeroed array
             return new char[length];
         }
     }
 
     @SneakyThrows
-    public int[] allocateUninitializedIntArray(int length) {
+    public static int[] allocateUninitializedIntArray(int length) {
         if (allocateUninitializedArray != null) { //use Java 9 intrinsic if possible
-            return (int[]) allocateUninitializedArray.invoke(int.class, length);
+            return (int[]) allocateUninitializedArray.invokeExact(int.class, length);
         } else { //fallback to creating a zeroed array
             return new int[length];
         }
     }
 
     @SneakyThrows
-    public long[] allocateUninitializedLongArray(int length) {
+    public static long[] allocateUninitializedLongArray(int length) {
         if (allocateUninitializedArray != null) { //use Java 9 intrinsic if possible
-            return (long[]) allocateUninitializedArray.invoke(long.class, length);
+            return (long[]) allocateUninitializedArray.invokeExact(long.class, length);
         } else { //fallback to creating a zeroed array
             return new long[length];
         }
     }
 
     @SneakyThrows
-    public float[] allocateUninitializedFloatArray(int length) {
+    public static float[] allocateUninitializedFloatArray(int length) {
         if (allocateUninitializedArray != null) { //use Java 9 intrinsic if possible
-            return (float[]) allocateUninitializedArray.invoke(float.class, length);
+            return (float[]) allocateUninitializedArray.invokeExact(float.class, length);
         } else { //fallback to creating a zeroed array
             return new float[length];
         }
     }
 
     @SneakyThrows
-    public double[] allocateUninitializedDoubleArray(int length) {
+    public static double[] allocateUninitializedDoubleArray(int length) {
         if (allocateUninitializedArray != null) { //use Java 9 intrinsic if possible
-            return (double[]) allocateUninitializedArray.invoke(double.class, length);
+            return (double[]) allocateUninitializedArray.invokeExact(double.class, length);
         } else { //fallback to creating a zeroed array
             return new double[length];
         }

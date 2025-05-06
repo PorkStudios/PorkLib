@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2022 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -15,13 +15,11 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
 package net.daporkchop.lib.encoding.basen;
 
 import lombok.NonNull;
-import net.daporkchop.lib.common.math.PMath;
 import net.daporkchop.lib.common.misc.string.PStrings;
 import net.daporkchop.lib.encoding.util.FastCharIntMap;
 
@@ -70,6 +68,18 @@ public final class BaseN {
         this.zero = this.alphabet[0];
     }
 
+    private static byte divmod(byte[] number, int firstDigit, int base, int divisor) {
+        // this is just long division which accounts for the base of the input digits
+        int remainder = 0;
+        for (int i = firstDigit; i < number.length; i++) {
+            int digit = (int) number[i] & 0xFF;
+            int temp = remainder * base + digit;
+            number[i] = (byte) (temp / divisor);
+            remainder = temp % divisor;
+        }
+        return (byte) remainder;
+    }
+
     public String encode(@NonNull byte[] data) {
         if (data.length == 0) {
             return "";
@@ -84,7 +94,7 @@ public final class BaseN {
         char[] encoded = new char[data.length * 2]; // upper bound
         int outputStart = encoded.length;
         for (int inputStart = zeros; inputStart < data.length; ) {
-            encoded[--outputStart] = this.alphabet[PMath.divmod(data, inputStart, 256, this.length)];
+            encoded[--outputStart] = this.alphabet[divmod(data, inputStart, 256, this.length)];
             if (data[inputStart] == 0) {
                 ++inputStart; // optimization - skip leading zeros
             }
@@ -123,7 +133,7 @@ public final class BaseN {
         byte[] decoded = new byte[input.length()];
         int outputStart = decoded.length;
         for (int inputStart = zeros; inputStart < inputn.length; ) {
-            decoded[--outputStart] = PMath.divmod(inputn, inputStart, this.length, 256);
+            decoded[--outputStart] = divmod(inputn, inputStart, this.length, 256);
             if (inputn[inputStart] == 0) {
                 ++inputStart; // optimization - skip leading zeros
             }

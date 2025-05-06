@@ -19,11 +19,15 @@
 
 package net.daporkchop.lib.common.math;
 
+import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.annotation.FastMath;
 import net.daporkchop.lib.common.annotation.param.NotNegative;
+import net.daporkchop.lib.common.system.PlatformInfo;
 
-import static java.lang.Math.*;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 
 /**
  * A number of helper math functions.
@@ -33,39 +37,31 @@ import static java.lang.Math.*;
 @UtilityClass
 public class PMath {
     public static byte clamp(byte val, byte min, byte max) {
-        return val < min ? min : val > max ? max : val;
+        return (byte) Math.min(Math.max(val, min), max);
     }
 
     public static short clamp(short val, short min, short max) {
-        return val < min ? min : val > max ? max : val;
+        return (short) Math.min(Math.max(val, min), max);
+    }
+
+    public static char clamp(char val, char min, char max) {
+        return (char) Math.min(Math.max(val, min), max);
     }
 
     public static int clamp(int val, int min, int max) {
-        return min(max(val, min), max);
+        return Math.min(Math.max(val, min), max);
     }
 
     public static long clamp(long val, long min, long max) {
-        return min(max(val, min), max);
+        return Math.min(Math.max(val, min), max);
     }
 
     public static float clamp(float val, float min, float max) {
-        return min(max(val, min), max);
+        return Math.min(Math.max(val, min), max);
     }
 
     public static double clamp(double val, double min, double max) {
-        return min(max(val, min), max);
-    }
-
-    public static byte divmod(byte[] number, int firstDigit, int base, int divisor) {
-        // this is just long division which accounts for the base of the input digits
-        int remainder = 0;
-        for (int i = firstDigit; i < number.length; i++) {
-            int digit = (int) number[i] & 0xFF;
-            int temp = remainder * base + digit;
-            number[i] = (byte) (temp / divisor);
-            remainder = temp % divisor;
-        }
-        return (byte) remainder;
+        return Math.min(Math.max(val, min), max);
     }
 
     /**
@@ -168,63 +164,252 @@ public class PMath {
         return Math.round(d);
     }
 
-    public static long pow(long val, long exp) {
-        if (val == 0 || exp == 0) {
-            return 0;
-        } else {
-            long a = val;
-            for (; a > 0; a--) {
-                a *= val;
+    @SuppressWarnings("JavaLangInvokeHandleSignature")
+    private static final class MathFunctionHandles {
+        static final MethodHandle Math_floorDiv_LI; // (long, int) -> long
+        static final MethodHandle Math_floorMod_LI; // (long, int) -> int
+        
+        static final MethodHandle Math_ceilDiv_II; // (int, int) -> int
+        static final MethodHandle Math_ceilDiv_LI; // (long, int) -> long
+        static final MethodHandle Math_ceilDiv_LL; // (long, long) -> long
+        static final MethodHandle Math_ceilMod_II; // (int, int) -> int
+        static final MethodHandle Math_ceilMod_LI; // (long, int) -> int
+        static final MethodHandle Math_ceilMod_LL; // (long, long) -> long
+
+        static {
+            try {
+                if (PlatformInfo.JAVA_VERSION >= 9) {
+                    Math_floorDiv_LI = MethodHandles.publicLookup().findStatic(Math.class, "floorDiv", MethodType.methodType(long.class, long.class, int.class));
+                    Math_floorMod_LI = MethodHandles.publicLookup().findStatic(Math.class, "floorMod", MethodType.methodType(int.class, long.class, int.class));
+                } else {
+                    Math_floorDiv_LI = null;
+                    Math_floorMod_LI = null;
+                }
+
+                if (PlatformInfo.JAVA_VERSION >= 18) {
+                    Math_ceilDiv_II = MethodHandles.publicLookup().findStatic(Math.class, "ceilDiv", MethodType.methodType(int.class, int.class, int.class));
+                    Math_ceilDiv_LI = MethodHandles.publicLookup().findStatic(Math.class, "ceilDiv", MethodType.methodType(long.class, long.class, int.class));
+                    Math_ceilDiv_LL = MethodHandles.publicLookup().findStatic(Math.class, "ceilDiv", MethodType.methodType(long.class, long.class, long.class));
+                    Math_ceilMod_II = MethodHandles.publicLookup().findStatic(Math.class, "ceilMod", MethodType.methodType(int.class, int.class, int.class));
+                    Math_ceilMod_LI = MethodHandles.publicLookup().findStatic(Math.class, "ceilMod", MethodType.methodType(int.class, long.class, int.class));
+                    Math_ceilMod_LL = MethodHandles.publicLookup().findStatic(Math.class, "ceilMod", MethodType.methodType(long.class, long.class, long.class));
+                } else {
+                    Math_ceilDiv_II = null;
+                    Math_ceilDiv_LI = null;
+                    Math_ceilDiv_LL = null;
+                    Math_ceilMod_II = null;
+                    Math_ceilMod_LI = null;
+                    Math_ceilMod_LL = null;
+                }
+            } catch (Throwable t) {
+                throw new AssertionError("Unable to find additional java.lang.Math functions", t);
             }
-            return a;
         }
     }
 
-    public static int pow(int val, int exp) {
-        if (val == 0 || exp == 0) {
-            return 0;
-        } else {
-            int a = val;
-            for (int i = exp; i > 0; i--) {
-                a *= val;
-            }
-            return a;
+    /**
+     * Performs integer division, rounding the result toward negative infinity instead of truncating like the {@code /} operator.
+     *
+     * @param x the dividend
+     * @param y the divisor
+     * @return the result
+     * @see Math#floorDiv
+     */
+    public static int floorDiv(int x, int y) {
+        return Math.floorDiv(x, y);
+    }
+
+    /**
+     * Performs integer division, rounding the result toward negative infinity instead of truncating like the {@code /} operator.
+     *
+     * @param x the dividend
+     * @param y the divisor
+     * @return the result
+     * @see Math#floorDiv
+     */
+    @SneakyThrows
+    public static long floorDiv(long x, int y) {
+        if (MathFunctionHandles.Math_floorDiv_LI != null) { //use Java 9 function (intrinsic?) if possible
+            return (long) MathFunctionHandles.Math_floorDiv_LI.invokeExact(x, y);
+        } else { //fall back to default implementation
+            return Math.floorDiv(x, (long) y);
         }
     }
 
-    public static short pow(short val, short exp) {
-        if (val == 0 || exp == 0) {
-            return 0;
-        } else {
-            short a = val;
-            for (short i = exp; i > 0; i--) {
-                a *= val;
-            }
-            return a;
+    /**
+     * Performs integer division, rounding the result toward negative infinity instead of truncating like the {@code /} operator.
+     *
+     * @param x the dividend
+     * @param y the divisor
+     * @return the result
+     * @see Math#floorDiv
+     */
+    public static long floorDiv(long x, long y) {
+        return Math.floorDiv(x, y);
+    }
+
+    /**
+     * Returns the floor modulus of the given arguments.
+     *
+     * @param x the dividend
+     * @param y the divisor
+     * @return the result
+     * @see Math#floorMod
+     */
+    public static int floorMod(int x, int y) {
+        return Math.floorMod(x, y);
+    }
+
+    /**
+     * Returns the floor modulus of the given arguments.
+     *
+     * @param x the dividend
+     * @param y the divisor
+     * @return the result
+     * @see Math#floorMod
+     */
+    @SneakyThrows
+    public static int floorMod(long x, int y) {
+        if (MathFunctionHandles.Math_floorMod_LI != null) { //use Java 9 function (intrinsic?) if possible
+            return (int) MathFunctionHandles.Math_floorMod_LI.invokeExact(x, y);
+        } else { //fall back to default implementation
+            return (int) Math.floorMod(x, (long) y);
         }
     }
 
-    public static byte pow(byte val, byte exp) {
-        if (val == 0 || exp == 0) {
-            return 0;
-        } else {
-            byte a = val;
-            for (byte i = val; i > 0; i--) {
-                a *= val;
+    /**
+     * Returns the floor modulus of the given arguments.
+     *
+     * @param x the dividend
+     * @param y the divisor
+     * @return the result
+     * @see Math#floorMod
+     */
+    public static long floorMod(long x, long y) {
+        return Math.floorMod(x, y);
+    }
+
+    /**
+     * Performs integer division, rounding the result toward positive infinity instead of truncating like the {@code /} operator.
+     *
+     * @param x the dividend
+     * @param y the divisor
+     * @return the result
+     * @see Math#ceilDiv
+     */
+    @SuppressWarnings("JavadocReference")
+    @SneakyThrows
+    public static int ceilDiv(int x, int y) {
+        if (MathFunctionHandles.Math_ceilDiv_II != null) { //use Java 18 function (intrinsic?) if possible
+            return (int) MathFunctionHandles.Math_ceilDiv_II.invokeExact(x, y);
+        } else { //fall back to default implementation
+            int q = x / y;
+            if ((x ^ y) >= 0 && q * y != x) {
+                return q + 1;
             }
-            return a;
+            return q;
         }
     }
 
-    public static float pow(float val, float exp) {
-        return (float) powDouble(val, exp);
+    /**
+     * Performs integer division, rounding the result toward positive infinity instead of truncating like the {@code /} operator.
+     *
+     * @param x the dividend
+     * @param y the divisor
+     * @return the result
+     * @see Math#ceilDiv
+     */
+    @SuppressWarnings("JavadocReference")
+    @SneakyThrows
+    public static long ceilDiv(long x, int y) {
+        if (MathFunctionHandles.Math_ceilDiv_LI != null) { //use Java 18 function (intrinsic?) if possible
+            return (long) MathFunctionHandles.Math_ceilDiv_LI.invokeExact(x, y);
+        } else { //fall back to default implementation
+            return ceilDiv(x, (long) y);
+        }
     }
 
-    public static double powDouble(double val, double exp) {
-        if (val == 0.0d || exp == 0.0d) {
-            return 0.0d;
-        } else {
-            return Math.pow(val, exp);
+    /**
+     * Performs integer division, rounding the result toward positive infinity instead of truncating like the {@code /} operator.
+     *
+     * @param x the dividend
+     * @param y the divisor
+     * @return the result
+     * @see Math#ceilDiv
+     */
+    @SuppressWarnings("JavadocReference")
+    @SneakyThrows
+    public static long ceilDiv(long x, long y) {
+        if (MathFunctionHandles.Math_ceilDiv_LL != null) { //use Java 18 function (intrinsic?) if possible
+            return (long) MathFunctionHandles.Math_ceilDiv_LL.invokeExact(x, y);
+        } else { //fall back to default implementation
+            long q = x / y;
+            if ((x ^ y) >= 0L && q * y != x) {
+                return q + 1L;
+            }
+            return q;
+        }
+    }
+
+    /**
+     * Returns the ceiling modulus of the given arguments.
+     *
+     * @param x the dividend
+     * @param y the divisor
+     * @return the result
+     * @see Math#ceilMod
+     */
+    @SuppressWarnings("JavadocReference")
+    @SneakyThrows
+    public static int ceilMod(int x, int y) {
+        if (MathFunctionHandles.Math_ceilMod_II != null) { //use Java 18 function (intrinsic?) if possible
+            return (int) MathFunctionHandles.Math_ceilMod_II.invokeExact(x, y);
+        } else { //fall back to default implementation
+            int q = x / y;
+            if ((x ^ y) >= 0 && q * y != x) {
+                return q + 1;
+            }
+            return q;
+        }
+    }
+
+    /**
+     * Returns the ceiling modulus of the given arguments.
+     *
+     * @param x the dividend
+     * @param y the divisor
+     * @return the result
+     * @see Math#ceilMod
+     */
+    @SuppressWarnings("JavadocReference")
+    @SneakyThrows
+    public static int ceilMod(long x, int y) {
+        if (MathFunctionHandles.Math_ceilMod_LI != null) { //use Java 18 function (intrinsic?) if possible
+            return (int) MathFunctionHandles.Math_ceilMod_LI.invokeExact(x, y);
+        } else { //fall back to default implementation
+            return (int) ceilMod(x, (long) y);
+        }
+    }
+
+    /**
+     * Returns the ceiling modulus of the given arguments.
+     *
+     * @param x the dividend
+     * @param y the divisor
+     * @return the result
+     * @see Math#ceilMod
+     */
+    @SuppressWarnings("JavadocReference")
+    @SneakyThrows
+    public static long ceilMod(long x, long y) {
+        if (MathFunctionHandles.Math_ceilMod_LL != null) { //use Java 18 function (intrinsic?) if possible
+            return (long) MathFunctionHandles.Math_ceilMod_LL.invokeExact(x, y);
+        } else { //fall back to default implementation
+            long q = x / y;
+            if ((x ^ y) >= 0L && q * y != x) {
+                return q + 1L;
+            }
+            return q;
         }
     }
 
@@ -242,16 +427,6 @@ public class PMath {
 
     public static double lerp(double a, double b, double t) {
         return a + (b - a) * t;
-    }
-
-    @Deprecated
-    public static int lerpI(int a, int b, float t) {
-        return floorI(a + (b - a) * t);
-    }
-
-    @Deprecated
-    public static int lerpI(int a, int b, double t) {
-        return floorI(a + (b - a) * t);
     }
 
     public static long mix64(long z) {
@@ -409,6 +584,58 @@ public class PMath {
      */
     public static boolean doubleBitwiseEquals(double a, double b) {
         return Double.doubleToRawLongBits(a) == Double.doubleToRawLongBits(b);
+    }
+
+    /**
+     * Returns the minimum of the two arguments. Unlike {@link Math#min(float, float)}, this does not perform special handling for signed zero values nor does it always propagate NaNs. It
+     * simply implements {@code a < b ? a : b}, much like C++'s {@code std::min()}.
+     *
+     * @param a a value
+     * @param b a value
+     * @return {@code a < b ? a : b}
+     */
+    @SuppressWarnings("ManualMinMaxCalculation")
+    public static float minFast(float a, float b) {
+        return a < b ? a : b;
+    }
+
+    /**
+     * Returns the minimum of the two arguments. Unlike {@link Math#min(double, double)}, this does not perform special handling for signed zero values nor does it always propagate NaNs. It
+     * simply implements {@code a < b ? a : b}, much like C++'s {@code std::min()}.
+     *
+     * @param a a value
+     * @param b a value
+     * @return {@code a < b ? a : b}
+     */
+    @SuppressWarnings("ManualMinMaxCalculation")
+    public static double minFast(double a, double b) {
+        return a < b ? a : b;
+    }
+
+    /**
+     * Returns the maximum of the two arguments. Unlike {@link Math#max(float, float)}, this does not perform special handling for signed zero values nor does it always propagate NaNs. It
+     * simply implements {@code a > b ? a : b}, much like C++'s {@code std::max()}.
+     *
+     * @param a a value
+     * @param b a value
+     * @return {@code a > b ? a : b}
+     */
+    @SuppressWarnings("ManualMinMaxCalculation")
+    public static float maxFast(float a, float b) {
+        return a > b ? a : b;
+    }
+
+    /**
+     * Returns the maximum of the two arguments. Unlike {@link Math#max(double, double)}, this does not perform special handling for signed zero values nor does it always propagate NaNs. It
+     * simply implements {@code a > b ? a : b}, much like C++'s {@code std::max()}.
+     *
+     * @param a a value
+     * @param b a value
+     * @return {@code a > b ? a : b}
+     */
+    @SuppressWarnings("ManualMinMaxCalculation")
+    public static double maxFast(double a, double b) {
+        return a > b ? a : b;
     }
 
     /**

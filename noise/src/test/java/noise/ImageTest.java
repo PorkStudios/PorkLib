@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -15,12 +15,12 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
 package noise;
 
 
+import net.daporkchop.lib.common.math.PMath;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.imaging.color.ColorFormatBW;
 import net.daporkchop.lib.imaging.color.ColorFormatRGB;
@@ -28,7 +28,6 @@ import net.daporkchop.lib.noise.NoiseSource;
 
 import java.awt.image.BufferedImage;
 
-import static net.daporkchop.lib.common.math.PMath.*;
 import static noise.NoiseTests.*;
 
 /**
@@ -50,11 +49,11 @@ public class ImageTest {
                         throw new IllegalStateException(String.format("(%d,%d) (%f,%f): %f", x, y, x * scale, y * scale, val));
                     }
                     int col = val < 0.0d
-                            ? lerpI(0x00, 0xFF, -val) << 16
-                            : lerpI(0x00, 0xFF, val) << 8;
+                            ? ((int) PMath.lerp(0x00, 0xFF, -val)) << 16
+                            : ((int) PMath.lerp(0x00, 0xFF, val)) << 8;
                     img.setRGB(x, y, ColorFormatRGB.toARGB(col));
 
-                    img.setRGB(size + x, y, ColorFormatBW.toARGB(lerpI(0x00, 0xFF, val * 0.5d + 0.5d)));
+                    img.setRGB(size + x, y, ColorFormatBW.toARGB((int) PMath.lerp(0x00, 0xFF, val * 0.5d + 0.5d)));
                 }
             }
             System.out.println(src);

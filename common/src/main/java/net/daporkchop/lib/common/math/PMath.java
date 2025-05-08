@@ -365,11 +365,11 @@ public class PMath {
         if (MathFunctionHandles.Math_ceilMod_II != null) { //use Java 18 function (intrinsic?) if possible
             return (int) MathFunctionHandles.Math_ceilMod_II.invokeExact(x, y);
         } else { //fall back to default implementation
-            int q = x / y;
-            if ((x ^ y) >= 0 && q * y != x) {
-                return q + 1;
+            int r = x % y;
+            if ((x ^ y) >= 0 && r != 0) {
+                return r - y;
             }
-            return q;
+            return r;
         }
     }
 
@@ -405,11 +405,11 @@ public class PMath {
         if (MathFunctionHandles.Math_ceilMod_LL != null) { //use Java 18 function (intrinsic?) if possible
             return (long) MathFunctionHandles.Math_ceilMod_LL.invokeExact(x, y);
         } else { //fall back to default implementation
-            long q = x / y;
-            if ((x ^ y) >= 0L && q * y != x) {
-                return q + 1L;
+            long r = x % y;
+            if ((x ^ y) >= 0L && r != 0L) {
+                return r - y;
             }
-            return q;
+            return r;
         }
     }
 

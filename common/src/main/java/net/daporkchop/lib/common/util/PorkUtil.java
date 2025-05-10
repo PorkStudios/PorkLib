@@ -15,7 +15,6 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
 package net.daporkchop.lib.common.util;
@@ -62,17 +61,8 @@ import java.util.concurrent.ExecutionException;
 //TODO: clean this up a bit
 @UtilityClass
 public class PorkUtil {
-    /**
-     * @deprecated use {@link #bufferSize()}
-     */
-    @Deprecated
-    public final int TINY_BUFFER_SIZE = Integer.getInteger("net.daporkchop.lib.common.util.PorkUtil.TINY_BUFFER_SIZE", 32);
-
-    /**
-     * @deprecated use {@link #bufferSize()}
-     */
-    @Deprecated
-    public final int BUFFER_SIZE = Integer.getInteger("net.daporkchop.lib.common.util.PorkUtil.BUFFER_SIZE", 65536);
+    private static final int TINY_BUFFER_SIZE = Integer.getInteger("net.daporkchop.lib.common.util.PorkUtil.TINY_BUFFER_SIZE", 32);
+    private static final int BUFFER_SIZE = Integer.getInteger("net.daporkchop.lib.common.util.PorkUtil.BUFFER_SIZE", 65536);
 
     @Deprecated
     public final HandledPool<byte[]> TINY_BUFFER_POOL = HandledPool.threadLocal(() -> new byte[TINY_BUFFER_SIZE], 4);
@@ -95,51 +85,15 @@ public class PorkUtil {
     public final String PORKLIB_VERSION = preventInline("0.5.9-SNAPSHOT"); //TODO: set this dynamically
     public final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
 
-    /**
-     * @deprecated use {@link #emptyBooleanArray()}
-     */
-    @Deprecated
-    public final boolean[] EMPTY_BOOLEAN_ARRAY = new boolean[0];
-    /**
-     * @deprecated use {@link #emptyByteArray()}
-     */
-    @Deprecated
-    public final byte[] EMPTY_BYTE_ARRAY = new byte[0];
-    /**
-     * @deprecated use {@link #emptyShortArray()}
-     */
-    @Deprecated
-    public final short[] EMPTY_SHORT_ARRAY = new short[0];
-    /**
-     * @deprecated use {@link #emptyCharArray()}
-     */
-    @Deprecated
-    public final char[] EMPTY_CHAR_ARRAY = new char[0];
-    /**
-     * @deprecated use {@link #emptyIntArray()}
-     */
-    @Deprecated
-    public final int[] EMPTY_INT_ARRAY = new int[0];
-    /**
-     * @deprecated use {@link #emptyLongArray()}
-     */
-    @Deprecated
-    public final long[] EMPTY_LONG_ARRAY = new long[0];
-    /**
-     * @deprecated use {@link #emptyFloatArray()}
-     */
-    @Deprecated
-    public final float[] EMPTY_FLOAT_ARRAY = new float[0];
-    /**
-     * @deprecated use {@link #emptyDoubleArray()}
-     */
-    @Deprecated
-    public final double[] EMPTY_DOUBLE_ARRAY = new double[0];
-    /**
-     * @deprecated use {@link #emptyObjectArray()}
-     */
-    @Deprecated
-    public final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
+    private static final boolean[] EMPTY_BOOLEAN_ARRAY = new boolean[0];
+    private static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
+    private static final short[] EMPTY_SHORT_ARRAY = new short[0];
+    private static final char[] EMPTY_CHAR_ARRAY = new char[0];
+    private static final int[] EMPTY_INT_ARRAY = new int[0];
+    private static final long[] EMPTY_LONG_ARRAY = new long[0];
+    private static final float[] EMPTY_FLOAT_ARRAY = new float[0];
+    private static final double[] EMPTY_DOUBLE_ARRAY = new double[0];
+    private static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
 
     public final boolean NETTY_PRESENT = classExistsWithName("io.netty.util.concurrent.FastThreadLocal");
 

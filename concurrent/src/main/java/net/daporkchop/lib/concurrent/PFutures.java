@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -15,7 +15,6 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
 package net.daporkchop.lib.concurrent;
@@ -25,8 +24,8 @@ import io.netty.util.concurrent.DefaultPromise;
 import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.concurrent.compatibility.CompletableFutureAsPFuture;
 import net.daporkchop.lib.concurrent.compatibility.NettyFutureAsCompletableFuture;
 import net.daporkchop.lib.concurrent.compatibility.NettyFutureAsPFuture;
@@ -40,7 +39,8 @@ import net.daporkchop.lib.concurrent.future.runnable.RunnablePFutureTask;
 import net.daporkchop.lib.concurrent.future.runnable.RunnableWithResultPFutureTask;
 import net.daporkchop.lib.concurrent.future.runnable.SupplierPFutureTask;
 
-import java.lang.reflect.InvocationTargetException;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -55,7 +55,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static net.daporkchop.lib.common.util.PorkUtil.*;
-import static net.daporkchop.lib.unsafe.PUnsafe.*;
 
 /**
  * Helpers for dealing with various implementations of a future value.
@@ -64,18 +63,18 @@ import static net.daporkchop.lib.unsafe.PUnsafe.*;
  */
 @UtilityClass
 public class PFutures {
-    protected final long DEFAULTPROMISE_EXECUTOR_OFFSET = pork_getOffset(DefaultPromise.class, "executor");
-
-    protected final Method DEFAULTPROMISE_EXECUTOR;
-    protected final Method COMPLETEFUTURE_EXECUTOR;
+    private static final MethodHandle DEFAULTPROMISE_EXECUTOR; // (DefaultPromise) -> EventExecutor
+    private static final MethodHandle COMPLETEFUTURE_EXECUTOR; // (CompleteFuture) -> EventExecutor
 
     static {
         try {
-            DEFAULTPROMISE_EXECUTOR = DefaultPromise.class.getDeclaredMethod("executor");
-            DEFAULTPROMISE_EXECUTOR.setAccessible(true);
+            Method _DEFAULTPROMISE_EXECUTOR = DefaultPromise.class.getDeclaredMethod("executor");
+            _DEFAULTPROMISE_EXECUTOR.setAccessible(true);
+            DEFAULTPROMISE_EXECUTOR = MethodHandles.publicLookup().unreflect(_DEFAULTPROMISE_EXECUTOR);
 
-            COMPLETEFUTURE_EXECUTOR = CompleteFuture.class.getDeclaredMethod("executor");
-            COMPLETEFUTURE_EXECUTOR.setAccessible(true);
+            Method _COMPLETEFUTURE_EXECUTOR = CompleteFuture.class.getDeclaredMethod("executor");
+            _COMPLETEFUTURE_EXECUTOR.setAccessible(true);
+            COMPLETEFUTURE_EXECUTOR = MethodHandles.publicLookup().unreflect(_COMPLETEFUTURE_EXECUTOR);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -120,17 +119,14 @@ public class PFutures {
      * @param future the {@link Future} to get the {@link EventExecutor} for
      * @return the {@link EventExecutor} used by the given {@link Future}
      */
+    @SneakyThrows
     public static EventExecutor executor(@NonNull Future<?> future) {
-        try {
-            if (future instanceof DefaultPromise) {
-                return (EventExecutor) DEFAULTPROMISE_EXECUTOR.invoke(future, PorkUtil.EMPTY_OBJECT_ARRAY);
-            } else if (future instanceof CompleteFuture) {
-                return (EventExecutor) COMPLETEFUTURE_EXECUTOR.invoke(future, PorkUtil.EMPTY_OBJECT_ARRAY);
-            } else {
-                return null;
-            }
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException(e);
+        if (future instanceof DefaultPromise) {
+            return (EventExecutor) DEFAULTPROMISE_EXECUTOR.invokeExact((DefaultPromise) future);
+        } else if (future instanceof CompleteFuture) {
+            return (EventExecutor) COMPLETEFUTURE_EXECUTOR.invokeExact((CompleteFuture) future);
+        } else {
+            return null;
         }
     }
 

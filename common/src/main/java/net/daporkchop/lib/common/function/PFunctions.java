@@ -15,15 +15,17 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
 package net.daporkchop.lib.common.function;
 
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.common.closeable.QuietCloseable;
+import net.daporkchop.lib.common.closeable.TypedCloseable;
 import net.daporkchop.lib.common.function.exception.ESupplier;
 
+import java.io.Closeable;
 import java.lang.reflect.Constructor;
 import java.util.Objects;
 import java.util.concurrent.Callable;
@@ -165,6 +167,34 @@ public class PFunctions {
      */
     public static <T> ObjDoubleConsumer<T> noopObjDoubleConsumer() {
         return (ignored0, ignored1) -> {};
+    }
+
+    /**
+     * @return an {@link AutoCloseable} which performs no action
+     */
+    public static AutoCloseable noopAutoCloseable() {
+        return noopIoCloseable();
+    }
+
+    /**
+     * @return a {@link Closeable} which performs no action
+     */
+    public static Closeable noopIoCloseable() {
+        return () -> {};
+    }
+
+    /**
+     * @return a {@link TypedCloseable} which performs no action
+     */
+    public static <E extends Exception> TypedCloseable<E> noopTypedCloseable() {
+        return TypedCloseable.noop();
+    }
+
+    /**
+     * @return a {@link QuietCloseable} which performs no action
+     */
+    public static QuietCloseable noopQuietCloseable() {
+        return QuietCloseable.noop();
     }
 
     /**

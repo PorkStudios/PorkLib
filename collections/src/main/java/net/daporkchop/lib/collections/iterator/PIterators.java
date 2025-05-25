@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -15,16 +15,14 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
 package net.daporkchop.lib.collections.iterator;
 
 import lombok.experimental.UtilityClass;
 
+import java.util.Collections;
 import java.util.Iterator;
-
-import static net.daporkchop.lib.common.util.PorkUtil.*;
 
 /**
  * Helper methods for {@link Iterator}.
@@ -33,7 +31,21 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
  */
 @UtilityClass
 public class PIterators {
+    /**
+     * Returns an empty {@link Iterator} instance.
+     *
+     * @return an empty {@link Iterator} instance
+     */
     public static <E> Iterator<E> empty() {
-        return uncheckedCast(EmptyIterator.INSTANCE);
+        return Collections.emptyIterator();
+    }
+
+    /**
+     * Returns an {@link Iterable} which always returns an empty {@link Iterator} instance.
+     *
+     * @return an {@link Iterable} which always returns an empty {@link Iterator} instance
+     */
+    public static <E> Iterable<E> emptyIterable() {
+        return Collections::emptyIterator;
     }
 }

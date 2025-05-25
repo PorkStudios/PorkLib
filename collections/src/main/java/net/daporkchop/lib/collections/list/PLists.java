@@ -21,6 +21,7 @@ package net.daporkchop.lib.collections.list;
 
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
+import net.daporkchop.lib.collections.Immutable;
 import net.daporkchop.lib.common.util.PorkUtil;
 
 import java.util.ArrayList;
@@ -54,7 +55,8 @@ public class PLists {
         return list == Collections.emptyList()
                 || Collections$SingletonList.isInstance(list)
                 || Collections$UnmodifiableList.isInstance(list)
-                || Collections$UnmodifiableRandomAccessList.isInstance(list);
+                || Collections$UnmodifiableRandomAccessList.isInstance(list)
+                || list instanceof Immutable;
     }
 
     /**

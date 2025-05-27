@@ -35,9 +35,7 @@ import net.daporkchop.lib.nbt.tag.notch.CompoundTag;
 import net.daporkchop.lib.nbt.tag.notch.ListTag;
 import net.daporkchop.lib.primitive.lambda.consumer.IntObjConsumer;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -104,7 +102,7 @@ public class AnvilSaveFormat implements SaveFormat {
                 matcher.reset(file.getName());
             }
             if (matcher.find()) {
-                callback.accept(Integer.parseInt(matcher.group(1)), new AnvilWorldManager(this, file));
+                callback.accept(Integer.parseInt(matcher.group(1)), new AnvilWorldManager(this, new File(file, "region")));
             }
         }
     }

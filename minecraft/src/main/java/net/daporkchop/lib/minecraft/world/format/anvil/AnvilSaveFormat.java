@@ -95,7 +95,14 @@ public class AnvilSaveFormat implements SaveFormat {
 
         //load other dimensions
         Matcher matcher = null;
-        for (File file : this.root.listFiles()) {
+        //Find all subfolders
+        File[] directories = this.root.listFiles(new FileFilter() {
+            @Override
+            public boolean accept(File file) {
+                return file.isDirectory();
+            }
+        });
+        for (File file : directories) {
             if (matcher == null)    {
                 matcher = DIM_PATTERN.matcher(file.getName());
             } else {

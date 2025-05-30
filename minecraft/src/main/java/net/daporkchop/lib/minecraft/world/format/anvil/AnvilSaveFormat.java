@@ -36,9 +36,17 @@ import net.daporkchop.lib.nbt.tag.notch.ListTag;
 import net.daporkchop.lib.primitive.lambda.consumer.IntObjConsumer;
 
 import java.io.*;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
 
 /**
@@ -96,12 +104,14 @@ public class AnvilSaveFormat implements SaveFormat {
         //load other dimensions
         Matcher matcher = null;
         //Find all subfolders
-        File[] directories = this.root.listFiles(new FileFilter() {
-            @Override
-            public boolean accept(File file) {
-                return file.isDirectory();
-            }
-        });
+        List<File> directories = new ArrayList<>();
+        try (Stream<Path> paths = Files.walk(this.root.toPath())){
+            directories = paths
+                    .filter(Files::isDirectory)
+                    .map(Path::toFile)
+                    .collect(Collectors.toList());
+        } catch (IOException e) {}
+
         for (File file : directories) {
             if (matcher == null)    {
                 matcher = DIM_PATTERN.matcher(file.getName());
@@ -112,6 +122,7 @@ public class AnvilSaveFormat implements SaveFormat {
                 callback.accept(Integer.parseInt(matcher.group(1)), new AnvilWorldManager(this, new File(file, "region")));
             }
         }
+
     }
 
     @Override

@@ -37,7 +37,7 @@ import java.util.regex.Pattern;
  */
 @Getter
 public final class ResourceLocation {
-    protected static final Pattern      VALIDATION_PATTERN = Pattern.compile("^([^:]+):([^:]+)$");
+    protected static final Pattern      VALIDATION_PATTERN = Pattern.compile("^(.+):(.+)$");
     protected static final Ref<Matcher> MATCHER_CACHE      = ThreadRef.soft(() -> VALIDATION_PATTERN.matcher(""));
 
     @NonNull

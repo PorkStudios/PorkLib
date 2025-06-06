@@ -630,319 +630,404 @@ public class PUnsafe {
     }
 
     //
-    // NON-VOLATILE HEAP ACCESSORS
+    // REGULAR LOADS
     //
 
-    public boolean getBoolean(Object base, long offset) {
+    public static boolean getBoolean(Object base, long offset) {
         return UNSAFE.getBoolean(base, offset);
     }
 
-    public void putBoolean(Object base, long offset, boolean val) {
-        UNSAFE.putBoolean(base, offset, val);
-    }
-
-    public byte getByte(Object base, long offset) {
+    public static byte getByte(Object base, long offset) {
         return UNSAFE.getByte(base, offset);
     }
 
-    public void putByte(Object base, long offset, byte val) {
-        UNSAFE.putByte(base, offset, val);
-    }
-
-    public short getShort(Object base, long offset) {
+    public static short getShort(Object base, long offset) {
         return UNSAFE.getShort(base, offset);
     }
 
-    public void putShort(Object base, long offset, short val) {
-        UNSAFE.putShort(base, offset, val);
-    }
-
-    public char getChar(Object base, long offset) {
+    public static char getChar(Object base, long offset) {
         return UNSAFE.getChar(base, offset);
     }
 
-    public void putChar(Object base, long offset, char val) {
-        UNSAFE.putChar(base, offset, val);
-    }
-
-    public int getInt(Object base, long offset) {
+    public static int getInt(Object base, long offset) {
         return UNSAFE.getInt(base, offset);
     }
 
-    public void putInt(Object base, long offset, int val) {
-        UNSAFE.putInt(base, offset, val);
-    }
-
-    public long getLong(Object base, long offset) {
+    public static long getLong(Object base, long offset) {
         return UNSAFE.getLong(base, offset);
     }
 
-    public void putLong(Object base, long offset, long val) {
-        UNSAFE.putLong(base, offset, val);
-    }
-
-    public float getFloat(Object base, long offset) {
+    public static float getFloat(Object base, long offset) {
         return UNSAFE.getFloat(base, offset);
     }
 
-    public void putFloat(Object base, long offset, float val) {
-        UNSAFE.putFloat(base, offset, val);
-    }
-
-    public double getDouble(Object base, long offset) {
+    public static double getDouble(Object base, long offset) {
         return UNSAFE.getDouble(base, offset);
     }
 
-    public void putDouble(Object base, long offset, double val) {
+    @SuppressWarnings("unchecked")
+    public static <T> T getObject(Object base, long offset) {
+        return (T) UNSAFE.getObject(base, offset);
+    }
+
+    public static boolean getBoolean(long address) {
+        return UNSAFE.getBoolean(null, address);
+    }
+
+    public static byte getByte(long address) {
+        return UNSAFE.getByte(null, address);
+    }
+
+    public static short getShort(long address) {
+        return UNSAFE.getShort(null, address);
+    }
+
+    public static char getChar(long address) {
+        return UNSAFE.getChar(null, address);
+    }
+
+    public static int getInt(long address) {
+        return UNSAFE.getInt(null, address);
+    }
+
+    public static long getLong(long address) {
+        return UNSAFE.getLong(null, address);
+    }
+
+    public static float getFloat(long address) {
+        return UNSAFE.getFloat(null, address);
+    }
+
+    public static double getDouble(long address) {
+        return UNSAFE.getDouble(null, address);
+    }
+    
+    //
+    // REGULAR STORES
+    //
+
+    public static void putBoolean(Object base, long offset, boolean val) {
+        UNSAFE.putBoolean(base, offset, val);
+    }
+
+    public static void putByte(Object base, long offset, byte val) {
+        UNSAFE.putByte(base, offset, val);
+    }
+
+    public static void putShort(Object base, long offset, short val) {
+        UNSAFE.putShort(base, offset, val);
+    }
+
+    public static void putChar(Object base, long offset, char val) {
+        UNSAFE.putChar(base, offset, val);
+    }
+
+    public static void putInt(Object base, long offset, int val) {
+        UNSAFE.putInt(base, offset, val);
+    }
+
+    public static void putLong(Object base, long offset, long val) {
+        UNSAFE.putLong(base, offset, val);
+    }
+
+    public static void putFloat(Object base, long offset, float val) {
+        UNSAFE.putFloat(base, offset, val);
+    }
+
+    public static void putDouble(Object base, long offset, double val) {
         UNSAFE.putDouble(base, offset, val);
     }
 
-    public <T> T getObject(Object base, long offset) {
-        @SuppressWarnings("unchecked")
-        T value = (T) UNSAFE.getObject(base, offset);
-        return value;
-    }
-
-    public void putObject(Object base, long offset, Object val) {
+    public static void putObject(Object base, long offset, Object val) {
         UNSAFE.putObject(base, offset, val);
     }
 
-    //
-    // NON-VOLATILE OFF-HEAP ACCESSORS
-    //
-
-    //for some reason the ordinary Unsafe class doesn't have a boolean variant without an object base...
-    public boolean getBoolean(long addr) {
-        return UNSAFE.getBoolean(null, addr);
+    public static void putBoolean(long address, boolean val) {
+        UNSAFE.putBoolean(null, address, val);
     }
-
-    public void putBoolean(long addr, boolean val) {
-        UNSAFE.putBoolean(null, addr, val);
+    
+    public static void putByte(long address, byte val) {
+        UNSAFE.putByte(null, address, val);
     }
-
-    public byte getByte(long addr) {
-        return UNSAFE.getByte(addr);
+    
+    public static void putShort(long address, short val) {
+        UNSAFE.putShort(null, address, val);
     }
-
-    public void putByte(long addr, byte val) {
-        UNSAFE.putByte(addr, val);
+    
+    public static void putChar(long address, char val) {
+        UNSAFE.putChar(null, address, val);
     }
-
-    public short getShort(long addr) {
-        return UNSAFE.getShort(addr);
+    
+    public static void putInt(long address, int val) {
+        UNSAFE.putInt(null, address, val);
     }
-
-    public void putShort(long addr, short val) {
-        UNSAFE.putShort(addr, val);
+    
+    public static void putLong(long address, long val) {
+        UNSAFE.putLong(null, address, val);
     }
-
-    public char getChar(long addr) {
-        return UNSAFE.getChar(addr);
+    
+    public static void putFloat(long address, float val) {
+        UNSAFE.putFloat(null, address, val);
     }
-
-    public void putChar(long addr, char val) {
-        UNSAFE.putChar(addr, val);
-    }
-
-    public int getInt(long addr) {
-        return UNSAFE.getInt(addr);
-    }
-
-    public void putInt(long addr, int val) {
-        UNSAFE.putInt(addr, val);
-    }
-
-    public long getLong(long addr) {
-        return UNSAFE.getLong(addr);
-    }
-
-    public void putLong(long addr, long val) {
-        UNSAFE.putLong(addr, val);
-    }
-
-    public float getFloat(long addr) {
-        return UNSAFE.getFloat(addr);
-    }
-
-    public void putFloat(long addr, float val) {
-        UNSAFE.putFloat(addr, val);
-    }
-
-    public double getDouble(long addr) {
-        return UNSAFE.getDouble(addr);
-    }
-
-    public void putDouble(long addr, double val) {
-        UNSAFE.putDouble(addr, val);
-    }
-
-    public long getAddress(long addr) {
-        return UNSAFE.getAddress(addr);
-    }
-
-    public void putAddress(long addr, long val) {
-        UNSAFE.putAddress(addr, val);
+    
+    public static void putDouble(long address, double val) {
+        UNSAFE.putDouble(null, address, val);
     }
 
     //
-    // VOLATILE HEAP ACCESSORS
+    // VOLATILE LOADS
     //
 
-    public boolean getBooleanVolatile(Object base, long offset) {
+    public static boolean getBooleanVolatile(Object base, long offset) {
         return UNSAFE.getBooleanVolatile(base, offset);
     }
 
-    public void putBooleanVolatile(Object base, long offset, boolean val) {
-        UNSAFE.putBooleanVolatile(base, offset, val);
-    }
-
-    public byte getByteVolatile(Object base, long offset) {
+    public static byte getByteVolatile(Object base, long offset) {
         return UNSAFE.getByteVolatile(base, offset);
     }
 
-    public void putByteVolatile(Object base, long offset, byte val) {
-        UNSAFE.putByteVolatile(base, offset, val);
-    }
-
-    public short getShortVolatile(Object base, long offset) {
+    public static short getShortVolatile(Object base, long offset) {
         return UNSAFE.getShortVolatile(base, offset);
     }
 
-    public void putShortVolatile(Object base, long offset, short val) {
-        UNSAFE.putShortVolatile(base, offset, val);
-    }
-
-    public char getCharVolatile(Object base, long offset) {
+    public static char getCharVolatile(Object base, long offset) {
         return UNSAFE.getCharVolatile(base, offset);
     }
 
-    public void putCharVolatile(Object base, long offset, char val) {
-        UNSAFE.putCharVolatile(base, offset, val);
-    }
-
-    public int getIntVolatile(Object base, long offset) {
+    public static int getIntVolatile(Object base, long offset) {
         return UNSAFE.getIntVolatile(base, offset);
     }
 
-    public void putIntVolatile(Object base, long offset, int val) {
-        UNSAFE.putIntVolatile(base, offset, val);
-    }
-
-    public long getLongVolatile(Object base, long offset) {
+    public static long getLongVolatile(Object base, long offset) {
         return UNSAFE.getLongVolatile(base, offset);
     }
 
-    public void putLongVolatile(Object base, long offset, long val) {
-        UNSAFE.putLongVolatile(base, offset, val);
-    }
-
-    public float getFloatVolatile(Object base, long offset) {
+    public static float getFloatVolatile(Object base, long offset) {
         return UNSAFE.getFloatVolatile(base, offset);
     }
 
-    public void putFloatVolatile(Object base, long offset, float val) {
-        UNSAFE.putFloatVolatile(base, offset, val);
-    }
-
-    public double getDoubleVolatile(Object base, long offset) {
+    public static double getDoubleVolatile(Object base, long offset) {
         return UNSAFE.getDoubleVolatile(base, offset);
     }
 
-    public void putDoubleVolatile(Object base, long offset, double val) {
+    @SuppressWarnings("unchecked")
+    public static <T> T getObjectVolatile(Object base, long offset) {
+        return (T) UNSAFE.getObjectVolatile(base, offset);
+    }
+    
+    //
+    // VOLATILE STORES
+    //
+
+    public static void putBooleanVolatile(Object base, long offset, boolean val) {
+        UNSAFE.putBooleanVolatile(base, offset, val);
+    }
+    
+    public static void putByteVolatile(Object base, long offset, byte val) {
+        UNSAFE.putByteVolatile(base, offset, val);
+    }
+    
+    public static void putShortVolatile(Object base, long offset, short val) {
+        UNSAFE.putShortVolatile(base, offset, val);
+    }
+    
+    public static void putCharVolatile(Object base, long offset, char val) {
+        UNSAFE.putCharVolatile(base, offset, val);
+    }
+    
+    public static void putIntVolatile(Object base, long offset, int val) {
+        UNSAFE.putIntVolatile(base, offset, val);
+    }
+    
+    public static void putLongVolatile(Object base, long offset, long val) {
+        UNSAFE.putLongVolatile(base, offset, val);
+    }
+    
+    public static void putFloatVolatile(Object base, long offset, float val) {
+        UNSAFE.putFloatVolatile(base, offset, val);
+    }
+    
+    public static void putDoubleVolatile(Object base, long offset, double val) {
         UNSAFE.putDoubleVolatile(base, offset, val);
     }
-
-    public <T> T getObjectVolatile(Object base, long offset) {
-        @SuppressWarnings("unchecked")
-        T val = (T) UNSAFE.getObjectVolatile(base, offset);
-        return val;
-    }
-
-    public void putObjectVolatile(Object base, long offset, Object val) {
+    
+    public static void putObjectVolatile(Object base, long offset, Object val) {
         UNSAFE.putObjectVolatile(base, offset, val);
     }
 
     //
-    // VOLATILE OFF-HEAP ACCESSORS
+    // ACQUIRE LOADS
     //
 
-    public boolean getBooleanVolatile(long addr) {
-        return UNSAFE.getBooleanVolatile(null, addr);
+    public static boolean getBooleanAcquire(Object base, long offset) {
+        return getBooleanVolatile(base, offset);
     }
 
-    public void putBooleanVolatile(long addr, boolean val) {
-        UNSAFE.putBooleanVolatile(null, addr, val);
+    public static byte getByteAcquire(Object base, long offset) {
+        return getByteVolatile(base, offset);
     }
 
-    public byte getByteVolatile(long addr) {
-        return UNSAFE.getByteVolatile(null, addr);
+    public static short getShortAcquire(Object base, long offset) {
+        return getShortVolatile(base, offset);
     }
 
-    public void putByteVolatile(long addr, byte val) {
-        UNSAFE.putByteVolatile(null, addr, val);
+    public static char getCharAcquire(Object base, long offset) {
+        return getCharVolatile(base, offset);
     }
 
-    public short getShortVolatile(long addr) {
-        return UNSAFE.getShortVolatile(null, addr);
+    public static int getIntAcquire(Object base, long offset) {
+        return getIntVolatile(base, offset);
     }
 
-    public void putShortVolatile(long addr, short val) {
-        UNSAFE.putShortVolatile(null, addr, val);
+    public static long getLongAcquire(Object base, long offset) {
+        return getLongVolatile(base, offset);
     }
 
-    public char getCharVolatile(long addr) {
-        return UNSAFE.getCharVolatile(null, addr);
+    public static float getFloatAcquire(Object base, long offset) {
+        return getFloatVolatile(base, offset);
     }
 
-    public void putCharVolatile(long addr, char val) {
-        UNSAFE.putCharVolatile(null, addr, val);
+    public static double getDoubleAcquire(Object base, long offset) {
+        return getDoubleVolatile(base, offset);
     }
 
-    public int getIntVolatile(long addr) {
-        return UNSAFE.getIntVolatile(null, addr);
+    public static <T> T getObjectAcquire(Object base, long offset) {
+        return getObjectVolatile(base, offset);
+    }
+    
+    //
+    // RELEASE STORES
+    //
+
+    public static void putBooleanRelease(Object base, long offset, boolean val) {
+        putBooleanVolatile(base, offset, val);
+    }
+    
+    public static void putByteRelease(Object base, long offset, byte val) {
+        putByteVolatile(base, offset, val);
+    }
+    
+    public static void putShortRelease(Object base, long offset, short val) {
+        putShortVolatile(base, offset, val);
+    }
+    
+    public static void putCharRelease(Object base, long offset, char val) {
+        putCharVolatile(base, offset, val);
+    }
+    
+    public static void putIntRelease(Object base, long offset, int val) {
+        putIntVolatile(base, offset, val);
+    }
+    
+    public static void putLongRelease(Object base, long offset, long val) {
+        putLongVolatile(base, offset, val);
+    }
+    
+    public static void putFloatRelease(Object base, long offset, float val) {
+        putFloatVolatile(base, offset, val);
+    }
+    
+    public static void putDoubleRelease(Object base, long offset, double val) {
+        putDoubleVolatile(base, offset, val);
+    }
+    
+    public static void putObjectRelease(Object base, long offset, Object val) {
+        putObjectVolatile(base, offset, val);
     }
 
-    public void putIntVolatile(long addr, int val) {
-        UNSAFE.putIntVolatile(null, addr, val);
+    //
+    // OPAQUE LOADS
+    //
+
+    public static boolean getBooleanOpaque(Object base, long offset) {
+        return getBooleanVolatile(base, offset);
     }
 
-    public long getLongVolatile(long addr) {
-        return UNSAFE.getLongVolatile(null, addr);
+    public static byte getByteOpaque(Object base, long offset) {
+        return getByteVolatile(base, offset);
     }
 
-    public void putLongVolatile(long addr, long val) {
-        UNSAFE.putLongVolatile(null, addr, val);
+    public static short getShortOpaque(Object base, long offset) {
+        return getShortVolatile(base, offset);
     }
 
-    public float getFloatVolatile(long addr) {
-        return UNSAFE.getFloatVolatile(null, addr);
+    public static char getCharOpaque(Object base, long offset) {
+        return getCharVolatile(base, offset);
     }
 
-    public void putFloatVolatile(long addr, float val) {
-        UNSAFE.putFloatVolatile(null, addr, val);
+    public static int getIntOpaque(Object base, long offset) {
+        return getIntVolatile(base, offset);
     }
 
-    public double getDoubleVolatile(long addr) {
-        return UNSAFE.getDoubleVolatile(null, addr);
+    public static long getLongOpaque(Object base, long offset) {
+        return getLongVolatile(base, offset);
     }
 
-    public void putDoubleVolatile(long addr, double val) {
-        UNSAFE.putDoubleVolatile(null, addr, val);
+    public static float getFloatOpaque(Object base, long offset) {
+        return getFloatVolatile(base, offset);
+    }
+
+    public static double getDoubleOpaque(Object base, long offset) {
+        return getDoubleVolatile(base, offset);
+    }
+
+    public static <T> T getObjectOpaque(Object base, long offset) {
+        return getObjectVolatile(base, offset);
+    }
+    
+    //
+    // OPAQUE STORES
+    //
+
+    public static void putBooleanOpaque(Object base, long offset, boolean val) {
+        putBooleanVolatile(base, offset, val);
+    }
+    
+    public static void putByteOpaque(Object base, long offset, byte val) {
+        putByteVolatile(base, offset, val);
+    }
+    
+    public static void putShortOpaque(Object base, long offset, short val) {
+        putShortVolatile(base, offset, val);
+    }
+    
+    public static void putCharOpaque(Object base, long offset, char val) {
+        putCharVolatile(base, offset, val);
+    }
+    
+    public static void putIntOpaque(Object base, long offset, int val) {
+        putIntVolatile(base, offset, val);
+    }
+    
+    public static void putLongOpaque(Object base, long offset, long val) {
+        putLongVolatile(base, offset, val);
+    }
+    
+    public static void putFloatOpaque(Object base, long offset, float val) {
+        putFloatVolatile(base, offset, val);
+    }
+    
+    public static void putDoubleOpaque(Object base, long offset, double val) {
+        putDoubleVolatile(base, offset, val);
+    }
+    
+    public static void putObjectOpaque(Object base, long offset, Object val) {
+        putObjectVolatile(base, offset, val);
     }
 
     //
     // OFF-HEAP MEMORY MANAGEMENT
     //
 
-    public long allocateMemory(long size) {
+    public static long allocateMemory(long size) {
         return UNSAFE.allocateMemory(size);
     }
 
-    public long reallocateMemory(long oldAddress, long size) {
+    public static long reallocateMemory(long oldAddress, long size) {
         return UNSAFE.reallocateMemory(oldAddress, size);
     }
 
-    public void freeMemory(long address) {
+    public static void freeMemory(long address) {
         UNSAFE.freeMemory(address);
     }
 
@@ -950,19 +1035,19 @@ public class PUnsafe {
     // MEMORY RANGE OPERATIONS
     //
 
-    public void setMemory(Object base, long offset, long size, byte val) {
+    public static void setMemory(Object base, long offset, long size, byte val) {
         UNSAFE.setMemory(base, offset, size, val);
     }
 
-    public void setMemory(long addr, long size, byte val) {
+    public static void setMemory(long addr, long size, byte val) {
         UNSAFE.setMemory(addr, size, val);
     }
 
-    public void copyMemory(Object srcBase, long srcOffset, Object dstBase, long dstOffset, long size) {
+    public static void copyMemory(Object srcBase, long srcOffset, Object dstBase, long dstOffset, long size) {
         UNSAFE.copyMemory(srcBase, srcOffset, dstBase, dstOffset, size);
     }
 
-    public void copyMemory(long srcAddr, long dstAddr, long length) {
+    public static void copyMemory(long srcAddr, long dstAddr, long length) {
         UNSAFE.copyMemory(null, srcAddr, null, dstAddr, length);
     }
 
@@ -1272,15 +1357,30 @@ public class PUnsafe {
     // FENCES
     //
 
-    public void loadFence() {
+    /**
+     * Ensures lack of reordering of loads before the fence with loads or stores after the fence.
+     *
+     * @see Unsafe#loadFence()
+     */
+    public static void loadFence() {
         UNSAFE.loadFence();
     }
 
-    public void storeFence() {
+    /**
+     * Ensures lack of reordering of stores before the fence with loads or stores after the fence.
+     *
+     * @see Unsafe#storeFence()
+     */
+    public static void storeFence() {
         UNSAFE.storeFence();
     }
 
-    public void fullFence() {
+    /**
+     * Ensures lack of reordering of loads or stores before the fence with loads or stores after the fence.
+     *
+     * @see Unsafe#fullFence()
+     */
+    public static void fullFence() {
         UNSAFE.fullFence();
     }
 
@@ -1288,16 +1388,509 @@ public class PUnsafe {
     // ATOMIC CAS
     //
 
-    public boolean compareAndSwapInt(Object o, long pos, int expected, int newValue) {
-        return UNSAFE.compareAndSwapInt(o, pos, expected, newValue);
+    @Deprecated
+    public static boolean compareAndSwapInt(Object o, long offset, int expected, int newValue) {
+        return compareAndSetInt(o, offset, expected, newValue);
     }
 
-    public boolean compareAndSwapLong(Object o, long pos, long expected, long newValue) {
-        return UNSAFE.compareAndSwapLong(o, pos, expected, newValue);
+    @Deprecated
+    public static boolean compareAndSwapLong(Object o, long offset, long expected, long newValue) {
+        return compareAndSetLong(o, offset, expected, newValue);
     }
 
-    public boolean compareAndSwapObject(Object o, long pos, Object expected, Object newValue) {
-        return UNSAFE.compareAndSwapObject(o, pos, expected, newValue);
+    @Deprecated
+    public static boolean compareAndSwapObject(Object o, long offset, Object expected, Object newValue) {
+        return compareAndSetObject(o, offset, expected, newValue);
+    }
+
+    //
+    // JAVA 9+ ATOMIC UPDATES
+    //
+
+    //TODO: some of these have more efficient default implementations (in particular getAndSet*), are they worth adding?
+    //TODO: all of these should forward to the new unsafe intrinsics on java 9+
+     
+    private static boolean byte2bool(byte b) {
+        return b != 0;
+    }
+
+    private static byte bool2byte(boolean b) {
+        return b ? (byte) 1 : (byte) 0;
+    }
+
+    // boolean
+    // (emulated using byte)
+
+    public static boolean compareAndSetBoolean(Object o, long offset, boolean expected, boolean newValue) {
+        return compareAndSetByte(o, offset, bool2byte(expected), bool2byte(newValue));
+    }
+
+    public static boolean weakCompareAndSetBoolean(Object o, long offset, boolean expected, boolean newValue) {
+        return compareAndSetBoolean(o, offset, expected, newValue);
+    }
+
+    public static boolean weakCompareAndSetBooleanPlain(Object o, long offset, boolean expected, boolean newValue) {
+        return weakCompareAndSetBoolean(o, offset, expected, newValue);
+    }
+
+    public static boolean weakCompareAndSetBooleanAcquire(Object o, long offset, boolean expected, boolean newValue) {
+        return weakCompareAndSetBoolean(o, offset, expected, newValue);
+    }
+
+    public static boolean weakCompareAndSetBooleanRelease(Object o, long offset, boolean expected, boolean newValue) {
+        return weakCompareAndSetBoolean(o, offset, expected, newValue);
+    }
+
+    public static boolean compareAndExchangeBoolean(Object o, long offset, boolean expected, boolean newValue) {
+        return byte2bool(compareAndExchangeByte(o, offset, bool2byte(expected), bool2byte(newValue)));
+    }
+
+    public static boolean compareAndExchangeBooleanAcquire(Object o, long offset, boolean expected, boolean newValue) {
+        return compareAndExchangeBoolean(o, offset, expected, newValue);
+    }
+
+    public static boolean compareAndExchangeBooleanRelease(Object o, long offset, boolean expected, boolean newValue) {
+        return compareAndExchangeBoolean(o, offset, expected, newValue);
+    }
+
+    public static boolean getAndSetBoolean(Object o, long offset, boolean newValue) {
+        return byte2bool(getAndSetByte(o, offset, bool2byte(newValue)));
+    }
+
+    public static boolean getAndSetBooleanRelease(Object o, long offset, boolean newValue) {
+        return getAndSetBoolean(o, offset, newValue);
+    }
+
+    public static boolean getAndSetBooleanAcquire(Object o, long offset, boolean newValue) {
+        return getAndSetBoolean(o, offset, newValue);
+    }
+
+    // byte
+
+    public static boolean compareAndSetByte(Object o, long offset, byte expected, byte newValue) {
+        return compareAndExchangeByte(o, offset, expected, newValue) == expected;
+    }
+
+    public static boolean weakCompareAndSetByte(Object o, long offset, byte expected, byte newValue) {
+        return compareAndSetByte(o, offset, expected, newValue);
+    }
+
+    public static boolean weakCompareAndSetBytePlain(Object o, long offset, byte expected, byte newValue) {
+        return weakCompareAndSetByte(o, offset, expected, newValue);
+    }
+
+    public static boolean weakCompareAndSetByteAcquire(Object o, long offset, byte expected, byte newValue) {
+        return weakCompareAndSetByte(o, offset, expected, newValue);
+    }
+
+    public static boolean weakCompareAndSetByteRelease(Object o, long offset, byte expected, byte newValue) {
+        return weakCompareAndSetByte(o, offset, expected, newValue);
+    }
+
+    public static byte compareAndExchangeByte(Object o, long offset, byte expected, byte newValue) {
+        //emulated CAS using ints
+        long wordOffset = offset & ~3;
+        int shift = (int) (offset & 3) << 3;
+        if (IS_BIG_ENDIAN) {
+            shift = 24 - shift;
+        }
+        int mask = 0xFF << shift;
+        int maskedExpected = (expected & 0xFF) << shift;
+        int maskedNewValue = (newValue & 0xFF) << shift;
+        int fullWord;
+        do {
+            fullWord = getIntVolatile(o, wordOffset);
+            if ((fullWord & mask) != maskedExpected) {
+                return (byte) ((fullWord & mask) >> shift);
+            }
+        } while (!weakCompareAndSetInt(o, wordOffset, fullWord, (fullWord & ~mask) | maskedNewValue));
+        return expected;
+    }
+
+    public static byte compareAndExchangeByteAcquire(Object o, long offset, byte expected, byte newValue) {
+        return compareAndExchangeByte(o, offset, expected, newValue);
+    }
+
+    public static byte compareAndExchangeByteRelease(Object o, long offset, byte expected, byte newValue) {
+        return compareAndExchangeByte(o, offset, expected, newValue);
+    }
+
+    public static byte getAndSetByte(Object o, long offset, byte newValue) {
+        byte curr;
+        do {
+            curr = getByteVolatile(o, offset);
+        } while (!weakCompareAndSetByte(o, offset, curr, newValue));
+        return curr;
+    }
+
+    public static byte getAndSetByteAcquire(Object o, long offset, byte newValue) {
+        return getAndSetByte(o, offset, newValue);
+    }
+
+    public static byte getAndSetByteRelease(Object o, long offset, byte newValue) {
+        return getAndSetByte(o, offset, newValue);
+    }
+
+    // short
+
+    public static boolean compareAndSetShort(Object o, long offset, short expected, short newValue) {
+        return compareAndExchangeShort(o, offset, expected, newValue) == expected;
+    }
+
+    public static boolean weakCompareAndSetShort(Object o, long offset, short expected, short newValue) {
+        return compareAndSetShort(o, offset, expected, newValue);
+    }
+
+    public static boolean weakCompareAndSetShortPlain(Object o, long offset, short expected, short newValue) {
+        return weakCompareAndSetShort(o, offset, expected, newValue);
+    }
+
+    public static boolean weakCompareAndSetShortAcquire(Object o, long offset, short expected, short newValue) {
+        return weakCompareAndSetShort(o, offset, expected, newValue);
+    }
+
+    public static boolean weakCompareAndSetShortRelease(Object o, long offset, short expected, short newValue) {
+        return weakCompareAndSetShort(o, offset, expected, newValue);
+    }
+
+    public static short compareAndExchangeShort(Object o, long offset, short expected, short newValue) {
+        //emulated CAS using ints
+        if ((offset & 3) == 3) {
+            throw new IllegalArgumentException("Update spans the word, not supported");
+        }
+        long wordOffset = offset & ~3;
+        int shift = (int) (offset & 3) << 3;
+        if (IS_BIG_ENDIAN) {
+            shift = 16 - shift;
+        }
+        int mask = 0xFFFF << shift;
+        int maskedExpected = (expected & 0xFFFF) << shift;
+        int maskedNewValue = (expected & 0xFFFF) << shift;
+        int fullWord;
+        do {
+            fullWord = getIntVolatile(o, wordOffset);
+            if ((fullWord & mask) != maskedExpected) {
+                return (short) ((fullWord & mask) >> shift);
+            }
+        } while (!weakCompareAndSetInt(o, wordOffset, fullWord, (fullWord & ~mask) | maskedNewValue));
+        return expected;
+    }
+
+    public static short compareAndExchangeShortAcquire(Object o, long offset, short expected, short newValue) {
+        return compareAndExchangeShort(o, offset, expected, newValue);
+    }
+
+    public static short compareAndExchangeShortRelease(Object o, long offset, short expected, short newValue) {
+        return compareAndExchangeShort(o, offset, expected, newValue);
+    }
+
+    public static short getAndSetShort(Object o, long offset, short newValue) {
+        short curr;
+        do {
+            curr = getShortVolatile(o, offset);
+        } while (!weakCompareAndSetShort(o, offset, curr, newValue));
+        return curr;
+    }
+
+    public static short getAndSetShortAcquire(Object o, long offset, short newValue) {
+        return getAndSetShort(o, offset, newValue);
+    }
+
+    public static short getAndSetShortRelease(Object o, long offset, short newValue) {
+        return getAndSetShort(o, offset, newValue);
+    }
+    
+    // char
+    // (emulated using short)
+
+    public static boolean compareAndSetChar(Object o, long offset, char expected, char newValue) {
+        return compareAndSetShort(o, offset, (short) expected, (short) newValue);
+    }
+
+    public static boolean weakCompareAndSetChar(Object o, long offset, char expected, char newValue) {
+        return compareAndSetChar(o, offset, expected, newValue);
+    }
+
+    public static boolean weakCompareAndSetCharPlain(Object o, long offset, char expected, char newValue) {
+        return weakCompareAndSetChar(o, offset, expected, newValue);
+    }
+
+    public static boolean weakCompareAndSetCharAcquire(Object o, long offset, char expected, char newValue) {
+        return weakCompareAndSetChar(o, offset, expected, newValue);
+    }
+
+    public static boolean weakCompareAndSetCharRelease(Object o, long offset, char expected, char newValue) {
+        return weakCompareAndSetChar(o, offset, expected, newValue);
+    }
+
+    public static char compareAndExchangeChar(Object o, long offset, char expected, char newValue) {
+        return (char) compareAndExchangeShort(o, offset, (short) expected, (short) newValue);
+    }
+
+    public static char compareAndExchangeCharAcquire(Object o, long offset, char expected, char newValue) {
+        return compareAndExchangeChar(o, offset, expected, newValue);
+    }
+
+    public static char compareAndExchangeCharRelease(Object o, long offset, char expected, char newValue) {
+        return compareAndExchangeChar(o, offset, expected, newValue);
+    }
+
+    public static char getAndSetChar(Object o, long offset, char newValue) {
+        return (char) getAndSetShort(o, offset, (short) newValue);
+    }
+
+    public static char getAndSetCharRelease(Object o, long offset, char newValue) {
+        return getAndSetChar(o, offset, newValue);
+    }
+
+    public static char getAndSetCharAcquire(Object o, long offset, char newValue) {
+        return getAndSetChar(o, offset, newValue);
+    }
+
+    // int
+
+    public static boolean compareAndSetInt(Object o, long offset, int expected, int newValue) {
+        return UNSAFE.compareAndSwapInt(o, offset, expected, newValue);
+    }
+
+    public static boolean weakCompareAndSetInt(Object o, long offset, int expected, int newValue) {
+        return compareAndSetInt(o, offset, expected, newValue);
+    }
+
+    public static boolean weakCompareAndSetIntPlain(Object o, long offset, int expected, int newValue) {
+        return compareAndSetInt(o, offset, expected, newValue);
+    }
+
+    public static boolean weakCompareAndSetIntAcquire(Object o, long offset, int expected, int newValue) {
+        return compareAndSetInt(o, offset, expected, newValue);
+    }
+
+    public static boolean weakCompareAndSetIntRelease(Object o, long offset, int expected, int newValue) {
+        return compareAndSetInt(o, offset, expected, newValue);
+    }
+
+    public static int compareAndExchangeInt(Object o, long offset, int expected, int newValue) {
+        int curr;
+        do {
+            curr = getIntVolatile(o, offset);
+        } while (curr == expected && !weakCompareAndSetInt(o, offset, expected, newValue));
+        return curr; // either curr != expected (so compare failed and we return curr), or curr == expected and CAS succeeded
+    }
+
+    public static int compareAndExchangeIntAcquire(Object o, long offset, int expected, int newValue) {
+        return compareAndExchangeInt(o, offset, expected, newValue);
+    }
+
+    public static int compareAndExchangeIntRelease(Object o, long offset, int expected, int newValue) {
+        return compareAndExchangeInt(o, offset, expected, newValue);
+    }
+
+    public static int getAndSetInt(Object o, long offset, int newValue) {
+        return UNSAFE.getAndSetInt(o, offset, newValue);
+    }
+
+    public static int getAndSetIntAcquire(Object o, long offset, int newValue) {
+        return getAndSetInt(o, offset, newValue);
+    }
+
+    public static int getAndSetIntRelease(Object o, long offset, int newValue) {
+        return getAndSetInt(o, offset, newValue);
+    }
+
+    // long
+
+    public static boolean compareAndSetLong(Object o, long offset, long expected, long newValue) {
+        return UNSAFE.compareAndSwapLong(o, offset, expected, newValue);
+    }
+
+    public static boolean weakCompareAndSetLong(Object o, long offset, long expected, long newValue) {
+        return compareAndSetLong(o, offset, expected, newValue);
+    }
+
+    public static boolean weakCompareAndSetLongPlain(Object o, long offset, long expected, long newValue) {
+        return compareAndSetLong(o, offset, expected, newValue);
+    }
+
+    public static boolean weakCompareAndSetLongAcquire(Object o, long offset, long expected, long newValue) {
+        return compareAndSetLong(o, offset, expected, newValue);
+    }
+
+    public static boolean weakCompareAndSetLongRelease(Object o, long offset, long expected, long newValue) {
+        return compareAndSetLong(o, offset, expected, newValue);
+    }
+
+    public static long compareAndExchangeLong(Object o, long offset, long expected, long newValue) {
+        long curr;
+        do {
+            curr = getLongVolatile(o, offset);
+        } while (curr == expected && !weakCompareAndSetLong(o, offset, expected, newValue));
+        return curr; // either curr != expected (so compare failed and we return curr), or curr == expected and CAS succeeded
+    }
+
+    public static long compareAndExchangeLongAcquire(Object o, long offset, long expected, long newValue) {
+        return compareAndExchangeLong(o, offset, expected, newValue);
+    }
+
+    public static long compareAndExchangeLongRelease(Object o, long offset, long expected, long newValue) {
+        return compareAndExchangeLong(o, offset, expected, newValue);
+    }
+
+    public static long getAndSetLong(Object o, long offset, long newValue) {
+        return UNSAFE.getAndSetLong(o, offset, newValue);
+    }
+
+    public static long getAndSetLongAcquire(Object o, long offset, long newValue) {
+        return getAndSetLong(o, offset, newValue);
+    }
+
+    public static long getAndSetLongRelease(Object o, long offset, long newValue) {
+        return getAndSetLong(o, offset, newValue);
+    }
+
+    // float
+    // (emulated using int)
+
+    public static boolean compareAndSetFloat(Object o, long offset, float expected, float newValue) {
+        return compareAndSetInt(o, offset, Float.floatToRawIntBits(expected), Float.floatToRawIntBits(newValue));
+    }
+
+    public static boolean weakCompareAndSetFloat(Object o, long offset, float expected, float newValue) {
+        return compareAndSetFloat(o, offset, expected, newValue);
+    }
+
+    public static boolean weakCompareAndSetFloatPlain(Object o, long offset, float expected, float newValue) {
+        return weakCompareAndSetFloat(o, offset, expected, newValue);
+    }
+
+    public static boolean weakCompareAndSetFloatAcquire(Object o, long offset, float expected, float newValue) {
+        return weakCompareAndSetFloat(o, offset, expected, newValue);
+    }
+
+    public static boolean weakCompareAndSetFloatRelease(Object o, long offset, float expected, float newValue) {
+        return weakCompareAndSetFloat(o, offset, expected, newValue);
+    }
+
+    public static float compareAndExchangeFloat(Object o, long offset, float expected, float newValue) {
+        return Float.intBitsToFloat(compareAndExchangeInt(o, offset, Float.floatToRawIntBits(expected), Float.floatToRawIntBits(newValue)));
+    }
+
+    public static float compareAndExchangeFloatAcquire(Object o, long offset, float expected, float newValue) {
+        return compareAndExchangeFloat(o, offset, expected, newValue);
+    }
+
+    public static float compareAndExchangeFloatRelease(Object o, long offset, float expected, float newValue) {
+        return compareAndExchangeFloat(o, offset, expected, newValue);
+    }
+
+    public static float getAndSetFloat(Object o, long offset, float newValue) {
+        return Float.intBitsToFloat(getAndSetInt(o, offset, Float.floatToRawIntBits(newValue)));
+    }
+
+    public static float getAndSetFloatRelease(Object o, long offset, float newValue) {
+        return getAndSetFloat(o, offset, newValue);
+    }
+
+    public static float getAndSetFloatAcquire(Object o, long offset, float newValue) {
+        return getAndSetFloat(o, offset, newValue);
+    }
+
+    // double
+    // (emulated using long)
+
+    public static boolean compareAndSetDouble(Object o, long offset, double expected, double newValue) {
+        return compareAndSetLong(o, offset, Double.doubleToRawLongBits(expected), Double.doubleToRawLongBits(newValue));
+    }
+
+    public static boolean weakCompareAndSetDouble(Object o, long offset, double expected, double newValue) {
+        return compareAndSetDouble(o, offset, expected, newValue);
+    }
+
+    public static boolean weakCompareAndSetDoublePlain(Object o, long offset, double expected, double newValue) {
+        return weakCompareAndSetDouble(o, offset, expected, newValue);
+    }
+
+    public static boolean weakCompareAndSetDoubleAcquire(Object o, long offset, double expected, double newValue) {
+        return weakCompareAndSetDouble(o, offset, expected, newValue);
+    }
+
+    public static boolean weakCompareAndSetDoubleRelease(Object o, long offset, double expected, double newValue) {
+        return weakCompareAndSetDouble(o, offset, expected, newValue);
+    }
+
+    public static double compareAndExchangeDouble(Object o, long offset, double expected, double newValue) {
+        return Double.longBitsToDouble(compareAndExchangeLong(o, offset, Double.doubleToRawLongBits(expected), Double.doubleToRawLongBits(newValue)));
+    }
+
+    public static double compareAndExchangeDoubleAcquire(Object o, long offset, double expected, double newValue) {
+        return compareAndExchangeDouble(o, offset, expected, newValue);
+    }
+
+    public static double compareAndExchangeDoubleRelease(Object o, long offset, double expected, double newValue) {
+        return compareAndExchangeDouble(o, offset, expected, newValue);
+    }
+
+    public static double getAndSetDouble(Object o, long offset, double newValue) {
+        return Double.longBitsToDouble(getAndSetLong(o, offset, Double.doubleToRawLongBits(newValue)));
+    }
+
+    public static double getAndSetDoubleRelease(Object o, long offset, double newValue) {
+        return getAndSetDouble(o, offset, newValue);
+    }
+
+    public static double getAndSetDoubleAcquire(Object o, long offset, double newValue) {
+        return getAndSetDouble(o, offset, newValue);
+    }
+
+    // Object
+
+    public static boolean compareAndSetObject(Object o, long offset, Object expected, Object newValue) {
+        return UNSAFE.compareAndSwapObject(o, offset, expected, newValue);
+    }
+
+    public static boolean weakCompareAndSetObject(Object o, long offset, Object expected, Object newValue) {
+        return compareAndSetObject(o, offset, expected, newValue);
+    }
+
+    public static boolean weakCompareAndSetObjectPlain(Object o, long offset, Object expected, Object newValue) {
+        return compareAndSetObject(o, offset, expected, newValue);
+    }
+
+    public static boolean weakCompareAndSetObjectAcquire(Object o, long offset, Object expected, Object newValue) {
+        return compareAndSetObject(o, offset, expected, newValue);
+    }
+
+    public static boolean weakCompareAndSetObjectRelease(Object o, long offset, Object expected, Object newValue) {
+        return compareAndSetObject(o, offset, expected, newValue);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> T compareAndExchangeObject(Object o, long offset, Object expected, Object newValue) {
+        Object curr;
+        do {
+            curr = getObjectVolatile(o, offset);
+        } while (curr == expected && !weakCompareAndSetObject(o, offset, expected, newValue));
+        return (T) curr; // either curr != expected (so compare failed and we return curr), or curr == expected and CAS succeeded
+    }
+
+    public static <T> T compareAndExchangeObjectAcquire(Object o, long offset, Object expected, Object newValue) {
+        return compareAndExchangeObject(o, offset, expected, newValue);
+    }
+
+    public static <T> T compareAndExchangeObjectRelease(Object o, long offset, Object expected, Object newValue) {
+        return compareAndExchangeObject(o, offset, expected, newValue);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> T getAndSetObject(Object o, long offset, Object newValue) {
+        return (T) UNSAFE.getAndSetObject(o, offset, newValue);
+    }
+
+    public static <T> T getAndSetObjectAcquire(Object o, long offset, Object newValue) {
+        return getAndSetObject(o, offset, newValue);
+    }
+
+    public static <T> T getAndSetObjectRelease(Object o, long offset, Object newValue) {
+        return getAndSetObject(o, offset, newValue);
     }
 
     //
@@ -1310,20 +1903,6 @@ public class PUnsafe {
 
     public long getAndAddLong(Object o, long pos, long val) {
         return UNSAFE.getAndAddLong(o, pos, val);
-    }
-
-    public int getAndSetInt(Object o, long pos, int val) {
-        return UNSAFE.getAndSetInt(o, pos, val);
-    }
-
-    public long getAndSetLong(Object o, long pos, long val) {
-        return UNSAFE.getAndSetLong(o, pos, val);
-    }
-
-    public <T> T getAndSetObject(Object o, long pos, Object val) {
-        @SuppressWarnings("unchecked")
-        T oldVal = (T) UNSAFE.getAndSetObject(o, pos, val);
-        return oldVal;
     }
 
     //
@@ -1709,9 +2288,9 @@ public class PUnsafe {
             return IS_BIG_ENDIAN ? value : Integer.reverseBytes(value);
         } else {
             return (getByte(addr + 0L) << 24)
-                   | ((getByte(addr + 1L) & 0xFF) << 16)
-                   | ((getByte(addr + 2L) & 0xFF) << 8)
-                   | (getByte(addr + 3L) & 0xFF);
+                    | ((getByte(addr + 1L) & 0xFF) << 16)
+                    | ((getByte(addr + 2L) & 0xFF) << 8)
+                    | (getByte(addr + 3L) & 0xFF);
         }
     }
 
@@ -1721,9 +2300,9 @@ public class PUnsafe {
             return IS_BIG_ENDIAN ? value : Integer.reverseBytes(value);
         } else {
             return (getByte(base, offset + 0L) << 24)
-                   | ((getByte(base, offset + 1L) & 0xFF) << 16)
-                   | ((getByte(base, offset + 2L) & 0xFF) << 8)
-                   | (getByte(base, offset + 3L) & 0xFF);
+                    | ((getByte(base, offset + 1L) & 0xFF) << 16)
+                    | ((getByte(base, offset + 2L) & 0xFF) << 8)
+                    | (getByte(base, offset + 3L) & 0xFF);
         }
     }
 
@@ -1755,9 +2334,9 @@ public class PUnsafe {
             return IS_LITTLE_ENDIAN ? value : Integer.reverseBytes(value);
         } else {
             return (getByte(addr + 0L) & 0xFF)
-                   | ((getByte(addr + 1L) & 0xFF) << 8)
-                   | ((getByte(addr + 2L) & 0xFF) << 16)
-                   | (getByte(addr + 3L) << 24);
+                    | ((getByte(addr + 1L) & 0xFF) << 8)
+                    | ((getByte(addr + 2L) & 0xFF) << 16)
+                    | (getByte(addr + 3L) << 24);
         }
     }
 
@@ -1767,9 +2346,9 @@ public class PUnsafe {
             return IS_LITTLE_ENDIAN ? value : Integer.reverseBytes(value);
         } else {
             return (getByte(base, offset + 0L) & 0xFF)
-                   | ((getByte(base, offset + 1L) & 0xFF) << 8)
-                   | ((getByte(base, offset + 2L) & 0xFF) << 16)
-                   | (getByte(base, offset + 3L) << 24);
+                    | ((getByte(base, offset + 1L) & 0xFF) << 8)
+                    | ((getByte(base, offset + 2L) & 0xFF) << 16)
+                    | (getByte(base, offset + 3L) << 24);
         }
     }
 
@@ -1843,13 +2422,13 @@ public class PUnsafe {
             return IS_BIG_ENDIAN ? value : Long.reverseBytes(value);
         } else {
             return ((long) getByte(addr + 0L) << 56L)
-                   | ((getByte(addr + 1L) & 0xFFL) << 48L)
-                   | ((getByte(addr + 2L) & 0xFFL) << 40L)
-                   | ((getByte(addr + 3L) & 0xFFL) << 32L)
-                   | ((getByte(addr + 4L) & 0xFFL) << 24L)
-                   | ((getByte(addr + 5L) & 0xFFL) << 16L)
-                   | ((getByte(addr + 6L) & 0xFFL) << 8L)
-                   | (getByte(addr + 7L) & 0xFFL);
+                    | ((getByte(addr + 1L) & 0xFFL) << 48L)
+                    | ((getByte(addr + 2L) & 0xFFL) << 40L)
+                    | ((getByte(addr + 3L) & 0xFFL) << 32L)
+                    | ((getByte(addr + 4L) & 0xFFL) << 24L)
+                    | ((getByte(addr + 5L) & 0xFFL) << 16L)
+                    | ((getByte(addr + 6L) & 0xFFL) << 8L)
+                    | (getByte(addr + 7L) & 0xFFL);
         }
     }
 
@@ -1859,13 +2438,13 @@ public class PUnsafe {
             return IS_BIG_ENDIAN ? value : Long.reverseBytes(value);
         } else {
             return ((long) getByte(base, offset + 0L) << 56L)
-                   | ((getByte(base, offset + 1L) & 0xFFL) << 48L)
-                   | ((getByte(base, offset + 2L) & 0xFFL) << 40L)
-                   | ((getByte(base, offset + 3L) & 0xFFL) << 32L)
-                   | ((getByte(base, offset + 4L) & 0xFFL) << 24L)
-                   | ((getByte(base, offset + 5L) & 0xFFL) << 16L)
-                   | ((getByte(base, offset + 6L) & 0xFFL) << 8L)
-                   | (getByte(base, offset + 7L) & 0xFFL);
+                    | ((getByte(base, offset + 1L) & 0xFFL) << 48L)
+                    | ((getByte(base, offset + 2L) & 0xFFL) << 40L)
+                    | ((getByte(base, offset + 3L) & 0xFFL) << 32L)
+                    | ((getByte(base, offset + 4L) & 0xFFL) << 24L)
+                    | ((getByte(base, offset + 5L) & 0xFFL) << 16L)
+                    | ((getByte(base, offset + 6L) & 0xFFL) << 8L)
+                    | (getByte(base, offset + 7L) & 0xFFL);
         }
     }
 
@@ -1905,13 +2484,13 @@ public class PUnsafe {
             return IS_LITTLE_ENDIAN ? value : Long.reverseBytes(value);
         } else {
             return (getByte(addr + 0L) & 0xFFL)
-                   | ((getByte(addr + 1L) & 0xFFL) << 8L)
-                   | ((getByte(addr + 2L) & 0xFFL) << 16L)
-                   | ((getByte(addr + 3L) & 0xFFL) << 24L)
-                   | ((getByte(addr + 4L) & 0xFFL) << 32L)
-                   | ((getByte(addr + 5L) & 0xFFL) << 40L)
-                   | ((getByte(addr + 6L) & 0xFFL) << 48L)
-                   | ((long) getByte(addr + 7L) << 56L);
+                    | ((getByte(addr + 1L) & 0xFFL) << 8L)
+                    | ((getByte(addr + 2L) & 0xFFL) << 16L)
+                    | ((getByte(addr + 3L) & 0xFFL) << 24L)
+                    | ((getByte(addr + 4L) & 0xFFL) << 32L)
+                    | ((getByte(addr + 5L) & 0xFFL) << 40L)
+                    | ((getByte(addr + 6L) & 0xFFL) << 48L)
+                    | ((long) getByte(addr + 7L) << 56L);
         }
     }
 
@@ -1921,13 +2500,13 @@ public class PUnsafe {
             return IS_LITTLE_ENDIAN ? value : Long.reverseBytes(value);
         } else {
             return (getByte(base, offset + 0L) & 0xFFL)
-                   | ((getByte(base, offset + 1L) & 0xFFL) << 8L)
-                   | ((getByte(base, offset + 2L) & 0xFFL) << 16L)
-                   | ((getByte(base, offset + 3L) & 0xFFL) << 24L)
-                   | ((getByte(base, offset + 4L) & 0xFFL) << 32L)
-                   | ((getByte(base, offset + 5L) & 0xFFL) << 40L)
-                   | ((getByte(base, offset + 6L) & 0xFFL) << 48L)
-                   | ((long) getByte(base, offset + 7L) << 56L);
+                    | ((getByte(base, offset + 1L) & 0xFFL) << 8L)
+                    | ((getByte(base, offset + 2L) & 0xFFL) << 16L)
+                    | ((getByte(base, offset + 3L) & 0xFFL) << 24L)
+                    | ((getByte(base, offset + 4L) & 0xFFL) << 32L)
+                    | ((getByte(base, offset + 5L) & 0xFFL) << 40L)
+                    | ((getByte(base, offset + 6L) & 0xFFL) << 48L)
+                    | ((long) getByte(base, offset + 7L) << 56L);
         }
     }
 

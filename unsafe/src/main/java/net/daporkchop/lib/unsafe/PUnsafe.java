@@ -1894,15 +1894,415 @@ public class PUnsafe {
     }
 
     //
-    // GENERAL-PURPOSE ATOMIC OPERATIONS
+    // NUMERIC ATOMIC UPDATES
     //
+    
+    // byte
 
-    public int getAndAddInt(Object o, long pos, int val) {
-        return UNSAFE.getAndAddInt(o, pos, val);
+    public static byte getAndAddByte(Object o, long offset, byte delta) {
+        byte curr;
+        do {
+            curr = getByteVolatile(o, offset);
+        } while (!weakCompareAndSetByte(o, offset, curr, (byte) (curr + delta)));
+        return curr;
     }
 
-    public long getAndAddLong(Object o, long pos, long val) {
-        return UNSAFE.getAndAddLong(o, pos, val);
+    public static byte getAndAddByteAcquire(Object o, long offset, byte delta) {
+        return getAndAddByte(o, offset, delta);
+    }
+
+    public static byte getAndAddByteRelease(Object o, long offset, byte delta) {
+        return getAndAddByte(o, offset, delta);
+    }
+    
+    // short
+
+    public static short getAndAddShort(Object o, long offset, short delta) {
+        short curr;
+        do {
+            curr = getShortVolatile(o, offset);
+        } while (!weakCompareAndSetShort(o, offset, curr, (short) (curr + delta)));
+        return curr;
+    }
+
+    public static short getAndAddShortAcquire(Object o, long offset, short delta) {
+        return getAndAddShort(o, offset, delta);
+    }
+
+    public static short getAndAddShortRelease(Object o, long offset, short delta) {
+        return getAndAddShort(o, offset, delta);
+    }
+    
+    // char
+
+    public static char getAndAddChar(Object o, long offset, char delta) {
+        char curr;
+        do {
+            curr = getCharVolatile(o, offset);
+        } while (!weakCompareAndSetChar(o, offset, curr, (char) (curr + delta)));
+        return curr;
+    }
+
+    public static char getAndAddCharAcquire(Object o, long offset, char delta) {
+        return getAndAddChar(o, offset, delta);
+    }
+
+    public static char getAndAddCharRelease(Object o, long offset, char delta) {
+        return getAndAddChar(o, offset, delta);
+    }
+    
+    // int
+
+    public static int getAndAddInt(Object o, long offset, int delta) {
+        return UNSAFE.getAndAddInt(o, offset, delta);
+    }
+
+    public static int getAndAddIntAcquire(Object o, long offset, int delta) {
+        return getAndAddInt(o, offset, delta);
+    }
+
+    public static int getAndAddIntRelease(Object o, long offset, int delta) {
+        return getAndAddInt(o, offset, delta);
+    }
+    
+    // long
+
+    public static long getAndAddLong(Object o, long offset, long delta) {
+        return UNSAFE.getAndAddLong(o, offset, delta);
+    }
+
+    public static long getAndAddLongAcquire(Object o, long offset, long delta) {
+        return getAndAddLong(o, offset, delta);
+    }
+
+    public static long getAndAddLongRelease(Object o, long offset, long delta) {
+        return getAndAddLong(o, offset, delta);
+    }
+    
+    // float
+
+    public static float getAndAddFloat(Object o, long offset, float delta) {
+        //this is a bit funky because conversion between sNaN and qNaN values could cause an infinite loop
+        //  unless we use the raw original bits as reference for the CAS
+        int currBits;
+        float curr;
+        do {
+            currBits = getIntVolatile(o, offset);
+            curr = Float.intBitsToFloat(currBits);
+        } while (!weakCompareAndSetInt(o, offset, currBits, Float.floatToRawIntBits(curr + delta)));
+        return curr;
+    }
+
+    public static float getAndAddFloatAcquire(Object o, long offset, float delta) {
+        return getAndAddFloat(o, offset, delta);
+    }
+
+    public static float getAndAddFloatRelease(Object o, long offset, float delta) {
+        return getAndAddFloat(o, offset, delta);
+    }
+    
+    // double
+
+    public static double getAndAddDouble(Object o, long offset, double delta) {
+        //this is a bit funky because conversion between sNaN and qNaN values could cause an infinite loop
+        //  unless we use the raw original bits as reference for the CAS
+        long currBits;
+        double curr;
+        do {
+            currBits = getLongVolatile(o, offset);
+            curr = Double.longBitsToDouble(currBits);
+        } while (!weakCompareAndSetLong(o, offset, currBits, Double.doubleToRawLongBits(curr + delta)));
+        return curr;
+    }
+
+    public static double getAndAddDoubleAcquire(Object o, long offset, double delta) {
+        return getAndAddDouble(o, offset, delta);
+    }
+
+    public static double getAndAddDoubleRelease(Object o, long offset, double delta) {
+        return getAndAddDouble(o, offset, delta);
+    }
+
+    //
+    // BITWISE ATOMIC UPDATES
+    //
+      
+    // boolean
+    // (emulated using byte)
+
+    public static boolean getAndBitwiseOrBoolean(Object o, long offset, boolean mask) {
+        return byte2bool(getAndBitwiseOrByte(o, offset, bool2byte(mask)));
+    }
+
+    public static boolean getAndBitwiseOrBooleanAcquire(Object o, long offset, boolean mask) {
+        return getAndBitwiseOrBoolean(o, offset, mask);
+    }
+
+    public static boolean getAndBitwiseOrBooleanRelease(Object o, long offset, boolean mask) {
+        return getAndBitwiseOrBoolean(o, offset, mask);
+    }
+
+    public static boolean getAndBitwiseAndBoolean(Object o, long offset, boolean mask) {
+        return byte2bool(getAndBitwiseAndByte(o, offset, bool2byte(mask)));
+    }
+
+    public static boolean getAndBitwiseAndBooleanAcquire(Object o, long offset, boolean mask) {
+        return getAndBitwiseAndBoolean(o, offset, mask);
+    }
+
+    public static boolean getAndBitwiseAndBooleanRelease(Object o, long offset, boolean mask) {
+        return getAndBitwiseAndBoolean(o, offset, mask);
+    }
+
+    public static boolean getAndBitwiseXorBoolean(Object o, long offset, boolean mask) {
+        return byte2bool(getAndBitwiseXorByte(o, offset, bool2byte(mask)));
+    }
+
+    public static boolean getAndBitwiseXorBooleanAcquire(Object o, long offset, boolean mask) {
+        return getAndBitwiseXorBoolean(o, offset, mask);
+    }
+
+    public static boolean getAndBitwiseXorBooleanRelease(Object o, long offset, boolean mask) {
+        return getAndBitwiseXorBoolean(o, offset, mask);
+    }
+      
+    // byte
+
+    public static byte getAndBitwiseOrByte(Object o, long offset, byte mask) {
+        byte curr;
+        do {
+            curr = getByteVolatile(o, offset);
+        } while (!weakCompareAndSetByte(o, offset, curr, (byte) (curr | mask)));
+        return curr;
+    }
+
+    public static byte getAndBitwiseOrByteAcquire(Object o, long offset, byte mask) {
+        return getAndBitwiseOrByte(o, offset, mask);
+    }
+
+    public static byte getAndBitwiseOrByteRelease(Object o, long offset, byte mask) {
+        return getAndBitwiseOrByte(o, offset, mask);
+    }
+
+    public static byte getAndBitwiseAndByte(Object o, long offset, byte mask) {
+        byte curr;
+        do {
+            curr = getByteVolatile(o, offset);
+        } while (!weakCompareAndSetByte(o, offset, curr, (byte) (curr & mask)));
+        return curr;
+    }
+
+    public static byte getAndBitwiseAndByteAcquire(Object o, long offset, byte mask) {
+        return getAndBitwiseAndByte(o, offset, mask);
+    }
+
+    public static byte getAndBitwiseAndByteRelease(Object o, long offset, byte mask) {
+        return getAndBitwiseAndByte(o, offset, mask);
+    }
+
+    public static byte getAndBitwiseXorByte(Object o, long offset, byte mask) {
+        byte curr;
+        do {
+            curr = getByteVolatile(o, offset);
+        } while (!weakCompareAndSetByte(o, offset, curr, (byte) (curr ^ mask)));
+        return curr;
+    }
+
+    public static byte getAndBitwiseXorByteAcquire(Object o, long offset, byte mask) {
+        return getAndBitwiseXorByte(o, offset, mask);
+    }
+
+    public static byte getAndBitwiseXorByteRelease(Object o, long offset, byte mask) {
+        return getAndBitwiseXorByte(o, offset, mask);
+    }
+
+    // short
+
+    public static short getAndBitwiseOrShort(Object o, long offset, short mask) {
+        short curr;
+        do {
+            curr = getShortVolatile(o, offset);
+        } while (!weakCompareAndSetShort(o, offset, curr, (short) (curr | mask)));
+        return curr;
+    }
+
+    public static short getAndBitwiseOrShortAcquire(Object o, long offset, short mask) {
+        return getAndBitwiseOrShort(o, offset, mask);
+    }
+
+    public static short getAndBitwiseOrShortRelease(Object o, long offset, short mask) {
+        return getAndBitwiseOrShort(o, offset, mask);
+    }
+
+    public static short getAndBitwiseAndShort(Object o, long offset, short mask) {
+        short curr;
+        do {
+            curr = getShortVolatile(o, offset);
+        } while (!weakCompareAndSetShort(o, offset, curr, (short) (curr & mask)));
+        return curr;
+    }
+
+    public static short getAndBitwiseAndShortAcquire(Object o, long offset, short mask) {
+        return getAndBitwiseAndShort(o, offset, mask);
+    }
+
+    public static short getAndBitwiseAndShortRelease(Object o, long offset, short mask) {
+        return getAndBitwiseAndShort(o, offset, mask);
+    }
+
+    public static short getAndBitwiseXorShort(Object o, long offset, short mask) {
+        short curr;
+        do {
+            curr = getShortVolatile(o, offset);
+        } while (!weakCompareAndSetShort(o, offset, curr, (short) (curr ^ mask)));
+        return curr;
+    }
+
+    public static short getAndBitwiseXorShortAcquire(Object o, long offset, short mask) {
+        return getAndBitwiseXorShort(o, offset, mask);
+    }
+
+    public static short getAndBitwiseXorShortRelease(Object o, long offset, short mask) {
+        return getAndBitwiseXorShort(o, offset, mask);
+    }
+      
+    // char
+    // (emulated using short)
+
+    public static char getAndBitwiseOrChar(Object o, long offset, char mask) {
+        return (char) getAndBitwiseOrShort(o, offset, (short) mask);
+    }
+
+    public static char getAndBitwiseOrCharAcquire(Object o, long offset, char mask) {
+        return getAndBitwiseOrChar(o, offset, mask);
+    }
+
+    public static char getAndBitwiseOrCharRelease(Object o, long offset, char mask) {
+        return getAndBitwiseOrChar(o, offset, mask);
+    }
+
+    public static char getAndBitwiseAndChar(Object o, long offset, char mask) {
+        return (char) getAndBitwiseAndShort(o, offset, (short) mask);
+    }
+
+    public static char getAndBitwiseAndCharAcquire(Object o, long offset, char mask) {
+        return getAndBitwiseAndChar(o, offset, mask);
+    }
+
+    public static char getAndBitwiseAndCharRelease(Object o, long offset, char mask) {
+        return getAndBitwiseAndChar(o, offset, mask);
+    }
+
+    public static char getAndBitwiseXorChar(Object o, long offset, char mask) {
+        return (char) getAndBitwiseXorShort(o, offset, (short) mask);
+    }
+
+    public static char getAndBitwiseXorCharAcquire(Object o, long offset, char mask) {
+        return getAndBitwiseXorChar(o, offset, mask);
+    }
+
+    public static char getAndBitwiseXorCharRelease(Object o, long offset, char mask) {
+        return getAndBitwiseXorChar(o, offset, mask);
+    }
+
+    // int
+
+    public static int getAndBitwiseOrInt(Object o, long offset, int mask) {
+        int curr;
+        do {
+            curr = getIntVolatile(o, offset);
+        } while (!weakCompareAndSetInt(o, offset, curr, curr | mask));
+        return curr;
+    }
+
+    public static int getAndBitwiseOrIntAcquire(Object o, long offset, int mask) {
+        return getAndBitwiseOrInt(o, offset, mask);
+    }
+
+    public static int getAndBitwiseOrIntRelease(Object o, long offset, int mask) {
+        return getAndBitwiseOrInt(o, offset, mask);
+    }
+
+    public static int getAndBitwiseAndInt(Object o, long offset, int mask) {
+        int curr;
+        do {
+            curr = getIntVolatile(o, offset);
+        } while (!weakCompareAndSetInt(o, offset, curr, curr & mask));
+        return curr;
+    }
+
+    public static int getAndBitwiseAndIntAcquire(Object o, long offset, int mask) {
+        return getAndBitwiseAndInt(o, offset, mask);
+    }
+
+    public static int getAndBitwiseAndIntRelease(Object o, long offset, int mask) {
+        return getAndBitwiseAndInt(o, offset, mask);
+    }
+
+    public static int getAndBitwiseXorInt(Object o, long offset, int mask) {
+        int curr;
+        do {
+            curr = getIntVolatile(o, offset);
+        } while (!weakCompareAndSetInt(o, offset, curr, curr ^ mask));
+        return curr;
+    }
+
+    public static int getAndBitwiseXorIntAcquire(Object o, long offset, int mask) {
+        return getAndBitwiseXorInt(o, offset, mask);
+    }
+
+    public static int getAndBitwiseXorIntRelease(Object o, long offset, int mask) {
+        return getAndBitwiseXorInt(o, offset, mask);
+    }
+    
+    // long
+
+    public static long getAndBitwiseOrLong(Object o, long offset, long mask) {
+        long curr;
+        do {
+            curr = getLongVolatile(o, offset);
+        } while (!weakCompareAndSetLong(o, offset, curr, curr | mask));
+        return curr;
+    }
+
+    public static long getAndBitwiseOrLongAcquire(Object o, long offset, long mask) {
+        return getAndBitwiseOrLong(o, offset, mask);
+    }
+
+    public static long getAndBitwiseOrLongRelease(Object o, long offset, long mask) {
+        return getAndBitwiseOrLong(o, offset, mask);
+    }
+
+    public static long getAndBitwiseAndLong(Object o, long offset, long mask) {
+        long curr;
+        do {
+            curr = getLongVolatile(o, offset);
+        } while (!weakCompareAndSetLong(o, offset, curr, curr & mask));
+        return curr;
+    }
+
+    public static long getAndBitwiseAndLongAcquire(Object o, long offset, long mask) {
+        return getAndBitwiseAndLong(o, offset, mask);
+    }
+
+    public static long getAndBitwiseAndLongRelease(Object o, long offset, long mask) {
+        return getAndBitwiseAndLong(o, offset, mask);
+    }
+
+    public static long getAndBitwiseXorLong(Object o, long offset, long mask) {
+        long curr;
+        do {
+            curr = getLongVolatile(o, offset);
+        } while (!weakCompareAndSetLong(o, offset, curr, curr ^ mask));
+        return curr;
+    }
+
+    public static long getAndBitwiseXorLongAcquire(Object o, long offset, long mask) {
+        return getAndBitwiseXorLong(o, offset, mask);
+    }
+
+    public static long getAndBitwiseXorLongRelease(Object o, long offset, long mask) {
+        return getAndBitwiseXorLong(o, offset, mask);
     }
 
     //

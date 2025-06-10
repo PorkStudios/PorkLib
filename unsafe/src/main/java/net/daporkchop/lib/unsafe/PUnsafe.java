@@ -48,13 +48,13 @@ import static net.daporkchop.lib.unsafe.UnsafePlatformInfo.*;
  *
  * @author DaPorkchop_
  */
-@SuppressWarnings({ "PointlessArithmeticExpression", "unused", "UnusedReturnValue" })
+@SuppressWarnings({ "PointlessArithmeticExpression", "unchecked", "unused", "UnusedReturnValue" })
 @UtilityClass
 public class PUnsafe {
     /**
      * A reference to {@link Unsafe}.
      */
-    final Unsafe UNSAFE = AccessController.doPrivileged((PrivilegedAction<Unsafe>) () -> {
+    final Unsafe sun_misc_Unsafe = AccessController.doPrivileged((PrivilegedAction<Unsafe>) () -> {
         try {
             Field field = Unsafe.class.getDeclaredField("theUnsafe");
             field.setAccessible(true);
@@ -80,6 +80,13 @@ public class PUnsafe {
         }
     });
 
+    @SneakyThrows
+    static MethodHandle getNewUnsafeMethod(String name, MethodType type) {
+        return MethodHandles.publicLookup()
+                .findVirtual(jdk_internal_misc_Unsafe.getClass(), name, type)
+                .bindTo(jdk_internal_misc_Unsafe);
+    }
+
     //
     // INTERNAL
     //
@@ -99,140 +106,140 @@ public class PUnsafe {
      */
     @Deprecated
     @SuppressWarnings("DeprecatedIsStillUsed")
-    public final long ARRAY_BOOLEAN_BASE_OFFSET = UNSAFE.arrayBaseOffset(boolean[].class);
+    public final long ARRAY_BOOLEAN_BASE_OFFSET = sun_misc_Unsafe.arrayBaseOffset(boolean[].class);
 
     /**
      * @deprecated use {@link #arrayByteBaseOffset()}
      */
     @Deprecated
     @SuppressWarnings("DeprecatedIsStillUsed")
-    public final long ARRAY_BYTE_BASE_OFFSET = UNSAFE.arrayBaseOffset(byte[].class);
+    public final long ARRAY_BYTE_BASE_OFFSET = sun_misc_Unsafe.arrayBaseOffset(byte[].class);
 
     /**
      * @deprecated use {@link #arrayShortBaseOffset()}
      */
     @Deprecated
     @SuppressWarnings("DeprecatedIsStillUsed")
-    public final long ARRAY_SHORT_BASE_OFFSET = UNSAFE.arrayBaseOffset(short[].class);
+    public final long ARRAY_SHORT_BASE_OFFSET = sun_misc_Unsafe.arrayBaseOffset(short[].class);
 
     /**
      * @deprecated use {@link #arrayCharBaseOffset()}
      */
     @Deprecated
     @SuppressWarnings("DeprecatedIsStillUsed")
-    public final long ARRAY_CHAR_BASE_OFFSET = UNSAFE.arrayBaseOffset(char[].class);
+    public final long ARRAY_CHAR_BASE_OFFSET = sun_misc_Unsafe.arrayBaseOffset(char[].class);
 
     /**
      * @deprecated use {@link #arrayIntBaseOffset()}
      */
     @Deprecated
     @SuppressWarnings("DeprecatedIsStillUsed")
-    public final long ARRAY_INT_BASE_OFFSET = UNSAFE.arrayBaseOffset(int[].class);
+    public final long ARRAY_INT_BASE_OFFSET = sun_misc_Unsafe.arrayBaseOffset(int[].class);
 
     /**
      * @deprecated use {@link #arrayLongBaseOffset()}
      */
     @Deprecated
     @SuppressWarnings("DeprecatedIsStillUsed")
-    public final long ARRAY_LONG_BASE_OFFSET = UNSAFE.arrayBaseOffset(long[].class);
+    public final long ARRAY_LONG_BASE_OFFSET = sun_misc_Unsafe.arrayBaseOffset(long[].class);
 
     /**
      * @deprecated use {@link #arrayFloatBaseOffset()}
      */
     @Deprecated
     @SuppressWarnings("DeprecatedIsStillUsed")
-    public final long ARRAY_FLOAT_BASE_OFFSET = UNSAFE.arrayBaseOffset(float[].class);
+    public final long ARRAY_FLOAT_BASE_OFFSET = sun_misc_Unsafe.arrayBaseOffset(float[].class);
 
     /**
      * @deprecated use {@link #arrayDoubleBaseOffset()}
      */
     @Deprecated
     @SuppressWarnings("DeprecatedIsStillUsed")
-    public final long ARRAY_DOUBLE_BASE_OFFSET = UNSAFE.arrayBaseOffset(double[].class);
+    public final long ARRAY_DOUBLE_BASE_OFFSET = sun_misc_Unsafe.arrayBaseOffset(double[].class);
 
     /**
      * @deprecated use {@link #arrayObjectBaseOffset()}
      */
     @Deprecated
     @SuppressWarnings("DeprecatedIsStillUsed")
-    public final long ARRAY_OBJECT_BASE_OFFSET = UNSAFE.arrayBaseOffset(Object[].class);
+    public final long ARRAY_OBJECT_BASE_OFFSET = sun_misc_Unsafe.arrayBaseOffset(Object[].class);
 
     /**
      * @deprecated use {@link #arrayBooleanIndexScale()}
      */
     @Deprecated
     @SuppressWarnings("DeprecatedIsStillUsed")
-    public final long ARRAY_BOOLEAN_INDEX_SCALE = UNSAFE.arrayIndexScale(boolean[].class);
+    public final long ARRAY_BOOLEAN_INDEX_SCALE = sun_misc_Unsafe.arrayIndexScale(boolean[].class);
 
     /**
      * @deprecated use {@link #arrayByteIndexScale()}
      */
     @Deprecated
     @SuppressWarnings("DeprecatedIsStillUsed")
-    public final long ARRAY_BYTE_INDEX_SCALE = UNSAFE.arrayIndexScale(byte[].class);
+    public final long ARRAY_BYTE_INDEX_SCALE = sun_misc_Unsafe.arrayIndexScale(byte[].class);
 
     /**
      * @deprecated use {@link #arrayShortIndexScale()}
      */
     @Deprecated
     @SuppressWarnings("DeprecatedIsStillUsed")
-    public final long ARRAY_SHORT_INDEX_SCALE = UNSAFE.arrayIndexScale(short[].class);
+    public final long ARRAY_SHORT_INDEX_SCALE = sun_misc_Unsafe.arrayIndexScale(short[].class);
 
     /**
      * @deprecated use {@link #arrayCharIndexScale()}
      */
     @Deprecated
     @SuppressWarnings("DeprecatedIsStillUsed")
-    public final long ARRAY_CHAR_INDEX_SCALE = UNSAFE.arrayIndexScale(char[].class);
+    public final long ARRAY_CHAR_INDEX_SCALE = sun_misc_Unsafe.arrayIndexScale(char[].class);
 
     /**
      * @deprecated use {@link #arrayIntIndexScale()}
      */
     @Deprecated
     @SuppressWarnings("DeprecatedIsStillUsed")
-    public final long ARRAY_INT_INDEX_SCALE = UNSAFE.arrayIndexScale(int[].class);
+    public final long ARRAY_INT_INDEX_SCALE = sun_misc_Unsafe.arrayIndexScale(int[].class);
 
     /**
      * @deprecated use {@link #arrayLongIndexScale()}
      */
     @Deprecated
     @SuppressWarnings("DeprecatedIsStillUsed")
-    public final long ARRAY_LONG_INDEX_SCALE = UNSAFE.arrayIndexScale(long[].class);
+    public final long ARRAY_LONG_INDEX_SCALE = sun_misc_Unsafe.arrayIndexScale(long[].class);
 
     /**
      * @deprecated use {@link #arrayFloatIndexScale()}
      */
     @Deprecated
     @SuppressWarnings("DeprecatedIsStillUsed")
-    public final long ARRAY_FLOAT_INDEX_SCALE = UNSAFE.arrayIndexScale(float[].class);
+    public final long ARRAY_FLOAT_INDEX_SCALE = sun_misc_Unsafe.arrayIndexScale(float[].class);
 
     /**
      * @deprecated use {@link #arrayDoubleIndexScale()}
      */
     @Deprecated
     @SuppressWarnings("DeprecatedIsStillUsed")
-    public final long ARRAY_DOUBLE_INDEX_SCALE = UNSAFE.arrayIndexScale(double[].class);
+    public final long ARRAY_DOUBLE_INDEX_SCALE = sun_misc_Unsafe.arrayIndexScale(double[].class);
 
     /**
      * @deprecated use {@link #arrayObjectIndexScale()}
      */
     @Deprecated
     @SuppressWarnings("DeprecatedIsStillUsed")
-    public final long ARRAY_OBJECT_INDEX_SCALE = UNSAFE.arrayIndexScale(Object[].class);
+    public final long ARRAY_OBJECT_INDEX_SCALE = sun_misc_Unsafe.arrayIndexScale(Object[].class);
 
     /**
      * @deprecated use {@link #addressSize()}
      */
     @Deprecated
     @SuppressWarnings("DeprecatedIsStillUsed")
-    public final int ADDRESS_SIZE = UNSAFE.addressSize();
+    public final int ADDRESS_SIZE = sun_misc_Unsafe.addressSize();
 
     /**
      * @deprecated use {@link #pageSize()}
      */
     @Deprecated
     @SuppressWarnings("DeprecatedIsStillUsed")
-    public final int PAGE_SIZE = UNSAFE.pageSize();
+    public final int PAGE_SIZE = sun_misc_Unsafe.pageSize();
 
     private final boolean UNALIGNED = AccessController.doPrivileged((PrivilegedAction<Boolean>) () -> {
         boolean unaligned = false;
@@ -569,7 +576,7 @@ public class PUnsafe {
     //
 
     public static int getLoadAverage(double[] loadavg, int nelems) {
-        return UNSAFE.getLoadAverage(loadavg, nelems);
+        return sun_misc_Unsafe.getLoadAverage(loadavg, nelems);
     }
 
     //
@@ -577,16 +584,16 @@ public class PUnsafe {
     //
 
     public static long objectFieldOffset(Field field) {
-        return UNSAFE.objectFieldOffset(field);
+        return sun_misc_Unsafe.objectFieldOffset(field);
     }
 
     //TODO: it seems this isn't supported when running in a graalvm native image
     public static Object staticFieldBase(Field field) {
-        return UNSAFE.staticFieldBase(field);
+        return sun_misc_Unsafe.staticFieldBase(field);
     }
 
     public static long staticFieldOffset(Field field) {
-        return UNSAFE.staticFieldOffset(field);
+        return sun_misc_Unsafe.staticFieldOffset(field);
     }
 
     //
@@ -634,72 +641,71 @@ public class PUnsafe {
     //
 
     public static boolean getBoolean(Object base, long offset) {
-        return UNSAFE.getBoolean(base, offset);
+        return sun_misc_Unsafe.getBoolean(base, offset);
     }
 
     public static byte getByte(Object base, long offset) {
-        return UNSAFE.getByte(base, offset);
+        return sun_misc_Unsafe.getByte(base, offset);
     }
 
     public static short getShort(Object base, long offset) {
-        return UNSAFE.getShort(base, offset);
+        return sun_misc_Unsafe.getShort(base, offset);
     }
 
     public static char getChar(Object base, long offset) {
-        return UNSAFE.getChar(base, offset);
+        return sun_misc_Unsafe.getChar(base, offset);
     }
 
     public static int getInt(Object base, long offset) {
-        return UNSAFE.getInt(base, offset);
+        return sun_misc_Unsafe.getInt(base, offset);
     }
 
     public static long getLong(Object base, long offset) {
-        return UNSAFE.getLong(base, offset);
+        return sun_misc_Unsafe.getLong(base, offset);
     }
 
     public static float getFloat(Object base, long offset) {
-        return UNSAFE.getFloat(base, offset);
+        return sun_misc_Unsafe.getFloat(base, offset);
     }
 
     public static double getDouble(Object base, long offset) {
-        return UNSAFE.getDouble(base, offset);
+        return sun_misc_Unsafe.getDouble(base, offset);
     }
 
-    @SuppressWarnings("unchecked")
     public static <T> T getObject(Object base, long offset) {
-        return (T) UNSAFE.getObject(base, offset);
+        return (T) sun_misc_Unsafe.getObject(base, offset);
     }
 
     public static boolean getBoolean(long address) {
-        return UNSAFE.getBoolean(null, address);
+        return sun_misc_Unsafe.getBoolean(null, address);
     }
 
     public static byte getByte(long address) {
-        return UNSAFE.getByte(null, address);
+        return sun_misc_Unsafe.getByte(null, address);
     }
 
     public static short getShort(long address) {
-        return UNSAFE.getShort(null, address);
+        return sun_misc_Unsafe.getShort(null, address);
     }
 
     public static char getChar(long address) {
-        return UNSAFE.getChar(null, address);
+        return sun_misc_Unsafe.getChar(null, address);
     }
 
     public static int getInt(long address) {
-        return UNSAFE.getInt(null, address);
+        return sun_misc_Unsafe.getInt(null, address);
     }
 
     public static long getLong(long address) {
-        return UNSAFE.getLong(null, address);
+        return sun_misc_Unsafe.getLong(null, address);
     }
 
     public static float getFloat(long address) {
-        return UNSAFE.getFloat(null, address);
+        return sun_misc_Unsafe.getFloat(null, address);
     }
 
     public static double getDouble(long address) {
-        return UNSAFE.getDouble(null, address);
+        return sun_misc_Unsafe.getDouble(null, address);
     }
     
     //
@@ -707,71 +713,71 @@ public class PUnsafe {
     //
 
     public static void putBoolean(Object base, long offset, boolean val) {
-        UNSAFE.putBoolean(base, offset, val);
+        sun_misc_Unsafe.putBoolean(base, offset, val);
     }
 
     public static void putByte(Object base, long offset, byte val) {
-        UNSAFE.putByte(base, offset, val);
+        sun_misc_Unsafe.putByte(base, offset, val);
     }
 
     public static void putShort(Object base, long offset, short val) {
-        UNSAFE.putShort(base, offset, val);
+        sun_misc_Unsafe.putShort(base, offset, val);
     }
 
     public static void putChar(Object base, long offset, char val) {
-        UNSAFE.putChar(base, offset, val);
+        sun_misc_Unsafe.putChar(base, offset, val);
     }
 
     public static void putInt(Object base, long offset, int val) {
-        UNSAFE.putInt(base, offset, val);
+        sun_misc_Unsafe.putInt(base, offset, val);
     }
 
     public static void putLong(Object base, long offset, long val) {
-        UNSAFE.putLong(base, offset, val);
+        sun_misc_Unsafe.putLong(base, offset, val);
     }
 
     public static void putFloat(Object base, long offset, float val) {
-        UNSAFE.putFloat(base, offset, val);
+        sun_misc_Unsafe.putFloat(base, offset, val);
     }
 
     public static void putDouble(Object base, long offset, double val) {
-        UNSAFE.putDouble(base, offset, val);
+        sun_misc_Unsafe.putDouble(base, offset, val);
     }
 
     public static void putObject(Object base, long offset, Object val) {
-        UNSAFE.putObject(base, offset, val);
+        sun_misc_Unsafe.putObject(base, offset, val);
     }
 
     public static void putBoolean(long address, boolean val) {
-        UNSAFE.putBoolean(null, address, val);
+        sun_misc_Unsafe.putBoolean(null, address, val);
     }
     
     public static void putByte(long address, byte val) {
-        UNSAFE.putByte(null, address, val);
+        sun_misc_Unsafe.putByte(null, address, val);
     }
     
     public static void putShort(long address, short val) {
-        UNSAFE.putShort(null, address, val);
+        sun_misc_Unsafe.putShort(null, address, val);
     }
     
     public static void putChar(long address, char val) {
-        UNSAFE.putChar(null, address, val);
+        sun_misc_Unsafe.putChar(null, address, val);
     }
     
     public static void putInt(long address, int val) {
-        UNSAFE.putInt(null, address, val);
+        sun_misc_Unsafe.putInt(null, address, val);
     }
     
     public static void putLong(long address, long val) {
-        UNSAFE.putLong(null, address, val);
+        sun_misc_Unsafe.putLong(null, address, val);
     }
     
     public static void putFloat(long address, float val) {
-        UNSAFE.putFloat(null, address, val);
+        sun_misc_Unsafe.putFloat(null, address, val);
     }
     
     public static void putDouble(long address, double val) {
-        UNSAFE.putDouble(null, address, val);
+        sun_misc_Unsafe.putDouble(null, address, val);
     }
 
     //
@@ -779,40 +785,39 @@ public class PUnsafe {
     //
 
     public static boolean getBooleanVolatile(Object base, long offset) {
-        return UNSAFE.getBooleanVolatile(base, offset);
+        return sun_misc_Unsafe.getBooleanVolatile(base, offset);
     }
 
     public static byte getByteVolatile(Object base, long offset) {
-        return UNSAFE.getByteVolatile(base, offset);
+        return sun_misc_Unsafe.getByteVolatile(base, offset);
     }
 
     public static short getShortVolatile(Object base, long offset) {
-        return UNSAFE.getShortVolatile(base, offset);
+        return sun_misc_Unsafe.getShortVolatile(base, offset);
     }
 
     public static char getCharVolatile(Object base, long offset) {
-        return UNSAFE.getCharVolatile(base, offset);
+        return sun_misc_Unsafe.getCharVolatile(base, offset);
     }
 
     public static int getIntVolatile(Object base, long offset) {
-        return UNSAFE.getIntVolatile(base, offset);
+        return sun_misc_Unsafe.getIntVolatile(base, offset);
     }
 
     public static long getLongVolatile(Object base, long offset) {
-        return UNSAFE.getLongVolatile(base, offset);
+        return sun_misc_Unsafe.getLongVolatile(base, offset);
     }
 
     public static float getFloatVolatile(Object base, long offset) {
-        return UNSAFE.getFloatVolatile(base, offset);
+        return sun_misc_Unsafe.getFloatVolatile(base, offset);
     }
 
     public static double getDoubleVolatile(Object base, long offset) {
-        return UNSAFE.getDoubleVolatile(base, offset);
+        return sun_misc_Unsafe.getDoubleVolatile(base, offset);
     }
 
-    @SuppressWarnings("unchecked")
     public static <T> T getObjectVolatile(Object base, long offset) {
-        return (T) UNSAFE.getObjectVolatile(base, offset);
+        return (T) sun_misc_Unsafe.getObjectVolatile(base, offset);
     }
     
     //
@@ -820,39 +825,39 @@ public class PUnsafe {
     //
 
     public static void putBooleanVolatile(Object base, long offset, boolean val) {
-        UNSAFE.putBooleanVolatile(base, offset, val);
+        sun_misc_Unsafe.putBooleanVolatile(base, offset, val);
     }
     
     public static void putByteVolatile(Object base, long offset, byte val) {
-        UNSAFE.putByteVolatile(base, offset, val);
+        sun_misc_Unsafe.putByteVolatile(base, offset, val);
     }
     
     public static void putShortVolatile(Object base, long offset, short val) {
-        UNSAFE.putShortVolatile(base, offset, val);
+        sun_misc_Unsafe.putShortVolatile(base, offset, val);
     }
     
     public static void putCharVolatile(Object base, long offset, char val) {
-        UNSAFE.putCharVolatile(base, offset, val);
+        sun_misc_Unsafe.putCharVolatile(base, offset, val);
     }
     
     public static void putIntVolatile(Object base, long offset, int val) {
-        UNSAFE.putIntVolatile(base, offset, val);
+        sun_misc_Unsafe.putIntVolatile(base, offset, val);
     }
     
     public static void putLongVolatile(Object base, long offset, long val) {
-        UNSAFE.putLongVolatile(base, offset, val);
+        sun_misc_Unsafe.putLongVolatile(base, offset, val);
     }
     
     public static void putFloatVolatile(Object base, long offset, float val) {
-        UNSAFE.putFloatVolatile(base, offset, val);
+        sun_misc_Unsafe.putFloatVolatile(base, offset, val);
     }
     
     public static void putDoubleVolatile(Object base, long offset, double val) {
-        UNSAFE.putDoubleVolatile(base, offset, val);
+        sun_misc_Unsafe.putDoubleVolatile(base, offset, val);
     }
     
     public static void putObjectVolatile(Object base, long offset, Object val) {
-        UNSAFE.putObjectVolatile(base, offset, val);
+        sun_misc_Unsafe.putObjectVolatile(base, offset, val);
     }
 
     //
@@ -863,41 +868,23 @@ public class PUnsafe {
     //  acquire is equivalent to a regular load followed by Unsafe#loadFence(): https://cr.openjdk.org/~shade/8132332/8132332.jdk.patch
 
     private static final class GetAcquire_Java9 {
-        static final MethodHandle getBooleanAcquire; // (Object, long) -> boolean
-        static final MethodHandle getByteAcquire; // (Object, long) -> byte
-        static final MethodHandle getShortAcquire; // (Object, long) -> short
-        static final MethodHandle getCharAcquire; // (Object, long) -> char
-        static final MethodHandle getIntAcquire; // (Object, long) -> int
-        static final MethodHandle getLongAcquire; // (Object, long) -> long
-        static final MethodHandle getFloatAcquire; // (Object, long) -> float
-        static final MethodHandle getDoubleAcquire; // (Object, long) -> double
-        static final MethodHandle getObjectAcquire; // (Object, long) -> Object
-
-        static {
-            try {
-                getBooleanAcquire = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getBooleanAcquire", MethodType.methodType(boolean.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
-                getByteAcquire = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getByteAcquire", MethodType.methodType(byte.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
-                getShortAcquire = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getShortAcquire", MethodType.methodType(short.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
-                getCharAcquire = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getCharAcquire", MethodType.methodType(char.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
-                getIntAcquire = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getIntAcquire", MethodType.methodType(int.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
-                getLongAcquire = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getLongAcquire", MethodType.methodType(long.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
-                getFloatAcquire = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getFloatAcquire", MethodType.methodType(float.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
-                getDoubleAcquire = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getDoubleAcquire", MethodType.methodType(double.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
-                getObjectAcquire = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getObjectAcquire", MethodType.methodType(Object.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
-            } catch (Throwable t) {
-                throw new AssertionError(t);
-            }
-        }
+        static final MethodHandle getBooleanAcquire = getNewUnsafeMethod("getBooleanAcquire", MethodType.methodType(boolean.class, Object.class, long.class));
+        static final MethodHandle getByteAcquire = getNewUnsafeMethod("getByteAcquire", MethodType.methodType(byte.class, Object.class, long.class));
+        static final MethodHandle getShortAcquire = getNewUnsafeMethod("getShortAcquire", MethodType.methodType(short.class, Object.class, long.class));
+        static final MethodHandle getCharAcquire = getNewUnsafeMethod("getCharAcquire", MethodType.methodType(char.class, Object.class, long.class));
+        static final MethodHandle getIntAcquire = getNewUnsafeMethod("getIntAcquire", MethodType.methodType(int.class, Object.class, long.class));
+        static final MethodHandle getLongAcquire = getNewUnsafeMethod("getLongAcquire", MethodType.methodType(long.class, Object.class, long.class));
+        static final MethodHandle getFloatAcquire = getNewUnsafeMethod("getFloatAcquire", MethodType.methodType(float.class, Object.class, long.class));
+        static final MethodHandle getDoubleAcquire = getNewUnsafeMethod("getDoubleAcquire", MethodType.methodType(double.class, Object.class, long.class));
+        static final MethodHandle getObjectAcquire = getNewUnsafeMethod("getObjectAcquire", MethodType.methodType(Object.class, Object.class, long.class));
     }
 
     @SneakyThrows
     public static boolean getBooleanAcquire(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             return (boolean) GetAcquire_Java9.getBooleanAcquire.invokeExact(base, offset);
-        } else { //fall back to emulating it using Java 8 intrinsics
-            boolean value = UNSAFE.getBoolean(base, offset);
-            UNSAFE.loadFence();
-            return value;
+        } else {
+            return PUnsafeAtomics_Java8.getBooleanAcquire(base, offset);
         }
     }
 
@@ -905,10 +892,8 @@ public class PUnsafe {
     public static byte getByteAcquire(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             return (byte) GetAcquire_Java9.getByteAcquire.invokeExact(base, offset);
-        } else { //fall back to emulating it using Java 8 intrinsics
-            byte value = UNSAFE.getByte(base, offset);
-            UNSAFE.loadFence();
-            return value;
+        } else {
+            return PUnsafeAtomics_Java8.getByteAcquire(base, offset);
         }
     }
 
@@ -916,10 +901,8 @@ public class PUnsafe {
     public static short getShortAcquire(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             return (short) GetAcquire_Java9.getShortAcquire.invokeExact(base, offset);
-        } else { //fall back to emulating it using Java 8 intrinsics
-            short value = UNSAFE.getShort(base, offset);
-            UNSAFE.loadFence();
-            return value;
+        } else {
+            return PUnsafeAtomics_Java8.getShortAcquire(base, offset);
         }
     }
 
@@ -927,10 +910,8 @@ public class PUnsafe {
     public static char getCharAcquire(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             return (char) GetAcquire_Java9.getCharAcquire.invokeExact(base, offset);
-        } else { //fall back to emulating it using Java 8 intrinsics
-            char value = UNSAFE.getChar(base, offset);
-            UNSAFE.loadFence();
-            return value;
+        } else {
+            return PUnsafeAtomics_Java8.getCharAcquire(base, offset);
         }
     }
 
@@ -938,10 +919,8 @@ public class PUnsafe {
     public static int getIntAcquire(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             return (int) GetAcquire_Java9.getIntAcquire.invokeExact(base, offset);
-        } else { //fall back to emulating it using Java 8 intrinsics
-            int value = UNSAFE.getInt(base, offset);
-            UNSAFE.loadFence();
-            return value;
+        } else {
+            return PUnsafeAtomics_Java8.getIntAcquire(base, offset);
         }
     }
 
@@ -949,10 +928,8 @@ public class PUnsafe {
     public static long getLongAcquire(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             return (long) GetAcquire_Java9.getLongAcquire.invokeExact(base, offset);
-        } else { //fall back to emulating it using Java 8 intrinsics
-            long value = UNSAFE.getLong(base, offset);
-            UNSAFE.loadFence();
-            return value;
+        } else {
+            return PUnsafeAtomics_Java8.getLongAcquire(base, offset);
         }
     }
 
@@ -960,10 +937,8 @@ public class PUnsafe {
     public static float getFloatAcquire(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             return (float) GetAcquire_Java9.getFloatAcquire.invokeExact(base, offset);
-        } else { //fall back to emulating it using Java 8 intrinsics
-            float value = UNSAFE.getFloat(base, offset);
-            UNSAFE.loadFence();
-            return value;
+        } else {
+            return PUnsafeAtomics_Java8.getFloatAcquire(base, offset);
         }
     }
 
@@ -971,22 +946,17 @@ public class PUnsafe {
     public static double getDoubleAcquire(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             return (double) GetAcquire_Java9.getDoubleAcquire.invokeExact(base, offset);
-        } else { //fall back to emulating it using Java 8 intrinsics
-            double value = UNSAFE.getDouble(base, offset);
-            UNSAFE.loadFence();
-            return value;
+        } else {
+            return PUnsafeAtomics_Java8.getDoubleAcquire(base, offset);
         }
     }
 
     @SneakyThrows
-    @SuppressWarnings("unchecked")
     public static <T> T getObjectAcquire(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             return (T) (Object) GetAcquire_Java9.getObjectAcquire.invokeExact(base, offset);
-        } else { //fall back to emulating it using Java 8 intrinsics
-            T value = (T) UNSAFE.getObject(base, offset);
-            UNSAFE.loadFence();
-            return value;
+        } else {
+            return (T) PUnsafeAtomics_Java8.getObjectAcquire(base, offset);
         }
     }
 
@@ -998,39 +968,23 @@ public class PUnsafe {
     //  Unsafe.putOrdered*() has release semantics [citation needed], so we should use it where possible, otherwise fall back to volatile stores
 
     private static final class PutRelease_Java9 {
-        static final MethodHandle putBooleanRelease; // (Object, long, boolean) -> void
-        static final MethodHandle putByteRelease; // (Object, long, byte) -> void
-        static final MethodHandle putShortRelease; // (Object, long, short) -> void
-        static final MethodHandle putCharRelease; // (Object, long, char) -> void
-        static final MethodHandle putIntRelease; // (Object, long, int) -> void
-        static final MethodHandle putLongRelease; // (Object, long, long) -> void
-        static final MethodHandle putFloatRelease; // (Object, long, float) -> void
-        static final MethodHandle putDoubleRelease; // (Object, long, double) -> void
-        static final MethodHandle putObjectRelease; // (Object, long, Object) -> void
-
-        static {
-            try {
-                putBooleanRelease = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putBooleanRelease", MethodType.methodType(void.class, Object.class, long.class, boolean.class)).bindTo(jdk_internal_misc_Unsafe);
-                putByteRelease = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putByteRelease", MethodType.methodType(void.class, Object.class, long.class, byte.class)).bindTo(jdk_internal_misc_Unsafe);
-                putShortRelease = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putShortRelease", MethodType.methodType(void.class, Object.class, long.class, short.class)).bindTo(jdk_internal_misc_Unsafe);
-                putCharRelease = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putCharRelease", MethodType.methodType(void.class, Object.class, long.class, char.class)).bindTo(jdk_internal_misc_Unsafe);
-                putIntRelease = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putIntRelease", MethodType.methodType(void.class, Object.class, long.class, int.class)).bindTo(jdk_internal_misc_Unsafe);
-                putLongRelease = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putLongRelease", MethodType.methodType(void.class, Object.class, long.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
-                putFloatRelease = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putFloatRelease", MethodType.methodType(void.class, Object.class, long.class, float.class)).bindTo(jdk_internal_misc_Unsafe);
-                putDoubleRelease = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putDoubleRelease", MethodType.methodType(void.class, Object.class, long.class, double.class)).bindTo(jdk_internal_misc_Unsafe);
-                putObjectRelease = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putObjectRelease", MethodType.methodType(void.class, Object.class, long.class, Object.class)).bindTo(jdk_internal_misc_Unsafe);
-            } catch (Throwable t) {
-                throw new AssertionError(t);
-            }
-        }
+        static final MethodHandle putBooleanRelease = getNewUnsafeMethod("putBooleanRelease", MethodType.methodType(void.class, Object.class, long.class, boolean.class));
+        static final MethodHandle putByteRelease = getNewUnsafeMethod("putByteRelease", MethodType.methodType(void.class, Object.class, long.class, byte.class));
+        static final MethodHandle putShortRelease = getNewUnsafeMethod("putShortRelease", MethodType.methodType(void.class, Object.class, long.class, short.class));
+        static final MethodHandle putCharRelease = getNewUnsafeMethod("putCharRelease", MethodType.methodType(void.class, Object.class, long.class, char.class));
+        static final MethodHandle putIntRelease = getNewUnsafeMethod("putIntRelease", MethodType.methodType(void.class, Object.class, long.class, int.class));
+        static final MethodHandle putLongRelease = getNewUnsafeMethod("putLongRelease", MethodType.methodType(void.class, Object.class, long.class, long.class));
+        static final MethodHandle putFloatRelease = getNewUnsafeMethod("putFloatRelease", MethodType.methodType(void.class, Object.class, long.class, float.class));
+        static final MethodHandle putDoubleRelease = getNewUnsafeMethod("putDoubleRelease", MethodType.methodType(void.class, Object.class, long.class, double.class));
+        static final MethodHandle putObjectRelease = getNewUnsafeMethod("putObjectRelease", MethodType.methodType(void.class, Object.class, long.class, Object.class));
     }
 
     @SneakyThrows
     public static void putBooleanRelease(Object base, long offset, boolean val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             PutRelease_Java9.putBooleanRelease.invokeExact(base, offset, val);
-        } else { //fall back to volatile store
-            putBooleanVolatile(base, offset, val);
+        } else {
+            PUnsafeAtomics_Java8.putBooleanRelease(base, offset, val);
         }
     }
 
@@ -1038,8 +992,8 @@ public class PUnsafe {
     public static void putByteRelease(Object base, long offset, byte val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             PutRelease_Java9.putByteRelease.invokeExact(base, offset, val);
-        } else { //fall back to volatile store
-            putByteVolatile(base, offset, val);
+        } else {
+            PUnsafeAtomics_Java8.putByteRelease(base, offset, val);
         }
     }
 
@@ -1047,8 +1001,8 @@ public class PUnsafe {
     public static void putShortRelease(Object base, long offset, short val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             PutRelease_Java9.putShortRelease.invokeExact(base, offset, val);
-        } else { //fall back to volatile store
-            putShortVolatile(base, offset, val);
+        } else {
+            PUnsafeAtomics_Java8.putShortRelease(base, offset, val);
         }
     }
 
@@ -1056,8 +1010,8 @@ public class PUnsafe {
     public static void putCharRelease(Object base, long offset, char val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             PutRelease_Java9.putCharRelease.invokeExact(base, offset, val);
-        } else { //fall back to volatile store
-            putCharVolatile(base, offset, val);
+        } else {
+            PUnsafeAtomics_Java8.putCharRelease(base, offset, val);
         }
     }
 
@@ -1065,8 +1019,8 @@ public class PUnsafe {
     public static void putIntRelease(Object base, long offset, int val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             PutRelease_Java9.putIntRelease.invokeExact(base, offset, val);
-        } else { //fall back to ordered store
-            UNSAFE.putOrderedInt(base, offset, val);
+        } else {
+            PUnsafeAtomics_Java8.putIntRelease(base, offset, val);
         }
     }
 
@@ -1074,8 +1028,8 @@ public class PUnsafe {
     public static void putLongRelease(Object base, long offset, long val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             PutRelease_Java9.putLongRelease.invokeExact(base, offset, val);
-        } else { //fall back to ordered store
-            UNSAFE.putOrderedLong(base, offset, val);
+        } else {
+            PUnsafeAtomics_Java8.putLongRelease(base, offset, val);
         }
     }
 
@@ -1083,8 +1037,8 @@ public class PUnsafe {
     public static void putFloatRelease(Object base, long offset, float val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             PutRelease_Java9.putFloatRelease.invokeExact(base, offset, val);
-        } else { //fall back to ordered store
-            UNSAFE.putOrderedInt(base, offset, Float.floatToRawIntBits(val));
+        } else {
+            PUnsafeAtomics_Java8.putFloatRelease(base, offset, val);
         }
     }
 
@@ -1092,8 +1046,8 @@ public class PUnsafe {
     public static void putDoubleRelease(Object base, long offset, double val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             PutRelease_Java9.putDoubleRelease.invokeExact(base, offset, val);
-        } else { //fall back to ordered store
-            UNSAFE.putOrderedLong(base, offset, Double.doubleToRawLongBits(val));
+        } else {
+            PUnsafeAtomics_Java8.putDoubleRelease(base, offset, val);
         }
     }
 
@@ -1101,8 +1055,8 @@ public class PUnsafe {
     public static void putObjectRelease(Object base, long offset, Object val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             PutRelease_Java9.putObjectRelease.invokeExact(base, offset, val);
-        } else { //fall back to ordered store
-            UNSAFE.putOrderedObject(base, offset, val);
+        } else {
+            PUnsafeAtomics_Java8.putObjectRelease(base, offset, val);
         }
     }
 
@@ -1111,39 +1065,23 @@ public class PUnsafe {
     //
 
     private static final class GetOpaque_Java9 {
-        static final MethodHandle getBooleanOpaque; // (Object, long) -> boolean
-        static final MethodHandle getByteOpaque; // (Object, long) -> byte
-        static final MethodHandle getShortOpaque; // (Object, long) -> short
-        static final MethodHandle getCharOpaque; // (Object, long) -> char
-        static final MethodHandle getIntOpaque; // (Object, long) -> int
-        static final MethodHandle getLongOpaque; // (Object, long) -> long
-        static final MethodHandle getFloatOpaque; // (Object, long) -> float
-        static final MethodHandle getDoubleOpaque; // (Object, long) -> double
-        static final MethodHandle getObjectOpaque; // (Object, long) -> Object
-
-        static {
-            try {
-                getBooleanOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getBooleanOpaque", MethodType.methodType(boolean.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
-                getByteOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getByteOpaque", MethodType.methodType(byte.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
-                getShortOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getShortOpaque", MethodType.methodType(short.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
-                getCharOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getCharOpaque", MethodType.methodType(char.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
-                getIntOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getIntOpaque", MethodType.methodType(int.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
-                getLongOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getLongOpaque", MethodType.methodType(long.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
-                getFloatOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getFloatOpaque", MethodType.methodType(float.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
-                getDoubleOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getDoubleOpaque", MethodType.methodType(double.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
-                getObjectOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getObjectOpaque", MethodType.methodType(Object.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
-            } catch (Throwable t) {
-                throw new AssertionError(t);
-            }
-        }
+        static final MethodHandle getBooleanOpaque = getNewUnsafeMethod("getBooleanOpaque", MethodType.methodType(boolean.class, Object.class, long.class));
+        static final MethodHandle getByteOpaque = getNewUnsafeMethod("getByteOpaque", MethodType.methodType(byte.class, Object.class, long.class));
+        static final MethodHandle getShortOpaque = getNewUnsafeMethod("getShortOpaque", MethodType.methodType(short.class, Object.class, long.class));
+        static final MethodHandle getCharOpaque = getNewUnsafeMethod("getCharOpaque", MethodType.methodType(char.class, Object.class, long.class));
+        static final MethodHandle getIntOpaque = getNewUnsafeMethod("getIntOpaque", MethodType.methodType(int.class, Object.class, long.class));
+        static final MethodHandle getLongOpaque = getNewUnsafeMethod("getLongOpaque", MethodType.methodType(long.class, Object.class, long.class));
+        static final MethodHandle getFloatOpaque = getNewUnsafeMethod("getFloatOpaque", MethodType.methodType(float.class, Object.class, long.class));
+        static final MethodHandle getDoubleOpaque = getNewUnsafeMethod("getDoubleOpaque", MethodType.methodType(double.class, Object.class, long.class));
+        static final MethodHandle getObjectOpaque = getNewUnsafeMethod("getObjectOpaque", MethodType.methodType(Object.class, Object.class, long.class));
     }
 
     @SneakyThrows
     public static boolean getBooleanOpaque(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             return (boolean) GetOpaque_Java9.getBooleanOpaque.invokeExact(base, offset);
-        } else { //fall back to volatile load
-            return getBooleanVolatile(base, offset);
+        } else {
+            return PUnsafeAtomics_Java8.getBooleanOpaque(base, offset);
         }
     }
 
@@ -1151,8 +1089,8 @@ public class PUnsafe {
     public static byte getByteOpaque(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             return (byte) GetOpaque_Java9.getByteOpaque.invokeExact(base, offset);
-        } else { //fall back to volatile load
-            return getByteVolatile(base, offset);
+        } else {
+            return PUnsafeAtomics_Java8.getByteOpaque(base, offset);
         }
     }
 
@@ -1160,8 +1098,8 @@ public class PUnsafe {
     public static short getShortOpaque(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             return (short) GetOpaque_Java9.getShortOpaque.invokeExact(base, offset);
-        } else { //fall back to volatile load
-            return getShortVolatile(base, offset);
+        } else {
+            return PUnsafeAtomics_Java8.getShortOpaque(base, offset);
         }
     }
 
@@ -1169,8 +1107,8 @@ public class PUnsafe {
     public static char getCharOpaque(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             return (char) GetOpaque_Java9.getCharOpaque.invokeExact(base, offset);
-        } else { //fall back to volatile load
-            return getCharVolatile(base, offset);
+        } else {
+            return PUnsafeAtomics_Java8.getCharOpaque(base, offset);
         }
     }
 
@@ -1178,8 +1116,8 @@ public class PUnsafe {
     public static int getIntOpaque(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             return (int) GetOpaque_Java9.getIntOpaque.invokeExact(base, offset);
-        } else { //fall back to volatile load
-            return getIntVolatile(base, offset);
+        } else {
+            return PUnsafeAtomics_Java8.getIntOpaque(base, offset);
         }
     }
 
@@ -1187,8 +1125,8 @@ public class PUnsafe {
     public static long getLongOpaque(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             return (long) GetOpaque_Java9.getLongOpaque.invokeExact(base, offset);
-        } else { //fall back to volatile load
-            return getLongVolatile(base, offset);
+        } else {
+            return PUnsafeAtomics_Java8.getLongOpaque(base, offset);
         }
     }
 
@@ -1196,8 +1134,8 @@ public class PUnsafe {
     public static float getFloatOpaque(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             return (float) GetOpaque_Java9.getFloatOpaque.invokeExact(base, offset);
-        } else { //fall back to volatile load
-            return getFloatVolatile(base, offset);
+        } else {
+            return PUnsafeAtomics_Java8.getFloatOpaque(base, offset);
         }
     }
 
@@ -1205,18 +1143,17 @@ public class PUnsafe {
     public static double getDoubleOpaque(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             return (double) GetOpaque_Java9.getDoubleOpaque.invokeExact(base, offset);
-        } else { //fall back to volatile load
-            return getDoubleVolatile(base, offset);
+        } else {
+            return PUnsafeAtomics_Java8.getDoubleOpaque(base, offset);
         }
     }
 
     @SneakyThrows
-    @SuppressWarnings("unchecked")
     public static <T> T getObjectOpaque(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             return (T) (Object) GetOpaque_Java9.getObjectOpaque.invokeExact(base, offset);
-        } else { //fall back to volatile load
-            return getObjectVolatile(base, offset);
+        } else {
+            return (T) PUnsafeAtomics_Java8.getObjectOpaque(base, offset);
         }
     }
     
@@ -1225,39 +1162,23 @@ public class PUnsafe {
     //
 
     private static final class PutOpaque_Java9 {
-        static final MethodHandle putBooleanOpaque; // (Object, long, boolean) -> void
-        static final MethodHandle putByteOpaque; // (Object, long, byte) -> void
-        static final MethodHandle putShortOpaque; // (Object, long, short) -> void
-        static final MethodHandle putCharOpaque; // (Object, long, char) -> void
-        static final MethodHandle putIntOpaque; // (Object, long, int) -> void
-        static final MethodHandle putLongOpaque; // (Object, long, long) -> void
-        static final MethodHandle putFloatOpaque; // (Object, long, float) -> void
-        static final MethodHandle putDoubleOpaque; // (Object, long, double) -> void
-        static final MethodHandle putObjectOpaque; // (Object, long, Object) -> void
-
-        static {
-            try {
-                putBooleanOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putBooleanOpaque", MethodType.methodType(void.class, Object.class, long.class, boolean.class)).bindTo(jdk_internal_misc_Unsafe);
-                putByteOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putByteOpaque", MethodType.methodType(void.class, Object.class, long.class, byte.class)).bindTo(jdk_internal_misc_Unsafe);
-                putShortOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putShortOpaque", MethodType.methodType(void.class, Object.class, long.class, short.class)).bindTo(jdk_internal_misc_Unsafe);
-                putCharOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putCharOpaque", MethodType.methodType(void.class, Object.class, long.class, char.class)).bindTo(jdk_internal_misc_Unsafe);
-                putIntOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putIntOpaque", MethodType.methodType(void.class, Object.class, long.class, int.class)).bindTo(jdk_internal_misc_Unsafe);
-                putLongOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putLongOpaque", MethodType.methodType(void.class, Object.class, long.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
-                putFloatOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putFloatOpaque", MethodType.methodType(void.class, Object.class, long.class, float.class)).bindTo(jdk_internal_misc_Unsafe);
-                putDoubleOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putDoubleOpaque", MethodType.methodType(void.class, Object.class, long.class, double.class)).bindTo(jdk_internal_misc_Unsafe);
-                putObjectOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putObjectOpaque", MethodType.methodType(void.class, Object.class, long.class, Object.class)).bindTo(jdk_internal_misc_Unsafe);
-            } catch (Throwable t) {
-                throw new AssertionError(t);
-            }
-        }
+        static final MethodHandle putBooleanOpaque = getNewUnsafeMethod("putBooleanOpaque", MethodType.methodType(void.class, Object.class, long.class, boolean.class));
+        static final MethodHandle putByteOpaque = getNewUnsafeMethod("putByteOpaque", MethodType.methodType(void.class, Object.class, long.class, byte.class));
+        static final MethodHandle putShortOpaque = getNewUnsafeMethod("putShortOpaque", MethodType.methodType(void.class, Object.class, long.class, short.class));
+        static final MethodHandle putCharOpaque = getNewUnsafeMethod("putCharOpaque", MethodType.methodType(void.class, Object.class, long.class, char.class));
+        static final MethodHandle putIntOpaque = getNewUnsafeMethod("putIntOpaque", MethodType.methodType(void.class, Object.class, long.class, int.class));
+        static final MethodHandle putLongOpaque = getNewUnsafeMethod("putLongOpaque", MethodType.methodType(void.class, Object.class, long.class, long.class));
+        static final MethodHandle putFloatOpaque = getNewUnsafeMethod("putFloatOpaque", MethodType.methodType(void.class, Object.class, long.class, float.class));
+        static final MethodHandle putDoubleOpaque = getNewUnsafeMethod("putDoubleOpaque", MethodType.methodType(void.class, Object.class, long.class, double.class));
+        static final MethodHandle putObjectOpaque = getNewUnsafeMethod("putObjectOpaque", MethodType.methodType(void.class, Object.class, long.class, Object.class));
     }
 
     @SneakyThrows
     public static void putBooleanOpaque(Object base, long offset, boolean val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             PutOpaque_Java9.putBooleanOpaque.invokeExact(base, offset, val);
-        } else { //fall back to volatile store
-            putBooleanVolatile(base, offset, val);
+        } else {
+            PUnsafeAtomics_Java8.putBooleanOpaque(base, offset, val);
         }
     }
     
@@ -1265,8 +1186,8 @@ public class PUnsafe {
     public static void putByteOpaque(Object base, long offset, byte val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             PutOpaque_Java9.putByteOpaque.invokeExact(base, offset, val);
-        } else { //fall back to volatile store
-            putByteVolatile(base, offset, val);
+        } else {
+            PUnsafeAtomics_Java8.putByteOpaque(base, offset, val);
         }
     }
     
@@ -1274,8 +1195,8 @@ public class PUnsafe {
     public static void putShortOpaque(Object base, long offset, short val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             PutOpaque_Java9.putShortOpaque.invokeExact(base, offset, val);
-        } else { //fall back to volatile store
-            putShortVolatile(base, offset, val);
+        } else {
+            PUnsafeAtomics_Java8.putShortOpaque(base, offset, val);
         }
     }
     
@@ -1283,8 +1204,8 @@ public class PUnsafe {
     public static void putCharOpaque(Object base, long offset, char val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             PutOpaque_Java9.putCharOpaque.invokeExact(base, offset, val);
-        } else { //fall back to volatile store
-            putCharVolatile(base, offset, val);
+        } else {
+            PUnsafeAtomics_Java8.putCharOpaque(base, offset, val);
         }
     }
     
@@ -1292,8 +1213,8 @@ public class PUnsafe {
     public static void putIntOpaque(Object base, long offset, int val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             PutOpaque_Java9.putIntOpaque.invokeExact(base, offset, val);
-        } else { //fall back to volatile store
-            putIntVolatile(base, offset, val);
+        } else {
+            PUnsafeAtomics_Java8.putIntOpaque(base, offset, val);
         }
     }
     
@@ -1301,8 +1222,8 @@ public class PUnsafe {
     public static void putLongOpaque(Object base, long offset, long val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             PutOpaque_Java9.putLongOpaque.invokeExact(base, offset, val);
-        } else { //fall back to volatile store
-            putLongVolatile(base, offset, val);
+        } else {
+            PUnsafeAtomics_Java8.putLongOpaque(base, offset, val);
         }
     }
     
@@ -1310,8 +1231,8 @@ public class PUnsafe {
     public static void putFloatOpaque(Object base, long offset, float val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             PutOpaque_Java9.putFloatOpaque.invokeExact(base, offset, val);
-        } else { //fall back to volatile store
-            putFloatVolatile(base, offset, val);
+        } else {
+            PUnsafeAtomics_Java8.putFloatOpaque(base, offset, val);
         }
     }
     
@@ -1319,8 +1240,8 @@ public class PUnsafe {
     public static void putDoubleOpaque(Object base, long offset, double val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             PutOpaque_Java9.putDoubleOpaque.invokeExact(base, offset, val);
-        } else { //fall back to volatile store
-            putDoubleVolatile(base, offset, val);
+        } else {
+            PUnsafeAtomics_Java8.putDoubleOpaque(base, offset, val);
         }
     }
     
@@ -1328,8 +1249,8 @@ public class PUnsafe {
     public static void putObjectOpaque(Object base, long offset, Object val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
             PutOpaque_Java9.putObjectOpaque.invokeExact(base, offset, val);
-        } else { //fall back to volatile store
-            putObjectVolatile(base, offset, val);
+        } else {
+            PUnsafeAtomics_Java8.putObjectOpaque(base, offset, val);
         }
     }
 
@@ -1338,15 +1259,15 @@ public class PUnsafe {
     //
 
     public static long allocateMemory(long size) {
-        return UNSAFE.allocateMemory(size);
+        return sun_misc_Unsafe.allocateMemory(size);
     }
 
     public static long reallocateMemory(long oldAddress, long size) {
-        return UNSAFE.reallocateMemory(oldAddress, size);
+        return sun_misc_Unsafe.reallocateMemory(oldAddress, size);
     }
 
     public static void freeMemory(long address) {
-        UNSAFE.freeMemory(address);
+        sun_misc_Unsafe.freeMemory(address);
     }
 
     //
@@ -1354,19 +1275,19 @@ public class PUnsafe {
     //
 
     public static void setMemory(Object base, long offset, long size, byte val) {
-        UNSAFE.setMemory(base, offset, size, val);
+        sun_misc_Unsafe.setMemory(base, offset, size, val);
     }
 
     public static void setMemory(long addr, long size, byte val) {
-        UNSAFE.setMemory(addr, size, val);
+        sun_misc_Unsafe.setMemory(addr, size, val);
     }
 
     public static void copyMemory(Object srcBase, long srcOffset, Object dstBase, long dstOffset, long size) {
-        UNSAFE.copyMemory(srcBase, srcOffset, dstBase, dstOffset, size);
+        sun_misc_Unsafe.copyMemory(srcBase, srcOffset, dstBase, dstOffset, size);
     }
 
     public static void copyMemory(long srcAddr, long dstAddr, long length) {
-        UNSAFE.copyMemory(null, srcAddr, null, dstAddr, length);
+        sun_misc_Unsafe.copyMemory(null, srcAddr, null, dstAddr, length);
     }
 
     //
@@ -1374,11 +1295,11 @@ public class PUnsafe {
     //
 
     public static boolean shouldBeInitialized(Class<?> clazz) {
-        return UNSAFE.shouldBeInitialized(clazz);
+        return sun_misc_Unsafe.shouldBeInitialized(clazz);
     }
 
     public static void ensureClassInitialized(Class<?> clazz) {
-        UNSAFE.ensureClassInitialized(clazz);
+        sun_misc_Unsafe.ensureClassInitialized(clazz);
     }
 
     /**
@@ -1386,7 +1307,7 @@ public class PUnsafe {
      */
     @Deprecated
     public static Class<?> defineClass(String name, byte[] classBytes, int off, int len, ClassLoader srcLoader, ProtectionDomain domain) {
-        return UNSAFE.defineClass(name, classBytes, off, len, srcLoader, domain);
+        return sun_misc_Unsafe.defineClass(name, classBytes, off, len, srcLoader, domain);
     }
 
     private static final class DefineClass_Java9 {
@@ -1432,7 +1353,7 @@ public class PUnsafe {
      */
     @Deprecated
     public static Class<?> defineAnonymousClass(Class<?> hostClass, byte[] data, Object[] constantPoolPatches) {
-        return UNSAFE.defineAnonymousClass(hostClass, data, constantPoolPatches);
+        return sun_misc_Unsafe.defineAnonymousClass(hostClass, data, constantPoolPatches);
     }
 
     private static final class DefineHiddenClass_Java15 {
@@ -1487,10 +1408,9 @@ public class PUnsafe {
     // UNINITIALIZED CLASS ALLOCATION
     //
 
-    @SuppressWarnings("unchecked")
     @SneakyThrows(InstantiationException.class)
     public static <T> T allocateInstance(Class<T> clazz) {
-        return (T) UNSAFE.allocateInstance(clazz);
+        return (T) sun_misc_Unsafe.allocateInstance(clazz);
     }
 
     //
@@ -1620,26 +1540,26 @@ public class PUnsafe {
     //
 
     @Deprecated
-    public void monitorEnter(Object o) {
-        UNSAFE.monitorEnter(o);
+    public static void monitorEnter(Object o) {
+        sun_misc_Unsafe.monitorEnter(o);
     }
 
     @Deprecated
-    public void monitorExit(Object o) {
-        UNSAFE.monitorExit(o);
+    public static void monitorExit(Object o) {
+        sun_misc_Unsafe.monitorExit(o);
     }
 
     @Deprecated
-    public boolean tryMonitorEnter(Object o) {
-        return UNSAFE.tryMonitorEnter(o);
+    public static boolean tryMonitorEnter(Object o) {
+        return sun_misc_Unsafe.tryMonitorEnter(o);
     }
 
     //
     // THROW EXCEPTIONS
     //
 
-    public Error throwException(Throwable t) {
-        UNSAFE.throwException(t);
+    public static Error throwException(Throwable t) {
+        sun_misc_Unsafe.throwException(t);
         throw new AssertionError("impossible", t); //this code can never be reached
     }
 
@@ -1647,28 +1567,40 @@ public class PUnsafe {
     // THREAD PARKING
     //
 
-    public void park(boolean absolute, long time) {
-        UNSAFE.park(absolute, time);
+    public static void park(boolean absolute, long time) {
+        sun_misc_Unsafe.park(absolute, time);
     }
 
-    public void unpark(Thread thread) {
-        UNSAFE.unpark(thread);
+    public static void unpark(Thread thread) {
+        sun_misc_Unsafe.unpark(thread);
     }
 
     //
     // ORDERED MEMORY WRITES
     //
-
-    public void putOrderedInt(Object o, long pos, int val) {
-        UNSAFE.putOrderedInt(o, pos, val);
+ 
+    /**
+     * @deprecated use {@link #putIntRelease}
+     */
+    @Deprecated
+    public static void putOrderedInt(Object o, long pos, int val) {
+        sun_misc_Unsafe.putOrderedInt(o, pos, val);
     }
 
-    public void putOrderedLong(Object o, long pos, long val) {
-        UNSAFE.putOrderedLong(o, pos, val);
+    /**
+     * @deprecated use {@link #putLongRelease}
+     */
+    @Deprecated
+    public static void putOrderedLong(Object o, long pos, long val) {
+        sun_misc_Unsafe.putOrderedLong(o, pos, val);
     }
 
-    public void putOrderedObject(Object o, long pos, Object val) {
-        UNSAFE.putOrderedObject(o, pos, val);
+    /**
+     * @deprecated use {@link #putObjectRelease}
+     */
+    @Deprecated
+    public static void putOrderedObject(Object o, long pos, Object val) {
+        sun_misc_Unsafe.putOrderedObject(o, pos, val);
     }
 
     //
@@ -1681,7 +1613,7 @@ public class PUnsafe {
      * @see Unsafe#loadFence()
      */
     public static void loadFence() {
-        UNSAFE.loadFence();
+        sun_misc_Unsafe.loadFence();
     }
 
     /**
@@ -1690,7 +1622,7 @@ public class PUnsafe {
      * @see Unsafe#storeFence()
      */
     public static void storeFence() {
-        UNSAFE.storeFence();
+        sun_misc_Unsafe.storeFence();
     }
 
     /**
@@ -1699,7 +1631,7 @@ public class PUnsafe {
      * @see Unsafe#fullFence()
      */
     public static void fullFence() {
-        UNSAFE.fullFence();
+        sun_misc_Unsafe.fullFence();
     }
 
     //
@@ -1725,490 +1657,420 @@ public class PUnsafe {
     // JAVA 9+ ATOMIC UPDATES
     //
 
-    //TODO: some of these have more efficient default implementations (in particular getAndSet*), are they worth adding?
     //TODO: all of these should forward to the new unsafe intrinsics on java 9+
-     
-    private static boolean byte2bool(byte b) {
-        return b != 0;
-    }
-
-    private static byte bool2byte(boolean b) {
-        return b ? (byte) 1 : (byte) 0;
-    }
 
     // boolean
-    // (emulated using byte)
 
     public static boolean compareAndSetBoolean(Object o, long offset, boolean expected, boolean newValue) {
-        return compareAndSetByte(o, offset, bool2byte(expected), bool2byte(newValue));
+        return PUnsafeAtomics_Java8.compareAndSetBoolean(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetBoolean(Object o, long offset, boolean expected, boolean newValue) {
-        return compareAndSetBoolean(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetBoolean(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetBooleanPlain(Object o, long offset, boolean expected, boolean newValue) {
-        return weakCompareAndSetBoolean(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetBooleanPlain(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetBooleanAcquire(Object o, long offset, boolean expected, boolean newValue) {
-        return weakCompareAndSetBoolean(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetBooleanAcquire(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetBooleanRelease(Object o, long offset, boolean expected, boolean newValue) {
-        return weakCompareAndSetBoolean(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetBooleanRelease(o, offset, expected, newValue);
     }
 
     public static boolean compareAndExchangeBoolean(Object o, long offset, boolean expected, boolean newValue) {
-        return byte2bool(compareAndExchangeByte(o, offset, bool2byte(expected), bool2byte(newValue)));
+        return PUnsafeAtomics_Java8.compareAndExchangeBoolean(o, offset, expected, newValue);
     }
 
     public static boolean compareAndExchangeBooleanAcquire(Object o, long offset, boolean expected, boolean newValue) {
-        return compareAndExchangeBoolean(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.compareAndExchangeBooleanAcquire(o, offset, expected, newValue);
     }
 
     public static boolean compareAndExchangeBooleanRelease(Object o, long offset, boolean expected, boolean newValue) {
-        return compareAndExchangeBoolean(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.compareAndExchangeBooleanRelease(o, offset, expected, newValue);
     }
 
     public static boolean getAndSetBoolean(Object o, long offset, boolean newValue) {
-        return byte2bool(getAndSetByte(o, offset, bool2byte(newValue)));
+        return PUnsafeAtomics_Java8.getAndSetBoolean(o, offset, newValue);
     }
 
     public static boolean getAndSetBooleanRelease(Object o, long offset, boolean newValue) {
-        return getAndSetBoolean(o, offset, newValue);
+        return PUnsafeAtomics_Java8.getAndSetBooleanRelease(o, offset, newValue);
     }
 
     public static boolean getAndSetBooleanAcquire(Object o, long offset, boolean newValue) {
-        return getAndSetBoolean(o, offset, newValue);
+        return PUnsafeAtomics_Java8.getAndSetBooleanAcquire(o, offset, newValue);
     }
 
     // byte
 
     public static boolean compareAndSetByte(Object o, long offset, byte expected, byte newValue) {
-        return compareAndExchangeByte(o, offset, expected, newValue) == expected;
+        return PUnsafeAtomics_Java8.compareAndSetByte(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetByte(Object o, long offset, byte expected, byte newValue) {
-        return compareAndSetByte(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetByte(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetBytePlain(Object o, long offset, byte expected, byte newValue) {
-        return weakCompareAndSetByte(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetBytePlain(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetByteAcquire(Object o, long offset, byte expected, byte newValue) {
-        return weakCompareAndSetByte(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetByteAcquire(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetByteRelease(Object o, long offset, byte expected, byte newValue) {
-        return weakCompareAndSetByte(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetByteRelease(o, offset, expected, newValue);
     }
 
     public static byte compareAndExchangeByte(Object o, long offset, byte expected, byte newValue) {
-        //emulated CAS using ints
-        long wordOffset = offset & ~3;
-        int shift = (int) (offset & 3) << 3;
-        if (IS_BIG_ENDIAN) {
-            shift = 24 - shift;
-        }
-        int mask = 0xFF << shift;
-        int maskedExpected = (expected & 0xFF) << shift;
-        int maskedNewValue = (newValue & 0xFF) << shift;
-        int fullWord;
-        do {
-            fullWord = getIntVolatile(o, wordOffset);
-            if ((fullWord & mask) != maskedExpected) {
-                return (byte) ((fullWord & mask) >> shift);
-            }
-        } while (!weakCompareAndSetInt(o, wordOffset, fullWord, (fullWord & ~mask) | maskedNewValue));
-        return expected;
+        return PUnsafeAtomics_Java8.compareAndExchangeByte(o, offset, expected, newValue);
     }
 
     public static byte compareAndExchangeByteAcquire(Object o, long offset, byte expected, byte newValue) {
-        return compareAndExchangeByte(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.compareAndExchangeByteAcquire(o, offset, expected, newValue);
     }
 
     public static byte compareAndExchangeByteRelease(Object o, long offset, byte expected, byte newValue) {
-        return compareAndExchangeByte(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.compareAndExchangeByteRelease(o, offset, expected, newValue);
     }
 
     public static byte getAndSetByte(Object o, long offset, byte newValue) {
-        byte curr;
-        do {
-            curr = getByteVolatile(o, offset);
-        } while (!weakCompareAndSetByte(o, offset, curr, newValue));
-        return curr;
+        return PUnsafeAtomics_Java8.getAndSetByte(o, offset, newValue);
     }
 
     public static byte getAndSetByteAcquire(Object o, long offset, byte newValue) {
-        return getAndSetByte(o, offset, newValue);
+        return PUnsafeAtomics_Java8.getAndSetByteAcquire(o, offset, newValue);
     }
 
     public static byte getAndSetByteRelease(Object o, long offset, byte newValue) {
-        return getAndSetByte(o, offset, newValue);
+        return PUnsafeAtomics_Java8.getAndSetByteRelease(o, offset, newValue);
     }
 
     // short
 
     public static boolean compareAndSetShort(Object o, long offset, short expected, short newValue) {
-        return compareAndExchangeShort(o, offset, expected, newValue) == expected;
+        return PUnsafeAtomics_Java8.compareAndSetShort(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetShort(Object o, long offset, short expected, short newValue) {
-        return compareAndSetShort(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetShort(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetShortPlain(Object o, long offset, short expected, short newValue) {
-        return weakCompareAndSetShort(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetShortPlain(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetShortAcquire(Object o, long offset, short expected, short newValue) {
-        return weakCompareAndSetShort(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetShortAcquire(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetShortRelease(Object o, long offset, short expected, short newValue) {
-        return weakCompareAndSetShort(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetShortRelease(o, offset, expected, newValue);
     }
 
     public static short compareAndExchangeShort(Object o, long offset, short expected, short newValue) {
-        //emulated CAS using ints
-        if ((offset & 3) == 3) {
-            throw new IllegalArgumentException("Update spans the word, not supported");
-        }
-        long wordOffset = offset & ~3;
-        int shift = (int) (offset & 3) << 3;
-        if (IS_BIG_ENDIAN) {
-            shift = 16 - shift;
-        }
-        int mask = 0xFFFF << shift;
-        int maskedExpected = (expected & 0xFFFF) << shift;
-        int maskedNewValue = (expected & 0xFFFF) << shift;
-        int fullWord;
-        do {
-            fullWord = getIntVolatile(o, wordOffset);
-            if ((fullWord & mask) != maskedExpected) {
-                return (short) ((fullWord & mask) >> shift);
-            }
-        } while (!weakCompareAndSetInt(o, wordOffset, fullWord, (fullWord & ~mask) | maskedNewValue));
-        return expected;
+        return PUnsafeAtomics_Java8.compareAndExchangeShort(o, offset, expected, newValue);
     }
 
     public static short compareAndExchangeShortAcquire(Object o, long offset, short expected, short newValue) {
-        return compareAndExchangeShort(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.compareAndExchangeShortAcquire(o, offset, expected, newValue);
     }
 
     public static short compareAndExchangeShortRelease(Object o, long offset, short expected, short newValue) {
-        return compareAndExchangeShort(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.compareAndExchangeShortRelease(o, offset, expected, newValue);
     }
 
     public static short getAndSetShort(Object o, long offset, short newValue) {
-        short curr;
-        do {
-            curr = getShortVolatile(o, offset);
-        } while (!weakCompareAndSetShort(o, offset, curr, newValue));
-        return curr;
+        return PUnsafeAtomics_Java8.getAndSetShort(o, offset, newValue);
     }
 
     public static short getAndSetShortAcquire(Object o, long offset, short newValue) {
-        return getAndSetShort(o, offset, newValue);
+        return PUnsafeAtomics_Java8.getAndSetShortAcquire(o, offset, newValue);
     }
 
     public static short getAndSetShortRelease(Object o, long offset, short newValue) {
-        return getAndSetShort(o, offset, newValue);
+        return PUnsafeAtomics_Java8.getAndSetShortRelease(o, offset, newValue);
     }
     
     // char
-    // (emulated using short)
 
     public static boolean compareAndSetChar(Object o, long offset, char expected, char newValue) {
-        return compareAndSetShort(o, offset, (short) expected, (short) newValue);
+        return PUnsafeAtomics_Java8.compareAndSetChar(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetChar(Object o, long offset, char expected, char newValue) {
-        return compareAndSetChar(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetChar(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetCharPlain(Object o, long offset, char expected, char newValue) {
-        return weakCompareAndSetChar(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetCharPlain(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetCharAcquire(Object o, long offset, char expected, char newValue) {
-        return weakCompareAndSetChar(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetCharAcquire(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetCharRelease(Object o, long offset, char expected, char newValue) {
-        return weakCompareAndSetChar(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetCharRelease(o, offset, expected, newValue);
     }
 
     public static char compareAndExchangeChar(Object o, long offset, char expected, char newValue) {
-        return (char) compareAndExchangeShort(o, offset, (short) expected, (short) newValue);
+        return PUnsafeAtomics_Java8.compareAndExchangeChar(o, offset, expected, newValue);
     }
 
     public static char compareAndExchangeCharAcquire(Object o, long offset, char expected, char newValue) {
-        return compareAndExchangeChar(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.compareAndExchangeCharAcquire(o, offset, expected, newValue);
     }
 
     public static char compareAndExchangeCharRelease(Object o, long offset, char expected, char newValue) {
-        return compareAndExchangeChar(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.compareAndExchangeCharRelease(o, offset, expected, newValue);
     }
 
     public static char getAndSetChar(Object o, long offset, char newValue) {
-        return (char) getAndSetShort(o, offset, (short) newValue);
+        return PUnsafeAtomics_Java8.getAndSetChar(o, offset, newValue);
     }
 
     public static char getAndSetCharRelease(Object o, long offset, char newValue) {
-        return getAndSetChar(o, offset, newValue);
+        return PUnsafeAtomics_Java8.getAndSetCharRelease(o, offset, newValue);
     }
 
     public static char getAndSetCharAcquire(Object o, long offset, char newValue) {
-        return getAndSetChar(o, offset, newValue);
+        return PUnsafeAtomics_Java8.getAndSetCharAcquire(o, offset, newValue);
     }
 
     // int
 
     public static boolean compareAndSetInt(Object o, long offset, int expected, int newValue) {
-        return UNSAFE.compareAndSwapInt(o, offset, expected, newValue);
+        return sun_misc_Unsafe.compareAndSwapInt(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetInt(Object o, long offset, int expected, int newValue) {
-        return compareAndSetInt(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetInt(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetIntPlain(Object o, long offset, int expected, int newValue) {
-        return compareAndSetInt(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetIntPlain(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetIntAcquire(Object o, long offset, int expected, int newValue) {
-        return compareAndSetInt(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetIntAcquire(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetIntRelease(Object o, long offset, int expected, int newValue) {
-        return compareAndSetInt(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetIntRelease(o, offset, expected, newValue);
     }
 
     public static int compareAndExchangeInt(Object o, long offset, int expected, int newValue) {
-        int curr;
-        do {
-            curr = getIntVolatile(o, offset);
-        } while (curr == expected && !weakCompareAndSetInt(o, offset, expected, newValue));
-        return curr; // either curr != expected (so compare failed and we return curr), or curr == expected and CAS succeeded
+        return PUnsafeAtomics_Java8.compareAndExchangeInt(o, offset, expected, newValue);
     }
 
     public static int compareAndExchangeIntAcquire(Object o, long offset, int expected, int newValue) {
-        return compareAndExchangeInt(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.compareAndExchangeIntAcquire(o, offset, expected, newValue);
     }
 
     public static int compareAndExchangeIntRelease(Object o, long offset, int expected, int newValue) {
-        return compareAndExchangeInt(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.compareAndExchangeIntRelease(o, offset, expected, newValue);
     }
 
     public static int getAndSetInt(Object o, long offset, int newValue) {
-        return UNSAFE.getAndSetInt(o, offset, newValue);
+        return sun_misc_Unsafe.getAndSetInt(o, offset, newValue);
     }
 
     public static int getAndSetIntAcquire(Object o, long offset, int newValue) {
-        return getAndSetInt(o, offset, newValue);
+        return PUnsafeAtomics_Java8.getAndSetIntAcquire(o, offset, newValue);
     }
 
     public static int getAndSetIntRelease(Object o, long offset, int newValue) {
-        return getAndSetInt(o, offset, newValue);
+        return PUnsafeAtomics_Java8.getAndSetIntRelease(o, offset, newValue);
     }
 
     // long
 
     public static boolean compareAndSetLong(Object o, long offset, long expected, long newValue) {
-        return UNSAFE.compareAndSwapLong(o, offset, expected, newValue);
+        return sun_misc_Unsafe.compareAndSwapLong(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetLong(Object o, long offset, long expected, long newValue) {
-        return compareAndSetLong(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetLong(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetLongPlain(Object o, long offset, long expected, long newValue) {
-        return compareAndSetLong(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetLongPlain(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetLongAcquire(Object o, long offset, long expected, long newValue) {
-        return compareAndSetLong(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetLongAcquire(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetLongRelease(Object o, long offset, long expected, long newValue) {
-        return compareAndSetLong(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetLongRelease(o, offset, expected, newValue);
     }
 
     public static long compareAndExchangeLong(Object o, long offset, long expected, long newValue) {
-        long curr;
-        do {
-            curr = getLongVolatile(o, offset);
-        } while (curr == expected && !weakCompareAndSetLong(o, offset, expected, newValue));
-        return curr; // either curr != expected (so compare failed and we return curr), or curr == expected and CAS succeeded
+        return PUnsafeAtomics_Java8.compareAndExchangeLong(o, offset, expected, newValue);
     }
 
     public static long compareAndExchangeLongAcquire(Object o, long offset, long expected, long newValue) {
-        return compareAndExchangeLong(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.compareAndExchangeLongAcquire(o, offset, expected, newValue);
     }
 
     public static long compareAndExchangeLongRelease(Object o, long offset, long expected, long newValue) {
-        return compareAndExchangeLong(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.compareAndExchangeLongRelease(o, offset, expected, newValue);
     }
 
     public static long getAndSetLong(Object o, long offset, long newValue) {
-        return UNSAFE.getAndSetLong(o, offset, newValue);
+        return sun_misc_Unsafe.getAndSetLong(o, offset, newValue);
     }
 
     public static long getAndSetLongAcquire(Object o, long offset, long newValue) {
-        return getAndSetLong(o, offset, newValue);
+        return PUnsafeAtomics_Java8.getAndSetLongAcquire(o, offset, newValue);
     }
 
     public static long getAndSetLongRelease(Object o, long offset, long newValue) {
-        return getAndSetLong(o, offset, newValue);
+        return PUnsafeAtomics_Java8.getAndSetLongRelease(o, offset, newValue);
     }
 
     // float
-    // (emulated using int)
 
     public static boolean compareAndSetFloat(Object o, long offset, float expected, float newValue) {
-        return compareAndSetInt(o, offset, Float.floatToRawIntBits(expected), Float.floatToRawIntBits(newValue));
+        return PUnsafeAtomics_Java8.compareAndSetFloat(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetFloat(Object o, long offset, float expected, float newValue) {
-        return compareAndSetFloat(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetFloat(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetFloatPlain(Object o, long offset, float expected, float newValue) {
-        return weakCompareAndSetFloat(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetFloatPlain(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetFloatAcquire(Object o, long offset, float expected, float newValue) {
-        return weakCompareAndSetFloat(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetFloatAcquire(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetFloatRelease(Object o, long offset, float expected, float newValue) {
-        return weakCompareAndSetFloat(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetFloatRelease(o, offset, expected, newValue);
     }
 
     public static float compareAndExchangeFloat(Object o, long offset, float expected, float newValue) {
-        return Float.intBitsToFloat(compareAndExchangeInt(o, offset, Float.floatToRawIntBits(expected), Float.floatToRawIntBits(newValue)));
+        return PUnsafeAtomics_Java8.compareAndExchangeFloat(o, offset, expected, newValue);
     }
 
     public static float compareAndExchangeFloatAcquire(Object o, long offset, float expected, float newValue) {
-        return compareAndExchangeFloat(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.compareAndExchangeFloatAcquire(o, offset, expected, newValue);
     }
 
     public static float compareAndExchangeFloatRelease(Object o, long offset, float expected, float newValue) {
-        return compareAndExchangeFloat(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.compareAndExchangeFloatRelease(o, offset, expected, newValue);
     }
 
     public static float getAndSetFloat(Object o, long offset, float newValue) {
-        return Float.intBitsToFloat(getAndSetInt(o, offset, Float.floatToRawIntBits(newValue)));
+        return PUnsafeAtomics_Java8.getAndSetFloat(o, offset, newValue);
     }
 
     public static float getAndSetFloatRelease(Object o, long offset, float newValue) {
-        return getAndSetFloat(o, offset, newValue);
+        return PUnsafeAtomics_Java8.getAndSetFloatRelease(o, offset, newValue);
     }
 
     public static float getAndSetFloatAcquire(Object o, long offset, float newValue) {
-        return getAndSetFloat(o, offset, newValue);
+        return PUnsafeAtomics_Java8.getAndSetFloatAcquire(o, offset, newValue);
     }
 
     // double
-    // (emulated using long)
 
     public static boolean compareAndSetDouble(Object o, long offset, double expected, double newValue) {
-        return compareAndSetLong(o, offset, Double.doubleToRawLongBits(expected), Double.doubleToRawLongBits(newValue));
+        return PUnsafeAtomics_Java8.compareAndSetDouble(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetDouble(Object o, long offset, double expected, double newValue) {
-        return compareAndSetDouble(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetDouble(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetDoublePlain(Object o, long offset, double expected, double newValue) {
-        return weakCompareAndSetDouble(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetDoublePlain(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetDoubleAcquire(Object o, long offset, double expected, double newValue) {
-        return weakCompareAndSetDouble(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetDoubleAcquire(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetDoubleRelease(Object o, long offset, double expected, double newValue) {
-        return weakCompareAndSetDouble(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetDoubleRelease(o, offset, expected, newValue);
     }
 
     public static double compareAndExchangeDouble(Object o, long offset, double expected, double newValue) {
-        return Double.longBitsToDouble(compareAndExchangeLong(o, offset, Double.doubleToRawLongBits(expected), Double.doubleToRawLongBits(newValue)));
+        return PUnsafeAtomics_Java8.compareAndExchangeDouble(o, offset, expected, newValue);
     }
 
     public static double compareAndExchangeDoubleAcquire(Object o, long offset, double expected, double newValue) {
-        return compareAndExchangeDouble(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.compareAndExchangeDoubleAcquire(o, offset, expected, newValue);
     }
 
     public static double compareAndExchangeDoubleRelease(Object o, long offset, double expected, double newValue) {
-        return compareAndExchangeDouble(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.compareAndExchangeDoubleRelease(o, offset, expected, newValue);
     }
 
     public static double getAndSetDouble(Object o, long offset, double newValue) {
-        return Double.longBitsToDouble(getAndSetLong(o, offset, Double.doubleToRawLongBits(newValue)));
+        return PUnsafeAtomics_Java8.getAndSetDouble(o, offset, newValue);
     }
 
     public static double getAndSetDoubleRelease(Object o, long offset, double newValue) {
-        return getAndSetDouble(o, offset, newValue);
+        return PUnsafeAtomics_Java8.getAndSetDoubleRelease(o, offset, newValue);
     }
 
     public static double getAndSetDoubleAcquire(Object o, long offset, double newValue) {
-        return getAndSetDouble(o, offset, newValue);
+        return PUnsafeAtomics_Java8.getAndSetDoubleAcquire(o, offset, newValue);
     }
 
     // Object
 
     public static boolean compareAndSetObject(Object o, long offset, Object expected, Object newValue) {
-        return UNSAFE.compareAndSwapObject(o, offset, expected, newValue);
+        return sun_misc_Unsafe.compareAndSwapObject(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetObject(Object o, long offset, Object expected, Object newValue) {
-        return compareAndSetObject(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetObject(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetObjectPlain(Object o, long offset, Object expected, Object newValue) {
-        return compareAndSetObject(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetObjectPlain(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetObjectAcquire(Object o, long offset, Object expected, Object newValue) {
-        return compareAndSetObject(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetObjectAcquire(o, offset, expected, newValue);
     }
 
     public static boolean weakCompareAndSetObjectRelease(Object o, long offset, Object expected, Object newValue) {
-        return compareAndSetObject(o, offset, expected, newValue);
+        return PUnsafeAtomics_Java8.weakCompareAndSetObjectRelease(o, offset, expected, newValue);
     }
 
-    @SuppressWarnings("unchecked")
     public static <T> T compareAndExchangeObject(Object o, long offset, Object expected, Object newValue) {
-        Object curr;
-        do {
-            curr = getObjectVolatile(o, offset);
-        } while (curr == expected && !weakCompareAndSetObject(o, offset, expected, newValue));
-        return (T) curr; // either curr != expected (so compare failed and we return curr), or curr == expected and CAS succeeded
+        return (T) PUnsafeAtomics_Java8.compareAndExchangeObject(o, offset, expected, newValue);
     }
 
     public static <T> T compareAndExchangeObjectAcquire(Object o, long offset, Object expected, Object newValue) {
-        return compareAndExchangeObject(o, offset, expected, newValue);
+        return (T) PUnsafeAtomics_Java8.compareAndExchangeObjectAcquire(o, offset, expected, newValue);
     }
 
     public static <T> T compareAndExchangeObjectRelease(Object o, long offset, Object expected, Object newValue) {
-        return compareAndExchangeObject(o, offset, expected, newValue);
+        return (T) PUnsafeAtomics_Java8.compareAndExchangeObjectRelease(o, offset, expected, newValue);
     }
 
-    @SuppressWarnings("unchecked")
     public static <T> T getAndSetObject(Object o, long offset, Object newValue) {
-        return (T) UNSAFE.getAndSetObject(o, offset, newValue);
+        return (T) sun_misc_Unsafe.getAndSetObject(o, offset, newValue);
     }
 
     public static <T> T getAndSetObjectAcquire(Object o, long offset, Object newValue) {
-        return getAndSetObject(o, offset, newValue);
+        return (T) PUnsafeAtomics_Java8.getAndSetObjectAcquire(o, offset, newValue);
     }
 
     public static <T> T getAndSetObjectRelease(Object o, long offset, Object newValue) {
-        return getAndSetObject(o, offset, newValue);
+        return (T) PUnsafeAtomics_Java8.getAndSetObjectRelease(o, offset, newValue);
     }
 
     //
@@ -2218,127 +2080,99 @@ public class PUnsafe {
     // byte
 
     public static byte getAndAddByte(Object o, long offset, byte delta) {
-        byte curr;
-        do {
-            curr = getByteVolatile(o, offset);
-        } while (!weakCompareAndSetByte(o, offset, curr, (byte) (curr + delta)));
-        return curr;
+        return PUnsafeAtomics_Java8.getAndAddByte(o, offset, delta);
     }
 
     public static byte getAndAddByteAcquire(Object o, long offset, byte delta) {
-        return getAndAddByte(o, offset, delta);
+        return PUnsafeAtomics_Java8.getAndAddByteAcquire(o, offset, delta);
     }
 
     public static byte getAndAddByteRelease(Object o, long offset, byte delta) {
-        return getAndAddByte(o, offset, delta);
+        return PUnsafeAtomics_Java8.getAndAddByteRelease(o, offset, delta);
     }
     
     // short
 
     public static short getAndAddShort(Object o, long offset, short delta) {
-        short curr;
-        do {
-            curr = getShortVolatile(o, offset);
-        } while (!weakCompareAndSetShort(o, offset, curr, (short) (curr + delta)));
-        return curr;
+        return PUnsafeAtomics_Java8.getAndAddShort(o, offset, delta);
     }
 
     public static short getAndAddShortAcquire(Object o, long offset, short delta) {
-        return getAndAddShort(o, offset, delta);
+        return PUnsafeAtomics_Java8.getAndAddShortAcquire(o, offset, delta);
     }
 
     public static short getAndAddShortRelease(Object o, long offset, short delta) {
-        return getAndAddShort(o, offset, delta);
+        return PUnsafeAtomics_Java8.getAndAddShortRelease(o, offset, delta);
     }
     
     // char
 
     public static char getAndAddChar(Object o, long offset, char delta) {
-        char curr;
-        do {
-            curr = getCharVolatile(o, offset);
-        } while (!weakCompareAndSetChar(o, offset, curr, (char) (curr + delta)));
-        return curr;
+        return PUnsafeAtomics_Java8.getAndAddChar(o, offset, delta);
     }
 
     public static char getAndAddCharAcquire(Object o, long offset, char delta) {
-        return getAndAddChar(o, offset, delta);
+        return PUnsafeAtomics_Java8.getAndAddCharAcquire(o, offset, delta);
     }
 
     public static char getAndAddCharRelease(Object o, long offset, char delta) {
-        return getAndAddChar(o, offset, delta);
+        return PUnsafeAtomics_Java8.getAndAddCharRelease(o, offset, delta);
     }
     
     // int
 
     public static int getAndAddInt(Object o, long offset, int delta) {
-        return UNSAFE.getAndAddInt(o, offset, delta);
+        return sun_misc_Unsafe.getAndAddInt(o, offset, delta);
     }
 
     public static int getAndAddIntAcquire(Object o, long offset, int delta) {
-        return getAndAddInt(o, offset, delta);
+        return PUnsafeAtomics_Java8.getAndAddIntAcquire(o, offset, delta);
     }
 
     public static int getAndAddIntRelease(Object o, long offset, int delta) {
-        return getAndAddInt(o, offset, delta);
+        return PUnsafeAtomics_Java8.getAndAddIntRelease(o, offset, delta);
     }
     
     // long
 
     public static long getAndAddLong(Object o, long offset, long delta) {
-        return UNSAFE.getAndAddLong(o, offset, delta);
+        return sun_misc_Unsafe.getAndAddLong(o, offset, delta);
     }
 
     public static long getAndAddLongAcquire(Object o, long offset, long delta) {
-        return getAndAddLong(o, offset, delta);
+        return PUnsafeAtomics_Java8.getAndAddLongAcquire(o, offset, delta);
     }
 
     public static long getAndAddLongRelease(Object o, long offset, long delta) {
-        return getAndAddLong(o, offset, delta);
+        return PUnsafeAtomics_Java8.getAndAddLongRelease(o, offset, delta);
     }
     
     // float
 
     public static float getAndAddFloat(Object o, long offset, float delta) {
-        //this is a bit funky because conversion between sNaN and qNaN values could cause an infinite loop
-        //  unless we use the raw original bits as reference for the CAS
-        int currBits;
-        float curr;
-        do {
-            currBits = getIntVolatile(o, offset);
-            curr = Float.intBitsToFloat(currBits);
-        } while (!weakCompareAndSetInt(o, offset, currBits, Float.floatToRawIntBits(curr + delta)));
-        return curr;
+        return PUnsafeAtomics_Java8.getAndAddFloat(o, offset, delta);
     }
 
     public static float getAndAddFloatAcquire(Object o, long offset, float delta) {
-        return getAndAddFloat(o, offset, delta);
+        return PUnsafeAtomics_Java8.getAndAddFloatAcquire(o, offset, delta);
     }
 
     public static float getAndAddFloatRelease(Object o, long offset, float delta) {
-        return getAndAddFloat(o, offset, delta);
+        return PUnsafeAtomics_Java8.getAndAddFloatRelease(o, offset, delta);
     }
     
     // double
 
     public static double getAndAddDouble(Object o, long offset, double delta) {
-        //this is a bit funky because conversion between sNaN and qNaN values could cause an infinite loop
-        //  unless we use the raw original bits as reference for the CAS
-        long currBits;
-        double curr;
-        do {
-            currBits = getLongVolatile(o, offset);
-            curr = Double.longBitsToDouble(currBits);
-        } while (!weakCompareAndSetLong(o, offset, currBits, Double.doubleToRawLongBits(curr + delta)));
-        return curr;
+        return PUnsafeAtomics_Java8.getAndAddDouble(o, offset, delta);
     }
 
     public static double getAndAddDoubleAcquire(Object o, long offset, double delta) {
-        return getAndAddDouble(o, offset, delta);
+        return PUnsafeAtomics_Java8.getAndAddDoubleAcquire(o, offset, delta);
     }
 
     public static double getAndAddDoubleRelease(Object o, long offset, double delta) {
-        return getAndAddDouble(o, offset, delta);
+        return PUnsafeAtomics_Java8.getAndAddDoubleRelease(o, offset, delta);
     }
 
     //
@@ -2346,281 +2180,231 @@ public class PUnsafe {
     //
       
     // boolean
-    // (emulated using byte)
 
     public static boolean getAndBitwiseOrBoolean(Object o, long offset, boolean mask) {
-        return byte2bool(getAndBitwiseOrByte(o, offset, bool2byte(mask)));
+        return PUnsafeAtomics_Java8.getAndBitwiseOrBoolean(o, offset, mask);
     }
 
     public static boolean getAndBitwiseOrBooleanAcquire(Object o, long offset, boolean mask) {
-        return getAndBitwiseOrBoolean(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseOrBooleanAcquire(o, offset, mask);
     }
 
     public static boolean getAndBitwiseOrBooleanRelease(Object o, long offset, boolean mask) {
-        return getAndBitwiseOrBoolean(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseOrBooleanRelease(o, offset, mask);
     }
 
     public static boolean getAndBitwiseAndBoolean(Object o, long offset, boolean mask) {
-        return byte2bool(getAndBitwiseAndByte(o, offset, bool2byte(mask)));
+        return PUnsafeAtomics_Java8.getAndBitwiseAndBoolean(o, offset, mask);
     }
 
     public static boolean getAndBitwiseAndBooleanAcquire(Object o, long offset, boolean mask) {
-        return getAndBitwiseAndBoolean(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseAndBooleanAcquire(o, offset, mask);
     }
 
     public static boolean getAndBitwiseAndBooleanRelease(Object o, long offset, boolean mask) {
-        return getAndBitwiseAndBoolean(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseAndBooleanRelease(o, offset, mask);
     }
 
     public static boolean getAndBitwiseXorBoolean(Object o, long offset, boolean mask) {
-        return byte2bool(getAndBitwiseXorByte(o, offset, bool2byte(mask)));
+        return PUnsafeAtomics_Java8.getAndBitwiseXorBoolean(o, offset, mask);
     }
 
     public static boolean getAndBitwiseXorBooleanAcquire(Object o, long offset, boolean mask) {
-        return getAndBitwiseXorBoolean(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseXorBooleanAcquire(o, offset, mask);
     }
 
     public static boolean getAndBitwiseXorBooleanRelease(Object o, long offset, boolean mask) {
-        return getAndBitwiseXorBoolean(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseXorBooleanRelease(o, offset, mask);
     }
       
     // byte
 
     public static byte getAndBitwiseOrByte(Object o, long offset, byte mask) {
-        byte curr;
-        do {
-            curr = getByteVolatile(o, offset);
-        } while (!weakCompareAndSetByte(o, offset, curr, (byte) (curr | mask)));
-        return curr;
+        return PUnsafeAtomics_Java8.getAndBitwiseOrByte(o, offset, mask);
     }
 
     public static byte getAndBitwiseOrByteAcquire(Object o, long offset, byte mask) {
-        return getAndBitwiseOrByte(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseOrByteAcquire(o, offset, mask);
     }
 
     public static byte getAndBitwiseOrByteRelease(Object o, long offset, byte mask) {
-        return getAndBitwiseOrByte(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseOrByteRelease(o, offset, mask);
     }
 
     public static byte getAndBitwiseAndByte(Object o, long offset, byte mask) {
-        byte curr;
-        do {
-            curr = getByteVolatile(o, offset);
-        } while (!weakCompareAndSetByte(o, offset, curr, (byte) (curr & mask)));
-        return curr;
+        return PUnsafeAtomics_Java8.getAndBitwiseAndByte(o, offset, mask);
     }
 
     public static byte getAndBitwiseAndByteAcquire(Object o, long offset, byte mask) {
-        return getAndBitwiseAndByte(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseAndByteAcquire(o, offset, mask);
     }
 
     public static byte getAndBitwiseAndByteRelease(Object o, long offset, byte mask) {
-        return getAndBitwiseAndByte(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseAndByteRelease(o, offset, mask);
     }
 
     public static byte getAndBitwiseXorByte(Object o, long offset, byte mask) {
-        byte curr;
-        do {
-            curr = getByteVolatile(o, offset);
-        } while (!weakCompareAndSetByte(o, offset, curr, (byte) (curr ^ mask)));
-        return curr;
+        return PUnsafeAtomics_Java8.getAndBitwiseXorByte(o, offset, mask);
     }
 
     public static byte getAndBitwiseXorByteAcquire(Object o, long offset, byte mask) {
-        return getAndBitwiseXorByte(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseXorByteAcquire(o, offset, mask);
     }
 
     public static byte getAndBitwiseXorByteRelease(Object o, long offset, byte mask) {
-        return getAndBitwiseXorByte(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseXorByteRelease(o, offset, mask);
     }
 
     // short
 
     public static short getAndBitwiseOrShort(Object o, long offset, short mask) {
-        short curr;
-        do {
-            curr = getShortVolatile(o, offset);
-        } while (!weakCompareAndSetShort(o, offset, curr, (short) (curr | mask)));
-        return curr;
+        return PUnsafeAtomics_Java8.getAndBitwiseOrShort(o, offset, mask);
     }
 
     public static short getAndBitwiseOrShortAcquire(Object o, long offset, short mask) {
-        return getAndBitwiseOrShort(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseOrShortAcquire(o, offset, mask);
     }
 
     public static short getAndBitwiseOrShortRelease(Object o, long offset, short mask) {
-        return getAndBitwiseOrShort(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseOrShortRelease(o, offset, mask);
     }
 
     public static short getAndBitwiseAndShort(Object o, long offset, short mask) {
-        short curr;
-        do {
-            curr = getShortVolatile(o, offset);
-        } while (!weakCompareAndSetShort(o, offset, curr, (short) (curr & mask)));
-        return curr;
+        return PUnsafeAtomics_Java8.getAndBitwiseAndShort(o, offset, mask);
     }
 
     public static short getAndBitwiseAndShortAcquire(Object o, long offset, short mask) {
-        return getAndBitwiseAndShort(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseAndShortAcquire(o, offset, mask);
     }
 
     public static short getAndBitwiseAndShortRelease(Object o, long offset, short mask) {
-        return getAndBitwiseAndShort(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseAndShortRelease(o, offset, mask);
     }
 
     public static short getAndBitwiseXorShort(Object o, long offset, short mask) {
-        short curr;
-        do {
-            curr = getShortVolatile(o, offset);
-        } while (!weakCompareAndSetShort(o, offset, curr, (short) (curr ^ mask)));
-        return curr;
+        return PUnsafeAtomics_Java8.getAndBitwiseXorShort(o, offset, mask);
     }
 
     public static short getAndBitwiseXorShortAcquire(Object o, long offset, short mask) {
-        return getAndBitwiseXorShort(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseXorShortAcquire(o, offset, mask);
     }
 
     public static short getAndBitwiseXorShortRelease(Object o, long offset, short mask) {
-        return getAndBitwiseXorShort(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseXorShortRelease(o, offset, mask);
     }
       
     // char
-    // (emulated using short)
 
     public static char getAndBitwiseOrChar(Object o, long offset, char mask) {
-        return (char) getAndBitwiseOrShort(o, offset, (short) mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseOrChar(o, offset, mask);
     }
 
     public static char getAndBitwiseOrCharAcquire(Object o, long offset, char mask) {
-        return getAndBitwiseOrChar(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseOrCharAcquire(o, offset, mask);
     }
 
     public static char getAndBitwiseOrCharRelease(Object o, long offset, char mask) {
-        return getAndBitwiseOrChar(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseOrCharRelease(o, offset, mask);
     }
 
     public static char getAndBitwiseAndChar(Object o, long offset, char mask) {
-        return (char) getAndBitwiseAndShort(o, offset, (short) mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseAndChar(o, offset, mask);
     }
 
     public static char getAndBitwiseAndCharAcquire(Object o, long offset, char mask) {
-        return getAndBitwiseAndChar(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseAndCharAcquire(o, offset, mask);
     }
 
     public static char getAndBitwiseAndCharRelease(Object o, long offset, char mask) {
-        return getAndBitwiseAndChar(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseAndCharRelease(o, offset, mask);
     }
 
     public static char getAndBitwiseXorChar(Object o, long offset, char mask) {
-        return (char) getAndBitwiseXorShort(o, offset, (short) mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseXorChar(o, offset, mask);
     }
 
     public static char getAndBitwiseXorCharAcquire(Object o, long offset, char mask) {
-        return getAndBitwiseXorChar(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseXorCharAcquire(o, offset, mask);
     }
 
     public static char getAndBitwiseXorCharRelease(Object o, long offset, char mask) {
-        return getAndBitwiseXorChar(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseXorCharRelease(o, offset, mask);
     }
 
     // int
 
     public static int getAndBitwiseOrInt(Object o, long offset, int mask) {
-        int curr;
-        do {
-            curr = getIntVolatile(o, offset);
-        } while (!weakCompareAndSetInt(o, offset, curr, curr | mask));
-        return curr;
+        return PUnsafeAtomics_Java8.getAndBitwiseOrInt(o, offset, mask);
     }
 
     public static int getAndBitwiseOrIntAcquire(Object o, long offset, int mask) {
-        return getAndBitwiseOrInt(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseOrIntAcquire(o, offset, mask);
     }
 
     public static int getAndBitwiseOrIntRelease(Object o, long offset, int mask) {
-        return getAndBitwiseOrInt(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseOrIntRelease(o, offset, mask);
     }
 
     public static int getAndBitwiseAndInt(Object o, long offset, int mask) {
-        int curr;
-        do {
-            curr = getIntVolatile(o, offset);
-        } while (!weakCompareAndSetInt(o, offset, curr, curr & mask));
-        return curr;
+        return PUnsafeAtomics_Java8.getAndBitwiseAndInt(o, offset, mask);
     }
 
     public static int getAndBitwiseAndIntAcquire(Object o, long offset, int mask) {
-        return getAndBitwiseAndInt(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseAndIntAcquire(o, offset, mask);
     }
 
     public static int getAndBitwiseAndIntRelease(Object o, long offset, int mask) {
-        return getAndBitwiseAndInt(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseAndIntRelease(o, offset, mask);
     }
 
     public static int getAndBitwiseXorInt(Object o, long offset, int mask) {
-        int curr;
-        do {
-            curr = getIntVolatile(o, offset);
-        } while (!weakCompareAndSetInt(o, offset, curr, curr ^ mask));
-        return curr;
+        return PUnsafeAtomics_Java8.getAndBitwiseXorInt(o, offset, mask);
     }
 
     public static int getAndBitwiseXorIntAcquire(Object o, long offset, int mask) {
-        return getAndBitwiseXorInt(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseXorIntAcquire(o, offset, mask);
     }
 
     public static int getAndBitwiseXorIntRelease(Object o, long offset, int mask) {
-        return getAndBitwiseXorInt(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseXorIntRelease(o, offset, mask);
     }
     
     // long
 
     public static long getAndBitwiseOrLong(Object o, long offset, long mask) {
-        long curr;
-        do {
-            curr = getLongVolatile(o, offset);
-        } while (!weakCompareAndSetLong(o, offset, curr, curr | mask));
-        return curr;
+        return PUnsafeAtomics_Java8.getAndBitwiseOrLong(o, offset, mask);
     }
 
     public static long getAndBitwiseOrLongAcquire(Object o, long offset, long mask) {
-        return getAndBitwiseOrLong(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseOrLongAcquire(o, offset, mask);
     }
 
     public static long getAndBitwiseOrLongRelease(Object o, long offset, long mask) {
-        return getAndBitwiseOrLong(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseOrLongRelease(o, offset, mask);
     }
 
     public static long getAndBitwiseAndLong(Object o, long offset, long mask) {
-        long curr;
-        do {
-            curr = getLongVolatile(o, offset);
-        } while (!weakCompareAndSetLong(o, offset, curr, curr & mask));
-        return curr;
+        return PUnsafeAtomics_Java8.getAndBitwiseAndLong(o, offset, mask);
     }
 
     public static long getAndBitwiseAndLongAcquire(Object o, long offset, long mask) {
-        return getAndBitwiseAndLong(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseAndLongAcquire(o, offset, mask);
     }
 
     public static long getAndBitwiseAndLongRelease(Object o, long offset, long mask) {
-        return getAndBitwiseAndLong(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseAndLongRelease(o, offset, mask);
     }
 
     public static long getAndBitwiseXorLong(Object o, long offset, long mask) {
-        long curr;
-        do {
-            curr = getLongVolatile(o, offset);
-        } while (!weakCompareAndSetLong(o, offset, curr, curr ^ mask));
-        return curr;
+        return PUnsafeAtomics_Java8.getAndBitwiseXorLong(o, offset, mask);
     }
 
     public static long getAndBitwiseXorLongAcquire(Object o, long offset, long mask) {
-        return getAndBitwiseXorLong(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseXorLongAcquire(o, offset, mask);
     }
 
     public static long getAndBitwiseXorLongRelease(Object o, long offset, long mask) {
-        return getAndBitwiseXorLong(o, offset, mask);
+        return PUnsafeAtomics_Java8.getAndBitwiseXorLongRelease(o, offset, mask);
     }
 
     //
@@ -2631,16 +2415,16 @@ public class PUnsafe {
 
     public long pork_getOffset(@NonNull Class clazz, @NonNull String fieldName) {
         try {
-            return UNSAFE.objectFieldOffset(clazz.getDeclaredField(fieldName));
+            return sun_misc_Unsafe.objectFieldOffset(clazz.getDeclaredField(fieldName));
         } catch (NoSuchFieldException e) {
             while ((clazz = clazz.getSuperclass()) != null) {
                 try {
-                    return UNSAFE.objectFieldOffset(clazz.getDeclaredField(fieldName));
+                    return sun_misc_Unsafe.objectFieldOffset(clazz.getDeclaredField(fieldName));
                 } catch (NoSuchFieldException e1) {
                     //ignore
                 }
             }
-            UNSAFE.throwException(e);
+            sun_misc_Unsafe.throwException(e);
             throw new RuntimeException(e);
         }
     }
@@ -2649,38 +2433,36 @@ public class PUnsafe {
         try {
             return new UnsafeStaticField(clazz, fieldName);
         } catch (NoSuchFieldException e) {
-            UNSAFE.throwException(e);
+            sun_misc_Unsafe.throwException(e);
             throw new RuntimeException(e);
         }
     }
 
-    @SuppressWarnings("unchecked")
     public <V> V pork_swapObject(Object o, long pos, Object newValue) {
         Object v;
         do {
-            v = UNSAFE.getObjectVolatile(o, pos);
-        } while (!UNSAFE.compareAndSwapObject(o, pos, v, newValue));
+            v = sun_misc_Unsafe.getObjectVolatile(o, pos);
+        } while (!sun_misc_Unsafe.compareAndSwapObject(o, pos, v, newValue));
         return (V) v;
     }
 
     public boolean pork_checkSwapIfNonNull(Object o, long pos, Object newValue) {
         Object v;
         do {
-            if ((v = UNSAFE.getObjectVolatile(o, pos)) == null) {
+            if ((v = sun_misc_Unsafe.getObjectVolatile(o, pos)) == null) {
                 return false;
             }
-        } while (!UNSAFE.compareAndSwapObject(o, pos, v, newValue));
+        } while (!sun_misc_Unsafe.compareAndSwapObject(o, pos, v, newValue));
         return true;
     }
 
-    @SuppressWarnings("unchecked")
     public <V> V pork_swapIfNonNull(Object o, long pos, Object newValue) {
         Object v;
         do {
-            if ((v = UNSAFE.getObjectVolatile(o, pos)) == null) {
+            if ((v = sun_misc_Unsafe.getObjectVolatile(o, pos)) == null) {
                 return null;
             }
-        } while (!UNSAFE.compareAndSwapObject(o, pos, v, newValue));
+        } while (!sun_misc_Unsafe.compareAndSwapObject(o, pos, v, newValue));
         return (V) v;
     }
 
@@ -2717,7 +2499,7 @@ public class PUnsafe {
     }
 
     public long pork_allocateMemory(@NonNull Object cleanerTarget, long size) {
-        long offset = UNSAFE.allocateMemory(size);
+        long offset = sun_misc_Unsafe.allocateMemory(size);
         PCleaner.cleaner(cleanerTarget, offset);
         return offset;
     }

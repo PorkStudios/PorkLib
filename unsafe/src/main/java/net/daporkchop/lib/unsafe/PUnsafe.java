@@ -54,7 +54,7 @@ public class PUnsafe {
     /**
      * A reference to {@link Unsafe}.
      */
-    private final Unsafe UNSAFE = AccessController.doPrivileged((PrivilegedAction<Unsafe>) () -> {
+    final Unsafe UNSAFE = AccessController.doPrivileged((PrivilegedAction<Unsafe>) () -> {
         try {
             Field field = Unsafe.class.getDeclaredField("theUnsafe");
             field.setAccessible(true);
@@ -64,7 +64,7 @@ public class PUnsafe {
         }
     });
 
-    private static final Object jdk_internal_misc_Unsafe = AccessController.doPrivileged((PrivilegedAction<Object>) () -> {
+    static final Object jdk_internal_misc_Unsafe = AccessController.doPrivileged((PrivilegedAction<Object>) () -> {
         try {
             if (JAVA_VERSION >= 9) {
                 //acquire an instance of jdk.internal.misc.Unsafe if it's available
@@ -84,7 +84,7 @@ public class PUnsafe {
     // INTERNAL
     //
 
-    private final long DIRECT_BUFFER_ADDRESS_OFFSET = AccessController.doPrivileged((PrivilegedAction<Long>) () -> {
+    static final long DIRECT_BUFFER_ADDRESS_OFFSET = AccessController.doPrivileged((PrivilegedAction<Long>) () -> {
         try {
             return objectFieldOffset(Buffer.class.getDeclaredField("address"));
         } catch (NoSuchFieldException e) {
@@ -298,7 +298,7 @@ public class PUnsafe {
      *
      * @throws AssertionError if any primitive array types are not stored tightly packed in memory
      */
-    public void requireTightlyPackedPrimitiveArrays() throws AssertionError {
+    public static void requireTightlyPackedPrimitiveArrays() throws AssertionError {
         requireTightlyPackedBooleanArrays();
         requireTightlyPackedByteArrays();
         requireTightlyPackedShortArrays();
@@ -315,7 +315,7 @@ public class PUnsafe {
      * @throws AssertionError if {@code boolean[]} elements are not tightly packed in memory
      *                        ** @see #requireTightlyPackedPrimitiveArrays()
      */
-    public void requireTightlyPackedBooleanArrays() throws AssertionError {
+    public static void requireTightlyPackedBooleanArrays() throws AssertionError {
         if (arrayBooleanIndexScale() != Byte.BYTES) { //we assume boolean[] elements always occupy a full byte in memory
             throw new AssertionError("boolean[] is not tightly packed!");
         }
@@ -327,7 +327,7 @@ public class PUnsafe {
      * @throws AssertionError if {@code byte[]} elements are not tightly packed in memory
      * @see #requireTightlyPackedPrimitiveArrays()
      */
-    public void requireTightlyPackedByteArrays() throws AssertionError {
+    public static void requireTightlyPackedByteArrays() throws AssertionError {
         if (arrayByteIndexScale() != Byte.BYTES) {
             throw new AssertionError("byte[] is not tightly packed!");
         }
@@ -339,7 +339,7 @@ public class PUnsafe {
      * @throws AssertionError if {@code short[]} elements are not tightly packed in memory
      * @see #requireTightlyPackedPrimitiveArrays()
      */
-    public void requireTightlyPackedShortArrays() throws AssertionError {
+    public static void requireTightlyPackedShortArrays() throws AssertionError {
         if (arrayShortIndexScale() != Short.BYTES) {
             throw new AssertionError("short[] is not tightly packed!");
         }
@@ -351,7 +351,7 @@ public class PUnsafe {
      * @throws AssertionError if {@code char[]} elements are not tightly packed in memory
      * @see #requireTightlyPackedPrimitiveArrays()
      */
-    public void requireTightlyPackedCharArrays() throws AssertionError {
+    public static void requireTightlyPackedCharArrays() throws AssertionError {
         if (arrayCharIndexScale() != Character.BYTES) {
             throw new AssertionError("char[] is not tightly packed!");
         }
@@ -363,7 +363,7 @@ public class PUnsafe {
      * @throws AssertionError if {@code int[]} elements are not tightly packed in memory
      * @see #requireTightlyPackedPrimitiveArrays()
      */
-    public void requireTightlyPackedIntArrays() throws AssertionError {
+    public static void requireTightlyPackedIntArrays() throws AssertionError {
         if (arrayIntIndexScale() != Integer.BYTES) {
             throw new AssertionError("int[] is not tightly packed!");
         }
@@ -375,7 +375,7 @@ public class PUnsafe {
      * @throws AssertionError if {@code long[]} elements are not tightly packed in memory
      * @see #requireTightlyPackedPrimitiveArrays()
      */
-    public void requireTightlyPackedLongArrays() throws AssertionError {
+    public static void requireTightlyPackedLongArrays() throws AssertionError {
         if (arrayLongIndexScale() != Long.BYTES) {
             throw new AssertionError("long[] is not tightly packed!");
         }
@@ -387,7 +387,7 @@ public class PUnsafe {
      * @throws AssertionError if {@code float[]} elements are not tightly packed in memory
      * @see #requireTightlyPackedPrimitiveArrays()
      */
-    public void requireTightlyPackedFloatArrays() throws AssertionError {
+    public static void requireTightlyPackedFloatArrays() throws AssertionError {
         if (arrayFloatIndexScale() != Float.BYTES) {
             throw new AssertionError("float[] is not tightly packed!");
         }
@@ -399,7 +399,7 @@ public class PUnsafe {
      * @throws AssertionError if {@code double[]} elements are not tightly packed in memory
      * @see #requireTightlyPackedPrimitiveArrays()
      */
-    public void requireTightlyPackedDoubleArrays() throws AssertionError {
+    public static void requireTightlyPackedDoubleArrays() throws AssertionError {
         if (arrayDoubleIndexScale() != Double.BYTES) {
             throw new AssertionError("double[] is not tightly packed!");
         }
@@ -412,63 +412,63 @@ public class PUnsafe {
     /**
      * @return the value of {@code arrayBaseOffset(boolean[].class)}
      */
-    public long arrayBooleanBaseOffset() {
+    public static long arrayBooleanBaseOffset() {
         return ARRAY_BOOLEAN_BASE_OFFSET;
     }
 
     /**
      * @return the value of {@code arrayBaseOffset(byte[].class)}
      */
-    public long arrayByteBaseOffset() {
+    public static long arrayByteBaseOffset() {
         return ARRAY_BYTE_BASE_OFFSET;
     }
 
     /**
      * @return the value of {@code arrayBaseOffset(short[].class)}
      */
-    public long arrayShortBaseOffset() {
+    public static long arrayShortBaseOffset() {
         return ARRAY_SHORT_BASE_OFFSET;
     }
 
     /**
      * @return the value of {@code arrayBaseOffset(char[].class)}
      */
-    public long arrayCharBaseOffset() {
+    public static long arrayCharBaseOffset() {
         return ARRAY_CHAR_BASE_OFFSET;
     }
 
     /**
      * @return the value of {@code arrayBaseOffset(int[].class)}
      */
-    public long arrayIntBaseOffset() {
+    public static long arrayIntBaseOffset() {
         return ARRAY_INT_BASE_OFFSET;
     }
 
     /**
      * @return the value of {@code arrayBaseOffset(long[].class)}
      */
-    public long arrayLongBaseOffset() {
+    public static long arrayLongBaseOffset() {
         return ARRAY_LONG_BASE_OFFSET;
     }
 
     /**
      * @return the value of {@code arrayBaseOffset(float[].class)}
      */
-    public long arrayFloatBaseOffset() {
+    public static long arrayFloatBaseOffset() {
         return ARRAY_FLOAT_BASE_OFFSET;
     }
 
     /**
      * @return the value of {@code arrayBaseOffset(double[].class)}
      */
-    public long arrayDoubleBaseOffset() {
+    public static long arrayDoubleBaseOffset() {
         return ARRAY_DOUBLE_BASE_OFFSET;
     }
 
     /**
      * @return the value of {@code arrayBaseOffset(Object[].class)}
      */
-    public long arrayObjectBaseOffset() {
+    public static long arrayObjectBaseOffset() {
         return ARRAY_OBJECT_BASE_OFFSET;
     }
 
@@ -479,63 +479,63 @@ public class PUnsafe {
     /**
      * @return the value of {@code arrayIndexScale(boolean[].class)}
      */
-    public long arrayBooleanIndexScale() {
+    public static long arrayBooleanIndexScale() {
         return ARRAY_BOOLEAN_INDEX_SCALE;
     }
 
     /**
      * @return the value of {@code arrayIndexScale(byte[].class)}
      */
-    public long arrayByteIndexScale() {
+    public static long arrayByteIndexScale() {
         return ARRAY_BYTE_INDEX_SCALE;
     }
 
     /**
      * @return the value of {@code arrayIndexScale(short[].class)}
      */
-    public long arrayShortIndexScale() {
+    public static long arrayShortIndexScale() {
         return ARRAY_SHORT_INDEX_SCALE;
     }
 
     /**
      * @return the value of {@code arrayIndexScale(char[].class)}
      */
-    public long arrayCharIndexScale() {
+    public static long arrayCharIndexScale() {
         return ARRAY_CHAR_INDEX_SCALE;
     }
 
     /**
      * @return the value of {@code arrayIndexScale(int[].class)}
      */
-    public long arrayIntIndexScale() {
+    public static long arrayIntIndexScale() {
         return ARRAY_INT_INDEX_SCALE;
     }
 
     /**
      * @return the value of {@code arrayIndexScale(long[].class)}
      */
-    public long arrayLongIndexScale() {
+    public static long arrayLongIndexScale() {
         return ARRAY_LONG_INDEX_SCALE;
     }
 
     /**
      * @return the value of {@code arrayIndexScale(float[].class)}
      */
-    public long arrayFloatIndexScale() {
+    public static long arrayFloatIndexScale() {
         return ARRAY_FLOAT_INDEX_SCALE;
     }
 
     /**
      * @return the value of {@code arrayIndexScale(double[].class)}
      */
-    public long arrayDoubleIndexScale() {
+    public static long arrayDoubleIndexScale() {
         return ARRAY_DOUBLE_INDEX_SCALE;
     }
 
     /**
      * @return the value of {@code arrayIndexScale(Object[].class)}
      */
-    public long arrayObjectIndexScale() {
+    public static long arrayObjectIndexScale() {
         return ARRAY_OBJECT_INDEX_SCALE;
     }
 
@@ -546,21 +546,21 @@ public class PUnsafe {
     /**
      * @return the value of {@link Unsafe#addressSize()}.
      */
-    public int addressSize() {
+    public static int addressSize() {
         return ADDRESS_SIZE;
     }
 
     /**
      * @return the value of {@link Unsafe#pageSize()}.
      */
-    public int pageSize() {
+    public static int pageSize() {
         return PAGE_SIZE;
     }
 
     /**
      * @return whether the current system supports unaligned memory access
      */
-    public boolean isUnalignedAccessSupported() {
+    public static boolean isUnalignedAccessSupported() {
         return UNALIGNED;
     }
 
@@ -568,7 +568,7 @@ public class PUnsafe {
     // SYSTEM INFORMATION
     //
 
-    public int getLoadAverage(double[] loadavg, int nelems) {
+    public static int getLoadAverage(double[] loadavg, int nelems) {
         return UNSAFE.getLoadAverage(loadavg, nelems);
     }
 
@@ -576,16 +576,16 @@ public class PUnsafe {
     // FIELD OFFSET ACCESSORS
     //
 
-    public long objectFieldOffset(Field field) {
+    public static long objectFieldOffset(Field field) {
         return UNSAFE.objectFieldOffset(field);
     }
 
     //TODO: it seems this isn't supported when running in a graalvm native image
-    public Object staticFieldBase(Field field) {
+    public static Object staticFieldBase(Field field) {
         return UNSAFE.staticFieldBase(field);
     }
 
-    public long staticFieldOffset(Field field) {
+    public static long staticFieldOffset(Field field) {
         return UNSAFE.staticFieldOffset(field);
     }
 
@@ -593,39 +593,39 @@ public class PUnsafe {
     // ARRAY OFFSET ACCESSORS
     //
 
-    public long arrayBooleanElementOffset(int index) {
+    public static long arrayBooleanElementOffset(int index) {
         return index * ARRAY_BOOLEAN_INDEX_SCALE + ARRAY_BOOLEAN_BASE_OFFSET;
     }
 
-    public long arrayByteElementOffset(int index) {
+    public static long arrayByteElementOffset(int index) {
         return index * ARRAY_BYTE_INDEX_SCALE + ARRAY_BYTE_BASE_OFFSET;
     }
 
-    public long arrayShortElementOffset(int index) {
+    public static long arrayShortElementOffset(int index) {
         return index * ARRAY_SHORT_INDEX_SCALE + ARRAY_SHORT_BASE_OFFSET;
     }
 
-    public long arrayCharElementOffset(int index) {
+    public static long arrayCharElementOffset(int index) {
         return index * ARRAY_CHAR_INDEX_SCALE + ARRAY_CHAR_BASE_OFFSET;
     }
 
-    public long arrayIntElementOffset(int index) {
+    public static long arrayIntElementOffset(int index) {
         return index * ARRAY_INT_INDEX_SCALE + ARRAY_INT_BASE_OFFSET;
     }
 
-    public long arrayLongElementOffset(int index) {
+    public static long arrayLongElementOffset(int index) {
         return index * ARRAY_LONG_INDEX_SCALE + ARRAY_LONG_BASE_OFFSET;
     }
 
-    public long arrayFloatElementOffset(int index) {
+    public static long arrayFloatElementOffset(int index) {
         return index * ARRAY_FLOAT_INDEX_SCALE + ARRAY_FLOAT_BASE_OFFSET;
     }
 
-    public long arrayDoubleElementOffset(int index) {
+    public static long arrayDoubleElementOffset(int index) {
         return index * ARRAY_DOUBLE_INDEX_SCALE + ARRAY_DOUBLE_BASE_OFFSET;
     }
 
-    public long arrayObjectElementOffset(int index) {
+    public static long arrayObjectElementOffset(int index) {
         return index * ARRAY_OBJECT_INDEX_SCALE + ARRAY_OBJECT_BASE_OFFSET;
     }
 
@@ -859,160 +859,478 @@ public class PUnsafe {
     // ACQUIRE LOADS
     //
 
+    //for emulating this on Java 8:
+    //  acquire is equivalent to a regular load followed by Unsafe#loadFence(): https://cr.openjdk.org/~shade/8132332/8132332.jdk.patch
+
+    private static final class GetAcquire_Java9 {
+        static final MethodHandle getBooleanAcquire; // (Object, long) -> boolean
+        static final MethodHandle getByteAcquire; // (Object, long) -> byte
+        static final MethodHandle getShortAcquire; // (Object, long) -> short
+        static final MethodHandle getCharAcquire; // (Object, long) -> char
+        static final MethodHandle getIntAcquire; // (Object, long) -> int
+        static final MethodHandle getLongAcquire; // (Object, long) -> long
+        static final MethodHandle getFloatAcquire; // (Object, long) -> float
+        static final MethodHandle getDoubleAcquire; // (Object, long) -> double
+        static final MethodHandle getObjectAcquire; // (Object, long) -> Object
+
+        static {
+            try {
+                getBooleanAcquire = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getBooleanAcquire", MethodType.methodType(boolean.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
+                getByteAcquire = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getByteAcquire", MethodType.methodType(byte.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
+                getShortAcquire = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getShortAcquire", MethodType.methodType(short.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
+                getCharAcquire = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getCharAcquire", MethodType.methodType(char.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
+                getIntAcquire = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getIntAcquire", MethodType.methodType(int.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
+                getLongAcquire = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getLongAcquire", MethodType.methodType(long.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
+                getFloatAcquire = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getFloatAcquire", MethodType.methodType(float.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
+                getDoubleAcquire = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getDoubleAcquire", MethodType.methodType(double.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
+                getObjectAcquire = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getObjectAcquire", MethodType.methodType(Object.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
+            } catch (Throwable t) {
+                throw new AssertionError(t);
+            }
+        }
+    }
+
+    @SneakyThrows
     public static boolean getBooleanAcquire(Object base, long offset) {
-        return getBooleanVolatile(base, offset);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return (boolean) GetAcquire_Java9.getBooleanAcquire.invokeExact(base, offset);
+        } else { //fall back to emulating it using Java 8 intrinsics
+            boolean value = UNSAFE.getBoolean(base, offset);
+            UNSAFE.loadFence();
+            return value;
+        }
     }
 
+    @SneakyThrows
     public static byte getByteAcquire(Object base, long offset) {
-        return getByteVolatile(base, offset);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return (byte) GetAcquire_Java9.getByteAcquire.invokeExact(base, offset);
+        } else { //fall back to emulating it using Java 8 intrinsics
+            byte value = UNSAFE.getByte(base, offset);
+            UNSAFE.loadFence();
+            return value;
+        }
     }
 
+    @SneakyThrows
     public static short getShortAcquire(Object base, long offset) {
-        return getShortVolatile(base, offset);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return (short) GetAcquire_Java9.getShortAcquire.invokeExact(base, offset);
+        } else { //fall back to emulating it using Java 8 intrinsics
+            short value = UNSAFE.getShort(base, offset);
+            UNSAFE.loadFence();
+            return value;
+        }
     }
 
+    @SneakyThrows
     public static char getCharAcquire(Object base, long offset) {
-        return getCharVolatile(base, offset);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return (char) GetAcquire_Java9.getCharAcquire.invokeExact(base, offset);
+        } else { //fall back to emulating it using Java 8 intrinsics
+            char value = UNSAFE.getChar(base, offset);
+            UNSAFE.loadFence();
+            return value;
+        }
     }
 
+    @SneakyThrows
     public static int getIntAcquire(Object base, long offset) {
-        return getIntVolatile(base, offset);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return (int) GetAcquire_Java9.getIntAcquire.invokeExact(base, offset);
+        } else { //fall back to emulating it using Java 8 intrinsics
+            int value = UNSAFE.getInt(base, offset);
+            UNSAFE.loadFence();
+            return value;
+        }
     }
 
+    @SneakyThrows
     public static long getLongAcquire(Object base, long offset) {
-        return getLongVolatile(base, offset);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return (long) GetAcquire_Java9.getLongAcquire.invokeExact(base, offset);
+        } else { //fall back to emulating it using Java 8 intrinsics
+            long value = UNSAFE.getLong(base, offset);
+            UNSAFE.loadFence();
+            return value;
+        }
     }
 
+    @SneakyThrows
     public static float getFloatAcquire(Object base, long offset) {
-        return getFloatVolatile(base, offset);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return (float) GetAcquire_Java9.getFloatAcquire.invokeExact(base, offset);
+        } else { //fall back to emulating it using Java 8 intrinsics
+            float value = UNSAFE.getFloat(base, offset);
+            UNSAFE.loadFence();
+            return value;
+        }
     }
 
+    @SneakyThrows
     public static double getDoubleAcquire(Object base, long offset) {
-        return getDoubleVolatile(base, offset);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return (double) GetAcquire_Java9.getDoubleAcquire.invokeExact(base, offset);
+        } else { //fall back to emulating it using Java 8 intrinsics
+            double value = UNSAFE.getDouble(base, offset);
+            UNSAFE.loadFence();
+            return value;
+        }
     }
 
+    @SneakyThrows
+    @SuppressWarnings("unchecked")
     public static <T> T getObjectAcquire(Object base, long offset) {
-        return getObjectVolatile(base, offset);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return (T) (Object) GetAcquire_Java9.getObjectAcquire.invokeExact(base, offset);
+        } else { //fall back to emulating it using Java 8 intrinsics
+            T value = (T) UNSAFE.getObject(base, offset);
+            UNSAFE.loadFence();
+            return value;
+        }
     }
-    
+
     //
     // RELEASE STORES
     //
 
+    //for emulating this on Java 8:
+    //  Unsafe.putOrdered*() has release semantics [citation needed], so we should use it where possible, otherwise fall back to volatile stores
+
+    private static final class PutRelease_Java9 {
+        static final MethodHandle putBooleanRelease; // (Object, long, boolean) -> void
+        static final MethodHandle putByteRelease; // (Object, long, byte) -> void
+        static final MethodHandle putShortRelease; // (Object, long, short) -> void
+        static final MethodHandle putCharRelease; // (Object, long, char) -> void
+        static final MethodHandle putIntRelease; // (Object, long, int) -> void
+        static final MethodHandle putLongRelease; // (Object, long, long) -> void
+        static final MethodHandle putFloatRelease; // (Object, long, float) -> void
+        static final MethodHandle putDoubleRelease; // (Object, long, double) -> void
+        static final MethodHandle putObjectRelease; // (Object, long, Object) -> void
+
+        static {
+            try {
+                putBooleanRelease = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putBooleanRelease", MethodType.methodType(void.class, Object.class, long.class, boolean.class)).bindTo(jdk_internal_misc_Unsafe);
+                putByteRelease = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putByteRelease", MethodType.methodType(void.class, Object.class, long.class, byte.class)).bindTo(jdk_internal_misc_Unsafe);
+                putShortRelease = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putShortRelease", MethodType.methodType(void.class, Object.class, long.class, short.class)).bindTo(jdk_internal_misc_Unsafe);
+                putCharRelease = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putCharRelease", MethodType.methodType(void.class, Object.class, long.class, char.class)).bindTo(jdk_internal_misc_Unsafe);
+                putIntRelease = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putIntRelease", MethodType.methodType(void.class, Object.class, long.class, int.class)).bindTo(jdk_internal_misc_Unsafe);
+                putLongRelease = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putLongRelease", MethodType.methodType(void.class, Object.class, long.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
+                putFloatRelease = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putFloatRelease", MethodType.methodType(void.class, Object.class, long.class, float.class)).bindTo(jdk_internal_misc_Unsafe);
+                putDoubleRelease = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putDoubleRelease", MethodType.methodType(void.class, Object.class, long.class, double.class)).bindTo(jdk_internal_misc_Unsafe);
+                putObjectRelease = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putObjectRelease", MethodType.methodType(void.class, Object.class, long.class, Object.class)).bindTo(jdk_internal_misc_Unsafe);
+            } catch (Throwable t) {
+                throw new AssertionError(t);
+            }
+        }
+    }
+
+    @SneakyThrows
     public static void putBooleanRelease(Object base, long offset, boolean val) {
-        putBooleanVolatile(base, offset, val);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            PutRelease_Java9.putBooleanRelease.invokeExact(base, offset, val);
+        } else { //fall back to volatile store
+            putBooleanVolatile(base, offset, val);
+        }
     }
-    
+
+    @SneakyThrows
     public static void putByteRelease(Object base, long offset, byte val) {
-        putByteVolatile(base, offset, val);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            PutRelease_Java9.putByteRelease.invokeExact(base, offset, val);
+        } else { //fall back to volatile store
+            putByteVolatile(base, offset, val);
+        }
     }
-    
+
+    @SneakyThrows
     public static void putShortRelease(Object base, long offset, short val) {
-        putShortVolatile(base, offset, val);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            PutRelease_Java9.putShortRelease.invokeExact(base, offset, val);
+        } else { //fall back to volatile store
+            putShortVolatile(base, offset, val);
+        }
     }
-    
+
+    @SneakyThrows
     public static void putCharRelease(Object base, long offset, char val) {
-        putCharVolatile(base, offset, val);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            PutRelease_Java9.putCharRelease.invokeExact(base, offset, val);
+        } else { //fall back to volatile store
+            putCharVolatile(base, offset, val);
+        }
     }
-    
+
+    @SneakyThrows
     public static void putIntRelease(Object base, long offset, int val) {
-        putIntVolatile(base, offset, val);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            PutRelease_Java9.putIntRelease.invokeExact(base, offset, val);
+        } else { //fall back to ordered store
+            UNSAFE.putOrderedInt(base, offset, val);
+        }
     }
-    
+
+    @SneakyThrows
     public static void putLongRelease(Object base, long offset, long val) {
-        putLongVolatile(base, offset, val);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            PutRelease_Java9.putLongRelease.invokeExact(base, offset, val);
+        } else { //fall back to ordered store
+            UNSAFE.putOrderedLong(base, offset, val);
+        }
     }
-    
+
+    @SneakyThrows
     public static void putFloatRelease(Object base, long offset, float val) {
-        putFloatVolatile(base, offset, val);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            PutRelease_Java9.putFloatRelease.invokeExact(base, offset, val);
+        } else { //fall back to ordered store
+            UNSAFE.putOrderedInt(base, offset, Float.floatToRawIntBits(val));
+        }
     }
-    
+
+    @SneakyThrows
     public static void putDoubleRelease(Object base, long offset, double val) {
-        putDoubleVolatile(base, offset, val);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            PutRelease_Java9.putDoubleRelease.invokeExact(base, offset, val);
+        } else { //fall back to ordered store
+            UNSAFE.putOrderedLong(base, offset, Double.doubleToRawLongBits(val));
+        }
     }
-    
+
+    @SneakyThrows
     public static void putObjectRelease(Object base, long offset, Object val) {
-        putObjectVolatile(base, offset, val);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            PutRelease_Java9.putObjectRelease.invokeExact(base, offset, val);
+        } else { //fall back to ordered store
+            UNSAFE.putOrderedObject(base, offset, val);
+        }
     }
 
     //
     // OPAQUE LOADS
     //
 
+    private static final class GetOpaque_Java9 {
+        static final MethodHandle getBooleanOpaque; // (Object, long) -> boolean
+        static final MethodHandle getByteOpaque; // (Object, long) -> byte
+        static final MethodHandle getShortOpaque; // (Object, long) -> short
+        static final MethodHandle getCharOpaque; // (Object, long) -> char
+        static final MethodHandle getIntOpaque; // (Object, long) -> int
+        static final MethodHandle getLongOpaque; // (Object, long) -> long
+        static final MethodHandle getFloatOpaque; // (Object, long) -> float
+        static final MethodHandle getDoubleOpaque; // (Object, long) -> double
+        static final MethodHandle getObjectOpaque; // (Object, long) -> Object
+
+        static {
+            try {
+                getBooleanOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getBooleanOpaque", MethodType.methodType(boolean.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
+                getByteOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getByteOpaque", MethodType.methodType(byte.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
+                getShortOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getShortOpaque", MethodType.methodType(short.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
+                getCharOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getCharOpaque", MethodType.methodType(char.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
+                getIntOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getIntOpaque", MethodType.methodType(int.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
+                getLongOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getLongOpaque", MethodType.methodType(long.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
+                getFloatOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getFloatOpaque", MethodType.methodType(float.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
+                getDoubleOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getDoubleOpaque", MethodType.methodType(double.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
+                getObjectOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "getObjectOpaque", MethodType.methodType(Object.class, Object.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
+            } catch (Throwable t) {
+                throw new AssertionError(t);
+            }
+        }
+    }
+
+    @SneakyThrows
     public static boolean getBooleanOpaque(Object base, long offset) {
-        return getBooleanVolatile(base, offset);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return (boolean) GetOpaque_Java9.getBooleanOpaque.invokeExact(base, offset);
+        } else { //fall back to volatile load
+            return getBooleanVolatile(base, offset);
+        }
     }
 
+    @SneakyThrows
     public static byte getByteOpaque(Object base, long offset) {
-        return getByteVolatile(base, offset);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return (byte) GetOpaque_Java9.getByteOpaque.invokeExact(base, offset);
+        } else { //fall back to volatile load
+            return getByteVolatile(base, offset);
+        }
     }
 
+    @SneakyThrows
     public static short getShortOpaque(Object base, long offset) {
-        return getShortVolatile(base, offset);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return (short) GetOpaque_Java9.getShortOpaque.invokeExact(base, offset);
+        } else { //fall back to volatile load
+            return getShortVolatile(base, offset);
+        }
     }
 
+    @SneakyThrows
     public static char getCharOpaque(Object base, long offset) {
-        return getCharVolatile(base, offset);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return (char) GetOpaque_Java9.getCharOpaque.invokeExact(base, offset);
+        } else { //fall back to volatile load
+            return getCharVolatile(base, offset);
+        }
     }
 
+    @SneakyThrows
     public static int getIntOpaque(Object base, long offset) {
-        return getIntVolatile(base, offset);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return (int) GetOpaque_Java9.getIntOpaque.invokeExact(base, offset);
+        } else { //fall back to volatile load
+            return getIntVolatile(base, offset);
+        }
     }
 
+    @SneakyThrows
     public static long getLongOpaque(Object base, long offset) {
-        return getLongVolatile(base, offset);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return (long) GetOpaque_Java9.getLongOpaque.invokeExact(base, offset);
+        } else { //fall back to volatile load
+            return getLongVolatile(base, offset);
+        }
     }
 
+    @SneakyThrows
     public static float getFloatOpaque(Object base, long offset) {
-        return getFloatVolatile(base, offset);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return (float) GetOpaque_Java9.getFloatOpaque.invokeExact(base, offset);
+        } else { //fall back to volatile load
+            return getFloatVolatile(base, offset);
+        }
     }
 
+    @SneakyThrows
     public static double getDoubleOpaque(Object base, long offset) {
-        return getDoubleVolatile(base, offset);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return (double) GetOpaque_Java9.getDoubleOpaque.invokeExact(base, offset);
+        } else { //fall back to volatile load
+            return getDoubleVolatile(base, offset);
+        }
     }
 
+    @SneakyThrows
+    @SuppressWarnings("unchecked")
     public static <T> T getObjectOpaque(Object base, long offset) {
-        return getObjectVolatile(base, offset);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return (T) (Object) GetOpaque_Java9.getObjectOpaque.invokeExact(base, offset);
+        } else { //fall back to volatile load
+            return getObjectVolatile(base, offset);
+        }
     }
     
     //
     // OPAQUE STORES
     //
 
+    private static final class PutOpaque_Java9 {
+        static final MethodHandle putBooleanOpaque; // (Object, long, boolean) -> void
+        static final MethodHandle putByteOpaque; // (Object, long, byte) -> void
+        static final MethodHandle putShortOpaque; // (Object, long, short) -> void
+        static final MethodHandle putCharOpaque; // (Object, long, char) -> void
+        static final MethodHandle putIntOpaque; // (Object, long, int) -> void
+        static final MethodHandle putLongOpaque; // (Object, long, long) -> void
+        static final MethodHandle putFloatOpaque; // (Object, long, float) -> void
+        static final MethodHandle putDoubleOpaque; // (Object, long, double) -> void
+        static final MethodHandle putObjectOpaque; // (Object, long, Object) -> void
+
+        static {
+            try {
+                putBooleanOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putBooleanOpaque", MethodType.methodType(void.class, Object.class, long.class, boolean.class)).bindTo(jdk_internal_misc_Unsafe);
+                putByteOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putByteOpaque", MethodType.methodType(void.class, Object.class, long.class, byte.class)).bindTo(jdk_internal_misc_Unsafe);
+                putShortOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putShortOpaque", MethodType.methodType(void.class, Object.class, long.class, short.class)).bindTo(jdk_internal_misc_Unsafe);
+                putCharOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putCharOpaque", MethodType.methodType(void.class, Object.class, long.class, char.class)).bindTo(jdk_internal_misc_Unsafe);
+                putIntOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putIntOpaque", MethodType.methodType(void.class, Object.class, long.class, int.class)).bindTo(jdk_internal_misc_Unsafe);
+                putLongOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putLongOpaque", MethodType.methodType(void.class, Object.class, long.class, long.class)).bindTo(jdk_internal_misc_Unsafe);
+                putFloatOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putFloatOpaque", MethodType.methodType(void.class, Object.class, long.class, float.class)).bindTo(jdk_internal_misc_Unsafe);
+                putDoubleOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putDoubleOpaque", MethodType.methodType(void.class, Object.class, long.class, double.class)).bindTo(jdk_internal_misc_Unsafe);
+                putObjectOpaque = MethodHandles.publicLookup().findVirtual(jdk_internal_misc_Unsafe.getClass(), "putObjectOpaque", MethodType.methodType(void.class, Object.class, long.class, Object.class)).bindTo(jdk_internal_misc_Unsafe);
+            } catch (Throwable t) {
+                throw new AssertionError(t);
+            }
+        }
+    }
+
+    @SneakyThrows
     public static void putBooleanOpaque(Object base, long offset, boolean val) {
-        putBooleanVolatile(base, offset, val);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            PutOpaque_Java9.putBooleanOpaque.invokeExact(base, offset, val);
+        } else { //fall back to volatile store
+            putBooleanVolatile(base, offset, val);
+        }
     }
     
+    @SneakyThrows
     public static void putByteOpaque(Object base, long offset, byte val) {
-        putByteVolatile(base, offset, val);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            PutOpaque_Java9.putByteOpaque.invokeExact(base, offset, val);
+        } else { //fall back to volatile store
+            putByteVolatile(base, offset, val);
+        }
     }
     
+    @SneakyThrows
     public static void putShortOpaque(Object base, long offset, short val) {
-        putShortVolatile(base, offset, val);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            PutOpaque_Java9.putShortOpaque.invokeExact(base, offset, val);
+        } else { //fall back to volatile store
+            putShortVolatile(base, offset, val);
+        }
     }
     
+    @SneakyThrows
     public static void putCharOpaque(Object base, long offset, char val) {
-        putCharVolatile(base, offset, val);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            PutOpaque_Java9.putCharOpaque.invokeExact(base, offset, val);
+        } else { //fall back to volatile store
+            putCharVolatile(base, offset, val);
+        }
     }
     
+    @SneakyThrows
     public static void putIntOpaque(Object base, long offset, int val) {
-        putIntVolatile(base, offset, val);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            PutOpaque_Java9.putIntOpaque.invokeExact(base, offset, val);
+        } else { //fall back to volatile store
+            putIntVolatile(base, offset, val);
+        }
     }
     
+    @SneakyThrows
     public static void putLongOpaque(Object base, long offset, long val) {
-        putLongVolatile(base, offset, val);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            PutOpaque_Java9.putLongOpaque.invokeExact(base, offset, val);
+        } else { //fall back to volatile store
+            putLongVolatile(base, offset, val);
+        }
     }
     
+    @SneakyThrows
     public static void putFloatOpaque(Object base, long offset, float val) {
-        putFloatVolatile(base, offset, val);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            PutOpaque_Java9.putFloatOpaque.invokeExact(base, offset, val);
+        } else { //fall back to volatile store
+            putFloatVolatile(base, offset, val);
+        }
     }
     
+    @SneakyThrows
     public static void putDoubleOpaque(Object base, long offset, double val) {
-        putDoubleVolatile(base, offset, val);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            PutOpaque_Java9.putDoubleOpaque.invokeExact(base, offset, val);
+        } else { //fall back to volatile store
+            putDoubleVolatile(base, offset, val);
+        }
     }
     
+    @SneakyThrows
     public static void putObjectOpaque(Object base, long offset, Object val) {
-        putObjectVolatile(base, offset, val);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            PutOpaque_Java9.putObjectOpaque.invokeExact(base, offset, val);
+        } else { //fall back to volatile store
+            putObjectVolatile(base, offset, val);
+        }
     }
 
     //

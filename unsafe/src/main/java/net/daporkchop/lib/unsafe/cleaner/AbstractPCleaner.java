@@ -21,21 +21,48 @@
 package net.daporkchop.lib.unsafe.cleaner;
 
 import lombok.NonNull;
-import sun.misc.Cleaner;
+import net.daporkchop.lib.unsafe.PCleaner;
+
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 /**
  * @author DaPorkchop_
  */
-public final class SunCleaner extends AbstractPCleaner {
-    private final @NonNull Cleaner delegate;
+abstract class AbstractPCleaner extends PCleaner implements Runnable {
+    protected static final AtomicReferenceFieldUpdater<AbstractPCleaner, Runnable> ACTION_UPDATER = AtomicReferenceFieldUpdater.newUpdater(AbstractPCleaner.class, Runnable.class, "action");
 
-    public SunCleaner(@NonNull Object o, @NonNull Runnable action) {
-        super(action);
-        this.delegate = Cleaner.create(o, this);
+    //possible values:
+    //  - non-null (cleaner is live, this.run() will replace the action with null)
+    //  - null (cleaner has been run or cancelled)
+    protected volatile Runnable action;
+
+    protected AbstractPCleaner(@NonNull Runnable action) {
+        this.action = action;
     }
 
     @Override
-    public void clean() {
-        this.delegate.clean();
+    public final void run() {
+        Runnable action = ACTION_UPDATER.getAndSet(this, null);
+        if (action != null) {
+            action.run();
+        }
+    }
+
+    @Override
+    public void cancel() {
+        this.action = null;
+        this.clean();
+    }
+
+    @Override
+    public Runnable replace(@NonNull Runnable action) {
+        Runnable oldAction;
+        do {
+            oldAction = this.action;
+            if (oldAction == null) {
+                throw new IllegalStateException("cleaner was already run or cancelled");
+            }
+        } while (!ACTION_UPDATER.weakCompareAndSet(this, oldAction, action));
+        return oldAction;
     }
 }

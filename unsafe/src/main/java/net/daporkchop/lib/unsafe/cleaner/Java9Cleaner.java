@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -20,88 +20,48 @@
 
 package net.daporkchop.lib.unsafe.cleaner;
 
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.unsafe.PCleaner;
+import lombok.SneakyThrows;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.concurrent.ThreadFactory;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 
 /**
- * Implementation of {@link PCleaner} for Java versions greater than 9.
- *
  * @author DaPorkchop_
  */
-@Accessors(fluent = true)
-public final class Java9Cleaner extends PCleaner implements Runnable {
-    private static final Class<?> CLEANER_CLASS;
-    private static final Class<?> CLEANABLE_CLASS;
-
-    private static final Method CLEANER_REGISTER;
-    private static final Method CLEANABLE_RUN;
+public final class Java9Cleaner extends AbstractPCleaner {
+    private static final MethodHandle Cleaner_register; // (Cleaner, Object, Runnable) -> Cleaner.Cleanable
+    private static final MethodHandle Cleaner$Cleanable_clean; // (Cleaner.Cleanable) -> void
 
     private static final Object CLEANER_INSTANCE;
 
     static {
         try {
-            CLEANER_CLASS = Class.forName("java.lang.ref.Cleaner");
-            CLEANABLE_CLASS = Class.forName("java.lang.ref.Cleaner$Cleanable");
+            Class<?> Cleaner = Class.forName("java.lang.ref.Cleaner");
+            Class<?> Cleaner$Cleanable = Class.forName("java.lang.ref.Cleaner$Cleanable");
 
-            CLEANER_REGISTER = CLEANER_CLASS.getDeclaredMethod("register", Object.class, Runnable.class);
-            CLEANABLE_RUN = CLEANABLE_CLASS.getDeclaredMethod("clean");
+            Cleaner_register = MethodHandles.publicLookup().findVirtual(Cleaner, "register", MethodType.methodType(Cleaner$Cleanable, Object.class, Runnable.class));
+            Cleaner$Cleanable_clean = MethodHandles.publicLookup().findVirtual(Cleaner$Cleanable, "clean", MethodType.methodType(void.class));
 
-            Method create = CLEANER_CLASS.getDeclaredMethod("create", ThreadFactory.class);
-            CLEANER_INSTANCE = create.invoke(null, (ThreadFactory) r -> new Thread(r, "PorkLib cleaner thread"));
-        } catch (Throwable e) {
-            throw new RuntimeException("Unable to initialize Java9Cleaner!", e);
+            CLEANER_INSTANCE = MethodHandles.publicLookup().findStatic(Cleaner, "create", MethodType.methodType(Cleaner)).invoke();
+        } catch (Throwable t) {
+            throw PUnsafe.throwException(t);
         }
     }
 
-    private final Object   cleanable;
-    private       Runnable thunk;
+    private final Object cleanable;
 
-    @Getter
-    private       boolean  hasRun;
-
-    public Java9Cleaner(@NonNull Object o, @NonNull Runnable cleaner) {
-        this.thunk = cleaner;
-
-        try {
-            this.cleanable = CLEANER_REGISTER.invoke(CLEANER_INSTANCE, o, this);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException("Couldn't register cleaner!", e);
-        }
+    @SneakyThrows
+    public Java9Cleaner(@NonNull Object o, @NonNull Runnable action) {
+        super(action);
+        this.cleanable = Cleaner_register.invoke(CLEANER_INSTANCE, o, this);
     }
 
     @Override
-    public synchronized void run() {
-        if (this.hasRun) {
-            throw new IllegalStateException("Cleaner already run!");
-        }
-
-        try {
-            this.thunk.run();
-        } finally {
-            this.thunk = null;
-            this.hasRun = true;
-        }
-    }
-
-    @Override
-    public synchronized boolean clean() {
-        if (!this.hasRun) {
-            try {
-                CLEANABLE_RUN.invoke(this.cleanable);
-                if (!this.hasRun) {
-                    throw new IllegalStateException("Cleaner didn't run!");
-                }
-                return true;
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                throw new RuntimeException("Couldn't run cleaner!", e);
-            }
-        }
-        return false;
+    @SneakyThrows
+    public void clean() {
+        Cleaner$Cleanable_clean.invoke(this.cleanable);
     }
 }

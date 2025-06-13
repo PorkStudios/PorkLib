@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2022 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -46,7 +46,7 @@ public interface DirectMemoryHolder extends Releasable {
      * <p>
      * The memory block may not be resized (i.e. with {@link PUnsafe#reallocateMemory(long, long)}).
      */
-    abstract class AbstractConstantSize implements DirectMemoryHolder {
+    abstract class AbstractConstantSize extends AbstractReleasable implements DirectMemoryHolder {
         protected final long pos;
         protected final long size;
         protected final PCleaner cleaner;
@@ -57,10 +57,8 @@ public interface DirectMemoryHolder extends Releasable {
         }
 
         @Override
-        public void release() throws AlreadyReleasedException {
-            if (!this.cleaner.clean())   {
-                throw new AlreadyReleasedException();
-            }
+        protected void doRelease() {
+            this.cleaner.clean();
         }
     }
 }

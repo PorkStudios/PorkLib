@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2022 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -25,7 +25,6 @@ import net.daporkchop.lib.unsafe.cleaner.Java9Cleaner;
 import net.daporkchop.lib.unsafe.cleaner.SunCleaner;
 import sun.misc.Cleaner;
 
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiFunction;
 
 /**
@@ -44,68 +43,60 @@ public abstract class PCleaner {
      * Makes a new cleaner targeting a given object. When that object is garbage collected, the given
      * cleaner function will be executed.
      *
-     * @param o       the target object. The cleaner will not run until this object has been garbage collected
-     * @param cleaner the function to run once the target object has been garbage collected
+     * @param o      the target object. The cleaner will not run until this object has been garbage collected
+     * @param action the function to run once the target object has been garbage collected
      * @return an instance of {@link PCleaner}
      */
-    public static PCleaner cleaner(@NonNull Object o, @NonNull Runnable cleaner) {
-        return CLEANER_PROVIDER.apply(o, cleaner);
+    public static PCleaner cleaner(@NonNull Object o, @NonNull Runnable action) {
+        return CLEANER_PROVIDER.apply(o, action);
+    }
+
+    /**
+     * Gets a {@link Runnable} which will call {@link PUnsafe#freeMemory(long)} on the given address parameter when {@link Runnable#run() run}.
+     *
+     * @param addr the memory address to free
+     * @return a {@link Runnable}
+     */
+    public static Runnable freeDirectMemoryAction(long addr) {
+        return () -> PUnsafe.freeMemory(addr);
     }
 
     /**
      * Makes a new cleaner targeting a given object. When that object is garbage collected, the given
      * memory address will be freed (i.e. {@link PUnsafe#freeMemory(long)} will be invoked, with the
      * given address passed as the parameter).
-     * <p>
-     * CAUTION!
-     * This can be dangerous to use if the target address has a possibility of being changed (i.e.
-     * via {@link PUnsafe#reallocateMemory(long, long)}) or being freed (i.e. via {@link PUnsafe#freeMemory(long)})
-     * before the cleaner runs. Calling those methods before the cleaner runs will cause addr to no
-     * longer be a valid pointer to an allocated memory block, and when the cleaner does run, the results
-     * are undefined. If you plan to do something similar, make sure to do the following:
-     * - Instead of calling {@link PUnsafe#freeMemory(long)}, use {@link #clean()}
-     * It is highly advisable to use {@link #cleaner(Object, AtomicLong)} unless you are sure that
-     * the address will not change.
      *
      * @param o    the target object. The cleaner will not run until this object has been garbage collected
      * @param addr the address of the memory to free once the target object has been garbage collected
      * @return an instance of {@link PCleaner}
      */
     public static PCleaner cleaner(@NonNull Object o, long addr) {
-        return CLEANER_PROVIDER.apply(o, () -> PUnsafe.freeMemory(addr));
+        return cleaner(o, freeDirectMemoryAction(addr));
     }
 
     /**
-     * Makes a new cleaner targeting a given object. When that object is garbage collected, the memory
-     * address contained within the given {@link AtomicLong} will be freed (i.e. {@link PUnsafe#freeMemory(long)} will
-     * be invoked, with the address passed as the parameter), and the pos reference set to {@code -1L}.
-     * If, however, the address is already set to {@code -1L}, no action will be taken. This is preferable
-     * over {@link #cleaner(Object, long)} in scenarios where the memory may be freed in advance due to the
-     * fact that the address may be modified and removed without needing to update the cleaner.
-     *
-     * @param o       the target object. The cleaner will not run until this object has been garbage collected
-     * @param addrRef a reference to the address of the memory to free once the target object has
-     *                been garbage collected
-     * @return an instance of {@link PCleaner}
+     * Runs this cleaner.
+     * <p>
+     * If this cleaner has already been run or has been {@link #cancel() cancelled}, this method does nothing.
      */
-    public static PCleaner cleaner(@NonNull Object o, @NonNull AtomicLong addrRef) {
-        return CLEANER_PROVIDER.apply(o, () -> {
-            long addr = addrRef.getAndSet(-1L);
-            if (addr > 0L) {
-                PUnsafe.freeMemory(addr);
-            }
-        });
-    }
+    public abstract void clean();
 
     /**
-     * Runs this cleaner. If this cleaner has already been run, this function does nothing.
-     *
-     * @return whether or not the cleaner was run
+     * Cancel this cleaner.
+     * <p>
+     * If this cleaner has already been run or has been {@link #cancel() cancelled}, this method does nothing.
+     * <p>
+     * If it hasn't been run yet, the cleaner will not be run in the future by a subsequent call to {@link #clean()} or when the target object is garbage collected.
      */
-    public abstract boolean clean();
+    public abstract void cancel();
 
     /**
-     * @return whether or not this cleaner has already been run
+     * Replaces this cleaner's action with a different action.
+     * <p>
+     * The previous action will be returned without being run.
+     *
+     * @return the previous action
+     * @throws IllegalStateException if this cleaner has already been run or has been {@link #cancel() cancelled}
      */
-    public abstract boolean hasRun();
+    public abstract Runnable replace(@NonNull Runnable action);
 }

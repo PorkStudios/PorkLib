@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2024 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -15,6 +15,7 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  */
 
 package net.daporkchop.lib.collections.collectors;
@@ -22,8 +23,11 @@ package net.daporkchop.lib.collections.collectors;
 import lombok.experimental.UtilityClass;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -56,7 +60,7 @@ public class PCollectors {
      */
     public static <T> BinaryOperator<T> throwingMerger() {
         return (u, v) -> {
-            throw new IllegalStateException(String.format("Duplicate key %s", u));
+            throw new IllegalStateException("Duplicate key <unknown> (attempted merging values " + u + " and " + v + ')');
         };
     }
 
@@ -86,6 +90,13 @@ public class PCollectors {
     }
 
     /**
+     * @return a {@link Supplier} which returns new instances of {@link IdentityHashMap}
+     */
+    public static <K, V> Supplier<IdentityHashMap<K, V>> identityHashMapFactory() {
+        return IdentityHashMap::new;
+    }
+
+    /**
      * @return a {@link Supplier} which returns new instances of {@link LinkedHashMap}
      */
     public static <K, V> Supplier<LinkedHashMap<K, V>> linkedHashMapFactory() {
@@ -97,6 +108,15 @@ public class PCollectors {
      */
     public static <K, V> Supplier<TreeMap<K, V>> treeMapFactory() {
         return TreeMap::new;
+    }
+
+    /**
+     * @param keyClass the key class
+     * @return a {@link Supplier} which returns new instances of {@link EnumMap}
+     */
+    public static <K extends Enum<K>, V> Supplier<EnumMap<K, V>> enumMapFactory(Class<K> keyClass) {
+        assert keyClass.isEnum() : "not an enum: " + keyClass;
+        return () -> new EnumMap<>(keyClass);
     }
 
     /**
@@ -118,6 +138,15 @@ public class PCollectors {
      */
     public static <E> Supplier<TreeSet<E>> treeSetFactory() {
         return TreeSet::new;
+    }
+
+    /**
+     * @param elementClass the element class
+     * @return a {@link Supplier} which returns new instances of {@link EnumSet}
+     */
+    public static <E extends Enum<E>> Supplier<EnumSet<E>> enumSetFactory(Class<E> elementClass) {
+        assert elementClass.isEnum() : "not an enum: " + elementClass;
+        return () -> EnumSet.noneOf(elementClass);
     }
 
     /**
@@ -157,6 +186,15 @@ public class PCollectors {
     }
 
     /**
+     * Variant of {@link Collectors#toMap(Function, Function)} which always returns a {@link IdentityHashMap}.
+     *
+     * @see Collectors#toMap(Function, Function)
+     */
+    public static <T, K, U> Collector<T, ?, IdentityHashMap<K, U>> toIdentityHashMap(Function<? super T, ? extends K> keyMapper, Function<? super T, ? extends U> valueMapper) {
+        return toMap(keyMapper, valueMapper, identityHashMapFactory());
+    }
+
+    /**
      * Variant of {@link Collectors#toMap(Function, Function)} which always returns a {@link LinkedHashMap} with entries added in encounter order.
      *
      * @see Collectors#toMap(Function, Function)
@@ -172,6 +210,15 @@ public class PCollectors {
      */
     public static <T, K, U> Collector<T, ?, TreeMap<K, U>> toTreeMap(Function<? super T, ? extends K> keyMapper, Function<? super T, ? extends U> valueMapper) {
         return toMap(keyMapper, valueMapper, treeMapFactory());
+    }
+
+    /**
+     * Variant of {@link Collectors#toMap(Function, Function)} which always returns an {@link EnumMap}.
+     *
+     * @see Collectors#toMap(Function, Function)
+     */
+    public static <T, K extends Enum<K>, U> Collector<T, ?, EnumMap<K, U>> toEnumMap(Class<K> keyClass, Function<? super T, ? extends K> keyMapper, Function<? super T, ? extends U> valueMapper) {
+        return toMap(keyMapper, valueMapper, enumMapFactory(keyClass));
     }
 
     /**
@@ -209,6 +256,15 @@ public class PCollectors {
      */
     public static <E> Collector<E, ?, TreeSet<E>> toTreeSet() {
         return toSet(treeSetFactory());
+    }
+
+    /**
+     * Variant of {@link Collectors#toSet()} which always returns an {@link EnumSet}.
+     *
+     * @see Collectors#toSet()
+     */
+    public static <E extends Enum<E>> Collector<E, ?, EnumSet<E>> toEnumSet(Class<E> elementClass) {
+        return toSet(enumSetFactory(elementClass));
     }
 
     /**

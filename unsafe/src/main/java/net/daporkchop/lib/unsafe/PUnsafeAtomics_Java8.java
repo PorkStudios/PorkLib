@@ -28,7 +28,6 @@ import static net.daporkchop.lib.unsafe.UnsafePlatformInfo.*;
  *
  * @author DaPorkchop_
  */
-@SuppressWarnings("unused")
 @UtilityClass
 class PUnsafeAtomics_Java8 {
     //

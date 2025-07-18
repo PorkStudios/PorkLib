@@ -843,7 +843,7 @@ public class PUnsafe {
     public static void putIntVolatile(Object base, long offset, int val) {
         sun_misc_Unsafe.putIntVolatile(base, offset, val);
     }
-    
+
     public static void putLongVolatile(Object base, long offset, long val) {
         sun_misc_Unsafe.putLongVolatile(base, offset, val);
     }
@@ -864,97 +864,73 @@ public class PUnsafe {
     // ACQUIRE LOADS
     //
 
-    //for emulating this on Java 8:
-    //  acquire is equivalent to a regular load followed by Unsafe#loadFence(): https://cr.openjdk.org/~shade/8132332/8132332.jdk.patch
-
-    private static final class GetAcquire_Java9 {
-        static final MethodHandle getBooleanAcquire = getNewUnsafeMethod("getBooleanAcquire", MethodType.methodType(boolean.class, Object.class, long.class));
-        static final MethodHandle getByteAcquire = getNewUnsafeMethod("getByteAcquire", MethodType.methodType(byte.class, Object.class, long.class));
-        static final MethodHandle getShortAcquire = getNewUnsafeMethod("getShortAcquire", MethodType.methodType(short.class, Object.class, long.class));
-        static final MethodHandle getCharAcquire = getNewUnsafeMethod("getCharAcquire", MethodType.methodType(char.class, Object.class, long.class));
-        static final MethodHandle getIntAcquire = getNewUnsafeMethod("getIntAcquire", MethodType.methodType(int.class, Object.class, long.class));
-        static final MethodHandle getLongAcquire = getNewUnsafeMethod("getLongAcquire", MethodType.methodType(long.class, Object.class, long.class));
-        static final MethodHandle getFloatAcquire = getNewUnsafeMethod("getFloatAcquire", MethodType.methodType(float.class, Object.class, long.class));
-        static final MethodHandle getDoubleAcquire = getNewUnsafeMethod("getDoubleAcquire", MethodType.methodType(double.class, Object.class, long.class));
-        static final MethodHandle getObjectAcquire = getNewUnsafeMethod("getObjectAcquire", MethodType.methodType(Object.class, Object.class, long.class));
-    }
-
-    @SneakyThrows
     public static boolean getBooleanAcquire(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            return (boolean) GetAcquire_Java9.getBooleanAcquire.invokeExact(base, offset);
+            return PUnsafeAtomics_Java9.getBooleanAcquire(base, offset);
         } else {
             return PUnsafeAtomics_Java8.getBooleanAcquire(base, offset);
         }
     }
 
-    @SneakyThrows
     public static byte getByteAcquire(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            return (byte) GetAcquire_Java9.getByteAcquire.invokeExact(base, offset);
+            return PUnsafeAtomics_Java9.getByteAcquire(base, offset);
         } else {
             return PUnsafeAtomics_Java8.getByteAcquire(base, offset);
         }
     }
 
-    @SneakyThrows
     public static short getShortAcquire(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            return (short) GetAcquire_Java9.getShortAcquire.invokeExact(base, offset);
+            return PUnsafeAtomics_Java9.getShortAcquire(base, offset);
         } else {
             return PUnsafeAtomics_Java8.getShortAcquire(base, offset);
         }
     }
 
-    @SneakyThrows
     public static char getCharAcquire(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            return (char) GetAcquire_Java9.getCharAcquire.invokeExact(base, offset);
+            return PUnsafeAtomics_Java9.getCharAcquire(base, offset);
         } else {
             return PUnsafeAtomics_Java8.getCharAcquire(base, offset);
         }
     }
 
-    @SneakyThrows
     public static int getIntAcquire(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            return (int) GetAcquire_Java9.getIntAcquire.invokeExact(base, offset);
+            return PUnsafeAtomics_Java9.getIntAcquire(base, offset);
         } else {
             return PUnsafeAtomics_Java8.getIntAcquire(base, offset);
         }
     }
 
-    @SneakyThrows
     public static long getLongAcquire(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            return (long) GetAcquire_Java9.getLongAcquire.invokeExact(base, offset);
+            return PUnsafeAtomics_Java9.getLongAcquire(base, offset);
         } else {
             return PUnsafeAtomics_Java8.getLongAcquire(base, offset);
         }
     }
 
-    @SneakyThrows
     public static float getFloatAcquire(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            return (float) GetAcquire_Java9.getFloatAcquire.invokeExact(base, offset);
+            return PUnsafeAtomics_Java9.getFloatAcquire(base, offset);
         } else {
             return PUnsafeAtomics_Java8.getFloatAcquire(base, offset);
         }
     }
 
-    @SneakyThrows
     public static double getDoubleAcquire(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            return (double) GetAcquire_Java9.getDoubleAcquire.invokeExact(base, offset);
+            return PUnsafeAtomics_Java9.getDoubleAcquire(base, offset);
         } else {
             return PUnsafeAtomics_Java8.getDoubleAcquire(base, offset);
         }
     }
 
-    @SneakyThrows
     public static <T> T getObjectAcquire(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            return (T) (Object) GetAcquire_Java9.getObjectAcquire.invokeExact(base, offset);
+            return (T) PUnsafeAtomics_Java9.getObjectAcquire(base, offset);
         } else {
             return (T) PUnsafeAtomics_Java8.getObjectAcquire(base, offset);
         }
@@ -964,97 +940,73 @@ public class PUnsafe {
     // RELEASE STORES
     //
 
-    //for emulating this on Java 8:
-    //  Unsafe.putOrdered*() has release semantics [citation needed], so we should use it where possible, otherwise fall back to volatile stores
-
-    private static final class PutRelease_Java9 {
-        static final MethodHandle putBooleanRelease = getNewUnsafeMethod("putBooleanRelease", MethodType.methodType(void.class, Object.class, long.class, boolean.class));
-        static final MethodHandle putByteRelease = getNewUnsafeMethod("putByteRelease", MethodType.methodType(void.class, Object.class, long.class, byte.class));
-        static final MethodHandle putShortRelease = getNewUnsafeMethod("putShortRelease", MethodType.methodType(void.class, Object.class, long.class, short.class));
-        static final MethodHandle putCharRelease = getNewUnsafeMethod("putCharRelease", MethodType.methodType(void.class, Object.class, long.class, char.class));
-        static final MethodHandle putIntRelease = getNewUnsafeMethod("putIntRelease", MethodType.methodType(void.class, Object.class, long.class, int.class));
-        static final MethodHandle putLongRelease = getNewUnsafeMethod("putLongRelease", MethodType.methodType(void.class, Object.class, long.class, long.class));
-        static final MethodHandle putFloatRelease = getNewUnsafeMethod("putFloatRelease", MethodType.methodType(void.class, Object.class, long.class, float.class));
-        static final MethodHandle putDoubleRelease = getNewUnsafeMethod("putDoubleRelease", MethodType.methodType(void.class, Object.class, long.class, double.class));
-        static final MethodHandle putObjectRelease = getNewUnsafeMethod("putObjectRelease", MethodType.methodType(void.class, Object.class, long.class, Object.class));
-    }
-
-    @SneakyThrows
     public static void putBooleanRelease(Object base, long offset, boolean val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            PutRelease_Java9.putBooleanRelease.invokeExact(base, offset, val);
+            PUnsafeAtomics_Java9.putBooleanRelease(base, offset, val);
         } else {
             PUnsafeAtomics_Java8.putBooleanRelease(base, offset, val);
         }
     }
 
-    @SneakyThrows
     public static void putByteRelease(Object base, long offset, byte val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            PutRelease_Java9.putByteRelease.invokeExact(base, offset, val);
+            PUnsafeAtomics_Java9.putByteRelease(base, offset, val);
         } else {
             PUnsafeAtomics_Java8.putByteRelease(base, offset, val);
         }
     }
 
-    @SneakyThrows
     public static void putShortRelease(Object base, long offset, short val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            PutRelease_Java9.putShortRelease.invokeExact(base, offset, val);
+            PUnsafeAtomics_Java9.putShortRelease(base, offset, val);
         } else {
             PUnsafeAtomics_Java8.putShortRelease(base, offset, val);
         }
     }
 
-    @SneakyThrows
     public static void putCharRelease(Object base, long offset, char val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            PutRelease_Java9.putCharRelease.invokeExact(base, offset, val);
+            PUnsafeAtomics_Java9.putCharRelease(base, offset, val);
         } else {
             PUnsafeAtomics_Java8.putCharRelease(base, offset, val);
         }
     }
 
-    @SneakyThrows
     public static void putIntRelease(Object base, long offset, int val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            PutRelease_Java9.putIntRelease.invokeExact(base, offset, val);
+            PUnsafeAtomics_Java9.putIntRelease(base, offset, val);
         } else {
             PUnsafeAtomics_Java8.putIntRelease(base, offset, val);
         }
     }
 
-    @SneakyThrows
     public static void putLongRelease(Object base, long offset, long val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            PutRelease_Java9.putLongRelease.invokeExact(base, offset, val);
+            PUnsafeAtomics_Java9.putLongRelease(base, offset, val);
         } else {
             PUnsafeAtomics_Java8.putLongRelease(base, offset, val);
         }
     }
 
-    @SneakyThrows
     public static void putFloatRelease(Object base, long offset, float val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            PutRelease_Java9.putFloatRelease.invokeExact(base, offset, val);
+            PUnsafeAtomics_Java9.putFloatRelease(base, offset, val);
         } else {
             PUnsafeAtomics_Java8.putFloatRelease(base, offset, val);
         }
     }
 
-    @SneakyThrows
     public static void putDoubleRelease(Object base, long offset, double val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            PutRelease_Java9.putDoubleRelease.invokeExact(base, offset, val);
+            PUnsafeAtomics_Java9.putDoubleRelease(base, offset, val);
         } else {
             PUnsafeAtomics_Java8.putDoubleRelease(base, offset, val);
         }
     }
 
-    @SneakyThrows
     public static void putObjectRelease(Object base, long offset, Object val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            PutRelease_Java9.putObjectRelease.invokeExact(base, offset, val);
+            PUnsafeAtomics_Java9.putObjectRelease(base, offset, val);
         } else {
             PUnsafeAtomics_Java8.putObjectRelease(base, offset, val);
         }
@@ -1064,94 +1016,73 @@ public class PUnsafe {
     // OPAQUE LOADS
     //
 
-    private static final class GetOpaque_Java9 {
-        static final MethodHandle getBooleanOpaque = getNewUnsafeMethod("getBooleanOpaque", MethodType.methodType(boolean.class, Object.class, long.class));
-        static final MethodHandle getByteOpaque = getNewUnsafeMethod("getByteOpaque", MethodType.methodType(byte.class, Object.class, long.class));
-        static final MethodHandle getShortOpaque = getNewUnsafeMethod("getShortOpaque", MethodType.methodType(short.class, Object.class, long.class));
-        static final MethodHandle getCharOpaque = getNewUnsafeMethod("getCharOpaque", MethodType.methodType(char.class, Object.class, long.class));
-        static final MethodHandle getIntOpaque = getNewUnsafeMethod("getIntOpaque", MethodType.methodType(int.class, Object.class, long.class));
-        static final MethodHandle getLongOpaque = getNewUnsafeMethod("getLongOpaque", MethodType.methodType(long.class, Object.class, long.class));
-        static final MethodHandle getFloatOpaque = getNewUnsafeMethod("getFloatOpaque", MethodType.methodType(float.class, Object.class, long.class));
-        static final MethodHandle getDoubleOpaque = getNewUnsafeMethod("getDoubleOpaque", MethodType.methodType(double.class, Object.class, long.class));
-        static final MethodHandle getObjectOpaque = getNewUnsafeMethod("getObjectOpaque", MethodType.methodType(Object.class, Object.class, long.class));
-    }
-
-    @SneakyThrows
     public static boolean getBooleanOpaque(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            return (boolean) GetOpaque_Java9.getBooleanOpaque.invokeExact(base, offset);
+            return PUnsafeAtomics_Java9.getBooleanOpaque(base, offset);
         } else {
             return PUnsafeAtomics_Java8.getBooleanOpaque(base, offset);
         }
     }
 
-    @SneakyThrows
     public static byte getByteOpaque(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            return (byte) GetOpaque_Java9.getByteOpaque.invokeExact(base, offset);
+            return PUnsafeAtomics_Java9.getByteOpaque(base, offset);
         } else {
             return PUnsafeAtomics_Java8.getByteOpaque(base, offset);
         }
     }
 
-    @SneakyThrows
     public static short getShortOpaque(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            return (short) GetOpaque_Java9.getShortOpaque.invokeExact(base, offset);
+            return PUnsafeAtomics_Java9.getShortOpaque(base, offset);
         } else {
             return PUnsafeAtomics_Java8.getShortOpaque(base, offset);
         }
     }
 
-    @SneakyThrows
     public static char getCharOpaque(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            return (char) GetOpaque_Java9.getCharOpaque.invokeExact(base, offset);
+            return PUnsafeAtomics_Java9.getCharOpaque(base, offset);
         } else {
             return PUnsafeAtomics_Java8.getCharOpaque(base, offset);
         }
     }
 
-    @SneakyThrows
     public static int getIntOpaque(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            return (int) GetOpaque_Java9.getIntOpaque.invokeExact(base, offset);
+            return PUnsafeAtomics_Java9.getIntOpaque(base, offset);
         } else {
             return PUnsafeAtomics_Java8.getIntOpaque(base, offset);
         }
     }
 
-    @SneakyThrows
     public static long getLongOpaque(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            return (long) GetOpaque_Java9.getLongOpaque.invokeExact(base, offset);
+            return PUnsafeAtomics_Java9.getLongOpaque(base, offset);
         } else {
             return PUnsafeAtomics_Java8.getLongOpaque(base, offset);
         }
     }
 
-    @SneakyThrows
     public static float getFloatOpaque(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            return (float) GetOpaque_Java9.getFloatOpaque.invokeExact(base, offset);
+            return PUnsafeAtomics_Java9.getFloatOpaque(base, offset);
         } else {
             return PUnsafeAtomics_Java8.getFloatOpaque(base, offset);
         }
     }
 
-    @SneakyThrows
     public static double getDoubleOpaque(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            return (double) GetOpaque_Java9.getDoubleOpaque.invokeExact(base, offset);
+            return PUnsafeAtomics_Java9.getDoubleOpaque(base, offset);
         } else {
             return PUnsafeAtomics_Java8.getDoubleOpaque(base, offset);
         }
     }
 
-    @SneakyThrows
     public static <T> T getObjectOpaque(Object base, long offset) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            return (T) (Object) GetOpaque_Java9.getObjectOpaque.invokeExact(base, offset);
+            return (T) PUnsafeAtomics_Java9.getObjectOpaque(base, offset);
         } else {
             return (T) PUnsafeAtomics_Java8.getObjectOpaque(base, offset);
         }
@@ -1161,94 +1092,73 @@ public class PUnsafe {
     // OPAQUE STORES
     //
 
-    private static final class PutOpaque_Java9 {
-        static final MethodHandle putBooleanOpaque = getNewUnsafeMethod("putBooleanOpaque", MethodType.methodType(void.class, Object.class, long.class, boolean.class));
-        static final MethodHandle putByteOpaque = getNewUnsafeMethod("putByteOpaque", MethodType.methodType(void.class, Object.class, long.class, byte.class));
-        static final MethodHandle putShortOpaque = getNewUnsafeMethod("putShortOpaque", MethodType.methodType(void.class, Object.class, long.class, short.class));
-        static final MethodHandle putCharOpaque = getNewUnsafeMethod("putCharOpaque", MethodType.methodType(void.class, Object.class, long.class, char.class));
-        static final MethodHandle putIntOpaque = getNewUnsafeMethod("putIntOpaque", MethodType.methodType(void.class, Object.class, long.class, int.class));
-        static final MethodHandle putLongOpaque = getNewUnsafeMethod("putLongOpaque", MethodType.methodType(void.class, Object.class, long.class, long.class));
-        static final MethodHandle putFloatOpaque = getNewUnsafeMethod("putFloatOpaque", MethodType.methodType(void.class, Object.class, long.class, float.class));
-        static final MethodHandle putDoubleOpaque = getNewUnsafeMethod("putDoubleOpaque", MethodType.methodType(void.class, Object.class, long.class, double.class));
-        static final MethodHandle putObjectOpaque = getNewUnsafeMethod("putObjectOpaque", MethodType.methodType(void.class, Object.class, long.class, Object.class));
-    }
-
-    @SneakyThrows
     public static void putBooleanOpaque(Object base, long offset, boolean val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            PutOpaque_Java9.putBooleanOpaque.invokeExact(base, offset, val);
+            PUnsafeAtomics_Java9.putBooleanOpaque(base, offset, val);
         } else {
             PUnsafeAtomics_Java8.putBooleanOpaque(base, offset, val);
         }
     }
-    
-    @SneakyThrows
+
     public static void putByteOpaque(Object base, long offset, byte val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            PutOpaque_Java9.putByteOpaque.invokeExact(base, offset, val);
+            PUnsafeAtomics_Java9.putByteOpaque(base, offset, val);
         } else {
             PUnsafeAtomics_Java8.putByteOpaque(base, offset, val);
         }
     }
-    
-    @SneakyThrows
+
     public static void putShortOpaque(Object base, long offset, short val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            PutOpaque_Java9.putShortOpaque.invokeExact(base, offset, val);
+            PUnsafeAtomics_Java9.putShortOpaque(base, offset, val);
         } else {
             PUnsafeAtomics_Java8.putShortOpaque(base, offset, val);
         }
     }
-    
-    @SneakyThrows
+
     public static void putCharOpaque(Object base, long offset, char val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            PutOpaque_Java9.putCharOpaque.invokeExact(base, offset, val);
+            PUnsafeAtomics_Java9.putCharOpaque(base, offset, val);
         } else {
             PUnsafeAtomics_Java8.putCharOpaque(base, offset, val);
         }
     }
-    
-    @SneakyThrows
+
     public static void putIntOpaque(Object base, long offset, int val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            PutOpaque_Java9.putIntOpaque.invokeExact(base, offset, val);
+            PUnsafeAtomics_Java9.putIntOpaque(base, offset, val);
         } else {
             PUnsafeAtomics_Java8.putIntOpaque(base, offset, val);
         }
     }
-    
-    @SneakyThrows
+
     public static void putLongOpaque(Object base, long offset, long val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            PutOpaque_Java9.putLongOpaque.invokeExact(base, offset, val);
+            PUnsafeAtomics_Java9.putLongOpaque(base, offset, val);
         } else {
             PUnsafeAtomics_Java8.putLongOpaque(base, offset, val);
         }
     }
-    
-    @SneakyThrows
+
     public static void putFloatOpaque(Object base, long offset, float val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            PutOpaque_Java9.putFloatOpaque.invokeExact(base, offset, val);
+            PUnsafeAtomics_Java9.putFloatOpaque(base, offset, val);
         } else {
             PUnsafeAtomics_Java8.putFloatOpaque(base, offset, val);
         }
     }
-    
-    @SneakyThrows
+
     public static void putDoubleOpaque(Object base, long offset, double val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            PutOpaque_Java9.putDoubleOpaque.invokeExact(base, offset, val);
+            PUnsafeAtomics_Java9.putDoubleOpaque(base, offset, val);
         } else {
             PUnsafeAtomics_Java8.putDoubleOpaque(base, offset, val);
         }
     }
-    
-    @SneakyThrows
+
     public static void putObjectOpaque(Object base, long offset, Object val) {
         if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
-            PutOpaque_Java9.putObjectOpaque.invokeExact(base, offset, val);
+            PUnsafeAtomics_Java9.putObjectOpaque(base, offset, val);
         } else {
             PUnsafeAtomics_Java8.putObjectOpaque(base, offset, val);
         }
@@ -1462,10 +1372,12 @@ public class PUnsafe {
         throw new IllegalArgumentException();
     }
 
+    //we're intentionally using MethodHandle#invoke() instead of invokeExact() for these functions, since we're actually casting the return type to something else
+
     @SneakyThrows
     public static boolean[] allocateUninitializedBooleanArray(int length) {
         if (allocateUninitializedArray != null) { //use Java 9 intrinsic if possible
-            return (boolean[]) allocateUninitializedArray.invokeExact(boolean.class, length);
+            return (boolean[]) allocateUninitializedArray.invoke(boolean.class, length);
         } else { //fallback to creating a zeroed array
             return new boolean[length];
         }
@@ -1474,7 +1386,7 @@ public class PUnsafe {
     @SneakyThrows
     public static byte[] allocateUninitializedByteArray(int length) {
         if (allocateUninitializedArray != null) { //use Java 9 intrinsic if possible
-            return (byte[]) allocateUninitializedArray.invokeExact(byte.class, length);
+            return (byte[]) allocateUninitializedArray.invoke(byte.class, length);
         } else { //fallback to creating a zeroed array
             return new byte[length];
         }
@@ -1483,7 +1395,7 @@ public class PUnsafe {
     @SneakyThrows
     public static short[] allocateUninitializedShortArray(int length) {
         if (allocateUninitializedArray != null) { //use Java 9 intrinsic if possible
-            return (short[]) allocateUninitializedArray.invokeExact(short.class, length);
+            return (short[]) allocateUninitializedArray.invoke(short.class, length);
         } else { //fallback to creating a zeroed array
             return new short[length];
         }
@@ -1492,7 +1404,7 @@ public class PUnsafe {
     @SneakyThrows
     public static char[] allocateUninitializedCharArray(int length) {
         if (allocateUninitializedArray != null) { //use Java 9 intrinsic if possible
-            return (char[]) allocateUninitializedArray.invokeExact(char.class, length);
+            return (char[]) allocateUninitializedArray.invoke(char.class, length);
         } else { //fallback to creating a zeroed array
             return new char[length];
         }
@@ -1501,7 +1413,7 @@ public class PUnsafe {
     @SneakyThrows
     public static int[] allocateUninitializedIntArray(int length) {
         if (allocateUninitializedArray != null) { //use Java 9 intrinsic if possible
-            return (int[]) allocateUninitializedArray.invokeExact(int.class, length);
+            return (int[]) allocateUninitializedArray.invoke(int.class, length);
         } else { //fallback to creating a zeroed array
             return new int[length];
         }
@@ -1510,7 +1422,7 @@ public class PUnsafe {
     @SneakyThrows
     public static long[] allocateUninitializedLongArray(int length) {
         if (allocateUninitializedArray != null) { //use Java 9 intrinsic if possible
-            return (long[]) allocateUninitializedArray.invokeExact(long.class, length);
+            return (long[]) allocateUninitializedArray.invoke(long.class, length);
         } else { //fallback to creating a zeroed array
             return new long[length];
         }
@@ -1519,7 +1431,7 @@ public class PUnsafe {
     @SneakyThrows
     public static float[] allocateUninitializedFloatArray(int length) {
         if (allocateUninitializedArray != null) { //use Java 9 intrinsic if possible
-            return (float[]) allocateUninitializedArray.invokeExact(float.class, length);
+            return (float[]) allocateUninitializedArray.invoke(float.class, length);
         } else { //fallback to creating a zeroed array
             return new float[length];
         }
@@ -1528,7 +1440,7 @@ public class PUnsafe {
     @SneakyThrows
     public static double[] allocateUninitializedDoubleArray(int length) {
         if (allocateUninitializedArray != null) { //use Java 9 intrinsic if possible
-            return (double[]) allocateUninitializedArray.invokeExact(double.class, length);
+            return (double[]) allocateUninitializedArray.invoke(double.class, length);
         } else { //fallback to creating a zeroed array
             return new double[length];
         }
@@ -1657,190 +1569,364 @@ public class PUnsafe {
     // JAVA 9+ ATOMIC UPDATES
     //
 
-    //TODO: all of these should forward to the new unsafe intrinsics on java 9+
-
     // boolean
 
     public static boolean compareAndSetBoolean(Object o, long offset, boolean expected, boolean newValue) {
-        return PUnsafeAtomics_Java8.compareAndSetBoolean(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.compareAndSetBoolean(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.compareAndSetBoolean(o, offset, expected, newValue);
+        }
     }
 
     public static boolean weakCompareAndSetBoolean(Object o, long offset, boolean expected, boolean newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetBoolean(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetBoolean(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetBoolean(o, offset, expected, newValue);
+        }
     }
 
     public static boolean weakCompareAndSetBooleanPlain(Object o, long offset, boolean expected, boolean newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetBooleanPlain(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetBooleanPlain(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetBooleanPlain(o, offset, expected, newValue);
+        }
     }
 
     public static boolean weakCompareAndSetBooleanAcquire(Object o, long offset, boolean expected, boolean newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetBooleanAcquire(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetBooleanAcquire(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetBooleanAcquire(o, offset, expected, newValue);
+        }
     }
 
     public static boolean weakCompareAndSetBooleanRelease(Object o, long offset, boolean expected, boolean newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetBooleanRelease(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetBooleanRelease(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetBooleanRelease(o, offset, expected, newValue);
+        }
     }
 
     public static boolean compareAndExchangeBoolean(Object o, long offset, boolean expected, boolean newValue) {
-        return PUnsafeAtomics_Java8.compareAndExchangeBoolean(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.compareAndExchangeBoolean(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.compareAndExchangeBoolean(o, offset, expected, newValue);
+        }
     }
 
     public static boolean compareAndExchangeBooleanAcquire(Object o, long offset, boolean expected, boolean newValue) {
-        return PUnsafeAtomics_Java8.compareAndExchangeBooleanAcquire(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.compareAndExchangeBooleanAcquire(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.compareAndExchangeBooleanAcquire(o, offset, expected, newValue);
+        }
     }
 
     public static boolean compareAndExchangeBooleanRelease(Object o, long offset, boolean expected, boolean newValue) {
-        return PUnsafeAtomics_Java8.compareAndExchangeBooleanRelease(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.compareAndExchangeBooleanRelease(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.compareAndExchangeBooleanRelease(o, offset, expected, newValue);
+        }
     }
 
     public static boolean getAndSetBoolean(Object o, long offset, boolean newValue) {
-        return PUnsafeAtomics_Java8.getAndSetBoolean(o, offset, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndSetBoolean(o, offset, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.getAndSetBoolean(o, offset, newValue);
+        }
     }
 
     public static boolean getAndSetBooleanRelease(Object o, long offset, boolean newValue) {
-        return PUnsafeAtomics_Java8.getAndSetBooleanRelease(o, offset, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndSetBooleanRelease(o, offset, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.getAndSetBooleanRelease(o, offset, newValue);
+        }
     }
 
     public static boolean getAndSetBooleanAcquire(Object o, long offset, boolean newValue) {
-        return PUnsafeAtomics_Java8.getAndSetBooleanAcquire(o, offset, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndSetBooleanAcquire(o, offset, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.getAndSetBooleanAcquire(o, offset, newValue);
+        }
     }
 
     // byte
 
     public static boolean compareAndSetByte(Object o, long offset, byte expected, byte newValue) {
-        return PUnsafeAtomics_Java8.compareAndSetByte(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.compareAndSetByte(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.compareAndSetByte(o, offset, expected, newValue);
+        }
     }
 
     public static boolean weakCompareAndSetByte(Object o, long offset, byte expected, byte newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetByte(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetByte(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetByte(o, offset, expected, newValue);
+        }
     }
 
     public static boolean weakCompareAndSetBytePlain(Object o, long offset, byte expected, byte newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetBytePlain(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetBytePlain(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetBytePlain(o, offset, expected, newValue);
+        }
     }
 
     public static boolean weakCompareAndSetByteAcquire(Object o, long offset, byte expected, byte newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetByteAcquire(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetByteAcquire(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetByteAcquire(o, offset, expected, newValue);
+        }
     }
 
     public static boolean weakCompareAndSetByteRelease(Object o, long offset, byte expected, byte newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetByteRelease(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetByteRelease(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetByteRelease(o, offset, expected, newValue);
+        }
     }
 
     public static byte compareAndExchangeByte(Object o, long offset, byte expected, byte newValue) {
-        return PUnsafeAtomics_Java8.compareAndExchangeByte(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.compareAndExchangeByte(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.compareAndExchangeByte(o, offset, expected, newValue);
+        }
     }
 
     public static byte compareAndExchangeByteAcquire(Object o, long offset, byte expected, byte newValue) {
-        return PUnsafeAtomics_Java8.compareAndExchangeByteAcquire(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.compareAndExchangeByteAcquire(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.compareAndExchangeByteAcquire(o, offset, expected, newValue);
+        }
     }
 
     public static byte compareAndExchangeByteRelease(Object o, long offset, byte expected, byte newValue) {
-        return PUnsafeAtomics_Java8.compareAndExchangeByteRelease(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.compareAndExchangeByteRelease(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.compareAndExchangeByteRelease(o, offset, expected, newValue);
+        }
     }
 
     public static byte getAndSetByte(Object o, long offset, byte newValue) {
-        return PUnsafeAtomics_Java8.getAndSetByte(o, offset, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndSetByte(o, offset, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.getAndSetByte(o, offset, newValue);
+        }
     }
 
     public static byte getAndSetByteAcquire(Object o, long offset, byte newValue) {
-        return PUnsafeAtomics_Java8.getAndSetByteAcquire(o, offset, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndSetByteAcquire(o, offset, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.getAndSetByteAcquire(o, offset, newValue);
+        }
     }
 
     public static byte getAndSetByteRelease(Object o, long offset, byte newValue) {
-        return PUnsafeAtomics_Java8.getAndSetByteRelease(o, offset, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndSetByteRelease(o, offset, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.getAndSetByteRelease(o, offset, newValue);
+        }
     }
 
     // short
 
     public static boolean compareAndSetShort(Object o, long offset, short expected, short newValue) {
-        return PUnsafeAtomics_Java8.compareAndSetShort(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.compareAndSetShort(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.compareAndSetShort(o, offset, expected, newValue);
+        }
     }
 
     public static boolean weakCompareAndSetShort(Object o, long offset, short expected, short newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetShort(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetShort(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetShort(o, offset, expected, newValue);
+        }
     }
 
     public static boolean weakCompareAndSetShortPlain(Object o, long offset, short expected, short newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetShortPlain(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetShortPlain(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetShortPlain(o, offset, expected, newValue);
+        }
     }
 
     public static boolean weakCompareAndSetShortAcquire(Object o, long offset, short expected, short newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetShortAcquire(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetShortAcquire(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetShortAcquire(o, offset, expected, newValue);
+        }
     }
 
     public static boolean weakCompareAndSetShortRelease(Object o, long offset, short expected, short newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetShortRelease(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetShortRelease(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetShortRelease(o, offset, expected, newValue);
+        }
     }
 
     public static short compareAndExchangeShort(Object o, long offset, short expected, short newValue) {
-        return PUnsafeAtomics_Java8.compareAndExchangeShort(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.compareAndExchangeShort(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.compareAndExchangeShort(o, offset, expected, newValue);
+        }
     }
 
     public static short compareAndExchangeShortAcquire(Object o, long offset, short expected, short newValue) {
-        return PUnsafeAtomics_Java8.compareAndExchangeShortAcquire(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.compareAndExchangeShortAcquire(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.compareAndExchangeShortAcquire(o, offset, expected, newValue);
+        }
     }
 
     public static short compareAndExchangeShortRelease(Object o, long offset, short expected, short newValue) {
-        return PUnsafeAtomics_Java8.compareAndExchangeShortRelease(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.compareAndExchangeShortRelease(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.compareAndExchangeShortRelease(o, offset, expected, newValue);
+        }
     }
 
     public static short getAndSetShort(Object o, long offset, short newValue) {
-        return PUnsafeAtomics_Java8.getAndSetShort(o, offset, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndSetShort(o, offset, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.getAndSetShort(o, offset, newValue);
+        }
     }
 
     public static short getAndSetShortAcquire(Object o, long offset, short newValue) {
-        return PUnsafeAtomics_Java8.getAndSetShortAcquire(o, offset, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndSetShortAcquire(o, offset, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.getAndSetShortAcquire(o, offset, newValue);
+        }
     }
 
     public static short getAndSetShortRelease(Object o, long offset, short newValue) {
-        return PUnsafeAtomics_Java8.getAndSetShortRelease(o, offset, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndSetShortRelease(o, offset, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.getAndSetShortRelease(o, offset, newValue);
+        }
     }
     
     // char
 
     public static boolean compareAndSetChar(Object o, long offset, char expected, char newValue) {
-        return PUnsafeAtomics_Java8.compareAndSetChar(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.compareAndSetChar(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.compareAndSetChar(o, offset, expected, newValue);
+        }
     }
 
     public static boolean weakCompareAndSetChar(Object o, long offset, char expected, char newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetChar(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetChar(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetChar(o, offset, expected, newValue);
+        }
     }
 
     public static boolean weakCompareAndSetCharPlain(Object o, long offset, char expected, char newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetCharPlain(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetCharPlain(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetCharPlain(o, offset, expected, newValue);
+        }
     }
 
     public static boolean weakCompareAndSetCharAcquire(Object o, long offset, char expected, char newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetCharAcquire(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetCharAcquire(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetCharAcquire(o, offset, expected, newValue);
+        }
     }
 
     public static boolean weakCompareAndSetCharRelease(Object o, long offset, char expected, char newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetCharRelease(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetCharRelease(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetCharRelease(o, offset, expected, newValue);
+        }
     }
 
     public static char compareAndExchangeChar(Object o, long offset, char expected, char newValue) {
-        return PUnsafeAtomics_Java8.compareAndExchangeChar(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.compareAndExchangeChar(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.compareAndExchangeChar(o, offset, expected, newValue);
+        }
     }
 
     public static char compareAndExchangeCharAcquire(Object o, long offset, char expected, char newValue) {
-        return PUnsafeAtomics_Java8.compareAndExchangeCharAcquire(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.compareAndExchangeCharAcquire(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.compareAndExchangeCharAcquire(o, offset, expected, newValue);
+        }
     }
 
     public static char compareAndExchangeCharRelease(Object o, long offset, char expected, char newValue) {
-        return PUnsafeAtomics_Java8.compareAndExchangeCharRelease(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.compareAndExchangeCharRelease(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.compareAndExchangeCharRelease(o, offset, expected, newValue);
+        }
     }
 
     public static char getAndSetChar(Object o, long offset, char newValue) {
-        return PUnsafeAtomics_Java8.getAndSetChar(o, offset, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndSetChar(o, offset, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.getAndSetChar(o, offset, newValue);
+        }
     }
 
     public static char getAndSetCharRelease(Object o, long offset, char newValue) {
-        return PUnsafeAtomics_Java8.getAndSetCharRelease(o, offset, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndSetCharRelease(o, offset, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.getAndSetCharRelease(o, offset, newValue);
+        }
     }
 
     public static char getAndSetCharAcquire(Object o, long offset, char newValue) {
-        return PUnsafeAtomics_Java8.getAndSetCharAcquire(o, offset, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndSetCharAcquire(o, offset, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.getAndSetCharAcquire(o, offset, newValue);
+        }
     }
 
     // int
@@ -1850,31 +1936,59 @@ public class PUnsafe {
     }
 
     public static boolean weakCompareAndSetInt(Object o, long offset, int expected, int newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetInt(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetInt(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetInt(o, offset, expected, newValue);
+        }
     }
 
     public static boolean weakCompareAndSetIntPlain(Object o, long offset, int expected, int newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetIntPlain(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetIntPlain(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetIntPlain(o, offset, expected, newValue);
+        }
     }
 
     public static boolean weakCompareAndSetIntAcquire(Object o, long offset, int expected, int newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetIntAcquire(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetIntAcquire(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetIntAcquire(o, offset, expected, newValue);
+        }
     }
 
     public static boolean weakCompareAndSetIntRelease(Object o, long offset, int expected, int newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetIntRelease(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetIntRelease(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetIntRelease(o, offset, expected, newValue);
+        }
     }
 
     public static int compareAndExchangeInt(Object o, long offset, int expected, int newValue) {
-        return PUnsafeAtomics_Java8.compareAndExchangeInt(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.compareAndExchangeInt(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.compareAndExchangeInt(o, offset, expected, newValue);
+        }
     }
 
     public static int compareAndExchangeIntAcquire(Object o, long offset, int expected, int newValue) {
-        return PUnsafeAtomics_Java8.compareAndExchangeIntAcquire(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.compareAndExchangeIntAcquire(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.compareAndExchangeIntAcquire(o, offset, expected, newValue);
+        }
     }
 
     public static int compareAndExchangeIntRelease(Object o, long offset, int expected, int newValue) {
-        return PUnsafeAtomics_Java8.compareAndExchangeIntRelease(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.compareAndExchangeIntRelease(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.compareAndExchangeIntRelease(o, offset, expected, newValue);
+        }
     }
 
     public static int getAndSetInt(Object o, long offset, int newValue) {
@@ -1882,11 +1996,19 @@ public class PUnsafe {
     }
 
     public static int getAndSetIntAcquire(Object o, long offset, int newValue) {
-        return PUnsafeAtomics_Java8.getAndSetIntAcquire(o, offset, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndSetIntAcquire(o, offset, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.getAndSetIntAcquire(o, offset, newValue);
+        }
     }
 
     public static int getAndSetIntRelease(Object o, long offset, int newValue) {
-        return PUnsafeAtomics_Java8.getAndSetIntRelease(o, offset, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndSetIntRelease(o, offset, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.getAndSetIntRelease(o, offset, newValue);
+        }
     }
 
     // long
@@ -1896,31 +2018,59 @@ public class PUnsafe {
     }
 
     public static boolean weakCompareAndSetLong(Object o, long offset, long expected, long newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetLong(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetLong(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetLong(o, offset, expected, newValue);
+        }
     }
 
     public static boolean weakCompareAndSetLongPlain(Object o, long offset, long expected, long newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetLongPlain(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetLongPlain(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetLongPlain(o, offset, expected, newValue);
+        }
     }
 
     public static boolean weakCompareAndSetLongAcquire(Object o, long offset, long expected, long newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetLongAcquire(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetLongAcquire(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetLongAcquire(o, offset, expected, newValue);
+        }
     }
 
     public static boolean weakCompareAndSetLongRelease(Object o, long offset, long expected, long newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetLongRelease(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetLongRelease(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetLongRelease(o, offset, expected, newValue);
+        }
     }
 
     public static long compareAndExchangeLong(Object o, long offset, long expected, long newValue) {
-        return PUnsafeAtomics_Java8.compareAndExchangeLong(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.compareAndExchangeLong(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.compareAndExchangeLong(o, offset, expected, newValue);
+        }
     }
 
     public static long compareAndExchangeLongAcquire(Object o, long offset, long expected, long newValue) {
-        return PUnsafeAtomics_Java8.compareAndExchangeLongAcquire(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.compareAndExchangeLongAcquire(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.compareAndExchangeLongAcquire(o, offset, expected, newValue);
+        }
     }
 
     public static long compareAndExchangeLongRelease(Object o, long offset, long expected, long newValue) {
-        return PUnsafeAtomics_Java8.compareAndExchangeLongRelease(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.compareAndExchangeLongRelease(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.compareAndExchangeLongRelease(o, offset, expected, newValue);
+        }
     }
 
     public static long getAndSetLong(Object o, long offset, long newValue) {
@@ -1928,103 +2078,199 @@ public class PUnsafe {
     }
 
     public static long getAndSetLongAcquire(Object o, long offset, long newValue) {
-        return PUnsafeAtomics_Java8.getAndSetLongAcquire(o, offset, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndSetLongAcquire(o, offset, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.getAndSetLongAcquire(o, offset, newValue);
+        }
     }
 
     public static long getAndSetLongRelease(Object o, long offset, long newValue) {
-        return PUnsafeAtomics_Java8.getAndSetLongRelease(o, offset, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndSetLongRelease(o, offset, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.getAndSetLongRelease(o, offset, newValue);
+        }
     }
 
     // float
 
     public static boolean compareAndSetFloat(Object o, long offset, float expected, float newValue) {
-        return PUnsafeAtomics_Java8.compareAndSetFloat(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.compareAndSetFloat(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.compareAndSetFloat(o, offset, expected, newValue);
+        }
     }
 
     public static boolean weakCompareAndSetFloat(Object o, long offset, float expected, float newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetFloat(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetFloat(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetFloat(o, offset, expected, newValue);
+        }
     }
 
     public static boolean weakCompareAndSetFloatPlain(Object o, long offset, float expected, float newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetFloatPlain(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetFloatPlain(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetFloatPlain(o, offset, expected, newValue);
+        }
     }
 
     public static boolean weakCompareAndSetFloatAcquire(Object o, long offset, float expected, float newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetFloatAcquire(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetFloatAcquire(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetFloatAcquire(o, offset, expected, newValue);
+        }
     }
 
     public static boolean weakCompareAndSetFloatRelease(Object o, long offset, float expected, float newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetFloatRelease(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetFloatRelease(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetFloatRelease(o, offset, expected, newValue);
+        }
     }
 
     public static float compareAndExchangeFloat(Object o, long offset, float expected, float newValue) {
-        return PUnsafeAtomics_Java8.compareAndExchangeFloat(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.compareAndExchangeFloat(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.compareAndExchangeFloat(o, offset, expected, newValue);
+        }
     }
 
     public static float compareAndExchangeFloatAcquire(Object o, long offset, float expected, float newValue) {
-        return PUnsafeAtomics_Java8.compareAndExchangeFloatAcquire(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.compareAndExchangeFloatAcquire(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.compareAndExchangeFloatAcquire(o, offset, expected, newValue);
+        }
     }
 
     public static float compareAndExchangeFloatRelease(Object o, long offset, float expected, float newValue) {
-        return PUnsafeAtomics_Java8.compareAndExchangeFloatRelease(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.compareAndExchangeFloatRelease(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.compareAndExchangeFloatRelease(o, offset, expected, newValue);
+        }
     }
 
     public static float getAndSetFloat(Object o, long offset, float newValue) {
-        return PUnsafeAtomics_Java8.getAndSetFloat(o, offset, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndSetFloat(o, offset, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.getAndSetFloat(o, offset, newValue);
+        }
     }
 
     public static float getAndSetFloatRelease(Object o, long offset, float newValue) {
-        return PUnsafeAtomics_Java8.getAndSetFloatRelease(o, offset, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndSetFloatRelease(o, offset, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.getAndSetFloatRelease(o, offset, newValue);
+        }
     }
 
     public static float getAndSetFloatAcquire(Object o, long offset, float newValue) {
-        return PUnsafeAtomics_Java8.getAndSetFloatAcquire(o, offset, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndSetFloatAcquire(o, offset, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.getAndSetFloatAcquire(o, offset, newValue);
+        }
     }
 
     // double
 
     public static boolean compareAndSetDouble(Object o, long offset, double expected, double newValue) {
-        return PUnsafeAtomics_Java8.compareAndSetDouble(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.compareAndSetDouble(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.compareAndSetDouble(o, offset, expected, newValue);
+        }
     }
 
     public static boolean weakCompareAndSetDouble(Object o, long offset, double expected, double newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetDouble(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetDouble(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetDouble(o, offset, expected, newValue);
+        }
     }
 
     public static boolean weakCompareAndSetDoublePlain(Object o, long offset, double expected, double newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetDoublePlain(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetDoublePlain(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetDoublePlain(o, offset, expected, newValue);
+        }
     }
 
     public static boolean weakCompareAndSetDoubleAcquire(Object o, long offset, double expected, double newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetDoubleAcquire(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetDoubleAcquire(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetDoubleAcquire(o, offset, expected, newValue);
+        }
     }
 
     public static boolean weakCompareAndSetDoubleRelease(Object o, long offset, double expected, double newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetDoubleRelease(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetDoubleRelease(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetDoubleRelease(o, offset, expected, newValue);
+        }
     }
 
     public static double compareAndExchangeDouble(Object o, long offset, double expected, double newValue) {
-        return PUnsafeAtomics_Java8.compareAndExchangeDouble(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.compareAndExchangeDouble(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.compareAndExchangeDouble(o, offset, expected, newValue);
+        }
     }
 
     public static double compareAndExchangeDoubleAcquire(Object o, long offset, double expected, double newValue) {
-        return PUnsafeAtomics_Java8.compareAndExchangeDoubleAcquire(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.compareAndExchangeDoubleAcquire(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.compareAndExchangeDoubleAcquire(o, offset, expected, newValue);
+        }
     }
 
     public static double compareAndExchangeDoubleRelease(Object o, long offset, double expected, double newValue) {
-        return PUnsafeAtomics_Java8.compareAndExchangeDoubleRelease(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.compareAndExchangeDoubleRelease(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.compareAndExchangeDoubleRelease(o, offset, expected, newValue);
+        }
     }
 
     public static double getAndSetDouble(Object o, long offset, double newValue) {
-        return PUnsafeAtomics_Java8.getAndSetDouble(o, offset, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndSetDouble(o, offset, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.getAndSetDouble(o, offset, newValue);
+        }
     }
 
     public static double getAndSetDoubleRelease(Object o, long offset, double newValue) {
-        return PUnsafeAtomics_Java8.getAndSetDoubleRelease(o, offset, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndSetDoubleRelease(o, offset, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.getAndSetDoubleRelease(o, offset, newValue);
+        }
     }
 
     public static double getAndSetDoubleAcquire(Object o, long offset, double newValue) {
-        return PUnsafeAtomics_Java8.getAndSetDoubleAcquire(o, offset, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndSetDoubleAcquire(o, offset, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.getAndSetDoubleAcquire(o, offset, newValue);
+        }
     }
 
     // Object
@@ -2034,31 +2280,59 @@ public class PUnsafe {
     }
 
     public static boolean weakCompareAndSetObject(Object o, long offset, Object expected, Object newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetObject(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetObject(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetObject(o, offset, expected, newValue);
+        }
     }
 
     public static boolean weakCompareAndSetObjectPlain(Object o, long offset, Object expected, Object newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetObjectPlain(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetObjectPlain(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetObjectPlain(o, offset, expected, newValue);
+        }
     }
 
     public static boolean weakCompareAndSetObjectAcquire(Object o, long offset, Object expected, Object newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetObjectAcquire(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetObjectAcquire(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetObjectAcquire(o, offset, expected, newValue);
+        }
     }
 
     public static boolean weakCompareAndSetObjectRelease(Object o, long offset, Object expected, Object newValue) {
-        return PUnsafeAtomics_Java8.weakCompareAndSetObjectRelease(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.weakCompareAndSetObjectRelease(o, offset, expected, newValue);
+        } else {
+            return PUnsafeAtomics_Java8.weakCompareAndSetObjectRelease(o, offset, expected, newValue);
+        }
     }
 
     public static <T> T compareAndExchangeObject(Object o, long offset, Object expected, Object newValue) {
-        return (T) PUnsafeAtomics_Java8.compareAndExchangeObject(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return (T) PUnsafeAtomics_Java9.compareAndExchangeObject(o, offset, expected, newValue);
+        } else {
+            return (T) PUnsafeAtomics_Java8.compareAndExchangeObject(o, offset, expected, newValue);
+        }
     }
 
     public static <T> T compareAndExchangeObjectAcquire(Object o, long offset, Object expected, Object newValue) {
-        return (T) PUnsafeAtomics_Java8.compareAndExchangeObjectAcquire(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return (T) PUnsafeAtomics_Java9.compareAndExchangeObjectAcquire(o, offset, expected, newValue);
+        } else {
+            return (T) PUnsafeAtomics_Java8.compareAndExchangeObjectAcquire(o, offset, expected, newValue);
+        }
     }
 
     public static <T> T compareAndExchangeObjectRelease(Object o, long offset, Object expected, Object newValue) {
-        return (T) PUnsafeAtomics_Java8.compareAndExchangeObjectRelease(o, offset, expected, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return (T) PUnsafeAtomics_Java9.compareAndExchangeObjectRelease(o, offset, expected, newValue);
+        } else {
+            return (T) PUnsafeAtomics_Java8.compareAndExchangeObjectRelease(o, offset, expected, newValue);
+        }
     }
 
     public static <T> T getAndSetObject(Object o, long offset, Object newValue) {
@@ -2066,11 +2340,19 @@ public class PUnsafe {
     }
 
     public static <T> T getAndSetObjectAcquire(Object o, long offset, Object newValue) {
-        return (T) PUnsafeAtomics_Java8.getAndSetObjectAcquire(o, offset, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return (T) PUnsafeAtomics_Java9.getAndSetObjectAcquire(o, offset, newValue);
+        } else {
+            return (T) PUnsafeAtomics_Java8.getAndSetObjectAcquire(o, offset, newValue);
+        }
     }
 
     public static <T> T getAndSetObjectRelease(Object o, long offset, Object newValue) {
-        return (T) PUnsafeAtomics_Java8.getAndSetObjectRelease(o, offset, newValue);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return (T) PUnsafeAtomics_Java9.getAndSetObjectRelease(o, offset, newValue);
+        } else {
+            return (T) PUnsafeAtomics_Java8.getAndSetObjectRelease(o, offset, newValue);
+        }
     }
 
     //
@@ -2080,43 +2362,79 @@ public class PUnsafe {
     // byte
 
     public static byte getAndAddByte(Object o, long offset, byte delta) {
-        return PUnsafeAtomics_Java8.getAndAddByte(o, offset, delta);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndAddByte(o, offset, delta);
+        } else {
+            return PUnsafeAtomics_Java8.getAndAddByte(o, offset, delta);
+        }
     }
 
     public static byte getAndAddByteAcquire(Object o, long offset, byte delta) {
-        return PUnsafeAtomics_Java8.getAndAddByteAcquire(o, offset, delta);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndAddByteAcquire(o, offset, delta);
+        } else {
+            return PUnsafeAtomics_Java8.getAndAddByteAcquire(o, offset, delta);
+        }
     }
 
     public static byte getAndAddByteRelease(Object o, long offset, byte delta) {
-        return PUnsafeAtomics_Java8.getAndAddByteRelease(o, offset, delta);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndAddByteRelease(o, offset, delta);
+        } else {
+            return PUnsafeAtomics_Java8.getAndAddByteRelease(o, offset, delta);
+        }
     }
     
     // short
 
     public static short getAndAddShort(Object o, long offset, short delta) {
-        return PUnsafeAtomics_Java8.getAndAddShort(o, offset, delta);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndAddShort(o, offset, delta);
+        } else {
+            return PUnsafeAtomics_Java8.getAndAddShort(o, offset, delta);
+        }
     }
 
     public static short getAndAddShortAcquire(Object o, long offset, short delta) {
-        return PUnsafeAtomics_Java8.getAndAddShortAcquire(o, offset, delta);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndAddShortAcquire(o, offset, delta);
+        } else {
+            return PUnsafeAtomics_Java8.getAndAddShortAcquire(o, offset, delta);
+        }
     }
 
     public static short getAndAddShortRelease(Object o, long offset, short delta) {
-        return PUnsafeAtomics_Java8.getAndAddShortRelease(o, offset, delta);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndAddShortRelease(o, offset, delta);
+        } else {
+            return PUnsafeAtomics_Java8.getAndAddShortRelease(o, offset, delta);
+        }
     }
     
     // char
 
     public static char getAndAddChar(Object o, long offset, char delta) {
-        return PUnsafeAtomics_Java8.getAndAddChar(o, offset, delta);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndAddChar(o, offset, delta);
+        } else {
+            return PUnsafeAtomics_Java8.getAndAddChar(o, offset, delta);
+        }
     }
 
     public static char getAndAddCharAcquire(Object o, long offset, char delta) {
-        return PUnsafeAtomics_Java8.getAndAddCharAcquire(o, offset, delta);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndAddCharAcquire(o, offset, delta);
+        } else {
+            return PUnsafeAtomics_Java8.getAndAddCharAcquire(o, offset, delta);
+        }
     }
 
     public static char getAndAddCharRelease(Object o, long offset, char delta) {
-        return PUnsafeAtomics_Java8.getAndAddCharRelease(o, offset, delta);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndAddCharRelease(o, offset, delta);
+        } else {
+            return PUnsafeAtomics_Java8.getAndAddCharRelease(o, offset, delta);
+        }
     }
     
     // int
@@ -2126,11 +2444,19 @@ public class PUnsafe {
     }
 
     public static int getAndAddIntAcquire(Object o, long offset, int delta) {
-        return PUnsafeAtomics_Java8.getAndAddIntAcquire(o, offset, delta);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndAddIntAcquire(o, offset, delta);
+        } else {
+            return PUnsafeAtomics_Java8.getAndAddIntAcquire(o, offset, delta);
+        }
     }
 
     public static int getAndAddIntRelease(Object o, long offset, int delta) {
-        return PUnsafeAtomics_Java8.getAndAddIntRelease(o, offset, delta);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndAddIntRelease(o, offset, delta);
+        } else {
+            return PUnsafeAtomics_Java8.getAndAddIntRelease(o, offset, delta);
+        }
     }
     
     // long
@@ -2140,39 +2466,71 @@ public class PUnsafe {
     }
 
     public static long getAndAddLongAcquire(Object o, long offset, long delta) {
-        return PUnsafeAtomics_Java8.getAndAddLongAcquire(o, offset, delta);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndAddLongAcquire(o, offset, delta);
+        } else {
+            return PUnsafeAtomics_Java8.getAndAddLongAcquire(o, offset, delta);
+        }
     }
 
     public static long getAndAddLongRelease(Object o, long offset, long delta) {
-        return PUnsafeAtomics_Java8.getAndAddLongRelease(o, offset, delta);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndAddLongRelease(o, offset, delta);
+        } else {
+            return PUnsafeAtomics_Java8.getAndAddLongRelease(o, offset, delta);
+        }
     }
     
     // float
 
     public static float getAndAddFloat(Object o, long offset, float delta) {
-        return PUnsafeAtomics_Java8.getAndAddFloat(o, offset, delta);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndAddFloat(o, offset, delta);
+        } else {
+            return PUnsafeAtomics_Java8.getAndAddFloat(o, offset, delta);
+        }
     }
 
     public static float getAndAddFloatAcquire(Object o, long offset, float delta) {
-        return PUnsafeAtomics_Java8.getAndAddFloatAcquire(o, offset, delta);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndAddFloatAcquire(o, offset, delta);
+        } else {
+            return PUnsafeAtomics_Java8.getAndAddFloatAcquire(o, offset, delta);
+        }
     }
 
     public static float getAndAddFloatRelease(Object o, long offset, float delta) {
-        return PUnsafeAtomics_Java8.getAndAddFloatRelease(o, offset, delta);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndAddFloatRelease(o, offset, delta);
+        } else {
+            return PUnsafeAtomics_Java8.getAndAddFloatRelease(o, offset, delta);
+        }
     }
     
     // double
 
     public static double getAndAddDouble(Object o, long offset, double delta) {
-        return PUnsafeAtomics_Java8.getAndAddDouble(o, offset, delta);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndAddDouble(o, offset, delta);
+        } else {
+            return PUnsafeAtomics_Java8.getAndAddDouble(o, offset, delta);
+        }
     }
 
     public static double getAndAddDoubleAcquire(Object o, long offset, double delta) {
-        return PUnsafeAtomics_Java8.getAndAddDoubleAcquire(o, offset, delta);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndAddDoubleAcquire(o, offset, delta);
+        } else {
+            return PUnsafeAtomics_Java8.getAndAddDoubleAcquire(o, offset, delta);
+        }
     }
 
     public static double getAndAddDoubleRelease(Object o, long offset, double delta) {
-        return PUnsafeAtomics_Java8.getAndAddDoubleRelease(o, offset, delta);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndAddDoubleRelease(o, offset, delta);
+        } else {
+            return PUnsafeAtomics_Java8.getAndAddDoubleRelease(o, offset, delta);
+        }
     }
 
     //
@@ -2182,229 +2540,445 @@ public class PUnsafe {
     // boolean
 
     public static boolean getAndBitwiseOrBoolean(Object o, long offset, boolean mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseOrBoolean(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseOrBoolean(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseOrBoolean(o, offset, mask);
+        }
     }
 
     public static boolean getAndBitwiseOrBooleanAcquire(Object o, long offset, boolean mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseOrBooleanAcquire(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseOrBooleanAcquire(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseOrBooleanAcquire(o, offset, mask);
+        }
     }
 
     public static boolean getAndBitwiseOrBooleanRelease(Object o, long offset, boolean mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseOrBooleanRelease(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseOrBooleanRelease(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseOrBooleanRelease(o, offset, mask);
+        }
     }
 
     public static boolean getAndBitwiseAndBoolean(Object o, long offset, boolean mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseAndBoolean(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseAndBoolean(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseAndBoolean(o, offset, mask);
+        }
     }
 
     public static boolean getAndBitwiseAndBooleanAcquire(Object o, long offset, boolean mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseAndBooleanAcquire(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseAndBooleanAcquire(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseAndBooleanAcquire(o, offset, mask);
+        }
     }
 
     public static boolean getAndBitwiseAndBooleanRelease(Object o, long offset, boolean mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseAndBooleanRelease(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseAndBooleanRelease(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseAndBooleanRelease(o, offset, mask);
+        }
     }
 
     public static boolean getAndBitwiseXorBoolean(Object o, long offset, boolean mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseXorBoolean(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseXorBoolean(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseXorBoolean(o, offset, mask);
+        }
     }
 
     public static boolean getAndBitwiseXorBooleanAcquire(Object o, long offset, boolean mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseXorBooleanAcquire(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseXorBooleanAcquire(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseXorBooleanAcquire(o, offset, mask);
+        }
     }
 
     public static boolean getAndBitwiseXorBooleanRelease(Object o, long offset, boolean mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseXorBooleanRelease(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseXorBooleanRelease(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseXorBooleanRelease(o, offset, mask);
+        }
     }
       
     // byte
 
     public static byte getAndBitwiseOrByte(Object o, long offset, byte mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseOrByte(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseOrByte(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseOrByte(o, offset, mask);
+        }
     }
 
     public static byte getAndBitwiseOrByteAcquire(Object o, long offset, byte mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseOrByteAcquire(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseOrByteAcquire(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseOrByteAcquire(o, offset, mask);
+        }
     }
 
     public static byte getAndBitwiseOrByteRelease(Object o, long offset, byte mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseOrByteRelease(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseOrByteRelease(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseOrByteRelease(o, offset, mask);
+        }
     }
 
     public static byte getAndBitwiseAndByte(Object o, long offset, byte mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseAndByte(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseAndByte(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseAndByte(o, offset, mask);
+        }
     }
 
     public static byte getAndBitwiseAndByteAcquire(Object o, long offset, byte mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseAndByteAcquire(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseAndByteAcquire(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseAndByteAcquire(o, offset, mask);
+        }
     }
 
     public static byte getAndBitwiseAndByteRelease(Object o, long offset, byte mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseAndByteRelease(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseAndByteRelease(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseAndByteRelease(o, offset, mask);
+        }
     }
 
     public static byte getAndBitwiseXorByte(Object o, long offset, byte mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseXorByte(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseXorByte(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseXorByte(o, offset, mask);
+        }
     }
 
     public static byte getAndBitwiseXorByteAcquire(Object o, long offset, byte mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseXorByteAcquire(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseXorByteAcquire(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseXorByteAcquire(o, offset, mask);
+        }
     }
 
     public static byte getAndBitwiseXorByteRelease(Object o, long offset, byte mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseXorByteRelease(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseXorByteRelease(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseXorByteRelease(o, offset, mask);
+        }
     }
 
     // short
 
     public static short getAndBitwiseOrShort(Object o, long offset, short mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseOrShort(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseOrShort(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseOrShort(o, offset, mask);
+        }
     }
 
     public static short getAndBitwiseOrShortAcquire(Object o, long offset, short mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseOrShortAcquire(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseOrShortAcquire(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseOrShortAcquire(o, offset, mask);
+        }
     }
 
     public static short getAndBitwiseOrShortRelease(Object o, long offset, short mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseOrShortRelease(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseOrShortRelease(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseOrShortRelease(o, offset, mask);
+        }
     }
 
     public static short getAndBitwiseAndShort(Object o, long offset, short mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseAndShort(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseAndShort(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseAndShort(o, offset, mask);
+        }
     }
 
     public static short getAndBitwiseAndShortAcquire(Object o, long offset, short mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseAndShortAcquire(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseAndShortAcquire(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseAndShortAcquire(o, offset, mask);
+        }
     }
 
     public static short getAndBitwiseAndShortRelease(Object o, long offset, short mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseAndShortRelease(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseAndShortRelease(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseAndShortRelease(o, offset, mask);
+        }
     }
 
     public static short getAndBitwiseXorShort(Object o, long offset, short mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseXorShort(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseXorShort(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseXorShort(o, offset, mask);
+        }
     }
 
     public static short getAndBitwiseXorShortAcquire(Object o, long offset, short mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseXorShortAcquire(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseXorShortAcquire(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseXorShortAcquire(o, offset, mask);
+        }
     }
 
     public static short getAndBitwiseXorShortRelease(Object o, long offset, short mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseXorShortRelease(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseXorShortRelease(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseXorShortRelease(o, offset, mask);
+        }
     }
       
     // char
 
     public static char getAndBitwiseOrChar(Object o, long offset, char mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseOrChar(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseOrChar(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseOrChar(o, offset, mask);
+        }
     }
 
     public static char getAndBitwiseOrCharAcquire(Object o, long offset, char mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseOrCharAcquire(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseOrCharAcquire(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseOrCharAcquire(o, offset, mask);
+        }
     }
 
     public static char getAndBitwiseOrCharRelease(Object o, long offset, char mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseOrCharRelease(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseOrCharRelease(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseOrCharRelease(o, offset, mask);
+        }
     }
 
     public static char getAndBitwiseAndChar(Object o, long offset, char mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseAndChar(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseAndChar(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseAndChar(o, offset, mask);
+        }
     }
 
     public static char getAndBitwiseAndCharAcquire(Object o, long offset, char mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseAndCharAcquire(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseAndCharAcquire(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseAndCharAcquire(o, offset, mask);
+        }
     }
 
     public static char getAndBitwiseAndCharRelease(Object o, long offset, char mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseAndCharRelease(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseAndCharRelease(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseAndCharRelease(o, offset, mask);
+        }
     }
 
     public static char getAndBitwiseXorChar(Object o, long offset, char mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseXorChar(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseXorChar(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseXorChar(o, offset, mask);
+        }
     }
 
     public static char getAndBitwiseXorCharAcquire(Object o, long offset, char mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseXorCharAcquire(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseXorCharAcquire(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseXorCharAcquire(o, offset, mask);
+        }
     }
 
     public static char getAndBitwiseXorCharRelease(Object o, long offset, char mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseXorCharRelease(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseXorCharRelease(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseXorCharRelease(o, offset, mask);
+        }
     }
 
     // int
 
     public static int getAndBitwiseOrInt(Object o, long offset, int mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseOrInt(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseOrInt(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseOrInt(o, offset, mask);
+        }
     }
 
     public static int getAndBitwiseOrIntAcquire(Object o, long offset, int mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseOrIntAcquire(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseOrIntAcquire(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseOrIntAcquire(o, offset, mask);
+        }
     }
 
     public static int getAndBitwiseOrIntRelease(Object o, long offset, int mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseOrIntRelease(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseOrIntRelease(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseOrIntRelease(o, offset, mask);
+        }
     }
 
     public static int getAndBitwiseAndInt(Object o, long offset, int mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseAndInt(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseAndInt(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseAndInt(o, offset, mask);
+        }
     }
 
     public static int getAndBitwiseAndIntAcquire(Object o, long offset, int mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseAndIntAcquire(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseAndIntAcquire(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseAndIntAcquire(o, offset, mask);
+        }
     }
 
     public static int getAndBitwiseAndIntRelease(Object o, long offset, int mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseAndIntRelease(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseAndIntRelease(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseAndIntRelease(o, offset, mask);
+        }
     }
 
     public static int getAndBitwiseXorInt(Object o, long offset, int mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseXorInt(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseXorInt(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseXorInt(o, offset, mask);
+        }
     }
 
     public static int getAndBitwiseXorIntAcquire(Object o, long offset, int mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseXorIntAcquire(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseXorIntAcquire(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseXorIntAcquire(o, offset, mask);
+        }
     }
 
     public static int getAndBitwiseXorIntRelease(Object o, long offset, int mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseXorIntRelease(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseXorIntRelease(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseXorIntRelease(o, offset, mask);
+        }
     }
     
     // long
 
     public static long getAndBitwiseOrLong(Object o, long offset, long mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseOrLong(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseOrLong(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseOrLong(o, offset, mask);
+        }
     }
 
     public static long getAndBitwiseOrLongAcquire(Object o, long offset, long mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseOrLongAcquire(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseOrLongAcquire(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseOrLongAcquire(o, offset, mask);
+        }
     }
 
     public static long getAndBitwiseOrLongRelease(Object o, long offset, long mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseOrLongRelease(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseOrLongRelease(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseOrLongRelease(o, offset, mask);
+        }
     }
 
     public static long getAndBitwiseAndLong(Object o, long offset, long mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseAndLong(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseAndLong(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseAndLong(o, offset, mask);
+        }
     }
 
     public static long getAndBitwiseAndLongAcquire(Object o, long offset, long mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseAndLongAcquire(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseAndLongAcquire(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseAndLongAcquire(o, offset, mask);
+        }
     }
 
     public static long getAndBitwiseAndLongRelease(Object o, long offset, long mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseAndLongRelease(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseAndLongRelease(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseAndLongRelease(o, offset, mask);
+        }
     }
 
     public static long getAndBitwiseXorLong(Object o, long offset, long mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseXorLong(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseXorLong(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseXorLong(o, offset, mask);
+        }
     }
 
     public static long getAndBitwiseXorLongAcquire(Object o, long offset, long mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseXorLongAcquire(o, offset, mask);
+        if (JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseXorLongAcquire(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseXorLongAcquire(o, offset, mask);
+        }
     }
 
     public static long getAndBitwiseXorLongRelease(Object o, long offset, long mask) {
-        return PUnsafeAtomics_Java8.getAndBitwiseXorLongRelease(o, offset, mask);
+        if (JAVA_VERSION >= 9 )  { //use Java 9 intrinsic if possible
+            return PUnsafeAtomics_Java9.getAndBitwiseXorLongRelease(o, offset, mask);
+        } else {
+            return PUnsafeAtomics_Java8.getAndBitwiseXorLongRelease(o, offset, mask);
+        }
     }
 
     //

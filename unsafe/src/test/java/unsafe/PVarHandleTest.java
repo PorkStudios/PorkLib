@@ -28,6 +28,7 @@ import java.lang.invoke.MethodHandles;
 import java.util.Arrays;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.IntStream;
 
 import static org.junit.Assert.*;
 
@@ -176,7 +177,7 @@ public class PVarHandleTest {
 
     @Test
     public void testArrayAccessValidInt() throws Throwable {
-        PVarHandle handle = PVarHandle.forArrayElement(MethodHandles.lookup(), int[].class);
+        PVarHandle handle = PVarHandle.forArrayElement(int[].class);
         int[] arr = new int[1];
         int expected = 0;
 
@@ -238,7 +239,7 @@ public class PVarHandleTest {
 
     @Test
     public void testArrayAccessValidByte() throws Throwable {
-        PVarHandle handle = PVarHandle.forArrayElement(MethodHandles.lookup(), byte[].class);
+        PVarHandle handle = PVarHandle.forArrayElement(byte[].class);
         byte[] arr = new byte[1];
         byte expected = 0;
 
@@ -300,7 +301,7 @@ public class PVarHandleTest {
 
     @Test
     public void testArrayAccessValidDouble() throws Throwable {
-        PVarHandle handle = PVarHandle.forArrayElement(MethodHandles.lookup(), double[].class);
+        PVarHandle handle = PVarHandle.forArrayElement(double[].class);
         double[] arr = new double[1];
         double expected = 0;
 
@@ -344,7 +345,7 @@ public class PVarHandleTest {
 
     @Test
     public void testArrayAccessValidObject() throws Throwable {
-        PVarHandle handle = PVarHandle.forArrayElement(MethodHandles.lookup(), String[].class);
+        PVarHandle handle = PVarHandle.forArrayElement(String[].class);
         String[] arr = { "0" };
         int expected = 0;
 
@@ -662,19 +663,89 @@ public class PVarHandleTest {
                 false, false);
     }
 
+    @Test
+    public void testArrayValidAbstract() throws Throwable {
+        final int arrayLength = 3;
+        
+        boolean[] booleanArray = new boolean[arrayLength];
+        byte[] byteArray = new byte[arrayLength];
+        short[] shortArray = new short[arrayLength];
+        char[] charArray = new char[arrayLength];
+        int[] intArray = new int[arrayLength];
+        long[] longArray = new long[arrayLength];
+        float[] floatArray = new float[arrayLength];
+        double[] doubleArray = new double[arrayLength];
+        String[] stringArray = new String[arrayLength];
+
+        for (int index : IntStream.range(0, arrayLength).toArray()) {
+            testValidAbstract(
+                    PVarHandle.forArrayElement(byte[].class),
+                    new Object[]{ byteArray, index }, ExpectedState.BYTE,
+                    () -> byteArray[index], value -> byteArray[index] = value,
+                    true, true);
+
+            testValidAbstract(
+                    PVarHandle.forArrayElement(short[].class),
+                    new Object[]{ shortArray, index }, ExpectedState.SHORT,
+                    () -> shortArray[index], value -> shortArray[index] = value,
+                    true, true);
+
+            testValidAbstract(
+                    PVarHandle.forArrayElement(char[].class),
+                    new Object[]{ charArray, index }, ExpectedState.CHAR,
+                    () -> charArray[index], value -> charArray[index] = value,
+                    true, true);
+
+            testValidAbstract(
+                    PVarHandle.forArrayElement(int[].class),
+                    new Object[]{ intArray, index }, ExpectedState.INT,
+                    () -> intArray[index], value -> intArray[index] = value,
+                    true, true);
+
+            testValidAbstract(
+                    PVarHandle.forArrayElement(long[].class),
+                    new Object[]{ longArray, index }, ExpectedState.LONG,
+                    () -> longArray[index], value -> longArray[index] = value,
+                    true, true);
+
+            testValidAbstract(
+                    PVarHandle.forArrayElement(float[].class),
+                    new Object[]{ floatArray, index }, ExpectedState.FLOAT,
+                    () -> floatArray[index], value -> floatArray[index] = value,
+                    true, false);
+
+            testValidAbstract(
+                    PVarHandle.forArrayElement(double[].class),
+                    new Object[]{ doubleArray, index }, ExpectedState.DOUBLE,
+                    () -> doubleArray[index], value -> doubleArray[index] = value,
+                    true, false);
+
+            testValidAbstract(
+                    PVarHandle.forArrayElement(String[].class),
+                    new Object[]{ stringArray, index }, ExpectedState.STRING,
+                    () -> stringArray[index], value -> stringArray[index] = value,
+                    false, false);
+        }
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testInstanceNull() throws Throwable {
+        PVarHandle.forField(MethodHandles.lookup(), PVarHandleTest.class, "intPlain", int.class).setVolatileInvoker().invokeExact((PVarHandleTest) null, 0);
+    }
+
     @Test(expected = ArrayIndexOutOfBoundsException.class)
     public void testArrayIndexTooHigh() throws Throwable {
-        PVarHandle.forArrayElement(MethodHandles.lookup(), int[].class).setPlainInvoker().invokeExact(new int[2], 3, 0);
+        PVarHandle.forArrayElement(int[].class).setPlainInvoker().invokeExact(new int[2], 3, 0);
     }
 
     @Test(expected = ArrayIndexOutOfBoundsException.class)
     public void testArrayIndexNegative() throws Throwable {
-        PVarHandle.forArrayElement(MethodHandles.lookup(), int[].class).setPlainInvoker().invokeExact(new int[2], -1, 0);
+        PVarHandle.forArrayElement(int[].class).setPlainInvoker().invokeExact(new int[2], -1, 0);
     }
 
     @Test(expected = NullPointerException.class)
     public void testArrayNull() throws Throwable {
-        PVarHandle.forArrayElement(MethodHandles.lookup(), int[].class).setPlainInvoker().invokeExact((int[]) null, 0, 0);
+        PVarHandle.forArrayElement(int[].class).setPlainInvoker().invokeExact((int[]) null, 0, 0);
     }
 
     @Test(expected = IllegalAccessException.class)
@@ -689,6 +760,6 @@ public class PVarHandleTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testNotActuallyArray() {
-        PVarHandle.forArrayElement(MethodHandles.lookup(), int.class);
+        PVarHandle.forArrayElement(int.class);
     }
 }

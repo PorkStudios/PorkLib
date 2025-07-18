@@ -23,6 +23,7 @@ import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 
 import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 
 import static net.daporkchop.lib.unsafe.UnsafePlatformInfo.*;
@@ -34,6 +35,55 @@ import static net.daporkchop.lib.unsafe.UnsafePlatformInfo.*;
  */
 @UtilityClass
 class PUnsafeAtomics_Java9 {
+    //
+    // MEMORY FENCES
+    //
+
+    private static final MethodHandle fullFence; // () -> void
+    private static final MethodHandle acquireFence; // () -> void
+    private static final MethodHandle releaseFence; // () -> void
+    private static final MethodHandle loadLoadFence; // () -> void
+    private static final MethodHandle storeStoreFence; // () -> void
+
+    static {
+        try {
+             Class<?> _VarHandle = Class.forName("java.lang.invoke.VarHandle");
+
+            fullFence = MethodHandles.publicLookup().findStatic(_VarHandle, "fullFence", MethodType.methodType(void.class));
+            acquireFence = MethodHandles.publicLookup().findStatic(_VarHandle, "acquireFence", MethodType.methodType(void.class));
+            releaseFence = MethodHandles.publicLookup().findStatic(_VarHandle, "releaseFence", MethodType.methodType(void.class));
+            loadLoadFence = MethodHandles.publicLookup().findStatic(_VarHandle, "loadLoadFence", MethodType.methodType(void.class));
+            storeStoreFence = MethodHandles.publicLookup().findStatic(_VarHandle, "storeStoreFence", MethodType.methodType(void.class));
+        } catch (Exception e) {
+            throw new AssertionError(e);
+        }
+    }
+
+    @SneakyThrows
+    public static void fullFence() {
+        fullFence.invokeExact();
+    }
+
+    @SneakyThrows
+    public static void acquireFence() {
+        acquireFence.invokeExact();
+    }
+
+    @SneakyThrows
+    public static void releaseFence() {
+        releaseFence.invokeExact();
+    }
+
+    @SneakyThrows
+    public static void loadLoadFence() {
+        loadLoadFence.invokeExact();
+    }
+
+    @SneakyThrows
+    public static void storeStoreFence() {
+        storeStoreFence.invokeExact();
+    }
+
     //
     // ACQUIRE LOADS
     //

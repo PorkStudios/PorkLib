@@ -1595,7 +1595,9 @@ public class PUnsafe {
      * Ensures lack of reordering of loads before the fence with loads or stores after the fence.
      *
      * @see Unsafe#loadFence()
+     * @deprecated prefer using the fence methods in {@link PVarHandle}
      */
+    @Deprecated
     public static void loadFence() {
         sun_misc_Unsafe.loadFence();
     }
@@ -1604,7 +1606,9 @@ public class PUnsafe {
      * Ensures lack of reordering of stores before the fence with loads or stores after the fence.
      *
      * @see Unsafe#storeFence()
+     * @deprecated prefer using the fence methods in {@link PVarHandle}
      */
+    @Deprecated
     public static void storeFence() {
         sun_misc_Unsafe.storeFence();
     }
@@ -1613,7 +1617,9 @@ public class PUnsafe {
      * Ensures lack of reordering of loads or stores before the fence with loads or stores after the fence.
      *
      * @see Unsafe#fullFence()
+     * @deprecated prefer using the fence methods in {@link PVarHandle}
      */
+    @Deprecated
     public static void fullFence() {
         sun_misc_Unsafe.fullFence();
     }

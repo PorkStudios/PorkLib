@@ -31,6 +31,30 @@ import static net.daporkchop.lib.unsafe.UnsafePlatformInfo.*;
 @UtilityClass
 class PUnsafeAtomics_Java8 {
     //
+    // MEMORY FENCES
+    //
+
+    public static void fullFence() {
+        PUnsafe.sun_misc_Unsafe.fullFence();
+    }
+
+    public static void acquireFence() {
+        PUnsafe.sun_misc_Unsafe.loadFence();
+    }
+
+    public static void releaseFence() {
+        fullFence(); //TODO: this could be weakened, but for now we'll issue a full fence to play it safe
+    }
+
+    public static void loadLoadFence() {
+        fullFence(); //TODO: this could be weakened, but for now we'll issue a full fence to play it safe
+    }
+
+    public static void storeStoreFence() {
+        fullFence(); //TODO: this could be weakened, but for now we'll issue a full fence to play it safe
+    }
+
+    //
     // ACQUIRE LOADS
     //
 

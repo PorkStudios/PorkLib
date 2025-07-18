@@ -33,6 +33,7 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.IntStream;
 
 /**
@@ -61,9 +62,10 @@ public abstract class PVarHandle {
      */
     public static PVarHandle forField(@NonNull MethodHandles.Lookup lookup, @NonNull Class<?> owner, @NonNull String name, @NonNull Class<?> type) throws NoSuchFieldException, IllegalAccessException {
         if (UnsafePlatformInfo.JAVA_VERSION >= 9) { // use Java 9 VarHandle if supported
-            return new VarHandle_Java9(lookup, owner, name, type, false);
+            //this funny cast prevents the VM from loading both implementations during bytecode verification
+            return (PVarHandle) (Object) new VarHandle_Java9(lookup, owner, name, type, false);
         } else {
-            return new UnsafeEmulated(lookup, lookup.findGetter(owner, name, type));
+            return (PVarHandle) (Object) new UnsafeEmulated(lookup, lookup.findGetter(owner, name, type));
         }
     }
 
@@ -88,21 +90,21 @@ public abstract class PVarHandle {
      */
     public static PVarHandle forStaticField(@NonNull MethodHandles.Lookup lookup, @NonNull Class<?> owner, @NonNull String name, @NonNull Class<?> type) throws NoSuchFieldException, IllegalAccessException {
         if (UnsafePlatformInfo.JAVA_VERSION >= 9) { // use Java 9 VarHandle if supported
-            return new VarHandle_Java9(lookup, owner, name, type, true);
+            return (PVarHandle) (Object) new VarHandle_Java9(lookup, owner, name, type, true);
         } else {
-            return new UnsafeEmulated(lookup, lookup.findStaticGetter(owner, name, type));
+            return (PVarHandle) (Object) new UnsafeEmulated(lookup, lookup.findStaticGetter(owner, name, type));
         }
     }
 
-    public static PVarHandle forArrayElement(@NonNull MethodHandles.Lookup lookup, @NonNull Class<?> arrayClass) throws IllegalArgumentException {
+    public static PVarHandle forArrayElement(@NonNull Class<?> arrayClass) throws IllegalArgumentException {
         if (!arrayClass.isArray()) {
             throw new IllegalArgumentException(arrayClass + " is not an array type");
         }
 
         if (UnsafePlatformInfo.JAVA_VERSION >= 9) { // use Java 9 VarHandle if supported
-            return new VarHandle_Java9(arrayClass);
+            return (PVarHandle) (Object) new VarHandle_Java9(arrayClass);
         } else {
-            return new UnsafeEmulated(arrayClass);
+            return (PVarHandle) (Object) new UnsafeEmulated(arrayClass);
         }
     }
 
@@ -112,35 +114,55 @@ public abstract class PVarHandle {
      * Ensures that loads and stores before the fence will not be reordered with loads and stores after the fence.
      */
     public static void fullFence() {
-        PUnsafe.fullFence();
+        if (UnsafePlatformInfo.JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            PUnsafeAtomics_Java9.fullFence();
+        } else {
+            PUnsafeAtomics_Java8.fullFence();
+        }
     }
 
     /**
      * Ensures that loads before the fence will not be reordered with loads and stores after the fence.
      */
     public static void acquireFence() {
-        PUnsafe.loadFence();
+        if (UnsafePlatformInfo.JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            PUnsafeAtomics_Java9.acquireFence();
+        } else {
+            PUnsafeAtomics_Java8.acquireFence();
+        }
     }
 
     /**
      * Ensures that loads and stores before the fence will not be reordered with stores after the fence.
      */
     public static void releaseFence() {
-        fullFence(); //TODO: this could be weakened, but for now we'll issue a full fence to play it safe
+        if (UnsafePlatformInfo.JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            PUnsafeAtomics_Java9.releaseFence();
+        } else {
+            PUnsafeAtomics_Java8.releaseFence();
+        }
     }
 
     /**
      * Ensures that loads before the fence will not be reordered with loads after the fence.
      */
     public static void loadLoadFence() {
-        fullFence(); //TODO: this could be weakened, but for now we'll issue a full fence to play it safe
+        if (UnsafePlatformInfo.JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            PUnsafeAtomics_Java9.loadLoadFence();
+        } else {
+            PUnsafeAtomics_Java8.loadLoadFence();
+        }
     }
 
     /**
      * Ensures that stores before the fence will not be reordered with stores after the fence.
      */
     public static void storeStoreFence() {
-        fullFence(); //TODO: this could be weakened, but for now we'll issue a full fence to play it safe
+        if (UnsafePlatformInfo.JAVA_VERSION >= 9) { //use Java 9 intrinsic if possible
+            PUnsafeAtomics_Java9.storeStoreFence();
+        } else {
+            PUnsafeAtomics_Java8.storeStoreFence();
+        }
     }
 
     //TODO: maybe cache these handles?
@@ -730,9 +752,24 @@ public abstract class PVarHandle {
 
             if (Modifier.isStatic(this.modifiers)) { //this is a static field
                 return MethodHandles.insertArguments(target, 0, this.staticFieldBase, this.fieldOffset);
-            } else { //this is an object field
-                //TODO: i think this needs to perform null checks?
-                return MethodHandles.insertArguments(target.asType(target.type().changeParameterType(0, this.owner)), 1, this.fieldOffset);
+            } else { //this is an instance field
+                //we need to bind the field offset and perform null checks
+
+                // (Object, ...) -> ...
+                MethodHandle targetWithOffset = MethodHandles.insertArguments(target, 1, this.fieldOffset);
+
+                // (Object) -> Object
+                MethodHandle requireNonNull = MethodHandles.lookup().findStatic(
+                        Objects.class,
+                        "requireNonNull",
+                        MethodType.methodType(Object.class, Object.class));
+
+                //TODO: again, caching
+
+                // (Object, ...) -> ...
+                MethodHandle targetWithOffsetChecked = MethodHandles.filterArguments(targetWithOffset, 0, requireNonNull);
+
+                return targetWithOffsetChecked.asType(targetWithOffsetChecked.type().changeParameterType(0, this.owner));
             }
         }
 

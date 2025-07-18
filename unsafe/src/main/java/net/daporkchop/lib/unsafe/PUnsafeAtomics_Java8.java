@@ -376,7 +376,7 @@ class PUnsafeAtomics_Java8 {
         }
         int mask = 0xFFFF << shift;
         int maskedExpected = (expected & 0xFFFF) << shift;
-        int maskedNewValue = (expected & 0xFFFF) << shift;
+        int maskedNewValue = (newValue & 0xFFFF) << shift;
         int fullWord;
         do {
             fullWord = PUnsafe.getIntVolatile(o, wordOffset);

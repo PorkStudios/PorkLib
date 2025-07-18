@@ -27,10 +27,13 @@ import lombok.SneakyThrows;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.IntStream;
 
 /**
  * @author DaPorkchop_
@@ -99,7 +102,7 @@ public abstract class PVarHandle {
         if (UnsafePlatformInfo.JAVA_VERSION >= 9) { // use Java 9 VarHandle if supported
             return new VarHandle_Java9(arrayClass);
         } else {
-            throw new UnsupportedOperationException(); //TODO
+            return new UnsafeEmulated(arrayClass);
         }
     }
 
@@ -150,7 +153,7 @@ public abstract class PVarHandle {
      */
     @SneakyThrows
     public static MethodHandle fullFenceInvoker() {
-        return MethodHandles.publicLookup().findStatic(PVarHandle.class, "fullFence", MethodType.methodType(void.class));
+        return MethodHandles.lookup().findStatic(PVarHandle.class, "fullFence", MethodType.methodType(void.class));
     }
 
     /**
@@ -161,7 +164,7 @@ public abstract class PVarHandle {
      */
     @SneakyThrows
     public static MethodHandle acquireFenceInvoker() {
-        return MethodHandles.publicLookup().findStatic(PVarHandle.class, "acquireFence", MethodType.methodType(void.class));
+        return MethodHandles.lookup().findStatic(PVarHandle.class, "acquireFence", MethodType.methodType(void.class));
     }
 
     /**
@@ -172,7 +175,7 @@ public abstract class PVarHandle {
      */
     @SneakyThrows
     public static MethodHandle releaseFenceInvoker() {
-        return MethodHandles.publicLookup().findStatic(PVarHandle.class, "releaseFence", MethodType.methodType(void.class));
+        return MethodHandles.lookup().findStatic(PVarHandle.class, "releaseFence", MethodType.methodType(void.class));
     }
 
     /**
@@ -183,7 +186,7 @@ public abstract class PVarHandle {
      */
     @SneakyThrows
     public static MethodHandle loadLoadFenceInvoker() {
-        return MethodHandles.publicLookup().findStatic(PVarHandle.class, "loadLoadFence", MethodType.methodType(void.class));
+        return MethodHandles.lookup().findStatic(PVarHandle.class, "loadLoadFence", MethodType.methodType(void.class));
     }
 
     /**
@@ -194,7 +197,7 @@ public abstract class PVarHandle {
      */
     @SneakyThrows
     public static MethodHandle storeStoreFenceInvoker() {
-        return MethodHandles.publicLookup().findStatic(PVarHandle.class, "storeStoreFence", MethodType.methodType(void.class));
+        return MethodHandles.lookup().findStatic(PVarHandle.class, "storeStoreFence", MethodType.methodType(void.class));
     }
 
     /**
@@ -212,6 +215,11 @@ public abstract class PVarHandle {
      */
     public final Class<?> varType() {
         return this.type;
+    }
+
+    @Override
+    public String toString() {
+        return this.getClass().getName() + "[varType=" + this.type.getName() + ", coord=" + this.coordinateTypes() + ']';
     }
 
     //
@@ -584,23 +592,32 @@ public abstract class PVarHandle {
      * @author DaPorkchop_
      */
     private static final class UnsafeEmulated extends PVarHandle {
-        private final @NonNull MethodHandle getter;
+        static {
+            if (UnsafePlatformInfo.JAVA_VERSION > 8) {
+                throw new AssertionError("this implementation shouldn't be used on Java 9+!!!");
+            }
+        }
+
+        private final MethodHandle getter;
         private final MethodHandle setter;
 
         private final Class<?> owner;
-        private final String name;
         private final int modifiers;
 
         private final Object staticFieldBase; //unused if the field is non-static
         private final long fieldOffset;
 
+        private final Class<?> arrayClass; //if non-null, this is an array handle and all the other fields are ignored
+
         UnsafeEmulated(@NonNull MethodHandles.Lookup lookup, @NonNull MethodHandle getter) throws IllegalAccessException {
             super(getter.type().returnType());
+
+            //set all other fields to default values
+            this.arrayClass = null;
 
             //we have to get a Field instance anyway in order to get the unsafe field offset, so we may as well use it to get the field location and modifiers
             Field field = lookup.revealDirect(getter).reflectAs(Field.class, lookup);
             this.owner = field.getDeclaringClass();
-            this.name = field.getName();
             this.modifiers = field.getModifiers();
 
             assert this.type == field.getType() : this.type + " != " + field.getType();
@@ -617,12 +634,26 @@ public abstract class PVarHandle {
             this.setter = Modifier.isFinal(this.modifiers) ? null : lookup.unreflectSetter(field);
         }
 
-        @Override
-        public String toString() {
-            return Modifier.toString(this.modifiers) + ' ' + this.type.getTypeName() + ' ' + this.owner.getTypeName() + '.' + this.name;
+        UnsafeEmulated(@NonNull Class<?> arrayClass) {
+            super(arrayClass.getComponentType());
+
+            //set all other fields to default values
+            this.getter = null;
+            this.setter = null;
+            this.owner = null;
+            this.modifiers = 0;
+            this.staticFieldBase = null;
+            this.fieldOffset = 0L;
+
+            this.arrayClass = arrayClass;
         }
 
         private void checkWriteSupported() {
+            if (this.arrayClass != null) { //this is an array handle
+                //immutable arrays aren't a thing on Java 8 so we will allow it
+                return;
+            }
+
             if (Modifier.isFinal(this.modifiers)) {
                 throw new UnsupportedOperationException("write unsupported for final field: " + this);
             }
@@ -634,7 +665,7 @@ public abstract class PVarHandle {
 
         private void checkNumericAtomicUpdateSupported() {
             if (!this.isNumericAtomicUpdateSupported()) {
-                throw new UnsupportedOperationException("numeric atomic update unsupported for final field: " + this);
+                throw new UnsupportedOperationException("numeric atomic update unsupported for type: " + this.type.getName());
             }
         }
 
@@ -644,7 +675,7 @@ public abstract class PVarHandle {
 
         private void checkBitwiseAtomicUpdateSupported() {
             if (!this.isBitwiseAtomicUpdateSupported()) {
-                throw new UnsupportedOperationException("bitwise atomic update unsupported for final field: " + this);
+                throw new UnsupportedOperationException("bitwise atomic update unsupported for type: " + this.type.getName());
             }
         }
 
@@ -661,20 +692,53 @@ public abstract class PVarHandle {
             return type.isPrimitive() ? type : Object.class;
         }
 
+        @SneakyThrows
         private MethodHandle bindBaseAndOffsetArguments(MethodHandle target) {
             assert target.type().parameterCount() >= 2 && target.type().parameterType(0) == Object.class && target.type().parameterType(1) == long.class
                     : target.type() + " is invalid, its parameters must start with (Object, long, ...)";
 
+            if (this.arrayClass != null) { //this is an array handle
+                //perform initial checks for null and bounds, then compute the actual offset
+
+                Class<?> rawArrayClass = Array.newInstance(getRawTypeClass(this.type), 0).getClass();
+
+                // (rawArray array, int index) -> long
+                MethodHandle computeOffsetChecked = MethodHandles.lookup().findStatic(
+                        PUnsafe.class,
+                        "array" + getRawTypeName(this.type) + "ElementOffsetChecked",
+                        MethodType.methodType(long.class, rawArrayClass, int.class));
+
+                // (rawArray array, rawArray array, int index, ...) -> ...
+                MethodHandle checkedTarget = MethodHandles.collectArguments(
+                        target.asType(target.type().changeParameterType(0, rawArrayClass)),
+                        1,
+                        computeOffsetChecked);
+
+                // (rawArray array, int index, ...) -> ...
+                MethodHandle duplicatedCheckedTarget = MethodHandles.permuteArguments(
+                        checkedTarget,
+                        checkedTarget.type().dropParameterTypes(0, 1),
+                        IntStream.concat(
+                                IntStream.of(0),
+                                IntStream.range(0, target.type().parameterCount())
+                        ).toArray());
+
+                //TODO: everything up to here could be cached for the raw type?
+
+                return duplicatedCheckedTarget.asType(duplicatedCheckedTarget.type().changeParameterType(0, this.arrayClass));
+            }
+
             if (Modifier.isStatic(this.modifiers)) { //this is a static field
                 return MethodHandles.insertArguments(target, 0, this.staticFieldBase, this.fieldOffset);
             } else { //this is an object field
+                //TODO: i think this needs to perform null checks?
                 return MethodHandles.insertArguments(target.asType(target.type().changeParameterType(0, this.owner)), 1, this.fieldOffset);
             }
         }
 
         @SneakyThrows(ReflectiveOperationException.class)
         private static MethodHandle getInvokerEmulated(String prefix, String suffix, Class<?> type) {
-            MethodHandle unsafeGet = MethodHandles.publicLookup().findStatic(
+            MethodHandle unsafeGet = MethodHandles.lookup().findStatic(
                     PUnsafe.class,
                     prefix + getRawTypeName(type) + suffix,
                     MethodType.methodType(getRawTypeClass(type), Object.class, long.class));
@@ -684,7 +748,7 @@ public abstract class PVarHandle {
 
         @SneakyThrows(ReflectiveOperationException.class)
         private static MethodHandle setInvokerEmulated(String prefix, String suffix, Class<?> type) {
-            MethodHandle unsafePut = MethodHandles.publicLookup().findStatic(
+            MethodHandle unsafePut = MethodHandles.lookup().findStatic(
                     PUnsafe.class,
                     prefix + getRawTypeName(type) + suffix,
                     MethodType.methodType(void.class, Object.class, long.class, getRawTypeClass(type)));
@@ -694,6 +758,10 @@ public abstract class PVarHandle {
 
         @Override
         public List<Class<?>> coordinateTypes() {
+            if (this.arrayClass != null) { //this is an array handle
+                return Collections.unmodifiableList(Arrays.asList(this.arrayClass, int.class));
+            }
+
             if (Modifier.isStatic(this.modifiers)) {
                 return Collections.emptyList();
             } else {
@@ -707,7 +775,7 @@ public abstract class PVarHandle {
 
         @Override
         public MethodHandle getPlainInvoker() {
-            if (!Modifier.isVolatile(this.modifiers)) { //if the field is non-volatile, we can use a standard getter MethodHandle
+            if (this.arrayClass == null && !Modifier.isVolatile(this.modifiers)) { //if the field is non-volatile, we can use a standard getter MethodHandle
                 return this.getter;
             } else { //if the field is volatile, we'll have to use Unsafe to load it with non-volatile ordering
                 return this.bindBaseAndOffsetArguments(getInvokerEmulated("get", "", this.type));
@@ -718,7 +786,7 @@ public abstract class PVarHandle {
         public MethodHandle setPlainInvoker() throws UnsupportedOperationException {
             this.checkWriteSupported();
 
-            if (!Modifier.isVolatile(this.modifiers)) { //if the field is non-volatile, we can use a standard setter MethodHandle
+            if (this.arrayClass == null && !Modifier.isVolatile(this.modifiers)) { //if the field is non-volatile, we can use a standard setter MethodHandle
                 return this.setter;
             } else { //if the field is volatile, we'll have to use Unsafe to load it with non-volatile ordering
                 return this.bindBaseAndOffsetArguments(setInvokerEmulated("put", "", this.type));
@@ -727,7 +795,7 @@ public abstract class PVarHandle {
 
         @Override
         public MethodHandle getVolatileInvoker() {
-            if (Modifier.isVolatile(this.modifiers)) { //if the field is volatile, we can use a standard getter MethodHandle
+            if (this.arrayClass == null && Modifier.isVolatile(this.modifiers)) { //if the field is volatile, we can use a standard getter MethodHandle
                 return this.getter;
             } else { //if the field is non-volatile, we'll have to use Unsafe to load it with volatile ordering
                 return this.bindBaseAndOffsetArguments(getInvokerEmulated("get", "Volatile", this.type));
@@ -738,7 +806,7 @@ public abstract class PVarHandle {
         public MethodHandle setVolatileInvoker() throws UnsupportedOperationException {
             this.checkWriteSupported();
 
-            if (Modifier.isVolatile(this.modifiers)) { //if the field is volatile, we can use a standard setter MethodHandle
+            if (this.arrayClass == null && Modifier.isVolatile(this.modifiers)) { //if the field is volatile, we can use a standard setter MethodHandle
                 return this.setter;
             } else { //if the field is non-volatile, we'll have to use Unsafe to load it with volatile ordering
                 return this.bindBaseAndOffsetArguments(setInvokerEmulated("put", "Volatile", this.type));
@@ -780,7 +848,7 @@ public abstract class PVarHandle {
         public MethodHandle compareAndSetInvoker() throws UnsupportedOperationException {
             this.checkWriteSupported();
 
-            MethodHandle unsafeCompareAndSet = MethodHandles.publicLookup().findStatic(
+            MethodHandle unsafeCompareAndSet = MethodHandles.lookup().findStatic(
                     PUnsafeAtomics_Java8.class,
                     "compareAndSet" + getRawTypeName(this.type),
                     MethodType.methodType(boolean.class, Object.class, long.class, getRawTypeClass(this.type), getRawTypeClass(this.type)));
@@ -819,7 +887,7 @@ public abstract class PVarHandle {
             this.checkWriteSupported();
 
             //this isn't actually an intrinsic on Java 8, but we'd have to emulate it using CAS either way and it's easier to just use the existing function
-            MethodHandle unsafeCompareAndExchange = MethodHandles.publicLookup().findStatic(
+            MethodHandle unsafeCompareAndExchange = MethodHandles.lookup().findStatic(
                     PUnsafeAtomics_Java8.class,
                     "compareAndExchange" + getRawTypeName(this.type),
                     MethodType.methodType(getRawTypeClass(this.type), Object.class, long.class, getRawTypeClass(this.type), getRawTypeClass(this.type)));
@@ -846,13 +914,13 @@ public abstract class PVarHandle {
             this.checkWriteSupported();
 
             //this isn't actually an intrinsic on Java 8, but we'd have to emulate it using CAS either way and it's easier to just use the existing function
-            MethodHandle unsafeGetAndSet = MethodHandles.publicLookup().findStatic(
+            MethodHandle unsafeGetAndSet = MethodHandles.lookup().findStatic(
                     PUnsafeAtomics_Java8.class,
                     "getAndSet" + getRawTypeName(this.type),
-                    MethodType.methodType(getRawTypeClass(this.type), Object.class, long.class, getRawTypeClass(this.type), getRawTypeClass(this.type)));
+                    MethodType.methodType(getRawTypeClass(this.type), Object.class, long.class, getRawTypeClass(this.type)));
 
             return this.bindBaseAndOffsetArguments(unsafeGetAndSet.asType(
-                    MethodType.methodType(this.type, Object.class, long.class, this.type, this.type)));
+                    MethodType.methodType(this.type, Object.class, long.class, this.type)));
         }
 
         @Override
@@ -879,10 +947,10 @@ public abstract class PVarHandle {
             assert this.type.isPrimitive() : this.type;
 
             //this isn't actually an intrinsic on Java 8, but we'd have to emulate it using CAS either way and it's easier to just use the existing function
-            return this.bindBaseAndOffsetArguments(MethodHandles.publicLookup().findStatic(
+            return this.bindBaseAndOffsetArguments(MethodHandles.lookup().findStatic(
                     PUnsafeAtomics_Java8.class,
                     "getAndAdd" + getRawTypeName(this.type),
-                    MethodType.methodType(this.type, Object.class, long.class, this.type, this.type)));
+                    MethodType.methodType(this.type, Object.class, long.class, this.type)));
         }
 
         @Override
@@ -908,10 +976,10 @@ public abstract class PVarHandle {
             this.checkBitwiseAtomicUpdateSupported();
 
             //this isn't actually an intrinsic on Java 8, but we'd have to emulate it using CAS either way and it's easier to just use the existing function
-            return this.bindBaseAndOffsetArguments(MethodHandles.publicLookup().findStatic(
+            return this.bindBaseAndOffsetArguments(MethodHandles.lookup().findStatic(
                     PUnsafeAtomics_Java8.class,
                     "getAndBitwiseOr" + getRawTypeName(this.type),
-                    MethodType.methodType(this.type, Object.class, long.class, this.type, this.type)));
+                    MethodType.methodType(this.type, Object.class, long.class, this.type)));
         }
 
         @Override
@@ -933,10 +1001,10 @@ public abstract class PVarHandle {
             this.checkBitwiseAtomicUpdateSupported();
 
             //this isn't actually an intrinsic on Java 8, but we'd have to emulate it using CAS either way and it's easier to just use the existing function
-            return this.bindBaseAndOffsetArguments(MethodHandles.publicLookup().findStatic(
+            return this.bindBaseAndOffsetArguments(MethodHandles.lookup().findStatic(
                     PUnsafeAtomics_Java8.class,
                     "getAndBitwiseAnd" + getRawTypeName(this.type),
-                    MethodType.methodType(this.type, Object.class, long.class, this.type, this.type)));
+                    MethodType.methodType(this.type, Object.class, long.class, this.type)));
         }
 
         @Override
@@ -958,10 +1026,10 @@ public abstract class PVarHandle {
             this.checkBitwiseAtomicUpdateSupported();
 
             //this isn't actually an intrinsic on Java 8, but we'd have to emulate it using CAS either way and it's easier to just use the existing function
-            return this.bindBaseAndOffsetArguments(MethodHandles.publicLookup().findStatic(
+            return this.bindBaseAndOffsetArguments(MethodHandles.lookup().findStatic(
                     PUnsafeAtomics_Java8.class,
                     "getAndBitwiseXor" + getRawTypeName(this.type),
-                    MethodType.methodType(this.type, Object.class, long.class, this.type, this.type)));
+                    MethodType.methodType(this.type, Object.class, long.class, this.type)));
         }
 
         @Override
@@ -1028,11 +1096,6 @@ public abstract class PVarHandle {
             super(arrayClass.getComponentType());
 
             this.varHandle = MethodHandles_arrayElementVarHandle.invoke(arrayClass);
-        }
-
-        @Override
-        public String toString() {
-            return this.varHandle.toString();
         }
 
         @Override

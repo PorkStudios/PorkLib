@@ -76,15 +76,13 @@ public class PUnsafe {
                 return null;
             }
         } catch (Throwable t) {
-            throw new AssertionError("Unable to obtain instance of jdk.internal.misc.Unsafe", t);
+            throw new AssertionError("Unable to obtain instance of jdk.internal.misc.Unsafe! Try adding '--add-opens java.base/jdk.internal.misc=ALL-UNNAMED' to your JVM arguments.", t);
         }
     });
 
     @SneakyThrows
     static MethodHandle getNewUnsafeMethod(String name, MethodType type) {
-        return MethodHandles.publicLookup()
-                .findVirtual(jdk_internal_misc_Unsafe.getClass(), name, type)
-                .bindTo(jdk_internal_misc_Unsafe);
+        return MethodHandles.lookup().bind(jdk_internal_misc_Unsafe, name, type);
     }
 
     //
@@ -633,6 +631,82 @@ public class PUnsafe {
     }
 
     public static long arrayObjectElementOffset(int index) {
+        return index * ARRAY_OBJECT_INDEX_SCALE + ARRAY_OBJECT_BASE_OFFSET;
+    }
+
+    //
+    // CHECKED ARRAY OFFSET ACCESSORS
+    //
+
+    public static long arrayBooleanElementOffsetChecked(boolean[] array, int index) {
+        int arrayLength = array.length;
+        if (index < 0 || index >= arrayLength) {
+            throw new ArrayIndexOutOfBoundsException(index);
+        }
+        return index * ARRAY_BOOLEAN_INDEX_SCALE + ARRAY_BOOLEAN_BASE_OFFSET;
+    }
+
+    public static long arrayByteElementOffsetChecked(byte[] array, int index) {
+        int arrayLength = array.length;
+        if (index < 0 || index >= arrayLength) {
+            throw new ArrayIndexOutOfBoundsException(index);
+        }
+        return index * ARRAY_BYTE_INDEX_SCALE + ARRAY_BYTE_BASE_OFFSET;
+    }
+
+    public static long arrayShortElementOffsetChecked(short[] array, int index) {
+        int arrayLength = array.length;
+        if (index < 0 || index >= arrayLength) {
+            throw new ArrayIndexOutOfBoundsException(index);
+        }
+        return index * ARRAY_SHORT_INDEX_SCALE + ARRAY_SHORT_BASE_OFFSET;
+    }
+
+    public static long arrayCharElementOffsetChecked(char[] array, int index) {
+        int arrayLength = array.length;
+        if (index < 0 || index >= arrayLength) {
+            throw new ArrayIndexOutOfBoundsException(index);
+        }
+        return index * ARRAY_CHAR_INDEX_SCALE + ARRAY_CHAR_BASE_OFFSET;
+    }
+
+    public static long arrayIntElementOffsetChecked(int[] array, int index) {
+        int arrayLength = array.length;
+        if (index < 0 || index >= arrayLength) {
+            throw new ArrayIndexOutOfBoundsException(index);
+        }
+        return index * ARRAY_INT_INDEX_SCALE + ARRAY_INT_BASE_OFFSET;
+    }
+
+    public static long arrayLongElementOffsetChecked(long[] array, int index) {
+        int arrayLength = array.length;
+        if (index < 0 || index >= arrayLength) {
+            throw new ArrayIndexOutOfBoundsException(index);
+        }
+        return index * ARRAY_LONG_INDEX_SCALE + ARRAY_LONG_BASE_OFFSET;
+    }
+
+    public static long arrayFloatElementOffsetChecked(float[] array, int index) {
+        int arrayLength = array.length;
+        if (index < 0 || index >= arrayLength) {
+            throw new ArrayIndexOutOfBoundsException(index);
+        }
+        return index * ARRAY_FLOAT_INDEX_SCALE + ARRAY_FLOAT_BASE_OFFSET;
+    }
+
+    public static long arrayDoubleElementOffsetChecked(double[] array, int index) {
+        int arrayLength = array.length;
+        if (index < 0 || index >= arrayLength) {
+            throw new ArrayIndexOutOfBoundsException(index);
+        }
+        return index * ARRAY_DOUBLE_INDEX_SCALE + ARRAY_DOUBLE_BASE_OFFSET;
+    }
+
+    public static long arrayObjectElementOffsetChecked(Object[] array, int index) {
+        int arrayLength = array.length;
+        if (index < 0 || index >= arrayLength) {
+            throw new ArrayIndexOutOfBoundsException(index);
+        }
         return index * ARRAY_OBJECT_INDEX_SCALE + ARRAY_OBJECT_BASE_OFFSET;
     }
 
@@ -1225,7 +1299,7 @@ public class PUnsafe {
 
         static {
             try {
-                MethodHandles$Lookup_defineClass = MethodHandles.publicLookup()
+                MethodHandles$Lookup_defineClass = MethodHandles.lookup()
                         .findVirtual(MethodHandles.Lookup.class, "defineClass", MethodType.methodType(Class.class, byte[].class));
             } catch (Throwable t) {
                 throw new AssertionError("Unable to find java.lang.invoke.MethodHandles$Lookup#defineClass", t);
@@ -1332,9 +1406,7 @@ public class PUnsafe {
     static {
         if (JAVA_VERSION >= 9) {
             try {
-                allocateUninitializedArray = MethodHandles.lookup()
-                        .findVirtual(jdk_internal_misc_Unsafe.getClass(), "allocateUninitializedArray", MethodType.methodType(Object.class, Class.class, int.class))
-                        .bindTo(jdk_internal_misc_Unsafe);
+                allocateUninitializedArray = getNewUnsafeMethod("allocateUninitializedArray", MethodType.methodType(Object.class, Class.class, int.class));
             } catch (Throwable t) {
                 throw new AssertionError("Unable to find jdk.internal.misc.Unsafe#allocateUninitializedArray", t);
             }

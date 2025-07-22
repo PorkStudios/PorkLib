@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -15,23 +15,21 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
 package net.daporkchop.lib.compression.zlib;
 
 import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.natives.FeatureBuilder;
+import net.daporkchop.lib.natives.FeatureLoader;
+
+import java.lang.invoke.MethodHandles;
 
 /**
  * @author DaPorkchop_
  */
 @UtilityClass
 public class Zlib {
-    public final ZlibProvider PROVIDER = FeatureBuilder.<ZlibProvider>create(Zlib.class)
-            .addNative("net.daporkchop.lib.compression.zlib.natives.NativeZlib")
-            .addJava("net.daporkchop.lib.compression.zlib.java.JavaZlib")
-            .build();
+    public final ZlibProvider PROVIDER = FeatureLoader.loadService(MethodHandles.lookup(), ZlibProvider.class);
 
     public final int LEVEL_NONE = 0; //no compression at all
     public final int LEVEL_FASTEST = 1; //fastest compression, worst ratio

@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -15,16 +15,14 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
 package net.daporkchop.lib.compression.zstd;
 
 import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.common.system.PlatformInfo;
-import net.daporkchop.lib.natives.FeatureBuilder;
-import net.daporkchop.lib.natives.impl.CheckedFeatureWrapper;
-import net.daporkchop.lib.natives.impl.JavaFeatureImplementation;
+import net.daporkchop.lib.natives.FeatureLoader;
+
+import java.lang.invoke.MethodHandles;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 
@@ -33,13 +31,7 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  */
 @UtilityClass
 public class Zstd {
-    public final ZstdProvider PROVIDER = FeatureBuilder.<ZstdProvider>create(Zstd.class)
-            .addNative("net.daporkchop.lib.compression.zstd.natives.NativeZstd")
-            .add(new CheckedFeatureWrapper<ZstdProvider>(
-                    new JavaFeatureImplementation<ZstdProvider>("net.daporkchop.lib.compression.zstd.air.AirZstd", Zstd.class.getClassLoader()),
-                    () -> checkState(PlatformInfo.IS_LITTLE_ENDIAN, "aircompressor only works on little-endian systems!"),
-                    () -> checkState(PlatformInfo.UNALIGNED, "aircompressor requires unaligned memory access!")))
-            .build();
+    public final ZstdProvider PROVIDER = FeatureLoader.loadService(MethodHandles.lookup(), ZstdProvider.class);
 
     public final int LEVEL_DEFAULT = 0;
     public final int LEVEL_MIN = 1;

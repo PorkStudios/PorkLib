@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -15,7 +15,6 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
 package net.daporkchop.lib.compression.zstd.air;
@@ -26,6 +25,7 @@ import io.netty.buffer.ByteBuf;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.system.PlatformInfo;
 import net.daporkchop.lib.compression.zstd.ZstdDeflateDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdDeflater;
 import net.daporkchop.lib.compression.zstd.ZstdInflateDictionary;
@@ -44,8 +44,13 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  */
 @Getter
 @Accessors(fluent = true)
-final class AirZstd implements ZstdProvider {
+public final class AirZstd implements ZstdProvider {
     static final int FRAME_HEADER_SIZE_MAX = 18;
+
+    static {
+        checkState(PlatformInfo.IS_LITTLE_ENDIAN, "aircompressor only works on little-endian systems!");
+        checkState(PlatformInfo.UNALIGNED, "aircompressor requires unaligned memory access!");
+    }
 
     protected final ZstdDeflaterOptions deflateOptions = new ZstdDeflaterOptions(this);
     protected final ZstdInflaterOptions inflateOptions = new ZstdInflaterOptions(this);

@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2022 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -15,7 +15,6 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
 package net.daporkchop.lib.compression.zstd.natives;
@@ -39,6 +38,8 @@ import net.daporkchop.lib.natives.NativeException;
 import net.daporkchop.lib.natives.NativeFeature;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
+import java.io.FileNotFoundException;
+import java.lang.invoke.MethodHandles;
 import java.nio.ByteBuffer;
 
 import static java.lang.Math.*;
@@ -49,7 +50,7 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  */
 @Getter
 @Accessors(fluent = true)
-final class NativeZstd extends NativeFeature<ZstdProvider> implements ZstdProvider {
+public final class NativeZstd extends NativeFeature<ZstdProvider> implements ZstdProvider {
     private static native long frameContentSize0(long src, int srcLen);
 
     private static native long compressBound0(long srcLen);
@@ -67,6 +68,8 @@ final class NativeZstd extends NativeFeature<ZstdProvider> implements ZstdProvid
         if (PorkUtil.bufferSize() < FRAME_HEADER_SIZE_MAX) {
             throw new AssertionError("PorkUtil.bufferSize() must be at least " + FRAME_HEADER_SIZE_MAX);
         }
+
+        NativeFeature.loadNativeLibrary(MethodHandles.lookup(), "");
     }
 
     protected final ZstdDeflaterOptions deflateOptions = new ZstdDeflaterOptions(this);

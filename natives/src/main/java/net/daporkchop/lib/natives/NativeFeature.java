@@ -42,7 +42,7 @@ import java.util.Optional;
  *
  * @author DaPorkchop_
  */
-public abstract class NativeFeature<F extends Feature<F>> implements Feature<F> {
+public abstract class NativeFeature<F extends Feature> implements Feature {
     private static final String LIB_ARCH;
     private static final String LIB_EXT;
 

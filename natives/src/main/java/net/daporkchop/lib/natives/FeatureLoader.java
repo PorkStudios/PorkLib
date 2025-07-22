@@ -33,11 +33,11 @@ import java.util.ServiceLoader;
  */
 @UtilityClass
 public class FeatureLoader {
-    public static <F extends Feature<F>> F loadService(@NonNull MethodHandles.Lookup lookup, @NonNull Class<F> featureClass) throws NoFeatureImplementationsFoundError {
+    public static <F extends Feature> F loadService(@NonNull MethodHandles.Lookup lookup, @NonNull Class<F> featureClass) throws NoFeatureImplementationsFoundError {
         return loadService(lookup, featureClass, lookup.lookupClass().getClassLoader());
     }
 
-    public static <F extends Feature<F>> F loadService(@NonNull MethodHandles.Lookup lookup, @NonNull Class<F> featureClass, @NonNull ClassLoader loader) throws NoFeatureImplementationsFoundError {
+    public static <F extends Feature> F loadService(@NonNull MethodHandles.Lookup lookup, @NonNull Class<F> featureClass, @NonNull ClassLoader loader) throws NoFeatureImplementationsFoundError {
         NoFeatureImplementationsFoundError root = null;
         for (Iterator<F> itr = ServiceLoader.load(featureClass, loader).iterator(); ; ) {
             try {

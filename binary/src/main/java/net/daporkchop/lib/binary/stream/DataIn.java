@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2022 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -15,7 +15,6 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
 package net.daporkchop.lib.binary.stream;
@@ -33,9 +32,9 @@ import net.daporkchop.lib.binary.stream.nio.GenericHeapBufferIn;
 import net.daporkchop.lib.binary.stream.stream.StreamIn;
 import net.daporkchop.lib.binary.stream.wrapper.DataInAsInputStream;
 import net.daporkchop.lib.binary.util.NoMoreSpaceException;
-import net.daporkchop.lib.common.annotation.AliasOwnership;
+import net.daporkchop.lib.common.annotation.ExtendedBorrow;
 import net.daporkchop.lib.common.annotation.NotThreadSafe;
-import net.daporkchop.lib.common.annotation.TransferOwnership;
+import net.daporkchop.lib.common.annotation.Move;
 import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.common.util.PorkUtil;
@@ -234,7 +233,7 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * <p>
      * When the {@link DataIn} is {@link DataIn#close() closed}, the {@link ByteBuf} will <strong>not</strong> be {@link ByteBuf#release() released}.
      * <p>
-     * As ownership of the {@link ByteBuf} is {@link AliasOwnership aliased} to the returned {@link DataIn}, the user must not {@link ByteBuf#release() released} the
+     * As ownership of the {@link ByteBuf} is {@link ExtendedBorrow borrowed} to the returned {@link DataIn}, the user must not {@link ByteBuf#release() released} the
      * {@link ByteBuf} until the returned {@link DataIn} has been {@link DataIn#close() closed}.
      * <p>
      * The {@link ByteBuf}'s configured {@link ByteBuf#order() byte order} will have no effect on the returned {@link DataOut}.
@@ -246,7 +245,7 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @return a {@link DataIn} that can read data from the {@link ByteBuf}
      */
     @SuppressWarnings("deprecation")
-    static DataIn wrapView(@NonNull @AliasOwnership ByteBuf buf) {
+    static DataIn wrapView(@NonNull @ExtendedBorrow ByteBuf buf) {
         buf = buf.order(ByteOrder.BIG_ENDIAN); //make sure buffer is big-endian (this should do nothing 99% of the time)
 
         return buf.isDirect()
@@ -268,7 +267,7 @@ public interface DataIn extends DataInput, ScatteringByteChannel, Closeable {
      * @return a {@link DataIn} that can read data from the {@link ByteBuf}
      */
     @SuppressWarnings("deprecation")
-    static DataIn wrapReleasing(@NonNull @TransferOwnership ByteBuf buf) {
+    static DataIn wrapReleasing(@NonNull @Move ByteBuf buf) {
         buf = buf.order(ByteOrder.BIG_ENDIAN); //make sure buffer is big-endian (this should do nothing 99% of the time)
 
         return buf.isDirect()

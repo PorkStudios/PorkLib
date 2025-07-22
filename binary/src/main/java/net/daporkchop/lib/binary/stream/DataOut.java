@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2022 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -15,7 +15,6 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
 package net.daporkchop.lib.binary.stream;
@@ -34,9 +33,9 @@ import net.daporkchop.lib.binary.stream.nio.GenericDirectBufferOut;
 import net.daporkchop.lib.binary.stream.nio.GenericHeapBufferOut;
 import net.daporkchop.lib.binary.stream.stream.StreamOut;
 import net.daporkchop.lib.binary.util.NoMoreSpaceException;
-import net.daporkchop.lib.common.annotation.AliasOwnership;
+import net.daporkchop.lib.common.annotation.ExtendedBorrow;
 import net.daporkchop.lib.common.annotation.NotThreadSafe;
-import net.daporkchop.lib.common.annotation.TransferOwnership;
+import net.daporkchop.lib.common.annotation.Move;
 import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.unsafe.PUnsafe;
@@ -262,7 +261,7 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * <p>
      * When the {@link DataOut} is {@link DataOut#close() closed}, the {@link ByteBuf} will <strong>not</strong> be {@link ByteBuf#release() released}.
      * <p>
-     * As ownership of the {@link ByteBuf} is {@link AliasOwnership aliased} to the returned {@link DataOut}, the user must not {@link ByteBuf#release() released} the
+     * As ownership of the {@link ByteBuf} is {@link ExtendedBorrow borrowed} to the returned {@link DataOut}, the user must not {@link ByteBuf#release() released} the
      * {@link ByteBuf} until the returned {@link DataOut} has been {@link DataOut#close() closed}.
      * <p>
      * Writes to the {@link DataOut} which would require the {@link ByteBuf}'s {@link ByteBuf#writerIndex() writer index} to exceed its
@@ -278,7 +277,7 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @see #wrapViewNonGrowing(ByteBuf)
      */
     @SuppressWarnings("deprecation")
-    static DataOut wrapView(@NonNull @AliasOwnership ByteBuf buf) {
+    static DataOut wrapView(@NonNull @ExtendedBorrow ByteBuf buf) {
         buf = buf.order(ByteOrder.BIG_ENDIAN); //make sure buffer is big-endian (this should do nothing 99% of the time)
 
         return buf.isDirect()
@@ -304,7 +303,7 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @see #wrapReleasingNonGrowing(ByteBuf)
      */
     @SuppressWarnings("deprecation")
-    static DataOut wrapReleasing(@NonNull @TransferOwnership ByteBuf buf) {
+    static DataOut wrapReleasing(@NonNull @Move ByteBuf buf) {
         buf = buf.order(ByteOrder.BIG_ENDIAN); //make sure buffer is big-endian (this should do nothing 99% of the time)
 
         return buf.isDirect()
@@ -320,7 +319,7 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * <p>
      * When the {@link DataOut} is {@link DataOut#close() closed}, the {@link ByteBuf} will <strong>not</strong> be {@link ByteBuf#release() released}.
      * <p>
-     * As ownership of the {@link ByteBuf} is {@link AliasOwnership aliased} to the returned {@link DataOut}, the user must not {@link ByteBuf#release() released} the
+     * As ownership of the {@link ByteBuf} is {@link ExtendedBorrow borrowed} to the returned {@link DataOut}, the user must not {@link ByteBuf#release() released} the
      * {@link ByteBuf} until the returned {@link DataOut} has been {@link DataOut#close() closed}.
      * <p>
      * The {@link ByteBuf}'s configured {@link ByteBuf#order() byte order} will have no effect on the returned {@link DataOut}.
@@ -333,7 +332,7 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @see #wrapView(ByteBuf)
      */
     @SuppressWarnings("deprecation")
-    static DataOut wrapViewNonGrowing(@NonNull @AliasOwnership ByteBuf buf) {
+    static DataOut wrapViewNonGrowing(@NonNull @ExtendedBorrow ByteBuf buf) {
         buf = buf.order(ByteOrder.BIG_ENDIAN); //make sure buffer is big-endian (this should do nothing 99% of the time)
 
         return buf.isDirect()
@@ -359,7 +358,7 @@ public interface DataOut extends DataOutput, GatheringByteChannel, Closeable {
      * @see #wrapReleasing(ByteBuf)
      */
     @SuppressWarnings("deprecation")
-    static DataOut wrapReleasingNonGrowing(@NonNull @TransferOwnership ByteBuf buf) {
+    static DataOut wrapReleasingNonGrowing(@NonNull @Move ByteBuf buf) {
         buf = buf.order(ByteOrder.BIG_ENDIAN); //make sure buffer is big-endian (this should do nothing 99% of the time)
 
         return buf.isDirect()

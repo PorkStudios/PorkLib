@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2022 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -15,7 +15,6 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
 package net.daporkchop.lib.common.annotation;
@@ -29,15 +28,18 @@ import java.lang.annotation.Target;
 
 /**
  * When placed on a method parameter for a closeable/releasable type (such as an {@link AutoCloseable} or {@link RefCounted}), indicates that the method temporarily
- * borrows the caller's ownership of the parameter value and returns it to the caller upon completion.
+ * borrows the caller's ownership of the parameter value and returns it to the caller upon completion, as with {@link Borrow}. However, unlike
+ * {@link Borrow}, the method is permitted to use the value in a way which would cause the resource to remain accessible to other code beyond the scope of the
+ * method. The method's documentation must describe any further actions which must be taken in order to safely close/release the resource.
  * <p>
- * This is generally the default behavior.
+ * This is intended for utilities which wrap a resource and return an object which provides a view into the resource without invalidating the original resource, but where
+ * closing the original resource would cause the wrapper to become invalid. Note that use of such methods should be considered unsafe.
  *
  * @author DaPorkchop_
- * @see AliasOwnership
- * @see TransferOwnership
+ * @see Borrow
+ * @see Move
  */
 @Retention(RetentionPolicy.CLASS)
 @Target({ ElementType.PARAMETER })
-public @interface BorrowOwnership {
+public @interface ExtendedBorrow {
 }

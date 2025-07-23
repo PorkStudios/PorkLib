@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2022 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -15,7 +15,6 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
 package net.daporkchop.lib.compression.zstd.air;
@@ -28,25 +27,22 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
 import net.daporkchop.lib.compression.zstd.ZstdInflateDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdInflater;
 import net.daporkchop.lib.compression.zstd.options.ZstdInflaterOptions;
 import net.daporkchop.lib.compression.zstd.util.exception.ContentSizeUnknownException;
-import net.daporkchop.lib.common.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import static java.lang.Math.min;
-import static net.daporkchop.lib.common.util.PValidation.checkArg;
+import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
 @Accessors(fluent = true)
-final class AirZstdInflater extends AbstractRefCounted implements ZstdInflater {
+final class AirZstdInflater implements ZstdInflater {
     @NonNull
     final AirZstd provider;
     @Getter
@@ -65,7 +61,7 @@ final class AirZstdInflater extends AbstractRefCounted implements ZstdInflater {
         return this.decompress0(src, dst);
     }
 
-    protected boolean decompress0(@NonNull ByteBuf src, @NonNull ByteBuf dst) {
+    private boolean decompress0(@NonNull ByteBuf src, @NonNull ByteBuf dst) {
         ByteBuffer srcBuf = src.nioBuffer();
         ByteBuffer dstBuf = dst.nioBuffer(dst.writerIndex(), dst.writableBytes());
         try {
@@ -94,7 +90,7 @@ final class AirZstdInflater extends AbstractRefCounted implements ZstdInflater {
         this.decompressGrowing0(src, dst);
     }
 
-    protected void decompressGrowing0(@NonNull ByteBuf src, @NonNull ByteBuf dst) {
+    private void decompressGrowing0(@NonNull ByteBuf src, @NonNull ByteBuf dst) {
         int curr = 256;
         try {
             curr = this.provider.frameContentSize(src);
@@ -133,12 +129,7 @@ final class AirZstdInflater extends AbstractRefCounted implements ZstdInflater {
     }
 
     @Override
-    public AirZstdInflater retain() throws AlreadyReleasedException {
-        super.retain();
-        return this;
-    }
-
-    @Override
-    protected void doRelease() {
+    public void close() {
+        //no-op
     }
 }

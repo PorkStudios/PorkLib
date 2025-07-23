@@ -17,24 +17,55 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.compression.zstd;
+package net.daporkchop.lib.compression.zstd.natives;
 
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.closeable.QuietCloseable;
-import net.daporkchop.lib.compression.CompressionProvider;
+import net.daporkchop.lib.unsafe.PCleaner;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 /**
- * A digested dictionary used by {@link Zstd} compression.
- *
  * @author DaPorkchop_
  */
-public interface ZstdDeflateDictionary extends QuietCloseable {
-    /**
-     * @return the {@link CompressionProvider} that created this context
-     */
-    ZstdProvider provider();
+@Accessors(fluent = true)
+abstract class AbstractNativeZstdContext implements QuietCloseable {
+    final long ctx;
 
-    /**
-     * @return the compression level that the dictionary uses
-     */
-    int level();
+    private PCleaner cleaner;
+
+    AbstractNativeZstdContext() {
+        this.ctx = this.allocate0();
+        this.cleaner = PCleaner.cleaner(this, this.makeReleaser(this.ctx));
+    }
+
+    final void ensureOpen() {
+        if (this.cleaner == null) {
+            throw new IllegalStateException("already closed!");
+        }
+    }
+
+    @Override
+    public final void close() {
+        PCleaner cleaner = this.cleaner;
+        this.cleaner = null;
+        if (cleaner != null) {
+            cleaner.clean();
+        }
+    }
+
+    abstract long allocate0();
+
+    abstract Runnable makeReleaser(long addr);
+
+    protected final long getRead() {
+        return PUnsafe.getLongVolatile(null, this.ctx);
+    }
+
+    protected final long getWritten() {
+        return PUnsafe.getLongVolatile(null, this.ctx + 8L);
+    }
+
+    protected final long getSession() {
+        return PUnsafe.getLongVolatile(null, this.ctx + 16L);
+    }
 }

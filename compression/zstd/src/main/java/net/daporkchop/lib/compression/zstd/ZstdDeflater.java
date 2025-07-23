@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2022 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -15,7 +15,6 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
 package net.daporkchop.lib.compression.zstd;
@@ -24,19 +23,19 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataOut;
+import net.daporkchop.lib.common.annotation.Borrow;
+import net.daporkchop.lib.common.annotation.NotThreadSafe;
 import net.daporkchop.lib.compression.context.PDeflater;
 import net.daporkchop.lib.compression.zstd.options.ZstdDeflaterOptions;
-import net.daporkchop.lib.common.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
 
 /**
  * Compression context for {@link Zstd}.
- * <p>
- * Not thread-safe.
  *
  * @author DaPorkchop_
  */
+@NotThreadSafe
 public interface ZstdDeflater extends PDeflater {
     @Override
     ZstdDeflaterOptions options();
@@ -296,13 +295,4 @@ public interface ZstdDeflater extends PDeflater {
     default boolean hasDict() {
         return true;
     }
-
-    @Override
-    int refCnt();
-
-    @Override
-    ZstdDeflater retain() throws AlreadyReleasedException;
-
-    @Override
-    boolean release() throws AlreadyReleasedException;
 }

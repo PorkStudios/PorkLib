@@ -21,8 +21,6 @@ package net.daporkchop.lib.compression.zstd.natives;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.PooledByteBufAllocator;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.SneakyThrows;
@@ -30,14 +28,10 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.binary.util.NoMoreSpaceException;
-import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
 import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.common.util.exception.AlreadyReleasedException;
 import net.daporkchop.lib.compression.zstd.ZstdInflateDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdInflater;
 import net.daporkchop.lib.compression.zstd.options.ZstdInflaterOptions;
-import net.daporkchop.lib.unsafe.PCleaner;
-import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.IOException;
 import java.util.ConcurrentModificationException;
@@ -50,8 +44,9 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  */
 @Accessors(fluent = true)
 @SuppressWarnings("Duplicates")
-final class NativeZstdInflater extends AbstractRefCounted.Synchronized implements ZstdInflater {
-    static native long allocate0();
+final class NativeZstdInflater extends AbstractNativeZstdContext implements ZstdInflater {
+    @Override
+    native long allocate0();
 
     static native void release0(long ctx);
 
@@ -105,29 +100,22 @@ final class NativeZstdInflater extends AbstractRefCounted.Synchronized implement
 
     static native long updateH2H0(long ctx, byte[] src, int srcOff, int srcLen, byte[] dst, int dstOff, int dstLen);
 
-    final long ctx;
-
     @Getter
     final ZstdInflaterOptions options;
 
-    final PCleaner cleaner;
-
     NativeZstdInflater(@NonNull ZstdInflaterOptions options) {
         this.options = options;
-
-        this.ctx = allocate0();
-        this.cleaner = PCleaner.cleaner(this, new Releaser(this.ctx));
     }
 
     @Override
-    protected void doRelease() {
-        this.cleaner.clean();
+    Runnable makeReleaser(long addr) {
+        return () -> release0(addr);
     }
 
     @Override
     @SneakyThrows(IOException.class)
-    public synchronized boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) {
-        this.ensureNotReleased();
+    public boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) {
+        this.ensureOpen();
 
         if (!(src.hasMemoryAddress() || src.hasArray()) || !(dst.hasMemoryAddress() || dst.hasArray())) {
             //the other cases are too much of a pain to implement by hand
@@ -152,7 +140,7 @@ final class NativeZstdInflater extends AbstractRefCounted.Synchronized implement
         try {
             if (!dict.hasMemoryAddress() && !dict.hasArray()) {
                 //dict is composite
-                ByteBuf buf = PooledByteBufAllocator.DEFAULT.directBuffer(dict.readableBytes(), dict.readableBytes());
+                ByteBuf buf = ByteBufAllocator.DEFAULT.directBuffer(dict.readableBytes(), dict.readableBytes());
                 dict.getBytes(dict.readerIndex(), buf);
                 dict = buf;
                 releaseDict = true;
@@ -236,8 +224,8 @@ final class NativeZstdInflater extends AbstractRefCounted.Synchronized implement
 
     @Override
     @SneakyThrows(IOException.class)
-    public synchronized boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdInflateDictionary dict) {
-        this.ensureNotReleased();
+    public boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdInflateDictionary dict) {
+        this.ensureOpen();
 
         if (!(src.hasMemoryAddress() || src.hasArray()) || !(dst.hasMemoryAddress() || dst.hasArray())) {
             //the other cases are too much of a pain to implement by hand
@@ -259,7 +247,7 @@ final class NativeZstdInflater extends AbstractRefCounted.Synchronized implement
         }
 
         checkArg(dict instanceof NativeZstdInflateDictionary, "invalid dictionary: %s", dict);
-        long dictAddr = ((NativeZstdInflateDictionary) dict.retain()).addr();
+        long dictAddr = ((NativeZstdInflateDictionary) dict).addr();
 
         long session = newSession0(this.ctx);
         try {
@@ -298,7 +286,6 @@ final class NativeZstdInflater extends AbstractRefCounted.Synchronized implement
                 return false;
             }
         } finally {
-            dict.release();
             if (session != this.getSession()) {
                 throw new ConcurrentModificationException(); //probably impossible
             }
@@ -339,8 +326,9 @@ final class NativeZstdInflater extends AbstractRefCounted.Synchronized implement
     }
 
     @Override
-    public synchronized void decompressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) throws IndexOutOfBoundsException {
-        this.ensureNotReleased();
+    @SneakyThrows(IOException.class)
+    public void decompressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) throws IndexOutOfBoundsException {
+        this.ensureOpen();
 
         if (!(src.hasMemoryAddress() || src.hasArray()) || !(dst.hasMemoryAddress() || dst.hasArray())) {
             //the other cases are too much of a pain to implement by hand
@@ -348,9 +336,6 @@ final class NativeZstdInflater extends AbstractRefCounted.Synchronized implement
                  DataOut out = DataOut.wrapView(dst)) {
                 out.transferFrom(in);
                 return;
-            } catch (IOException e) {
-                //shouldn't be possible
-                throw new RuntimeException(e);
             }
         }
 
@@ -358,8 +343,9 @@ final class NativeZstdInflater extends AbstractRefCounted.Synchronized implement
     }
 
     @Override
-    public synchronized void decompressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdInflateDictionary dict) throws IndexOutOfBoundsException {
-        this.ensureNotReleased();
+    @SneakyThrows(IOException.class)
+    public void decompressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdInflateDictionary dict) throws IndexOutOfBoundsException {
+        this.ensureOpen();
         checkArg(dict == null || dict instanceof NativeZstdInflateDictionary, "invalid dictionary: %s", dict);
 
         if (!(src.hasMemoryAddress() || src.hasArray()) || !(dst.hasMemoryAddress() || dst.hasArray())) {
@@ -368,20 +354,11 @@ final class NativeZstdInflater extends AbstractRefCounted.Synchronized implement
                  DataOut out = DataOut.wrapView(dst)) {
                 out.transferFrom(in);
                 return;
-            } catch (IOException e) {
-                //shouldn't be possible
-                throw new RuntimeException(e);
             }
         }
 
         long session = this.createSessionAndSetDict((NativeZstdInflateDictionary) dict);
-        try {
-            this.decompressGrowing0(src, dst, session);
-        } finally {
-            if (dict != null) {
-                dict.release();
-            }
-        }
+        this.decompressGrowing0(src, dst, session);
     }
 
     void decompressGrowing0(@NonNull ByteBuf src, @NonNull ByteBuf dst, long session) throws IndexOutOfBoundsException {
@@ -438,10 +415,11 @@ final class NativeZstdInflater extends AbstractRefCounted.Synchronized implement
     }
 
     @Override
-    public synchronized DataIn decompressionStream(@NonNull DataIn in, ByteBufAllocator bufferAlloc, int bufferSize, ByteBuf dict) throws IOException {
-        this.ensureNotReleased();
+    public DataIn decompressionStream(@NonNull DataIn in, ByteBufAllocator bufferAlloc, int bufferSize, ByteBuf dict) throws IOException {
+        this.ensureOpen();
+
         if (bufferAlloc == null) {
-            bufferAlloc = PooledByteBufAllocator.DEFAULT;
+            bufferAlloc = ByteBufAllocator.DEFAULT;
         }
         if (bufferSize <= 0) {
             bufferSize = PorkUtil.bufferSize();
@@ -458,11 +436,12 @@ final class NativeZstdInflater extends AbstractRefCounted.Synchronized implement
     }
 
     @Override
-    public synchronized DataIn decompressionStream(@NonNull DataIn in, ByteBufAllocator bufferAlloc, int bufferSize, ZstdInflateDictionary dict) throws IOException {
-        this.ensureNotReleased();
+    public DataIn decompressionStream(@NonNull DataIn in, ByteBufAllocator bufferAlloc, int bufferSize, ZstdInflateDictionary dict) throws IOException {
+        this.ensureOpen();
         checkArg(dict == null || dict instanceof NativeZstdInflateDictionary, "invalid dictionary: %s", dict);
+
         if (bufferAlloc == null) {
-            bufferAlloc = PooledByteBufAllocator.DEFAULT;
+            bufferAlloc = ByteBufAllocator.DEFAULT;
         }
         if (bufferSize <= 0) {
             bufferSize = PorkUtil.bufferSize();
@@ -487,7 +466,7 @@ final class NativeZstdInflater extends AbstractRefCounted.Synchronized implement
         } else if (dict.hasArray()) {
             return newSessionWithDictH0(this.ctx, dict.array(), dict.arrayOffset() + dict.readerIndex(), dict.readableBytes());
         } else {
-            ByteBuf buf = PooledByteBufAllocator.DEFAULT.directBuffer(dict.readableBytes(), dict.readableBytes());
+            ByteBuf buf = ByteBufAllocator.DEFAULT.directBuffer(dict.readableBytes(), dict.readableBytes());
             try {
                 dict.getBytes(dict.readerIndex(), buf);
                 return newSessionWithDictD0(this.ctx, buf.memoryAddress() + buf.readerIndex(), buf.readableBytes());
@@ -502,36 +481,7 @@ final class NativeZstdInflater extends AbstractRefCounted.Synchronized implement
             //no dictionary will be used
             return newSession0(this.ctx);
         } else {
-            dict.retain();
             return newSessionWithDict0(this.ctx, dict.addr());
-        }
-    }
-
-    @Override
-    public NativeZstdInflater retain() throws AlreadyReleasedException {
-        super.retain();
-        return this;
-    }
-
-    protected long getRead() {
-        return PUnsafe.getLongVolatile(null, this.ctx);
-    }
-
-    protected long getWritten() {
-        return PUnsafe.getLongVolatile(null, this.ctx + 8L);
-    }
-
-    protected long getSession() {
-        return PUnsafe.getLongVolatile(null, this.ctx + 16L);
-    }
-
-    @AllArgsConstructor
-    private static final class Releaser implements Runnable {
-        protected final long ctx;
-
-        @Override
-        public void run() {
-            release0(this.ctx);
         }
     }
 }

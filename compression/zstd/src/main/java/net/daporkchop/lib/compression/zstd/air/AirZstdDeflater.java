@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2022 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -15,7 +15,6 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
 package net.daporkchop.lib.compression.zstd.air;
@@ -28,11 +27,9 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
 import net.daporkchop.lib.compression.zstd.ZstdDeflateDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdDeflater;
 import net.daporkchop.lib.compression.zstd.options.ZstdDeflaterOptions;
-import net.daporkchop.lib.common.util.exception.AlreadyReleasedException;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -45,7 +42,7 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  */
 @RequiredArgsConstructor
 @Accessors(fluent = true)
-final class AirZstdDeflater extends AbstractRefCounted implements ZstdDeflater {
+final class AirZstdDeflater implements ZstdDeflater {
     @NonNull
     final AirZstd provider;
     @Getter
@@ -64,7 +61,7 @@ final class AirZstdDeflater extends AbstractRefCounted implements ZstdDeflater {
         return this.compress0(src, dst);
     }
 
-    protected boolean compress0(@NonNull ByteBuf src, @NonNull ByteBuf dst) {
+    private boolean compress0(@NonNull ByteBuf src, @NonNull ByteBuf dst) {
         ByteBuffer srcBuf = src.nioBuffer();
         ByteBuffer dstBuf = dst.nioBuffer(dst.writerIndex(), dst.writableBytes());
         try {
@@ -93,7 +90,7 @@ final class AirZstdDeflater extends AbstractRefCounted implements ZstdDeflater {
         this.compressGrowing0(src, dst);
     }
 
-    protected void compressGrowing0(@NonNull ByteBuf src, @NonNull ByteBuf dst) {
+    private void compressGrowing0(@NonNull ByteBuf src, @NonNull ByteBuf dst) {
         int bound = this.provider.compressBound(src.readableBytes());
         int curr = min(256, bound);
 
@@ -128,12 +125,7 @@ final class AirZstdDeflater extends AbstractRefCounted implements ZstdDeflater {
     }
 
     @Override
-    public AirZstdDeflater retain() throws AlreadyReleasedException {
-        super.retain();
-        return this;
-    }
-
-    @Override
-    protected void doRelease() {
+    public void close() {
+        //no-op
     }
 }

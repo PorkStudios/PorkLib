@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2022 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -15,7 +15,6 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
 package net.daporkchop.lib.compression.zstd.natives;
@@ -56,7 +55,7 @@ final class NativeZstdInflateStream extends AbstractDirectDataIn {
     NativeZstdInflateStream(@NonNull DataIn in, @NonNull ByteBuf buf, ByteBuf dict, @NonNull NativeZstdInflater inflater) {
         checkArg(buf.hasMemoryAddress() || buf.hasArray(), "buffer (%s) does not have address or array!", buf);
 
-        this.ctx = inflater.retain().ctx;
+        this.ctx = inflater.ctx;
         this.inflater = inflater;
         this.buf = buf;
         this.in = in;
@@ -66,7 +65,7 @@ final class NativeZstdInflateStream extends AbstractDirectDataIn {
     NativeZstdInflateStream(@NonNull DataIn in, @NonNull ByteBuf buf, NativeZstdInflateDictionary dict, @NonNull NativeZstdInflater inflater) {
         checkArg(buf.hasMemoryAddress() || buf.hasArray(), "buffer (%s) does not have address or array!", buf);
 
-        this.ctx = inflater.retain().ctx;
+        this.ctx = inflater.ctx;
         this.inflater = inflater;
         this.buf = buf;
         this.in = in;
@@ -150,10 +149,9 @@ final class NativeZstdInflateStream extends AbstractDirectDataIn {
 
         this.in.close();
         this.buf.release();
-        this.inflater.release();
     }
 
-    protected int fill() throws IOException {
+    private int fill() throws IOException {
         if (!this.eof) {
             this.buf.discardSomeReadBytes();
             if (this.buf.isWritable()) {
@@ -173,7 +171,7 @@ final class NativeZstdInflateStream extends AbstractDirectDataIn {
         this.ensureValidSession();
     }
 
-    protected void ensureValidSession() {
+    private void ensureValidSession() {
         if (this.inflater.getSession() != this.session) {
             throw new ConcurrentModificationException();
         }

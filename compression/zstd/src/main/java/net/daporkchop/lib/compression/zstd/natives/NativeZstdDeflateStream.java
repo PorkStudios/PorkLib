@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2022 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -15,7 +15,6 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
 package net.daporkchop.lib.compression.zstd.natives;
@@ -50,28 +49,25 @@ final class NativeZstdDeflateStream extends AbstractDirectDataOut {
     final NativeZstdDeflater deflater;
     final ByteBuf buf;
     final DataOut out;
-    final NativeZstdDeflateDictionary dict;
 
     NativeZstdDeflateStream(@NonNull DataOut out, @NonNull ByteBuf buf, ByteBuf dict, int level, @NonNull NativeZstdDeflater deflater) {
         checkArg(buf.hasMemoryAddress() || buf.hasArray(), "buffer (%s) does not have address or array!", buf);
 
-        this.ctx = deflater.retain().ctx;
+        this.ctx = deflater.ctx;
         this.deflater = deflater;
         this.buf = buf;
         this.out = out;
         this.session = deflater.createSessionAndSetDict(dict, level);
-        this.dict = null;
     }
 
     NativeZstdDeflateStream(@NonNull DataOut out, @NonNull ByteBuf buf, NativeZstdDeflateDictionary dict, @NonNull NativeZstdDeflater deflater) {
         checkArg(buf.hasMemoryAddress() || buf.hasArray(), "buffer (%s) does not have address or array!", buf);
 
-        this.ctx = deflater.retain().ctx;
+        this.ctx = deflater.ctx;
         this.deflater = deflater;
         this.buf = buf;
         this.out = out;
         this.session = deflater.createSessionAndSetDict(dict); //this also retains the dictionary
-        this.dict = dict;
     }
 
     @Override
@@ -168,15 +164,11 @@ final class NativeZstdDeflateStream extends AbstractDirectDataOut {
 
             this.out.close();
         } finally {
-            if (this.dict != null) {
-                this.dict.release();
-            }
             this.buf.release();
-            this.deflater.release();
         }
     }
 
-    protected int drain() throws IOException {
+    private int drain() throws IOException {
         if (this.buf.isReadable()) {
             int written = this.out.write(this.buf);
             this.buf.clear();
@@ -192,7 +184,7 @@ final class NativeZstdDeflateStream extends AbstractDirectDataOut {
         this.ensureValidSession();
     }
 
-    protected void ensureValidSession() {
+    private void ensureValidSession() {
         if (this.deflater.getSession() != this.session) {
             throw new ConcurrentModificationException();
         }

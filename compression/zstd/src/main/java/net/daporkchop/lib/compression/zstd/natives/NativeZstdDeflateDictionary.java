@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2022 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -15,29 +15,26 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
 package net.daporkchop.lib.compression.zstd.natives;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.ByteBufAllocator;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
 import net.daporkchop.lib.compression.zstd.ZstdDeflateDictionary;
 import net.daporkchop.lib.unsafe.PCleaner;
-import net.daporkchop.lib.common.util.exception.AlreadyReleasedException;
 
 /**
  * @author DaPorkchop_
  */
 @Getter
 @Accessors(fluent = true)
-final class NativeZstdDeflateDictionary extends AbstractRefCounted implements ZstdDeflateDictionary {
+final class NativeZstdDeflateDictionary implements ZstdDeflateDictionary {
     private static native long digestD0(long dict, int dictLen, int level);
 
     private static native long digestH0(byte[] dict, int dictOff, int dictLen, int level);
@@ -62,7 +59,7 @@ final class NativeZstdDeflateDictionary extends AbstractRefCounted implements Zs
         } else if (dict.hasArray()) {
             this.addr = digestH0(dict.array(), dict.arrayOffset() + dict.readerIndex(), dict.readableBytes(), level);
         } else {
-            ByteBuf buf = PooledByteBufAllocator.DEFAULT.directBuffer(dict.readableBytes(), dict.readableBytes());
+            ByteBuf buf = ByteBufAllocator.DEFAULT.directBuffer(dict.readableBytes(), dict.readableBytes());
             try {
                 dict.getBytes(dict.readerIndex(), buf);
                 this.addr = digestD0(buf.memoryAddress() + buf.readerIndex(), buf.readableBytes(), level);
@@ -75,14 +72,8 @@ final class NativeZstdDeflateDictionary extends AbstractRefCounted implements Zs
     }
 
     @Override
-    protected void doRelease() {
+    public void close() {
         this.cleaner.clean();
-    }
-
-    @Override
-    public ZstdDeflateDictionary retain() throws AlreadyReleasedException {
-        super.retain();
-        return this;
     }
 
     @RequiredArgsConstructor

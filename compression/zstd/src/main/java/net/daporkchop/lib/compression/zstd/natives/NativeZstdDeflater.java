@@ -53,37 +53,24 @@ final class NativeZstdDeflater extends AbstractNativeZstdContext implements Zstd
 
     static native long newSession0(long ctx);
 
-    static native long compressD2D0(long ctx, long src, int srcLen, long dst, int dstLen, int level);
+    static native long compress(
+            long ctx,
+            long srcDirectAddr, byte[] srcArray, int srcArrayOffset, int srcPosition, int srcRemaining,
+            long dstDirectAddr, byte[] dstArray, int dstArrayOffset, int dstPosition, int dstRemaining,
+            int level);
 
-    static native long compressD2H0(long ctx, long src, int srcLen, byte[] dst, int dstOff, int dstLen, int level);
+    static native long compressWithDict(
+            long ctx, 
+            long srcDirectAddr, byte[] srcArray, int srcArrayOffset, int srcPosition, int srcRemaining,
+            long dstDirectAddr, byte[] dstArray, int dstArrayOffset, int dstPosition, int dstRemaining,
+            long dict);
 
-    static native long compressH2D0(long ctx, byte[] src, int srcOff, int srcLen, long dst, int dstLen, int level);
-
-    static native long compressH2H0(long ctx, byte[] src, int srcOff, int srcLen, byte[] dst, int dstOff, int dstLen, int level);
-
-    static native long compressD2DWithDict0(long ctx, long src, int srcLen, long dst, int dstLen, long dict);
-
-    static native long compressD2HWithDict0(long ctx, long src, int srcLen, byte[] dst, int dstOff, int dstLen, long dict);
-
-    static native long compressH2DWithDict0(long ctx, byte[] src, int srcOff, int srcLen, long dst, int dstLen, long dict);
-
-    static native long compressH2HWithDict0(long ctx, byte[] src, int srcOff, int srcLen, byte[] dst, int dstOff, int dstLen, long dict);
-
-    static native long compressD2DWithDictD0(long ctx, long src, int srcLen, long dst, int dstLen, long dict, int dictLen, int level);
-
-    static native long compressD2HWithDictD0(long ctx, long src, int srcLen, byte[] dst, int dstOff, int dstLen, long dict, int dictLen, int level);
-
-    static native long compressH2DWithDictD0(long ctx, byte[] src, int srcOff, int srcLen, long dst, int dstLen, long dict, int dictLen, int level);
-
-    static native long compressH2HWithDictD0(long ctx, byte[] src, int srcOff, int srcLen, byte[] dst, int dstOff, int dstLen, long dict, int dictLen, int level);
-
-    static native long compressD2DWithDictH0(long ctx, long src, int srcLen, long dst, int dstLen, byte[] dict, int dictOff, int dictLen, int level);
-
-    static native long compressD2HWithDictH0(long ctx, long src, int srcLen, byte[] dst, int dstOff, int dstLen, byte[] dict, int dictOff, int dictLen, int level);
-
-    static native long compressH2DWithDictH0(long ctx, byte[] src, int srcOff, int srcLen, long dst, int dstLen, byte[] dict, int dictOff, int dictLen, int level);
-
-    static native long compressH2HWithDictH0(long ctx, byte[] src, int srcOff, int srcLen, byte[] dst, int dstOff, int dstLen, byte[] dict, int dictOff, int dictLen, int level);
+    static native long compressWithDict(
+            long ctx, 
+            long srcDirectAddr, byte[] srcArray, int srcArrayOffset, int srcPosition, int srcRemaining,
+            long dstDirectAddr, byte[] dstArray, int dstArrayOffset, int dstPosition, int dstRemaining,
+            long dictDirectAddr, byte[] dictArray, int dictArrayOffset, int dictPosition, int dictRemaining,
+            int level);
 
     //streaming
 
@@ -91,17 +78,16 @@ final class NativeZstdDeflater extends AbstractNativeZstdContext implements Zstd
 
     static native long newSessionWithDict0(long ctx, long dict);
 
-    static native long newSessionWithDictD0(long ctx, long dict, int dictLen, int level);
+    static native long newSessionWithDict(
+            long ctx,
+            long dictDirectAddr, byte[] dictArray, int dictArrayOffset, int dictPosition, int dictRemaining,
+            int level);
 
-    static native long newSessionWithDictH0(long ctx, byte[] dict, int dictOff, int dictLen, int level);
-
-    static native long updateD2D0(long ctx, long src, int srcLen, long dst, int dstLen, int flush);
-
-    static native long updateD2H0(long ctx, long src, int srcLen, byte[] dst, int dstOff, int dstLen, int flush);
-
-    static native long updateH2D0(long ctx, byte[] src, int srcOff, int srcLen, long dst, int dstLen, int flush);
-
-    static native long updateH2H0(long ctx, byte[] src, int srcOff, int srcLen, byte[] dst, int dstOff, int dstLen, int flush);
+    static native long update(
+            long ctx,
+            long srcDirectAddr, byte[] srcArray, int srcArrayOffset, int srcPosition, int srcRemaining,
+            long dstDirectAddr, byte[] dstArray, int dstArrayOffset, int dstPosition, int dstRemaining,
+            int flush);
 
     @Getter
     final ZstdDeflaterOptions options;
@@ -148,98 +134,51 @@ final class NativeZstdDeflater extends AbstractNativeZstdContext implements Zstd
 
             long session = newSession0(this.ctx);
             try {
-                long ret = -1L;
-                if (hasDict && dict.hasMemoryAddress()) {
-                    if (src.hasMemoryAddress()) {
-                        if (dst.hasMemoryAddress()) {
-                            ret = compressD2DWithDictD0(this.ctx,
-                                    src.memoryAddress() + src.readerIndex(), src.readableBytes(),
-                                    dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
-                                    dict.memoryAddress() + dict.readerIndex(), dict.readableBytes(),
-                                    level);
-                        } else if (dst.hasArray()) {
-                            ret = compressD2HWithDictD0(this.ctx,
-                                    src.memoryAddress() + src.readerIndex(), src.readableBytes(),
-                                    dst.array(), dst.arrayOffset() + dst.writerIndex(), dst.writableBytes(),
-                                    dict.memoryAddress() + dict.readerIndex(), dict.readableBytes(),
-                                    level);
-                        }
-                    } else if (src.hasArray()) {
-                        if (dst.hasMemoryAddress()) {
-                            ret = compressH2DWithDictD0(this.ctx,
-                                    src.array(), src.arrayOffset() + src.readerIndex(), src.readableBytes(),
-                                    dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
-                                    dict.memoryAddress() + dict.readerIndex(), dict.readableBytes(),
-                                    level);
-                        } else if (dst.hasArray()) {
-                            ret = compressH2HWithDictD0(this.ctx,
-                                    src.array(), src.arrayOffset() + src.readerIndex(), src.readableBytes(),
-                                    dst.array(), dst.arrayOffset() + dst.writerIndex(), dst.writableBytes(),
-                                    dict.memoryAddress() + dict.readerIndex(), dict.readableBytes(),
-                                    level);
-                        }
-                    }
-                } else if (hasDict && dict.hasArray()) {
-                    if (src.hasMemoryAddress()) {
-                        if (dst.hasMemoryAddress()) {
-                            ret = compressD2DWithDictH0(this.ctx,
-                                    src.memoryAddress() + src.readerIndex(), src.readableBytes(),
-                                    dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
-                                    dict.array(), dict.arrayOffset() + dict.readerIndex(), dict.readableBytes(),
-                                    level);
-                        } else if (dst.hasArray()) {
-                            ret = compressD2HWithDictH0(this.ctx,
-                                    src.memoryAddress() + src.readerIndex(), src.readableBytes(),
-                                    dst.array(), dst.arrayOffset() + dst.writerIndex(), dst.writableBytes(),
-                                    dict.array(), dict.arrayOffset() + dict.readerIndex(), dict.readableBytes(),
-                                    level);
-                        }
-                    } else if (src.hasArray()) {
-                        if (dst.hasMemoryAddress()) {
-                            ret = compressH2DWithDictH0(this.ctx,
-                                    src.array(), src.arrayOffset() + src.readerIndex(), src.readableBytes(),
-                                    dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
-                                    dict.array(), dict.arrayOffset() + dict.readerIndex(), dict.readableBytes(),
-                                    level);
-                        } else if (dst.hasArray()) {
-                            ret = compressH2HWithDictH0(this.ctx,
-                                    src.array(), src.arrayOffset() + src.readerIndex(), src.readableBytes(),
-                                    dst.array(), dst.arrayOffset() + dst.writerIndex(), dst.writableBytes(),
-                                    dict.array(), dict.arrayOffset() + dict.readerIndex(), dict.readableBytes(),
-                                    level);
-                        }
-                    }
+                //get buffer pointers
+                long srcMemoryAddress = 0L, dstMemoryAddress = 0L;
+                byte[] srcArray = null, dstArray = null;
+                int srcArrayOffset = 0, dstArrayOffset = 0;
+                if (src.hasMemoryAddress()) {
+                    srcMemoryAddress = src.memoryAddress();
                 } else {
-                    if (src.hasMemoryAddress()) {
-                        if (dst.hasMemoryAddress()) {
-                            ret = compressD2D0(this.ctx,
-                                    src.memoryAddress() + src.readerIndex(), src.readableBytes(),
-                                    dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
-                                    level);
-                        } else if (dst.hasArray()) {
-                            ret = compressD2H0(this.ctx,
-                                    src.memoryAddress() + src.readerIndex(), src.readableBytes(),
-                                    dst.array(), dst.arrayOffset() + dst.writerIndex(), dst.writableBytes(),
-                                    level);
-                        }
-                    } else if (src.hasArray()) {
-                        if (dst.hasMemoryAddress()) {
-                            ret = compressH2D0(this.ctx,
-                                    src.array(), src.arrayOffset() + src.readerIndex(), src.readableBytes(),
-                                    dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
-                                    level);
-                        } else if (dst.hasArray()) {
-                            ret = compressH2H0(this.ctx,
-                                    src.array(), src.arrayOffset() + src.readerIndex(), src.readableBytes(),
-                                    dst.array(), dst.arrayOffset() + dst.writerIndex(), dst.writableBytes(),
-                                    level);
-                        }
+                    srcArray = src.array();
+                    srcArrayOffset = src.arrayOffset();
+                }
+                if (dst.hasMemoryAddress()) {
+                    dstMemoryAddress = dst.memoryAddress();
+                } else {
+                    dstArray = dst.array();
+                    dstArrayOffset = dst.arrayOffset();
+                }
+
+                //invoke the compression routine
+                long ret;
+                if (hasDict) {
+                    long dictMemoryAddress = 0L;
+                    byte[] dictArray = null;
+                    int dictArrayOffset = 0;
+                    if (dict.hasMemoryAddress()) {
+                        dictMemoryAddress = dict.memoryAddress();
+                    } else {
+                        dictArray = dict.array();
+                        dictArrayOffset = dict.arrayOffset();
                     }
+
+                    ret = compressWithDict(this.ctx,
+                            srcMemoryAddress, srcArray, srcArrayOffset, src.readerIndex(), src.readableBytes(),
+                            dstMemoryAddress, dstArray, dstArrayOffset, dst.writerIndex(), dst.writableBytes(),
+                            dictMemoryAddress, dictArray, dictArrayOffset, dict.readerIndex(), dict.readableBytes(),
+                            level);
+                } else {
+                    ret = compress(this.ctx,
+                            srcMemoryAddress, srcArray, srcArrayOffset, src.readerIndex(), src.readableBytes(),
+                            dstMemoryAddress, dstArray, dstArrayOffset, dst.writerIndex(), dst.writableBytes(),
+                            level);
                 }
 
                 if (ret >= 0L) {
                     src.skipBytes(src.readableBytes());
-                    dst.writerIndex(dst.writerIndex() + toInt(ret));
+                    dst.writerIndex(dst.writerIndex() + Math.toIntExact(ret));
                     return true;
                 } else {
                     return false;
@@ -283,32 +222,28 @@ final class NativeZstdDeflater extends AbstractNativeZstdContext implements Zstd
 
         long session = newSession0(this.ctx);
         try {
-            long ret = -1L;
+            //get buffer pointers
+            long srcMemoryAddress = 0L, dstMemoryAddress = 0L;
+            byte[] srcArray = null, dstArray = null;
+            int srcArrayOffset = 0, dstArrayOffset = 0;
             if (src.hasMemoryAddress()) {
-                if (dst.hasMemoryAddress()) {
-                    ret = compressD2DWithDict0(this.ctx,
-                            src.memoryAddress() + src.readerIndex(), src.readableBytes(),
-                            dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
-                            dictAddr);
-                } else if (dst.hasArray()) {
-                    ret = compressD2HWithDict0(this.ctx,
-                            src.memoryAddress() + src.readerIndex(), src.readableBytes(),
-                            dst.array(), dst.arrayOffset() + dst.writerIndex(), dst.writableBytes(),
-                            dictAddr);
-                }
-            } else if (src.hasArray()) {
-                if (dst.hasMemoryAddress()) {
-                    ret = compressH2DWithDict0(this.ctx,
-                            src.array(), src.arrayOffset() + src.readerIndex(), src.readableBytes(),
-                            dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
-                            dictAddr);
-                } else if (dst.hasArray()) {
-                    ret = compressH2HWithDict0(this.ctx,
-                            src.array(), src.arrayOffset() + src.readerIndex(), src.readableBytes(),
-                            dst.array(), dst.arrayOffset() + dst.writerIndex(), dst.writableBytes(),
-                            dictAddr);
-                }
+                srcMemoryAddress = src.memoryAddress();
+            } else {
+                srcArray = src.array();
+                srcArrayOffset = src.arrayOffset();
             }
+            if (dst.hasMemoryAddress()) {
+                dstMemoryAddress = dst.memoryAddress();
+            } else {
+                dstArray = dst.array();
+                dstArrayOffset = dst.arrayOffset();
+            }
+
+            //invoke the compression routine
+            long ret = compressWithDict(this.ctx,
+                    srcMemoryAddress, srcArray, srcArrayOffset, src.readerIndex(), src.readableBytes(),
+                    dstMemoryAddress, dstArray, dstArrayOffset, dst.writerIndex(), dst.writableBytes(),
+                    dictAddr);
 
             if (ret >= 0L) {
                 src.skipBytes(src.readableBytes());
@@ -359,45 +294,35 @@ final class NativeZstdDeflater extends AbstractNativeZstdContext implements Zstd
         this.compressGrowing0(src, dst, session);
     }
 
-    void compressGrowing0(@NonNull ByteBuf src, @NonNull ByteBuf dst, long session) throws IndexOutOfBoundsException {
+    private void compressGrowing0(@NonNull ByteBuf src, @NonNull ByteBuf dst, long session) throws IndexOutOfBoundsException {
         try {
             while (true) {
-                long remaining;
+                //get buffer pointers
+                long srcMemoryAddress = 0L, dstMemoryAddress = 0L;
+                byte[] srcArray = null, dstArray = null;
+                int srcArrayOffset = 0, dstArrayOffset = 0;
                 if (src.hasMemoryAddress()) {
-                    if (dst.hasMemoryAddress()) {
-                        remaining = updateD2D0(this.ctx,
-                                src.memoryAddress() + src.readerIndex(), src.readableBytes(),
-                                dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
-                                ZSTD_e_end);
-                    } else if (dst.hasArray()) {
-                        remaining = updateD2H0(this.ctx,
-                                src.memoryAddress() + src.readerIndex(), src.readableBytes(),
-                                dst.array(), dst.arrayOffset() + dst.writerIndex(), dst.writableBytes(),
-                                ZSTD_e_end);
-                    } else {
-                        throw new IllegalStateException(src + " " + dst);
-                    }
-                } else if (src.hasArray()) {
-                    if (dst.hasMemoryAddress()) {
-                        remaining = updateH2D0(this.ctx,
-                                src.array(), src.arrayOffset() + src.readerIndex(), src.readableBytes(),
-                                dst.memoryAddress() + dst.writerIndex(), dst.writableBytes(),
-                                ZSTD_e_end);
-                    } else if (dst.hasArray()) {
-                        remaining = updateH2H0(this.ctx,
-                                src.array(), src.arrayOffset() + src.readerIndex(), src.readableBytes(),
-                                dst.array(), dst.arrayOffset() + dst.writerIndex(), dst.writableBytes(),
-                                ZSTD_e_end);
-                    } else {
-                        throw new IllegalStateException(src + " " + dst);
-                    }
+                    srcMemoryAddress = src.memoryAddress();
                 } else {
-                    throw new IllegalStateException(src + " " + dst);
+                    srcArray = src.array();
+                    srcArrayOffset = src.arrayOffset();
+                }
+                if (dst.hasMemoryAddress()) {
+                    dstMemoryAddress = dst.memoryAddress();
+                } else {
+                    dstArray = dst.array();
+                    dstArrayOffset = dst.arrayOffset();
                 }
 
+                //invoke the compression routine
+                long remaining = update(this.ctx,
+                        srcMemoryAddress, srcArray, srcArrayOffset, src.readerIndex(), src.readableBytes(),
+                        dstMemoryAddress, dstArray, dstArrayOffset, dst.writerIndex(), dst.writableBytes(),
+                        ZSTD_e_end);
+
                 //increase indices
-                src.skipBytes(toInt(this.getRead(), "read"));
-                dst.writerIndex(dst.writerIndex() + toInt(this.getWritten(), "written"));
+                src.skipBytes(Math.toIntExact(this.getRead()));
+                dst.writerIndex(dst.writerIndex() + Math.toIntExact(this.getWritten()));
 
                 if (remaining == 0L && !src.isReadable()) {
                     break;
@@ -464,15 +389,17 @@ final class NativeZstdDeflater extends AbstractNativeZstdContext implements Zstd
         if (dict == null || !dict.isReadable()) {
             //no dictionary will be used
             return newSessionWithLevel0(this.ctx, level);
-        } else if (dict.hasMemoryAddress()) {
-            return newSessionWithDictD0(this.ctx, dict.memoryAddress() + dict.readerIndex(), dict.readableBytes(), level);
-        } else if (dict.hasArray()) {
-            return newSessionWithDictH0(this.ctx, dict.array(), dict.arrayOffset() + dict.readerIndex(), dict.readableBytes(), level);
+        } else if (dict.hasMemoryAddress() || dict.hasArray()) {
+            return newSessionWithDict(this.ctx,
+                    dict.hasMemoryAddress() ? dict.memoryAddress() : 0L, dict.hasArray() ? dict.array() : null, dict.hasArray() ? dict.arrayOffset() : 0, dict.readerIndex(), dict.readableBytes(),
+                    level);
         } else {
             ByteBuf buf = ByteBufAllocator.DEFAULT.directBuffer(dict.readableBytes(), dict.readableBytes());
             try {
                 dict.getBytes(dict.readerIndex(), buf);
-                return newSessionWithDictD0(this.ctx, buf.memoryAddress() + buf.readerIndex(), buf.readableBytes(), level);
+                return newSessionWithDict(this.ctx,
+                        buf.memoryAddress(), null, 0, buf.readerIndex(), buf.readableBytes(),
+                        level);
             } finally {
                 buf.release();
             }

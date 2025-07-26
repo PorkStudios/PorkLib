@@ -8,12 +8,12 @@
 #include <stdio.h>
 #endif
 
+namespace porklib::jni::old {
 jint throwException(JNIEnv* env, const char* msg);
 
 jint throwException(JNIEnv* env, const char* msg, jint err);
 
 jint throwException(JNIEnv* env, const char* msg, jlong err);
+}
 
-jlong max_l(jlong a, jlong b);
-
-jlong min_l(jlong a, jlong b);
+using namespace porklib::jni::old;

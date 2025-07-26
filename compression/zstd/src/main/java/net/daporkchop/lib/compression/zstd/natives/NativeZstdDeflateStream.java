@@ -88,18 +88,10 @@ final class NativeZstdDeflateStream extends AbstractDirectDataOut {
         int total = 0;
         do {
             int blockSize = min(length - total, Integer.MAX_VALUE);
-            if (this.buf.hasMemoryAddress()) {
-                updateH2D0(this.ctx, src, start + total, blockSize,
-                        this.buf.memoryAddress() + this.buf.writerIndex(), this.buf.writableBytes(),
-                        ZSTD_e_continue);
-            } else {
-                updateH2H0(this.ctx, src, start + total, blockSize,
-                        this.buf.array(), this.buf.arrayOffset() + this.buf.writerIndex(), this.buf.writableBytes(),
-                        ZSTD_e_continue);
-            }
+            this.update(0L, src, start, total, blockSize, ZSTD_e_continue);
 
-            total += this.deflater.getRead();
-            this.buf.writerIndex(this.buf.writerIndex() + toInt(this.deflater.getWritten(), "written"));
+            total += Math.toIntExact(this.deflater.getRead());
+            this.buf.writerIndex(this.buf.writerIndex() + Math.toIntExact(this.deflater.getWritten()));
             this.drain();
         } while (total < length);
     }
@@ -109,19 +101,11 @@ final class NativeZstdDeflateStream extends AbstractDirectDataOut {
         this.drain(); //drain buffer completely
         long total = 0L;
         do {
-            int blockSize = toInt(min(length - total, Integer.MAX_VALUE));
-            if (this.buf.hasMemoryAddress()) {
-                updateD2D0(this.ctx, addr + total, blockSize,
-                        this.buf.memoryAddress() + this.buf.writerIndex(), this.buf.writableBytes(),
-                        ZSTD_e_continue);
-            } else {
-                updateD2H0(this.ctx, addr + total, blockSize,
-                        this.buf.array(), this.buf.arrayOffset() + this.buf.writerIndex(), this.buf.writableBytes(),
-                        ZSTD_e_continue);
-            }
+            int blockSize = (int) min(length - total, Integer.MAX_VALUE);
+            this.update(addr + total, null, 0, 0, blockSize, ZSTD_e_continue);
 
             total += this.deflater.getRead();
-            this.buf.writerIndex(this.buf.writerIndex() + toInt(this.deflater.getWritten(), "written"));
+            this.buf.writerIndex(this.buf.writerIndex() + Math.toIntExact(this.deflater.getWritten()));
             this.drain();
         } while (total < length);
     }
@@ -131,14 +115,8 @@ final class NativeZstdDeflateStream extends AbstractDirectDataOut {
         this.drain();
         long remaining;
         do {
-            remaining = this.buf.hasMemoryAddress() ?
-                    updateD2D0(this.ctx, 0L, 0,
-                            this.buf.memoryAddress() + this.buf.writerIndex(), this.buf.writableBytes(),
-                            ZSTD_e_flush) :
-                    updateD2H0(this.ctx, 0L, 0,
-                            this.buf.array(), this.buf.arrayOffset() + this.buf.writerIndex(), this.buf.writableBytes(),
-                            ZSTD_e_flush);
-            this.buf.writerIndex(this.buf.writerIndex() + toInt(this.deflater.getWritten(), "written"));
+            remaining = this.update(0L, null, 0, 0, 0, ZSTD_e_flush);
+            this.buf.writerIndex(this.buf.writerIndex() + Math.toIntExact(this.deflater.getWritten()));
             this.drain();
         } while (remaining != 0L);
     }
@@ -151,14 +129,8 @@ final class NativeZstdDeflateStream extends AbstractDirectDataOut {
             this.drain();
             long remaining;
             do {
-                remaining = this.buf.hasMemoryAddress() ?
-                        updateD2D0(this.ctx, 0L, 0,
-                                this.buf.memoryAddress() + this.buf.writerIndex(), this.buf.writableBytes(),
-                                ZSTD_e_end) :
-                        updateD2H0(this.ctx, 0L, 0,
-                                this.buf.array(), this.buf.arrayOffset() + this.buf.writerIndex(), this.buf.writableBytes(),
-                                ZSTD_e_end);
-                this.buf.writerIndex(this.buf.writerIndex() + toInt(this.deflater.getWritten(), "written"));
+                remaining = this.update(0L, null, 0, 0, 0, ZSTD_e_end);
+                this.buf.writerIndex(this.buf.writerIndex() + Math.toIntExact(this.deflater.getWritten()));
                 this.drain();
             } while (remaining != 0L);
 
@@ -166,6 +138,18 @@ final class NativeZstdDeflateStream extends AbstractDirectDataOut {
         } finally {
             this.buf.release();
         }
+    }
+
+    private long update(long srcDirectAddr, byte[] srcArray, int srcArrayOffset, int srcPosition, int srcRemaining, int flush) {
+        return this.buf.hasMemoryAddress() ?
+                NativeZstdDeflater.update(this.ctx,
+                        srcDirectAddr, srcArray, srcArrayOffset, srcPosition, srcRemaining,
+                        this.buf.memoryAddress(), null, 0, this.buf.writerIndex(), this.buf.writableBytes(),
+                        flush) :
+                NativeZstdDeflater.update(this.ctx,
+                        srcDirectAddr, srcArray, srcArrayOffset, srcPosition, srcRemaining,
+                        0L, this.buf.array(), this.buf.arrayOffset(), this.buf.writerIndex(), this.buf.writableBytes(),
+                        flush);
     }
 
     private int drain() throws IOException {

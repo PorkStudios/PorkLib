@@ -1,5 +1,6 @@
 #include <common.h>
 
+namespace porklib::jni::old {
 jint throwException(JNIEnv* env, const char* msg)  {
     jclass clazz = env->FindClass("net/daporkchop/lib/natives/NativeException");
 
@@ -31,11 +32,4 @@ jint throwException(JNIEnv* env, const char* msg, jlong err)  {
         err
     ));
 }
-
-jlong max_l(jlong a, jlong b) {
-    return a > b ? a : b;
-}
-
-jlong min_l(jlong a, jlong b) {
-    return a < b ? a : b;
 }

@@ -34,8 +34,6 @@ build: libzstd.$(EXT)
 libzstd.$(EXT): $(CFILES) $(CPPFILES) $(OFILES) $(CURDIR)/lib-zstd/lib/libzstd.a
 	@echo "Linking $@..."
 	@$(LD) $(LDFLAGS) $(INCLUDE) -o $@ $(OFILES) $(CURDIR)/lib-zstd/lib/libzstd.a
-	@echo "Stripping $@..."
-	@$(STRIP) $@
 
 %.c.o: $(CFILES) $(CURDIR)/lib-zstd/lib/libzstd.a
 	@echo "Building $(subst .o,,$(subst __,/,$@))..."

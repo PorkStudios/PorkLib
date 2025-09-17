@@ -34,8 +34,6 @@ build: libzlib.$(EXT)
 libzlib.$(EXT): $(CFILES) $(CPPFILES) $(OFILES) $(CURDIR)/lib-zlib/libz-ng.a
 	@echo "Linking $@..."
 	@$(LD) $(LDFLAGS) $(INCLUDE) -o $@ $(OFILES) $(CURDIR)/lib-zlib/libz-ng.a
-	@echo "Stripping $@..."
-	@$(STRIP) $@
 
 %.c.o: $(CFILES) $(CURDIR)/lib-zlib/libz-ng.a
 	@echo "Building $(subst .o,,$(subst __,/,$@))..."

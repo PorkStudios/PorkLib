@@ -116,69 +116,52 @@ final class NativeZstdInflater extends AbstractNativeZstdContext implements Zstd
 
         if (dict == null || !dict.isReadable()) {
             return this.decompressNoDict(src, dst);
-        }
-
-        boolean releaseDict = false;
-        try {
-            if (!dict.hasMemoryAddress() && !dict.hasArray()) {
-                //dict is composite
-                ByteBuf buf = ByteBufAllocator.DEFAULT.directBuffer(dict.readableBytes(), dict.readableBytes());
-                dict.getBytes(dict.readerIndex(), buf);
-                dict = buf;
-                releaseDict = true;
-            }
-
-            long session = newSession0(this.ctx);
+        } else if (!dict.hasMemoryAddress() && !dict.hasArray()) {
+            //dict is composite, copy it into a single buffer and try again
+            ByteBuf buf = dict.alloc().directBuffer(dict.readableBytes(), dict.readableBytes());
             try {
-                //get buffer pointers
-                long srcMemoryAddress = 0L, dstMemoryAddress = 0L;
-                byte[] srcArray = null, dstArray = null;
-                int srcArrayOffset = 0, dstArrayOffset = 0;
-                if (src.hasMemoryAddress()) {
-                    srcMemoryAddress = src.memoryAddress();
-                } else {
-                    srcArray = src.array();
-                    srcArrayOffset = src.arrayOffset();
-                }
-                if (dst.hasMemoryAddress()) {
-                    dstMemoryAddress = dst.memoryAddress();
-                } else {
-                    dstArray = dst.array();
-                    dstArrayOffset = dst.arrayOffset();
-                }
-
-                long dictMemoryAddress = 0L;
-                byte[] dictArray = null;
-                int dictArrayOffset = 0;
-                if (dict.hasMemoryAddress()) {
-                    dictMemoryAddress = dict.memoryAddress();
-                } else {
-                    dictArray = dict.array();
-                    dictArrayOffset = dict.arrayOffset();
-                }
-
-                long ret = decompressWithDict(this.ctx,
-                            srcMemoryAddress, srcArray, srcArrayOffset, src.readerIndex(), src.readableBytes(),
-                            dstMemoryAddress, dstArray, dstArrayOffset, dst.writerIndex(), dst.writableBytes(),
-                            dictMemoryAddress, dictArray, dictArrayOffset, dict.readerIndex(), dict.readableBytes());
-
-                if (ret >= 0L) {
-                    src.skipBytes(src.readableBytes());
-                    dst.writerIndex(dst.writerIndex() + toInt(ret));
-                    return true;
-                } else {
-                    return false;
-                }
+                dict.getBytes(dict.readerIndex(), buf);
+                return this.decompress(src, dst, buf);
             } finally {
-                if (session != this.getSession()) {
-                    throw new ConcurrentModificationException(); //probably impossible
-                }
-            }
-        } finally {
-            if (releaseDict) {
-                dict.release();
+                buf.release();
             }
         }
+
+        long session = newSession0(this.ctx);
+
+        //get buffer pointers
+        long srcMemoryAddress = 0L, dstMemoryAddress = 0L;
+        byte[] srcArray = null, dstArray = null;
+        int srcArrayOffset = 0, dstArrayOffset = 0;
+        if (src.hasMemoryAddress()) {
+            srcMemoryAddress = src.memoryAddress();
+        } else {
+            srcArray = src.array();
+            srcArrayOffset = src.arrayOffset();
+        }
+        if (dst.hasMemoryAddress()) {
+            dstMemoryAddress = dst.memoryAddress();
+        } else {
+            dstArray = dst.array();
+            dstArrayOffset = dst.arrayOffset();
+        }
+
+        long dictMemoryAddress = 0L;
+        byte[] dictArray = null;
+        int dictArrayOffset = 0;
+        if (dict.hasMemoryAddress()) {
+            dictMemoryAddress = dict.memoryAddress();
+        } else {
+            dictArray = dict.array();
+            dictArrayOffset = dict.arrayOffset();
+        }
+
+        long ret = decompressWithDict(this.ctx,
+                srcMemoryAddress, srcArray, srcArrayOffset, src.readerIndex(), src.readableBytes(),
+                dstMemoryAddress, dstArray, dstArrayOffset, dst.writerIndex(), dst.writableBytes(),
+                dictMemoryAddress, dictArray, dictArrayOffset, dict.readerIndex(), dict.readableBytes());
+
+        return this.handleDecompressResult(src, dst, session, ret);
     }
 
     @Override
@@ -209,44 +192,35 @@ final class NativeZstdInflater extends AbstractNativeZstdContext implements Zstd
         long dictAddr = ((NativeZstdInflateDictionary) dict).addr();
 
         long session = newSession0(this.ctx);
-        try {
-            //get buffer pointers
-            long srcMemoryAddress = 0L, dstMemoryAddress = 0L;
-            byte[] srcArray = null, dstArray = null;
-            int srcArrayOffset = 0, dstArrayOffset = 0;
-            if (src.hasMemoryAddress()) {
-                srcMemoryAddress = src.memoryAddress();
-            } else {
-                srcArray = src.array();
-                srcArrayOffset = src.arrayOffset();
-            }
-            if (dst.hasMemoryAddress()) {
-                dstMemoryAddress = dst.memoryAddress();
-            } else {
-                dstArray = dst.array();
-                dstArrayOffset = dst.arrayOffset();
-            }
 
-            long ret = decompressWithDict(this.ctx,
-                    srcMemoryAddress, srcArray, srcArrayOffset, src.readerIndex(), src.readableBytes(),
-                    dstMemoryAddress, dstArray, dstArrayOffset, dst.writerIndex(), dst.writableBytes(),
-                    dictAddr);
-
-            if (ret >= 0L) {
-                src.skipBytes(src.readableBytes());
-                dst.writerIndex(dst.writerIndex() + toInt(ret));
-                return true;
-            } else {
-                return false;
-            }
-        } finally {
-            if (session != this.getSession()) {
-                throw new ConcurrentModificationException(); //probably impossible
-            }
+        //get buffer pointers
+        long srcMemoryAddress = 0L, dstMemoryAddress = 0L;
+        byte[] srcArray = null, dstArray = null;
+        int srcArrayOffset = 0, dstArrayOffset = 0;
+        if (src.hasMemoryAddress()) {
+            srcMemoryAddress = src.memoryAddress();
+        } else {
+            srcArray = src.array();
+            srcArrayOffset = src.arrayOffset();
         }
+        if (dst.hasMemoryAddress()) {
+            dstMemoryAddress = dst.memoryAddress();
+        } else {
+            dstArray = dst.array();
+            dstArrayOffset = dst.arrayOffset();
+        }
+
+        long ret = decompressWithDict(this.ctx,
+                srcMemoryAddress, srcArray, srcArrayOffset, src.readerIndex(), src.readableBytes(),
+                dstMemoryAddress, dstArray, dstArrayOffset, dst.writerIndex(), dst.writableBytes(),
+                dictAddr);
+
+        return this.handleDecompressResult(src, dst, session, ret);
     }
 
     private boolean decompressNoDict(@NonNull ByteBuf src, @NonNull ByteBuf dst) {
+        long session = newSession0(this.ctx);
+
         //get buffer pointers
         long srcMemoryAddress = 0L, dstMemoryAddress = 0L;
         byte[] srcArray = null, dstArray = null;
@@ -269,9 +243,17 @@ final class NativeZstdInflater extends AbstractNativeZstdContext implements Zstd
                 srcMemoryAddress, srcArray, srcArrayOffset, src.readerIndex(), src.readableBytes(),
                 dstMemoryAddress, dstArray, dstArrayOffset, dst.writerIndex(), dst.writableBytes());
 
+        return this.handleDecompressResult(src, dst, session, ret);
+    }
+
+    private boolean handleDecompressResult(ByteBuf src, ByteBuf dst, long session, long ret) {
+        this.checkSession(session);
+
         if (ret >= 0L) {
             src.skipBytes(src.readableBytes());
-            dst.writerIndex(dst.writerIndex() + toInt(ret));
+
+            //this can't overflow unless dst.writerIndex() is changed concurrently
+            dst.writerIndex(dst.writerIndex() + Math.toIntExact(ret));
             return true;
         } else {
             return false;
@@ -340,8 +322,8 @@ final class NativeZstdInflater extends AbstractNativeZstdContext implements Zstd
                         dstMemoryAddress, dstArray, dstArrayOffset, dst.writerIndex(), dst.writableBytes());
 
                 //increase indices
-                src.skipBytes(toInt(this.getRead(), "read"));
-                dst.writerIndex(dst.writerIndex() + toInt(this.getWritten(), "written"));
+                src.skipBytes(Math.toIntExact(this.getRead()));
+                dst.writerIndex(Math.addExact(dst.writerIndex(), Math.toIntExact(this.getWritten())));
 
                 if (remaining == 0L && !src.isReadable()) {
                     break;
@@ -354,9 +336,7 @@ final class NativeZstdInflater extends AbstractNativeZstdContext implements Zstd
             }
             checkState(!src.isReadable());
         } finally {
-            if (session != this.getSession()) {
-                throw new ConcurrentModificationException(); //probably impossible
-            }
+            this.checkSession(session);
         }
     }
 
@@ -414,7 +394,7 @@ final class NativeZstdInflater extends AbstractNativeZstdContext implements Zstd
             return newSessionWithDict(this.ctx,
                     0L, dict.array(), dict.arrayOffset(), dict.readerIndex(), dict.readableBytes());
         } else {
-            ByteBuf buf = ByteBufAllocator.DEFAULT.directBuffer(dict.readableBytes(), dict.readableBytes());
+            ByteBuf buf = dict.alloc().directBuffer(dict.readableBytes(), dict.readableBytes());
             try {
                 dict.getBytes(dict.readerIndex(), buf);
                 return newSessionWithDict(this.ctx,

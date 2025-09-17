@@ -106,8 +106,8 @@ final class NativeZstdInflateStream extends AbstractDirectDataIn {
                                       dst, start + totalRead, blockSize,
                                       Z_NO_FLUSH);
 
-            this.buf.skipBytes(toInt(this.inflater.getRead(), "read"));
-            totalRead += toInt(this.inflater.getWritten(), "written");
+            this.buf.skipBytes(Math.toIntExact(this.inflater.getRead()));
+            totalRead += Math.toIntExact(this.inflater.getWritten());
         } while (this.lastStatus != Z_STREAM_END && totalRead < length);
         return totalRead;
     }*/
@@ -132,8 +132,8 @@ final class NativeZstdInflateStream extends AbstractDirectDataIn {
                             0L, this.buf.array(), this.buf.arrayOffset(), this.buf.readerIndex(), this.buf.readableBytes(),
                             addr + totalRead, null, 0, 0, blockSize);
 
-            this.buf.skipBytes(toInt(this.inflater.getRead(), "read"));
-            totalRead += toInt(this.inflater.getWritten(), "written");
+            this.buf.skipBytes(Math.toIntExact(this.inflater.getRead()));
+            totalRead += Math.toIntExact(this.inflater.getWritten());
         } while (!(this.lastStatus == 0L && this.eof) && totalRead < length);
         return totalRead;
     }

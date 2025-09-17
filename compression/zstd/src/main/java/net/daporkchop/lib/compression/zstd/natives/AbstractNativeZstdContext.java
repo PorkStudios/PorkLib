@@ -24,6 +24,8 @@ import net.daporkchop.lib.common.closeable.QuietCloseable;
 import net.daporkchop.lib.unsafe.PCleaner;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
+import java.util.ConcurrentModificationException;
+
 /**
  * @author DaPorkchop_
  */
@@ -67,5 +69,11 @@ abstract class AbstractNativeZstdContext implements QuietCloseable {
 
     protected final long getSession() {
         return PUnsafe.getLongVolatile(null, this.ctx + 16L);
+    }
+
+    protected final void checkSession(long session) {
+        if (session != this.getSession()) {
+            throw new ConcurrentModificationException();
+        }
     }
 }

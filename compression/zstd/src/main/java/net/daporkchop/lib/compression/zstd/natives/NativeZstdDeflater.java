@@ -352,15 +352,7 @@ final class NativeZstdDeflater extends AbstractNativeZstdContext implements Zstd
         if (bufferSize <= 0) {
             bufferSize = PorkUtil.bufferSize();
         }
-        ByteBuf buf;
-        if (out.isDirect()) {
-            buf = bufferAlloc.directBuffer(bufferSize, bufferSize);
-        } else if (out.isHeap()) {
-            buf = bufferAlloc.heapBuffer(bufferSize, bufferSize);
-        } else {
-            buf = bufferAlloc.buffer(bufferSize, bufferSize);
-        }
-        return new NativeZstdDeflateStream(out, buf, dict, level, this);
+        return new NativeZstdDeflateStream(out, bufferAlloc.directBuffer(bufferSize, bufferSize), dict, level, this);
     }
 
     @Override
@@ -374,15 +366,7 @@ final class NativeZstdDeflater extends AbstractNativeZstdContext implements Zstd
         if (bufferSize <= 0) {
             bufferSize = PorkUtil.bufferSize();
         }
-        ByteBuf buf;
-        if (out.isDirect()) {
-            buf = bufferAlloc.directBuffer(bufferSize, bufferSize);
-        } else if (out.isHeap()) {
-            buf = bufferAlloc.heapBuffer(bufferSize, bufferSize);
-        } else {
-            buf = bufferAlloc.buffer(bufferSize, bufferSize);
-        }
-        return new NativeZstdDeflateStream(out, buf, (NativeZstdDeflateDictionary) dict, this);
+        return new NativeZstdDeflateStream(out, bufferAlloc.directBuffer(bufferSize, bufferSize), (NativeZstdDeflateDictionary) dict, this);
     }
 
     long createSessionAndSetDict(ByteBuf dict, int level) {

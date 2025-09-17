@@ -2,12 +2,14 @@
 
 #include <porklib_jni_arrays.hpp>
 
+namespace {
 struct Context {
     jlong read;
     jlong written;
     jlong session;
     ZSTD_CStream* stream;
 };
+}
 
 static bool reset(JNIEnv* env, Context* ctx)   {
     auto ret = ZSTD_CCtx_reset(ctx->stream, ZSTD_reset_session_and_parameters);
@@ -58,8 +60,8 @@ extern "C" __attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_n
     try {
         Context* ctx = reinterpret_cast<Context*>(_ctx);
 
-        porklib::jni::AnyReadableByteRegion src{env, srcDirectAddr, srcArray, srcArrayOffset, srcPosition, srcRemaining};
-        porklib::jni::AnyWritableByteRegion dst{env, dstDirectAddr, dstArray, dstArrayOffset, dstPosition, dstRemaining};
+        porklib::jni::AnyReadOnlyByteRegion src{env, srcDirectAddr, srcArray, srcArrayOffset, srcPosition, srcRemaining};
+        porklib::jni::AnyWriteOnlyByteRegion dst{env, dstDirectAddr, dstArray, dstArrayOffset, dstPosition, dstRemaining};
 
         auto ret = ZSTD_compressCCtx(ctx->stream, dst.data(), dst.size(), src.data(), src.size(), level);
 
@@ -87,8 +89,8 @@ extern "C" __attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_n
     try {
         Context* ctx = reinterpret_cast<Context*>(_ctx);
 
-        porklib::jni::AnyReadableByteRegion src{env, srcDirectAddr, srcArray, srcArrayOffset, srcPosition, srcRemaining};
-        porklib::jni::AnyWritableByteRegion dst{env, dstDirectAddr, dstArray, dstArrayOffset, dstPosition, dstRemaining};
+        porklib::jni::AnyReadOnlyByteRegion src{env, srcDirectAddr, srcArray, srcArrayOffset, srcPosition, srcRemaining};
+        porklib::jni::AnyWriteOnlyByteRegion dst{env, dstDirectAddr, dstArray, dstArrayOffset, dstPosition, dstRemaining};
 
         auto ret = ZSTD_compress_usingCDict(ctx->stream, dst.data(), dst.size(), src.data(), src.size(), reinterpret_cast<ZSTD_CDict*>(dict));
 
@@ -117,9 +119,9 @@ extern "C" __attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_n
     try {
         Context* ctx = reinterpret_cast<Context*>(_ctx);
 
-        porklib::jni::AnyReadableByteRegion src{env, srcDirectAddr, srcArray, srcArrayOffset, srcPosition, srcRemaining};
-        porklib::jni::AnyWritableByteRegion dst{env, dstDirectAddr, dstArray, dstArrayOffset, dstPosition, dstRemaining};
-        porklib::jni::AnyReadableByteRegion dict{env, dictDirectAddr, dictArray, dictArrayOffset, dictPosition, dictRemaining};
+        porklib::jni::AnyReadOnlyByteRegion src{env, srcDirectAddr, srcArray, srcArrayOffset, srcPosition, srcRemaining};
+        porklib::jni::AnyWriteOnlyByteRegion dst{env, dstDirectAddr, dstArray, dstArrayOffset, dstPosition, dstRemaining};
+        porklib::jni::AnyReadOnlyByteRegion dict{env, dictDirectAddr, dictArray, dictArrayOffset, dictPosition, dictRemaining};
 
         auto ret = ZSTD_compress_usingDict(ctx->stream, dst.data(), dst.size(), src.data(), src.size(), dict.data(), dict.size(), level);
 
@@ -157,7 +159,7 @@ extern "C" __attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_n
             return 0;
         }
 
-        porklib::jni::AnyReadableByteRegion dict{env, dictDirectAddr, dictArray, dictArrayOffset, dictPosition, dictRemaining};
+        porklib::jni::AnyReadOnlyByteRegion dict{env, dictDirectAddr, dictArray, dictArrayOffset, dictPosition, dictRemaining};
         ret = ZSTD_CCtx_loadDictionary(ctx->stream, dict.data(), dict.size());
 
         if (ZSTD_isError(ret))  {
@@ -180,15 +182,15 @@ extern "C" __attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_n
     try {
         Context* ctx = reinterpret_cast<Context*>(_ctx);
 
-        porklib::jni::AnyReadableByteRegion src{env, srcDirectAddr, srcArray, srcArrayOffset, srcPosition, srcRemaining};
-        porklib::jni::AnyWritableByteRegion dst{env, dstDirectAddr, dstArray, dstArrayOffset, dstPosition, dstRemaining};
+        porklib::jni::AnyReadOnlyByteRegion src{env, srcDirectAddr, srcArray, srcArrayOffset, srcPosition, srcRemaining};
+        porklib::jni::AnyWriteOnlyByteRegion dst{env, dstDirectAddr, dstArray, dstArrayOffset, dstPosition, dstRemaining};
 
-        ZSTD_outBuffer out;
+        ZSTD_outBuffer out = {};
         out.dst = dst.data();
         out.size = dst.size();
         out.pos = 0;
 
-        ZSTD_inBuffer in;
+        ZSTD_inBuffer in = {};
         in.src = src.data();
         in.size = src.size();
         in.pos = 0;

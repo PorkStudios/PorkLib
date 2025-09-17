@@ -12,7 +12,27 @@
 #include <vector>
 
 namespace porklib::jni {
-    class AnyReadableByteRegion {
+    namespace _detail {
+        [[nodiscard]] inline jbyte* tryGetByteArrayElements(JNIEnv* env, jbyteArray array, jsize remaining) noexcept {
+            //we never use Get*ArrayElements(): as of this writing (Sep. 2025), there aren't any GC implementations on any Java version
+            //  which ever pin arrays here. Shenandoah pins the array when using GetPrimitiveArrayCritical() since Java 15, but the performance
+            //  impact of that function on on other GCs is bad enough that it isn't really worth the added complexity.
+            return nullptr;
+
+            if (jsize arrayLength = env->GetArrayLength(array); arrayLength - remaining >= arrayLength / 8) {
+                //we're accessing less than 7/8 of the total array, don't use GetArrayElements()
+                return nullptr;
+            }
+
+            //use GetArrayElements(), the array won't be pinned if supported
+            return env->GetByteArrayElements(array, nullptr);
+        }
+    }
+
+    // NOTE: AnyReadOnlyByteRegion and AnyWriteOnlyByteRegion are only safe to use if no AnyWriteOnlyByteRegion
+    //       aliases any other Any*ByteRegion
+
+    class AnyReadOnlyByteRegion {
         const jbyte* _data;
         size_t _size;
 
@@ -40,7 +60,7 @@ namespace porklib::jni {
         > _state;
 
     public:
-        AnyReadableByteRegion(JNIEnv* env, jlong directAddress, jbyteArray array, jsize arrayOffset, jsize position, jsize remaining) {
+        AnyReadOnlyByteRegion(JNIEnv* env, jlong directAddress, jbyteArray array, jsize arrayOffset, jsize position, jsize remaining) {
             assert(remaining == 0 || (directAddress != 0) != (array != nullptr));
             assert(position >= 0 && remaining >= 0);
 
@@ -48,13 +68,7 @@ namespace porklib::jni {
                 //use the direct address
                 _data = reinterpret_cast<const jbyte*>(directAddress) + position;
                 _size = remaining;
-            } else if (jsize arrayLength = env->GetArrayLength(array); arrayLength - remaining < arrayLength / 8) {
-                //we're accessing at least 7/8 of the total array, use GetArrayElements() so that the array can be pinned if supported
-                //TODO: we should probably use a smarter heuristic here...
-
-                jbyte* elems = env->GetByteArrayElements(array, nullptr);
-                if (elems == nullptr) [[unlikely]] throw std::bad_alloc{};
-
+            } else if (jbyte* elems = _detail::tryGetByteArrayElements(env, array, remaining)) {
                 _state.emplace<PinnedState>(env, array, elems);
 
                 _data = elems + arrayOffset + position;
@@ -69,10 +83,10 @@ namespace porklib::jni {
             }
         }
 
-        AnyReadableByteRegion() = delete;
-        AnyReadableByteRegion(const AnyReadableByteRegion&) = delete;
+        AnyReadOnlyByteRegion() = delete;
+        AnyReadOnlyByteRegion(const AnyReadOnlyByteRegion&) = delete;
 
-        ~AnyReadableByteRegion() = default;
+        ~AnyReadOnlyByteRegion() = default;
 
         const jbyte* data() const noexcept { return _data; }
         size_t size() const noexcept { return _size; }
@@ -81,7 +95,7 @@ namespace porklib::jni {
         const jbyte* end() const noexcept { return _data + _size; }
     };
 
-    class AnyWritableByteRegion {
+    class AnyWriteOnlyByteRegion {
         jbyte* _data;
         size_t _size;
 
@@ -103,7 +117,6 @@ namespace porklib::jni {
                 _env->SetByteArrayRegion(_array, _arrayOffset, static_cast<jsize>(_buf.size()), _buf.data());
             }
         };
-
 
         struct PinnedState {
             JNIEnv* _env;
@@ -129,7 +142,7 @@ namespace porklib::jni {
         > _state;
 
     public:
-        AnyWritableByteRegion(JNIEnv* env, jlong directAddress, jbyteArray array, jsize arrayOffset, jsize position, jsize remaining) {
+        AnyWriteOnlyByteRegion(JNIEnv* env, jlong directAddress, jbyteArray array, jsize arrayOffset, jsize position, jsize remaining) {
             assert(remaining == 0 || (directAddress != 0) != (array != nullptr));
             assert(position >= 0 && remaining >= 0);
 
@@ -137,13 +150,7 @@ namespace porklib::jni {
                 //use the direct address
                 _data = reinterpret_cast<jbyte*>(directAddress) + position;
                 _size = remaining;
-            } else if (jsize arrayLength = env->GetArrayLength(array); arrayLength - remaining < arrayLength / 8) {
-                //we're accessing at least 7/8 of the total array, use GetArrayElements() so that the array can be pinned if supported
-                //TODO: we should probably use a smarter heuristic here...
-
-                jbyte* elems = env->GetByteArrayElements(array, nullptr);
-                if (elems == nullptr) [[unlikely]] throw std::bad_alloc{};
-
+            } else if (jbyte* elems = _detail::tryGetByteArrayElements(env, array, remaining)) {
                 _state.emplace<PinnedState>(env, array, elems);
 
                 _data = elems + arrayOffset + position;
@@ -157,10 +164,10 @@ namespace porklib::jni {
             }
         }
 
-        AnyWritableByteRegion() = delete;
-        AnyWritableByteRegion(const AnyWritableByteRegion&) = delete;
+        AnyWriteOnlyByteRegion() = delete;
+        AnyWriteOnlyByteRegion(const AnyWriteOnlyByteRegion&) = delete;
 
-        ~AnyWritableByteRegion() = default;
+        ~AnyWriteOnlyByteRegion() = default;
 
         jbyte* data() noexcept { return _data; }
         size_t size() noexcept { return _size; }

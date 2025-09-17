@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2022 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -15,13 +15,12 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
 package compression.zstd;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.ByteBufAllocator;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.oio.StreamUtil;
 import net.daporkchop.lib.binary.stream.DataIn;
@@ -215,8 +214,10 @@ public class ZstdTest {
                 checkState(deflater.compress(src, compressed), "compression failed!");
                 checkState(inflater.decompress(compressed, uncompressed), "decompression failed!");
 
-                for (int i = 0; i < src.writerIndex(); i++) {
-                    checkState(src.getByte(i) == uncompressed.getByte(i), "Difference at index %s (src=%s, uncompressed=%s)", i, src, uncompressed);
+                if (!src.nioBuffer(0, src.writerIndex()).equals(uncompressed.nioBuffer(0, src.writerIndex()))) {
+                    for (int i = 0; i < src.writerIndex(); i++) {
+                        checkState(src.getByte(i) == uncompressed.getByte(i), "Difference at index %s (src=%s, uncompressed=%s)", i, src, uncompressed);
+                    }
                 }
             });
 
@@ -228,8 +229,10 @@ public class ZstdTest {
                 deflater.compressGrowing(src, compressed);
                 inflater.decompressGrowing(compressed, uncompressed);
 
-                for (int i = 0; i < src.writerIndex(); i++) {
-                    checkState(src.getByte(i) == uncompressed.getByte(i), "Difference at index %s (src=%s, uncompressed=%s)", i, src, uncompressed);
+                if (!src.nioBuffer(0, src.writerIndex()).equals(uncompressed.nioBuffer(0, src.writerIndex()))) {
+                    for (int i = 0; i < src.writerIndex(); i++) {
+                        checkState(src.getByte(i) == uncompressed.getByte(i), "Difference at index %s (src=%s, uncompressed=%s)", i, src, uncompressed);
+                    }
                 }
             });
         }
@@ -248,8 +251,10 @@ public class ZstdTest {
                 checkState(deflater.compress(src, compressed, dict), "compression failed!");
                 checkState(inflater.decompress(compressed, uncompressed, dict), "decompression failed!");
 
-                for (int i = 0; i < src.writerIndex(); i++) {
-                    checkState(src.getByte(i) == uncompressed.getByte(i), "Difference at index %s (src=%s, uncompressed=%s)", i, src, uncompressed);
+                if (!src.nioBuffer(0, src.writerIndex()).equals(uncompressed.nioBuffer(0, src.writerIndex()))) {
+                    for (int i = 0; i < src.writerIndex(); i++) {
+                        checkState(src.getByte(i) == uncompressed.getByte(i), "Difference at index %s (src=%s, uncompressed=%s)", i, src, uncompressed);
+                    }
                 }
             });
 
@@ -262,8 +267,10 @@ public class ZstdTest {
                 deflater.compressGrowing(src, compressed, dict);
                 inflater.decompressGrowing(compressed, uncompressed, dict);
 
-                for (int i = 0; i < src.writerIndex(); i++) {
-                    checkState(src.getByte(i) == uncompressed.getByte(i), "Difference at index %s (src=%s, uncompressed=%s)", i, src, uncompressed);
+                if (!src.nioBuffer(0, src.writerIndex()).equals(uncompressed.nioBuffer(0, src.writerIndex()))) {
+                    for (int i = 0; i < src.writerIndex(); i++) {
+                        checkState(src.getByte(i) == uncompressed.getByte(i), "Difference at index %s (src=%s, uncompressed=%s)", i, src, uncompressed);
+                    }
                 }
             });
         }
@@ -283,7 +290,7 @@ public class ZstdTest {
             Stream.of(true, false).forEach(direct -> {
                 ByteBuf[] param = new ByteBuf[args.length + 1];
                 System.arraycopy(args, 0, param, 0, args.length);
-                param[args.length] = direct ? PooledByteBufAllocator.DEFAULT.directBuffer() : PooledByteBufAllocator.DEFAULT.heapBuffer();
+                param[args.length] = direct ? ByteBufAllocator.DEFAULT.directBuffer() : ByteBufAllocator.DEFAULT.heapBuffer();
                 this.forEachBufferType0(depth - 1, callback, param);
                 checkState(param[args.length].release(), "buffer #%s wasn't released... (reference count is still %s)", args.length, param[args.length].refCnt());
             });

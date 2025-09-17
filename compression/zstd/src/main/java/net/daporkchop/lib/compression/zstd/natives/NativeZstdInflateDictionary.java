@@ -20,7 +20,6 @@
 package net.daporkchop.lib.compression.zstd.natives;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -34,9 +33,8 @@ import net.daporkchop.lib.unsafe.PCleaner;
  */
 @Accessors(fluent = true)
 final class NativeZstdInflateDictionary implements ZstdInflateDictionary {
-    private static native long digestD0(long dict, int dictLen);
-
-    private static native long digestH0(byte[] dict, int dictOff, int dictLen);
+    private static native long digest(
+            long dictDirectAddr, byte[] dictArray, int dictArrayOffset, int dictPosition, int dictRemaining);
 
     private static native void release0(long dict);
 
@@ -57,14 +55,14 @@ final class NativeZstdInflateDictionary implements ZstdInflateDictionary {
         this.provider = provider;
 
         if (dict.hasMemoryAddress()) {
-            this.addr = digestD0(dict.memoryAddress() + dict.readerIndex(), dict.readableBytes());
+            this.addr = digest(dict.memoryAddress(), null, 0, dict.readerIndex(), dict.readableBytes());
         } else if (dict.hasArray()) {
-            this.addr = digestH0(dict.array(), dict.arrayOffset() + dict.readerIndex(), dict.readableBytes());
+            this.addr = digest(0L, dict.array(), dict.arrayOffset(), dict.readerIndex(), dict.readableBytes());
         } else {
-            ByteBuf buf = ByteBufAllocator.DEFAULT.directBuffer(dict.readableBytes(), dict.readableBytes());
+            ByteBuf buf = dict.alloc().directBuffer(dict.readableBytes(), dict.readableBytes());
             try {
                 dict.getBytes(dict.readerIndex(), buf);
-                this.addr = digestD0(buf.memoryAddress() + buf.readerIndex(), buf.readableBytes());
+                this.addr = digest(buf.memoryAddress(), null, 0, buf.readerIndex(), buf.readableBytes());
             } finally {
                 buf.release();
             }

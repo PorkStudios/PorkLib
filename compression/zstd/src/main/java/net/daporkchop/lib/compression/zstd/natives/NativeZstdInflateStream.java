@@ -125,12 +125,12 @@ final class NativeZstdInflateStream extends AbstractDirectDataIn {
             }
             int blockSize = toInt(min(length - totalRead, Integer.MAX_VALUE));
             this.lastStatus = this.buf.hasMemoryAddress() ?
-                    updateD2D0(this.ctx,
-                            this.buf.memoryAddress() + this.buf.readerIndex(), this.buf.readableBytes(),
-                            addr + totalRead, blockSize) :
-                    updateH2D0(this.ctx,
-                            this.buf.array(), this.buf.arrayOffset() + this.buf.readerIndex(), this.buf.readableBytes(),
-                            addr + totalRead, blockSize);
+                    update(this.ctx,
+                            this.buf.memoryAddress(), null, 0, this.buf.readerIndex(), this.buf.readableBytes(),
+                            addr + totalRead, null, 0, 0, blockSize) :
+                    update(this.ctx,
+                            0L, this.buf.array(), this.buf.arrayOffset(), this.buf.readerIndex(), this.buf.readableBytes(),
+                            addr + totalRead, null, 0, 0, blockSize);
 
             this.buf.skipBytes(toInt(this.inflater.getRead(), "read"));
             totalRead += toInt(this.inflater.getWritten(), "written");

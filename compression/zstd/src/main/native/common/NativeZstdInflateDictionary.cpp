@@ -1,42 +1,22 @@
 #include "pork-zstd.h"
 
-extern "C" {
+#include <porklib_jni_arrays.hpp>
 
-/*
- * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdInflateDictionary
- * Method:    digestD0
- * Signature: (JI)J
- */
-__attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdInflateDictionary_digestD0
-        (JNIEnv* env, jclass cla, jlong dict, jint dictLen)   {
-    return (jlong) ZSTD_createDDict((void*) dict, dictLen);
-}
+extern "C" __attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdInflateDictionary_digest__J_3BIII(
+        JNIEnv* env, jclass,
+        jlong dictDirectAddr, jbyteArray dictArray, jint dictArrayOffset, jint dictPosition, jint dictRemaining) noexcept {
+    try {
+        porklib::jni::AnyReadOnlyByteRegion dict{env, dictDirectAddr, dictArray, dictArrayOffset, dictPosition, dictRemaining};
 
-/*
- * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdInflateDictionary
- * Method:    digestH0
- * Signature: ([BII)J
- */
-__attribute__((visibility("default"))) JNIEXPORT jlong JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdInflateDictionary_digestH0
-        (JNIEnv* env, jclass cla, jbyteArray dict, jint dictOff, jint dictLen)   {
-    auto dictPtr = (unsigned char*) env->GetPrimitiveArrayCritical(dict, nullptr);
-    if (!dictPtr)    {
-        throwException(env, "Unable to pin dict array");
+        return reinterpret_cast<jlong>(ZSTD_createDDict(dict.data(), dict.size()));
+    } catch (...) {
+        porklib::jni::handleCppExceptionTail(env);
         return 0;
     }
-
-    jlong ret = (jlong) ZSTD_createDDict(&dictPtr[dictOff], dictLen);
-    env->ReleasePrimitiveArrayCritical(dict, dictPtr, 0);
-    return ret;
 }
 
-/*
- * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdInflateDictionary
- * Method:    release0
- * Signature: (J)V
- */
-__attribute__((visibility("default"))) JNIEXPORT void JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdInflateDictionary_release0
-        (JNIEnv* env, jclass cla, jlong dict)   {
+extern "C" __attribute__((visibility("default"))) JNIEXPORT void JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdInflateDictionary_release0
+        (JNIEnv* env, jclass, jlong dict)   {
     auto ret = ZSTD_freeDDict((ZSTD_DDict*) dict);
 
     if (ZSTD_isError(ret))  {
@@ -44,14 +24,7 @@ __attribute__((visibility("default"))) JNIEXPORT void JNICALL Java_net_daporkcho
     }
 }
 
-/*
- * Class:     net_daporkchop_lib_compression_zstd_natives_NativeZstdInflateDictionary
- * Method:    id0
- * Signature: (J)V
- */
-__attribute__((visibility("default"))) JNIEXPORT jint JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdInflateDictionary_id0
-        (JNIEnv* env, jclass cla, jlong dict) {
+extern "C" __attribute__((visibility("default"))) JNIEXPORT jint JNICALL Java_net_daporkchop_lib_compression_zstd_natives_NativeZstdInflateDictionary_id0
+        (JNIEnv* env, jclass, jlong dict) {
     return (jint) ZSTD_getDictID_fromDDict((ZSTD_DDict*) dict);
-}
-
 }

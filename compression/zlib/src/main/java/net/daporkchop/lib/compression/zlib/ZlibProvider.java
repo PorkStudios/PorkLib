@@ -21,8 +21,8 @@ package net.daporkchop.lib.compression.zlib;
 
 import lombok.NonNull;
 import net.daporkchop.lib.compression.CompressionProvider;
-import net.daporkchop.lib.compression.zlib.options.ZlibDeflaterOptions;
-import net.daporkchop.lib.compression.zlib.options.ZlibInflaterOptions;
+import net.daporkchop.lib.compression.zlib.options.ZlibDeflaterCreateOptions;
+import net.daporkchop.lib.compression.zlib.options.ZlibInflaterCreateOptions;
 import net.daporkchop.lib.natives.Feature;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
@@ -32,7 +32,7 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  *
  * @author DaPorkchop_
  */
-public interface ZlibProvider extends CompressionProvider<ZlibProvider, ZlibDeflaterOptions, ZlibInflaterOptions>, Feature {
+public interface ZlibProvider extends CompressionProvider<ZlibProvider, ZlibDeflaterCreateOptions, ZlibInflaterCreateOptions>, Feature {
     @Override
     default int levelFast() {
         return Zlib.LEVEL_FASTEST;

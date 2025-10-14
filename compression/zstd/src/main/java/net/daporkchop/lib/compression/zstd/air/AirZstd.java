@@ -26,13 +26,13 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.system.PlatformInfo;
-import net.daporkchop.lib.compression.zstd.ZstdDeflateDictionary;
+import net.daporkchop.lib.compression.zstd.ZstdCompressDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdDeflater;
-import net.daporkchop.lib.compression.zstd.ZstdInflateDictionary;
+import net.daporkchop.lib.compression.zstd.ZstdDecompressDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdInflater;
 import net.daporkchop.lib.compression.zstd.ZstdProvider;
-import net.daporkchop.lib.compression.zstd.options.ZstdDeflaterOptions;
-import net.daporkchop.lib.compression.zstd.options.ZstdInflaterOptions;
+import net.daporkchop.lib.compression.zstd.options.ZstdDeflaterCreateOptions;
+import net.daporkchop.lib.compression.zstd.options.ZstdInflaterCreateOptions;
 import net.daporkchop.lib.compression.zstd.util.exception.ContentSizeUnknownException;
 import net.daporkchop.lib.natives.NativeException;
 
@@ -52,8 +52,8 @@ public final class AirZstd implements ZstdProvider {
         checkState(PlatformInfo.UNALIGNED, "aircompressor requires unaligned memory access!");
     }
 
-    protected final ZstdDeflaterOptions deflateOptions = new ZstdDeflaterOptions(this);
-    protected final ZstdInflaterOptions inflateOptions = new ZstdInflaterOptions(this);
+    protected final ZstdDeflaterCreateOptions deflateOptions = new ZstdDeflaterCreateOptions(this);
+    protected final ZstdInflaterCreateOptions inflateOptions = new ZstdInflaterCreateOptions(this);
 
     protected final ZstdCompressor compressor = new ZstdCompressor();
     protected final ZstdDecompressor decompressor = new ZstdDecompressor();
@@ -96,24 +96,24 @@ public final class AirZstd implements ZstdProvider {
     }
 
     @Override
-    public ZstdDeflater deflater(@NonNull ZstdDeflaterOptions options) {
+    public ZstdDeflater deflater(@NonNull ZstdDeflaterCreateOptions options) {
         checkArg(options.provider() == this, "provider must be %s!", this);
         return new AirZstdDeflater(this, options);
     }
 
     @Override
-    public ZstdInflater inflater(@NonNull ZstdInflaterOptions options) {
+    public ZstdInflater inflater(@NonNull ZstdInflaterCreateOptions options) {
         checkArg(options.provider() == this, "provider must be %s!", this);
         return new AirZstdInflater(this, options);
     }
 
     @Override
-    public ZstdDeflateDictionary loadDeflateDictionary(@NonNull ByteBuf dict, int level) {
+    public ZstdCompressDictionary loadDeflateDictionary(@NonNull ByteBuf dict, int level) {
         throw new UnsupportedOperationException("dictionary");
     }
 
     @Override
-    public ZstdInflateDictionary loadInflateDictionary(@NonNull ByteBuf dict) {
+    public ZstdDecompressDictionary loadInflateDictionary(@NonNull ByteBuf dict) {
         throw new UnsupportedOperationException("dictionary");
     }
 

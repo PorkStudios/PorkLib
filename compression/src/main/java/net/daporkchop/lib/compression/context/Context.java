@@ -28,6 +28,7 @@ import net.daporkchop.lib.compression.CompressionProvider;
  *
  * @author DaPorkchop_
  */
+@Deprecated
 @NotThreadSafe
 interface Context extends QuietCloseable {
     /**

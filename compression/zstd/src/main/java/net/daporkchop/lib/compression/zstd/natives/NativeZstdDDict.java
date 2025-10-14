@@ -17,13 +17,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.compression.util.exception;
+package net.daporkchop.lib.compression.zstd.natives;
+
+import lombok.NonNull;
+import net.daporkchop.lib.compression.zstd.ZstdDecompressDictionary;
 
 /**
- * Thrown when a {@link net.daporkchop.lib.compression.Context} that does not allow use of a dictionary is given one anyway.
- *
  * @author DaPorkchop_
  */
-@Deprecated
-public class DictionaryNotAllowedException extends UnsupportedOperationException {
+final class NativeZstdDDict extends AbstractNativeZstdDictionary implements ZstdDecompressDictionary {
+    NativeZstdDDict(@NonNull NativeZstdProvider provider, long dict) {
+        super(provider, dict);
+    }
+
+    @Override
+    Runnable freeDictRunnable(@NonNull NativeZstdProvider provider, long dict) {
+        return () -> provider.ZSTD_freeDDict(dict);
+    }
+
+    @Override
+    public int id() {
+        return this.provider.ZSTD_getDictID_fromDDict(this.dict);
+    }
 }

@@ -24,7 +24,7 @@ import io.netty.buffer.ByteBufAllocator;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.common.annotation.NotThreadSafe;
-import net.daporkchop.lib.compression.option.InflaterOptions;
+import net.daporkchop.lib.compression.option.InflaterCreateOptions;
 import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
 
 import java.io.IOException;
@@ -34,6 +34,7 @@ import java.io.IOException;
  *
  * @author DaPorkchop_
  */
+@Deprecated
 @NotThreadSafe
 public interface PInflater extends Context {
     //
@@ -180,5 +181,5 @@ public interface PInflater extends Context {
     /**
      * @return the options that this {@link PInflater} is configured with
      */
-    InflaterOptions options();
+    InflaterCreateOptions options();
 }

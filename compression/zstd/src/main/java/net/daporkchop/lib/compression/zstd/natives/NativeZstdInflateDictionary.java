@@ -25,14 +25,14 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.compression.zstd.ZstdInflateDictionary;
+import net.daporkchop.lib.compression.zstd.ZstdDecompressDictionary;
 import net.daporkchop.lib.unsafe.PCleaner;
 
 /**
  * @author DaPorkchop_
  */
 @Accessors(fluent = true)
-final class NativeZstdInflateDictionary implements ZstdInflateDictionary {
+final class NativeZstdInflateDictionary implements ZstdDecompressDictionary {
     private static native long digest(
             long dictDirectAddr, byte[] dictArray, int dictArrayOffset, int dictPosition, int dictRemaining);
 
@@ -49,9 +49,9 @@ final class NativeZstdInflateDictionary implements ZstdInflateDictionary {
     private final PCleaner cleaner;
 
     @Getter
-    private final NativeZstd provider;
+    private final NativeZstdProvider provider;
 
-    NativeZstdInflateDictionary(@NonNull NativeZstd provider, @NonNull ByteBuf dict) {
+    NativeZstdInflateDictionary(@NonNull NativeZstdProvider provider, @NonNull ByteBuf dict) {
         this.provider = provider;
 
         if (dict.hasMemoryAddress()) {

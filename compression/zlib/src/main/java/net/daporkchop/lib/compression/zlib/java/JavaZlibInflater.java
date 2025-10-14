@@ -35,7 +35,7 @@ import net.daporkchop.lib.common.util.exception.AlreadyReleasedException;
 import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
 import net.daporkchop.lib.compression.zlib.ZlibInflater;
 import net.daporkchop.lib.compression.zlib.ZlibMode;
-import net.daporkchop.lib.compression.zlib.options.ZlibInflaterOptions;
+import net.daporkchop.lib.compression.zlib.options.ZlibInflaterCreateOptions;
 
 import java.io.IOException;
 import java.util.zip.Inflater;
@@ -52,9 +52,9 @@ final class JavaZlibInflater extends AbstractRefCounted.Synchronized implements 
     final Inflater inflater;
 
     @Getter
-    final ZlibInflaterOptions options;
+    final ZlibInflaterCreateOptions options;
 
-    JavaZlibInflater(@NonNull ZlibInflaterOptions options) {
+    JavaZlibInflater(@NonNull ZlibInflaterCreateOptions options) {
         this.options = options;
         this.inflater = new Inflater(options.mode() != ZlibMode.ZLIB);
     }

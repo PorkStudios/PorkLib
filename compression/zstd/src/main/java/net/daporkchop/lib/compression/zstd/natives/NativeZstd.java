@@ -26,19 +26,18 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.pool.recycler.Recycler;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.compression.zstd.Zstd;
-import net.daporkchop.lib.compression.zstd.ZstdDeflateDictionary;
+import net.daporkchop.lib.compression.zstd.ZstdCompressDictionary;
+import net.daporkchop.lib.compression.zstd.ZstdDecompressDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdDeflater;
-import net.daporkchop.lib.compression.zstd.ZstdInflateDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdInflater;
 import net.daporkchop.lib.compression.zstd.ZstdProvider;
-import net.daporkchop.lib.compression.zstd.options.ZstdDeflaterOptions;
-import net.daporkchop.lib.compression.zstd.options.ZstdInflaterOptions;
+import net.daporkchop.lib.compression.zstd.options.ZstdDeflaterCreateOptions;
+import net.daporkchop.lib.compression.zstd.options.ZstdInflaterCreateOptions;
 import net.daporkchop.lib.compression.zstd.util.exception.ContentSizeUnknownException;
 import net.daporkchop.lib.natives.NativeException;
 import net.daporkchop.lib.natives.NativeFeature;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
-import java.io.FileNotFoundException;
 import java.lang.invoke.MethodHandles;
 import java.nio.ByteBuffer;
 
@@ -48,6 +47,7 @@ import static net.daporkchop.lib.common.util.PValidation.*;
 /**
  * @author DaPorkchop_
  */
+@Deprecated
 @Getter
 @Accessors(fluent = true)
 public final class NativeZstd extends NativeFeature<ZstdProvider> implements ZstdProvider {
@@ -72,8 +72,8 @@ public final class NativeZstd extends NativeFeature<ZstdProvider> implements Zst
         NativeFeature.loadNativeLibrary(MethodHandles.lookup(), "");
     }
 
-    protected final ZstdDeflaterOptions deflateOptions = new ZstdDeflaterOptions(this);
-    protected final ZstdInflaterOptions inflateOptions = new ZstdInflaterOptions(this);
+    protected final ZstdDeflaterCreateOptions deflateOptions = new ZstdDeflaterCreateOptions(this);
+    protected final ZstdInflaterCreateOptions inflateOptions = new ZstdInflaterCreateOptions(this);
 
     @Override
     public long frameContentSizeLong(@NonNull ByteBuf src) throws ContentSizeUnknownException {
@@ -109,24 +109,24 @@ public final class NativeZstd extends NativeFeature<ZstdProvider> implements Zst
     }
 
     @Override
-    public ZstdDeflater deflater(@NonNull ZstdDeflaterOptions options) {
+    public ZstdDeflater deflater(@NonNull ZstdDeflaterCreateOptions options) {
         checkArg(options.provider() == this, "provider must be %s!", this);
         return new NativeZstdDeflater(options);
     }
 
     @Override
-    public ZstdInflater inflater(@NonNull ZstdInflaterOptions options) {
+    public ZstdInflater inflater(@NonNull ZstdInflaterCreateOptions options) {
         checkArg(options.provider() == this, "provider must be %s!", this);
         return new NativeZstdInflater(options);
     }
 
     @Override
-    public ZstdDeflateDictionary loadDeflateDictionary(@NonNull ByteBuf dict, int level) {
+    public ZstdCompressDictionary loadDeflateDictionary(@NonNull ByteBuf dict, int level) {
         return new NativeZstdDeflateDictionary(this, dict, Zstd.checkLevel(level));
     }
 
     @Override
-    public ZstdInflateDictionary loadInflateDictionary(@NonNull ByteBuf dict) {
+    public ZstdDecompressDictionary loadInflateDictionary(@NonNull ByteBuf dict) {
         return new NativeZstdInflateDictionary(this, dict);
     }
 }

@@ -19,8 +19,9 @@
 
 package net.daporkchop.lib.natives;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.NonNull;
-import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.natives.util.exception.NoFeatureImplementationsFoundError;
 
 import java.lang.invoke.MethodHandles;
@@ -31,13 +32,13 @@ import java.util.ServiceLoader;
 /**
  * @author DaPorkchop_
  */
-@UtilityClass
-public class FeatureLoader {
-    public static <F extends Feature> F loadService(@NonNull MethodHandles.Lookup lookup, @NonNull Class<F> featureClass) throws NoFeatureImplementationsFoundError {
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public final class FeatureLoader<F> {
+    public static <F> F loadService(@NonNull MethodHandles.Lookup lookup, @NonNull Class<F> featureClass) throws NoFeatureImplementationsFoundError {
         return loadService(lookup, featureClass, lookup.lookupClass().getClassLoader());
     }
 
-    public static <F extends Feature> F loadService(@NonNull MethodHandles.Lookup lookup, @NonNull Class<F> featureClass, @NonNull ClassLoader loader) throws NoFeatureImplementationsFoundError {
+    public static <F> F loadService(@NonNull MethodHandles.Lookup lookup, @NonNull Class<F> featureClass, @NonNull ClassLoader loader) throws NoFeatureImplementationsFoundError {
         NoFeatureImplementationsFoundError root = null;
         for (Iterator<F> itr = ServiceLoader.load(featureClass, loader).iterator(); ; ) {
             try {

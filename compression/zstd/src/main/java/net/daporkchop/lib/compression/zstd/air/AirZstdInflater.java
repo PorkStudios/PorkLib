@@ -27,9 +27,9 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataIn;
-import net.daporkchop.lib.compression.zstd.ZstdInflateDictionary;
+import net.daporkchop.lib.compression.zstd.ZstdDecompressDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdInflater;
-import net.daporkchop.lib.compression.zstd.options.ZstdInflaterOptions;
+import net.daporkchop.lib.compression.zstd.options.ZstdInflaterCreateOptions;
 import net.daporkchop.lib.compression.zstd.util.exception.ContentSizeUnknownException;
 
 import java.io.IOException;
@@ -47,7 +47,7 @@ final class AirZstdInflater implements ZstdInflater {
     final AirZstd provider;
     @Getter
     @NonNull
-    final ZstdInflaterOptions options;
+    final ZstdInflaterCreateOptions options;
 
     @Override
     public boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict) {
@@ -56,7 +56,7 @@ final class AirZstdInflater implements ZstdInflater {
     }
 
     @Override
-    public boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdInflateDictionary dict) {
+    public boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdDecompressDictionary dict) {
         checkArg(dict == null, "dictionary not supported!");
         return this.decompress0(src, dst);
     }
@@ -85,7 +85,7 @@ final class AirZstdInflater implements ZstdInflater {
     }
 
     @Override
-    public void decompressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdInflateDictionary dict) throws IndexOutOfBoundsException {
+    public void decompressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdDecompressDictionary dict) throws IndexOutOfBoundsException {
         checkArg(dict == null, "dictionary not supported!");
         this.decompressGrowing0(src, dst);
     }
@@ -124,7 +124,7 @@ final class AirZstdInflater implements ZstdInflater {
     }
 
     @Override
-    public DataIn decompressionStream(@NonNull DataIn in, ByteBufAllocator bufferAlloc, int bufferSize, ZstdInflateDictionary dict) throws IOException {
+    public DataIn decompressionStream(@NonNull DataIn in, ByteBufAllocator bufferAlloc, int bufferSize, ZstdDecompressDictionary dict) throws IOException {
         throw new UnsupportedOperationException("stream");
     }
 

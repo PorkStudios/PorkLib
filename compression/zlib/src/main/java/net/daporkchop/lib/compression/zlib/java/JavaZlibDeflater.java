@@ -34,7 +34,7 @@ import net.daporkchop.lib.common.util.exception.AlreadyReleasedException;
 import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
 import net.daporkchop.lib.compression.zlib.ZlibDeflater;
 import net.daporkchop.lib.compression.zlib.ZlibMode;
-import net.daporkchop.lib.compression.zlib.options.ZlibDeflaterOptions;
+import net.daporkchop.lib.compression.zlib.options.ZlibDeflaterCreateOptions;
 
 import java.io.IOException;
 import java.util.zip.Deflater;
@@ -51,9 +51,9 @@ final class JavaZlibDeflater extends AbstractRefCounted.Synchronized implements 
     final Deflater deflater;
 
     @Getter
-    final ZlibDeflaterOptions options;
+    final ZlibDeflaterCreateOptions options;
 
-    JavaZlibDeflater(@NonNull ZlibDeflaterOptions options) {
+    JavaZlibDeflater(@NonNull ZlibDeflaterCreateOptions options) {
         this.options = options;
         this.deflater = new Deflater(options.level(), options.mode() != ZlibMode.ZLIB);
         this.deflater.setStrategy(options.strategy().ordinal());

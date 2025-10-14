@@ -27,9 +27,9 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.compression.zstd.ZstdDeflateDictionary;
+import net.daporkchop.lib.compression.zstd.ZstdCompressDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdDeflater;
-import net.daporkchop.lib.compression.zstd.options.ZstdDeflaterOptions;
+import net.daporkchop.lib.compression.zstd.options.ZstdDeflaterCreateOptions;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -47,7 +47,7 @@ final class AirZstdDeflater implements ZstdDeflater {
     final AirZstd provider;
     @Getter
     @NonNull
-    final ZstdDeflaterOptions options;
+    final ZstdDeflaterCreateOptions options;
 
     @Override
     public boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict, int level) {
@@ -56,7 +56,7 @@ final class AirZstdDeflater implements ZstdDeflater {
     }
 
     @Override
-    public boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdDeflateDictionary dict) {
+    public boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdCompressDictionary dict) {
         checkArg(dict == null, "dictionary not supported!");
         return this.compress0(src, dst);
     }
@@ -85,7 +85,7 @@ final class AirZstdDeflater implements ZstdDeflater {
     }
 
     @Override
-    public void compressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdDeflateDictionary dict) throws IndexOutOfBoundsException {
+    public void compressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdCompressDictionary dict) throws IndexOutOfBoundsException {
         checkArg(dict == null, "dictionary not supported!");
         this.compressGrowing0(src, dst);
     }
@@ -120,7 +120,7 @@ final class AirZstdDeflater implements ZstdDeflater {
     }
 
     @Override
-    public DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, int bufferSize, ZstdDeflateDictionary dict) throws IOException {
+    public DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, int bufferSize, ZstdCompressDictionary dict) throws IOException {
         throw new UnsupportedOperationException("stream");
     }
 

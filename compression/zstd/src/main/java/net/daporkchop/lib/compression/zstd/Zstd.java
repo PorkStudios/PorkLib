@@ -19,7 +19,8 @@
 
 package net.daporkchop.lib.compression.zstd;
 
-import lombok.experimental.UtilityClass;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import net.daporkchop.lib.natives.FeatureLoader;
 
 import java.lang.invoke.MethodHandles;
@@ -29,16 +30,33 @@ import static net.daporkchop.lib.common.util.PValidation.*;
 /**
  * @author DaPorkchop_
  */
-@UtilityClass
-public class Zstd {
-    public final ZstdProvider PROVIDER = FeatureLoader.loadService(MethodHandles.lookup(), ZstdProvider.class);
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class Zstd {
+    public static final int LEVEL_DEFAULT = 0;
+    public static final int LEVEL_MIN = 1;
+    public static final int LEVEL_MAX = 22;
 
-    public final int LEVEL_DEFAULT = 0;
-    public final int LEVEL_MIN = 1;
-    public final int LEVEL_MAX = 22;
-
-    public int checkLevel(int level) {
+    public static int checkLevel(int level) {
         checkArg(level == LEVEL_DEFAULT || (level >= LEVEL_MAX && level <= LEVEL_MAX), "Invalid Zstd level: %d (expected %d, or value in range %d-%d)", level, LEVEL_DEFAULT, LEVEL_MIN, LEVEL_MAX);
         return level;
+    }
+
+    private static ZstdOneshotProvider DEFAULT_ONESHOT_PROVIDER;
+    private static ZstdStreamingProvider DEFAULT_STREAMING_PROVIDER;
+
+    public synchronized static ZstdOneshotProvider getDefaultOneshotProvider() {
+        if (DEFAULT_ONESHOT_PROVIDER != null) {
+            return DEFAULT_ONESHOT_PROVIDER;
+        }
+
+        return DEFAULT_ONESHOT_PROVIDER = FeatureLoader.loadService(MethodHandles.lookup(), ZstdOneshotProvider.class);
+    }
+
+    public synchronized static ZstdStreamingProvider getDefaultStreamingProvider() {
+        if (DEFAULT_STREAMING_PROVIDER != null) {
+            return DEFAULT_STREAMING_PROVIDER;
+        }
+
+        return DEFAULT_STREAMING_PROVIDER = FeatureLoader.loadService(MethodHandles.lookup(), ZstdStreamingProvider.class);
     }
 }

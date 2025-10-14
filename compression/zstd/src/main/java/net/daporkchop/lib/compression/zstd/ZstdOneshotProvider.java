@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -15,17 +15,19 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
-package net.daporkchop.lib.compression.option;
+package net.daporkchop.lib.compression.zstd;
 
-import net.daporkchop.lib.compression.CompressionProvider;
+import net.daporkchop.lib.compression.OneshotCompressionProvider;
 
 /**
- * Options used by {@link net.daporkchop.lib.compression.CompressionProvider} for creating new {@link net.daporkchop.lib.compression.context.PDeflater}s.
- *
  * @author DaPorkchop_
  */
-public interface DeflaterOptions<I extends DeflaterOptions<I, P>, P extends CompressionProvider<P, I, ?>> extends ContextOptions<I, P> {
+public interface ZstdOneshotProvider extends OneshotCompressionProvider, IZstdProvider, ZstdDictionaryProvider {
+    @Override
+    ZstdOneshotCompressor makeOneshotCompressor();
+
+    @Override
+    ZstdOneshotDecompressor makeOneshotDecompressor();
 }

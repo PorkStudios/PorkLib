@@ -17,13 +17,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.compression.util.exception;
+package net.daporkchop.lib.compression.zstd;
+
+import net.daporkchop.lib.common.annotation.param.NotNegative;
+import net.daporkchop.lib.common.closeable.QuietCloseable;
 
 /**
- * Thrown when a {@link net.daporkchop.lib.compression.Context} that does not allow use of a dictionary is given one anyway.
+ * A digested dictionary used by {@link Zstd} compression.
  *
  * @author DaPorkchop_
  */
-@Deprecated
-public class DictionaryNotAllowedException extends UnsupportedOperationException {
+public interface ZstdCompressDictionary extends QuietCloseable {
+    /**
+     * @return the {@link ZstdDictionaryProvider} that created this dictionary
+     */
+    ZstdDictionaryProvider provider();
+
+    /**
+     * @return this dictionary's ID, or {@code 0} if this dictionary is content-only
+     */
+    @NotNegative int id();
 }

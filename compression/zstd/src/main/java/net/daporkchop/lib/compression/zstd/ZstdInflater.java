@@ -26,7 +26,7 @@ import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.common.annotation.NotThreadSafe;
 import net.daporkchop.lib.compression.context.PDeflater;
 import net.daporkchop.lib.compression.context.PInflater;
-import net.daporkchop.lib.compression.zstd.options.ZstdInflaterOptions;
+import net.daporkchop.lib.compression.zstd.options.ZstdInflaterCreateOptions;
 
 import java.io.IOException;
 
@@ -35,10 +35,11 @@ import java.io.IOException;
  *
  * @author DaPorkchop_
  */
+@Deprecated
 @NotThreadSafe
 public interface ZstdInflater extends PInflater {
     @Override
-    ZstdInflaterOptions options();
+    ZstdInflaterCreateOptions options();
 
     @Override
     default ZstdProvider provider() {
@@ -54,7 +55,7 @@ public interface ZstdInflater extends PInflater {
      * In either case, the indices of the dictionary buffer remain unaffected.
      * <p>
      * This will digest the dictionary before decompressing, which is an expensive operation. If the same dictionary is going to be used multiple times,
-     * it is strongly advised to use {@link #decompress(ByteBuf, ByteBuf, ZstdInflateDictionary)}.
+     * it is strongly advised to use {@link #decompress(ByteBuf, ByteBuf, ZstdDecompressDictionary)}.
      *
      * @param src  the {@link ByteBuf} to read source data from
      * @param dst  the {@link ByteBuf} to write decompressed data to
@@ -72,7 +73,7 @@ public interface ZstdInflater extends PInflater {
      * @param dict the dictionary to use
      * @see #decompress(ByteBuf, ByteBuf, ByteBuf)
      */
-    boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdInflateDictionary dict);
+    boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdDecompressDictionary dict);
 
     /**
      * Decompresses the given source data into the given destination buffer at the configured decompression level.
@@ -84,7 +85,7 @@ public interface ZstdInflater extends PInflater {
      * In either case, the indices of the dictionary buffer remain unaffected.
      * <p>
      * This will digest the dictionary before decompressing, which is an expensive operation. If the same dictionary is going to be used multiple times,
-     * it is strongly advised to use {@link #decompressGrowing(ByteBuf, ByteBuf, ZstdInflateDictionary)}.
+     * it is strongly advised to use {@link #decompressGrowing(ByteBuf, ByteBuf, ZstdDecompressDictionary)}.
      *
      * @param src  the {@link ByteBuf} to read source data from
      * @param dst  the {@link ByteBuf} to write decompressed data to
@@ -103,13 +104,13 @@ public interface ZstdInflater extends PInflater {
      * @throws IndexOutOfBoundsException if the destination buffer's capacity could not be increased sufficiently
      * @see #decompressGrowing(ByteBuf, ByteBuf, ByteBuf)
      */
-    void decompressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdInflateDictionary dict) throws IndexOutOfBoundsException;
+    void decompressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdDecompressDictionary dict) throws IndexOutOfBoundsException;
 
     /**
      * Gets a {@link DataIn} which will decompress data written to it using this {@link PDeflater} and write the decompressed version to the given {@link DataIn}.
      * <p>
      * This will digest the dictionary before decompressing, which is an expensive operation. If the same dictionary is going to be used multiple times,
-     * it is strongly advised to use {@link #decompressionStream(DataIn, ByteBufAllocator, int, ZstdInflateDictionary)}.
+     * it is strongly advised to use {@link #decompressionStream(DataIn, ByteBufAllocator, int, ZstdDecompressDictionary)}.
      *
      * @param bufferAlloc the {@link ByteBufAllocator} to be used for allocating the internal write buffer. If {@code null}, the default allocator will be used
      * @param bufferSize  the size of the internal write buffer. If not positive, the default buffer size will be used
@@ -120,27 +121,27 @@ public interface ZstdInflater extends PInflater {
     /**
      * Convenience method equivalent to {@code compressionStream(in, null, -1, dict);}
      *
-     * @see #decompressionStream(DataIn, ByteBufAllocator, int, ZstdInflateDictionary)
+     * @see #decompressionStream(DataIn, ByteBufAllocator, int, ZstdDecompressDictionary)
      */
-    default DataIn decompressionStream(@NonNull DataIn in, ZstdInflateDictionary dict) throws IOException {
+    default DataIn decompressionStream(@NonNull DataIn in, ZstdDecompressDictionary dict) throws IOException {
         return this.decompressionStream(in, null, -1, dict);
     }
 
     /**
      * Convenience method equivalent to {@code compressionStream(in, bufferAlloc, -1, dict);}
      *
-     * @see #decompressionStream(DataIn, ByteBufAllocator, int, ZstdInflateDictionary)
+     * @see #decompressionStream(DataIn, ByteBufAllocator, int, ZstdDecompressDictionary)
      */
-    default DataIn decompressionStream(@NonNull DataIn in, ByteBufAllocator bufferAlloc, ZstdInflateDictionary dict) throws IOException {
+    default DataIn decompressionStream(@NonNull DataIn in, ByteBufAllocator bufferAlloc, ZstdDecompressDictionary dict) throws IOException {
         return this.decompressionStream(in, bufferAlloc, -1, dict);
     }
 
     /**
      * Convenience method equivalent to {@code compressionStream(in, null, bufferSize, dict);}
      *
-     * @see #decompressionStream(DataIn, ByteBufAllocator, int, ZstdInflateDictionary)
+     * @see #decompressionStream(DataIn, ByteBufAllocator, int, ZstdDecompressDictionary)
      */
-    default DataIn decompressionStream(@NonNull DataIn in, int bufferSize, ZstdInflateDictionary dict) throws IOException {
+    default DataIn decompressionStream(@NonNull DataIn in, int bufferSize, ZstdDecompressDictionary dict) throws IOException {
         return this.decompressionStream(in, null, bufferSize, dict);
     }
 
@@ -150,7 +151,7 @@ public interface ZstdInflater extends PInflater {
      * @param bufferAlloc the {@link ByteBufAllocator} to be used for allocating the internal write buffer. If {@code null}, the default allocator will be used
      * @param bufferSize  the size of the internal write buffer. If not positive, the default buffer size will be used
      */
-    DataIn decompressionStream(@NonNull DataIn in, ByteBufAllocator bufferAlloc, int bufferSize, ZstdInflateDictionary dict) throws IOException;
+    DataIn decompressionStream(@NonNull DataIn in, ByteBufAllocator bufferAlloc, int bufferSize, ZstdDecompressDictionary dict) throws IOException;
 
     @Override
     default boolean hasDict() {

@@ -19,25 +19,27 @@
 
 package net.daporkchop.lib.compression.zstd.natives;
 
+import lombok.Getter;
+import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.closeable.QuietCloseable;
 import net.daporkchop.lib.unsafe.PCleaner;
-import net.daporkchop.lib.unsafe.PUnsafe;
-
-import java.util.ConcurrentModificationException;
 
 /**
  * @author DaPorkchop_
  */
 @Accessors(fluent = true)
 abstract class AbstractNativeZstdContext implements QuietCloseable {
-    final long ctx;
+    @Getter
+    final NativeZstdProvider provider;
 
+    final long ctx;
     private PCleaner cleaner;
 
-    AbstractNativeZstdContext() {
-        this.ctx = this.allocate0();
-        this.cleaner = PCleaner.cleaner(this, this.makeReleaser(this.ctx));
+    AbstractNativeZstdContext(@NonNull NativeZstdProvider provider, long ctx) {
+        this.provider = provider;
+        this.ctx = ctx;
+        this.cleaner = PCleaner.cleaner(this, this.freeCtxRunnable(provider, ctx));
     }
 
     final void ensureOpen() {
@@ -55,25 +57,5 @@ abstract class AbstractNativeZstdContext implements QuietCloseable {
         }
     }
 
-    abstract long allocate0();
-
-    abstract Runnable makeReleaser(long addr);
-
-    protected final long getRead() {
-        return PUnsafe.getLongVolatile(null, this.ctx);
-    }
-
-    protected final long getWritten() {
-        return PUnsafe.getLongVolatile(null, this.ctx + 8L);
-    }
-
-    protected final long getSession() {
-        return PUnsafe.getLongVolatile(null, this.ctx + 16L);
-    }
-
-    protected final void checkSession(long session) {
-        if (session != this.getSession()) {
-            throw new ConcurrentModificationException();
-        }
-    }
+    abstract Runnable freeCtxRunnable(@NonNull NativeZstdProvider provider, long ctx);
 }

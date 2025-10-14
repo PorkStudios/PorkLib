@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -15,7 +15,6 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
 package net.daporkchop.lib.compression.option;
@@ -28,10 +27,10 @@ import net.daporkchop.lib.compression.CompressionProvider;
  * All implementations must be immutable.
  *
  * @author DaPorkchop_
- * @see DeflaterOptions
- * @see InflaterOptions
+ * @see DeflaterCreateOptions
+ * @see InflaterCreateOptions
  */
-interface ContextOptions<I extends ContextOptions<I, P>, P extends CompressionProvider<P, ?, ?>> {
+interface ContextCreateOptions<I extends ContextCreateOptions<I, P>, P extends CompressionProvider<P, ?, ?>> {
     /**
      * @return the {@link CompressionProvider} that this options instance belongs to
      */

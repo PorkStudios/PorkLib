@@ -25,7 +25,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.compression.zstd.ZstdDeflateDictionary;
+import net.daporkchop.lib.compression.zstd.ZstdCompressDictionary;
 import net.daporkchop.lib.unsafe.PCleaner;
 
 /**
@@ -33,7 +33,7 @@ import net.daporkchop.lib.unsafe.PCleaner;
  */
 @Getter
 @Accessors(fluent = true)
-final class NativeZstdDeflateDictionary implements ZstdDeflateDictionary {
+final class NativeZstdDeflateDictionary implements ZstdCompressDictionary {
     private static native long digest(
             long dictDirectAddr, byte[] dictArray, int dictArrayOffset, int dictPosition, int dictRemaining,
             int level);
@@ -46,10 +46,10 @@ final class NativeZstdDeflateDictionary implements ZstdDeflateDictionary {
     @Getter(AccessLevel.NONE)
     private final PCleaner cleaner;
 
-    private final NativeZstd provider;
+    private final NativeZstdProvider provider;
     private final int level;
 
-    NativeZstdDeflateDictionary(@NonNull NativeZstd provider, @NonNull ByteBuf dict, int level) {
+    NativeZstdDeflateDictionary(@NonNull NativeZstdProvider provider, @NonNull ByteBuf dict, int level) {
         this.provider = provider;
         this.level = level;
 

@@ -17,13 +17,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.compression.util.exception;
+package net.daporkchop.lib.compression.zstd;
+
+import net.daporkchop.lib.common.annotation.ExtendedBorrow;
+import net.daporkchop.lib.common.annotation.NotThreadSafe;
+import net.daporkchop.lib.compression.context.PStreamingDecompressor;
 
 /**
- * Thrown when a {@link net.daporkchop.lib.compression.Context} that does not allow use of a dictionary is given one anyway.
- *
  * @author DaPorkchop_
  */
-@Deprecated
-public class DictionaryNotAllowedException extends UnsupportedOperationException {
+@NotThreadSafe
+public interface ZstdStreamingDecompressor extends PStreamingDecompressor {
+    @Override
+    ZstdStreamingDecompressor resetParameters();
+
+    /**
+     * Sets the dictionary used for decompression. Setting this to {@code null} means that no dictionary will be used.
+     * <p>
+     * If the given dictionary is non-{@code null}, it must not be closed before being removed from the decompressor (either by setting the dictionary to {@code null} or
+     * by {@link #resetParameters()}).
+     * <p>
+     * The default value is {@code null}.
+     *
+     * @param dictionary the dictionary
+     * @throws IllegalArgumentException      if the given dictionary isn't compatible with this decompressor
+     * @throws UnsupportedOperationException if this implementation doesn't support zstd dictionaries
+     * @see #resetParameters()
+     */
+    ZstdStreamingDecompressor setDictionary(@ExtendedBorrow ZstdDecompressDictionary dictionary) throws IllegalArgumentException;
 }

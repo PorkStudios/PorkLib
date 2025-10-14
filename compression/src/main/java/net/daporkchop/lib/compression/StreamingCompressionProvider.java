@@ -17,13 +17,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.compression.util.exception;
+package net.daporkchop.lib.compression;
+
+import net.daporkchop.lib.common.annotation.ThreadSafe;
+import net.daporkchop.lib.compression.context.PStreamingCompressor;
+import net.daporkchop.lib.compression.context.PStreamingDecompressor;
 
 /**
- * Thrown when a {@link net.daporkchop.lib.compression.Context} that does not allow use of a dictionary is given one anyway.
- *
  * @author DaPorkchop_
  */
-@Deprecated
-public class DictionaryNotAllowedException extends UnsupportedOperationException {
+@ThreadSafe
+public interface StreamingCompressionProvider extends ICompressionProvider {
+    /**
+     * @return a new {@link PStreamingCompressor}
+     */
+    PStreamingCompressor makeStreamingCompressor();
+
+    /**
+     * @return a new {@link PStreamingDecompressor}
+     */
+    PStreamingDecompressor makeStreamingDecompressor();
 }

@@ -29,12 +29,11 @@ import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.binary.util.NoMoreSpaceException;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.compression.zstd.Zstd;
-import net.daporkchop.lib.compression.zstd.ZstdDeflateDictionary;
+import net.daporkchop.lib.compression.zstd.ZstdCompressDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdDeflater;
-import net.daporkchop.lib.compression.zstd.options.ZstdDeflaterOptions;
+import net.daporkchop.lib.compression.zstd.options.ZstdDeflaterCreateOptions;
 
 import java.io.IOException;
-import java.util.ConcurrentModificationException;
 
 import static java.lang.Math.*;
 import static net.daporkchop.lib.common.util.PValidation.*;
@@ -47,7 +46,7 @@ import static net.daporkchop.lib.compression.zstd.natives.NativeZstd.*;
 @SuppressWarnings("Duplicates")
 final class NativeZstdDeflater extends AbstractNativeZstdContext implements ZstdDeflater {
     @Override
-    native long allocate0();
+    native long createCtx();
 
     static native void release0(long ctx);
 
@@ -90,15 +89,15 @@ final class NativeZstdDeflater extends AbstractNativeZstdContext implements Zstd
             int flush);
 
     @Getter
-    final ZstdDeflaterOptions options;
+    final ZstdDeflaterCreateOptions options;
 
-    NativeZstdDeflater(@NonNull ZstdDeflaterOptions options) {
+    NativeZstdDeflater(@NonNull ZstdDeflaterCreateOptions options) {
         this.options = options;
     }
 
     @Override
-    Runnable makeReleaser(long addr) {
-        return () -> release0(addr);
+    Runnable freeCtxRunnable(long ctx) {
+        return () -> release0(ctx);
     }
 
     @Override
@@ -175,7 +174,7 @@ final class NativeZstdDeflater extends AbstractNativeZstdContext implements Zstd
 
     @Override
     @SneakyThrows(IOException.class)
-    public boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdDeflateDictionary dict) {
+    public boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdCompressDictionary dict) {
         this.ensureOpen();
 
         if (!(src.hasMemoryAddress() || src.hasArray()) || !(dst.hasMemoryAddress() || dst.hasArray())) {
@@ -289,7 +288,7 @@ final class NativeZstdDeflater extends AbstractNativeZstdContext implements Zstd
 
     @Override
     @SneakyThrows(IOException.class)
-    public void compressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdDeflateDictionary dict) throws IndexOutOfBoundsException {
+    public void compressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdCompressDictionary dict) throws IndexOutOfBoundsException {
         this.ensureOpen();
         checkArg(dict == null || dict instanceof NativeZstdDeflateDictionary, "invalid dictionary: %s", dict);
 
@@ -365,7 +364,7 @@ final class NativeZstdDeflater extends AbstractNativeZstdContext implements Zstd
     }
 
     @Override
-    public DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, int bufferSize, ZstdDeflateDictionary dict) throws IOException {
+    public DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, int bufferSize, ZstdCompressDictionary dict) throws IOException {
         this.ensureOpen();
         checkArg(dict == null || dict instanceof NativeZstdDeflateDictionary, "invalid dictionary: %s", dict);
 

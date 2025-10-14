@@ -15,7 +15,6 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
 package net.daporkchop.lib.compression.zlib.natives;
@@ -36,7 +35,7 @@ import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.common.util.exception.AlreadyReleasedException;
 import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
 import net.daporkchop.lib.compression.zlib.ZlibDeflater;
-import net.daporkchop.lib.compression.zlib.options.ZlibDeflaterOptions;
+import net.daporkchop.lib.compression.zlib.options.ZlibDeflaterCreateOptions;
 import net.daporkchop.lib.unsafe.PCleaner;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
@@ -71,11 +70,11 @@ final class NativeZlibDeflater extends AbstractRefCounted.Synchronized implement
     final long ctx;
 
     @Getter
-    final ZlibDeflaterOptions options;
+    final ZlibDeflaterCreateOptions options;
 
     final PCleaner cleaner;
 
-    NativeZlibDeflater(@NonNull ZlibDeflaterOptions options) {
+    NativeZlibDeflater(@NonNull ZlibDeflaterCreateOptions options) {
         this.options = options;
 
         this.ctx = allocate0(options.level(), options.mode().ordinal(), options.strategy().ordinal());

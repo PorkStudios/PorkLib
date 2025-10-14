@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -15,26 +15,28 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
-package net.daporkchop.lib.compression.zstd.options;
+package net.daporkchop.lib.compression.zstd.natives;
 
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.compression.option.InflaterOptions;
-import net.daporkchop.lib.compression.zstd.ZstdProvider;
+import net.daporkchop.lib.compression.zstd.ZstdCompressDictionary;
 
 /**
  * @author DaPorkchop_
  */
-@Getter
-@Accessors(fluent = true)
-public final class ZstdInflaterOptions implements InflaterOptions<ZstdInflaterOptions, ZstdProvider> {
-    protected final ZstdProvider provider;
+final class NativeZstdCDict extends AbstractNativeZstdDictionary implements ZstdCompressDictionary {
+    NativeZstdCDict(@NonNull NativeZstdProvider provider, long dict) {
+        super(provider, dict);
+    }
 
-    public ZstdInflaterOptions(@NonNull ZstdProvider provider) {
-        this.provider = provider;
+    @Override
+    Runnable freeDictRunnable(@NonNull NativeZstdProvider provider, long dict) {
+        return () -> provider.ZSTD_freeCDict(dict);
+    }
+
+    @Override
+    public int id() {
+        return this.provider.ZSTD_getDictID_fromCDict(this.dict);
     }
 }

@@ -17,13 +17,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.compression.util.exception;
+package net.daporkchop.lib.compression.zstd.natives;
+
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.common.closeable.QuietCloseable;
+import net.daporkchop.lib.unsafe.PCleaner;
 
 /**
- * Thrown when a {@link net.daporkchop.lib.compression.Context} that does not allow use of a dictionary is given one anyway.
- *
  * @author DaPorkchop_
  */
-@Deprecated
-public class DictionaryNotAllowedException extends UnsupportedOperationException {
+@Accessors(fluent = true)
+abstract class AbstractNativeZstdDictionary implements QuietCloseable {
+    @Getter
+    final NativeZstdProvider provider;
+
+    final long dict;
+    private PCleaner cleaner;
+
+    AbstractNativeZstdDictionary(@NonNull NativeZstdProvider provider, long dict) {
+        this.provider = provider;
+        this.dict = dict;
+        this.cleaner = PCleaner.cleaner(this, this.freeDictRunnable(provider, dict));
+    }
+
+    final void ensureOpen() {
+        if (this.cleaner == null) {
+            throw new IllegalStateException("already closed!");
+        }
+    }
+
+    @Override
+    public final void close() {
+        PCleaner cleaner = this.cleaner;
+        this.cleaner = null;
+        if (cleaner != null) {
+            cleaner.clean();
+        }
+    }
+
+    abstract Runnable freeDictRunnable(@NonNull NativeZstdProvider provider, long dict);
 }

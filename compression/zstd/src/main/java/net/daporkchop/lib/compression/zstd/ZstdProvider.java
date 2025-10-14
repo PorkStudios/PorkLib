@@ -23,8 +23,8 @@ import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.compression.CompressionProvider;
-import net.daporkchop.lib.compression.zstd.options.ZstdDeflaterOptions;
-import net.daporkchop.lib.compression.zstd.options.ZstdInflaterOptions;
+import net.daporkchop.lib.compression.zstd.options.ZstdDeflaterCreateOptions;
+import net.daporkchop.lib.compression.zstd.options.ZstdInflaterCreateOptions;
 import net.daporkchop.lib.compression.zstd.util.exception.ContentSizeUnknownException;
 import net.daporkchop.lib.natives.Feature;
 
@@ -33,7 +33,8 @@ import net.daporkchop.lib.natives.Feature;
  *
  * @author DaPorkchop_
  */
-public interface ZstdProvider extends CompressionProvider<ZstdProvider, ZstdDeflaterOptions, ZstdInflaterOptions>, Feature {
+@Deprecated
+public interface ZstdProvider extends CompressionProvider<ZstdProvider, ZstdDeflaterCreateOptions, ZstdInflaterCreateOptions>, Feature {
     /**
      * @see #frameContentSizeLong(ByteBuf)
      */
@@ -68,10 +69,10 @@ public interface ZstdProvider extends CompressionProvider<ZstdProvider, ZstdDefl
     }
 
     @Override
-    ZstdDeflater deflater(@NonNull ZstdDeflaterOptions options);
+    ZstdDeflater deflater(@NonNull ZstdDeflaterCreateOptions options);
 
     @Override
-    ZstdInflater inflater(@NonNull ZstdInflaterOptions options);
+    ZstdInflater inflater(@NonNull ZstdInflaterCreateOptions options);
 
     /**
      * Digests a Zstd dictionary for compression at the default level.
@@ -79,7 +80,7 @@ public interface ZstdProvider extends CompressionProvider<ZstdProvider, ZstdDefl
      * @param dict the {@link ByteBuf} containing the dictionary
      * @return the digested dictionary
      */
-    default ZstdDeflateDictionary loadDeflateDictionary(@NonNull ByteBuf dict) {
+    default ZstdCompressDictionary loadDeflateDictionary(@NonNull ByteBuf dict) {
         return this.loadDeflateDictionary(dict, Zstd.LEVEL_DEFAULT);
     }
 
@@ -90,7 +91,7 @@ public interface ZstdProvider extends CompressionProvider<ZstdProvider, ZstdDefl
      * @param level the compression level to use
      * @return the digested dictionary
      */
-    ZstdDeflateDictionary loadDeflateDictionary(@NonNull ByteBuf dict, int level);
+    ZstdCompressDictionary loadDeflateDictionary(@NonNull ByteBuf dict, int level);
 
     /**
      * Digests a Zstd dictionary for decompression.
@@ -98,5 +99,5 @@ public interface ZstdProvider extends CompressionProvider<ZstdProvider, ZstdDefl
      * @param dict the {@link ByteBuf} containing the dictionary
      * @return the digested dictionary
      */
-    ZstdInflateDictionary loadInflateDictionary(@NonNull ByteBuf dict);
+    ZstdDecompressDictionary loadInflateDictionary(@NonNull ByteBuf dict);
 }

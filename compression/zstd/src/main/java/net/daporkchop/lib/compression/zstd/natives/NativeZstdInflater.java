@@ -29,12 +29,11 @@ import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.binary.util.NoMoreSpaceException;
 import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.compression.zstd.ZstdInflateDictionary;
+import net.daporkchop.lib.compression.zstd.ZstdDecompressDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdInflater;
-import net.daporkchop.lib.compression.zstd.options.ZstdInflaterOptions;
+import net.daporkchop.lib.compression.zstd.options.ZstdInflaterCreateOptions;
 
 import java.io.IOException;
-import java.util.ConcurrentModificationException;
 
 import static java.lang.Math.*;
 import static net.daporkchop.lib.common.util.PValidation.*;
@@ -46,7 +45,7 @@ import static net.daporkchop.lib.common.util.PValidation.*;
 @SuppressWarnings("Duplicates")
 final class NativeZstdInflater extends AbstractNativeZstdContext implements ZstdInflater {
     @Override
-    native long allocate0();
+    native long createCtx();
 
     static native void release0(long ctx);
 
@@ -83,15 +82,15 @@ final class NativeZstdInflater extends AbstractNativeZstdContext implements Zstd
             long dstDirectAddr, byte[] dstArray, int dstArrayOffset, int dstPosition, int dstRemaining);
 
     @Getter
-    final ZstdInflaterOptions options;
+    final ZstdInflaterCreateOptions options;
 
-    NativeZstdInflater(@NonNull ZstdInflaterOptions options) {
+    NativeZstdInflater(@NonNull ZstdInflaterCreateOptions options) {
         this.options = options;
     }
 
     @Override
-    Runnable makeReleaser(long addr) {
-        return () -> release0(addr);
+    Runnable freeCtxRunnable(long ctx) {
+        return () -> release0(ctx);
     }
 
     @Override
@@ -166,7 +165,7 @@ final class NativeZstdInflater extends AbstractNativeZstdContext implements Zstd
 
     @Override
     @SneakyThrows(IOException.class)
-    public boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdInflateDictionary dict) {
+    public boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdDecompressDictionary dict) {
         this.ensureOpen();
 
         if (!(src.hasMemoryAddress() || src.hasArray()) || !(dst.hasMemoryAddress() || dst.hasArray())) {
@@ -279,7 +278,7 @@ final class NativeZstdInflater extends AbstractNativeZstdContext implements Zstd
 
     @Override
     @SneakyThrows(IOException.class)
-    public void decompressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdInflateDictionary dict) throws IndexOutOfBoundsException {
+    public void decompressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdDecompressDictionary dict) throws IndexOutOfBoundsException {
         this.ensureOpen();
         checkArg(dict == null || dict instanceof NativeZstdInflateDictionary, "invalid dictionary: %s", dict);
 
@@ -362,7 +361,7 @@ final class NativeZstdInflater extends AbstractNativeZstdContext implements Zstd
     }
 
     @Override
-    public DataIn decompressionStream(@NonNull DataIn in, ByteBufAllocator bufferAlloc, int bufferSize, ZstdInflateDictionary dict) throws IOException {
+    public DataIn decompressionStream(@NonNull DataIn in, ByteBufAllocator bufferAlloc, int bufferSize, ZstdDecompressDictionary dict) throws IOException {
         this.ensureOpen();
         checkArg(dict == null || dict instanceof NativeZstdInflateDictionary, "invalid dictionary: %s", dict);
 

@@ -17,13 +17,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.compression.util.exception;
+package net.daporkchop.lib.compression.zstd.options;
+
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.experimental.Accessors;
+import net.daporkchop.lib.compression.option.InflaterCreateOptions;
+import net.daporkchop.lib.compression.zstd.ZstdProvider;
 
 /**
- * Thrown when a {@link net.daporkchop.lib.compression.Context} that does not allow use of a dictionary is given one anyway.
- *
  * @author DaPorkchop_
  */
 @Deprecated
-public class DictionaryNotAllowedException extends UnsupportedOperationException {
+@Getter
+@Accessors(fluent = true)
+public final class ZstdInflaterCreateOptions implements InflaterCreateOptions<ZstdInflaterCreateOptions, ZstdProvider> {
+    protected final ZstdProvider provider;
+
+    public ZstdInflaterCreateOptions(@NonNull ZstdProvider provider) {
+        this.provider = provider;
+    }
 }

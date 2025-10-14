@@ -28,8 +28,8 @@ import net.daporkchop.lib.compression.context.PInflater;
 import net.daporkchop.lib.compression.zlib.ZlibMode;
 import net.daporkchop.lib.compression.zlib.ZlibProvider;
 import net.daporkchop.lib.compression.zlib.ZlibStrategy;
-import net.daporkchop.lib.compression.zlib.options.ZlibDeflaterOptions;
-import net.daporkchop.lib.compression.zlib.options.ZlibInflaterOptions;
+import net.daporkchop.lib.compression.zlib.options.ZlibDeflaterCreateOptions;
+import net.daporkchop.lib.compression.zlib.options.ZlibInflaterCreateOptions;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 
@@ -39,8 +39,8 @@ import static net.daporkchop.lib.common.util.PValidation.*;
 @Getter
 @Accessors(fluent = true)
 public final class JavaZlib implements ZlibProvider {
-    protected final ZlibDeflaterOptions deflateOptions = new ZlibDeflaterOptions(this);
-    protected final ZlibInflaterOptions inflateOptions = new ZlibInflaterOptions(this);
+    protected final ZlibDeflaterCreateOptions deflateOptions = new ZlibDeflaterCreateOptions(this);
+    protected final ZlibInflaterCreateOptions inflateOptions = new ZlibInflaterCreateOptions(this);
 
     @Override
     public boolean isNative() {
@@ -65,14 +65,14 @@ public final class JavaZlib implements ZlibProvider {
     }
 
     @Override
-    public PDeflater deflater(@NonNull ZlibDeflaterOptions options) {
+    public PDeflater deflater(@NonNull ZlibDeflaterCreateOptions options) {
         checkArg(options.provider() == this, "provider must be %s!", this);
         checkArg(options.strategy() == ZlibStrategy.DEFAULT || options.strategy() == ZlibStrategy.FILTERED || options.strategy() == ZlibStrategy.HUFFMAN, "Java Zlib does not support Zlib strategy %s!", options.strategy());
         return new JavaZlibDeflater(options);
     }
 
     @Override
-    public PInflater inflater(@NonNull ZlibInflaterOptions options) {
+    public PInflater inflater(@NonNull ZlibInflaterCreateOptions options) {
         checkArg(options.provider() == this, "provider must be %s!", this);
         checkArg(options.mode() != ZlibMode.AUTO, "Java Zlib does not support Zlib mode %s!", options.mode());
         return new JavaZlibInflater(options);

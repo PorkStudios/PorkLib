@@ -19,22 +19,17 @@
 
 package net.daporkchop.lib.compression.zstd;
 
-import net.daporkchop.lib.common.closeable.QuietCloseable;
-import net.daporkchop.lib.compression.CompressionProvider;
+import net.daporkchop.lib.compression.StreamingCompressionProvider;
+import net.daporkchop.lib.compression.context.PStreamingCompressor;
+import net.daporkchop.lib.compression.context.PStreamingDecompressor;
 
 /**
- * A digested dictionary used by {@link Zstd} decompression.
- *
  * @author DaPorkchop_
  */
-public interface ZstdInflateDictionary extends QuietCloseable {
-    /**
-     * @return the {@link CompressionProvider} that created this context
-     */
-    ZstdProvider provider();
+public interface ZstdStreamingProvider extends StreamingCompressionProvider, IZstdProvider, ZstdDictionaryProvider {
+    @Override
+    PStreamingCompressor makeStreamingCompressor();
 
-    /**
-     * @return this dictionary's ID
-     */
-    int id();
+    @Override
+    PStreamingDecompressor makeStreamingDecompressor();
 }

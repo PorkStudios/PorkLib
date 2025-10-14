@@ -23,10 +23,9 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.common.annotation.Borrow;
 import net.daporkchop.lib.common.annotation.NotThreadSafe;
 import net.daporkchop.lib.compression.context.PDeflater;
-import net.daporkchop.lib.compression.zstd.options.ZstdDeflaterOptions;
+import net.daporkchop.lib.compression.zstd.options.ZstdDeflaterCreateOptions;
 
 import java.io.IOException;
 
@@ -35,10 +34,11 @@ import java.io.IOException;
  *
  * @author DaPorkchop_
  */
+@Deprecated
 @NotThreadSafe
 public interface ZstdDeflater extends PDeflater {
     @Override
-    ZstdDeflaterOptions options();
+    ZstdDeflaterCreateOptions options();
 
     @Override
     default ZstdProvider provider() {
@@ -83,14 +83,14 @@ public interface ZstdDeflater extends PDeflater {
      * In either case, the indices of the dictionary buffer remain unaffected.
      * <p>
      * This will digest the dictionary before compressing, which is an expensive operation. If the same dictionary is going to be used multiple times,
-     * it is strongly advised to use {@link #compress(ByteBuf, ByteBuf, ZstdDeflateDictionary)}.
+     * it is strongly advised to use {@link #compress(ByteBuf, ByteBuf, ZstdCompressDictionary)}.
      *
      * @param src   the {@link ByteBuf} to read source data from
      * @param dst   the {@link ByteBuf} to write compressed data to
      * @param dict  the (possibly {@code null}) {@link ByteBuf} containing the dictionary to be used for compression
      * @param level the compression level to use
      * @return whether or not compression was successful. If {@code false}, the destination buffer was too small for the compressed data
-     * @see #compress(ByteBuf, ByteBuf, ZstdDeflateDictionary)
+     * @see #compress(ByteBuf, ByteBuf, ZstdCompressDictionary)
      */
     boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict, int level);
 
@@ -102,7 +102,7 @@ public interface ZstdDeflater extends PDeflater {
      * @param dict the dictionary to use
      * @see #compress(ByteBuf, ByteBuf, ByteBuf, int)
      */
-    boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdDeflateDictionary dict);
+    boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdCompressDictionary dict);
 
     /**
      * Convenience method equivalent to {@code compressGrowing(src, dst, null, this.options().level());}
@@ -143,13 +143,13 @@ public interface ZstdDeflater extends PDeflater {
      * In either case, the indices of the dictionary buffer remain unaffected.
      * <p>
      * This will digest the dictionary before compressing, which is an expensive operation. If the same dictionary is going to be used multiple times,
-     * it is strongly advised to use {@link #compressGrowing(ByteBuf, ByteBuf, ZstdDeflateDictionary)}.
+     * it is strongly advised to use {@link #compressGrowing(ByteBuf, ByteBuf, ZstdCompressDictionary)}.
      *
      * @param src  the {@link ByteBuf} to read source data from
      * @param dst  the {@link ByteBuf} to write compressed data to
      * @param dict the (possibly {@code null}) {@link ByteBuf} containing the dictionary to be used for compression
      * @throws IndexOutOfBoundsException if the destination buffer's capacity could not be increased sufficiently
-     * @see #compressGrowing(ByteBuf, ByteBuf, ZstdDeflateDictionary)
+     * @see #compressGrowing(ByteBuf, ByteBuf, ZstdCompressDictionary)
      */
     void compressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ByteBuf dict, int level) throws IndexOutOfBoundsException;
 
@@ -162,7 +162,7 @@ public interface ZstdDeflater extends PDeflater {
      * @throws IndexOutOfBoundsException if the destination buffer's capacity could not be increased sufficiently
      * @see #compressGrowing(ByteBuf, ByteBuf, ByteBuf, int)
      */
-    void compressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdDeflateDictionary dict) throws IndexOutOfBoundsException;
+    void compressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst, ZstdCompressDictionary dict) throws IndexOutOfBoundsException;
 
     /**
      * Convenience method equivalent to {@code compressionStream(out, null, -1, null, this.options().level());}
@@ -248,7 +248,7 @@ public interface ZstdDeflater extends PDeflater {
      * Gets a {@link DataOut} which will compress data written to it using this {@link PDeflater} and write the compressed version to the given {@link DataOut}.
      * <p>
      * This will digest the dictionary before decompressing, which is an expensive operation. If the same dictionary is going to be used multiple times,
-     * it is strongly advised to use {@link #compressionStream(DataOut, ByteBufAllocator, int, ZstdDeflateDictionary)}.
+     * it is strongly advised to use {@link #compressionStream(DataOut, ByteBufAllocator, int, ZstdCompressDictionary)}.
      *
      * @param bufferAlloc the {@link ByteBufAllocator} to be used for allocating the internal write buffer. If {@code null}, the default allocator will be used
      * @param bufferSize  the size of the internal write buffer. If not positive, the default buffer size will be used
@@ -259,27 +259,27 @@ public interface ZstdDeflater extends PDeflater {
     /**
      * Convenience method equivalent to {@code compressionStream(out, null, -1, dict);}
      *
-     * @see #compressionStream(DataOut, ByteBufAllocator, int, ZstdDeflateDictionary)
+     * @see #compressionStream(DataOut, ByteBufAllocator, int, ZstdCompressDictionary)
      */
-    default DataOut compressionStream(@NonNull DataOut out, ZstdDeflateDictionary dict) throws IOException {
+    default DataOut compressionStream(@NonNull DataOut out, ZstdCompressDictionary dict) throws IOException {
         return this.compressionStream(out, null, -1, dict);
     }
 
     /**
      * Convenience method equivalent to {@code compressionStream(out, bufferAlloc, -1, dict);}
      *
-     * @see #compressionStream(DataOut, ByteBufAllocator, int, ZstdDeflateDictionary)
+     * @see #compressionStream(DataOut, ByteBufAllocator, int, ZstdCompressDictionary)
      */
-    default DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, ZstdDeflateDictionary dict) throws IOException {
+    default DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, ZstdCompressDictionary dict) throws IOException {
         return this.compressionStream(out, bufferAlloc, -1, dict);
     }
 
     /**
      * Convenience method equivalent to {@code compressionStream(out, null, bufferSize, dict);}
      *
-     * @see #compressionStream(DataOut, ByteBufAllocator, int, ZstdDeflateDictionary)
+     * @see #compressionStream(DataOut, ByteBufAllocator, int, ZstdCompressDictionary)
      */
-    default DataOut compressionStream(@NonNull DataOut out, int bufferSize, ZstdDeflateDictionary dict) throws IOException {
+    default DataOut compressionStream(@NonNull DataOut out, int bufferSize, ZstdCompressDictionary dict) throws IOException {
         return this.compressionStream(out, null, bufferSize, dict);
     }
 
@@ -289,7 +289,7 @@ public interface ZstdDeflater extends PDeflater {
      * @param bufferAlloc the {@link ByteBufAllocator} to be used for allocating the internal write buffer. If {@code null}, the default allocator will be used
      * @param bufferSize  the size of the internal write buffer. If not positive, the default buffer size will be used
      */
-    DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, int bufferSize, ZstdDeflateDictionary dict) throws IOException;
+    DataOut compressionStream(@NonNull DataOut out, ByteBufAllocator bufferAlloc, int bufferSize, ZstdCompressDictionary dict) throws IOException;
 
     @Override
     default boolean hasDict() {

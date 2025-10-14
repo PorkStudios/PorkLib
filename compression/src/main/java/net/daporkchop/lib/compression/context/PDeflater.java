@@ -24,7 +24,7 @@ import io.netty.buffer.ByteBufAllocator;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.annotation.NotThreadSafe;
-import net.daporkchop.lib.compression.option.DeflaterOptions;
+import net.daporkchop.lib.compression.option.DeflaterCreateOptions;
 import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
 
 import java.io.IOException;
@@ -34,6 +34,7 @@ import java.io.IOException;
  *
  * @author DaPorkchop_
  */
+@Deprecated
 @NotThreadSafe
 public interface PDeflater extends Context {
     //
@@ -180,5 +181,5 @@ public interface PDeflater extends Context {
     /**
      * @return the options that this {@link PDeflater} is configured with
      */
-    DeflaterOptions options();
+    DeflaterCreateOptions options();
 }

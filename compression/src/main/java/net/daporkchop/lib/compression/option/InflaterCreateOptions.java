@@ -17,13 +17,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.compression.util.exception;
+package net.daporkchop.lib.compression.option;
+
+import net.daporkchop.lib.compression.CompressionProvider;
 
 /**
- * Thrown when a {@link net.daporkchop.lib.compression.Context} that does not allow use of a dictionary is given one anyway.
+ * Options used by {@link CompressionProvider} for creating new {@link net.daporkchop.lib.compression.context.PInflater}s.
  *
  * @author DaPorkchop_
  */
-@Deprecated
-public class DictionaryNotAllowedException extends UnsupportedOperationException {
+public interface InflaterCreateOptions<I extends InflaterCreateOptions<I, P>, P extends CompressionProvider<P, ?, I>> extends ContextCreateOptions<I, P> {
 }

@@ -17,13 +17,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.compression.util.exception;
+package net.daporkchop.lib.compression;
+
+import net.daporkchop.lib.common.annotation.ThreadSafe;
+import net.daporkchop.lib.compression.context.POneshotCompressor;
+import net.daporkchop.lib.compression.context.POneshotDecompressor;
+import net.daporkchop.lib.natives.util.MemoryPreference;
 
 /**
- * Thrown when a {@link net.daporkchop.lib.compression.Context} that does not allow use of a dictionary is given one anyway.
- *
  * @author DaPorkchop_
  */
-@Deprecated
-public class DictionaryNotAllowedException extends UnsupportedOperationException {
+@ThreadSafe
+public interface OneshotCompressionProvider extends ICompressionProvider {
+    /**
+     * @return a new {@link POneshotCompressor}
+     */
+    POneshotCompressor makeOneshotCompressor();
+
+    /**
+     * @return a new {@link POneshotDecompressor}
+     */
+    POneshotDecompressor makeOneshotDecompressor();
 }

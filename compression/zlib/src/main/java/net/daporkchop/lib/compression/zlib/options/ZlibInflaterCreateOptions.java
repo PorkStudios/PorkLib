@@ -17,13 +17,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.compression.util.exception;
+package net.daporkchop.lib.compression.zlib.options;
+
+import lombok.NonNull;
+import net.daporkchop.lib.compression.option.InflaterCreateOptions;
+import net.daporkchop.lib.compression.zlib.ZlibMode;
+import net.daporkchop.lib.compression.zlib.ZlibProvider;
+
+import static net.daporkchop.lib.common.util.PValidation.*;
 
 /**
- * Thrown when a {@link net.daporkchop.lib.compression.Context} that does not allow use of a dictionary is given one anyway.
- *
  * @author DaPorkchop_
  */
-@Deprecated
-public class DictionaryNotAllowedException extends UnsupportedOperationException {
+public final class ZlibInflaterCreateOptions extends ZlibOptions<ZlibInflaterCreateOptions> implements InflaterCreateOptions<ZlibInflaterCreateOptions, ZlibProvider> {
+    public ZlibInflaterCreateOptions(@NonNull ZlibProvider provider) {
+        super(provider, ZlibMode.ZLIB);
+    }
+
+    private ZlibInflaterCreateOptions(ZlibProvider provider, ZlibMode mode) {
+        super(provider, mode);
+    }
+
+    @Override
+    public ZlibInflaterCreateOptions withMode(@NonNull ZlibMode mode) {
+        checkArg(mode.decompression(), "Zlib mode %s can't be used for compression!", mode);
+        if (mode == this.mode) {
+            return this;
+        }
+        return new ZlibInflaterCreateOptions(this.provider, mode);
+    }
 }

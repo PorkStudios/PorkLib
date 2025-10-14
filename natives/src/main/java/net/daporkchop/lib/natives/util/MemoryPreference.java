@@ -17,24 +17,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.compression.zstd;
-
-import net.daporkchop.lib.common.closeable.QuietCloseable;
-import net.daporkchop.lib.compression.CompressionProvider;
+package net.daporkchop.lib.natives.util;
 
 /**
- * A digested dictionary used by {@link Zstd} compression.
+ * The type of buffer memory which is preferred by a native feature.
  *
  * @author DaPorkchop_
  */
-public interface ZstdDeflateDictionary extends QuietCloseable {
-    /**
-     * @return the {@link CompressionProvider} that created this context
-     */
-    ZstdProvider provider();
-
-    /**
-     * @return the compression level that the dictionary uses
-     */
-    int level();
+public enum MemoryPreference {
+    PREFER_DIRECT,
+    PREFER_HEAP,
+    ANY,
 }

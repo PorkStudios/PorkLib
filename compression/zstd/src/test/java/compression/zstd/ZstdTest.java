@@ -30,8 +30,8 @@ import net.daporkchop.lib.common.function.io.IOConsumer;
 import net.daporkchop.lib.compression.context.PDeflater;
 import net.daporkchop.lib.compression.context.PInflater;
 import net.daporkchop.lib.compression.zstd.Zstd;
-import net.daporkchop.lib.compression.zstd.ZstdDeflateDictionary;
-import net.daporkchop.lib.compression.zstd.ZstdInflateDictionary;
+import net.daporkchop.lib.compression.zstd.ZstdCompressDictionary;
+import net.daporkchop.lib.compression.zstd.ZstdDecompressDictionary;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -79,12 +79,12 @@ public class ZstdTest {
     public void testDigestDeflateDictionary() {
         this.forEachBufferType(1, buffers -> {
             ByteBuf buf = buffers[0].writeBytes(this.dictionary);
-            try (ZstdDeflateDictionary dict = Zstd.PROVIDER.loadDeflateDictionary(buf)) {
+            try (ZstdCompressDictionary dict = Zstd.PROVIDER.loadDeflateDictionary(buf)) {
             }
         });
         this.forEachBufferType(1, buffers -> {
             ByteBuf buf = buffers[0].writeBytes(this.dictionary);
-            try (ZstdInflateDictionary dict = Zstd.PROVIDER.loadInflateDictionary(buf)) {
+            try (ZstdDecompressDictionary dict = Zstd.PROVIDER.loadInflateDictionary(buf)) {
                 int id = dict.id();
                 checkState(id == 1885204170, "id (%d) != 1885204170", id);
             }

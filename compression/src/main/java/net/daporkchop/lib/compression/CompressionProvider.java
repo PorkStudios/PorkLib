@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -15,7 +15,6 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
 package net.daporkchop.lib.compression;
@@ -24,8 +23,8 @@ import lombok.NonNull;
 import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.compression.context.PDeflater;
 import net.daporkchop.lib.compression.context.PInflater;
-import net.daporkchop.lib.compression.option.DeflaterOptions;
-import net.daporkchop.lib.compression.option.InflaterOptions;
+import net.daporkchop.lib.compression.option.DeflaterCreateOptions;
+import net.daporkchop.lib.compression.option.InflaterCreateOptions;
 
 /**
  * An implementation of a compression algorithm.
@@ -35,7 +34,8 @@ import net.daporkchop.lib.compression.option.InflaterOptions;
  *
  * @author DaPorkchop_
  */
-public interface CompressionProvider<I extends CompressionProvider<I, DO, IO>, DO extends DeflaterOptions<DO, I>, IO extends InflaterOptions<IO, I>> {
+@Deprecated
+public interface CompressionProvider<I extends CompressionProvider<I, DO, IO>, DO extends DeflaterCreateOptions<DO, I>, IO extends InflaterCreateOptions<IO, I>> {
     //
     //
     // info methods
@@ -73,12 +73,12 @@ public interface CompressionProvider<I extends CompressionProvider<I, DO, IO>, D
     long compressBoundLong(long srcSize);
 
     /**
-     * @return the default {@link DeflaterOptions} (used by {@link #deflater()})
+     * @return the default {@link DeflaterCreateOptions} (used by {@link #deflater()})
      */
     DO deflateOptions();
 
     /**
-     * @return the default {@link InflaterOptions} (used by {@link #inflater()})
+     * @return the default {@link InflaterCreateOptions} (used by {@link #inflater()})
      */
     IO inflateOptions();
 
@@ -91,7 +91,7 @@ public interface CompressionProvider<I extends CompressionProvider<I, DO, IO>, D
     /**
      * Creates a new {@link PDeflater} using the default options.
      *
-     * @see #deflater(DeflaterOptions)
+     * @see #deflater(DeflaterCreateOptions)
      */
     default PDeflater deflater() {
         return this.deflater(this.deflateOptions());
@@ -108,7 +108,7 @@ public interface CompressionProvider<I extends CompressionProvider<I, DO, IO>, D
     /**
      * Creates a new {@link PInflater} using the default options.
      *
-     * @see #inflater(InflaterOptions)
+     * @see #inflater(InflaterCreateOptions)
      */
     default PInflater inflater() {
         return this.inflater(this.inflateOptions());

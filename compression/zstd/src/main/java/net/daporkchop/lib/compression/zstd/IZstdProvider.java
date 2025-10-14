@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2025 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -15,36 +15,23 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
-package net.daporkchop.lib.compression.zlib.options;
+package net.daporkchop.lib.compression.zstd;
 
-import lombok.NonNull;
-import net.daporkchop.lib.compression.option.InflaterOptions;
-import net.daporkchop.lib.compression.zlib.ZlibMode;
-import net.daporkchop.lib.compression.zlib.ZlibProvider;
-
-import static net.daporkchop.lib.common.util.PValidation.*;
+import net.daporkchop.lib.common.annotation.param.Positive;
 
 /**
  * @author DaPorkchop_
  */
-public final class ZlibInflaterOptions extends ZlibOptions<ZlibInflaterOptions> implements InflaterOptions<ZlibInflaterOptions, ZlibProvider> {
-    public ZlibInflaterOptions(@NonNull ZlibProvider provider) {
-        super(provider, ZlibMode.ZLIB);
-    }
+interface IZstdProvider {
+    /**
+     * @return the minimum compression level supported by this zstd implementation (inclusive)
+     */
+    @Positive int minLevel();
 
-    private ZlibInflaterOptions(ZlibProvider provider, ZlibMode mode) {
-        super(provider, mode);
-    }
-
-    @Override
-    public ZlibInflaterOptions withMode(@NonNull ZlibMode mode) {
-        checkArg(mode.decompression(), "Zlib mode %s can't be used for compression!", mode);
-        if (mode == this.mode) {
-            return this;
-        }
-        return new ZlibInflaterOptions(this.provider, mode);
-    }
+    /**
+     * @return the maximum compression level supported by this zstd implementation (inclusive)
+     */
+    @Positive int maxLevel();
 }

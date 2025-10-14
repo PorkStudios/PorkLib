@@ -26,8 +26,8 @@ import net.daporkchop.lib.compression.context.PDeflater;
 import net.daporkchop.lib.compression.context.PInflater;
 import net.daporkchop.lib.compression.zlib.ZlibMode;
 import net.daporkchop.lib.compression.zlib.ZlibProvider;
-import net.daporkchop.lib.compression.zlib.options.ZlibDeflaterOptions;
-import net.daporkchop.lib.compression.zlib.options.ZlibInflaterOptions;
+import net.daporkchop.lib.compression.zlib.options.ZlibDeflaterCreateOptions;
+import net.daporkchop.lib.compression.zlib.options.ZlibInflaterCreateOptions;
 import net.daporkchop.lib.natives.NativeFeature;
 
 import java.lang.invoke.MethodHandles;
@@ -68,8 +68,8 @@ public final class NativeZlib extends NativeFeature<ZlibProvider> implements Zli
 
     protected static native long compressBound0(long srcSize, int mode);
 
-    protected final ZlibDeflaterOptions deflateOptions = new ZlibDeflaterOptions(this);
-    protected final ZlibInflaterOptions inflateOptions = new ZlibInflaterOptions(this);
+    protected final ZlibDeflaterCreateOptions deflateOptions = new ZlibDeflaterCreateOptions(this);
+    protected final ZlibInflaterCreateOptions inflateOptions = new ZlibInflaterCreateOptions(this);
 
     @Override
     public long compressBoundLong(long srcSize, @NonNull ZlibMode mode) {
@@ -79,13 +79,13 @@ public final class NativeZlib extends NativeFeature<ZlibProvider> implements Zli
     }
 
     @Override
-    public PDeflater deflater(@NonNull ZlibDeflaterOptions options) {
+    public PDeflater deflater(@NonNull ZlibDeflaterCreateOptions options) {
         checkArg(options.provider() == this, "provider must be %s!", this);
         return new NativeZlibDeflater(options);
     }
 
     @Override
-    public PInflater inflater(@NonNull ZlibInflaterOptions options) {
+    public PInflater inflater(@NonNull ZlibInflaterCreateOptions options) {
         checkArg(options.provider() == this, "provider must be %s!", this);
         return new NativeZlibInflater(options);
     }

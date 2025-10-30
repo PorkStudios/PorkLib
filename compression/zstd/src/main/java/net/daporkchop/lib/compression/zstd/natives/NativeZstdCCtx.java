@@ -37,7 +37,7 @@ import static net.daporkchop.lib.compression.zstd.natives.NativeZstdProvider.*;
  */
 abstract class NativeZstdCCtx extends AbstractNativeZstdContext implements ZstdOneshotCompressor {
     private int level = Zstd.LEVEL_DEFAULT;
-    private NativeZstdDeflateDictionary dictionary;
+    private NativeZstdCDict dictionary;
 
     NativeZstdCCtx(@NonNull NativeZstdProvider provider) {
         super(provider, provider.ZSTD_createCCtx());
@@ -65,9 +65,9 @@ abstract class NativeZstdCCtx extends AbstractNativeZstdContext implements ZstdO
 
     @Override
     public final ZstdOneshotCompressor setDictionary(@ExtendedBorrow ZstdCompressDictionary dictionary) throws IllegalArgumentException {
-        checkArg(dictionary == null || dictionary instanceof NativeZstdDeflateDictionary, dictionary);
-        this.dictionary = (NativeZstdDeflateDictionary) dictionary;
-        this.provider.checkForErrorAndThrow(this.provider.ZSTD_CCtx_refCDict(this.ctx, dictionary != null ? this.dictionary.addr() : 0L));
+        checkArg(dictionary == null || dictionary instanceof NativeZstdCDict, dictionary);
+        this.dictionary = (NativeZstdCDict) dictionary;
+        this.provider.checkForErrorAndThrow(this.provider.ZSTD_CCtx_refCDict(this.ctx, dictionary != null ? this.dictionary.dict : 0L));
         return this;
     }
 
@@ -83,7 +83,7 @@ abstract class NativeZstdCCtx extends AbstractNativeZstdContext implements ZstdO
         int result = this.compress(src, dst);
         if (result < 0) {
             //this should be impossible, but we'll check just in case and throw the same exception type that would be expected if the buffer couldn't be grown sufficiently
-            throw new IndexOutOfBoundsException("need more output space than compressBound()?!?");
+            throw new IndexOutOfBoundsException("need more output space?!?");
         }
         return result;
     }

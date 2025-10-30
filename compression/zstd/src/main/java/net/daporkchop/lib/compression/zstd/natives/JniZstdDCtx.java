@@ -22,29 +22,29 @@ package net.daporkchop.lib.compression.zstd.natives;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.common.util.PNioBuffers;
-import net.daporkchop.lib.natives.NativeException;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.nio.ByteBuffer;
 import java.nio.ReadOnlyBufferException;
+import java.util.zip.DataFormatException;
 
 import static net.daporkchop.lib.compression.zstd.natives.NativeZstdProvider.*;
 
 /**
  * @author DaPorkchop_
  */
-final class JniZstdCCtx extends NativeZstdCCtx {
-    JniZstdCCtx(@NonNull JniZstdProvider provider) {
+final class JniZstdDCtx extends NativeZstdDCtx {
+    JniZstdDCtx(@NonNull JniZstdProvider provider) {
         super(provider);
     }
 
-    static native long ZSTD_compress2(
+    static native long ZSTD_decompressDCtx(
             long ctx,
             long srcDirectAddr, byte[] srcArray, int srcArrayOffset, int srcPosition, int srcRemaining,
             long dstDirectAddr, byte[] dstArray, int dstArrayOffset, int dstPosition, int dstRemaining);
 
     @Override
-    public int compress(@NonNull ByteBuffer src, @NonNull ByteBuffer dst) throws ReadOnlyBufferException {
+    public int decompress(@NonNull ByteBuffer src, @NonNull ByteBuffer dst) throws DataFormatException, ReadOnlyBufferException {
         //get buffer pointers
         long srcMemoryAddress = 0L;
         byte[] srcArray = null;
@@ -75,7 +75,7 @@ final class JniZstdCCtx extends NativeZstdCCtx {
             throw new IllegalArgumentException("buffer not supported: " + dst);
         }
 
-        long result = ZSTD_compress2(this.ctx,
+        long result = ZSTD_decompressDCtx(this.ctx,
                 srcMemoryAddress, srcArray, srcArrayOffset, src.position(), src.remaining(),
                 dstMemoryAddress, dstArray, dstArrayOffset, dst.position(), dst.remaining());
 
@@ -88,12 +88,12 @@ final class JniZstdCCtx extends NativeZstdCCtx {
             case ZSTD_error_dstSize_tooSmall:
                 return -1;
             default:
-                throw new NativeException(this.provider.ZSTD_getErrorName(result));
+                throw new DataFormatException(this.provider.ZSTD_getErrorName(result));
         }
     }
 
     @Override
-    public int compress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws ReadOnlyBufferException {
+    public int decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws DataFormatException, ReadOnlyBufferException {
         //get buffer pointers
         long srcMemoryAddress = 0L;
         byte[] srcArray = null;
@@ -124,7 +124,7 @@ final class JniZstdCCtx extends NativeZstdCCtx {
             throw new IllegalArgumentException("buffer not supported: " + dst);
         }
 
-        long result = ZSTD_compress2(this.ctx,
+        long result = ZSTD_decompressDCtx(this.ctx,
                 srcMemoryAddress, srcArray, srcArrayOffset, src.readerIndex(), src.readableBytes(),
                 dstMemoryAddress, dstArray, dstArrayOffset, dst.writerIndex(), dst.writableBytes());
 
@@ -137,7 +137,7 @@ final class JniZstdCCtx extends NativeZstdCCtx {
             case ZSTD_error_dstSize_tooSmall:
                 return -1;
             default:
-                throw new NativeException(this.provider.ZSTD_getErrorName(result));
+                throw new DataFormatException(this.provider.ZSTD_getErrorName(result));
         }
     }
 }

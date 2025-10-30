@@ -25,6 +25,7 @@ import net.daporkchop.lib.common.annotation.NotThreadSafe;
 import net.daporkchop.lib.common.annotation.param.NotNegative;
 
 import java.nio.ByteBuffer;
+import java.nio.ReadOnlyBufferException;
 import java.util.OptionalLong;
 import java.util.zip.DataFormatException;
 
@@ -115,8 +116,9 @@ public interface POneshotDecompressor extends OneshotContext {
      * @param dst the {@link ByteBuffer} to write compressed data to
      * @return the size of the decompressed data in bytes, or a negative value if the destination buffer was too small for the decompressed data
      * @throws DataFormatException if the source data is not valid compressed data
+     * @throws ReadOnlyBufferException if the destination buffer is read-only
      */
-    int decompress(@NonNull ByteBuffer src, @NonNull ByteBuffer dst) throws DataFormatException;
+    int decompress(@NonNull ByteBuffer src, @NonNull ByteBuffer dst) throws DataFormatException, ReadOnlyBufferException;
 
     /**
      * Decompresses the given source data into the given destination buffer.
@@ -128,8 +130,9 @@ public interface POneshotDecompressor extends OneshotContext {
      * @param dst the {@link ByteBuf} to write decompressed data to
      * @return the size of the decompressed data in bytes, or a negative value if the destination buffer was too small for the decompressed data
      * @throws DataFormatException if the source data is not valid compressed data
+     * @throws ReadOnlyBufferException if the destination buffer is read-only
      */
-    int decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws DataFormatException;
+    int decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws DataFormatException, ReadOnlyBufferException;
 
     /**
      * Decompresses the given source data into the given destination buffer.
@@ -143,6 +146,7 @@ public interface POneshotDecompressor extends OneshotContext {
      * @return the size of the decompressed data in bytes
      * @throws DataFormatException       if the source data is not valid compressed data
      * @throws IndexOutOfBoundsException if the destination buffer's capacity could not be increased sufficiently
+     * @throws ReadOnlyBufferException if the destination buffer is read-only
      */
-    @NotNegative int decompressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws DataFormatException, IndexOutOfBoundsException;
+    @NotNegative int decompressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws DataFormatException, IndexOutOfBoundsException, ReadOnlyBufferException;
 }

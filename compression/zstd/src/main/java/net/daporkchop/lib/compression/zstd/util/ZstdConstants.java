@@ -17,50 +17,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.compression.zstd.natives;
+package net.daporkchop.lib.compression.zstd.util;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.closeable.QuietCloseable;
-import net.daporkchop.lib.natives.util.MemoryPreference;
-import net.daporkchop.lib.unsafe.PCleaner;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 /**
+ * Magic numbers used in the ZSTD format.
+ *
  * @author DaPorkchop_
  */
-@Accessors(fluent = true)
-abstract class AbstractNativeZstdContext implements QuietCloseable {
-    @Getter
-    final NativeZstdProvider provider;
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class ZstdConstants {
+    public static final int MAGIC_SIZE = Integer.BYTES;
+    public static final int MAGIC_NUMBER_V7 = 0xFD2FB527;
+    public static final int MAGIC_NUMBER_V8 = 0xFD2FB528;
 
-    final long ctx;
-    private PCleaner cleaner;
+    public static final int ZSTD_SKIPPABLE_HEADER_SIZE = 8;
+    public static final int ZSTD_MAGIC_SKIPPABLE_START = 0x184D2A50;
+    public static final int ZSTD_MAGIC_SKIPPABLE_MASK = 0xFFFFFFF0;
 
-    AbstractNativeZstdContext(@NonNull NativeZstdProvider provider, long ctx) {
-        this.provider = provider;
-        this.ctx = ctx;
-        this.cleaner = PCleaner.cleaner(this, this.freeCtxRunnable(provider, ctx));
-    }
+    public static final int FRAME_HEADER_DESCRIPTOR_SIZE = Byte.BYTES;
+    public static final int MIN_FRAME_HEADER_SIZE = 2;
+    public static final int MAX_FRAME_HEADER_SIZE = 14;
 
-    final void ensureOpen() {
-        if (this.cleaner == null) {
-            throw new IllegalStateException("already closed!");
-        }
-    }
+    public static final int BLOCK_HEADER_SIZE = 3;
 
-    @Override
-    public final void close() {
-        PCleaner cleaner = this.cleaner;
-        this.cleaner = null;
-        if (cleaner != null) {
-            cleaner.clean();
-        }
-    }
+    public static final int BLOCK_TYPE_RAW = 0;
+    public static final int BLOCK_TYPE_RLE = 1;
+    public static final int BLOCK_TYPE_COMPRESSED = 2;
 
-    abstract Runnable freeCtxRunnable(@NonNull NativeZstdProvider provider, long ctx);
+    public static final int MAX_BLOCK_SIZE = 128 * 1024;
 
-    public final MemoryPreference memoryPreference() {
-        return this.provider.memoryPreference();
-    }
+    public static final int FRAME_CHECKSUM_SIZE = 4;
 }

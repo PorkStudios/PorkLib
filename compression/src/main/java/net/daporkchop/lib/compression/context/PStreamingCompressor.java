@@ -27,6 +27,7 @@ import net.daporkchop.lib.common.annotation.param.NotNegative;
 import net.daporkchop.lib.common.annotation.param.Positive;
 
 import java.io.OutputStream;
+import java.nio.ReadOnlyBufferException;
 import java.nio.channels.GatheringByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.util.OptionalLong;
@@ -151,8 +152,9 @@ public interface PStreamingCompressor extends StreamingContext {
      * @param dst   the buffer to write the compressed data to. If no exception is thrown, this buffer's writer index will be incremented by {@link #getLastWrittenBytes()}
      * @param flush the flush mode to use
      * @return {@code true} if all the available input data was read and all output was written according to the given {@link FlushMode}, {@code false} if more output space is requested
+     * @throws ReadOnlyBufferException if the destination buffer is read-only
      */
-    boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, @NonNull FlushMode flush);
+    boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, @NonNull FlushMode flush) throws ReadOnlyBufferException;
 
     //TODO: add a method which reads from multiple buffers and writes to multiple buffers (essentially concatenating multiple inputs and outputs without additional copies)
 

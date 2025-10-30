@@ -17,50 +17,46 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.compression.zstd.natives;
+package net.daporkchop.lib.compression.zstd.util;
 
-import lombok.Getter;
-import lombok.NonNull;
+import lombok.Value;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.closeable.QuietCloseable;
-import net.daporkchop.lib.natives.util.MemoryPreference;
-import net.daporkchop.lib.unsafe.PCleaner;
+import net.daporkchop.lib.common.annotation.ValueBased;
+import net.daporkchop.lib.common.annotation.param.NotNegative;
+
+import java.util.OptionalLong;
 
 /**
  * @author DaPorkchop_
  */
+@Value
+@ValueBased
 @Accessors(fluent = true)
-abstract class AbstractNativeZstdContext implements QuietCloseable {
-    @Getter
-    final NativeZstdProvider provider;
+public final class ZstdFrameSizeInfo {
+    /**
+     * The number of blocks in this frame.
+     */
+    private final @NotNegative long numBlocks;
 
-    final long ctx;
-    private PCleaner cleaner;
+    /**
+     * The compressed size of this frame.
+     */
+    private final @NotNegative long compressedSize;
 
-    AbstractNativeZstdContext(@NonNull NativeZstdProvider provider, long ctx) {
-        this.provider = provider;
-        this.ctx = ctx;
-        this.cleaner = PCleaner.cleaner(this, this.freeCtxRunnable(provider, ctx));
-    }
+    /**
+     * A lower bound on the decompressed size of all the blocks in this frame.
+     */
+    private final @NotNegative long decompressedSizeLowerBound;
 
-    final void ensureOpen() {
-        if (this.cleaner == null) {
-            throw new IllegalStateException("already closed!");
-        }
-    }
+    /**
+     * An upper bound on the decompressed size of all the blocks in this frame.
+     */
+    private final @NotNegative long decompressedSizeUpperBound;
 
-    @Override
-    public final void close() {
-        PCleaner cleaner = this.cleaner;
-        this.cleaner = null;
-        if (cleaner != null) {
-            cleaner.clean();
-        }
-    }
-
-    abstract Runnable freeCtxRunnable(@NonNull NativeZstdProvider provider, long ctx);
-
-    public final MemoryPreference memoryPreference() {
-        return this.provider.memoryPreference();
+    /**
+     * @return the exact decompressed size of all the blocks in this frame, or an empty optional if the exact size is unknown
+     */
+    public @NotNegative OptionalLong decompressedSizeExact() {
+        return this.decompressedSizeLowerBound == this.decompressedSizeUpperBound ? OptionalLong.of(this.decompressedSizeLowerBound) : OptionalLong.empty();
     }
 }

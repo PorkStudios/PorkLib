@@ -27,6 +27,7 @@ import net.daporkchop.lib.common.annotation.param.NotNegative;
 import net.daporkchop.lib.common.annotation.param.Positive;
 
 import java.io.InputStream;
+import java.nio.ReadOnlyBufferException;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.ScatteringByteChannel;
 import java.util.OptionalLong;
@@ -165,8 +166,9 @@ public interface PStreamingDecompressor extends StreamingContext {
      *            and this method must be called until it returns {@code true}, with more output space provided as needed.
      * @return {@code true} if the decompressor has reached a stopping point and all data up to the stopping point has been written to the output buffer, or {@code false} if more input data and/or output space is required
      * @throws DataFormatException if the source data is not valid compressed data
+     * @throws ReadOnlyBufferException if the destination buffer is read-only
      */
-    boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst, boolean eof) throws DataFormatException;
+    boolean decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst, boolean eof) throws DataFormatException, ReadOnlyBufferException;
 
     //TODO: add a method which reads from multiple buffers and writes to multiple buffers (essentially concatenating multiple inputs and outputs without additional copies)
 }

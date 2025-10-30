@@ -19,9 +19,17 @@
 
 package net.daporkchop.lib.compression.zstd;
 
+import io.netty.buffer.ByteBuf;
+import lombok.NonNull;
 import net.daporkchop.lib.common.annotation.ExtendedBorrow;
 import net.daporkchop.lib.common.annotation.NotThreadSafe;
+import net.daporkchop.lib.common.annotation.param.NotNegative;
 import net.daporkchop.lib.compression.context.POneshotDecompressor;
+import net.daporkchop.lib.compression.zstd.util.JavaZstdFrameInspector;
+
+import java.nio.ByteBuffer;
+import java.util.OptionalLong;
+import java.util.zip.DataFormatException;
 
 /**
  * @author DaPorkchop_
@@ -45,4 +53,24 @@ public interface ZstdOneshotDecompressor extends POneshotDecompressor {
      * @see #resetParameters()
      */
     ZstdOneshotDecompressor setDictionary(@ExtendedBorrow ZstdDecompressDictionary dictionary) throws IllegalArgumentException;
+
+    @Override
+    default @NotNegative OptionalLong decompressedSizeExact(@NonNull ByteBuffer src) throws DataFormatException, ArithmeticException {
+        return JavaZstdFrameInspector.getSequenceSizeInfo(src).decompressedSizeExact();
+    }
+
+    @Override
+    default @NotNegative OptionalLong decompressedSizeExact(@NonNull ByteBuf src) throws DataFormatException, ArithmeticException {
+        return JavaZstdFrameInspector.getSequenceSizeInfo(src).decompressedSizeExact();
+    }
+
+    @Override
+    default @NotNegative long decompressedSizeBound(@NonNull ByteBuffer src) throws DataFormatException, ArithmeticException {
+        return JavaZstdFrameInspector.getSequenceSizeInfo(src).decompressedSizeUpperBound();
+    }
+
+    @Override
+    default @NotNegative long decompressedSizeBound(@NonNull ByteBuf src) throws DataFormatException, ArithmeticException {
+        return JavaZstdFrameInspector.getSequenceSizeInfo(src).decompressedSizeUpperBound();
+    }
 }

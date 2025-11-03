@@ -663,4 +663,74 @@ public class PMath {
     public static double fmaFast(double a, double b, double c) {
         return a * b + c;
     }
+
+    /**
+     * Converts the given {@code int} value to a {@code byte} by saturation.
+     *
+     * @param value the {@code int} value
+     * @return the argument as a {@code byte}
+     */
+    public static byte toByteSaturate(int value) {
+        return (byte) Math.min(Math.max(value, Byte.MIN_VALUE), Byte.MAX_VALUE);
+    }
+
+    /**
+     * Converts the given {@code long} value to a {@code byte} by saturation.
+     *
+     * @param value the {@code long} value
+     * @return the argument as a {@code byte}
+     */
+    public static byte toByteSaturate(long value) {
+        return (byte) Math.min(Math.max(value, Byte.MIN_VALUE), Byte.MAX_VALUE);
+    }
+
+    /**
+     * Converts the given {@code int} value to a {@code short} by saturation.
+     *
+     * @param value the {@code int} value
+     * @return the argument as a {@code short}
+     */
+    public static short toShortSaturate(int value) {
+        return (short) Math.min(Math.max(value, Short.MIN_VALUE), Short.MAX_VALUE);
+    }
+
+    /**
+     * Converts the given {@code long} value to a {@code short} by saturation.
+     *
+     * @param value the {@code long} value
+     * @return the argument as a {@code short}
+     */
+    public static short toShortSaturate(long value) {
+        return (short) Math.min(Math.max(value, Short.MIN_VALUE), Short.MAX_VALUE);
+    }
+
+    /**
+     * Converts the given {@code int} value to a {@code char} by saturation.
+     *
+     * @param value the {@code int} value
+     * @return the argument as a {@code char}
+     */
+    public static char toCharSaturate(int value) {
+        return (char) Math.min(Math.max(value, Character.MIN_VALUE), Character.MAX_VALUE);
+    }
+
+    /**
+     * Converts the given {@code long} value to a {@code char} by saturation.
+     *
+     * @param value the {@code long} value
+     * @return the argument as a {@code char}
+     */
+    public static char toCharSaturate(long value) {
+        return (char) Math.min(Math.max(value, Character.MIN_VALUE), Character.MAX_VALUE);
+    }
+
+    /**
+     * Converts the given {@code long} value to an {@code int} by saturation.
+     *
+     * @param value the {@code long} value
+     * @return the argument as an {@code int}
+     */
+    public static int toIntSaturate(long value) {
+        return (int) Math.min(Math.max(value, Integer.MIN_VALUE), Integer.MAX_VALUE);
+    }
 }

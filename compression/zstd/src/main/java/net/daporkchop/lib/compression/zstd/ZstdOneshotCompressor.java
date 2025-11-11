@@ -21,6 +21,7 @@ package net.daporkchop.lib.compression.zstd;
 
 import net.daporkchop.lib.common.annotation.ExtendedBorrow;
 import net.daporkchop.lib.common.annotation.NotThreadSafe;
+import net.daporkchop.lib.common.annotation.param.NotNegative;
 import net.daporkchop.lib.compression.context.POneshotCompressor;
 
 /**
@@ -29,7 +30,17 @@ import net.daporkchop.lib.compression.context.POneshotCompressor;
 @NotThreadSafe
 public interface ZstdOneshotCompressor extends POneshotCompressor {
     @Override
-    ZstdOneshotCompressor resetParameters();
+    default @NotNegative int compressBound(@NotNegative int srcSize) throws IllegalArgumentException, ArithmeticException {
+        return Zstd.compressBound(srcSize);
+    }
+
+    @Override
+    default @NotNegative long compressBound(@NotNegative long srcSize) throws IllegalArgumentException, ArithmeticException {
+        return Zstd.compressBound(srcSize);
+    }
+
+    @Override
+    void resetParameters();
 
     /**
      * Set the compression level. The special value {@link Zstd#LEVEL_DEFAULT} means that the default compression level will be used.
@@ -42,7 +53,7 @@ public interface ZstdOneshotCompressor extends POneshotCompressor {
      * @throws IllegalArgumentException if the given compression level isn't supported by the zstd library
      * @see #resetParameters()
      */
-    ZstdOneshotCompressor setLevel(int level) throws IllegalArgumentException;
+    void setLevel(int level) throws IllegalArgumentException;
 
     /**
      * Sets the dictionary used for compression. Setting this to {@code null} means that no dictionary will be used.
@@ -57,5 +68,5 @@ public interface ZstdOneshotCompressor extends POneshotCompressor {
      * @throws UnsupportedOperationException if this implementation doesn't support zstd dictionaries
      * @see #resetParameters()
      */
-    ZstdOneshotCompressor setDictionary(@ExtendedBorrow ZstdCompressDictionary dictionary) throws IllegalArgumentException;
+    void setDictionary(@ExtendedBorrow ZstdCompressDictionary dictionary) throws IllegalArgumentException;
 }

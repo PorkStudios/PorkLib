@@ -21,6 +21,8 @@ package net.daporkchop.lib.compression.zstd;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import net.daporkchop.lib.common.annotation.param.NotNegative;
+import net.daporkchop.lib.compression.zstd.util.ZstdConstants;
 import net.daporkchop.lib.natives.FeatureLoader;
 
 import java.lang.invoke.MethodHandles;
@@ -58,5 +60,25 @@ public final class Zstd {
         }
 
         return DEFAULT_STREAMING_PROVIDER = FeatureLoader.loadService(MethodHandles.lookup(), ZstdStreamingProvider.class);
+    }
+
+    public static @NotNegative int compressBound(@NotNegative int srcSize) throws IllegalArgumentException, ArithmeticException {
+        int result = Math.addExact(notNegative(srcSize, "srcSize"), srcSize >>> 8);
+
+        if (srcSize < ZstdConstants.MAX_BLOCK_SIZE) {
+            result = Math.addExact(result, ZstdConstants.MAX_BLOCK_SIZE - (srcSize >>> 11));
+        }
+
+        return result;
+    }
+
+    public static @NotNegative long compressBound(@NotNegative long srcSize) throws IllegalArgumentException, ArithmeticException {
+        long result = Math.addExact(notNegative(srcSize, "srcSize"), srcSize >>> 8);
+
+        if (srcSize < ZstdConstants.MAX_BLOCK_SIZE) {
+            result = Math.addExact(result, ZstdConstants.MAX_BLOCK_SIZE - (srcSize >>> 11));
+        }
+
+        return result;
     }
 }

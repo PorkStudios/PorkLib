@@ -49,31 +49,23 @@ abstract class NativeZstdCCtx extends AbstractNativeZstdContext implements ZstdO
     }
 
     @Override
-    public final ZstdOneshotCompressor resetParameters() { //TODO: merge exception rules when we also implement streaming
+    public final void resetParameters() { //TODO: merge exception rules when we also implement streaming
         this.provider.checkForErrorAndThrow(this.provider.ZSTD_CCtx_reset(this.ctx, ZSTD_reset_parameters));
         this.level = Zstd.LEVEL_DEFAULT;
         this.dictionary = null;
-        return this;
     }
 
     @Override
-    public final ZstdOneshotCompressor setLevel(int level) throws IllegalArgumentException {
+    public final void setLevel(int level) throws IllegalArgumentException {
         this.level = Zstd.checkLevel(level);
         this.provider.checkForErrorAndThrow(this.provider.ZSTD_CCtx_setParameter(this.ctx, ZSTD_c_compressionLevel, level));
-        return this;
     }
 
     @Override
-    public final ZstdOneshotCompressor setDictionary(@ExtendedBorrow ZstdCompressDictionary dictionary) throws IllegalArgumentException {
+    public final void setDictionary(@ExtendedBorrow ZstdCompressDictionary dictionary) throws IllegalArgumentException {
         checkArg(dictionary == null || dictionary instanceof NativeZstdCDict, dictionary);
         this.dictionary = (NativeZstdCDict) dictionary;
         this.provider.checkForErrorAndThrow(this.provider.ZSTD_CCtx_refCDict(this.ctx, dictionary != null ? this.dictionary.dict : 0L));
-        return this;
-    }
-
-    @Override
-    public final @NotNegative long compressBound(@NotNegative long srcSize) throws IllegalArgumentException, ArithmeticException {
-        throw new AbstractMethodError(); //TODO
     }
 
     @Override

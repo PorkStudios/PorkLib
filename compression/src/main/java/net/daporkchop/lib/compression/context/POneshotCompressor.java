@@ -46,7 +46,7 @@ public interface POneshotCompressor extends OneshotContext {
      * <p>
      * Parameters are sticky and will remain until explicitly reset.
      */
-    POneshotCompressor resetParameters();
+    void resetParameters();
 
     /**
      * Gets the maximum (worst-case) compressed size for input data of the given length.

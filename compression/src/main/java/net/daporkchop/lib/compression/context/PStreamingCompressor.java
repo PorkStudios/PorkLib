@@ -70,7 +70,7 @@ public interface PStreamingCompressor extends StreamingContext {
      *
      * @throws IllegalStateException if a compression session is currently ongoing
      */
-    PStreamingCompressor resetParameters() throws IllegalStateException;
+    void resetParameters() throws IllegalStateException;
 
     //
     //
@@ -83,12 +83,12 @@ public interface PStreamingCompressor extends StreamingContext {
      * <p>
      * This will cause the ongoing compression session (if any) to be aborted. Call this method before starting to compress new data.
      */
-    PStreamingCompressor resetStream();
+    void resetStream();
 
     /**
      * Equivalent to calling {@link #resetStream()} followed by {@link #resetParameters()}.
      */
-    PStreamingCompressor resetStreamAndParameters();
+    void resetStreamAndParameters();
 
     /**
      * Creates an {@link OutputStream} which will compress data written to it and write the compressed data to the given {@link OutputStream}.

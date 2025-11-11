@@ -30,7 +30,7 @@ import net.daporkchop.lib.natives.util.MemoryPreference;
  * @author DaPorkchop_
  */
 @NotThreadSafe
-interface OneshotContext extends QuietCloseable {
+public interface OneshotContext extends QuietCloseable {
     /**
      * @return the {@link OneshotCompressionProvider} that created this context
      */

@@ -29,7 +29,7 @@ import net.daporkchop.lib.compression.context.PStreamingDecompressor;
 @NotThreadSafe
 public interface ZstdStreamingDecompressor extends PStreamingDecompressor {
     @Override
-    ZstdStreamingDecompressor resetParameters();
+    void resetParameters();
 
     /**
      * Sets the dictionary used for decompression. Setting this to {@code null} means that no dictionary will be used.
@@ -44,5 +44,5 @@ public interface ZstdStreamingDecompressor extends PStreamingDecompressor {
      * @throws UnsupportedOperationException if this implementation doesn't support zstd dictionaries
      * @see #resetParameters()
      */
-    ZstdStreamingDecompressor setDictionary(@ExtendedBorrow ZstdDecompressDictionary dictionary) throws IllegalArgumentException;
+    void setDictionary(@ExtendedBorrow ZstdDecompressDictionary dictionary) throws IllegalArgumentException;
 }

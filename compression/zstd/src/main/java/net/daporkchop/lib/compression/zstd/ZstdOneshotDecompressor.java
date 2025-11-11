@@ -37,7 +37,7 @@ import java.util.zip.DataFormatException;
 @NotThreadSafe
 public interface ZstdOneshotDecompressor extends POneshotDecompressor {
     @Override
-    ZstdOneshotDecompressor resetParameters();
+    void resetParameters();
 
     /**
      * Sets the dictionary used for decompression. Setting this to {@code null} means that no dictionary will be used.
@@ -52,7 +52,7 @@ public interface ZstdOneshotDecompressor extends POneshotDecompressor {
      * @throws UnsupportedOperationException if this implementation doesn't support zstd dictionaries
      * @see #resetParameters()
      */
-    ZstdOneshotDecompressor setDictionary(@ExtendedBorrow ZstdDecompressDictionary dictionary) throws IllegalArgumentException;
+    void setDictionary(@ExtendedBorrow ZstdDecompressDictionary dictionary) throws IllegalArgumentException;
 
     @Override
     default @NotNegative OptionalLong decompressedSizeExact(@NonNull ByteBuffer src) throws DataFormatException, ArithmeticException {

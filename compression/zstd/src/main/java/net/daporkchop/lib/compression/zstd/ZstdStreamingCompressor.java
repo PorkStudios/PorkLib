@@ -29,7 +29,7 @@ import net.daporkchop.lib.compression.context.PStreamingCompressor;
 @NotThreadSafe
 public interface ZstdStreamingCompressor extends PStreamingCompressor {
     @Override
-    ZstdStreamingCompressor resetParameters();
+    void resetParameters();
 
     /**
      * Set the compression level. The special value {@link Zstd#LEVEL_DEFAULT} means that the default compression level will be used.
@@ -42,7 +42,7 @@ public interface ZstdStreamingCompressor extends PStreamingCompressor {
      * @throws IllegalArgumentException if the given compression level isn't supported by the zstd library
      * @see #resetParameters()
      */
-    ZstdStreamingCompressor setLevel(int level) throws IllegalArgumentException;
+    void setLevel(int level) throws IllegalArgumentException;
 
     /**
      * Sets the dictionary used for compression. Setting this to {@code null} means that no dictionary will be used.
@@ -57,5 +57,5 @@ public interface ZstdStreamingCompressor extends PStreamingCompressor {
      * @throws UnsupportedOperationException if this implementation doesn't support zstd dictionaries
      * @see #resetParameters()
      */
-    ZstdStreamingCompressor setDictionary(@ExtendedBorrow ZstdCompressDictionary dictionary) throws IllegalArgumentException;
+    void setDictionary(@ExtendedBorrow ZstdCompressDictionary dictionary) throws IllegalArgumentException;
 }

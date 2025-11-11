@@ -50,18 +50,16 @@ abstract class NativeZstdDCtx extends AbstractNativeZstdContext implements ZstdO
     }
 
     @Override
-    public final ZstdOneshotDecompressor resetParameters() { //TODO: merge exception rules when we also implement streaming
+    public final void resetParameters() { //TODO: merge exception rules when we also implement streaming
         this.provider.checkForErrorAndThrow(this.provider.ZSTD_DCtx_reset(this.ctx, ZSTD_reset_parameters));
         this.dictionary = null;
-        return this;
     }
 
     @Override
-    public final ZstdOneshotDecompressor setDictionary(@ExtendedBorrow ZstdDecompressDictionary dictionary) throws IllegalArgumentException {
+    public final void setDictionary(@ExtendedBorrow ZstdDecompressDictionary dictionary) throws IllegalArgumentException {
         checkArg(dictionary == null || dictionary instanceof NativeZstdDDict, dictionary);
         this.dictionary = (NativeZstdDDict) dictionary;
         this.provider.checkForErrorAndThrow(this.provider.ZSTD_DCtx_refDDict(this.ctx, dictionary != null ? this.dictionary.dict : 0L));
-        return this;
     }
 
     @Override

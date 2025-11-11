@@ -47,7 +47,7 @@ public interface POneshotDecompressor extends OneshotContext {
      * <p>
      * Parameters are sticky and will remain until explicitly reset.
      */
-    POneshotDecompressor resetParameters();
+    void resetParameters();
 
     /**
      * Tries to determine the exact size of the given source data once fully decompressed.

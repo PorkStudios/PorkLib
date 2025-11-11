@@ -69,7 +69,7 @@ public interface PStreamingDecompressor extends StreamingContext {
      *
      * @throws IllegalStateException if a decompression session is currently ongoing
      */
-    PStreamingDecompressor resetParameters() throws IllegalStateException;
+    void resetParameters() throws IllegalStateException;
 
     //
     //
@@ -82,12 +82,12 @@ public interface PStreamingDecompressor extends StreamingContext {
      * <p>
      * This will cause the ongoing decompression session (if any) to be aborted. Call this method before starting to decompress new data.
      */
-    PStreamingDecompressor resetStream();
+    void resetStream();
 
     /**
      * Equivalent to calling {@link #resetStream()} followed by {@link #resetParameters()}.
      */
-    PStreamingDecompressor resetStreamAndParameters();
+    void resetStreamAndParameters();
 
     /**
      * Creates an {@link InputStream} which will read compressed data from the given {@link InputStream} and decompress it.

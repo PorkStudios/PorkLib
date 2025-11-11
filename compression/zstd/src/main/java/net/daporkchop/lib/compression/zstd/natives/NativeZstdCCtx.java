@@ -19,15 +19,11 @@
 
 package net.daporkchop.lib.compression.zstd.natives;
 
-import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.common.annotation.ExtendedBorrow;
-import net.daporkchop.lib.common.annotation.param.NotNegative;
 import net.daporkchop.lib.compression.zstd.Zstd;
 import net.daporkchop.lib.compression.zstd.ZstdCompressDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdOneshotCompressor;
-
-import java.nio.ReadOnlyBufferException;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 import static net.daporkchop.lib.compression.zstd.natives.NativeZstdProvider.*;
@@ -66,17 +62,5 @@ abstract class NativeZstdCCtx extends AbstractNativeZstdContext implements ZstdO
         checkArg(dictionary == null || dictionary instanceof NativeZstdCDict, dictionary);
         this.dictionary = (NativeZstdCDict) dictionary;
         this.provider.checkForErrorAndThrow(this.provider.ZSTD_CCtx_refCDict(this.ctx, dictionary != null ? this.dictionary.dict : 0L));
-    }
-
-    @Override
-    public @NotNegative int compressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws IndexOutOfBoundsException, ReadOnlyBufferException {
-        //TODO: maybe implement this in a smarter way using streaming?
-        dst.ensureWritable(this.compressBound(src.readableBytes()));
-        int result = this.compress(src, dst);
-        if (result < 0) {
-            //this should be impossible, but we'll check just in case and throw the same exception type that would be expected if the buffer couldn't be grown sufficiently
-            throw new IndexOutOfBoundsException("need more output space?!?");
-        }
-        return result;
     }
 }

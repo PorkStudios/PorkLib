@@ -23,6 +23,8 @@ import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.common.annotation.NotThreadSafe;
 import net.daporkchop.lib.common.annotation.param.NotNegative;
+import net.daporkchop.lib.compression.util.PNetty4Buffers;
+import net.daporkchop.lib.compression.util.exception.CompositeBufferException;
 
 import java.nio.ByteBuffer;
 import java.nio.ReadOnlyBufferException;
@@ -111,6 +113,9 @@ public interface POneshotDecompressor extends OneshotContext {
      * On success, the source buffer's position will be advanced to its limit, and the destination buffer's position will be increased by the number of bytes
      * produced by this operation (which is equal to the number returned by this method). On failure, both buffer's positions remain unchanged, however the
      * contents of the destination buffer's remaining bytes may be modified.
+     * <p>
+     * Note that if the source buffer is read-only, its content may have be copied to a temporary heap allocation, resulting in higher memory use and garbage
+     * collection pressure.
      *
      * @param src the {@link ByteBuffer} to read source data from
      * @param dst the {@link ByteBuffer} to write compressed data to
@@ -125,28 +130,28 @@ public interface POneshotDecompressor extends OneshotContext {
      * <p>
      * If the destination buffer does not have enough space writable for the decompressed data, the operation will fail and both buffer's indices will remain
      * unchanged, however the destination buffer's contents may be modified.
+     * <p>
+     * Note that if the source buffer is read-only and/or a composite, its content may have be copied to a temporary heap allocation, resulting in higher memory
+     * use and garbage collection pressure.
      *
      * @param src the {@link ByteBuf} to read source data from
      * @param dst the {@link ByteBuf} to write decompressed data to
      * @return the size of the decompressed data in bytes, or a negative value if the destination buffer was too small for the decompressed data
      * @throws DataFormatException if the source data is not valid compressed data
      * @throws ReadOnlyBufferException if the destination buffer is read-only
+     * @throws CompositeBufferException if the destination buffer is a composite buffer with more than one component
      */
-    int decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws DataFormatException, ReadOnlyBufferException;
+    default int decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws DataFormatException, ReadOnlyBufferException, CompositeBufferException {
+        //this default implementation simply delegates to NIO ByteBuffer overload
+        ByteBuffer nioSrc = PNetty4Buffers.getNioBufferForRead(src); //copies content to heap if src is composite
+        ByteBuffer nioDst = PNetty4Buffers.getNioBufferForRead(dst); //throws ReadOnlyBufferException or CompositeBufferException as necessary
 
-    /**
-     * Decompresses the given source data into the given destination buffer.
-     * <p>
-     * This will continually grow the the destination buffer's capacity until enough space is available for decompression to be completed. If at any point
-     * during the decompression the destination buffer's capacity cannot be increased sufficiently, the operation will fail and both buffer's indices will
-     * remain unchanged, however the destination buffer's contents may be modified.
-     *
-     * @param src the {@link ByteBuf} to read source data from
-     * @param dst the {@link ByteBuf} to write decompressed data to
-     * @return the size of the decompressed data in bytes
-     * @throws DataFormatException       if the source data is not valid compressed data
-     * @throws IndexOutOfBoundsException if the destination buffer's capacity could not be increased sufficiently
-     * @throws ReadOnlyBufferException if the destination buffer is read-only
-     */
-    @NotNegative int decompressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws DataFormatException, IndexOutOfBoundsException, ReadOnlyBufferException;
+        int initialNioSrcPosition = nioSrc.position();
+        int initialNioDstPosition = nioDst.position();
+
+        int result = this.decompress(nioSrc, nioDst);
+        src.skipBytes(nioSrc.position() - initialNioSrcPosition);
+        dst.writerIndex(dst.writerIndex() + nioDst.position() - initialNioDstPosition);
+        return result;
+    }
 }

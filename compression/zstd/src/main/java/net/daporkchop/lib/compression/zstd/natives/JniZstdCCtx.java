@@ -20,8 +20,10 @@
 package net.daporkchop.lib.compression.zstd.natives;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
 import lombok.NonNull;
 import net.daporkchop.lib.common.util.PNioBuffers;
+import net.daporkchop.lib.compression.util.exception.CompositeBufferException;
 import net.daporkchop.lib.natives.NativeException;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
@@ -93,7 +95,7 @@ final class JniZstdCCtx extends NativeZstdCCtx {
     }
 
     @Override
-    public int compress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws ReadOnlyBufferException {
+    public int compress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws ReadOnlyBufferException, CompositeBufferException {
         //get buffer pointers
         long srcMemoryAddress = 0L;
         byte[] srcArray = null;
@@ -104,9 +106,10 @@ final class JniZstdCCtx extends NativeZstdCCtx {
             srcArray = src.array();
             srcArrayOffset = src.arrayOffset();
         } else {
-            //TODO: handle read-only heap or composite buffers
+            // This is most likely either a read-only heap buffer, a composite buffer, or another buffer of some unknown type.
+            // Since we can't access the underlying storage, we'll copy it to a heap array (slow!!!)
             //TODO: maybe do streaming compression here if the source data is composite and/or if the source data is very big
-            throw new IllegalArgumentException("buffer not supported: " + src);
+            srcArray = ByteBufUtil.getBytes(src);
         }
 
         long dstMemoryAddress = 0L;
@@ -120,8 +123,8 @@ final class JniZstdCCtx extends NativeZstdCCtx {
             dstArray = dst.array();
             dstArrayOffset = dst.arrayOffset();
         } else {
-            //TODO: handle composite buffers (maybe do streaming compression here)
-            throw new IllegalArgumentException("buffer not supported: " + dst);
+            // This is almost certainly a composite buffer, we won't bother handling it.
+            throw new CompositeBufferException(dst);
         }
 
         long result = ZSTD_compress2(this.ctx,

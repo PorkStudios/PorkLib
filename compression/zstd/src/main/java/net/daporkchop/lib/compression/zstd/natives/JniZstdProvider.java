@@ -219,6 +219,6 @@ public final class JniZstdProvider extends NativeZstdProvider {
 
     @Override
     public ZstdOneshotDecompressor makeOneshotDecompressor() {
-        return null; //TODO
+        return new JniZstdDCtx(this);
     }
 }

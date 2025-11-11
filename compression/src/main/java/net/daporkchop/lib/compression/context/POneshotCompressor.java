@@ -23,10 +23,11 @@ import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.common.annotation.NotThreadSafe;
 import net.daporkchop.lib.common.annotation.param.NotNegative;
+import net.daporkchop.lib.compression.util.PNetty4Buffers;
+import net.daporkchop.lib.compression.util.exception.CompositeBufferException;
 
 import java.nio.ByteBuffer;
 import java.nio.ReadOnlyBufferException;
-import java.util.OptionalInt;
 
 /**
  * A context for doing repeated one-shot compression operations.
@@ -82,6 +83,9 @@ public interface POneshotCompressor extends OneshotContext {
      * On success, the source buffer's position will be advanced to its limit, and the destination buffer's position will be increased by the number of bytes
      * produced by this operation (which is equal to the number returned by this method). On failure, both buffer's positions remain unchanged, however the
      * contents of the destination buffer's remaining bytes may be modified.
+     * <p>
+     * Note that if the source buffer is read-only, its content may have be copied to a temporary heap allocation, resulting in higher memory use and garbage
+     * collection pressure.
      *
      * @param src the {@link ByteBuffer} to read source data from
      * @param dst the {@link ByteBuffer} to write compressed data to
@@ -95,26 +99,27 @@ public interface POneshotCompressor extends OneshotContext {
      * <p>
      * If the destination buffer does not have enough space writable for the compressed data, the operation will fail and both buffer's indices will remain
      * unchanged, however the destination buffer's contents may be modified.
+     * <p>
+     * Note that if the source buffer is read-only and/or a composite, its content may have be copied to a temporary heap allocation, resulting in higher memory
+     * use and garbage collection pressure.
      *
      * @param src the {@link ByteBuf} to read source data from
      * @param dst the {@link ByteBuf} to write compressed data to
      * @return the size of the compressed data in bytes, or a negative value if the destination buffer was too small for the compressed data
      * @throws ReadOnlyBufferException if the destination buffer is read-only
+     * @throws CompositeBufferException if the destination buffer is a composite buffer with more than one component
      */
-    int compress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws ReadOnlyBufferException;
+    default int compress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws ReadOnlyBufferException, CompositeBufferException {
+        //this default implementation simply delegates to NIO ByteBuffer overload
+        ByteBuffer nioSrc = PNetty4Buffers.getNioBufferForRead(src); //copies content to heap if src is composite
+        ByteBuffer nioDst = PNetty4Buffers.getNioBufferForRead(dst); //throws ReadOnlyBufferException or CompositeBufferException as necessary
 
-    /**
-     * Compresses the given source data into the given destination buffer.
-     * <p>
-     * This will continually grow the the destination buffer's capacity until enough space is available for compression to be completed. If at any point
-     * during the compression the destination buffer's capacity cannot be increased sufficiently, the operation will fail and both buffer's indices will
-     * remain unchanged, however the destination buffer's contents may be modified.
-     *
-     * @param src the {@link ByteBuf} to read source data from
-     * @param dst the {@link ByteBuf} to write compressed data to
-     * @return the size of the compressed data in bytes
-     * @throws IndexOutOfBoundsException if the destination buffer's capacity could not be increased sufficiently
-     * @throws ReadOnlyBufferException if the destination buffer is read-only
-     */
-    @NotNegative int compressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws IndexOutOfBoundsException, ReadOnlyBufferException;
+        int initialNioSrcPosition = nioSrc.position();
+        int initialNioDstPosition = nioDst.position();
+
+        int result = this.compress(nioSrc, nioDst);
+        src.skipBytes(nioSrc.position() - initialNioSrcPosition);
+        dst.writerIndex(dst.writerIndex() + nioDst.position() - initialNioDstPosition);
+        return result;
+    }
 }

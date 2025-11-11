@@ -19,17 +19,10 @@
 
 package net.daporkchop.lib.compression.zstd.natives;
 
-import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.common.annotation.ExtendedBorrow;
-import net.daporkchop.lib.common.annotation.param.NotNegative;
-import net.daporkchop.lib.common.math.PMath;
 import net.daporkchop.lib.compression.zstd.ZstdDecompressDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdOneshotDecompressor;
-
-import java.nio.ReadOnlyBufferException;
-import java.util.OptionalLong;
-import java.util.zip.DataFormatException;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 import static net.daporkchop.lib.compression.zstd.natives.NativeZstdProvider.*;
@@ -60,25 +53,5 @@ abstract class NativeZstdDCtx extends AbstractNativeZstdContext implements ZstdO
         checkArg(dictionary == null || dictionary instanceof NativeZstdDDict, dictionary);
         this.dictionary = (NativeZstdDDict) dictionary;
         this.provider.checkForErrorAndThrow(this.provider.ZSTD_DCtx_refDDict(this.ctx, dictionary != null ? this.dictionary.dict : 0L));
-    }
-
-    @Override
-    public @NotNegative int decompressGrowing(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws DataFormatException, IndexOutOfBoundsException, ReadOnlyBufferException {
-        //TODO: maybe implement this in a smarter way using streaming?
-        OptionalLong decompressedSizeExact = this.decompressedSizeExact(src);
-        if (decompressedSizeExact.isPresent()) {
-            //we know the exact decompressed size, try to reserve necessary buffer space and then decompress
-            dst.ensureWritable(PMath.toIntSaturate(decompressedSizeExact.getAsLong()));
-
-            int result = this.decompress(src, dst);
-            if (result < 0) {
-                //this should be impossible, but we'll check just in case and throw the same exception type that would be expected if the buffer couldn't be grown sufficiently
-                throw new IndexOutOfBoundsException("need more output space?!?");
-            }
-            return result;
-        }
-
-        //the compressed data doesn't store its exact decompressed size, we'll have to resort to streaming decompression
-        throw new UnsupportedOperationException("streaming decompression not implemented"); //TODO: implement this
     }
 }

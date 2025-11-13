@@ -21,7 +21,6 @@ package net.daporkchop.lib.compression.zstd;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.common.annotation.ExtendedBorrow;
 import net.daporkchop.lib.common.annotation.NotThreadSafe;
 import net.daporkchop.lib.common.annotation.param.NotNegative;
 import net.daporkchop.lib.compression.context.POneshotDecompressor;
@@ -35,25 +34,7 @@ import java.util.zip.DataFormatException;
  * @author DaPorkchop_
  */
 @NotThreadSafe
-public interface ZstdOneshotDecompressor extends POneshotDecompressor {
-    @Override
-    void resetParameters();
-
-    /**
-     * Sets the dictionary used for decompression. Setting this to {@code null} means that no dictionary will be used.
-     * <p>
-     * If the given dictionary is non-{@code null}, it must not be closed before being removed from the decompressor (either by setting the dictionary to {@code null} or
-     * by {@link #resetParameters()}).
-     * <p>
-     * The default value is {@code null}.
-     *
-     * @param dictionary the dictionary
-     * @throws IllegalArgumentException      if the given dictionary isn't compatible with this decompressor
-     * @throws UnsupportedOperationException if this implementation doesn't support zstd dictionaries
-     * @see #resetParameters()
-     */
-    void setDictionary(@ExtendedBorrow ZstdDecompressDictionary dictionary) throws IllegalArgumentException;
-
+public interface ZstdOneshotDecompressor extends POneshotDecompressor, ZstdDecompressParameters {
     @Override
     default @NotNegative OptionalLong decompressedSizeExact(@NonNull ByteBuffer src) throws DataFormatException, ArithmeticException {
         return JavaZstdFrameInspector.getSequenceSizeInfo(src).decompressedSizeExact();

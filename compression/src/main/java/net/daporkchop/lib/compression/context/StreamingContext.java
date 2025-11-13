@@ -20,9 +20,7 @@
 package net.daporkchop.lib.compression.context;
 
 import net.daporkchop.lib.common.annotation.NotThreadSafe;
-import net.daporkchop.lib.common.closeable.QuietCloseable;
 import net.daporkchop.lib.compression.StreamingCompressionProvider;
-import net.daporkchop.lib.natives.util.MemoryPreference;
 
 /**
  * Base interface for {@link PStreamingCompressor} and {@link PStreamingDecompressor}.
@@ -30,14 +28,10 @@ import net.daporkchop.lib.natives.util.MemoryPreference;
  * @author DaPorkchop_
  */
 @NotThreadSafe
-interface StreamingContext extends QuietCloseable {
+interface StreamingContext extends IContext {
     /**
      * @return the {@link StreamingCompressionProvider} that created this context
      */
+    @Override
     StreamingCompressionProvider provider();
-
-    /**
-     * @return the type of memory preferred by this context
-     */
-    MemoryPreference memoryPreference();
 }

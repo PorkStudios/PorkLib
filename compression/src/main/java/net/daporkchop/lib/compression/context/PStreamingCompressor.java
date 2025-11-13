@@ -70,6 +70,7 @@ public interface PStreamingCompressor extends StreamingContext {
      *
      * @throws IllegalStateException if a compression session is currently ongoing
      */
+    @Override
     void resetParameters() throws IllegalStateException;
 
     //

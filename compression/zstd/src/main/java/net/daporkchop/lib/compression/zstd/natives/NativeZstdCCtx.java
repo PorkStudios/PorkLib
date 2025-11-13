@@ -63,4 +63,19 @@ abstract class NativeZstdCCtx extends AbstractNativeZstdContext implements ZstdO
         this.dictionary = (NativeZstdCDict) dictionary;
         this.provider.checkForErrorAndThrow(this.provider.ZSTD_CCtx_refCDict(this.ctx, dictionary != null ? this.dictionary.dict : 0L));
     }
+
+    @Override
+    public final void setChecksumFlag(boolean checksumFlag) throws IllegalArgumentException {
+        this.provider.checkForErrorAndThrow(this.provider.ZSTD_CCtx_setParameter(this.ctx, ZSTD_c_checksumFlag, checksumFlag ? 1 : 0));
+    }
+
+    @Override
+    public final void setContentSizeFlag(boolean contentSizeFlag) throws IllegalArgumentException {
+        this.provider.checkForErrorAndThrow(this.provider.ZSTD_CCtx_setParameter(this.ctx, ZSTD_c_contentSizeFlag, contentSizeFlag ? 1 : 0));
+    }
+
+    @Override
+    public final void setDictIdFlag(boolean dictIdFlag) throws IllegalArgumentException {
+        this.provider.checkForErrorAndThrow(this.provider.ZSTD_CCtx_setParameter(this.ctx, ZSTD_c_dictIDFlag, dictIdFlag ? 1 : 0));
+    }
 }

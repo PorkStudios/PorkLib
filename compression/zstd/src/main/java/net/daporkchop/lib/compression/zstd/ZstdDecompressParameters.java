@@ -19,22 +19,25 @@
 
 package net.daporkchop.lib.compression.zstd;
 
-import net.daporkchop.lib.common.annotation.NotThreadSafe;
-import net.daporkchop.lib.common.annotation.param.NotNegative;
-import net.daporkchop.lib.compression.context.POneshotCompressor;
+import net.daporkchop.lib.common.annotation.ExtendedBorrow;
+import net.daporkchop.lib.compression.context.IContext;
 
 /**
  * @author DaPorkchop_
  */
-@NotThreadSafe
-public interface ZstdOneshotCompressor extends POneshotCompressor, ZstdCompressParameters {
-    @Override
-    default @NotNegative int compressBound(@NotNegative int srcSize) throws IllegalArgumentException, ArithmeticException {
-        return Zstd.compressBound(srcSize);
-    }
-
-    @Override
-    default @NotNegative long compressBound(@NotNegative long srcSize) throws IllegalArgumentException, ArithmeticException {
-        return Zstd.compressBound(srcSize);
-    }
+public interface ZstdDecompressParameters extends IContext {
+    /**
+     * Sets the dictionary used for decompression. Setting this to {@code null} means that no dictionary will be used.
+     * <p>
+     * If the given dictionary is non-{@code null}, it must not be closed before being removed from the decompressor (either by setting the dictionary to {@code null} or
+     * by {@link #resetParameters()}).
+     * <p>
+     * The default value is {@code null}.
+     *
+     * @param dictionary the dictionary
+     * @throws IllegalArgumentException      if the given dictionary isn't compatible with this decompressor
+     * @throws UnsupportedOperationException if this implementation doesn't support zstd dictionaries
+     * @see #resetParameters()
+     */
+    void setDictionary(@ExtendedBorrow ZstdDecompressDictionary dictionary) throws IllegalArgumentException;
 }

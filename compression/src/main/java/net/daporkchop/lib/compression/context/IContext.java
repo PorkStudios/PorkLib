@@ -17,24 +17,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.compression.zstd;
+package net.daporkchop.lib.compression.context;
 
 import net.daporkchop.lib.common.annotation.NotThreadSafe;
-import net.daporkchop.lib.common.annotation.param.NotNegative;
-import net.daporkchop.lib.compression.context.POneshotCompressor;
+import net.daporkchop.lib.common.closeable.QuietCloseable;
+import net.daporkchop.lib.compression.ICompressionProvider;
+import net.daporkchop.lib.natives.util.MemoryPreference;
 
 /**
+ * Base interface for {@link OneshotContext} and {@link StreamingContext}.
+ *
  * @author DaPorkchop_
  */
 @NotThreadSafe
-public interface ZstdOneshotCompressor extends POneshotCompressor, ZstdCompressParameters {
-    @Override
-    default @NotNegative int compressBound(@NotNegative int srcSize) throws IllegalArgumentException, ArithmeticException {
-        return Zstd.compressBound(srcSize);
+public interface IContext extends QuietCloseable {
+    /**
+     * @return the {@link ICompressionProvider} that created this context
+     */
+    ICompressionProvider provider();
+
+    /**
+     * @return the type of memory preferred by this context
+     */
+    default MemoryPreference memoryPreference() {
+        return this.provider().memoryPreference();
     }
 
-    @Override
-    default @NotNegative long compressBound(@NotNegative long srcSize) throws IllegalArgumentException, ArithmeticException {
-        return Zstd.compressBound(srcSize);
-    }
+    /**
+     * Resets this context's parameters to the defaults.
+     * <p>
+     * Parameters may only be reset between sessions (i.e. no [de]compression is currently ongoing).
+     * <p>
+     * Parameters are sticky and will remain until explicitly reset.
+     *
+     * @throws IllegalStateException if a [de]compression session is currently ongoing
+     */
+    void resetParameters() throws IllegalStateException;
 }

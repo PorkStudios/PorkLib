@@ -69,6 +69,7 @@ public interface PStreamingDecompressor extends StreamingContext {
      *
      * @throws IllegalStateException if a decompression session is currently ongoing
      */
+    @Override
     void resetParameters() throws IllegalStateException;
 
     //

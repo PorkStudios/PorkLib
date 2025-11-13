@@ -19,7 +19,6 @@
 
 package net.daporkchop.lib.compression.zstd;
 
-import net.daporkchop.lib.common.annotation.ExtendedBorrow;
 import net.daporkchop.lib.common.annotation.NotThreadSafe;
 import net.daporkchop.lib.compression.context.PStreamingDecompressor;
 
@@ -27,22 +26,5 @@ import net.daporkchop.lib.compression.context.PStreamingDecompressor;
  * @author DaPorkchop_
  */
 @NotThreadSafe
-public interface ZstdStreamingDecompressor extends PStreamingDecompressor {
-    @Override
-    void resetParameters();
-
-    /**
-     * Sets the dictionary used for decompression. Setting this to {@code null} means that no dictionary will be used.
-     * <p>
-     * If the given dictionary is non-{@code null}, it must not be closed before being removed from the decompressor (either by setting the dictionary to {@code null} or
-     * by {@link #resetParameters()}).
-     * <p>
-     * The default value is {@code null}.
-     *
-     * @param dictionary the dictionary
-     * @throws IllegalArgumentException      if the given dictionary isn't compatible with this decompressor
-     * @throws UnsupportedOperationException if this implementation doesn't support zstd dictionaries
-     * @see #resetParameters()
-     */
-    void setDictionary(@ExtendedBorrow ZstdDecompressDictionary dictionary) throws IllegalArgumentException;
+public interface ZstdStreamingDecompressor extends PStreamingDecompressor, ZstdDecompressParameters {
 }

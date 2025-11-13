@@ -22,7 +22,6 @@ package net.daporkchop.lib.compression;
 import net.daporkchop.lib.common.annotation.ThreadSafe;
 import net.daporkchop.lib.compression.context.POneshotCompressor;
 import net.daporkchop.lib.compression.context.POneshotDecompressor;
-import net.daporkchop.lib.natives.util.MemoryPreference;
 
 /**
  * @author DaPorkchop_

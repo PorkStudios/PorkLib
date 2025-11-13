@@ -47,6 +47,7 @@ public interface POneshotCompressor extends OneshotContext {
      * <p>
      * Parameters are sticky and will remain until explicitly reset.
      */
+    @Override
     void resetParameters();
 
     /**

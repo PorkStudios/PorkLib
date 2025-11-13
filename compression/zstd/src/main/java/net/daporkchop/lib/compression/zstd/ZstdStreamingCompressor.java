@@ -19,7 +19,6 @@
 
 package net.daporkchop.lib.compression.zstd;
 
-import net.daporkchop.lib.common.annotation.ExtendedBorrow;
 import net.daporkchop.lib.common.annotation.NotThreadSafe;
 import net.daporkchop.lib.compression.context.PStreamingCompressor;
 
@@ -27,35 +26,5 @@ import net.daporkchop.lib.compression.context.PStreamingCompressor;
  * @author DaPorkchop_
  */
 @NotThreadSafe
-public interface ZstdStreamingCompressor extends PStreamingCompressor {
-    @Override
-    void resetParameters();
-
-    /**
-     * Set the compression level. The special value {@link Zstd#LEVEL_DEFAULT} means that the default compression level will be used.
-     * <p>
-     * If a dictionary is set, the compression level is ignored.
-     * <p>
-     * The default value is {@link Zstd#LEVEL_DEFAULT}.
-     *
-     * @param level the compression level
-     * @throws IllegalArgumentException if the given compression level isn't supported by the zstd library
-     * @see #resetParameters()
-     */
-    void setLevel(int level) throws IllegalArgumentException;
-
-    /**
-     * Sets the dictionary used for compression. Setting this to {@code null} means that no dictionary will be used.
-     * <p>
-     * If the given dictionary is non-{@code null}, it must not be closed before being removed from the compressor (either by setting the dictionary to {@code null} or
-     * by {@link #resetParameters()}).
-     * <p>
-     * The default value is {@code null}.
-     *
-     * @param dictionary the dictionary
-     * @throws IllegalArgumentException      if the given dictionary isn't compatible with this compressor
-     * @throws UnsupportedOperationException if this implementation doesn't support zstd dictionaries
-     * @see #resetParameters()
-     */
-    void setDictionary(@ExtendedBorrow ZstdCompressDictionary dictionary) throws IllegalArgumentException;
+public interface ZstdStreamingCompressor extends PStreamingCompressor, ZstdCompressParameters {
 }

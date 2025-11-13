@@ -20,9 +20,7 @@
 package net.daporkchop.lib.compression.context;
 
 import net.daporkchop.lib.common.annotation.NotThreadSafe;
-import net.daporkchop.lib.common.closeable.QuietCloseable;
 import net.daporkchop.lib.compression.OneshotCompressionProvider;
-import net.daporkchop.lib.natives.util.MemoryPreference;
 
 /**
  * Base interface for {@link POneshotCompressor} and {@link POneshotDecompressor}.
@@ -30,14 +28,10 @@ import net.daporkchop.lib.natives.util.MemoryPreference;
  * @author DaPorkchop_
  */
 @NotThreadSafe
-public interface OneshotContext extends QuietCloseable {
+public interface OneshotContext extends IContext {
     /**
      * @return the {@link OneshotCompressionProvider} that created this context
      */
+    @Override
     OneshotCompressionProvider provider();
-
-    /**
-     * @return the type of memory preferred by this context
-     */
-    MemoryPreference memoryPreference();
 }

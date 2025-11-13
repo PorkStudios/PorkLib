@@ -53,6 +53,9 @@ abstract class NativeZstdProvider implements ZstdOneshotProvider {
     static final int ZSTD_error_dstBuffer_null = 74;
 
     static final int ZSTD_c_compressionLevel = 100;
+    static final int ZSTD_c_contentSizeFlag = 200;
+    static final int ZSTD_c_checksumFlag = 201;
+    static final int ZSTD_c_dictIDFlag = 202;
 
     static final int ZSTD_reset_session_only = 1;
     static final int ZSTD_reset_parameters = 2;

@@ -26,7 +26,7 @@ import net.daporkchop.lib.natives.util.MemoryPreference;
  * @author DaPorkchop_
  */
 @ThreadSafe
-interface ICompressionProvider {
+public interface ICompressionProvider {
     /**
      * @return the type of memory preferred by contexts created by this provider
      */

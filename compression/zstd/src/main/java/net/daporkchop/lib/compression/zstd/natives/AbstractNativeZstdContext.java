@@ -23,7 +23,6 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.closeable.QuietCloseable;
-import net.daporkchop.lib.natives.util.MemoryPreference;
 import net.daporkchop.lib.unsafe.PCleaner;
 
 /**
@@ -59,8 +58,4 @@ abstract class AbstractNativeZstdContext implements QuietCloseable {
     }
 
     abstract Runnable freeCtxRunnable(@NonNull NativeZstdProvider provider, long ctx);
-
-    public final MemoryPreference memoryPreference() {
-        return this.provider.memoryPreference();
-    }
 }

@@ -24,7 +24,7 @@ import net.daporkchop.lib.compression.OneshotCompressionProvider;
 /**
  * @author DaPorkchop_
  */
-public interface ZstdOneshotProvider extends OneshotCompressionProvider, IZstdProvider, ZstdDictionaryProvider {
+public interface ZstdOneshotProvider extends OneshotCompressionProvider, IZstdProvider, ZstdDictionaryFactory {
     @Override
     ZstdOneshotCompressor makeOneshotCompressor();
 

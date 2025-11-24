@@ -20,16 +20,14 @@
 package net.daporkchop.lib.compression.zstd;
 
 import net.daporkchop.lib.compression.StreamingCompressionProvider;
-import net.daporkchop.lib.compression.context.PStreamingCompressor;
-import net.daporkchop.lib.compression.context.PStreamingDecompressor;
 
 /**
  * @author DaPorkchop_
  */
-public interface ZstdStreamingProvider extends StreamingCompressionProvider, IZstdProvider, ZstdDictionaryProvider {
+public interface ZstdStreamingProvider extends StreamingCompressionProvider, ZstdOneshotProvider {
     @Override
-    PStreamingCompressor makeStreamingCompressor();
+    ZstdStreamingCompressor makeStreamingCompressor();
 
     @Override
-    PStreamingDecompressor makeStreamingDecompressor();
+    ZstdStreamingDecompressor makeStreamingDecompressor();
 }

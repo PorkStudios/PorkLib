@@ -19,19 +19,12 @@
 
 package net.daporkchop.lib.compression.zstd;
 
-import net.daporkchop.lib.common.annotation.param.Positive;
-
 /**
  * @author DaPorkchop_
  */
 interface IZstdProvider {
     /**
-     * @return the minimum compression level supported by this zstd implementation (inclusive)
+     * @return the capabilities of this ZSTD implementation
      */
-    @Positive int minLevel();
-
-    /**
-     * @return the maximum compression level supported by this zstd implementation (inclusive)
-     */
-    @Positive int maxLevel();
+    ZstdImplementationCapabilities capabilities();
 }

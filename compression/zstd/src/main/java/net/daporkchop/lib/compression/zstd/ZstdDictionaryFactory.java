@@ -28,12 +28,7 @@ import java.nio.ByteBuffer;
 /**
  * @author DaPorkchop_
  */
-public interface ZstdDictionaryProvider {
-    /**
-     * @return {@code true} if zstd dictionaries are supported by this implementation
-     */
-    boolean isDictionarySupported();
-
+public interface ZstdDictionaryFactory {
     /**
      * Creates a digested dictionary for repeated zstd compression.
      *

@@ -17,25 +17,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.compression.zstd;
+package net.daporkchop.lib.natives;
 
-import net.daporkchop.lib.common.annotation.param.NotNegative;
-import net.daporkchop.lib.common.closeable.QuietCloseable;
+import lombok.val;
+import net.daporkchop.lib.common.util.PThrowables;
 
 /**
- * A digested dictionary used by {@link Zstd} decompression.
+ * A feature which may or may not be available on the current platform.
  *
  * @author DaPorkchop_
  */
-public interface ZstdDecompressDictionary extends QuietCloseable {
+public interface OptionalFeature {
     /**
-     * @return the {@link ZstdDictionaryFactory} that created this dictionary
+     * @return {@code true} iff. this feature is available
      */
-    ZstdDictionaryFactory provider();
+    default boolean isAvailable() {
+        return this.unavailabilityCause() == null;
+    }
 
     /**
-     * @return this dictionary's ID, or {@code 0} if this dictionary is content-only
+     * Ensures that this feature is available.
+     *
+     * @throws UnsatisfiedLinkError if this feature is unavailable
      */
-    @NotNegative
-    int id();
+    default void ensureAvailability() throws UnsatisfiedLinkError {
+        val unavailabilityCause = this.unavailabilityCause();
+        if (unavailabilityCause != null) {
+            throw PThrowables.initCause(new UnsatisfiedLinkError("feature not available: " + this), unavailabilityCause);
+        }
+    }
+
+    /**
+     * @return a {@link Throwable} describing the reason why this feature is currently unavailable, or {@code null} if this feature is available
+     */
+    Throwable unavailabilityCause();
 }

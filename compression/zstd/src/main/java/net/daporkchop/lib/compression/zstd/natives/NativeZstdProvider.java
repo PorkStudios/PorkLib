@@ -19,8 +19,7 @@
 
 package net.daporkchop.lib.compression.zstd.natives;
 
-import net.daporkchop.lib.common.annotation.param.Positive;
-import net.daporkchop.lib.compression.zstd.Zstd;
+import net.daporkchop.lib.compression.zstd.ZstdImplementationCapabilities;
 import net.daporkchop.lib.compression.zstd.ZstdOneshotProvider;
 import net.daporkchop.lib.natives.NativeException;
 
@@ -28,6 +27,14 @@ import net.daporkchop.lib.natives.NativeException;
  * @author DaPorkchop_
  */
 abstract class NativeZstdProvider implements ZstdOneshotProvider {
+    private static final ZstdImplementationCapabilities CAPABILITIES = ZstdImplementationCapabilities.builder()
+            .supportsDictionary(true)
+            .supportsCompressionLevel(true)
+            .supportsChecksumFlag(true)
+            .supportsContentSizeFlag(true)
+            .supportsDictIdFlag(true)
+            .build();
+
     static final int ZSTD_error_no_error = 0;
     static final int ZSTD_error_GENERIC = 1;
     static final int ZSTD_error_prefix_unknown = 10;
@@ -207,19 +214,7 @@ abstract class NativeZstdProvider implements ZstdOneshotProvider {
     abstract int ZSTD_getDictID_fromDDict(long ddict);
 
     @Override
-    public final boolean isDictionarySupported() {
-        return true;
-    }
-
-    @Override
-    public final @Positive int minLevel() {
-        //TODO: use ZSTD_minCLevel()
-        return Zstd.LEVEL_MIN;
-    }
-
-    @Override
-    public final @Positive int maxLevel() {
-        //TODO: use ZSTD_maxCLevel()
-        return Zstd.LEVEL_MAX;
+    public final ZstdImplementationCapabilities capabilities() {
+        return CAPABILITIES;
     }
 }

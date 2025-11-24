@@ -19,23 +19,13 @@
 
 package net.daporkchop.lib.compression.zstd;
 
-import net.daporkchop.lib.common.annotation.param.NotNegative;
-import net.daporkchop.lib.common.closeable.QuietCloseable;
-
 /**
- * A digested dictionary used by {@link Zstd} decompression.
- *
  * @author DaPorkchop_
  */
-public interface ZstdDecompressDictionary extends QuietCloseable {
+public interface ZstdStreamingImplementation extends ZstdOneshotImplementation {
     /**
-     * @return the {@link ZstdDictionaryFactory} that created this dictionary
+     * @return an instance of {@link ZstdStreamingProvider} backed by this implementation
+     * @throws UnsatisfiedLinkError if this implementation is not {@link #isAvailable() available}
      */
-    ZstdDictionaryFactory provider();
-
-    /**
-     * @return this dictionary's ID, or {@code 0} if this dictionary is content-only
-     */
-    @NotNegative
-    int id();
+    ZstdStreamingProvider getStreamingProvider() throws UnsatisfiedLinkError;
 }

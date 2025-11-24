@@ -27,7 +27,7 @@ import net.daporkchop.lib.compression.context.PStreamingDecompressor;
  * @author DaPorkchop_
  */
 @ThreadSafe
-public interface StreamingCompressionProvider extends ICompressionProvider {
+public interface StreamingCompressionProvider extends OneshotCompressionProvider {
     /**
      * @return a new {@link PStreamingCompressor}
      */

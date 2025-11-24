@@ -17,25 +17,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.compression.zstd;
+package net.daporkchop.lib.compression.zstd.natives;
 
-import net.daporkchop.lib.common.annotation.param.NotNegative;
-import net.daporkchop.lib.common.closeable.QuietCloseable;
+import net.daporkchop.lib.compression.zstd.ZstdOneshotProvider;
 
 /**
- * A digested dictionary used by {@link Zstd} decompression.
- *
  * @author DaPorkchop_
  */
-public interface ZstdDecompressDictionary extends QuietCloseable {
-    /**
-     * @return the {@link ZstdDictionaryFactory} that created this dictionary
-     */
-    ZstdDictionaryFactory provider();
+public final class JniZstdImplementation extends AbstractNativeZstdImplementation {
+    @Override
+    public Throwable unavailabilityCause() {
+        throw new AbstractMethodError(); //TODO
+    }
 
-    /**
-     * @return this dictionary's ID, or {@code 0} if this dictionary is content-only
-     */
-    @NotNegative
-    int id();
+    @Override
+    public ZstdOneshotProvider getOneshotProvider() throws UnsatisfiedLinkError {
+        return new JniZstdProvider();
+    }
 }

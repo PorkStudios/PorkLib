@@ -17,25 +17,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.compression.zstd;
+package net.daporkchop.lib.compression.zstd.air.v0;
 
-import net.daporkchop.lib.common.annotation.param.NotNegative;
-import net.daporkchop.lib.common.closeable.QuietCloseable;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.compression.OneshotCompressionProvider;
+import net.daporkchop.lib.compression.context.OneshotContext;
 
 /**
- * A digested dictionary used by {@link Zstd} decompression.
- *
  * @author DaPorkchop_
  */
-public interface ZstdDecompressDictionary extends QuietCloseable {
-    /**
-     * @return the {@link ZstdDictionaryFactory} that created this dictionary
-     */
-    ZstdDictionaryFactory provider();
+@RequiredArgsConstructor
+abstract class AbstractAircompressorV0ZstdContext implements OneshotContext {
+    private final @NonNull OneshotCompressionProvider provider;
 
-    /**
-     * @return this dictionary's ID, or {@code 0} if this dictionary is content-only
-     */
-    @NotNegative
-    int id();
+    @Override
+    public final OneshotCompressionProvider provider() {
+        return this.provider;
+    }
+
+    @Override
+    public final void resetParameters() {
+        //no-op
+    }
+
+    @Override
+    public final void close() {
+        //no-op
+    }
 }

@@ -28,7 +28,6 @@ import net.daporkchop.lib.compression.zstd.ZstdCompressDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdDecompressDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdOneshotCompressor;
 import net.daporkchop.lib.compression.zstd.ZstdOneshotDecompressor;
-import net.daporkchop.lib.natives.util.MemoryPreference;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.nio.ByteBuffer;
@@ -36,79 +35,9 @@ import java.nio.ByteBuffer;
 /**
  * @author DaPorkchop_
  */
-public final class JniZstdFactory extends NativeZstdFactory {
-    static {
-        //TODO: load jni library
-    }
-
-    /*private static native void configure(boolean allowJniCritical);
-
-    static {
-        configure(NativeUtils.allowJniCritical());
-    }*/
-
-    @Override
-    native boolean ZSTD_isError(long code);
-
-    @Override
-    native int ZSTD_getErrorCode(long code);
-
-    @Override
-    native String ZSTD_getErrorName(long code);
-
-    @Override
-    native long ZSTD_createCCtx();
-
-    @Override
-    native void ZSTD_freeCCtx(long cctx);
-
-    @Override
-    native long ZSTD_CCtx_refCDict(long cctx, long cdict);
-
-    @Override
-    native long ZSTD_CCtx_reset(long cctx, int reset);
-
-    @Override
-    native long ZSTD_CCtx_setParameter(long cctx, int param, int value);
-
-    @Override
-    native void ZSTD_freeCDict(long cdict);
-
-    @Override
-    native int ZSTD_getDictID_fromCDict(long cdict);
-
-    private native long ZSTD_createCDict(
-            long dictAddr, byte[] dictArray, int dictArrayOffset, int dictPosition, int dictRemaining,
-            int level);
-
-    @Override
-    native long ZSTD_createDCtx();
-
-    @Override
-    native void ZSTD_freeDCtx(long dctx);
-
-    @Override
-    native long ZSTD_DCtx_refDDict(long dctx, long ddict);
-
-    @Override
-    native long ZSTD_DCtx_reset(long dctx, int reset);
-
-    @Override
-    native long ZSTD_DCtx_setParameter(long dctx, int param, int value);
-
-    private native long ZSTD_createDDict(
-            long dictAddr, byte[] dictArray, int dictArrayOffset, int dictPosition, int dictRemaining);
-
-    @Override
-    native void ZSTD_freeDDict(long ddict);
-
-    @Override
-    native int ZSTD_getDictID_fromDDict(long ddict);
-
-    @Override
-    public MemoryPreference memoryPreference() {
-        //TODO: decide this based on whether or not JNI pinning is enabled?
-        return MemoryPreference.PREFER_DIRECT;
+final class JniZstdFactory extends AbstractNativeZstdFactory {
+    JniZstdFactory() {
+        super(JniZstdFunctions.get());
     }
 
     @Override
@@ -129,7 +58,7 @@ public final class JniZstdFactory extends NativeZstdFactory {
             dictArray = PNioBuffers.toArray(dict);
         }
 
-        return new NativeZstdCDict(this, this.ZSTD_createCDict(
+        return new NativeZstdCDict(this, ((JniZstdFunctions) this.functions).ZSTD_createCDict(
                 dictMemoryAddress, dictArray, dictArrayOffset, dict.position(), dict.remaining(),
                 level));
     }
@@ -159,7 +88,7 @@ public final class JniZstdFactory extends NativeZstdFactory {
             }
         }
 
-        return new NativeZstdCDict(this, this.ZSTD_createCDict(
+        return new NativeZstdCDict(this, ((JniZstdFunctions) this.functions).ZSTD_createCDict(
                 dictMemoryAddress, dictArray, dictArrayOffset, dict.readerIndex(), dict.readableBytes(),
                 level));
     }
@@ -181,7 +110,7 @@ public final class JniZstdFactory extends NativeZstdFactory {
             dictArray = PNioBuffers.toArray(dict);
         }
 
-        return new NativeZstdDDict(this, this.ZSTD_createDDict(
+        return new NativeZstdDDict(this, ((JniZstdFunctions) this.functions).ZSTD_createDDict(
                 dictMemoryAddress, dictArray, dictArrayOffset, dict.position(), dict.remaining()));
     }
 
@@ -208,17 +137,17 @@ public final class JniZstdFactory extends NativeZstdFactory {
             }
         }
 
-        return new NativeZstdDDict(this, this.ZSTD_createDDict(
+        return new NativeZstdDDict(this, ((JniZstdFunctions) this.functions).ZSTD_createDDict(
                 dictMemoryAddress, dictArray, dictArrayOffset, dict.readerIndex(), dict.readableBytes()));
     }
 
     @Override
     public ZstdOneshotCompressor makeOneshotCompressor() {
-        return new JniZstdCCtx(this);
+        return new JniZstdCCtx(this.functions);
     }
 
     @Override
     public ZstdOneshotDecompressor makeOneshotDecompressor() {
-        return new JniZstdDCtx(this);
+        return new JniZstdDCtx(this.functions);
     }
 }

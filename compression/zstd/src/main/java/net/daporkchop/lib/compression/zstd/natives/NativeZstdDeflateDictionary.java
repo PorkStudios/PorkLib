@@ -46,10 +46,10 @@ final class NativeZstdDeflateDictionary implements ZstdCompressDictionary {
     @Getter(AccessLevel.NONE)
     private final PCleaner cleaner;
 
-    private final NativeZstdFactory provider;
+    private final AbstractNativeZstdFactory provider;
     private final int level;
 
-    NativeZstdDeflateDictionary(@NonNull NativeZstdFactory provider, @NonNull ByteBuf dict, int level) {
+    NativeZstdDeflateDictionary(@NonNull AbstractNativeZstdFactory provider, @NonNull ByteBuf dict, int level) {
         this.provider = provider;
         this.level = level;
 

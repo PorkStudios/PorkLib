@@ -30,14 +30,14 @@ import net.daporkchop.lib.unsafe.PUnsafe;
 import java.nio.ByteBuffer;
 import java.nio.ReadOnlyBufferException;
 
-import static net.daporkchop.lib.compression.zstd.natives.NativeZstdFactory.*;
+import static net.daporkchop.lib.compression.zstd.natives.NativeZstdFunctions.*;
 
 /**
  * @author DaPorkchop_
  */
 final class JniZstdCCtx extends NativeZstdCCtx {
-    JniZstdCCtx(@NonNull JniZstdFactory factory) {
-        super(factory);
+    JniZstdCCtx(@NonNull NativeZstdFunctions functions) {
+        super(functions);
     }
 
     static native long ZSTD_compress2(
@@ -81,7 +81,7 @@ final class JniZstdCCtx extends NativeZstdCCtx {
                 srcMemoryAddress, srcArray, srcArrayOffset, src.position(), src.remaining(),
                 dstMemoryAddress, dstArray, dstArrayOffset, dst.position(), dst.remaining());
 
-        switch (this.factory.ZSTD_getErrorCode(result)) {
+        switch (this.functions.ZSTD_getErrorCode(result)) {
             case ZSTD_error_no_error:
                 //success, advance buffer indices (we assume that the result is in bounds and therefore won't overflow)
                 src.position(src.limit());
@@ -90,7 +90,7 @@ final class JniZstdCCtx extends NativeZstdCCtx {
             case ZSTD_error_dstSize_tooSmall:
                 return -1;
             default:
-                throw new NativeException(this.factory.ZSTD_getErrorName(result));
+                throw new NativeException(this.functions.ZSTD_getErrorName(result));
         }
     }
 
@@ -131,7 +131,7 @@ final class JniZstdCCtx extends NativeZstdCCtx {
                 srcMemoryAddress, srcArray, srcArrayOffset, src.readerIndex(), src.readableBytes(),
                 dstMemoryAddress, dstArray, dstArrayOffset, dst.writerIndex(), dst.writableBytes());
 
-        switch (this.factory.ZSTD_getErrorCode(result)) {
+        switch (this.functions.ZSTD_getErrorCode(result)) {
             case ZSTD_error_no_error:
                 //success, advance buffer indices (we assume that the result is in bounds and therefore won't overflow)
                 src.skipBytes(src.readableBytes());
@@ -140,7 +140,7 @@ final class JniZstdCCtx extends NativeZstdCCtx {
             case ZSTD_error_dstSize_tooSmall:
                 return -1;
             default:
-                throw new NativeException(this.factory.ZSTD_getErrorName(result));
+                throw new NativeException(this.functions.ZSTD_getErrorName(result));
         }
     }
 }

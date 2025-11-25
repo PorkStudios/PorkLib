@@ -20,44 +20,33 @@
 package net.daporkchop.lib.compression.zstd.natives;
 
 import lombok.NonNull;
-import net.daporkchop.lib.compression.context.IContext;
+import lombok.RequiredArgsConstructor;
+import net.daporkchop.lib.compression.zstd.ZstdImplementationCapabilities;
+import net.daporkchop.lib.compression.zstd.ZstdOneshotFactory;
 import net.daporkchop.lib.natives.util.MemoryPreference;
-import net.daporkchop.lib.unsafe.PCleaner;
 
 /**
  * @author DaPorkchop_
  */
-abstract class AbstractNativeZstdContext implements IContext {
-    final NativeZstdFunctions functions;
+@RequiredArgsConstructor
+abstract class AbstractNativeZstdFactory implements ZstdOneshotFactory {
+    private static final ZstdImplementationCapabilities CAPABILITIES = ZstdImplementationCapabilities.builder()
+            .supportsDictionary(true)
+            .supportsCompressionLevel(true)
+            .supportsChecksumFlag(true)
+            .supportsContentSizeFlag(true)
+            .supportsDictIdFlag(true)
+            .build();
 
-    final long ctx;
-    private PCleaner cleaner;
-
-    AbstractNativeZstdContext(@NonNull NativeZstdFunctions functions, long ctx) {
-        this.functions = functions;
-        this.ctx = ctx;
-        this.cleaner = PCleaner.cleaner(this, this.freeCtxRunnable(functions, ctx));
-    }
-
-    final void ensureOpen() {
-        if (this.cleaner == null) {
-            throw new IllegalStateException("already closed!");
-        }
-    }
+    final @NonNull NativeZstdFunctions functions;
 
     @Override
-    public final void close() {
-        PCleaner cleaner = this.cleaner;
-        this.cleaner = null;
-        if (cleaner != null) {
-            cleaner.clean();
-        }
+    public final ZstdImplementationCapabilities capabilities() {
+        return CAPABILITIES;
     }
-
-    abstract Runnable freeCtxRunnable(@NonNull NativeZstdFunctions functions, long ctx);
 
     @Override
     public final MemoryPreference memoryPreference() {
-        return MemoryPreference.PREFER_DIRECT;
+        return MemoryPreference.ANY;
     }
 }

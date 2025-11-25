@@ -19,22 +19,12 @@
 
 package net.daporkchop.lib.compression.zstd.natives;
 
-import net.daporkchop.lib.compression.zstd.ZstdImplementationCapabilities;
-import net.daporkchop.lib.compression.zstd.ZstdOneshotFactory;
 import net.daporkchop.lib.natives.NativeException;
 
 /**
  * @author DaPorkchop_
  */
-abstract class NativeZstdFactory implements ZstdOneshotFactory {
-    private static final ZstdImplementationCapabilities CAPABILITIES = ZstdImplementationCapabilities.builder()
-            .supportsDictionary(true)
-            .supportsCompressionLevel(true)
-            .supportsChecksumFlag(true)
-            .supportsContentSizeFlag(true)
-            .supportsDictIdFlag(true)
-            .build();
-
+abstract class NativeZstdFunctions {
     static final int ZSTD_error_no_error = 0;
     static final int ZSTD_error_GENERIC = 1;
     static final int ZSTD_error_prefix_unknown = 10;
@@ -80,7 +70,7 @@ abstract class NativeZstdFactory implements ZstdOneshotFactory {
      * Gets an error code from the given value.
      *
      * @param code the 64-bit return value from a zstd function
-     * @return an error code, likely one of the {@code ZSTD_error_*} constants declared in {@link NativeZstdFactory}
+     * @return an error code, likely one of the {@code ZSTD_error_*} constants declared in {@link NativeZstdFunctions}
      */
     abstract int ZSTD_getErrorCode(long code);
 
@@ -126,7 +116,7 @@ abstract class NativeZstdFactory implements ZstdOneshotFactory {
      * Attaches a dictionary to a compression context.
      *
      * @param cctx  the compression context
-     * @param reset the reset directive, should be one of the {@code ZSTD_reset_*} constants declared in {@link NativeZstdFactory}
+     * @param reset the reset directive, should be one of the {@code ZSTD_reset_*} constants declared in {@link NativeZstdFunctions}
      * @return an undefined value, which may be an error (should be checked using {@link #ZSTD_isError(long)})
      */
     abstract long ZSTD_CCtx_reset(long cctx, int reset);
@@ -135,7 +125,7 @@ abstract class NativeZstdFactory implements ZstdOneshotFactory {
      * Sets a parameter for a compression context.
      *
      * @param cctx  the compression context
-     * @param param the parameter name, should be one of the {@code ZSTD_c_*} constants declared in {@link NativeZstdFactory}
+     * @param param the parameter name, should be one of the {@code ZSTD_c_*} constants declared in {@link NativeZstdFunctions}
      * @param value the parameter value
      * @return an undefined value, which may be an error (should be checked using {@link #ZSTD_isError(long)})
      */
@@ -183,7 +173,7 @@ abstract class NativeZstdFactory implements ZstdOneshotFactory {
      * Attaches a dictionary to a decompression context.
      *
      * @param dctx  the decompression context
-     * @param reset the reset directive, should be one of the {@code ZSTD_reset_*} constants declared in {@link NativeZstdFactory}
+     * @param reset the reset directive, should be one of the {@code ZSTD_reset_*} constants declared in {@link NativeZstdFunctions}
      * @return an undefined value, which may be an error (should be checked using {@link #ZSTD_isError(long)})
      */
     abstract long ZSTD_DCtx_reset(long dctx, int reset);
@@ -192,7 +182,7 @@ abstract class NativeZstdFactory implements ZstdOneshotFactory {
      * Sets a parameter for a decompression context.
      *
      * @param dctx  the decompression context
-     * @param param the parameter name, should be one of the {@code ZSTD_d_*} constants declared in {@link NativeZstdFactory}
+     * @param param the parameter name, should be one of the {@code ZSTD_d_*} constants declared in {@link NativeZstdFunctions}
      * @param value the parameter value
      * @return an undefined value, which may be an error (should be checked using {@link #ZSTD_isError(long)})
      */
@@ -212,9 +202,4 @@ abstract class NativeZstdFactory implements ZstdOneshotFactory {
      * @return the dictionary ID (positive), or {@code 0} if the dictionary is empty or content-only
      */
     abstract int ZSTD_getDictID_fromDDict(long ddict);
-
-    @Override
-    public final ZstdImplementationCapabilities capabilities() {
-        return CAPABILITIES;
-    }
 }

@@ -26,7 +26,7 @@ import net.daporkchop.lib.compression.zstd.ZstdCompressDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdOneshotCompressor;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
-import static net.daporkchop.lib.compression.zstd.natives.NativeZstdFactory.*;
+import static net.daporkchop.lib.compression.zstd.natives.NativeZstdFunctions.*;
 
 /**
  * @author DaPorkchop_
@@ -35,18 +35,18 @@ abstract class NativeZstdCCtx extends AbstractNativeZstdContext implements ZstdO
     private int level = Zstd.LEVEL_DEFAULT;
     private NativeZstdCDict dictionary;
 
-    NativeZstdCCtx(@NonNull NativeZstdFactory factory) {
-        super(factory, factory.ZSTD_createCCtx());
+    NativeZstdCCtx(@NonNull NativeZstdFunctions functions) {
+        super(functions, functions.ZSTD_createCCtx());
     }
 
     @Override
-    final Runnable freeCtxRunnable(@NonNull NativeZstdFactory factory, long ctx) {
-        return () -> factory.ZSTD_freeCCtx(ctx);
+    final Runnable freeCtxRunnable(@NonNull NativeZstdFunctions functions, long ctx) {
+        return () -> functions.ZSTD_freeCCtx(ctx);
     }
 
     @Override
     public final void resetParameters() { //TODO: merge exception rules when we also implement streaming
-        this.factory.checkForErrorAndThrow(this.factory.ZSTD_CCtx_reset(this.ctx, ZSTD_reset_parameters));
+        this.functions.checkForErrorAndThrow(this.functions.ZSTD_CCtx_reset(this.ctx, ZSTD_reset_parameters));
         this.level = Zstd.LEVEL_DEFAULT;
         this.dictionary = null;
     }
@@ -54,28 +54,28 @@ abstract class NativeZstdCCtx extends AbstractNativeZstdContext implements ZstdO
     @Override
     public final void setLevel(int level) throws IllegalArgumentException {
         this.level = Zstd.checkLevel(level);
-        this.factory.checkForErrorAndThrow(this.factory.ZSTD_CCtx_setParameter(this.ctx, ZSTD_c_compressionLevel, level));
+        this.functions.checkForErrorAndThrow(this.functions.ZSTD_CCtx_setParameter(this.ctx, ZSTD_c_compressionLevel, level));
     }
 
     @Override
     public final void setDictionary(@ExtendedBorrow ZstdCompressDictionary dictionary) throws IllegalArgumentException {
         checkArg(dictionary == null || dictionary instanceof NativeZstdCDict, dictionary);
         this.dictionary = (NativeZstdCDict) dictionary;
-        this.factory.checkForErrorAndThrow(this.factory.ZSTD_CCtx_refCDict(this.ctx, dictionary != null ? this.dictionary.dict : 0L));
+        this.functions.checkForErrorAndThrow(this.functions.ZSTD_CCtx_refCDict(this.ctx, dictionary != null ? this.dictionary.dict : 0L));
     }
 
     @Override
     public final void setChecksumFlag(boolean checksumFlag) throws IllegalArgumentException {
-        this.factory.checkForErrorAndThrow(this.factory.ZSTD_CCtx_setParameter(this.ctx, ZSTD_c_checksumFlag, checksumFlag ? 1 : 0));
+        this.functions.checkForErrorAndThrow(this.functions.ZSTD_CCtx_setParameter(this.ctx, ZSTD_c_checksumFlag, checksumFlag ? 1 : 0));
     }
 
     @Override
     public final void setContentSizeFlag(boolean contentSizeFlag) throws IllegalArgumentException {
-        this.factory.checkForErrorAndThrow(this.factory.ZSTD_CCtx_setParameter(this.ctx, ZSTD_c_contentSizeFlag, contentSizeFlag ? 1 : 0));
+        this.functions.checkForErrorAndThrow(this.functions.ZSTD_CCtx_setParameter(this.ctx, ZSTD_c_contentSizeFlag, contentSizeFlag ? 1 : 0));
     }
 
     @Override
     public final void setDictIdFlag(boolean dictIdFlag) throws IllegalArgumentException {
-        this.factory.checkForErrorAndThrow(this.factory.ZSTD_CCtx_setParameter(this.ctx, ZSTD_c_dictIDFlag, dictIdFlag ? 1 : 0));
+        this.functions.checkForErrorAndThrow(this.functions.ZSTD_CCtx_setParameter(this.ctx, ZSTD_c_dictIDFlag, dictIdFlag ? 1 : 0));
     }
 }

@@ -19,21 +19,16 @@
 
 package net.daporkchop.lib.compression.zstd.air.v0;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.compression.OneshotCompressionProvider;
 import net.daporkchop.lib.compression.context.OneshotContext;
+import net.daporkchop.lib.natives.util.MemoryPreference;
 
 /**
  * @author DaPorkchop_
  */
-@RequiredArgsConstructor
 abstract class AbstractAircompressorV0ZstdContext implements OneshotContext {
-    private final @NonNull OneshotCompressionProvider provider;
-
     @Override
-    public final OneshotCompressionProvider provider() {
-        return this.provider;
+    public final MemoryPreference memoryPreference() {
+        return MemoryPreference.ANY;
     }
 
     @Override

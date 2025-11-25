@@ -17,24 +17,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.compression;
+package net.daporkchop.lib.compression.zstd;
 
-import net.daporkchop.lib.common.annotation.ThreadSafe;
-import net.daporkchop.lib.compression.context.POneshotCompressor;
-import net.daporkchop.lib.compression.context.POneshotDecompressor;
+import net.daporkchop.lib.compression.CompressionFactory;
 
 /**
  * @author DaPorkchop_
  */
-@ThreadSafe
-public interface OneshotCompressionProvider extends ICompressionProvider {
+interface ZstdFactory extends CompressionFactory {
     /**
-     * @return a new {@link POneshotCompressor}
+     * @return the capabilities of this ZSTD implementation
      */
-    POneshotCompressor makeOneshotCompressor();
-
-    /**
-     * @return a new {@link POneshotDecompressor}
-     */
-    POneshotDecompressor makeOneshotDecompressor();
+    ZstdImplementationCapabilities capabilities();
 }

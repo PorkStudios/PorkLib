@@ -23,7 +23,7 @@ import net.daporkchop.lib.common.util.PThrowables;
 import net.daporkchop.lib.compression.zstd.ZstdImplementationCapabilities;
 import net.daporkchop.lib.compression.zstd.ZstdImplementationCaps;
 import net.daporkchop.lib.compression.zstd.ZstdOneshotImplementation;
-import net.daporkchop.lib.compression.zstd.ZstdOneshotProvider;
+import net.daporkchop.lib.compression.zstd.ZstdOneshotFactory;
 import net.daporkchop.lib.natives.util.MemoryPreference;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
@@ -64,8 +64,8 @@ public final class AircompressorV0ZstdImplementation implements ZstdOneshotImple
     }
 
     @Override
-    public ZstdOneshotProvider getOneshotProvider() throws UnsatisfiedLinkError {
+    public ZstdOneshotFactory getOneshotFactory() throws UnsatisfiedLinkError {
         this.ensureAvailability();
-        return new AircompressorV0ZstdOneshotProvider();
+        return new AircompressorV0ZstdOneshotFactory();
     }
 }

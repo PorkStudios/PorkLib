@@ -33,8 +33,8 @@ public interface ZstdOneshotImplementation extends OptionalFeature {
     }
 
     /**
-     * @return an instance of {@link ZstdOneshotProvider} backed by this implementation
+     * @return an instance of {@link ZstdOneshotFactory} backed by this implementation
      * @throws UnsatisfiedLinkError if this implementation is not {@link #isAvailable() available}
      */
-    ZstdOneshotProvider getOneshotProvider() throws UnsatisfiedLinkError;
+    ZstdOneshotFactory getOneshotFactory() throws UnsatisfiedLinkError;
 }

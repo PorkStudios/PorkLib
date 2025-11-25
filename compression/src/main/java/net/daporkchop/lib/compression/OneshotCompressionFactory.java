@@ -20,21 +20,21 @@
 package net.daporkchop.lib.compression;
 
 import net.daporkchop.lib.common.annotation.ThreadSafe;
-import net.daporkchop.lib.compression.context.PStreamingCompressor;
-import net.daporkchop.lib.compression.context.PStreamingDecompressor;
+import net.daporkchop.lib.compression.context.POneshotCompressor;
+import net.daporkchop.lib.compression.context.POneshotDecompressor;
 
 /**
  * @author DaPorkchop_
  */
 @ThreadSafe
-public interface StreamingCompressionProvider extends OneshotCompressionProvider {
+public interface OneshotCompressionFactory extends CompressionFactory {
     /**
-     * @return a new {@link PStreamingCompressor}
+     * @return a new {@link POneshotCompressor}
      */
-    PStreamingCompressor makeStreamingCompressor();
+    POneshotCompressor makeOneshotCompressor();
 
     /**
-     * @return a new {@link PStreamingDecompressor}
+     * @return a new {@link POneshotDecompressor}
      */
-    PStreamingDecompressor makeStreamingDecompressor();
+    POneshotDecompressor makeOneshotDecompressor();
 }

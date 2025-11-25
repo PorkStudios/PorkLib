@@ -30,13 +30,14 @@ import java.lang.reflect.Constructor;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
 import java.util.function.DoubleFunction;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
 import java.util.function.IntFunction;
-import java.util.function.IntSupplier;
 import java.util.function.LongConsumer;
 import java.util.function.LongFunction;
 import java.util.function.ObjDoubleConsumer;
@@ -44,7 +45,6 @@ import java.util.function.ObjIntConsumer;
 import java.util.function.ObjLongConsumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import java.util.function.ToIntFunction;
 import java.util.function.UnaryOperator;
 
 /**
@@ -104,6 +104,20 @@ public class PFunctions {
     @Deprecated
     public static <T> Function<T, T> identity() {
         return Function.identity();
+    }
+
+    /**
+     * @return a {@link BiFunction} which always returns the first argument
+     */
+    public static <T, U> BiFunction<T, U, T> identityFirstArgBiFunction() {
+        return (arg0, arg1) -> arg0;
+    }
+
+    /**
+     * @return a {@link BiFunction} which always returns the second argument
+     */
+    public static <T, U> BiFunction<T, U, U> identitySecondArgBiFunction() {
+        return (arg0, arg1) -> arg1;
     }
 
     /**
@@ -205,6 +219,13 @@ public class PFunctions {
     }
 
     /**
+     * @return a {@link BiPredicate} which performs no action and returns {@code true}
+     */
+    public static <T, U> BiPredicate<T, U> trueBiPredicate() {
+        return (ignored0, ignored1) -> true;
+    }
+
+    /**
      * @return a {@link Predicate} which performs no action and returns {@code false}
      */
     public static <T> Predicate<T> falsePredicate() {
@@ -212,10 +233,24 @@ public class PFunctions {
     }
 
     /**
+     * @return a {@link BiPredicate} which performs no action and returns {@code false}
+     */
+    public static <T, U> BiPredicate<T, U> falseBiPredicate() {
+        return (ignored0, ignored1) -> false;
+    }
+
+    /**
      * @return a {@link Predicate} which performs no action and returns the given value
      */
     public static <T> Predicate<T> constantPredicate(boolean value) {
         return ignored -> value;
+    }
+
+    /**
+     * @return a {@link BiPredicate} which performs no action and returns the given value
+     */
+    public static <T, U> BiPredicate<T, U> constantBiPredicate(boolean value) {
+        return (ignored0, ignored1) -> value;
     }
 
     /**
@@ -240,6 +275,13 @@ public class PFunctions {
     }
 
     /**
+     * @return a {@link BiFunction} which performs no action and returns {@code null}
+     */
+    public static <T, U, R> BiFunction<T, U, R> nullBiFunction() {
+        return (ignored0, ignored1) -> null;
+    }
+
+    /**
      * @return a {@link Supplier} which performs no action and returns the given value
      */
     public static <T> Supplier<T> constantSupplier(T value) {
@@ -258,6 +300,13 @@ public class PFunctions {
      */
     public static <T, R> Function<T, R> constantFunction(R value) {
         return ignored -> value;
+    }
+
+    /**
+     * @return a {@link BiFunction} which performs no action and returns the given value
+     */
+    public static <T, U, R> BiFunction<T, U, R> constantBiFunction(R value) {
+        return (ignored0, ignored1) -> value;
     }
 
     /**

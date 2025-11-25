@@ -49,9 +49,9 @@ final class NativeZstdInflateDictionary implements ZstdDecompressDictionary {
     private final PCleaner cleaner;
 
     @Getter
-    private final NativeZstdProvider provider;
+    private final NativeZstdFactory provider;
 
-    NativeZstdInflateDictionary(@NonNull NativeZstdProvider provider, @NonNull ByteBuf dict) {
+    NativeZstdInflateDictionary(@NonNull NativeZstdFactory provider, @NonNull ByteBuf dict) {
         this.provider = provider;
 
         if (dict.hasMemoryAddress()) {

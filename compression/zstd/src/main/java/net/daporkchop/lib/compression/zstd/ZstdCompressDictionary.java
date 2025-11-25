@@ -29,12 +29,8 @@ import net.daporkchop.lib.common.closeable.QuietCloseable;
  */
 public interface ZstdCompressDictionary extends QuietCloseable {
     /**
-     * @return the {@link ZstdDictionaryFactory} that created this dictionary
-     */
-    ZstdDictionaryFactory provider();
-
-    /**
      * @return this dictionary's ID, or {@code 0} if this dictionary is content-only
      */
-    @NotNegative int id();
+    @NotNegative
+    int id();
 }

@@ -24,8 +24,8 @@ package net.daporkchop.lib.compression.zstd;
  */
 public interface ZstdStreamingImplementation extends ZstdOneshotImplementation {
     /**
-     * @return an instance of {@link ZstdStreamingProvider} backed by this implementation
+     * @return an instance of {@link ZstdStreamingFactory} backed by this implementation
      * @throws UnsatisfiedLinkError if this implementation is not {@link #isAvailable() available}
      */
-    ZstdStreamingProvider getStreamingProvider() throws UnsatisfiedLinkError;
+    ZstdStreamingFactory getStreamingFactory() throws UnsatisfiedLinkError;
 }

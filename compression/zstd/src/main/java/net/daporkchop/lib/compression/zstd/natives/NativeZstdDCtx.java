@@ -25,7 +25,7 @@ import net.daporkchop.lib.compression.zstd.ZstdDecompressDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdOneshotDecompressor;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
-import static net.daporkchop.lib.compression.zstd.natives.NativeZstdProvider.*;
+import static net.daporkchop.lib.compression.zstd.natives.NativeZstdFactory.*;
 
 /**
  * @author DaPorkchop_
@@ -33,18 +33,18 @@ import static net.daporkchop.lib.compression.zstd.natives.NativeZstdProvider.*;
 abstract class NativeZstdDCtx extends AbstractNativeZstdContext implements ZstdOneshotDecompressor {
     private NativeZstdDDict dictionary;
 
-    NativeZstdDCtx(@NonNull NativeZstdProvider provider) {
-        super(provider, provider.ZSTD_createDCtx());
+    NativeZstdDCtx(@NonNull NativeZstdFactory factory) {
+        super(factory, factory.ZSTD_createDCtx());
     }
 
     @Override
-    final Runnable freeCtxRunnable(@NonNull NativeZstdProvider provider, long ctx) {
-        return () -> provider.ZSTD_freeDCtx(ctx);
+    final Runnable freeCtxRunnable(@NonNull NativeZstdFactory factory, long ctx) {
+        return () -> factory.ZSTD_freeDCtx(ctx);
     }
 
     @Override
     public final void resetParameters() { //TODO: merge exception rules when we also implement streaming
-        this.provider.checkForErrorAndThrow(this.provider.ZSTD_DCtx_reset(this.ctx, ZSTD_reset_parameters));
+        this.factory.checkForErrorAndThrow(this.factory.ZSTD_DCtx_reset(this.ctx, ZSTD_reset_parameters));
         this.dictionary = null;
     }
 
@@ -52,6 +52,6 @@ abstract class NativeZstdDCtx extends AbstractNativeZstdContext implements ZstdO
     public final void setDictionary(@ExtendedBorrow ZstdDecompressDictionary dictionary) throws IllegalArgumentException {
         checkArg(dictionary == null || dictionary instanceof NativeZstdDDict, dictionary);
         this.dictionary = (NativeZstdDDict) dictionary;
-        this.provider.checkForErrorAndThrow(this.provider.ZSTD_DCtx_refDDict(this.ctx, dictionary != null ? this.dictionary.dict : 0L));
+        this.factory.checkForErrorAndThrow(this.factory.ZSTD_DCtx_refDDict(this.ctx, dictionary != null ? this.dictionary.dict : 0L));
     }
 }

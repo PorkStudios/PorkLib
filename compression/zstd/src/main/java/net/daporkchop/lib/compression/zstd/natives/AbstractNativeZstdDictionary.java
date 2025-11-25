@@ -19,7 +19,6 @@
 
 package net.daporkchop.lib.compression.zstd.natives;
 
-import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.closeable.QuietCloseable;
@@ -28,18 +27,16 @@ import net.daporkchop.lib.unsafe.PCleaner;
 /**
  * @author DaPorkchop_
  */
-@Accessors(fluent = true)
 abstract class AbstractNativeZstdDictionary implements QuietCloseable {
-    @Getter
-    final NativeZstdProvider provider;
+    final NativeZstdFactory factory; //TODO: rename this
 
     final long dict;
     private PCleaner cleaner;
 
-    AbstractNativeZstdDictionary(@NonNull NativeZstdProvider provider, long dict) {
-        this.provider = provider;
+    AbstractNativeZstdDictionary(@NonNull NativeZstdFactory factory, long dict) {
+        this.factory = factory;
         this.dict = dict;
-        this.cleaner = PCleaner.cleaner(this, this.freeDictRunnable(provider, dict));
+        this.cleaner = PCleaner.cleaner(this, this.freeDictRunnable(factory, dict));
     }
 
     final void ensureOpen() {
@@ -57,5 +54,5 @@ abstract class AbstractNativeZstdDictionary implements QuietCloseable {
         }
     }
 
-    abstract Runnable freeDictRunnable(@NonNull NativeZstdProvider provider, long dict);
+    abstract Runnable freeDictRunnable(@NonNull NativeZstdFactory factory, long dict);
 }

@@ -17,14 +17,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.compression.zstd;
+package net.daporkchop.lib.compression;
+
+import net.daporkchop.lib.common.annotation.ThreadSafe;
+import net.daporkchop.lib.natives.util.MemoryPreference;
 
 /**
  * @author DaPorkchop_
  */
-interface IZstdProvider {
+@ThreadSafe
+public interface CompressionFactory {
     /**
-     * @return the capabilities of this ZSTD implementation
+     * @return the type of memory preferred by contexts created by this factory
      */
-    ZstdImplementationCapabilities capabilities();
+    MemoryPreference memoryPreference();
 }

@@ -19,27 +19,24 @@
 
 package net.daporkchop.lib.compression.zstd.natives;
 
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.closeable.QuietCloseable;
+import net.daporkchop.lib.compression.context.IContext;
+import net.daporkchop.lib.natives.util.MemoryPreference;
 import net.daporkchop.lib.unsafe.PCleaner;
 
 /**
  * @author DaPorkchop_
  */
-@Accessors(fluent = true)
-abstract class AbstractNativeZstdContext implements QuietCloseable {
-    @Getter
-    final NativeZstdProvider provider;
+abstract class AbstractNativeZstdContext implements IContext {
+    final NativeZstdFactory factory; //TODO: rename this
 
     final long ctx;
     private PCleaner cleaner;
 
-    AbstractNativeZstdContext(@NonNull NativeZstdProvider provider, long ctx) {
-        this.provider = provider;
+    AbstractNativeZstdContext(@NonNull NativeZstdFactory factory, long ctx) {
+        this.factory = factory;
         this.ctx = ctx;
-        this.cleaner = PCleaner.cleaner(this, this.freeCtxRunnable(provider, ctx));
+        this.cleaner = PCleaner.cleaner(this, this.freeCtxRunnable(factory, ctx));
     }
 
     final void ensureOpen() {
@@ -57,5 +54,10 @@ abstract class AbstractNativeZstdContext implements QuietCloseable {
         }
     }
 
-    abstract Runnable freeCtxRunnable(@NonNull NativeZstdProvider provider, long ctx);
+    abstract Runnable freeCtxRunnable(@NonNull NativeZstdFactory factory, long ctx);
+
+    @Override
+    public final MemoryPreference memoryPreference() {
+        return MemoryPreference.PREFER_DIRECT;
+    }
 }

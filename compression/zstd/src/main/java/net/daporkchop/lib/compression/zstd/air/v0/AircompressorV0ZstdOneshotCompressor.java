@@ -37,10 +37,6 @@ import static net.daporkchop.lib.common.util.PValidation.*;
 final class AircompressorV0ZstdOneshotCompressor extends AbstractAircompressorV0ZstdContext implements ZstdOneshotCompressor {
     private final ZstdCompressor compressor = new ZstdCompressor();
 
-    public AircompressorV0ZstdOneshotCompressor(@NonNull AircompressorV0ZstdOneshotProvider provider) {
-        super(provider);
-    }
-
     @Override
     public int compress(@NonNull ByteBuffer src, @NonNull ByteBuffer dst) throws ReadOnlyBufferException {
         if (dst.isReadOnly()) {

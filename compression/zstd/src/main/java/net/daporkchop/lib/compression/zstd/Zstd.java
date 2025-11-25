@@ -21,11 +21,14 @@ package net.daporkchop.lib.compression.zstd;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.val;
 import net.daporkchop.lib.common.annotation.param.NotNegative;
 import net.daporkchop.lib.compression.zstd.util.ZstdConstants;
-import net.daporkchop.lib.natives.FeatureLoader;
+import net.daporkchop.lib.natives.TransformingServiceLoader;
 
 import java.lang.invoke.MethodHandles;
+import java.util.function.Predicate;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 
@@ -43,23 +46,42 @@ public final class Zstd {
         return level;
     }
 
-    private static ZstdOneshotProvider DEFAULT_ONESHOT_PROVIDER;
-    private static ZstdStreamingProvider DEFAULT_STREAMING_PROVIDER;
+    private static ZstdOneshotFactory DEFAULT_ONESHOT_FACTORY;
+    private static ZstdStreamingFactory DEFAULT_STREAMING_FACTORY;
 
-    public synchronized static ZstdOneshotProvider getDefaultOneshotProvider() {
-        if (DEFAULT_ONESHOT_PROVIDER != null) {
-            return DEFAULT_ONESHOT_PROVIDER;
+    public synchronized static ZstdOneshotFactory getDefaultOneshotFactory() {
+        if (DEFAULT_ONESHOT_FACTORY != null) {
+            return DEFAULT_ONESHOT_FACTORY;
         }
 
-        return DEFAULT_ONESHOT_PROVIDER = FeatureLoader.loadService(MethodHandles.lookup(), ZstdOneshotProvider.class);
+        return DEFAULT_ONESHOT_FACTORY = getImplementationWith(ZstdOneshotImplementation.class, null).getOneshotFactory();
     }
 
-    public synchronized static ZstdStreamingProvider getDefaultStreamingProvider() {
-        if (DEFAULT_STREAMING_PROVIDER != null) {
-            return DEFAULT_STREAMING_PROVIDER;
+    public synchronized static ZstdStreamingFactory getDefaultStreamingFactory() {
+        if (DEFAULT_STREAMING_FACTORY != null) {
+            return DEFAULT_STREAMING_FACTORY;
         }
 
-        return DEFAULT_STREAMING_PROVIDER = FeatureLoader.loadService(MethodHandles.lookup(), ZstdStreamingProvider.class);
+        return DEFAULT_STREAMING_FACTORY = getImplementationWith(ZstdStreamingImplementation.class, null).getStreamingFactory();
+    }
+
+    private static <I extends ZstdOneshotImplementation> I getImplementationWith(@NonNull Class<I> interfaz, Predicate<? super ZstdImplementationCaps> capabilitiesFilter) {
+        return TransformingServiceLoader.builder(MethodHandles.lookup(), interfaz)
+                .classFilter(implementationClass -> {
+                    val capabilities = implementationClass.getAnnotation(ZstdImplementationCaps.class);
+                    checkState(capabilities != null, "%s is missing annotation %s", implementationClass, ZstdImplementationCaps.class);
+                    return capabilitiesFilter == null || capabilitiesFilter.test(capabilities);
+                })
+                .instanceFilter(I::isAvailable)
+                .build().findFirst();
+    }
+
+    public static ZstdOneshotFactory getOneshotFactoryWith(@NonNull Predicate<? super ZstdImplementationCaps> capabilitiesFilter) {
+        return getImplementationWith(ZstdOneshotImplementation.class, capabilitiesFilter).getOneshotFactory();
+    }
+
+    public static ZstdStreamingFactory getStreamingFactoryWith(@NonNull Predicate<? super ZstdImplementationCaps> capabilitiesFilter) {
+        return getImplementationWith(ZstdStreamingImplementation.class, capabilitiesFilter).getStreamingFactory();
     }
 
     public static @NotNegative int compressBound(@NotNegative int srcSize) throws IllegalArgumentException, ArithmeticException {

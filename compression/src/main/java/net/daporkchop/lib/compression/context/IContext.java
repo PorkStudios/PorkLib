@@ -21,7 +21,6 @@ package net.daporkchop.lib.compression.context;
 
 import net.daporkchop.lib.common.annotation.NotThreadSafe;
 import net.daporkchop.lib.common.closeable.QuietCloseable;
-import net.daporkchop.lib.compression.ICompressionProvider;
 import net.daporkchop.lib.natives.util.MemoryPreference;
 
 /**
@@ -32,16 +31,9 @@ import net.daporkchop.lib.natives.util.MemoryPreference;
 @NotThreadSafe
 public interface IContext extends QuietCloseable {
     /**
-     * @return the {@link ICompressionProvider} that created this context
-     */
-    ICompressionProvider provider();
-
-    /**
      * @return the type of memory preferred by this context
      */
-    default MemoryPreference memoryPreference() {
-        return this.provider().memoryPreference();
-    }
+    MemoryPreference memoryPreference();
 
     /**
      * Resets this context's parameters to the defaults.

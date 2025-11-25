@@ -23,7 +23,6 @@ import io.airlift.compress.MalformedInputException;
 import io.airlift.compress.zstd.ZstdDecompressor;
 import lombok.NonNull;
 import net.daporkchop.lib.common.annotation.ExtendedBorrow;
-import net.daporkchop.lib.compression.OneshotCompressionProvider;
 import net.daporkchop.lib.compression.zstd.ZstdDecompressDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdOneshotDecompressor;
 
@@ -38,10 +37,6 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  */
 final class AircompressorV0ZstdOneshotDecompressor extends AbstractAircompressorV0ZstdContext implements ZstdOneshotDecompressor {
     private final ZstdDecompressor decompressor = new ZstdDecompressor(); //TODO: share this weakly between all instances, the ByteBuffer method constructs a new state every time anyway
-
-    public AircompressorV0ZstdOneshotDecompressor(@NonNull OneshotCompressionProvider provider) {
-        super(provider);
-    }
 
     @Override
     public int decompress(@NonNull ByteBuffer src, @NonNull ByteBuffer dst) throws DataFormatException, ReadOnlyBufferException {

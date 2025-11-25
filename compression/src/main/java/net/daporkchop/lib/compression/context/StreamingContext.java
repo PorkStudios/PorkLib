@@ -20,7 +20,6 @@
 package net.daporkchop.lib.compression.context;
 
 import net.daporkchop.lib.common.annotation.NotThreadSafe;
-import net.daporkchop.lib.compression.StreamingCompressionProvider;
 
 /**
  * Base interface for {@link PStreamingCompressor} and {@link PStreamingDecompressor}.
@@ -29,9 +28,4 @@ import net.daporkchop.lib.compression.StreamingCompressionProvider;
  */
 @NotThreadSafe
 interface StreamingContext extends IContext {
-    /**
-     * @return the {@link StreamingCompressionProvider} that created this context
-     */
-    @Override
-    StreamingCompressionProvider provider();
 }

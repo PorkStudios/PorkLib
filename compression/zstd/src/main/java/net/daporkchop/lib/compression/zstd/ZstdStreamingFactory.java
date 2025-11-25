@@ -17,18 +17,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.compression;
+package net.daporkchop.lib.compression.zstd;
 
-import net.daporkchop.lib.common.annotation.ThreadSafe;
-import net.daporkchop.lib.natives.util.MemoryPreference;
+import net.daporkchop.lib.compression.StreamingCompressionFactory;
 
 /**
  * @author DaPorkchop_
  */
-@ThreadSafe
-public interface ICompressionProvider {
-    /**
-     * @return the type of memory preferred by contexts created by this provider
-     */
-    MemoryPreference memoryPreference();
+public interface ZstdStreamingFactory extends StreamingCompressionFactory, ZstdOneshotFactory {
+    @Override
+    ZstdStreamingCompressor makeStreamingCompressor();
+
+    @Override
+    ZstdStreamingDecompressor makeStreamingDecompressor();
 }

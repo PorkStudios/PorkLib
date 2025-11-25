@@ -19,7 +19,7 @@
 
 package net.daporkchop.lib.compression.zstd.natives;
 
-import net.daporkchop.lib.compression.zstd.ZstdOneshotProvider;
+import net.daporkchop.lib.compression.zstd.ZstdOneshotFactory;
 
 /**
  * @author DaPorkchop_
@@ -31,7 +31,7 @@ public final class JniZstdImplementation extends AbstractNativeZstdImplementatio
     }
 
     @Override
-    public ZstdOneshotProvider getOneshotProvider() throws UnsatisfiedLinkError {
-        return new JniZstdProvider();
+    public ZstdOneshotFactory getOneshotFactory() throws UnsatisfiedLinkError {
+        return new JniZstdFactory();
     }
 }

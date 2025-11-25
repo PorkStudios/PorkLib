@@ -36,7 +36,7 @@ import java.nio.ByteBuffer;
 /**
  * @author DaPorkchop_
  */
-public final class JniZstdProvider extends NativeZstdProvider {
+public final class JniZstdFactory extends NativeZstdFactory {
     static {
         //TODO: load jni library
     }

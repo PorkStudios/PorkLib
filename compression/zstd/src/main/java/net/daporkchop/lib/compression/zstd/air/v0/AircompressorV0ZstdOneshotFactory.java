@@ -28,7 +28,7 @@ import net.daporkchop.lib.compression.zstd.ZstdDecompressDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdImplementationCapabilities;
 import net.daporkchop.lib.compression.zstd.ZstdOneshotCompressor;
 import net.daporkchop.lib.compression.zstd.ZstdOneshotDecompressor;
-import net.daporkchop.lib.compression.zstd.ZstdOneshotProvider;
+import net.daporkchop.lib.compression.zstd.ZstdOneshotFactory;
 import net.daporkchop.lib.natives.util.MemoryPreference;
 
 import java.nio.ByteBuffer;
@@ -38,7 +38,7 @@ import static net.daporkchop.lib.common.util.PValidation.*;
 /**
  * @author DaPorkchop_
  */
-final class AircompressorV0ZstdOneshotProvider implements ZstdOneshotProvider {
+final class AircompressorV0ZstdOneshotFactory implements ZstdOneshotFactory {
     static { //TODO: this can be safely removed, we already perform these checks in AircompressorV0ZstdImplementation
         checkState(PlatformInfo.IS_LITTLE_ENDIAN, "aircompressor only works on little-endian systems!");
         checkState(PlatformInfo.UNALIGNED, "aircompressor requires unaligned memory access!");
@@ -48,12 +48,12 @@ final class AircompressorV0ZstdOneshotProvider implements ZstdOneshotProvider {
 
     @Override
     public ZstdOneshotCompressor makeOneshotCompressor() {
-        return new AircompressorV0ZstdOneshotCompressor(this);
+        return new AircompressorV0ZstdOneshotCompressor();
     }
 
     @Override
     public ZstdOneshotDecompressor makeOneshotDecompressor() {
-        return new AircompressorV0ZstdOneshotDecompressor(this);
+        return new AircompressorV0ZstdOneshotDecompressor();
     }
 
     @Override

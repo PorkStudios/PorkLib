@@ -20,7 +20,6 @@
 package net.daporkchop.lib.compression.context;
 
 import net.daporkchop.lib.common.annotation.NotThreadSafe;
-import net.daporkchop.lib.compression.OneshotCompressionProvider;
 
 /**
  * Base interface for {@link POneshotCompressor} and {@link POneshotDecompressor}.
@@ -29,9 +28,4 @@ import net.daporkchop.lib.compression.OneshotCompressionProvider;
  */
 @NotThreadSafe
 public interface OneshotContext extends IContext {
-    /**
-     * @return the {@link OneshotCompressionProvider} that created this context
-     */
-    @Override
-    OneshotCompressionProvider provider();
 }

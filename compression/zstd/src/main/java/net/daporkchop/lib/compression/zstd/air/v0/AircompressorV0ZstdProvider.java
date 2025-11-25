@@ -20,9 +20,8 @@
 package net.daporkchop.lib.compression.zstd.air.v0;
 
 import net.daporkchop.lib.common.util.PThrowables;
-import net.daporkchop.lib.compression.zstd.ZstdImplementationCapabilities;
-import net.daporkchop.lib.compression.zstd.ZstdImplementationCaps;
-import net.daporkchop.lib.compression.zstd.ZstdOneshotImplementation;
+import net.daporkchop.lib.compression.zstd.ZstdProviderCapabilities;
+import net.daporkchop.lib.compression.zstd.ZstdOneshotProvider;
 import net.daporkchop.lib.compression.zstd.ZstdOneshotFactory;
 import net.daporkchop.lib.natives.util.MemoryPreference;
 import net.daporkchop.lib.unsafe.PUnsafe;
@@ -32,7 +31,7 @@ import java.nio.ByteOrder;
 /**
  * @author DaPorkchop_
  */
-@ZstdImplementationCaps(
+@ZstdProviderCapabilities(
         memoryPreference = MemoryPreference.ANY,
         supportsStreaming = false,
         supportsDictionary = false,
@@ -40,7 +39,7 @@ import java.nio.ByteOrder;
         supportsChecksumFlag = false,
         supportsContentSizeFlag = false,
         supportsDictIdFlag = false)
-public final class AircompressorV0ZstdImplementation implements ZstdOneshotImplementation {
+public final class AircompressorV0ZstdProvider implements ZstdOneshotProvider {
     private static final Throwable UNAVAILABILITY_CAUSE;
 
     static {
@@ -56,11 +55,6 @@ public final class AircompressorV0ZstdImplementation implements ZstdOneshotImple
     @Override
     public Throwable unavailabilityCause() {
         return UNAVAILABILITY_CAUSE;
-    }
-
-    @Override
-    public ZstdImplementationCapabilities capabilities() {
-        return null;
     }
 
     @Override

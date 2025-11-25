@@ -20,6 +20,7 @@
 package net.daporkchop.lib.compression.zstd;
 
 import net.daporkchop.lib.compression.CompressionFactory;
+import net.daporkchop.lib.natives.util.MemoryPreference;
 
 /**
  * @author DaPorkchop_
@@ -28,5 +29,13 @@ interface ZstdFactory extends CompressionFactory {
     /**
      * @return the capabilities of this ZSTD implementation
      */
-    ZstdImplementationCapabilities capabilities();
+    ZstdProviderCapabilities capabilities();
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default MemoryPreference memoryPreference() {
+        return this.capabilities().memoryPreference();
+    }
 }

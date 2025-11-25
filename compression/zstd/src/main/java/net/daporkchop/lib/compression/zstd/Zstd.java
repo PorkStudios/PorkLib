@@ -54,7 +54,7 @@ public final class Zstd {
             return DEFAULT_ONESHOT_FACTORY;
         }
 
-        return DEFAULT_ONESHOT_FACTORY = getImplementationWith(ZstdOneshotImplementation.class, null).getOneshotFactory();
+        return DEFAULT_ONESHOT_FACTORY = getProviderWith(ZstdOneshotProvider.class, null).getOneshotFactory();
     }
 
     public synchronized static ZstdStreamingFactory getDefaultStreamingFactory() {
@@ -62,26 +62,26 @@ public final class Zstd {
             return DEFAULT_STREAMING_FACTORY;
         }
 
-        return DEFAULT_STREAMING_FACTORY = getImplementationWith(ZstdStreamingImplementation.class, null).getStreamingFactory();
+        return DEFAULT_STREAMING_FACTORY = getProviderWith(ZstdStreamingProvider.class, null).getStreamingFactory();
     }
 
-    private static <I extends ZstdOneshotImplementation> I getImplementationWith(@NonNull Class<I> interfaz, Predicate<? super ZstdImplementationCaps> capabilitiesFilter) {
+    private static <P extends ZstdOneshotProvider> P getProviderWith(@NonNull Class<P> interfaz, Predicate<? super ZstdProviderCapabilities> capabilitiesFilter) {
         return TransformingServiceLoader.builder(MethodHandles.lookup(), interfaz)
-                .classFilter(implementationClass -> {
-                    val capabilities = implementationClass.getAnnotation(ZstdImplementationCaps.class);
-                    checkState(capabilities != null, "%s is missing annotation %s", implementationClass, ZstdImplementationCaps.class);
+                .classFilter(providerClass -> {
+                    val capabilities = providerClass.getAnnotation(ZstdProviderCapabilities.class);
+                    checkState(capabilities != null, "%s is missing annotation %s", providerClass, ZstdProviderCapabilities.class);
                     return capabilitiesFilter == null || capabilitiesFilter.test(capabilities);
                 })
-                .instanceFilter(I::isAvailable)
+                .instanceFilter(P::isAvailable)
                 .build().findFirst();
     }
 
-    public static ZstdOneshotFactory getOneshotFactoryWith(@NonNull Predicate<? super ZstdImplementationCaps> capabilitiesFilter) {
-        return getImplementationWith(ZstdOneshotImplementation.class, capabilitiesFilter).getOneshotFactory();
+    public static ZstdOneshotFactory getOneshotFactoryWith(@NonNull Predicate<? super ZstdProviderCapabilities> capabilitiesFilter) {
+        return getProviderWith(ZstdOneshotProvider.class, capabilitiesFilter).getOneshotFactory();
     }
 
-    public static ZstdStreamingFactory getStreamingFactoryWith(@NonNull Predicate<? super ZstdImplementationCaps> capabilitiesFilter) {
-        return getImplementationWith(ZstdStreamingImplementation.class, capabilitiesFilter).getStreamingFactory();
+    public static ZstdStreamingFactory getStreamingFactoryWith(@NonNull Predicate<? super ZstdProviderCapabilities> capabilitiesFilter) {
+        return getProviderWith(ZstdStreamingProvider.class, capabilitiesFilter).getStreamingFactory();
     }
 
     public static @NotNegative int compressBound(@NotNegative int srcSize) throws IllegalArgumentException, ArithmeticException {

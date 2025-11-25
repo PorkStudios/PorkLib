@@ -25,11 +25,10 @@ import net.daporkchop.lib.common.annotation.Borrow;
 import net.daporkchop.lib.common.system.PlatformInfo;
 import net.daporkchop.lib.compression.zstd.ZstdCompressDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdDecompressDictionary;
-import net.daporkchop.lib.compression.zstd.ZstdImplementationCapabilities;
+import net.daporkchop.lib.compression.zstd.ZstdProviderCapabilities;
 import net.daporkchop.lib.compression.zstd.ZstdOneshotCompressor;
 import net.daporkchop.lib.compression.zstd.ZstdOneshotDecompressor;
 import net.daporkchop.lib.compression.zstd.ZstdOneshotFactory;
-import net.daporkchop.lib.natives.util.MemoryPreference;
 
 import java.nio.ByteBuffer;
 
@@ -44,7 +43,10 @@ final class AircompressorV0ZstdOneshotFactory implements ZstdOneshotFactory {
         checkState(PlatformInfo.UNALIGNED, "aircompressor requires unaligned memory access!");
     }
 
-    private static final ZstdImplementationCapabilities CAPABILITIES = ZstdImplementationCapabilities.builder().build();
+    @Override
+    public ZstdProviderCapabilities capabilities() {
+        return AircompressorV0ZstdProvider.class.getAnnotation(ZstdProviderCapabilities.class);
+    }
 
     @Override
     public ZstdOneshotCompressor makeOneshotCompressor() {
@@ -54,16 +56,6 @@ final class AircompressorV0ZstdOneshotFactory implements ZstdOneshotFactory {
     @Override
     public ZstdOneshotDecompressor makeOneshotDecompressor() {
         return new AircompressorV0ZstdOneshotDecompressor();
-    }
-
-    @Override
-    public MemoryPreference memoryPreference() {
-        return MemoryPreference.ANY;
-    }
-
-    @Override
-    public ZstdImplementationCapabilities capabilities() {
-        return CAPABILITIES;
     }
 
     @Override

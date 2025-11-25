@@ -17,5 +17,5 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
-net.daporkchop.lib.compression.zstd.natives.JniZstdImplementation
-net.daporkchop.lib.compression.zstd.air.v0.AircompressorV0ZstdImplementation
+net.daporkchop.lib.compression.zstd.natives.JniZstdProvider
+net.daporkchop.lib.compression.zstd.air.v0.AircompressorV0ZstdProvider

@@ -24,17 +24,17 @@ import net.daporkchop.lib.natives.OptionalFeature;
 /**
  * @author DaPorkchop_
  */
-public interface ZstdOneshotImplementation extends OptionalFeature {
+public interface ZstdOneshotProvider extends OptionalFeature {
     /**
-     * @return this implmentation's {@link ZstdImplementationCapabilities capabilities}
+     * @return this provider's {@link ZstdProviderCapabilities capabilities}
      */
-    default ZstdImplementationCapabilities capabilities() {
-        return ZstdImplementationCapabilities.fromAnnotation(this.getClass().getAnnotation(ZstdImplementationCaps.class));
+    default ZstdProviderCapabilities capabilities() {
+        return this.getClass().getAnnotation(ZstdProviderCapabilities.class);
     }
 
     /**
-     * @return an instance of {@link ZstdOneshotFactory} backed by this implementation
-     * @throws UnsatisfiedLinkError if this implementation is not {@link #isAvailable() available}
+     * @return an instance of {@link ZstdOneshotFactory} backed by this provider
+     * @throws UnsatisfiedLinkError if this provider is not {@link #isAvailable() available}
      */
     ZstdOneshotFactory getOneshotFactory() throws UnsatisfiedLinkError;
 }

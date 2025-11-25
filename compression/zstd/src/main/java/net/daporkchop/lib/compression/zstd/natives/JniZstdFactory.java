@@ -19,7 +19,6 @@
 
 package net.daporkchop.lib.compression.zstd.natives;
 
-import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.common.annotation.Borrow;
 import net.daporkchop.lib.common.util.PNioBuffers;
@@ -64,36 +63,6 @@ final class JniZstdFactory extends AbstractNativeZstdFactory {
     }
 
     @Override
-    public ZstdCompressDictionary makeCompressionDictionary(@Borrow @NonNull ByteBuf dict, int level) throws IllegalArgumentException {
-        Zstd.checkLevel(level);
-
-        //get buffer pointers
-        long dictMemoryAddress = 0L;
-        byte[] dictArray = null;
-        int dictArrayOffset = 0;
-        if (dict.hasMemoryAddress()) {
-            dictMemoryAddress = dict.memoryAddress();
-        } else if (dict.hasArray()) {
-            dictArray = dict.array();
-            dictArrayOffset = dict.arrayOffset();
-        } else {
-            // This is most likely a read-only heap buffer or a composite buffer, although it could be another buffer of some unknown type.
-            // Since we can't access the underlying storage, we'll copy it to a temporary buffer (slow!!!)
-            ByteBuf copy = dict.alloc().directBuffer(dict.readableBytes(), dict.readableBytes());
-            try {
-                dict.getBytes(dict.readerIndex(), copy);
-                return this.makeCompressionDictionary(copy, level);
-            } finally {
-                copy.release();
-            }
-        }
-
-        return new NativeZstdCDict(this, ((JniZstdFunctions) this.functions).ZSTD_createCDict(
-                dictMemoryAddress, dictArray, dictArrayOffset, dict.readerIndex(), dict.readableBytes(),
-                level));
-    }
-
-    @Override
     public ZstdDecompressDictionary makeDecompressionDictionary(@Borrow @NonNull ByteBuffer dict) {
         //get buffer pointers
         long dictMemoryAddress = 0L;
@@ -112,33 +81,6 @@ final class JniZstdFactory extends AbstractNativeZstdFactory {
 
         return new NativeZstdDDict(this, ((JniZstdFunctions) this.functions).ZSTD_createDDict(
                 dictMemoryAddress, dictArray, dictArrayOffset, dict.position(), dict.remaining()));
-    }
-
-    @Override
-    public ZstdDecompressDictionary makeDecompressionDictionary(@Borrow @NonNull ByteBuf dict) {
-        //get buffer pointers
-        long dictMemoryAddress = 0L;
-        byte[] dictArray = null;
-        int dictArrayOffset = 0;
-        if (dict.hasMemoryAddress()) {
-            dictMemoryAddress = dict.memoryAddress();
-        } else if (dict.hasArray()) {
-            dictArray = dict.array();
-            dictArrayOffset = dict.arrayOffset();
-        } else {
-            // This is most likely a read-only heap buffer or a composite buffer, although it could be another buffer of some unknown type.
-            // Since we can't access the underlying storage, we'll copy it to a temporary buffer (slow!!!)
-            ByteBuf copy = dict.alloc().directBuffer(dict.readableBytes(), dict.readableBytes());
-            try {
-                dict.getBytes(dict.readerIndex(), copy);
-                return this.makeDecompressionDictionary(copy);
-            } finally {
-                copy.release();
-            }
-        }
-
-        return new NativeZstdDDict(this, ((JniZstdFunctions) this.functions).ZSTD_createDDict(
-                dictMemoryAddress, dictArray, dictArrayOffset, dict.readerIndex(), dict.readableBytes()));
     }
 
     @Override

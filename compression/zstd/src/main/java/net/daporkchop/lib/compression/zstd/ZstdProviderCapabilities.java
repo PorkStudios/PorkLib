@@ -35,7 +35,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
-public @interface ZstdImplementationCaps {
+public @interface ZstdProviderCapabilities {
     /**
      * The type of memory which this implementation prefers to operate on.
      */

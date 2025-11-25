@@ -17,15 +17,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.compression.zstd;
+package net.daporkchop.lib.compression.zstd.natives;
+
+import net.daporkchop.lib.compression.zstd.ZstdOneshotFactory;
 
 /**
  * @author DaPorkchop_
  */
-public interface ZstdStreamingImplementation extends ZstdOneshotImplementation {
-    /**
-     * @return an instance of {@link ZstdStreamingFactory} backed by this implementation
-     * @throws UnsatisfiedLinkError if this implementation is not {@link #isAvailable() available}
-     */
-    ZstdStreamingFactory getStreamingFactory() throws UnsatisfiedLinkError;
+public final class JniZstdProvider extends AbstractNativeZstdProvider {
+    @Override
+    public Throwable unavailabilityCause() {
+        throw new AbstractMethodError(); //TODO
+    }
+
+    @Override
+    public ZstdOneshotFactory getOneshotFactory() throws UnsatisfiedLinkError {
+        return new JniZstdFactory();
+    }
 }

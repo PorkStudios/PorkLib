@@ -84,7 +84,6 @@ final class JniZstdDCtx extends NativeZstdDCtx {
         switch (this.functions.ZSTD_getErrorCode(result)) {
             case ZSTD_error_no_error:
                 //success, advance buffer indices (we assume that the result is in bounds and therefore won't overflow)
-                src.position(src.limit());
                 dst.position(dst.position() + (int) result);
                 return (int) result;
             case ZSTD_error_dstSize_tooSmall:
@@ -134,7 +133,6 @@ final class JniZstdDCtx extends NativeZstdDCtx {
         switch (this.functions.ZSTD_getErrorCode(result)) {
             case ZSTD_error_no_error:
                 //success, advance buffer indices (we assume that the result is in bounds and therefore won't overflow)
-                src.skipBytes(src.readableBytes());
                 dst.writerIndex(dst.writerIndex() + (int) result);
                 return (int) result;
             case ZSTD_error_dstSize_tooSmall:

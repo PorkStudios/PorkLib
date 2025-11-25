@@ -81,9 +81,11 @@ public interface POneshotCompressor extends OneshotContext {
     /**
      * Compresses the given source data into the given destination buffer.
      * <p>
-     * On success, the source buffer's position will be advanced to its limit, and the destination buffer's position will be increased by the number of bytes
-     * produced by this operation (which is equal to the number returned by this method). On failure, both buffer's positions remain unchanged, however the
-     * contents of the destination buffer's remaining bytes may be modified.
+     * On success, the destination buffer's position will be increased by the number of bytes produced by this operation (which is equal to the number returned by this
+     * method). On failure, the destination buffer's position remains unchanged, however the contents of the destination buffer's remaining bytes may be modified. In
+     * either case the source buffer's position and contents remain unchanged.
+     * <p>
+     * The behavior is undefined if the source and destination buffer's memory regions overlap.
      * <p>
      * Note that if the source buffer is read-only, its content may have be copied to a temporary heap allocation, resulting in higher memory use and garbage
      * collection pressure.
@@ -98,8 +100,11 @@ public interface POneshotCompressor extends OneshotContext {
     /**
      * Compresses the given source data into the given destination buffer.
      * <p>
-     * If the destination buffer does not have enough space writable for the compressed data, the operation will fail and both buffer's indices will remain
-     * unchanged, however the destination buffer's contents may be modified.
+     * On success, the destination buffer's writer index will be increased by the number of bytes produced by this operation (which is equal to the number returned by this
+     * method). On failure, the destination buffer's indices remain unchanged, however the contents of the destination buffer's writable bytes may be modified. In
+     * either case the source buffer's indices and contents remain unchanged.
+     * <p>
+     * The behavior is undefined if the source and destination buffer's memory regions overlap.
      * <p>
      * Note that if the source buffer is read-only and/or a composite, its content may have be copied to a temporary heap allocation, resulting in higher memory
      * use and garbage collection pressure.
@@ -107,7 +112,7 @@ public interface POneshotCompressor extends OneshotContext {
      * @param src the {@link ByteBuf} to read source data from
      * @param dst the {@link ByteBuf} to write compressed data to
      * @return the size of the compressed data in bytes, or a negative value if the destination buffer was too small for the compressed data
-     * @throws ReadOnlyBufferException if the destination buffer is read-only
+     * @throws ReadOnlyBufferException  if the destination buffer is read-only
      * @throws CompositeBufferException if the destination buffer is a composite buffer with more than one component
      */
     default int compress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws ReadOnlyBufferException, CompositeBufferException {
@@ -115,11 +120,9 @@ public interface POneshotCompressor extends OneshotContext {
         ByteBuffer nioSrc = PNetty4Buffers.getNioBufferForRead(src); //copies content to heap if src is composite
         ByteBuffer nioDst = PNetty4Buffers.getNioBufferForRead(dst); //throws ReadOnlyBufferException or CompositeBufferException as necessary
 
-        int initialNioSrcPosition = nioSrc.position();
         int initialNioDstPosition = nioDst.position();
 
         int result = this.compress(nioSrc, nioDst);
-        src.skipBytes(nioSrc.position() - initialNioSrcPosition);
         dst.writerIndex(dst.writerIndex() + nioDst.position() - initialNioDstPosition);
         return result;
     }

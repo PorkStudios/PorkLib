@@ -27,6 +27,7 @@ import net.daporkchop.lib.common.annotation.param.NotNegative;
 import net.daporkchop.lib.common.annotation.param.Positive;
 
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.nio.ReadOnlyBufferException;
 import java.nio.channels.GatheringByteChannel;
 import java.nio.channels.WritableByteChannel;
@@ -142,7 +143,18 @@ public interface PStreamingCompressor extends StreamingContext {
      */
     @NotNegative long getRequestedOutputBytes();
 
-    //TODO: add ByteBuffer overload
+    /**
+     * Compresses as much data as possible and writes it to the output buffer.
+     *
+     * @param src   the buffer to read the input data from. If no exception is thrown, this buffer's position will be incremented by {@link #getLastReadBytes()}.
+     *              The bytes remaining in the input buffer once this method returns are expected to be a prefix of the readable bytes in the input buffer passed
+     *              to subsequent calls to this method
+     * @param dst   the buffer to write the compressed data to. If no exception is thrown, this buffer's position will be incremented by {@link #getLastWrittenBytes()}
+     * @param flush the flush mode to use
+     * @return {@code true} if all the available input data was read and all output was written according to the given {@link FlushMode}, {@code false} if more output space is requested
+     * @throws ReadOnlyBufferException if the destination buffer is read-only
+     */
+    boolean compress(@NonNull ByteBuffer src, @NonNull ByteBuffer dst, @NonNull FlushMode flush) throws ReadOnlyBufferException;
 
     /**
      * Compresses as much data as possible and writes it to the output buffer.

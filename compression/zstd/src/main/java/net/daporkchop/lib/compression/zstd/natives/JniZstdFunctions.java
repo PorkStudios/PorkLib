@@ -28,7 +28,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 final class JniZstdFunctions extends NativeZstdFunctions {
     static {
-        //TODO: load jni library
+        if (JniZstdProvider.UNAVAILABILITY_CAUSE != null) {
+            throw new AssertionError("JNI library failed to load!", JniZstdProvider.UNAVAILABILITY_CAUSE);
+        }
     }
 
     /*private static native void configure(boolean allowJniCritical);
@@ -71,7 +73,7 @@ final class JniZstdFunctions extends NativeZstdFunctions {
     @Override
     native int ZSTD_getDictID_fromCDict(long cdict);
 
-    native long ZSTD_createCDict(
+    static native long ZSTD_createCDict(
             long dictAddr, byte[] dictArray, int dictArrayOffset, int dictPosition, int dictRemaining,
             int level);
 
@@ -90,7 +92,7 @@ final class JniZstdFunctions extends NativeZstdFunctions {
     @Override
     native long ZSTD_DCtx_setParameter(long dctx, int param, int value);
 
-    native long ZSTD_createDDict(
+    static native long ZSTD_createDDict(
             long dictAddr, byte[] dictArray, int dictArrayOffset, int dictPosition, int dictRemaining);
 
     @Override

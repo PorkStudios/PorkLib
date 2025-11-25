@@ -42,11 +42,6 @@ public @interface ZstdProviderCapabilities {
     MemoryPreference memoryPreference();
 
     /**
-     * {@code true} iff. the implementation supports compression with a non-default level.
-     */
-    boolean supportsStreaming();
-
-    /**
      * {@code true} iff. the implementation supports using a ZSTD dictionary for compression and/or decompression.
      */
     boolean supportsDictionary();

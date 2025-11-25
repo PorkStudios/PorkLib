@@ -25,13 +25,26 @@ import net.daporkchop.lib.compression.zstd.ZstdOneshotFactory;
  * @author DaPorkchop_
  */
 public final class JniZstdProvider extends AbstractNativeZstdProvider {
+    static final Throwable UNAVAILABILITY_CAUSE;
+
+    static {
+        Throwable unavailabilityCause = null;
+        try {
+            //TODO: load native library
+        } catch (Throwable t) {
+            unavailabilityCause = t;
+        }
+        UNAVAILABILITY_CAUSE = unavailabilityCause;
+    }
+
     @Override
     public Throwable unavailabilityCause() {
-        throw new AbstractMethodError(); //TODO
+        return UNAVAILABILITY_CAUSE;
     }
 
     @Override
     public ZstdOneshotFactory getOneshotFactory() throws UnsatisfiedLinkError {
+        this.ensureAvailability();
         return new JniZstdFactory();
     }
 }

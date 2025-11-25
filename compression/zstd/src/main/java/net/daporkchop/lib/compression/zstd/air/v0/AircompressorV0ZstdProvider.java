@@ -33,7 +33,6 @@ import java.nio.ByteOrder;
  */
 @ZstdProviderCapabilities(
         memoryPreference = MemoryPreference.ANY,
-        supportsStreaming = false,
         supportsDictionary = false,
         supportsCompressionLevel = false,
         supportsChecksumFlag = false,

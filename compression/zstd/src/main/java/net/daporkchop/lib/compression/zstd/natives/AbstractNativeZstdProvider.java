@@ -28,7 +28,6 @@ import net.daporkchop.lib.natives.util.MemoryPreference;
  */
 @ZstdProviderCapabilities(
         memoryPreference = MemoryPreference.PREFER_DIRECT,
-        supportsStreaming = false,
         supportsCompressionLevel = true,
         supportsDictionary = true,
         supportsChecksumFlag = true,

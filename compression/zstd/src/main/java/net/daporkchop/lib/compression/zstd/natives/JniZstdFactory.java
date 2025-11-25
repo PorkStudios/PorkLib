@@ -57,7 +57,7 @@ final class JniZstdFactory extends AbstractNativeZstdFactory {
             dictArray = PNioBuffers.toArray(dict);
         }
 
-        return new NativeZstdCDict(this, ((JniZstdFunctions) this.functions).ZSTD_createCDict(
+        return new NativeZstdCDict(this, JniZstdFunctions.ZSTD_createCDict(
                 dictMemoryAddress, dictArray, dictArrayOffset, dict.position(), dict.remaining(),
                 level));
     }
@@ -79,7 +79,7 @@ final class JniZstdFactory extends AbstractNativeZstdFactory {
             dictArray = PNioBuffers.toArray(dict);
         }
 
-        return new NativeZstdDDict(this, ((JniZstdFunctions) this.functions).ZSTD_createDDict(
+        return new NativeZstdDDict(this, JniZstdFunctions.ZSTD_createDDict(
                 dictMemoryAddress, dictArray, dictArrayOffset, dict.position(), dict.remaining()));
     }
 

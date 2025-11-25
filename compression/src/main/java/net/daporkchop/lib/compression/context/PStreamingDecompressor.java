@@ -27,6 +27,7 @@ import net.daporkchop.lib.common.annotation.param.NotNegative;
 import net.daporkchop.lib.common.annotation.param.Positive;
 
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.nio.ReadOnlyBufferException;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.ScatteringByteChannel;
@@ -145,7 +146,29 @@ public interface PStreamingDecompressor extends StreamingContext {
      */
     @NotNegative long getRequestedOutputBytes();
 
-    //TODO: add ByteBuffer overload
+    /**
+     * Reads compressed data from the input buffer and writes it to the output buffer until the next stopping point is reached.
+     * <p>
+     * A stopping point is generally a point at which the compressed data stream was {@link PStreamingCompressor.FlushMode#FINISH finished}, but may also include points
+     * where it was {@link PStreamingCompressor.FlushMode#SYNC flushed} or {@link PStreamingCompressor.FlushMode#FULL fully flushed}. Most compression algorithms allow
+     * concatenating multiple compressed streams into a single compressed stream, so whether or not to continue decompressing after a stopping point has been reached is
+     * generally up to the user.
+     * <p>
+     * If a stopping point is read from the input buffer but there is insufficient space in the output buffer, this method will not read any more bytes from the
+     * input buffer or return {@code true} until all output data has been written to the output buffer.
+     *
+     * @param src the buffer to read the input data from. If no exception is thrown, this buffer's position will be incremented by {@link #getLastReadBytes()}.
+     *            The bytes remaining in the input buffer once this method returns are expected to be a prefix of the readable bytes in the input buffer passed
+     *            to subsequent calls to this method
+     * @param dst the buffer to write the decompressed data to. If no exception is thrown, this buffer's position will be incremented by {@link #getLastWrittenBytes()}.
+     *            This buffer's capacity will not be increased.
+     * @param eof {@code true} if the end of the input data stream has been reached. Once this argument has been {@code true}, no more input data may be provided,
+     *            and this method must be called until it returns {@code true}, with more output space provided as needed.
+     * @return {@code true} if the decompressor has reached a stopping point and all data up to the stopping point has been written to the output buffer, or {@code false} if more input data and/or output space is required
+     * @throws DataFormatException if the source data is not valid compressed data
+     * @throws ReadOnlyBufferException if the destination buffer is read-only
+     */
+    boolean decompress(@NonNull ByteBuffer src, @NonNull ByteBuffer dst, boolean eof) throws DataFormatException, ReadOnlyBufferException;
 
     /**
      * Reads compressed data from the input buffer and writes it to the output buffer until the next stopping point is reached.

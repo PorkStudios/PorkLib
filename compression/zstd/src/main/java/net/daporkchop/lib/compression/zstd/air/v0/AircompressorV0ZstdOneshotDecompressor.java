@@ -47,7 +47,6 @@ final class AircompressorV0ZstdOneshotDecompressor extends AbstractAircompressor
         try {
             int dstPosition = dst.position();
             this.decompressor.decompress(src, dst);
-            src.position(src.limit());
             return dst.position() - dstPosition;
         } catch (MalformedInputException e) {
             //this is pretty gross but there isn't really a better way to do it

@@ -46,7 +46,6 @@ final class AircompressorV0ZstdOneshotCompressor extends AbstractAircompressorV0
         try {
             int dstPosition = dst.position();
             this.compressor.compress(src, dst);
-            src.position(src.limit());
             return dst.position() - dstPosition;
         } catch (IllegalArgumentException e) {
             //this is pretty gross but there isn't really a better way to do it

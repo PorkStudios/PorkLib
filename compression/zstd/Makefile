@@ -14,34 +14,32 @@ $(BUILD):
 
 else
 .PHONY: build
+.SECONDEXPANSION:
 
 include $(TOOLCHAINS)/$(BUILD)
 
 SOURCES			:=	$(PROJDIR)/src/main/native/common $(PROJDIR)/src/main/native/$(BUILD) $(COMMONSRC)/common $(COMMONSRC)/$(BUILD)
 SOURCES			:=	$(abspath $(SOURCES))
 
-CFILES			:=	$(foreach dir,$(SOURCES),$(wildcard $(dir)/*.c))
 CPPFILES		:=	$(foreach dir,$(SOURCES),$(wildcard $(dir)/*.cpp))
-OFILES			:=	$(addsuffix .o,$(subst /,__,$(CFILES)) $(subst /,__,$(CPPFILES)))
+OFILES			:=	$(addsuffix .o,$(subst /,__,$(CPPFILES)))
 
 INCLUDE			:=	$(addprefix -I,$(INCLUDES) $(CURDIR))
+
+-include $(OFILES:.o=.d)
 
 build: libzstd.$(EXT)
 	@echo "Copying libzstd.$(EXT) to $(OUTDIR)/..."
 	@[ -d $(OUTDIR) ] || mkdir -p $(OUTDIR)
 	@cp libzstd.$(EXT) $(OUTDIR)/$(BUILD).$(EXT)
 
-libzstd.$(EXT): $(CFILES) $(CPPFILES) $(OFILES) $(CURDIR)/lib-zstd/lib/libzstd.a
+libzstd.$(EXT): $(OFILES) $(CURDIR)/lib-zstd/lib/libzstd.a
 	@echo "Linking $@..."
 	@$(LD) $(LDFLAGS) $(INCLUDE) -o $@ $(OFILES) $(CURDIR)/lib-zstd/lib/libzstd.a
 
-%.c.o: $(CFILES) $(CURDIR)/lib-zstd/lib/libzstd.a
+%.cpp.o: $(CURDIR)/lib-zstd/lib/libzstd.a $$(subst __,/,%.cpp)
 	@echo "Building $(subst .o,,$(subst __,/,$@))..."
-	@$(CC) $(CFLAGS) $(INCLUDE) -c $(subst .o,,$(subst __,/,$@)) -o $@
-
-%.cpp.o: $(CPPFILES) $(CURDIR)/lib-zstd/lib/libzstd.a
-	@echo "Building $(subst .o,,$(subst __,/,$@))..."
-	$(CXX) $(CXXFLAGS) $(INCLUDE) -c $(subst .o,,$(subst __,/,$@)) -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDE) -MMD -MP -c $(subst .o,,$(subst __,/,$@)) -o $@
 
 $(CURDIR)/lib-zstd/lib/libzstd.a: $(TOPDIR)/zstd-1.4.4.tar.gz
 	@[ ! -d lib-zstd ] || rm -rf lib-zstd/

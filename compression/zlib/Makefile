@@ -14,34 +14,32 @@ $(BUILD):
 
 else
 .PHONY: build
+.SECONDEXPANSION:
 
 include $(TOOLCHAINS)/$(BUILD)
 
 SOURCES			:=	$(PROJDIR)/src/main/native/common $(PROJDIR)/src/main/native/$(BUILD) $(COMMONSRC)/common $(COMMONSRC)/$(BUILD)
 SOURCES			:=	$(abspath $(SOURCES))
 
-CFILES			:=	$(foreach dir,$(SOURCES),$(wildcard $(dir)/*.c))
 CPPFILES		:=	$(foreach dir,$(SOURCES),$(wildcard $(dir)/*.cpp))
-OFILES			:=	$(addsuffix .o,$(subst /,__,$(CFILES)) $(subst /,__,$(CPPFILES)))
+OFILES			:=	$(addsuffix .o,$(subst /,__,$(CPPFILES)))
 
 INCLUDE			:=	$(addprefix -I,$(INCLUDES) $(CURDIR))
+
+-include $(OFILES:.o=.d)
 
 build: libzlib.$(EXT)
 	@echo "Copying libzlib.$(EXT) to $(OUTDIR)/..."
 	@[ -d $(OUTDIR) ] || mkdir -p $(OUTDIR)
 	@cp libzlib.$(EXT) $(OUTDIR)/$(BUILD).$(EXT)
 
-libzlib.$(EXT): $(CFILES) $(CPPFILES) $(OFILES) $(CURDIR)/lib-zlib/libz-ng.a
+libzlib.$(EXT): $(OFILES) $(CURDIR)/lib-zlib/libz-ng.a
 	@echo "Linking $@..."
 	@$(LD) $(LDFLAGS) $(INCLUDE) -o $@ $(OFILES) $(CURDIR)/lib-zlib/libz-ng.a
 
-%.c.o: $(CFILES) $(CURDIR)/lib-zlib/libz-ng.a
+%.cpp.o: $(CURDIR)/lib-zlib/libz-ng.a $$(subst __,/,%.cpp)
 	@echo "Building $(subst .o,,$(subst __,/,$@))..."
-	@$(CC) $(CFLAGS) $(INCLUDE) -c $(subst .o,,$(subst __,/,$@)) -o $@
-
-%.cpp.o: $(CPPFILES) $(CURDIR)/lib-zlib/libz-ng.a
-	@echo "Building $(subst .o,,$(subst __,/,$@))..."
-	$(CXX) $(CXXFLAGS) $(INCLUDE) -c $(subst .o,,$(subst __,/,$@)) -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDE) -MMD -MP -c $(subst .o,,$(subst __,/,$@)) -o $@
 
 $(CURDIR)/lib-zlib/libz-ng.a: $(TOPDIR)/zlib-ng-1.2.11.tar.gz
 	@[ ! -d lib-zlib ] || rm -rf lib-zlib/

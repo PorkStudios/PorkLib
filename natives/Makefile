@@ -9,7 +9,7 @@ export COMMONSRC	:=	$(CURDIR)/src/main/native
 
 FLAGS				:=	-shared -fPIC -ffunction-sections -fdata-sections -fvisibility=hidden
 export CFLAGS		:=	$(FLAGS) -O3
-export CXXFLAGS		:=	$(CFLAGS)
+export CXXFLAGS		:=	$(CFLAGS) -std=c++20
 export LDFLAGS		:=	$(FLAGS) -O3 -Wl,--gc-sections
 
 ifndef PORKLIB_NATIVES_DEBUG

@@ -26,17 +26,17 @@ import net.daporkchop.lib.compression.zstd.ZstdDecompressDictionary;
  * @author DaPorkchop_
  */
 final class NativeZstdDDict extends AbstractNativeZstdDictionary implements ZstdDecompressDictionary {
-    NativeZstdDDict(@NonNull AbstractNativeZstdFactory factory, long dict) {
-        super(factory, dict);
+    NativeZstdDDict(@NonNull NativeZstdFunctions functions, long dict) {
+        super(functions, dict);
     }
 
     @Override
-    Runnable freeDictRunnable(@NonNull AbstractNativeZstdFactory factory, long dict) {
-        return () -> factory.ZSTD_freeDDict(dict);
+    Runnable freeDictRunnable(@NonNull NativeZstdFunctions functions, long dict) {
+        return () -> functions.ZSTD_freeDDict(dict);
     }
 
     @Override
     public int id() {
-        return this.factory.ZSTD_getDictID_fromDDict(this.dict);
+        return this.functions.ZSTD_getDictID_fromDDict(this.dict);
     }
 }

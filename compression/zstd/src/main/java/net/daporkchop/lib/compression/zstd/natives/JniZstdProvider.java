@@ -20,6 +20,7 @@
 package net.daporkchop.lib.compression.zstd.natives;
 
 import net.daporkchop.lib.compression.zstd.ZstdOneshotFactory;
+import net.daporkchop.lib.natives.JniLoader;
 
 /**
  * @author DaPorkchop_
@@ -30,8 +31,12 @@ public final class JniZstdProvider extends AbstractNativeZstdProvider {
     static {
         Throwable unavailabilityCause = null;
         try {
+            JniLoader.loadJniLibraryInPrefix("porklib_compression_zstd_native_jni", "", () -> {
+                System.load("/home/daporkchop/code/PorkLib/compression/zstd/src/main/resources/net/daporkchop/lib/compression/zstd/natives/x86_64-linux-gnu.so");
+            });
             //TODO: load native library
         } catch (Throwable t) {
+            t.printStackTrace();
             unavailabilityCause = t;
         }
         UNAVAILABILITY_CAUSE = unavailabilityCause;

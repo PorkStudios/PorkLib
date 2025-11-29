@@ -27,15 +27,15 @@ import net.daporkchop.lib.unsafe.PCleaner;
  * @author DaPorkchop_
  */
 abstract class AbstractNativeZstdDictionary implements QuietCloseable {
-    final AbstractNativeZstdFactory factory; //TODO: rename this
+    final NativeZstdFunctions functions;
 
     final long dict;
     private PCleaner cleaner;
 
-    AbstractNativeZstdDictionary(@NonNull AbstractNativeZstdFactory factory, long dict) {
-        this.factory = factory;
+    AbstractNativeZstdDictionary(@NonNull NativeZstdFunctions functions, long dict) {
+        this.functions = functions;
         this.dict = dict;
-        this.cleaner = PCleaner.cleaner(this, this.freeDictRunnable(factory, dict));
+        this.cleaner = PCleaner.cleaner(this, this.freeDictRunnable(functions, dict));
     }
 
     final void ensureOpen() {
@@ -53,5 +53,5 @@ abstract class AbstractNativeZstdDictionary implements QuietCloseable {
         }
     }
 
-    abstract Runnable freeDictRunnable(@NonNull AbstractNativeZstdFactory factory, long dict);
+    abstract Runnable freeDictRunnable(@NonNull NativeZstdFunctions functions, long dict);
 }

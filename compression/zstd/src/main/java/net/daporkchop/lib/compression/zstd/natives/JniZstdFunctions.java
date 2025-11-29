@@ -67,15 +67,15 @@ final class JniZstdFunctions extends NativeZstdFunctions {
     @Override
     native long ZSTD_CCtx_setParameter(long cctx, int param, int value);
 
+    static native long ZSTD_createCDict(
+            long dictAddr, byte[] dictArray, int dictArrayOffset, int dictPosition, int dictRemaining,
+            int level);
+
     @Override
     native void ZSTD_freeCDict(long cdict);
 
     @Override
     native int ZSTD_getDictID_fromCDict(long cdict);
-
-    static native long ZSTD_createCDict(
-            long dictAddr, byte[] dictArray, int dictArrayOffset, int dictPosition, int dictRemaining,
-            int level);
 
     @Override
     native long ZSTD_createDCtx();

@@ -13,55 +13,161 @@
 #include <vector>
 
 namespace porklib::jni {
-    namespace _detail {
-        struct JniArraysConfig {
-            jboolean allowJniCriticalRead = false;
-            jboolean allowJniCriticalWrite = false;
-
-            jboolean allowJniGetElementsRead = false;
-            jboolean allowJniGetElementsWrite = false;
+    namespace _arrays {
+        enum TernaryState : jbyte {
+            NEVER = 0,
+            ALLOWED = 1,
+            ALWAYS = 2,
         };
 
-        //TODO: this is never used
+        struct JniArraysConfig {
+            TernaryState useCriticalRead = NEVER;
+            TernaryState useCriticalWrite = NEVER;
+
+            TernaryState useGetElementsRead = NEVER;
+            TernaryState useGetElementsWrite = NEVER;
+        };
+
         constinit inline JniArraysConfig ARRAYS_CONFIG = {};
 
         inline void configureJniArrays(const JniArraysConfig& config) noexcept {
             ARRAYS_CONFIG = config;
+            //TODO: do i need some kind of memory fence here to ensure that other threads see this?
         }
 
         [[nodiscard]] inline jbyte* tryGetByteArrayElementsCriticalRead(JNIEnv* env, jbyteArray array, jsize remaining) noexcept {
-            //TODO: implement this
+            // We never use GetPrimitiveArrayCritical() as of this writing (Dec. 2025), mainly because there's no way to guarantee
+            // that no other JNI functions are called while the array is pinned. This will need to be improved in the *ByteRegion
+            // classes below.
             return nullptr;
 
-            return reinterpret_cast<jbyte*>(env->GetPrimitiveArrayCritical(array, nullptr));
+            switch (ARRAYS_CONFIG.useCriticalRead) {
+                default: __builtin_unreachable();
+                case NEVER:
+                    return nullptr;
+                case ALLOWED:
+                    //TODO: maybe add some extra tunables to avoid using critical sections when the array is below a certain size?
+                    return nullptr;
+                case ALWAYS:
+                    return reinterpret_cast<jbyte*>(env->GetPrimitiveArrayCritical(array, nullptr));
+            }
         }
 
+        constinit inline bool ARRAYS_CRITICAL_WRITE_GOT_COPY_FOR_PARTIAL = false;
+
         [[nodiscard]] inline jbyte* tryGetByteArrayElementsCriticalWrite(JNIEnv* env, jbyteArray array, jsize remaining) noexcept {
-            //TODO: implement this
+            // We never use GetPrimitiveArrayCritical() as of this writing (Dec. 2025), mainly because there's no way to guarantee
+            // that no other JNI functions are called while the array is pinned. This will need to be improved in the *ByteRegion
+            // classes below.
             return nullptr;
 
-            return reinterpret_cast<jbyte*>(env->GetPrimitiveArrayCritical(array, nullptr));
+            switch (ARRAYS_CONFIG.useCriticalWrite) {
+                default: __builtin_unreachable();
+                case NEVER:
+                    return nullptr;
+                case ALLOWED:
+                    //TODO: maybe add some extra tunables to avoid using critical sections when the array is below a certain size?
+
+                    //fallthrough
+                case ALWAYS: {
+                    bool partial = env->GetArrayLength(array) != remaining;
+                    if (partial && ARRAYS_CRITICAL_WRITE_GOT_COPY_FOR_PARTIAL) {
+                        return nullptr;
+                    }
+
+                    jboolean copy = false;
+                    void* result = env->GetPrimitiveArrayCritical(array, &copy);
+
+                    if (partial && copy) [[unlikely]] {
+                        // If GetPrimitiveArrayCritical() returns a copy of the array even though we're only planning on writing
+                        // to part of it, we cannot safely invoke ReleasePrimitiveArrayCritical() with mode 0 or JNI_COMMIT. Doing
+                        // so would cause the ENTIRE array's contents to be overwritten with the copied data, which could cause writes
+                        // made to another part of the array in the mean time to be overwritten with old data.
+                        //
+                        // To avoid corruption, we'll release the array again using JNI_ABORT to ensure that no data is copied back,
+                        // and also remember that this occurred so that we can avoid triggering this again in the future.
+                        ARRAYS_CRITICAL_WRITE_GOT_COPY_FOR_PARTIAL = true;
+                        env->ReleasePrimitiveArrayCritical(array, result, JNI_ABORT);
+                        return nullptr;
+                    }
+
+                    return reinterpret_cast<jbyte*>(result);
+                }
+            }
         }
 
         [[nodiscard]] inline jbyte* tryGetByteArrayElementsRead(JNIEnv* env, jbyteArray array, jsize remaining) noexcept {
-            //we never use Get*ArrayElements(): as of this writing (Sep. 2025), there aren't any GC implementations on any Java version
-            //  which ever pin arrays here. Shenandoah pins the array when using GetPrimitiveArrayCritical() since Java 15, but the performance
-            //  impact of that function on on other GCs is bad enough that it isn't really worth the added complexity.
+            // We never use Get*ArrayElements(): as of this writing (Sep. 2025), there aren't any GC implementations on any Java version
+            // which ever pin the arrays. Effectively, this means that the array is always copied, which makes it no better than an
+            // implementation using manual buffer allocation and JNI copies (plus, manual copying lets us avoid moving unnecessary
+            // data if not the entire array is accessed).
             return nullptr;
 
-            if (jsize arrayLength = env->GetArrayLength(array); arrayLength - remaining >= arrayLength / 8) {
-                //we're accessing less than 7/8 of the total array, don't use GetArrayElements()
-                return nullptr;
-            }
+            switch (ARRAYS_CONFIG.useGetElementsRead) {
+                default: __builtin_unreachable();
+                case NEVER:
+                    return nullptr;
+                case ALLOWED:
+                    if (jsize arrayLength = env->GetArrayLength(array); arrayLength - remaining >= arrayLength / 8) {
+                        //we're accessing less than 7/8 of the total array, don't use GetArrayElements()
+                        return nullptr;
+                    }
 
-            //use GetArrayElements(), the array won't be pinned if supported
-            return env->GetByteArrayElements(array, nullptr);
+                    //TODO: maybe add some extra tunables to avoid using GetArrayElements() when the array is below a certain size?
+
+                    //fallthrough
+                case ALWAYS:
+                    //use GetArrayElements(), the array won't be pinned if supported
+                    return env->GetByteArrayElements(array, nullptr);
+            }
         }
 
+        constinit inline bool ARRAY_GETELEMENTS_WRITE_GOT_COPY_FOR_PARTIAL = false;
+
         [[nodiscard]] inline jbyte* tryGetByteArrayElementsWrite(JNIEnv* env, jbyteArray array, jsize remaining) noexcept {
-            //TODO: if GetByteArrayElements() returns a copy and we aren't trying to access the entire array, we should abort so that
-            //  committing changes doesn't overwrite changes made to other parts of the array
-            return tryGetByteArrayElementsCriticalRead(env, array, remaining);
+            // We never use Get*ArrayElements(): as of this writing (Sep. 2025), there aren't any GC implementations on any Java version
+            // which ever pin the arrays. Effectively, this means that the array is always copied, which makes it no better than an
+            // implementation using manual buffer allocation and JNI copies (plus, manual copying lets us avoid moving unnecessary
+            // data if not the entire array is accessed).
+            return nullptr;
+
+            switch (ARRAYS_CONFIG.useGetElementsWrite) {
+                default: __builtin_unreachable();
+                case NEVER:
+                    return nullptr;
+                case ALLOWED:
+                    // The 7/8 check from tryGetByteArrayElementsRead() would be kinda pointless here since we always abort
+                    //   if we get a copy for any partial array access, so that optimization would only benefit a case which
+                    //   can never happen anyway.
+
+                    //TODO: maybe add some extra tunables to avoid using GetArrayElements() when the array is below a certain size?
+
+                    //fallthrough
+                case ALWAYS: {
+                    bool partial = env->GetArrayLength(array) != remaining;
+                    if (partial && ARRAY_GETELEMENTS_WRITE_GOT_COPY_FOR_PARTIAL) {
+                        return nullptr;
+                    }
+
+                    jboolean copy = false;
+                    jbyte* result = env->GetByteArrayElements(array, &copy);
+
+                    if (partial && copy) [[unlikely]] {
+                        // If GetByteArrayElements() returns a copy of the array even though we're only planning on writing
+                        // to part of it, we cannot safely invoke ReleaseByteArrayElements() with mode 0 or JNI_COMMIT. Doing
+                        // so would cause the ENTIRE array's contents to be overwritten with the copied data, which could cause writes
+                        // made to another part of the array in the mean time to be overwritten with old data.
+                        //
+                        // To avoid corruption, we'll release the array again using JNI_ABORT to ensure that no data is copied back,
+                        // and also remember that this occurred so that we can avoid triggering this again in the future.
+                        ARRAY_GETELEMENTS_WRITE_GOT_COPY_FOR_PARTIAL = true;
+                        env->ReleaseByteArrayElements(array, result, JNI_ABORT);
+                        return nullptr;
+                    }
+
+                    return result;
+                }
+            }
         }
     }
 
@@ -97,11 +203,11 @@ namespace porklib::jni {
                 //use the direct address
                 _kind = k_Direct;
                 _data = reinterpret_cast<const jbyte*>(directAddress) + position;
-            } else if (jbyte* elems = _detail::tryGetByteArrayElementsCriticalWrite(env, array, remaining)) {
+            } else if (jbyte* elems = _arrays::tryGetByteArrayElementsCriticalWrite(env, array, remaining)) {
                 _kind = k_GetElementsCritical;
                 _elems = elems;
                 _data = elems + arrayOffset + position;
-            } else if (jbyte* elems = _detail::tryGetByteArrayElementsWrite(env, array, remaining)) {
+            } else if (jbyte* elems = _arrays::tryGetByteArrayElementsWrite(env, array, remaining)) {
                 _kind = k_GetElements;
                 _elems = elems;
                 _data = elems + arrayOffset + position;
@@ -176,11 +282,11 @@ namespace porklib::jni {
                 //use the direct address
                 _kind = k_Direct;
                 _data = reinterpret_cast<jbyte*>(directAddress) + position;
-            } else if (jbyte* elems = _detail::tryGetByteArrayElementsCriticalWrite(env, array, remaining)) {
+            } else if (jbyte* elems = _arrays::tryGetByteArrayElementsCriticalWrite(env, array, remaining)) {
                 _kind = k_GetElementsCritical;
                 _elems = elems;
                 _data = elems + arrayOffset + position;
-            } else if (jbyte* elems = _detail::tryGetByteArrayElementsWrite(env, array, remaining)) {
+            } else if (jbyte* elems = _arrays::tryGetByteArrayElementsWrite(env, array, remaining)) {
                 _kind = k_GetElements;
                 _elems = elems;
                 _data = elems + arrayOffset + position;

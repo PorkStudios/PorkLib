@@ -37,18 +37,28 @@ public final class JniLoader {
 
         val properties = System.getProperties();
 
+        final byte STATE_NEVER = 0;
+        final byte STATE_ALLOWED = 1;
+        final byte STATE_ALWAYS = 2;
+
         val config = new Object() {
             public String packagePrefix;
 
-            public boolean allowJniCriticalRead;
-            public boolean allowJniCriticalWrite;
+            public byte useCriticalRead;
+            public byte useCriticalWrite;
 
-            public boolean allowJniGetElementsRead;
-            public boolean allowJniGetElementsWrite;
+            public byte useGetElementsRead;
+            public byte useGetElementsWrite;
         };
         config.packagePrefix = packagePrefix;
-        config.allowJniCriticalRead = config.allowJniCriticalWrite = NativeUtils.allowJniCritical();
-        config.allowJniGetElementsRead = config.allowJniGetElementsWrite = false;
+
+        config.useCriticalRead = config.useCriticalWrite = NativeUtils.allowJniCritical() ? STATE_ALLOWED : STATE_NEVER;
+
+        // We never use Get*ArrayElements(): as of this writing (Sep. 2025), there aren't any GC implementations on any Java version
+        // which ever pin the arrays. Effectively, this means that the array is always copied, which makes it no better than an
+        // implementation using manual buffer allocation and JNI copies (plus, manual copying lets us avoid moving unnecessary
+        // data if not the entire array is accessed).
+        config.useGetElementsRead = config.useGetElementsWrite = STATE_NEVER;
 
         //atomically insert the mutex value into the global system properties map so that no other thread can overwrite our other properties while we're loading the library.
         while (properties.putIfAbsent(mutexKey, mutexValue) != null) {

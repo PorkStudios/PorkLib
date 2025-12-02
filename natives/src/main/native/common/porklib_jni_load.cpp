@@ -70,7 +70,7 @@ namespace porklib::jni {
         }
     }
 
-    [[nodiscard]] static std::unique_ptr<char[]> javaStringToCString(JNIEnv* env, jstring str) {
+    /*[[nodiscard]] static std::unique_ptr<char[]> javaStringToCString(JNIEnv* env, jstring str) {
         assert(str != nullptr);
 
         size_t utfLength = env->GetStringUTFLength(str);
@@ -80,7 +80,7 @@ namespace porklib::jni {
         assert(std::string_view(result.get()).size() == utfLength);
 
         return result;
-    }
+    }*/
 
     [[nodiscard]] static std::string javaStringToStdString(JNIEnv* env, jstring str) {
         assert(str != nullptr);
@@ -166,12 +166,12 @@ namespace porklib::jni {
             jclass cla_libraryConfig = env->GetObjectClass(obj_libraryConfig);
 
             //get JNI arrays config
-            porklib::jni::_detail::configureJniArrays({
-                .allowJniCriticalRead = env->GetBooleanField(obj_libraryConfig, getFieldID(env, cla_libraryConfig, "allowJniCriticalRead", "Z")),
-                .allowJniCriticalWrite = env->GetBooleanField(obj_libraryConfig, getFieldID(env, cla_libraryConfig, "allowJniCriticalWrite", "Z")),
+            porklib::jni::_arrays::configureJniArrays({
+                .useCriticalRead = porklib::jni::_arrays::TernaryState(env->GetByteField(obj_libraryConfig, getFieldID(env, cla_libraryConfig, "useCriticalRead", "B"))),
+                .useCriticalWrite = porklib::jni::_arrays::TernaryState(env->GetByteField(obj_libraryConfig, getFieldID(env, cla_libraryConfig, "useCriticalWrite", "B"))),
 
-                .allowJniGetElementsRead = env->GetBooleanField(obj_libraryConfig, getFieldID(env, cla_libraryConfig, "allowJniGetElementsRead", "Z")),
-                .allowJniGetElementsWrite = env->GetBooleanField(obj_libraryConfig, getFieldID(env, cla_libraryConfig, "allowJniGetElementsWrite", "Z")),
+                .useGetElementsRead = porklib::jni::_arrays::TernaryState(env->GetByteField(obj_libraryConfig, getFieldID(env, cla_libraryConfig, "useGetElementsRead", "B"))),
+                .useGetElementsWrite = porklib::jni::_arrays::TernaryState(env->GetByteField(obj_libraryConfig, getFieldID(env, cla_libraryConfig, "useGetElementsWrite", "B"))),
             });
 
             //get the package prefix string from JNI, and copy it into a C++ string

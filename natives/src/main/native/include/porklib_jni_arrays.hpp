@@ -6,9 +6,10 @@
 #include "porklib_noinit_vector.hpp"
 
 #include <cassert>
+#include <memory> // std::allocator
+#include <span>
 #include <type_traits>
 #include <optional>
-#include <variant>
 #include <vector>
 
 namespace porklib::jni {
@@ -28,7 +29,21 @@ namespace porklib::jni {
             ARRAYS_CONFIG = config;
         }
 
-        [[nodiscard]] inline jbyte* tryGetByteArrayElements(JNIEnv* env, jbyteArray array, jsize remaining) noexcept {
+        [[nodiscard]] inline jbyte* tryGetByteArrayElementsCriticalRead(JNIEnv* env, jbyteArray array, jsize remaining) noexcept {
+            //TODO: implement this
+            return nullptr;
+
+            return reinterpret_cast<jbyte*>(env->GetPrimitiveArrayCritical(array, nullptr));
+        }
+
+        [[nodiscard]] inline jbyte* tryGetByteArrayElementsCriticalWrite(JNIEnv* env, jbyteArray array, jsize remaining) noexcept {
+            //TODO: implement this
+            return nullptr;
+
+            return reinterpret_cast<jbyte*>(env->GetPrimitiveArrayCritical(array, nullptr));
+        }
+
+        [[nodiscard]] inline jbyte* tryGetByteArrayElementsRead(JNIEnv* env, jbyteArray array, jsize remaining) noexcept {
             //we never use Get*ArrayElements(): as of this writing (Sep. 2025), there aren't any GC implementations on any Java version
             //  which ever pin arrays here. Shenandoah pins the array when using GetPrimitiveArrayCritical() since Java 15, but the performance
             //  impact of that function on on other GCs is bad enough that it isn't really worth the added complexity.
@@ -42,66 +57,81 @@ namespace porklib::jni {
             //use GetArrayElements(), the array won't be pinned if supported
             return env->GetByteArrayElements(array, nullptr);
         }
+
+        [[nodiscard]] inline jbyte* tryGetByteArrayElementsWrite(JNIEnv* env, jbyteArray array, jsize remaining) noexcept {
+            //TODO: if GetByteArrayElements() returns a copy and we aren't trying to access the entire array, we should abort so that
+            //  committing changes doesn't overwrite changes made to other parts of the array
+            return tryGetByteArrayElementsCriticalRead(env, array, remaining);
+        }
     }
 
     // NOTE: AnyReadOnlyByteRegion and AnyWriteOnlyByteRegion are only safe to use if no AnyWriteOnlyByteRegion
     //       aliases any other Any*ByteRegion
 
     class AnyReadOnlyByteRegion {
+        [[no_unique_address]] std::allocator<jbyte> _alloc = {};
+
         const jbyte* _data;
-        size_t _size;
+        size_t const _size;
 
-        struct PinnedState {
-            JNIEnv* _env;
-            jbyteArray _array;
-            jbyte* _elems;
+        enum {
+            k_Direct,
+            k_Copy,
+            k_GetElementsCritical,
+            k_GetElements,
+        } _kind;
 
-            PinnedState(JNIEnv* env, jbyteArray array, jbyte* elems) noexcept :
-                _env(env),
-                _array(array),
-                _elems(elems) {}
-
-            PinnedState(const PinnedState&) = delete;
-
-            ~PinnedState() {
-                _env->ReleaseByteArrayElements(_array, _elems, JNI_ABORT);
-            }
-        };
-
-        std::variant<
-            bool,
-            porklib::noinit_vector<jbyte>,
-            PinnedState
-        > _state;
+        JNIEnv* const _env;
+        jbyteArray const _array;
+        jbyte* _elems;
 
     public:
-        AnyReadOnlyByteRegion(JNIEnv* env, jlong directAddress, jbyteArray array, jsize arrayOffset, jsize position, jsize remaining) {
+        AnyReadOnlyByteRegion(JNIEnv* env, jlong directAddress, jbyteArray array, jsize arrayOffset, jsize position, jsize remaining)
+              : _size{static_cast<size_t>(remaining)},
+                _env{env},
+                _array{array} {
             assert(remaining == 0 || (directAddress != 0) != (array != nullptr));
             assert(position >= 0 && remaining >= 0);
 
             if (array == nullptr) {
                 //use the direct address
+                _kind = k_Direct;
                 _data = reinterpret_cast<const jbyte*>(directAddress) + position;
-                _size = remaining;
-            } else if (jbyte* elems = _detail::tryGetByteArrayElements(env, array, remaining)) {
-                _state.emplace<PinnedState>(env, array, elems);
-
+            } else if (jbyte* elems = _detail::tryGetByteArrayElementsCriticalWrite(env, array, remaining)) {
+                _kind = k_GetElementsCritical;
+                _elems = elems;
                 _data = elems + arrayOffset + position;
-                _size = remaining;
+            } else if (jbyte* elems = _detail::tryGetByteArrayElementsWrite(env, array, remaining)) {
+                _kind = k_GetElements;
+                _elems = elems;
+                _data = elems + arrayOffset + position;
             } else {
-                //allocate a vector and then copy the elements into it
-                auto& vec = _state.emplace<porklib::noinit_vector<jbyte>>(remaining);
-                env->GetByteArrayRegion(array, arrayOffset + position, remaining, vec.data());
+                //allocate a buffer and then copy the elements into it
+                _kind = k_Copy;
+                _data = _alloc.allocate(remaining);
 
-                _data = vec.data();
-                _size = remaining;
+                env->GetByteArrayRegion(array, arrayOffset + position, remaining, const_cast<jbyte*>(_data));
             }
         }
 
         AnyReadOnlyByteRegion() = delete;
         AnyReadOnlyByteRegion(const AnyReadOnlyByteRegion&) = delete;
 
-        ~AnyReadOnlyByteRegion() = default;
+        ~AnyReadOnlyByteRegion() {
+            switch (_kind) {
+                case k_Direct:
+                    break;
+                case k_Copy:
+                    _alloc.deallocate(const_cast<jbyte*>(_data), _size);
+                    break;
+                case k_GetElementsCritical:
+                    _env->ReleasePrimitiveArrayCritical(_array, _elems, JNI_ABORT);
+                    break;
+                case k_GetElements:
+                    _env->ReleaseByteArrayElements(_array, _elems, JNI_ABORT);
+                    break;
+            }
+        }
 
         const jbyte* data() const noexcept { return _data; }
         size_t size() const noexcept { return _size; }
@@ -110,79 +140,86 @@ namespace porklib::jni {
         const jbyte* end() const noexcept { return _data + _size; }
     };
 
+    struct CommitNothingTag {};
+    struct CommitEverythingTag {};
+
     class AnyWriteOnlyByteRegion {
+        [[no_unique_address]] std::allocator<jbyte> _alloc = {};
+
         jbyte* _data;
-        size_t _size;
+        size_t const _size;
+        size_t _dirtyCount;
 
-        struct CopyState {
-            porklib::noinit_vector<jbyte> _buf;
+        JNIEnv* const _env;
+        jbyteArray const _array;
+        jbyte* _elems;
+        jsize const _arrayOffset;
 
-            JNIEnv* _env;
-            jbyteArray _array;
-            jsize _arrayOffset;
-
-            CopyState(JNIEnv* env, jbyteArray array, jsize arrayOffset, jsize arrayCount) :
-                _env(env),
-                _array(array),
-                _arrayOffset(arrayOffset),
-                _buf(arrayCount) {}
-
-            ~CopyState() {
-                //copy the data back to the destination array
-                _env->SetByteArrayRegion(_array, _arrayOffset, static_cast<jsize>(_buf.size()), _buf.data());
-            }
-        };
-
-        struct PinnedState {
-            JNIEnv* _env;
-            jbyteArray _array;
-            jbyte* _elems;
-
-            PinnedState(JNIEnv* env, jbyteArray array, jbyte* elems) noexcept :
-                _env(env),
-                _array(array),
-                _elems(elems) {}
-
-            PinnedState(const PinnedState&) = delete;
-
-            ~PinnedState() {
-                _env->ReleaseByteArrayElements(_array, _elems, 0);
-            }
-        };
-
-        std::variant<
-            bool,
-            CopyState,
-            PinnedState
-        > _state;
+        enum {
+            k_Direct,
+            k_Copy,
+            k_GetElementsCritical,
+            k_GetElements,
+        } _kind;
 
     public:
-        AnyWriteOnlyByteRegion(JNIEnv* env, jlong directAddress, jbyteArray array, jsize arrayOffset, jsize position, jsize remaining) {
+        AnyWriteOnlyByteRegion(JNIEnv* env, jlong directAddress, jbyteArray array, jsize arrayOffset, jsize position, jsize remaining)
+              : _size{static_cast<size_t>(remaining)},
+                _dirtyCount{static_cast<size_t>(remaining)},
+                _env{env},
+                _array{array},
+                _arrayOffset{arrayOffset} {
             assert(remaining == 0 || (directAddress != 0) != (array != nullptr));
             assert(position >= 0 && remaining >= 0);
 
             if (array == nullptr) {
                 //use the direct address
+                _kind = k_Direct;
                 _data = reinterpret_cast<jbyte*>(directAddress) + position;
-                _size = remaining;
-            } else if (jbyte* elems = _detail::tryGetByteArrayElements(env, array, remaining)) {
-                _state.emplace<PinnedState>(env, array, elems);
-
+            } else if (jbyte* elems = _detail::tryGetByteArrayElementsCriticalWrite(env, array, remaining)) {
+                _kind = k_GetElementsCritical;
+                _elems = elems;
                 _data = elems + arrayOffset + position;
-                _size = remaining;
+            } else if (jbyte* elems = _detail::tryGetByteArrayElementsWrite(env, array, remaining)) {
+                _kind = k_GetElements;
+                _elems = elems;
+                _data = elems + arrayOffset + position;
             } else {
-                //allocate a vector which we will copy the elements out of eventually
-                auto& state = _state.emplace<CopyState>(env, array, arrayOffset + position, remaining);
-
-                _data = state._buf.data();
-                _size = remaining;
+                //allocate a buffer which we will copy the elements out of eventually
+                _kind = k_Copy;
+                _data = _alloc.allocate(remaining);
             }
+        }
+
+        AnyWriteOnlyByteRegion(JNIEnv* env, jlong directAddress, jbyteArray array, jsize arrayOffset, jsize position, jsize remaining, CommitEverythingTag)
+              : AnyWriteOnlyByteRegion{env, directAddress, array, arrayOffset, position, remaining} {}
+
+        AnyWriteOnlyByteRegion(JNIEnv* env, jlong directAddress, jbyteArray array, jsize arrayOffset, jsize position, jsize remaining, CommitNothingTag)
+              : AnyWriteOnlyByteRegion{env, directAddress, array, arrayOffset, position, remaining} {
+            _dirtyCount = 0;
         }
 
         AnyWriteOnlyByteRegion() = delete;
         AnyWriteOnlyByteRegion(const AnyWriteOnlyByteRegion&) = delete;
 
-        ~AnyWriteOnlyByteRegion() = default;
+        ~AnyWriteOnlyByteRegion() {
+            switch (_kind) {
+                case k_Direct:
+                    break;
+                case k_Copy:
+                    //copy the data back to the destination array (only the dirty bytes, though)
+                    _env->SetByteArrayRegion(_array, _arrayOffset, static_cast<jsize>(_dirtyCount), _data);
+
+                    _alloc.deallocate(_data, _size);
+                    break;
+                case k_GetElementsCritical:
+                    _env->ReleasePrimitiveArrayCritical(_array, _elems, _dirtyCount ? 0 : JNI_ABORT);
+                    break;
+                case k_GetElements:
+                    _env->ReleaseByteArrayElements(_array, _elems, _dirtyCount ? 0 : JNI_ABORT);
+                    break;
+            }
+        }
 
         jbyte* data() noexcept { return _data; }
         size_t size() noexcept { return _size; }
@@ -191,8 +228,8 @@ namespace porklib::jni {
         jbyte* end() noexcept { return _data + _size; }
 
         void setDirtyCount(size_t count) noexcept {
-            //no-op
-            //TODO: use this
+            assert(count <= _size);
+            _dirtyCount = count;
         }
     };
 }

@@ -1,5 +1,8 @@
 #include <porklib_jni_exceptions.hpp>
 
+#include <exception> // std::current_exception(), ...
+#include <new> // std::bad_alloc
+
 namespace porklib::jni {
     AlreadyThrownJniException::~AlreadyThrownJniException() = default;
 

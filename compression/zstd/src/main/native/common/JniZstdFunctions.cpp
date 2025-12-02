@@ -2,6 +2,7 @@
 #include "porklib_compression_zstd_native_jni.hpp"
 
 #include <porklib_jni_arrays.hpp>
+#include <porklib_jni_exceptions.hpp>
 
 namespace porklib::compression::zstd::jni::JniZstdFunctions {
     static jboolean JNICALL isError(JNIEnv*, jobject, jlong code) {
@@ -44,17 +45,31 @@ namespace porklib::compression::zstd::jni::JniZstdFunctions {
         return static_cast<jlong>(ZSTD_CCtx_setParameter(cctx, param, value));
     }
 
+    static jlong JNICALL compress2(JNIEnv* env, jobject,
+            jlong _cctx,
+            jlong srcDirectAddr, jbyteArray srcArray, jint srcArrayOffset, jint srcPosition, jint srcRemaining,
+            jlong dstDirectAddr, jbyteArray dstArray, jint dstArrayOffset, jint dstPosition, jint dstRemaining) {
+        return porklib::jni::runWithExceptionHandling<jlong>(env, [=]() {
+            auto* cctx = reinterpret_cast<ZSTD_CCtx*>(_cctx);
+
+            porklib::jni::AnyReadOnlyByteRegion src{env, srcDirectAddr, srcArray, srcArrayOffset, srcPosition, srcRemaining};
+            porklib::jni::AnyWriteOnlyByteRegion dst{env, dstDirectAddr, dstArray, dstArrayOffset, dstPosition, dstRemaining};
+
+            size_t result = ZSTD_compress2(cctx, dst.data(), dst.size(), src.data(), src.size());
+
+            dst.setDirtyCount(ZSTD_isError(result) ? 0 : result);
+            return static_cast<jlong>(result);
+        });
+    }
+
     static jlong JNICALL createCDict(JNIEnv* env, jobject,
             jlong dictDirectAddr, jbyteArray dictArray, jint dictArrayOffset, jint dictPosition, jint dictRemaining,
             jint level) {
-        try {
+        return porklib::jni::runWithExceptionHandling<jlong>(env, [=]() {
             porklib::jni::AnyReadOnlyByteRegion dict{env, dictDirectAddr, dictArray, dictArrayOffset, dictPosition, dictRemaining};
 
             return reinterpret_cast<jlong>(ZSTD_createCDict(dict.data(), dict.size(), level));
-        } catch (...) {
-            porklib::jni::handleCppExceptionTail(env);
-            return 0;
-        }
+        });
     }
 
     static void JNICALL freeCDict(JNIEnv* env, jobject, jlong _cdict) {
@@ -95,16 +110,30 @@ namespace porklib::compression::zstd::jni::JniZstdFunctions {
         return static_cast<jlong>(ZSTD_DCtx_setParameter(dctx, param, value));
     }
 
+    static jlong JNICALL decompressDCtx(JNIEnv* env, jobject,
+            jlong _dctx,
+            jlong srcDirectAddr, jbyteArray srcArray, jint srcArrayOffset, jint srcPosition, jint srcRemaining,
+            jlong dstDirectAddr, jbyteArray dstArray, jint dstArrayOffset, jint dstPosition, jint dstRemaining) {
+        return porklib::jni::runWithExceptionHandling<jlong>(env, [=]() {
+            auto* dctx = reinterpret_cast<ZSTD_DCtx*>(_dctx);
+
+            porklib::jni::AnyReadOnlyByteRegion src{env, srcDirectAddr, srcArray, srcArrayOffset, srcPosition, srcRemaining};
+            porklib::jni::AnyWriteOnlyByteRegion dst{env, dstDirectAddr, dstArray, dstArrayOffset, dstPosition, dstRemaining};
+
+            size_t result = ZSTD_decompressDCtx(dctx, dst.data(), dst.size(), src.data(), src.size());
+
+            dst.setDirtyCount(ZSTD_isError(result) ? 0 : result);
+            return static_cast<jlong>(result);
+        });
+    }
+
     static jlong JNICALL createDDict(JNIEnv* env, jobject,
             jlong dictDirectAddr, jbyteArray dictArray, jint dictArrayOffset, jint dictPosition, jint dictRemaining) {
-        try {
+        return porklib::jni::runWithExceptionHandling<jlong>(env, [=]() {
             porklib::jni::AnyReadOnlyByteRegion dict{env, dictDirectAddr, dictArray, dictArrayOffset, dictPosition, dictRemaining};
 
             return reinterpret_cast<jlong>(ZSTD_createDDict(dict.data(), dict.size()));
-        } catch (...) {
-            porklib::jni::handleCppExceptionTail(env);
-            return 0;
-        }
+        });
     }
 
     static void JNICALL freeDDict(JNIEnv* env, jobject, jlong _ddict) {
@@ -129,6 +158,7 @@ namespace porklib::compression::zstd::jni::JniZstdFunctions {
             porklib::jni::makeJNINativeMethod("ZSTD_CCtx_refCDict", "(JJ)J", JniZstdFunctions::CCtx_refCDict),
             porklib::jni::makeJNINativeMethod("ZSTD_CCtx_reset", "(JI)J", JniZstdFunctions::CCtx_reset),
             porklib::jni::makeJNINativeMethod("ZSTD_CCtx_setParameter", "(JII)J", JniZstdFunctions::CCtx_setParameter),
+            porklib::jni::makeJNINativeMethod("ZSTD_compress2", "(JJ[BIIIJ[BIII)J", JniZstdFunctions::compress2),
 
             porklib::jni::makeJNINativeMethod("ZSTD_createCDict", "(J[BIIII)J", JniZstdFunctions::createCDict),
             porklib::jni::makeJNINativeMethod("ZSTD_freeCDict", "(J)V", JniZstdFunctions::freeCDict),
@@ -139,6 +169,7 @@ namespace porklib::compression::zstd::jni::JniZstdFunctions {
             porklib::jni::makeJNINativeMethod("ZSTD_DCtx_refDDict", "(JJ)J", JniZstdFunctions::DCtx_refDDict),
             porklib::jni::makeJNINativeMethod("ZSTD_DCtx_reset", "(JI)J", JniZstdFunctions::DCtx_reset),
             porklib::jni::makeJNINativeMethod("ZSTD_DCtx_setParameter", "(JII)J", JniZstdFunctions::DCtx_setParameter),
+            porklib::jni::makeJNINativeMethod("ZSTD_decompressDCtx", "(JJ[BIIIJ[BIII)J", JniZstdFunctions::decompressDCtx),
 
             porklib::jni::makeJNINativeMethod("ZSTD_createDDict", "(J[BIII)J", JniZstdFunctions::createDDict),
             porklib::jni::makeJNINativeMethod("ZSTD_freeDDict", "(J)V", JniZstdFunctions::freeDDict),
@@ -147,6 +178,6 @@ namespace porklib::compression::zstd::jni::JniZstdFunctions {
     }
 
     void OnUnload(JNIEnv* env, porklib::jni::UnloadParams params) {
-        //no-op
+        porklib::jni::unregisterNatives(env, params, PORKLIB_COMPRESSION_ZSTD_NATIVE_JNI_PACKAGE "JniZstdFunctions");
     }
 }

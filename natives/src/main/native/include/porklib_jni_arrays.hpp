@@ -13,6 +13,21 @@
 
 namespace porklib::jni {
     namespace _detail {
+        struct JniArraysConfig {
+            jboolean allowJniCriticalRead = false;
+            jboolean allowJniCriticalWrite = false;
+
+            jboolean allowJniGetElementsRead = false;
+            jboolean allowJniGetElementsWrite = false;
+        };
+
+        //TODO: this is never used
+        constinit inline JniArraysConfig ARRAYS_CONFIG = {};
+
+        inline void configureJniArrays(const JniArraysConfig& config) noexcept {
+            ARRAYS_CONFIG = config;
+        }
+
         [[nodiscard]] inline jbyte* tryGetByteArrayElements(JNIEnv* env, jbyteArray array, jsize remaining) noexcept {
             //we never use Get*ArrayElements(): as of this writing (Sep. 2025), there aren't any GC implementations on any Java version
             //  which ever pin arrays here. Shenandoah pins the array when using GetPrimitiveArrayCritical() since Java 15, but the performance
@@ -174,5 +189,10 @@ namespace porklib::jni {
 
         jbyte* begin() noexcept { return _data; }
         jbyte* end() noexcept { return _data + _size; }
+
+        void setDirtyCount(size_t count) noexcept {
+            //no-op
+            //TODO: use this
+        }
     };
 }

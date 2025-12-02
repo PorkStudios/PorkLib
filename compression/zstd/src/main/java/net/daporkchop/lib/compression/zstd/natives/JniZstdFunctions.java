@@ -67,6 +67,11 @@ final class JniZstdFunctions extends NativeZstdFunctions {
     @Override
     native long ZSTD_CCtx_setParameter(long cctx, int param, int value);
 
+    static native long ZSTD_compress2(
+            long cctx,
+            long srcDirectAddr, byte[] srcArray, int srcArrayOffset, int srcPosition, int srcRemaining,
+            long dstDirectAddr, byte[] dstArray, int dstArrayOffset, int dstPosition, int dstRemaining);
+
     static native long ZSTD_createCDict(
             long dictAddr, byte[] dictArray, int dictArrayOffset, int dictPosition, int dictRemaining,
             int level);
@@ -91,6 +96,11 @@ final class JniZstdFunctions extends NativeZstdFunctions {
 
     @Override
     native long ZSTD_DCtx_setParameter(long dctx, int param, int value);
+
+    static native long ZSTD_decompressDCtx(
+            long dctx,
+            long srcDirectAddr, byte[] srcArray, int srcArrayOffset, int srcPosition, int srcRemaining,
+            long dstDirectAddr, byte[] dstArray, int dstArrayOffset, int dstPosition, int dstRemaining);
 
     static native long ZSTD_createDDict(
             long dictAddr, byte[] dictArray, int dictArrayOffset, int dictPosition, int dictRemaining);

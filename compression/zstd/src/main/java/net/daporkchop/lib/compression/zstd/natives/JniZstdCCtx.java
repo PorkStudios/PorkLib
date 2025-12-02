@@ -40,11 +40,6 @@ final class JniZstdCCtx extends NativeZstdCCtx {
         super(functions);
     }
 
-    static native long ZSTD_compress2(
-            long ctx,
-            long srcDirectAddr, byte[] srcArray, int srcArrayOffset, int srcPosition, int srcRemaining,
-            long dstDirectAddr, byte[] dstArray, int dstArrayOffset, int dstPosition, int dstRemaining);
-
     @Override
     public int compress(@NonNull ByteBuffer src, @NonNull ByteBuffer dst) throws ReadOnlyBufferException {
         //get buffer pointers
@@ -77,7 +72,7 @@ final class JniZstdCCtx extends NativeZstdCCtx {
             throw new IllegalArgumentException("buffer not supported: " + dst);
         }
 
-        long result = ZSTD_compress2(this.ctx,
+        long result = JniZstdFunctions.ZSTD_compress2(this.ctx,
                 srcMemoryAddress, srcArray, srcArrayOffset, src.position(), src.remaining(),
                 dstMemoryAddress, dstArray, dstArrayOffset, dst.position(), dst.remaining());
 
@@ -126,7 +121,7 @@ final class JniZstdCCtx extends NativeZstdCCtx {
             throw new CompositeBufferException(dst);
         }
 
-        long result = ZSTD_compress2(this.ctx,
+        long result = JniZstdFunctions.ZSTD_compress2(this.ctx,
                 srcMemoryAddress, srcArray, srcArrayOffset, src.readerIndex(), src.readableBytes(),
                 dstMemoryAddress, dstArray, dstArrayOffset, dst.writerIndex(), dst.writableBytes());
 

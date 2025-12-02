@@ -22,6 +22,7 @@ package net.daporkchop.lib.natives;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.val;
 
 /**
@@ -32,9 +33,22 @@ public final class JniLoader {
     public static void loadJniLibraryInPrefix(@NonNull String libraryName, @NonNull String packagePrefix, @NonNull Runnable loadFunction) {
         String mutexKey = "porklib_natives_load_mutex#" + libraryName;
         Object mutexValue = new Object[0];
-        String packagePrefixKey = "porklib_natives_load_packagePrefix#" + libraryName;
+        String configKey = "porklib_natives_load_config#" + libraryName;
 
         val properties = System.getProperties();
+
+        val config = new Object() {
+            public String packagePrefix;
+
+            public boolean allowJniCriticalRead;
+            public boolean allowJniCriticalWrite;
+
+            public boolean allowJniGetElementsRead;
+            public boolean allowJniGetElementsWrite;
+        };
+        config.packagePrefix = packagePrefix;
+        config.allowJniCriticalRead = config.allowJniCriticalWrite = NativeUtils.allowJniCritical();
+        config.allowJniGetElementsRead = config.allowJniGetElementsWrite = false;
 
         //atomically insert the mutex value into the global system properties map so that no other thread can overwrite our other properties while we're loading the library.
         while (properties.putIfAbsent(mutexKey, mutexValue) != null) {
@@ -43,16 +57,16 @@ public final class JniLoader {
         }
 
         try {
-            properties.put(packagePrefixKey, packagePrefix);
+            properties.put(configKey, config);
 
             loadFunction.run();
 
-            if (properties.containsKey(packagePrefixKey)) {
-                throw new AssertionError("the library's JNI_OnLoad function didn't remove the package prefix from the system properties map");
+            if (properties.containsKey(configKey)) {
+                throw new AssertionError("the library's JNI_OnLoad function didn't remove the config object from the system properties map");
             }
         } finally {
             //always make sure to clean up by removing all property keys from the map
-            properties.remove(packagePrefixKey);
+            properties.remove(configKey);
             properties.remove(mutexKey, mutexValue);
         }
     }

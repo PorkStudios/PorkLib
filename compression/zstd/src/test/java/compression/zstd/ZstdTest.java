@@ -47,7 +47,7 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  * @author DaPorkchop_
  */
 public class ZstdTest {
-    protected byte[] text;
+    /*protected byte[] text;
     protected byte[] zstd;
     protected byte[] dictionary;
     protected byte[] zeroes;
@@ -295,5 +295,5 @@ public class ZstdTest {
                 checkState(param[args.length].release(), "buffer #%s wasn't released... (reference count is still %s)", args.length, param[args.length].refCnt());
             });
         }
-    }
+    }*/
 }

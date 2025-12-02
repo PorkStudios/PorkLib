@@ -40,11 +40,6 @@ final class JniZstdDCtx extends NativeZstdDCtx {
         super(functions);
     }
 
-    static native long ZSTD_decompressDCtx(
-            long ctx,
-            long srcDirectAddr, byte[] srcArray, int srcArrayOffset, int srcPosition, int srcRemaining,
-            long dstDirectAddr, byte[] dstArray, int dstArrayOffset, int dstPosition, int dstRemaining);
-
     @Override
     public int decompress(@NonNull ByteBuffer src, @NonNull ByteBuffer dst) throws DataFormatException, ReadOnlyBufferException {
         //get buffer pointers
@@ -77,7 +72,7 @@ final class JniZstdDCtx extends NativeZstdDCtx {
             throw new IllegalArgumentException("buffer not supported: " + dst);
         }
 
-        long result = ZSTD_decompressDCtx(this.ctx,
+        long result = JniZstdFunctions.ZSTD_decompressDCtx(this.ctx,
                 srcMemoryAddress, srcArray, srcArrayOffset, src.position(), src.remaining(),
                 dstMemoryAddress, dstArray, dstArrayOffset, dst.position(), dst.remaining());
 
@@ -126,7 +121,7 @@ final class JniZstdDCtx extends NativeZstdDCtx {
             throw new CompositeBufferException(dst);
         }
 
-        long result = ZSTD_decompressDCtx(this.ctx,
+        long result = JniZstdFunctions.ZSTD_decompressDCtx(this.ctx,
                 srcMemoryAddress, srcArray, srcArrayOffset, src.readerIndex(), src.readableBytes(),
                 dstMemoryAddress, dstArray, dstArrayOffset, dst.writerIndex(), dst.writableBytes());
 

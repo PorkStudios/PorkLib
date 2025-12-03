@@ -63,11 +63,11 @@ final class JniZstdFunctions extends NativeZstdFunctions {
 
     static native long ZSTD_compress2(
             long cctx,
-            long srcDirectAddr, byte[] srcArray, int srcArrayOffset, int srcPosition, int srcRemaining,
-            long dstDirectAddr, byte[] dstArray, int dstArrayOffset, int dstPosition, int dstRemaining);
+            byte[] srcArray, int srcArrayLength, long srcAddressOrOffset, long srcSize,
+            byte[] dstArray, int dstArrayLength, long dstAddressOrOffset, long dstSize);
 
     static native long ZSTD_createCDict(
-            long dictAddr, byte[] dictArray, int dictArrayOffset, int dictPosition, int dictRemaining,
+            byte[] dictArray, int dictArrayLength, long dictAddressOrOffset, long dictSize,
             int level);
 
     @Override
@@ -93,11 +93,11 @@ final class JniZstdFunctions extends NativeZstdFunctions {
 
     static native long ZSTD_decompressDCtx(
             long dctx,
-            long srcDirectAddr, byte[] srcArray, int srcArrayOffset, int srcPosition, int srcRemaining,
-            long dstDirectAddr, byte[] dstArray, int dstArrayOffset, int dstPosition, int dstRemaining);
+            byte[] srcArray, int srcArrayLength, long srcAddressOrOffset, long srcSize,
+            byte[] dstArray, int dstArrayLength, long dstAddressOrOffset, long dstSize);
 
     static native long ZSTD_createDDict(
-            long dictAddr, byte[] dictArray, int dictArrayOffset, int dictPosition, int dictRemaining);
+            byte[] dictArray, int dictArrayLength, long dictAddressOrOffset, long dictSize);
 
     @Override
     native void ZSTD_freeDDict(long ddict);

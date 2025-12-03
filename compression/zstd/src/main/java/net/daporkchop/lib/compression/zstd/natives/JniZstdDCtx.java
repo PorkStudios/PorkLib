@@ -43,38 +43,46 @@ final class JniZstdDCtx extends NativeZstdDCtx {
     @Override
     public int decompress(@NonNull ByteBuffer src, @NonNull ByteBuffer dst) throws DataFormatException, ReadOnlyBufferException {
         //get buffer pointers
-        long srcMemoryAddress = 0L;
-        byte[] srcArray = null;
-        int srcArrayOffset = 0;
+        byte[] srcArray;
+        int srcArrayLength;
+        long srcAddressOrOffset;
         if (src.isDirect()) {
-            srcMemoryAddress = PUnsafe.pork_directBufferAddress(src);
+            srcArray = null;
+            srcArrayLength = 0;
+            srcAddressOrOffset = PUnsafe.pork_directBufferAddress(src) + src.position();
         } else if (src.hasArray()) {
             srcArray = src.array();
-            srcArrayOffset = src.arrayOffset();
+            srcArrayLength = srcArray.length;
+            srcAddressOrOffset = src.arrayOffset() + src.position();
         } else {
             // This is most likely a read-only heap buffer, or another buffer of some unknown type.
             // Since we can't access the underlying storage, we'll copy it to a heap array (slow!!!)
             //TODO: maybe do streaming compression here if the source data is very big?
             srcArray = PNioBuffers.toArray(src);
+            srcArrayLength = srcArray.length;
+            srcAddressOrOffset = 0;
         }
 
-        long dstMemoryAddress = 0L;
-        byte[] dstArray = null;
-        int dstArrayOffset = 0;
+        byte[] dstArray;
+        int dstArrayLength;
+        long dstAddressOrOffset;
         if (dst.isReadOnly()) {
             throw new ReadOnlyBufferException();
         } else if (dst.isDirect()) {
-            dstMemoryAddress = PUnsafe.pork_directBufferAddress(dst);
+            dstArray = null;
+            dstArrayLength = 0;
+            dstAddressOrOffset = PUnsafe.pork_directBufferAddress(dst) + dst.position();
         } else if (dst.hasArray()) {
             dstArray = dst.array();
-            dstArrayOffset = dst.arrayOffset();
+            dstArrayLength = dstArray.length;
+            dstAddressOrOffset = dst.arrayOffset() + dst.position();
         } else {
             throw new IllegalArgumentException("buffer not supported: " + dst);
         }
 
         long result = JniZstdFunctions.ZSTD_decompressDCtx(this.ctx,
-                srcMemoryAddress, srcArray, srcArrayOffset, src.position(), src.remaining(),
-                dstMemoryAddress, dstArray, dstArrayOffset, dst.position(), dst.remaining());
+                srcArray, srcArrayLength, srcAddressOrOffset, src.remaining(),
+                dstArray, dstArrayLength, dstAddressOrOffset, dst.remaining());
 
         switch (this.functions.ZSTD_getErrorCode(result)) {
             case ZSTD_error_no_error:
@@ -91,39 +99,47 @@ final class JniZstdDCtx extends NativeZstdDCtx {
     @Override
     public int decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws DataFormatException, ReadOnlyBufferException, CompositeBufferException {
         //get buffer pointers
-        long srcMemoryAddress = 0L;
-        byte[] srcArray = null;
-        int srcArrayOffset = 0;
+        byte[] srcArray;
+        int srcArrayLength;
+        long srcAddressOrOffset;
         if (src.hasMemoryAddress()) {
-            srcMemoryAddress = src.memoryAddress();
+            srcArray = null;
+            srcArrayLength = 0;
+            srcAddressOrOffset = src.memoryAddress() + src.readerIndex();
         } else if (src.hasArray()) {
             srcArray = src.array();
-            srcArrayOffset = src.arrayOffset();
+            srcArrayLength = srcArray.length;
+            srcAddressOrOffset = src.arrayOffset() + src.readerIndex();
         } else {
             // This is most likely either a read-only heap buffer, a composite buffer, or another buffer of some unknown type.
             // Since we can't access the underlying storage, we'll copy it to a heap array (slow!!!)
             //TODO: maybe do streaming compression here if the source data is composite and/or if the source data is very big
             srcArray = ByteBufUtil.getBytes(src);
+            srcArrayLength = srcArray.length;
+            srcAddressOrOffset = 0;
         }
 
-        long dstMemoryAddress = 0L;
-        byte[] dstArray = null;
-        int dstArrayOffset = 0;
+        byte[] dstArray;
+        int dstArrayLength;
+        long dstAddressOrOffset;
         if (dst.isReadOnly()) {
             throw new ReadOnlyBufferException();
         } else if (dst.hasMemoryAddress()) {
-            dstMemoryAddress = dst.memoryAddress();
+            dstArray = null;
+            dstArrayLength = 0;
+            dstAddressOrOffset = dst.memoryAddress() + dst.writerIndex();
         } else if (dst.hasArray()) {
             dstArray = dst.array();
-            dstArrayOffset = dst.arrayOffset();
+            dstArrayLength = dstArray.length;
+            dstAddressOrOffset = dst.arrayOffset() + dst.writerIndex();
         } else {
             // This is almost certainly a composite buffer, we won't bother handling it.
             throw new CompositeBufferException(dst);
         }
 
         long result = JniZstdFunctions.ZSTD_decompressDCtx(this.ctx,
-                srcMemoryAddress, srcArray, srcArrayOffset, src.readerIndex(), src.readableBytes(),
-                dstMemoryAddress, dstArray, dstArrayOffset, dst.writerIndex(), dst.writableBytes());
+                srcArray, srcArrayLength, srcAddressOrOffset, src.readableBytes(),
+                dstArray, dstArrayLength, dstAddressOrOffset, dst.writableBytes());
 
         switch (this.functions.ZSTD_getErrorCode(result)) {
             case ZSTD_error_no_error:

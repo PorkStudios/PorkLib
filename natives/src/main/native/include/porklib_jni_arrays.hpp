@@ -35,7 +35,7 @@ namespace porklib::jni {
             //TODO: do i need some kind of memory fence here to ensure that other threads see this?
         }
 
-        [[nodiscard]] inline jbyte* tryGetByteArrayElementsCriticalRead(JNIEnv* env, jbyteArray array, jsize remaining) noexcept {
+        [[nodiscard]] inline jbyte* tryGetByteArrayElementsCriticalRead(JNIEnv* env, jbyteArray array, jsize arrayLength, jsize offset, jsize size) noexcept {
             // We never use GetPrimitiveArrayCritical() as of this writing (Dec. 2025), mainly because there's no way to guarantee
             // that no other JNI functions are called while the array is pinned. This will need to be improved in the *ByteRegion
             // classes below.
@@ -55,7 +55,7 @@ namespace porklib::jni {
 
         constinit inline bool ARRAYS_CRITICAL_WRITE_GOT_COPY_FOR_PARTIAL = false;
 
-        [[nodiscard]] inline jbyte* tryGetByteArrayElementsCriticalWrite(JNIEnv* env, jbyteArray array, jsize remaining) noexcept {
+        [[nodiscard]] inline jbyte* tryGetByteArrayElementsCriticalWrite(JNIEnv* env, jbyteArray array, jsize arrayLength, jsize offset, jsize size) noexcept {
             // We never use GetPrimitiveArrayCritical() as of this writing (Dec. 2025), mainly because there's no way to guarantee
             // that no other JNI functions are called while the array is pinned. This will need to be improved in the *ByteRegion
             // classes below.
@@ -70,7 +70,7 @@ namespace porklib::jni {
 
                     //fallthrough
                 case ALWAYS: {
-                    bool partial = env->GetArrayLength(array) != remaining;
+                    bool partial = arrayLength != size;
                     if (partial && ARRAYS_CRITICAL_WRITE_GOT_COPY_FOR_PARTIAL) {
                         return nullptr;
                     }
@@ -96,7 +96,7 @@ namespace porklib::jni {
             }
         }
 
-        [[nodiscard]] inline jbyte* tryGetByteArrayElementsRead(JNIEnv* env, jbyteArray array, jsize remaining) noexcept {
+        [[nodiscard]] inline jbyte* tryGetByteArrayElementsRead(JNIEnv* env, jbyteArray array, jsize arrayLength, jsize offset, jsize size) noexcept {
             // We never use Get*ArrayElements(): as of this writing (Sep. 2025), there aren't any GC implementations on any Java version
             // which ever pin the arrays. Effectively, this means that the array is always copied, which makes it no better than an
             // implementation using manual buffer allocation and JNI copies (plus, manual copying lets us avoid moving unnecessary
@@ -108,7 +108,7 @@ namespace porklib::jni {
                 case NEVER:
                     return nullptr;
                 case ALLOWED:
-                    if (jsize arrayLength = env->GetArrayLength(array); arrayLength - remaining >= arrayLength / 8) {
+                    if (arrayLength - size >= arrayLength / 8) {
                         //we're accessing less than 7/8 of the total array, don't use GetArrayElements()
                         return nullptr;
                     }
@@ -124,7 +124,7 @@ namespace porklib::jni {
 
         constinit inline bool ARRAY_GETELEMENTS_WRITE_GOT_COPY_FOR_PARTIAL = false;
 
-        [[nodiscard]] inline jbyte* tryGetByteArrayElementsWrite(JNIEnv* env, jbyteArray array, jsize remaining) noexcept {
+        [[nodiscard]] inline jbyte* tryGetByteArrayElementsWrite(JNIEnv* env, jbyteArray array, jsize arrayLength, jsize offset, jsize size) noexcept {
             // We never use Get*ArrayElements(): as of this writing (Sep. 2025), there aren't any GC implementations on any Java version
             // which ever pin the arrays. Effectively, this means that the array is always copied, which makes it no better than an
             // implementation using manual buffer allocation and JNI copies (plus, manual copying lets us avoid moving unnecessary
@@ -144,7 +144,7 @@ namespace porklib::jni {
 
                     //fallthrough
                 case ALWAYS: {
-                    bool partial = env->GetArrayLength(array) != remaining;
+                    bool partial = arrayLength != size;
                     if (partial && ARRAY_GETELEMENTS_WRITE_GOT_COPY_FOR_PARTIAL) {
                         return nullptr;
                     }
@@ -192,31 +192,28 @@ namespace porklib::jni {
         jbyte* _elems;
 
     public:
-        AnyReadOnlyByteRegion(JNIEnv* env, jlong directAddress, jbyteArray array, jsize arrayOffset, jsize position, jsize remaining)
-              : _size{static_cast<size_t>(remaining)},
+        AnyReadOnlyByteRegion(JNIEnv* env, jbyteArray array, jsize arrayLength, jlong addressOrOffset, jlong size)
+              : _size{static_cast<size_t>(size)},
                 _env{env},
                 _array{array} {
-            assert(remaining == 0 || (directAddress != 0) != (array != nullptr));
-            assert(position >= 0 && remaining >= 0);
-
             if (array == nullptr) {
                 //use the direct address
                 _kind = k_Direct;
-                _data = reinterpret_cast<const jbyte*>(directAddress) + position;
-            } else if (jbyte* elems = _arrays::tryGetByteArrayElementsCriticalWrite(env, array, remaining)) {
+                _data = reinterpret_cast<const jbyte*>(addressOrOffset);
+            } else if (jbyte* elems = _arrays::tryGetByteArrayElementsCriticalWrite(env, array, arrayLength, static_cast<jsize>(addressOrOffset), static_cast<jsize>(size))) {
                 _kind = k_GetElementsCritical;
                 _elems = elems;
-                _data = elems + arrayOffset + position;
-            } else if (jbyte* elems = _arrays::tryGetByteArrayElementsWrite(env, array, remaining)) {
+                _data = elems + addressOrOffset;
+            } else if (jbyte* elems = _arrays::tryGetByteArrayElementsWrite(env, array, arrayLength, static_cast<jsize>(addressOrOffset), static_cast<jsize>(size))) {
                 _kind = k_GetElements;
                 _elems = elems;
-                _data = elems + arrayOffset + position;
+                _data = elems + addressOrOffset;
             } else {
                 //allocate a buffer and then copy the elements into it
                 _kind = k_Copy;
-                _data = _alloc.allocate(remaining);
+                _data = _alloc.allocate(size);
 
-                env->GetByteArrayRegion(array, arrayOffset + position, remaining, const_cast<jbyte*>(_data));
+                env->GetByteArrayRegion(array, static_cast<jsize>(addressOrOffset), static_cast<jsize>(size), const_cast<jbyte*>(_data));
             }
         }
 
@@ -246,8 +243,8 @@ namespace porklib::jni {
         const jbyte* end() const noexcept { return _data + _size; }
     };
 
-    struct CommitNothingTag {};
-    struct CommitEverythingTag {};
+    struct NothingDirtyTag {};
+    struct EverythingDirtyTag {};
 
     class AnyWriteOnlyByteRegion {
         [[no_unique_address]] std::allocator<jbyte> _alloc = {};
@@ -269,39 +266,36 @@ namespace porklib::jni {
         } _kind;
 
     public:
-        AnyWriteOnlyByteRegion(JNIEnv* env, jlong directAddress, jbyteArray array, jsize arrayOffset, jsize position, jsize remaining)
-              : _size{static_cast<size_t>(remaining)},
-                _dirtyCount{static_cast<size_t>(remaining)},
+        AnyWriteOnlyByteRegion(JNIEnv* env, jbyteArray array, jsize arrayLength, jlong addressOrOffset, jlong size)
+              : _size{static_cast<size_t>(size)},
+                _dirtyCount{static_cast<size_t>(size)},
                 _env{env},
                 _array{array},
-                _arrayOffset{arrayOffset} {
-            assert(remaining == 0 || (directAddress != 0) != (array != nullptr));
-            assert(position >= 0 && remaining >= 0);
-
+                _arrayOffset{static_cast<jsize>(addressOrOffset)} {
             if (array == nullptr) {
                 //use the direct address
                 _kind = k_Direct;
-                _data = reinterpret_cast<jbyte*>(directAddress) + position;
-            } else if (jbyte* elems = _arrays::tryGetByteArrayElementsCriticalWrite(env, array, remaining)) {
+                _data = reinterpret_cast<jbyte*>(addressOrOffset);
+            } else if (jbyte* elems = _arrays::tryGetByteArrayElementsCriticalWrite(env, array, arrayLength, static_cast<jsize>(addressOrOffset), static_cast<jsize>(size))) {
                 _kind = k_GetElementsCritical;
                 _elems = elems;
-                _data = elems + arrayOffset + position;
-            } else if (jbyte* elems = _arrays::tryGetByteArrayElementsWrite(env, array, remaining)) {
+                _data = elems + addressOrOffset;
+            } else if (jbyte* elems = _arrays::tryGetByteArrayElementsWrite(env, array, arrayLength, static_cast<jsize>(addressOrOffset), static_cast<jsize>(size))) {
                 _kind = k_GetElements;
                 _elems = elems;
-                _data = elems + arrayOffset + position;
+                _data = elems + addressOrOffset;
             } else {
                 //allocate a buffer which we will copy the elements out of eventually
                 _kind = k_Copy;
-                _data = _alloc.allocate(remaining);
+                _data = _alloc.allocate(size);
             }
         }
 
-        AnyWriteOnlyByteRegion(JNIEnv* env, jlong directAddress, jbyteArray array, jsize arrayOffset, jsize position, jsize remaining, CommitEverythingTag)
-              : AnyWriteOnlyByteRegion{env, directAddress, array, arrayOffset, position, remaining} {}
+        AnyWriteOnlyByteRegion(JNIEnv* env, jbyteArray array, jsize arrayLength, jlong addressOrOffset, jlong size, EverythingDirtyTag)
+              : AnyWriteOnlyByteRegion{env, array, arrayLength, addressOrOffset, size} {}
 
-        AnyWriteOnlyByteRegion(JNIEnv* env, jlong directAddress, jbyteArray array, jsize arrayOffset, jsize position, jsize remaining, CommitNothingTag)
-              : AnyWriteOnlyByteRegion{env, directAddress, array, arrayOffset, position, remaining} {
+        AnyWriteOnlyByteRegion(JNIEnv* env, jbyteArray array, jsize arrayLength, jlong addressOrOffset, jlong size, NothingDirtyTag)
+              : AnyWriteOnlyByteRegion{env, array, arrayLength, addressOrOffset, size} {
             _dirtyCount = 0;
         }
 
@@ -340,6 +334,6 @@ namespace porklib::jni {
     };
 }
 
-#define PORKLIB_JNI_BYTEREGION_ARGS_DECL(NAME) jlong NAME##DirectAddress, jbyteArray NAME##Array, jsize NAME##ArrayOffset, jsize NAME##Position, jsize NAME##Remaining
-#define PORKLIB_JNI_BYTEREGION_ARGS_USE(NAME) NAME##DirectAddress, NAME##Array, NAME##ArrayOffset, NAME##Position, NAME##Remaining
-#define PORKLIB_JNI_BYTEREGION_SIG "J[BIII"
+#define PORKLIB_JNI_BYTEREGION_ARGS_DECL(NAME) jbyteArray NAME##Array, jsize NAME##ArrayLength, jsize NAME##AddressOrOffset, jlong NAME##Size
+#define PORKLIB_JNI_BYTEREGION_ARGS_USE(NAME) NAME##Array, NAME##ArrayLength, NAME##AddressOrOffset, NAME##Size
+#define PORKLIB_JNI_BYTEREGION_SIG "[BIJJ"

@@ -43,44 +43,54 @@ final class JniZstdFactory extends AbstractNativeZstdFactory {
     public ZstdCompressDictionary makeCompressionDictionary(@Borrow @NonNull ByteBuffer dict, int level) throws IllegalArgumentException {
         Zstd.checkLevel(level);
 
-        long dictMemoryAddress = 0L;
-        byte[] dictArray = null;
-        int dictArrayOffset = 0;
+        byte[] dictArray;
+        int dictArrayLength;
+        long dictAddressOrOffset;
         if (dict.isDirect()) {
-            dictMemoryAddress = PUnsafe.pork_directBufferAddress(dict);
+            dictArray = null;
+            dictArrayLength = 0;
+            dictAddressOrOffset = PUnsafe.pork_directBufferAddress(dict) + dict.position();
         } else if (dict.hasArray()) {
             dictArray = dict.array();
-            dictArrayOffset = dict.arrayOffset();
+            dictArrayLength = dictArray.length;
+            dictAddressOrOffset = dict.arrayOffset() + dict.position();
         } else {
             // This is most likely a read-only heap buffer, or another buffer of some unknown type.
             // Since we can't access the underlying storage, we'll copy it to a heap array (slow!!!)
             dictArray = PNioBuffers.toArray(dict);
+            dictArrayLength = dictArray.length;
+            dictAddressOrOffset = 0;
         }
 
         return new NativeZstdCDict(this.functions, JniZstdFunctions.ZSTD_createCDict(
-                dictMemoryAddress, dictArray, dictArrayOffset, dict.position(), dict.remaining(),
+                dictArray, dictArrayLength, dictAddressOrOffset, dict.remaining(),
                 level));
     }
 
     @Override
     public ZstdDecompressDictionary makeDecompressionDictionary(@Borrow @NonNull ByteBuffer dict) {
         //get buffer pointers
-        long dictMemoryAddress = 0L;
-        byte[] dictArray = null;
-        int dictArrayOffset = 0;
+        byte[] dictArray;
+        int dictArrayLength;
+        long dictAddressOrOffset;
         if (dict.isDirect()) {
-            dictMemoryAddress = PUnsafe.pork_directBufferAddress(dict);
+            dictArray = null;
+            dictArrayLength = 0;
+            dictAddressOrOffset = PUnsafe.pork_directBufferAddress(dict) + dict.position();
         } else if (dict.hasArray()) {
             dictArray = dict.array();
-            dictArrayOffset = dict.arrayOffset();
+            dictArrayLength = dictArray.length;
+            dictAddressOrOffset = dict.arrayOffset() + dict.position();
         } else {
             // This is most likely a read-only heap buffer, or another buffer of some unknown type.
             // Since we can't access the underlying storage, we'll copy it to a heap array (slow!!!)
             dictArray = PNioBuffers.toArray(dict);
+            dictArrayLength = dictArray.length;
+            dictAddressOrOffset = 0;
         }
 
         return new NativeZstdDDict(this.functions, JniZstdFunctions.ZSTD_createDDict(
-                dictMemoryAddress, dictArray, dictArrayOffset, dict.position(), dict.remaining()));
+                dictArray, dictArrayLength, dictAddressOrOffset, dict.remaining()));
     }
 
     @Override

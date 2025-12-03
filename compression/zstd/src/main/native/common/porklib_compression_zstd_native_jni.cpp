@@ -58,7 +58,7 @@ namespace porklib::compression::zstd::jni::JniZstdFunctions {
             auto* cctx = reinterpret_cast<ZSTD_CCtx*>(_cctx);
 
             porklib::jni::AnyReadOnlyByteRegion src{env, PORKLIB_JNI_BYTEREGION_ARGS_USE(src)};
-            porklib::jni::AnyWriteOnlyByteRegion dst{env, PORKLIB_JNI_BYTEREGION_ARGS_USE(dst)};
+            porklib::jni::AnyWriteOnlyByteRegion dst{env, PORKLIB_JNI_BYTEREGION_ARGS_USE(dst), porklib::jni::NothingDirtyTag{}};
 
             size_t result = ZSTD_compress2(cctx, dst.data(), dst.size(), src.data(), src.size());
 
@@ -123,7 +123,7 @@ namespace porklib::compression::zstd::jni::JniZstdFunctions {
             auto* dctx = reinterpret_cast<ZSTD_DCtx*>(_dctx);
 
             porklib::jni::AnyReadOnlyByteRegion src{env, PORKLIB_JNI_BYTEREGION_ARGS_USE(src)};
-            porklib::jni::AnyWriteOnlyByteRegion dst{env, PORKLIB_JNI_BYTEREGION_ARGS_USE(dst)};
+            porklib::jni::AnyWriteOnlyByteRegion dst{env, PORKLIB_JNI_BYTEREGION_ARGS_USE(dst), porklib::jni::NothingDirtyTag{}};
 
             size_t result = ZSTD_decompressDCtx(dctx, dst.data(), dst.size(), src.data(), src.size());
 

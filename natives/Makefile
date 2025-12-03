@@ -8,9 +8,11 @@ export TOOLCHAINS	:=	$(CURDIR)/toolchain
 export COMMONSRC	:=	$(CURDIR)/src/main/native
 
 FLAGS				:=	-shared -fPIC -ffunction-sections -fdata-sections -fvisibility=hidden
-export CFLAGS		:=	$(FLAGS) -O3 -Wall
+FLAGS				:=	$(FLAGS) -O2
+
+export CFLAGS		:=	$(FLAGS) -Wall
 export CXXFLAGS		:=	$(CFLAGS) -std=c++20
-export LDFLAGS		:=	$(FLAGS) -O3 -Wl,--gc-sections
+export LDFLAGS		:=	$(FLAGS) -Wl,--gc-sections
 
 ifndef PORKLIB_NATIVES_DEBUG
 export CFLAGS		:=	$(CFLAGS)

@@ -17,11 +17,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(":compression")
-    api project(":natives")
+package compression.zstd;
 
-    implementation "io.airlift:aircompressor:$aircompressorVersion"
+import net.daporkchop.lib.compression.zstd.natives.JniZstdProvider;
 
-    testImplementation project(":compression").sourceSets.test.output
+/**
+ * @author DaPorkchop_
+ */
+public class ZstdJniOneshotTest extends AbstractZstdOneshotTest {
+    public ZstdJniOneshotTest() {
+        super(new JniZstdProvider());
+    }
 }

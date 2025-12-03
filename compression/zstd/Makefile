@@ -45,6 +45,11 @@ $(CURDIR)/lib-zstd/lib/libzstd.a: $(TOPDIR)/zstd-1.4.4.tar.gz
 	@[ ! -d lib-zstd ] || rm -rf lib-zstd/
 	@tar zxf $(TOPDIR)/zstd-1.4.4.tar.gz
 	@mv zstd-1.4.4/ lib-zstd/
-	@$(MAKE) -C $(CURDIR)/lib-zstd/ -f $(CURDIR)/lib-zstd/Makefile ZSTD_LEGACY_SUPPORT=0 ZSTD_LEGACY_MULTITHREADED_API=0 lib-release
+	@$(MAKE) -C $(CURDIR)/lib-zstd/ -f $(CURDIR)/lib-zstd/Makefile \
+		ZSTD_LEGACY_SUPPORT=0 ZSTD_LEGACY_MULTITHREADED_API=0 \
+		ZSTDLIB_VISIBLE=ZSTDLIB_HIDDEN ZSTDLIB_VISIBILITY=ZSTDLIB_HIDDEN \
+		ZSTDERRORLIB_VISIBLE=ZSTDLIB_HIDDEN ZSTDERRORLIB_VISIBILITY=ZSTDLIB_HIDDEN \
+		ZDICTLIB_VISIBLE=ZSTDLIB_HIDDEN ZDICTLIB_VISIBILITY=ZSTDLIB_HIDDEN \
+ 		lib-release
 
 endif

@@ -17,11 +17,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(":compression")
-    api project(":natives")
+package compression.zstd;
 
-    implementation "io.airlift:aircompressor:$aircompressorVersion"
+import lombok.val;
+import net.daporkchop.lib.compression.zstd.Zstd;
+import org.junit.Test;
 
-    testImplementation project(":compression").sourceSets.test.output
+import java.nio.ByteBuffer;
+
+/**
+ * @author DaPorkchop_
+ */
+public class ZstdTestNew {
+    @Test
+    public void test() {
+        val factory = Zstd.getDefaultOneshotFactory();
+        try (val compressor = factory.makeOneshotCompressor()) {
+            System.out.println(compressor.compress(ByteBuffer.allocate(1000), ByteBuffer.allocate(1000)));
+            System.out.println(compressor.compress(ByteBuffer.allocate(1000), ByteBuffer.allocate(1)));
+            System.out.println(compressor.compress(ByteBuffer.allocate(1000), ByteBuffer.allocate(18)));
+            System.out.println(compressor.compress(ByteBuffer.allocate(1000), ByteBuffer.allocate(19)));
+            System.out.println(compressor.compress(ByteBuffer.allocate(1000), ByteBuffer.allocate(20)));
+        }
+    }
 }

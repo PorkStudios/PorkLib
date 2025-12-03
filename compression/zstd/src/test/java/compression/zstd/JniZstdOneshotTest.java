@@ -19,13 +19,13 @@
 
 package compression.zstd;
 
-import net.daporkchop.lib.compression.zstd.air.v0.AircompressorV0ZstdProvider;
+import net.daporkchop.lib.compression.zstd.natives.JniZstdProvider;
 
 /**
  * @author DaPorkchop_
  */
-public class ZstdAircompressorV0OneshotTest extends AbstractZstdOneshotTest {
-    public ZstdAircompressorV0OneshotTest() {
-        super(new AircompressorV0ZstdProvider());
+public class JniZstdOneshotTest extends AbstractZstdOneshotTest {
+    public JniZstdOneshotTest() {
+        super(new JniZstdProvider());
     }
 }

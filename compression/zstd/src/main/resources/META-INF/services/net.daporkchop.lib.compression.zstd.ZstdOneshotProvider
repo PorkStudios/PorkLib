@@ -18,4 +18,4 @@
 #
 
 net.daporkchop.lib.compression.zstd.natives.JniZstdProvider
-#net.daporkchop.lib.compression.zstd.air.v0.AircompressorV0ZstdProvider
+net.daporkchop.lib.compression.zstd.air.v0.AircompressorV0ZstdProvider

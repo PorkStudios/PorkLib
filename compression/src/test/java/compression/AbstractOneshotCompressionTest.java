@@ -33,6 +33,7 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.zip.DataFormatException;
 
 /**
  * @author DaPorkchop_
@@ -80,7 +81,6 @@ public abstract class AbstractOneshotCompressionTest<FACTORY extends OneshotComp
 
                     Assert.assertEquals(origSrcPosition, src.position());
                     Assert.assertEquals(origDstPosition + result, dst.position());
-                    Assert.assertEquals(result, expectedCompressedData.length);
 
                     Assert.assertArrayEquals(expectedCompressedData, PNioBuffers.toArray(dst, origDstPosition, result));
                 });
@@ -105,6 +105,22 @@ public abstract class AbstractOneshotCompressionTest<FACTORY extends OneshotComp
                     Assert.assertArrayEquals(this.expectedData, PNioBuffers.toArray(dst, origDstPosition, result));
                 });
             });
+        }
+    }
+
+    @Test
+    public void testRoundTrip_NioBuffer() throws DataFormatException {
+        try (val compressor = this.factory.makeOneshotCompressor();
+             val decompressor = this.factory.makeOneshotDecompressor()) {
+            val compressed = ByteBuffer.allocate(compressor.compressBound(this.expectedData.length));
+            assert compressor.compress(ByteBuffer.wrap(this.expectedData), compressed) >= 0 : "compression failed";
+            compressed.flip();
+
+            val decompressed = ByteBuffer.allocate(Math.toIntExact(decompressor.decompressedSizeBound(compressed)));
+            assert decompressor.decompress(compressed, decompressed) >= 0 : "decompression failed";
+            decompressed.flip();
+
+            Assert.assertEquals(ByteBuffer.wrap(this.expectedData), decompressed);
         }
     }
 }

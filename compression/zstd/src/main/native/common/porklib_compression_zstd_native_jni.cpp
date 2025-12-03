@@ -12,10 +12,4 @@ namespace porklib::compression::zstd::jni {
     }
 }
 
-extern "C" __attribute__((visibility("default"))) JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
-    return porklib::jni::JNI_OnLoad(vm, reserved, "porklib_compression_zstd_native_jni", porklib::compression::zstd::jni::OnLoad);
-}
-
-extern "C" __attribute__((visibility("default"))) JNIEXPORT void JNICALL JNI_OnUnload(JavaVM* vm, void* reserved) {
-    return porklib::jni::JNI_OnUnload(vm, reserved, "porklib_compression_zstd_native_jni", porklib::compression::zstd::jni::OnUnload);
-}
+PORKLIB_JNI_REGISTER_LOADERS(porklib_compression_zstd_native_jni, porklib::compression::zstd::jni::OnLoad, porklib::compression::zstd::jni::OnUnload)

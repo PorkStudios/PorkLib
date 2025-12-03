@@ -2,8 +2,8 @@
 
 #include <jni.h>
 
+//TODO: remove this #include
 #include "porklib_jni_exceptions.hpp"
-#include "porklib_noinit_vector.hpp"
 
 #include <cassert>
 #include <memory> // std::allocator
@@ -339,3 +339,7 @@ namespace porklib::jni {
         }
     };
 }
+
+#define PORKLIB_JNI_BYTEREGION_ARGS_DECL(NAME) jlong NAME##DirectAddress, jbyteArray NAME##Array, jsize NAME##ArrayOffset, jsize NAME##Position, jsize NAME##Remaining
+#define PORKLIB_JNI_BYTEREGION_ARGS_USE(NAME) NAME##DirectAddress, NAME##Array, NAME##ArrayOffset, NAME##Position, NAME##Remaining
+#define PORKLIB_JNI_BYTEREGION_SIG "J[BIII"

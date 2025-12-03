@@ -33,12 +33,6 @@ final class JniZstdFunctions extends NativeZstdFunctions {
         }
     }
 
-    /*private static native void configure(boolean allowJniCritical);
-
-    static {
-        configure(NativeUtils.allowJniCritical());
-    }*/
-
     static NativeZstdFunctions get() {
         return new JniZstdFunctions();
     }

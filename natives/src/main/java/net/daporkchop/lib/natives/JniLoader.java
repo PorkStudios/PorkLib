@@ -41,7 +41,7 @@ public final class JniLoader {
         final byte STATE_ALLOWED = 1;
         final byte STATE_ALWAYS = 2;
 
-        val config = new Object() {
+        final class Config {
             public String packagePrefix;
 
             public byte useCriticalRead;
@@ -49,7 +49,9 @@ public final class JniLoader {
 
             public byte useGetElementsRead;
             public byte useGetElementsWrite;
-        };
+        }
+        val config = new Config();
+
         config.packagePrefix = packagePrefix;
 
         config.useCriticalRead = config.useCriticalWrite = NativeUtils.allowJniCritical() ? STATE_ALLOWED : STATE_NEVER;

@@ -153,7 +153,6 @@ namespace porklib::compression::zstd::jni::JniZstdFunctions {
     }*/
 }
 
-
 namespace porklib::compression::zstd::jni {
     static jint OnLoad(JNIEnv* env, porklib::jni::LoadParams params) {
         return porklib::jni::registerNatives(env, params, PORKLIB_COMPRESSION_ZSTD_NATIVE_JNI_PACKAGE "JniZstdFunctions", {{

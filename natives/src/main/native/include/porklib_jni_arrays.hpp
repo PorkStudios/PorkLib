@@ -334,6 +334,6 @@ namespace porklib::jni {
     };
 }
 
-#define PORKLIB_JNI_BYTEREGION_ARGS_DECL(NAME) jbyteArray NAME##Array, jsize NAME##ArrayLength, jsize NAME##AddressOrOffset, jlong NAME##Size
+#define PORKLIB_JNI_BYTEREGION_ARGS_DECL(NAME) jbyteArray NAME##Array, jsize NAME##ArrayLength, jlong NAME##AddressOrOffset, jlong NAME##Size
 #define PORKLIB_JNI_BYTEREGION_ARGS_USE(NAME) NAME##Array, NAME##ArrayLength, NAME##AddressOrOffset, NAME##Size
 #define PORKLIB_JNI_BYTEREGION_SIG "[BIJJ"

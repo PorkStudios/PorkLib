@@ -17,7 +17,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.compression.zlib.java;
+package net.daporkchop.lib.compression.deflate.java;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -33,9 +33,9 @@ import net.daporkchop.lib.common.misc.refcount.AbstractRefCounted;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.common.util.exception.AlreadyReleasedException;
 import net.daporkchop.lib.compression.util.exception.DictionaryNotAllowedException;
-import net.daporkchop.lib.compression.zlib.ZlibInflater;
-import net.daporkchop.lib.compression.zlib.ZlibMode;
-import net.daporkchop.lib.compression.zlib.options.ZlibInflaterCreateOptions;
+import net.daporkchop.lib.compression.deflate.ZlibInflater;
+import net.daporkchop.lib.compression.deflate.ZlibMode;
+import net.daporkchop.lib.compression.deflate.options.ZlibInflaterCreateOptions;
 
 import java.io.IOException;
 import java.util.zip.Inflater;

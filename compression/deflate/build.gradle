@@ -17,14 +17,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.compression.option;
-
-import net.daporkchop.lib.compression.CompressionProvider;
-
-/**
- * Options used by {@link CompressionProvider} for creating new {@link net.daporkchop.lib.compression.context.PDeflater}s.
- *
- * @author DaPorkchop_
- */
-public interface DeflaterCreateOptions<I extends DeflaterCreateOptions<I, P>, P extends CompressionProvider<P, I, ?>> extends ContextCreateOptions<I, P> {
+dependencies {
+    api project(":compression")
+    api project(":natives")
 }

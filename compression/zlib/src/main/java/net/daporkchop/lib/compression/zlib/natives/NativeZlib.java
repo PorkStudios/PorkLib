@@ -17,17 +17,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.compression.zlib.natives;
+package net.daporkchop.lib.compression.deflate.natives;
 
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.compression.context.PDeflater;
 import net.daporkchop.lib.compression.context.PInflater;
-import net.daporkchop.lib.compression.zlib.ZlibMode;
-import net.daporkchop.lib.compression.zlib.ZlibProvider;
-import net.daporkchop.lib.compression.zlib.options.ZlibDeflaterCreateOptions;
-import net.daporkchop.lib.compression.zlib.options.ZlibInflaterCreateOptions;
+import net.daporkchop.lib.compression.deflate.ZlibMode;
+import net.daporkchop.lib.compression.deflate.ZlibProvider;
+import net.daporkchop.lib.compression.deflate.options.ZlibDeflaterCreateOptions;
+import net.daporkchop.lib.compression.deflate.options.ZlibInflaterCreateOptions;
 import net.daporkchop.lib.natives.NativeFeature;
 
 import java.lang.invoke.MethodHandles;

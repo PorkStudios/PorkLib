@@ -15,7 +15,6 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
 rootProject.name = 'PorkLib'
@@ -24,7 +23,7 @@ include 'binary'
 include 'collections'
 include 'common'
 include 'compression'
-include 'compression:zlib'
+include 'compression:deflate'
 include 'compression:zstd'
 include 'concurrent'
 include 'encoding'
@@ -54,7 +53,7 @@ include 'random'
 include 'reflection'
 include 'unsafe'
 
-findProject(':compression:zlib')?.name = 'compression-zlib'
+findProject(':compression:deflate')?.name = 'compression-deflate'
 findProject(':compression:zstd')?.name = 'compression-zstd'
 findProject(':encoding:config')?.name = 'config'
 findProject(':encoding:nbt')?.name = 'nbt'

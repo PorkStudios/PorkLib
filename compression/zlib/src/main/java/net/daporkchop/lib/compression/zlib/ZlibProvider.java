@@ -17,12 +17,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.compression.zlib;
+package net.daporkchop.lib.compression.deflate;
 
 import lombok.NonNull;
 import net.daporkchop.lib.compression.CompressionProvider;
-import net.daporkchop.lib.compression.zlib.options.ZlibDeflaterCreateOptions;
-import net.daporkchop.lib.compression.zlib.options.ZlibInflaterCreateOptions;
+import net.daporkchop.lib.compression.deflate.options.ZlibDeflaterCreateOptions;
+import net.daporkchop.lib.compression.deflate.options.ZlibInflaterCreateOptions;
 import net.daporkchop.lib.natives.Feature;
 
 import static net.daporkchop.lib.common.util.PValidation.*;

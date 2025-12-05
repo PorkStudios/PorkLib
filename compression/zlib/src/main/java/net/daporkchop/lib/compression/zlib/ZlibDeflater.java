@@ -17,10 +17,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.compression.zlib;
+package net.daporkchop.lib.compression.deflate;
 
 import net.daporkchop.lib.compression.context.PDeflater;
-import net.daporkchop.lib.compression.zlib.options.ZlibDeflaterCreateOptions;
+import net.daporkchop.lib.compression.deflate.options.ZlibDeflaterCreateOptions;
 import net.daporkchop.lib.common.util.exception.AlreadyReleasedException;
 
 /**

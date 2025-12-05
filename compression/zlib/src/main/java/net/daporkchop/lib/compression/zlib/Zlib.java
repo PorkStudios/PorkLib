@@ -17,7 +17,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.compression.zlib;
+package net.daporkchop.lib.compression.deflate;
 
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.natives.FeatureLoader;

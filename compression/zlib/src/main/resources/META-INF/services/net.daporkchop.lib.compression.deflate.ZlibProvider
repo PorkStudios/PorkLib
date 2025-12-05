@@ -17,5 +17,5 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
-net.daporkchop.lib.compression.zlib.natives.NativeZlib
-net.daporkchop.lib.compression.zlib.java.JavaZlib
+net.daporkchop.lib.compression.deflate.natives.NativeZlib
+net.daporkchop.lib.compression.deflate.java.JavaZlib

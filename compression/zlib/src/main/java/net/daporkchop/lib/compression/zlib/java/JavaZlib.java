@@ -17,7 +17,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.compression.zlib.java;
+package net.daporkchop.lib.compression.deflate.java;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -25,11 +25,11 @@ import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.compression.context.PDeflater;
 import net.daporkchop.lib.compression.context.PInflater;
-import net.daporkchop.lib.compression.zlib.ZlibMode;
-import net.daporkchop.lib.compression.zlib.ZlibProvider;
-import net.daporkchop.lib.compression.zlib.ZlibStrategy;
-import net.daporkchop.lib.compression.zlib.options.ZlibDeflaterCreateOptions;
-import net.daporkchop.lib.compression.zlib.options.ZlibInflaterCreateOptions;
+import net.daporkchop.lib.compression.deflate.ZlibMode;
+import net.daporkchop.lib.compression.deflate.ZlibProvider;
+import net.daporkchop.lib.compression.deflate.ZlibStrategy;
+import net.daporkchop.lib.compression.deflate.options.ZlibDeflaterCreateOptions;
+import net.daporkchop.lib.compression.deflate.options.ZlibInflaterCreateOptions;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 

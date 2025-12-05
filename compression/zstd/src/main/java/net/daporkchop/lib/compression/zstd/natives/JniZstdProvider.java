@@ -28,19 +28,17 @@ import java.lang.invoke.MethodHandles;
  * @author DaPorkchop_
  */
 public final class JniZstdProvider extends AbstractNativeZstdProvider {
-    static final Throwable UNAVAILABILITY_CAUSE;
+    static Throwable UNAVAILABILITY_CAUSE;
 
     static {
-        Throwable unavailabilityCause = null;
         try {
             JniLoader.loadNamedRelocatableLibrary(
                     MethodHandles.lookup(), "porklib_compression_zstd_native_jni",
                     "net!daporkchop!lib!compression!zstd!natives!JniZstdProvider",
                     JniLoader.namedLibraryFromResourceLoader(""));
         } catch (Throwable caught) {
-            unavailabilityCause = caught;
+            UNAVAILABILITY_CAUSE = caught;
         }
-        UNAVAILABILITY_CAUSE = unavailabilityCause;
     }
 
     @Override

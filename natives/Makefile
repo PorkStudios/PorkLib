@@ -36,7 +36,7 @@ export MODULES		:=	../compression/zlib ../compression/zstd
 
 export LIBDIR		:=	$(TOPDIR)/src/main/native/lib
 export LIB_URL_BASE	:=	https://cloud.daporkchop.net/programs/source/
-export LIBS			:=	zlib-ng-1.2.11.tar.gz zstd-1.4.4.tar.gz
+export LIBS			:=	zlib-ng-1.2.11.tar.gz zstd-1.5.7.tar.gz
 
 .PHONY: build clean .FORCE
 

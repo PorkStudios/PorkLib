@@ -5,7 +5,7 @@
 #include <porklib_jni_load.hpp>
 
 #include <lib-zstd/lib/zstd.h>
-#include <lib-zstd/lib/common/zstd_errors.h>
+#include <lib-zstd/lib/zstd_errors.h>
 
 #define PORKLIB_COMPRESSION_ZSTD_NATIVE_JNI_PACKAGE "net/daporkchop/lib/compression/zstd/natives/"
 
@@ -82,11 +82,10 @@ namespace porklib::compression::zstd::jni::JniZstdFunctions {
         ZSTD_freeCDict(cdict);
     }
 
-    //TODO: update ZSTD library
-    /*static jint JNICALL getDictID_fromCDict(JNIEnv* env, jobject, jlong _cdict) {
+    static jint JNICALL getDictID_fromCDict(JNIEnv* env, jobject, jlong _cdict) {
         auto* cdict = reinterpret_cast<const ZSTD_CDict*>(_cdict);
         return ZSTD_getDictID_fromCDict(cdict);
-    }*/
+    }
 
     static jlong JNICALL createDCtx(JNIEnv* env, jobject) {
         return reinterpret_cast<jlong>(ZSTD_createDCtx());
@@ -146,11 +145,10 @@ namespace porklib::compression::zstd::jni::JniZstdFunctions {
         ZSTD_freeDDict(ddict);
     }
 
-    //TODO: update ZSTD library
-    /*static jint JNICALL getDictID_fromDDict(JNIEnv* env, jobject, jlong _ddict) {
+    static jint JNICALL getDictID_fromDDict(JNIEnv* env, jobject, jlong _ddict) {
         auto* ddict = reinterpret_cast<const ZSTD_DDict*>(_ddict);
         return ZSTD_getDictID_fromDDict(ddict);
-    }*/
+    }
 }
 
 namespace porklib::compression::zstd::jni {
@@ -169,7 +167,7 @@ namespace porklib::compression::zstd::jni {
 
             porklib::jni::makeJNINativeMethod("ZSTD_createCDict", "(" PORKLIB_JNI_BYTEREGION_SIG "I)J", JniZstdFunctions::createCDict),
             porklib::jni::makeJNINativeMethod("ZSTD_freeCDict", "(J)V", JniZstdFunctions::freeCDict),
-            //porklib::jni::makeJNINativeMethod("ZSTD_getDictID_fromCDict", "(J)I", JniZstdFunctions::getDictID_fromCDict),
+            porklib::jni::makeJNINativeMethod("ZSTD_getDictID_fromCDict", "(J)I", JniZstdFunctions::getDictID_fromCDict),
 
             porklib::jni::makeJNINativeMethod("ZSTD_createDCtx", "()J", JniZstdFunctions::createDCtx),
             porklib::jni::makeJNINativeMethod("ZSTD_freeDCtx", "(J)V", JniZstdFunctions::freeDCtx),
@@ -180,7 +178,7 @@ namespace porklib::compression::zstd::jni {
 
             porklib::jni::makeJNINativeMethod("ZSTD_createDDict", "(" PORKLIB_JNI_BYTEREGION_SIG ")J", JniZstdFunctions::createDDict),
             porklib::jni::makeJNINativeMethod("ZSTD_freeDDict", "(J)V", JniZstdFunctions::freeDDict),
-            //porklib::jni::makeJNINativeMethod("ZSTD_getDictID_fromDDict", "(J)I", JniZstdFunctions::getDictID_fromDDict),
+            porklib::jni::makeJNINativeMethod("ZSTD_getDictID_fromDDict", "(J)I", JniZstdFunctions::getDictID_fromDDict),
         }});
     }
 

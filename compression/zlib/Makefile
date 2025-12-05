@@ -18,6 +18,11 @@ else
 
 include $(TOOLCHAINS)/$(BUILD)
 
+MAKEFILES		:=	$(TOPDIR)/Makefile $(TOOLCHAINS)/$(BUILD) $(PROJDIR)/Makefile
+
+#dummy rule
+$(TOOLCHAINS)/$(BUILD):
+
 SOURCES			:=	$(PROJDIR)/src/main/native/common $(PROJDIR)/src/main/native/$(BUILD) $(COMMONSRC)/common $(COMMONSRC)/$(BUILD)
 SOURCES			:=	$(abspath $(SOURCES))
 
@@ -28,20 +33,20 @@ INCLUDE			:=	$(addprefix -I,$(INCLUDES) $(CURDIR))
 
 -include $(OFILES:.o=.d)
 
-build: libzlib.$(EXT)
+build: libzlib.$(EXT) $(MAKEFILES)
 	@echo "Copying libzlib.$(EXT) to $(OUTDIR)/..."
 	@[ -d $(OUTDIR) ] || mkdir -p $(OUTDIR)
 	@cp libzlib.$(EXT) $(OUTDIR)/$(BUILD).$(EXT)
 
-libzlib.$(EXT): $(OFILES) $(CURDIR)/lib-zlib/libz-ng.a
+libzlib.$(EXT): $(OFILES) $(CURDIR)/lib-zlib/libz-ng.a $(MAKEFILES)
 	@echo "Linking $@..."
 	@$(LD) $(LDFLAGS) $(INCLUDE) -o $@ $(OFILES) $(CURDIR)/lib-zlib/libz-ng.a
 
-%.cpp.o: $(CURDIR)/lib-zlib/libz-ng.a $$(subst __,/,%.cpp)
+%.cpp.o: $(CURDIR)/lib-zlib/libz-ng.a $$(subst __,/,%.cpp) $(MAKEFILES)
 	@echo "Building $(subst .o,,$(subst __,/,$@))..."
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -MMD -MP -c $(subst .o,,$(subst __,/,$@)) -o $@
 
-$(CURDIR)/lib-zlib/libz-ng.a: $(TOPDIR)/zlib-ng-1.2.11.tar.gz
+$(CURDIR)/lib-zlib/libz-ng.a: $(TOPDIR)/zlib-ng-1.2.11.tar.gz $(MAKEFILES)
 	@[ ! -d lib-zlib ] || rm -rf lib-zlib/
 	@tar zxf $(TOPDIR)/zlib-ng-1.2.11.tar.gz
 	@mv zlib-ng-1.2.11/ lib-zlib/

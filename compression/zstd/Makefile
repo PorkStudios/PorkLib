@@ -18,6 +18,11 @@ else
 
 include $(TOOLCHAINS)/$(BUILD)
 
+MAKEFILES		:=	$(TOPDIR)/Makefile $(TOOLCHAINS)/$(BUILD) $(PROJDIR)/Makefile
+
+#dummy rule
+$(TOOLCHAINS)/$(BUILD):
+
 SOURCES			:=	$(PROJDIR)/src/main/native/common $(PROJDIR)/src/main/native/$(BUILD) $(COMMONSRC)/common $(COMMONSRC)/$(BUILD)
 SOURCES			:=	$(abspath $(SOURCES))
 
@@ -28,20 +33,20 @@ INCLUDE			:=	$(addprefix -I,$(INCLUDES) $(CURDIR))
 
 -include $(OFILES:.o=.d)
 
-build: libzstd.$(EXT)
+build: libzstd.$(EXT) $(MAKEFILES)
 	@echo "Copying libzstd.$(EXT) to $(OUTDIR)/..."
 	@[ -d $(OUTDIR) ] || mkdir -p $(OUTDIR)
-	@cp libzstd.$(EXT) $(OUTDIR)/$(BUILD).$(EXT)
+	@cp --reflink=auto libzstd.$(EXT) $(OUTDIR)/$(BUILD).$(EXT)
 
-libzstd.$(EXT): $(OFILES) $(CURDIR)/lib-zstd/lib/libzstd.a
+libzstd.$(EXT): $(OFILES) $(CURDIR)/lib-zstd/lib/libzstd.a $(MAKEFILES)
 	@echo "Linking $@..."
 	@$(LD) $(LDFLAGS) $(INCLUDE) -o $@ $(OFILES) $(CURDIR)/lib-zstd/lib/libzstd.a
 
-%.cpp.o: $(CURDIR)/lib-zstd/lib/libzstd.a $$(subst __,/,%.cpp)
+%.cpp.o: $(CURDIR)/lib-zstd/lib/libzstd.a $$(subst __,/,%.cpp) $(MAKEFILES)
 	@echo "Building $(subst .o,,$(subst __,/,$@))..."
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -MMD -MP -c $(subst .o,,$(subst __,/,$@)) -o $@
 
-$(CURDIR)/lib-zstd/lib/libzstd.a: $(TOPDIR)/zstd-1.4.4.tar.gz
+$(CURDIR)/lib-zstd/lib/libzstd.a: $(TOPDIR)/zstd-1.4.4.tar.gz $(MAKEFILES)
 	@[ ! -d lib-zstd ] || rm -rf lib-zstd/
 	@tar zxf $(TOPDIR)/zstd-1.4.4.tar.gz
 	@mv zstd-1.4.4/ lib-zstd/

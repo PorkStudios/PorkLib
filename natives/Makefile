@@ -8,17 +8,18 @@ export TOOLCHAINS	:=	$(CURDIR)/toolchain
 export COMMONSRC	:=	$(CURDIR)/src/main/native
 
 FLAGS				:=	-shared -fPIC -ffunction-sections -fdata-sections -fvisibility=hidden
-FLAGS				:=	$(FLAGS) -O2
+FLAGS				+=	-O2
+FLAGS				+=	-flto=$(NPROC) -fno-fat-lto-objects
 
 export CFLAGS		:=	$(FLAGS) -Wall
 export CXXFLAGS		:=	$(CFLAGS) -std=c++20
 export LDFLAGS		:=	$(FLAGS) -Wl,--gc-sections
 
 ifndef PORKLIB_NATIVES_DEBUG
-export CFLAGS		:=	$(CFLAGS)
 export BUILD_TYPE	:=	release
 else
-export CFLAGS		:=	$(CFLAGS) -DPORKLIB_NATIVES_DEBUG
+export CFLAGS		+=	-DPORKLIB_NATIVES_DEBUG
+export CXXFLAGS		+=	-DPORKLIB_NATIVES_DEBUG
 export BUILD_TYPE	:=	debug
 endif
 $(info natives: building for $(BUILD_TYPE))
@@ -26,8 +27,8 @@ $(info natives: building for $(BUILD_TYPE))
 export SOURCES		:=
 export INCLUDES		:=	$(COMMONSRC)/include $(JAVA_HOME)/include $(JAVA_HOME)/include/linux
 
-export ARCHS		:=	aarch64-linux-gnu x86_64-linux-gnu x86_64-w64-mingw32
-#TODO: export ARCHS		:=	aarch64-linux-gnu arm-linux-gnueabihf x86_64-linux-gnu x86_64-w64-mingw32
+export ARCHS		:=	aarch64-linux-gnu arm-linux-gnu i386-linux-gnu x86_64-linux-gnu
+#TODO: export ARCHS		+=	x86_64-w64-mingw32
 #export ARCHS		:=	$(foreach arch,$(ARCHS),$(if $(shell which $(arch)-gcc),$(arch)))
 #export ARCHS		:=	$(foreach arch,$(ARCHS),$(if $(shell which $(arch)-g++),$(arch)))
 export ARCH_TASKS	:=	$(foreach arch,$(ARCHS),build.$(arch))

@@ -36,17 +36,13 @@ CXXFLAGS		+= -DZSTDLIB_VISIBLE=ZSTDLIB_HIDDEN -DZSTDERRORLIB_VISIBLE=ZSTDERRORLI
 
 -include $(OFILES:.o=.d)
 
-build: libzstd.$(EXT) $(MAKEFILES)
-	@echo "Copying libzstd.$(EXT) to $(OUTDIR)/..."
-	@[ -d $(OUTDIR) ] || mkdir -p $(OUTDIR)
-	@cp --reflink=auto libzstd.$(EXT) $(OUTDIR)/$(BUILD).$(EXT)
+build: $(OUTDIR)/$(BUILD).$(EXT)
 
-libzstd.$(EXT): $(OFILES) $(CURDIR)/lib-zstd/lib/libzstd.a $(MAKEFILES)
-	@echo "Linking $@..."
-	@$(LD) $(LDFLAGS) $(INCLUDE) -o $@ $(OFILES) $(CURDIR)/lib-zstd/lib/libzstd.a
+$(OUTDIR)/$(BUILD).$(EXT): $(OFILES) $(CURDIR)/lib-zstd/lib/libzstd.a $(MAKEFILES)
+	@[ -d $(OUTDIR) ] || mkdir -p $(OUTDIR)
+	$(LD) $(LDFLAGS) -o $@ $(OFILES) $(CURDIR)/lib-zstd/lib/libzstd.a
 
 %.cpp.o: $(CURDIR)/lib-zstd/lib/libzstd.a $$(subst __,/,%.cpp) $(MAKEFILES)
-	@echo "Building $(subst .o,,$(subst __,/,$@))..."
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -MMD -MP -c $(subst .o,,$(subst __,/,$@)) -o $@
 
 $(CURDIR)/lib-zstd/lib/libzstd.a: $(CURDIR)/lib-zstd/lib/zstd.h $(MAKEFILES)

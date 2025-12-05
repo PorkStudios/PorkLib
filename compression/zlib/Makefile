@@ -33,17 +33,13 @@ INCLUDE			:=	$(addprefix -I,$(INCLUDES) $(CURDIR))
 
 -include $(OFILES:.o=.d)
 
-build: libzlib.$(EXT) $(MAKEFILES)
-	@echo "Copying libzlib.$(EXT) to $(OUTDIR)/..."
-	@[ -d $(OUTDIR) ] || mkdir -p $(OUTDIR)
-	@cp libzlib.$(EXT) $(OUTDIR)/$(BUILD).$(EXT)
+build: $(OUTDIR)/$(BUILD).$(EXT)
 
-libzlib.$(EXT): $(OFILES) $(CURDIR)/lib-zlib/libz-ng.a $(MAKEFILES)
-	@echo "Linking $@..."
-	@$(LD) $(LDFLAGS) $(INCLUDE) -o $@ $(OFILES) $(CURDIR)/lib-zlib/libz-ng.a
+$(OUTDIR)/$(BUILD).$(EXT): $(OFILES) $(CURDIR)/lib-zlib/libz-ng.a $(MAKEFILES)
+	@[ -d $(OUTDIR) ] || mkdir -p $(OUTDIR)
+	$(LD) $(LDFLAGS) -o $@ $(OFILES) $(CURDIR)/lib-zlib/libz-ng.a
 
 %.cpp.o: $(CURDIR)/lib-zlib/libz-ng.a $$(subst __,/,%.cpp) $(MAKEFILES)
-	@echo "Building $(subst .o,,$(subst __,/,$@))..."
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -MMD -MP -c $(subst .o,,$(subst __,/,$@)) -o $@
 
 $(CURDIR)/lib-zlib/libz-ng.a: $(TOPDIR)/zlib-ng-1.2.11.tar.gz $(MAKEFILES)

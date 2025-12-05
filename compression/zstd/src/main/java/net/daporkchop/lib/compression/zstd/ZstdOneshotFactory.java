@@ -20,11 +20,25 @@
 package net.daporkchop.lib.compression.zstd;
 
 import net.daporkchop.lib.compression.OneshotCompressionFactory;
+import net.daporkchop.lib.natives.util.MemoryPreference;
 
 /**
  * @author DaPorkchop_
  */
-public interface ZstdOneshotFactory extends OneshotCompressionFactory, ZstdFactory, ZstdDictionaryFactory {
+public interface ZstdOneshotFactory extends OneshotCompressionFactory, ZstdDictionaryFactory {
+    /**
+     * @return the capabilities of this ZSTD implementation
+     */
+    ZstdProviderCapabilities capabilities();
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default MemoryPreference memoryPreference() {
+        return this.capabilities().memoryPreference();
+    }
+
     @Override
     ZstdOneshotCompressor makeOneshotCompressor();
 

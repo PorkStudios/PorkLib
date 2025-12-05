@@ -17,9 +17,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(":compression")
-    api project(":natives")
+package net.daporkchop.lib.compression.deflate;
 
-    testImplementation project(":compression").sourceSets.test.output
+import net.daporkchop.lib.compression.StreamingCompressionFactory;
+
+/**
+ * @author DaPorkchop_
+ */
+public interface DeflateStreamingFactory extends StreamingCompressionFactory, DeflateOneshotFactory {
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    DeflateStreamingDecompressor makeStreamingDecompressor();
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    DeflateStreamingCompressor makeStreamingCompressor();
 }

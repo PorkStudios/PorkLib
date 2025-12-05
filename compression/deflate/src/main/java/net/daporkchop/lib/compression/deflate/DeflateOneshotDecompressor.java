@@ -17,18 +17,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.compression;
+package net.daporkchop.lib.compression.deflate;
 
-import net.daporkchop.lib.common.annotation.ThreadSafe;
-import net.daporkchop.lib.natives.util.MemoryPreference;
+import io.netty.buffer.ByteBuf;
+import lombok.NonNull;
+import net.daporkchop.lib.common.annotation.NotThreadSafe;
+import net.daporkchop.lib.common.annotation.param.NotNegative;
+import net.daporkchop.lib.compression.context.POneshotDecompressor;
+
+import java.nio.ByteBuffer;
+import java.util.OptionalLong;
+import java.util.zip.DataFormatException;
 
 /**
  * @author DaPorkchop_
  */
-@ThreadSafe
-public interface CompressionFactory {
-    /**
-     * @return the type of memory preferred by contexts created by this factory
-     */
-    MemoryPreference memoryPreference();
+@NotThreadSafe
+public interface DeflateOneshotDecompressor extends POneshotDecompressor, DeflateDecompressParameters {
+    @Override
+    default @NotNegative OptionalLong decompressedSizeExact(@NonNull ByteBuffer src) throws DataFormatException, ArithmeticException {
+        throw new AbstractMethodError(); //TODO
+    }
+
+    @Override
+    default @NotNegative OptionalLong decompressedSizeExact(@NonNull ByteBuf src) throws DataFormatException, ArithmeticException {
+        throw new AbstractMethodError(); //TODO
+    }
+
+    @Override
+    default @NotNegative long decompressedSizeBound(@NonNull ByteBuffer src) throws DataFormatException, ArithmeticException {
+        throw new AbstractMethodError(); //TODO
+    }
+
+    @Override
+    default @NotNegative long decompressedSizeBound(@NonNull ByteBuf src) throws DataFormatException, ArithmeticException {
+        throw new AbstractMethodError(); //TODO
+    }
 }

@@ -17,9 +17,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(":compression")
-    api project(":natives")
+package net.daporkchop.lib.compression.deflate;
 
-    testImplementation project(":compression").sourceSets.test.output
+/**
+ * @author DaPorkchop_
+ */
+public interface DeflateStreamingProvider extends DeflateOneshotProvider {
+    /**
+     * @return an instance of {@link DeflateStreamingFactory} backed by this provider
+     * @throws UnsatisfiedLinkError if this provider is not {@link #isAvailable() available}
+     */
+    DeflateStreamingFactory getStreamingFactory() throws UnsatisfiedLinkError;
 }

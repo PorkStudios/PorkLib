@@ -17,9 +17,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(":compression")
-    api project(":natives")
+package net.daporkchop.lib.compression.deflate;
 
-    testImplementation project(":compression").sourceSets.test.output
+import net.daporkchop.lib.compression.context.IContext;
+
+/**
+ * @author DaPorkchop_
+ */
+public interface DeflateCompressParameters extends IContext {
+    /**
+     * Set the compression level. The special value {@link java.util.zip.Deflater#DEFAULT_COMPRESSION} means that the default compression level will be used.
+     * <p>
+     * The default value is {@link java.util.zip.Deflater#DEFAULT_COMPRESSION}.
+     *
+     * @param level the compression level
+     * @throws IllegalArgumentException if the given compression level isn't supported by the implementation
+     * @throws UnsupportedOperationException if the implementation doesn't allow setting the compression level
+     * @see #resetParameters()
+     */
+    void setLevel(int level) throws IllegalArgumentException;
 }

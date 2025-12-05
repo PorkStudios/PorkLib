@@ -22,12 +22,18 @@ package net.daporkchop.lib.compression;
 import net.daporkchop.lib.common.annotation.ThreadSafe;
 import net.daporkchop.lib.compression.context.POneshotCompressor;
 import net.daporkchop.lib.compression.context.POneshotDecompressor;
+import net.daporkchop.lib.natives.util.MemoryPreference;
 
 /**
  * @author DaPorkchop_
  */
 @ThreadSafe
-public interface OneshotCompressionFactory extends CompressionFactory {
+public interface OneshotCompressionFactory {
+    /**
+     * @return the type of memory preferred by contexts created by this factory
+     */
+    MemoryPreference memoryPreference();
+
     /**
      * @return a new {@link POneshotCompressor}
      */

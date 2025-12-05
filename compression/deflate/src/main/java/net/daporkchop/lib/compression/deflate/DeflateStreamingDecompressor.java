@@ -17,9 +17,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(":compression")
-    api project(":natives")
+package net.daporkchop.lib.compression.deflate;
 
-    testImplementation project(":compression").sourceSets.test.output
+import net.daporkchop.lib.common.annotation.NotThreadSafe;
+import net.daporkchop.lib.compression.context.PStreamingDecompressor;
+
+/**
+ * @author DaPorkchop_
+ */
+@NotThreadSafe
+public interface DeflateStreamingDecompressor extends PStreamingDecompressor, DeflateDecompressParameters {
 }

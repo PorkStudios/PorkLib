@@ -17,9 +17,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(":compression")
-    api project(":natives")
+package net.daporkchop.lib.compression.deflate;
 
-    testImplementation project(":compression").sourceSets.test.output
+import net.daporkchop.lib.natives.util.MemoryPreference;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+/**
+ * The features supported by a DEFLATE implementation.
+ *
+ * @author DaPorkchop_
+ */
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Inherited
+public @interface DeflateProviderCapabilities {
+    /**
+     * The type of memory which this implementation prefers to operate on.
+     */
+    MemoryPreference memoryPreference();
+
+    /**
+     * {@code true} iff. the implementation supports compression with a non-default level.
+     */
+    boolean supportsCompressionLevel();
 }

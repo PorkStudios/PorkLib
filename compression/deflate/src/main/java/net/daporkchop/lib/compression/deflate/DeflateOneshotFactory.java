@@ -17,9 +17,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(":compression")
-    api project(":natives")
+package net.daporkchop.lib.compression.deflate;
 
-    testImplementation project(":compression").sourceSets.test.output
+import net.daporkchop.lib.compression.OneshotCompressionFactory;
+import net.daporkchop.lib.natives.util.MemoryPreference;
+
+/**
+ * @author DaPorkchop_
+ */
+public interface DeflateOneshotFactory extends OneshotCompressionFactory {
+    /**
+     * @return the capabilities of this DEFLATE implementation
+     */
+    DeflateProviderCapabilities capabilities();
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default MemoryPreference memoryPreference() {
+        return this.capabilities().memoryPreference();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    DeflateOneshotCompressor makeOneshotCompressor();
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    DeflateOneshotDecompressor makeOneshotDecompressor();
 }

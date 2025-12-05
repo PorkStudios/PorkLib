@@ -17,9 +17,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(":compression")
-    api project(":natives")
+package net.daporkchop.lib.compression.deflate;
 
-    testImplementation project(":compression").sourceSets.test.output
+import net.daporkchop.lib.natives.OptionalFeature;
+
+/**
+ * @author DaPorkchop_
+ */
+public interface DeflateOneshotProvider extends OptionalFeature {
+    /**
+     * @return this provider's {@link DeflateProviderCapabilities capabilities}
+     */
+    default DeflateProviderCapabilities capabilities() {
+        return this.getClass().getAnnotation(DeflateProviderCapabilities.class);
+    }
+
+    /**
+     * @return an instance of {@link DeflateOneshotFactory} backed by this provider
+     * @throws UnsatisfiedLinkError if this provider is not {@link #isAvailable() available}
+     */
+    DeflateOneshotFactory getOneshotFactory() throws UnsatisfiedLinkError;
 }

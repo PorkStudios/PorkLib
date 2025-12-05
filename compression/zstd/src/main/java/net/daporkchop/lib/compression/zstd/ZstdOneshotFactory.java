@@ -39,9 +39,15 @@ public interface ZstdOneshotFactory extends OneshotCompressionFactory, ZstdDicti
         return this.capabilities().memoryPreference();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     ZstdOneshotCompressor makeOneshotCompressor();
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     ZstdOneshotDecompressor makeOneshotDecompressor();
 }

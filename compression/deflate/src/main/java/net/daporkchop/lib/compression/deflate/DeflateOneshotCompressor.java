@@ -17,9 +17,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(":compression")
-    api project(":natives")
+package net.daporkchop.lib.compression.deflate;
 
-    testImplementation project(":compression").sourceSets.test.output
+import net.daporkchop.lib.common.annotation.NotThreadSafe;
+import net.daporkchop.lib.common.annotation.param.NotNegative;
+import net.daporkchop.lib.compression.context.POneshotCompressor;
+
+/**
+ * @author DaPorkchop_
+ */
+@NotThreadSafe
+public interface DeflateOneshotCompressor extends POneshotCompressor, DeflateCompressParameters {
+    @Override
+    default @NotNegative int compressBound(@NotNegative int srcSize) throws IllegalArgumentException, ArithmeticException {
+        throw new AbstractMethodError(); //TODO
+    }
+
+    @Override
+    default @NotNegative long compressBound(@NotNegative long srcSize) throws IllegalArgumentException, ArithmeticException {
+        throw new AbstractMethodError(); //TODO
+    }
 }

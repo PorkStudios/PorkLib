@@ -1,0 +1,5 @@
+export CC		:= powerpc64le-linux-gnu-gcc
+export CXX		:= powerpc64le-linux-gnu-g++
+export LD		:= powerpc64le-linux-gnu-g++
+
+export EXT	:=	so

@@ -37,6 +37,7 @@ CXXFLAGS		+= -DZSTDLIB_VISIBLE=ZSTDLIB_HIDDEN -DZSTDERRORLIB_VISIBLE=ZSTDERRORLI
 -include $(OFILES:.o=.d)
 
 build: $(OUTDIR)/$(BUILD).$(EXT)
+	@echo '$(OUTDIR)/$(BUILD).$(EXT) is ready!'
 
 $(OUTDIR)/$(BUILD).$(EXT): $(OFILES) $(CURDIR)/lib-zstd/lib/libzstd.a $(MAKEFILES)
 	@[ -d $(OUTDIR) ] || mkdir -p $(OUTDIR)

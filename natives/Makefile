@@ -27,7 +27,7 @@ $(info natives: building for $(BUILD_TYPE))
 export SOURCES		:=
 export INCLUDES		:=	$(COMMONSRC)/include $(JAVA_HOME)/include $(JAVA_HOME)/include/linux
 
-export ARCHS		:=	aarch64-linux-gnu arm-linux-gnu i386-linux-gnu x86_64-linux-gnu
+export ARCHS		:=	$(notdir $(wildcard $(TOOLCHAINS)/*))
 #TODO: export ARCHS		+=	x86_64-w64-mingw32
 #export ARCHS		:=	$(foreach arch,$(ARCHS),$(if $(shell which $(arch)-gcc),$(arch)))
 #export ARCHS		:=	$(foreach arch,$(ARCHS),$(if $(shell which $(arch)-g++),$(arch)))

@@ -1,0 +1,5 @@
+export CC		:= s390x-linux-gnu-gcc
+export CXX		:= s390x-linux-gnu-g++
+export LD		:= s390x-linux-gnu-g++
+
+export EXT	:=	so

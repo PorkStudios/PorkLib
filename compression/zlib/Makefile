@@ -34,6 +34,7 @@ INCLUDE			:=	$(addprefix -I,$(INCLUDES) $(CURDIR))
 -include $(OFILES:.o=.d)
 
 build: $(OUTDIR)/$(BUILD).$(EXT)
+	@echo '$(OUTDIR)/$(BUILD).$(EXT) is ready!'
 
 $(OUTDIR)/$(BUILD).$(EXT): $(OFILES) $(CURDIR)/lib-zlib/libz-ng.a $(MAKEFILES)
 	@[ -d $(OUTDIR) ] || mkdir -p $(OUTDIR)

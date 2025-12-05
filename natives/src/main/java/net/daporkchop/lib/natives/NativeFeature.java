@@ -153,7 +153,7 @@ public abstract class NativeFeature<F extends Feature> implements Feature {
 
         //try to cache the library file
         for (LibraryCache cache : LibraryCache.CACHES) {
-            Optional<Path> cacheFilePath = cache.getCacheFilePath(srcUrl, fileNameBase, fileNameExtension);
+            Optional<Path> cacheFilePath = cache.getCacheFilePath(srcUrl, fileNameBase + fileNameExtension);
             if (cacheFilePath.isPresent()) {
                 return cacheFilePath.get();
             }

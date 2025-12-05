@@ -135,20 +135,20 @@ final class LibraryCache {
     private final @NonNull Path cacheDir;
     private final @NonNull Object cacheMutex;
 
-    public Optional<Path> getCacheFilePath(@NonNull URL fileUrl, @NonNull String fileNameBase, @NonNull String fileNameExtension) {
+    public Optional<Path> getCacheFilePath(@NonNull URL libraryFileUrl, @NonNull String libraryFileBasename) {
         synchronized (this.cacheMutex) {
             try (FileChannel lockChannel = FileChannel.open(this.cacheDir.resolve("LOCK"), StandardOpenOption.WRITE);
                  FileLock ignored = lockChannel.lock()) {
                 //check if we can re-use the library copy already in the cache
-                Path cacheFilePath = this.cacheDir.resolve(hashFile(fileUrl)).resolve(fileNameBase + '.' + fileNameExtension);
-                if (Files.exists(cacheFilePath) && areFilesEqual(fileUrl, cacheFilePath)) {
+                Path cacheFilePath = this.cacheDir.resolve(hashFile(libraryFileUrl)).resolve(libraryFileBasename);
+                if (Files.exists(cacheFilePath) && areFilesEqual(libraryFileUrl, cacheFilePath)) {
                     return Optional.of(cacheFilePath);
                 }
 
                 //copy the library file to a temporary file in the cache directory
                 Path tmpCacheFilePath = Files.createTempFile(Files.createDirectories(cacheFilePath.getParent()), null, null);
                 try {
-                    try (InputStream in = fileUrl.openStream()) {
+                    try (InputStream in = libraryFileUrl.openStream()) {
                         Files.copy(in, tmpCacheFilePath, StandardCopyOption.REPLACE_EXISTING);
                     }
                     //TODO: it would be good if we could make the file immutable on linux (maybe using chattr?)

@@ -44,6 +44,130 @@ import java.nio.ShortBuffer;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PNioBuffers {
     /**
+     * @author DaPorkchop_
+     */
+    private static final class EmptyBuffers {
+        static final ByteBuffer BYTE_DIRECT = ByteBuffer.allocateDirect(0).duplicate();
+        static final ByteBuffer BYTE_HEAP = ByteBuffer.wrap(PorkUtil.emptyByteArray());
+        
+        static final ShortBuffer SHORT_DIRECT = BYTE_DIRECT.asShortBuffer();
+        static final ShortBuffer SHORT_HEAP = ShortBuffer.wrap(PorkUtil.emptyShortArray());
+
+        static final CharBuffer CHAR_DIRECT = BYTE_DIRECT.asCharBuffer();
+        static final CharBuffer CHAR_HEAP = CharBuffer.wrap(PorkUtil.emptyCharArray());
+
+        static final IntBuffer INT_DIRECT = BYTE_DIRECT.asIntBuffer();
+        static final IntBuffer INT_HEAP = IntBuffer.wrap(PorkUtil.emptyIntArray());
+
+        static final LongBuffer LONG_DIRECT = BYTE_DIRECT.asLongBuffer();
+        static final LongBuffer LONG_HEAP = LongBuffer.wrap(PorkUtil.emptyLongArray());
+        
+        static final FloatBuffer FLOAT_DIRECT = BYTE_DIRECT.asFloatBuffer();
+        static final FloatBuffer FLOAT_HEAP = FloatBuffer.wrap(PorkUtil.emptyFloatArray());
+        
+        static final DoubleBuffer DOUBLE_DIRECT = BYTE_DIRECT.asDoubleBuffer();
+        static final DoubleBuffer DOUBLE_HEAP = DoubleBuffer.wrap(PorkUtil.emptyDoubleArray());
+    }
+
+    /**
+     * @return an empty {@link ByteBuffer} backed by direct memory
+     */
+    public static ByteBuffer emptyByteBufferDirect() {
+        return EmptyBuffers.BYTE_DIRECT;
+    }
+
+    /**
+     * @return an empty {@link ByteBuffer} backed by a Java heap array
+     */
+    public static ByteBuffer emptyByteBufferHeap() {
+        return EmptyBuffers.BYTE_HEAP;
+    }
+
+    /**
+     * @return an empty {@link ShortBuffer} backed by direct memory
+     */
+    public static ShortBuffer emptyShortBufferDirect() {
+        return EmptyBuffers.SHORT_DIRECT;
+    }
+
+    /**
+     * @return an empty {@link ShortBuffer} backed by a Java heap array
+     */
+    public static ShortBuffer emptyShortBufferHeap() {
+        return EmptyBuffers.SHORT_HEAP;
+    }
+
+    /**
+     * @return an empty {@link CharBuffer} backed by direct memory
+     */
+    public static CharBuffer emptyCharBufferDirect() {
+        return EmptyBuffers.CHAR_DIRECT;
+    }
+
+    /**
+     * @return an empty {@link CharBuffer} backed by a Java heap array
+     */
+    public static CharBuffer emptyCharBufferHeap() {
+        return EmptyBuffers.CHAR_HEAP;
+    }
+
+    /**
+     * @return an empty {@link IntBuffer} backed by direct memory
+     */
+    public static IntBuffer emptyIntBufferDirect() {
+        return EmptyBuffers.INT_DIRECT;
+    }
+
+    /**
+     * @return an empty {@link IntBuffer} backed by a Java heap array
+     */
+    public static IntBuffer emptyIntBufferHeap() {
+        return EmptyBuffers.INT_HEAP;
+    }
+
+    /**
+     * @return an empty {@link LongBuffer} backed by direct memory
+     */
+    public static LongBuffer emptyLongBufferDirect() {
+        return EmptyBuffers.LONG_DIRECT;
+    }
+
+    /**
+     * @return an empty {@link LongBuffer} backed by a Java heap array
+     */
+    public static LongBuffer emptyLongBufferHeap() {
+        return EmptyBuffers.LONG_HEAP;
+    }
+
+    /**
+     * @return an empty {@link FloatBuffer} backed by direct memory
+     */
+    public static FloatBuffer emptyFloatBufferDirect() {
+        return EmptyBuffers.FLOAT_DIRECT;
+    }
+
+    /**
+     * @return an empty {@link FloatBuffer} backed by a Java heap array
+     */
+    public static FloatBuffer emptyFloatBufferHeap() {
+        return EmptyBuffers.FLOAT_HEAP;
+    }
+
+    /**
+     * @return an empty {@link DoubleBuffer} backed by direct memory
+     */
+    public static DoubleBuffer emptyDoubleBufferDirect() {
+        return EmptyBuffers.DOUBLE_DIRECT;
+    }
+
+    /**
+     * @return an empty {@link DoubleBuffer} backed by a Java heap array
+     */
+    public static DoubleBuffer emptyDoubleBufferHeap() {
+        return EmptyBuffers.DOUBLE_HEAP;
+    }
+
+    /**
      * The buffer's position is set to {@code offset}, the limit is set to {@code offset + length}, and the mark is discarded.
      *
      * @param buffer the buffer
@@ -559,5 +683,278 @@ public final class PNioBuffers {
      */
     public static DoubleBuffer allocateDirectNativeDouble(@NotNegative int capacity) {
         return allocateDirectNativeByte(Math.multiplyExact(capacity, Double.BYTES)).asDoubleBuffer();
+    }
+
+    /**
+     * Copies the range {@code [srcOffset, srcOffset + length)} of the given buffer's contents to the range {@code [dstOffset, dstOffset + length)} of the given buffer. The buffer's {@link Buffer#position() positions} are not modified.
+     *
+     * @param src       the source
+     * @param srcOffset the index of the first element in {@code src}
+     * @param dst       the destination
+     * @param dstOffset the index of the first element in {@code dst}
+     * @param length    the number of elements to copy
+     */
+    public static void copy(ByteBuffer src, int srcOffset, ByteBuffer dst, int dstOffset, int length) {
+        duplicateRange(dst, dstOffset, length).put(duplicateRange(src, srcOffset, length));
+    }
+
+    /**
+     * Copies the range {@code [srcOffset, srcOffset + length)} of the given buffer's contents to the range {@code [dstOffset, dstOffset + length)} of the given buffer. The buffer's {@link Buffer#position() positions} are not modified.
+     *
+     * @param src       the source
+     * @param srcOffset the index of the first element in {@code src}
+     * @param dst       the destination
+     * @param dstOffset the index of the first element in {@code dst}
+     * @param length    the number of elements to copy
+     */
+    public static void copy(ShortBuffer src, int srcOffset, ShortBuffer dst, int dstOffset, int length) {
+        duplicateRange(dst, dstOffset, length).put(duplicateRange(src, srcOffset, length));
+    }
+
+    /**
+     * Copies the range {@code [srcOffset, srcOffset + length)} of the given buffer's contents to the range {@code [dstOffset, dstOffset + length)} of the given buffer. The buffer's {@link Buffer#position() positions} are not modified.
+     *
+     * @param src       the source
+     * @param srcOffset the index of the first element in {@code src}
+     * @param dst       the destination
+     * @param dstOffset the index of the first element in {@code dst}
+     * @param length    the number of elements to copy
+     */
+    public static void copy(CharBuffer src, int srcOffset, CharBuffer dst, int dstOffset, int length) {
+        duplicateRange(dst, dstOffset, length).put(duplicateRange(src, srcOffset, length));
+    }
+
+    /**
+     * Copies the range {@code [srcOffset, srcOffset + length)} of the given buffer's contents to the range {@code [dstOffset, dstOffset + length)} of the given buffer. The buffer's {@link Buffer#position() positions} are not modified.
+     *
+     * @param src       the source
+     * @param srcOffset the index of the first element in {@code src}
+     * @param dst       the destination
+     * @param dstOffset the index of the first element in {@code dst}
+     * @param length    the number of elements to copy
+     */
+    public static void copy(IntBuffer src, int srcOffset, IntBuffer dst, int dstOffset, int length) {
+        duplicateRange(dst, dstOffset, length).put(duplicateRange(src, srcOffset, length));
+    }
+
+    /**
+     * Copies the range {@code [srcOffset, srcOffset + length)} of the given buffer's contents to the range {@code [dstOffset, dstOffset + length)} of the given buffer. The buffer's {@link Buffer#position() positions} are not modified.
+     *
+     * @param src       the source
+     * @param srcOffset the index of the first element in {@code src}
+     * @param dst       the destination
+     * @param dstOffset the index of the first element in {@code dst}
+     * @param length    the number of elements to copy
+     */
+    public static void copy(LongBuffer src, int srcOffset, LongBuffer dst, int dstOffset, int length) {
+        duplicateRange(dst, dstOffset, length).put(duplicateRange(src, srcOffset, length));
+    }
+
+    /**
+     * Copies the range {@code [srcOffset, srcOffset + length)} of the given buffer's contents to the range {@code [dstOffset, dstOffset + length)} of the given buffer. The buffer's {@link Buffer#position() positions} are not modified.
+     *
+     * @param src       the source
+     * @param srcOffset the index of the first element in {@code src}
+     * @param dst       the destination
+     * @param dstOffset the index of the first element in {@code dst}
+     * @param length    the number of elements to copy
+     */
+    public static void copy(FloatBuffer src, int srcOffset, FloatBuffer dst, int dstOffset, int length) {
+        duplicateRange(dst, dstOffset, length).put(duplicateRange(src, srcOffset, length));
+    }
+
+    /**
+     * Copies the range {@code [srcOffset, srcOffset + length)} of the given buffer's contents to the range {@code [dstOffset, dstOffset + length)} of the given buffer. The buffer's {@link Buffer#position() positions} are not modified.
+     *
+     * @param src       the source
+     * @param srcOffset the index of the first element in {@code src}
+     * @param dst       the destination
+     * @param dstOffset the index of the first element in {@code dst}
+     * @param length    the number of elements to copy
+     */
+    public static void copy(DoubleBuffer src, int srcOffset, DoubleBuffer dst, int dstOffset, int length) {
+        duplicateRange(dst, dstOffset, length).put(duplicateRange(src, srcOffset, length));
+    }
+
+    /**
+     * Copies the range {@code [srcOffset, srcOffset + length)} of the given buffer's contents to the range {@code [dstOffset, dstOffset + length)} of the given array. The buffer's {@link Buffer#position() position} is not modified.
+     *
+     * @param src       the source
+     * @param srcOffset the index of the first element in {@code src}
+     * @param dst       the destination
+     * @param dstOffset the index of the first element in {@code dst}
+     * @param length    the number of elements to copy
+     */
+    public static void copy(ByteBuffer src, int srcOffset, byte[] dst, int dstOffset, int length) {
+        duplicateRange(src, srcOffset, length).get(dst, dstOffset, length);
+    }
+
+    /**
+     * Copies the range {@code [srcOffset, srcOffset + length)} of the given buffer's contents to the range {@code [dstOffset, dstOffset + length)} of the given array. The buffer's {@link Buffer#position() position} is not modified.
+     *
+     * @param src       the source
+     * @param srcOffset the index of the first element in {@code src}
+     * @param dst       the destination
+     * @param dstOffset the index of the first element in {@code dst}
+     * @param length    the number of elements to copy
+     */
+    public static void copy(ShortBuffer src, int srcOffset, short[] dst, int dstOffset, int length) {
+        duplicateRange(src, srcOffset, length).get(dst, dstOffset, length);
+    }
+
+    /**
+     * Copies the range {@code [srcOffset, srcOffset + length)} of the given buffer's contents to the range {@code [dstOffset, dstOffset + length)} of the given array. The buffer's {@link Buffer#position() position} is not modified.
+     *
+     * @param src       the source
+     * @param srcOffset the index of the first element in {@code src}
+     * @param dst       the destination
+     * @param dstOffset the index of the first element in {@code dst}
+     * @param length    the number of elements to copy
+     */
+    public static void copy(CharBuffer src, int srcOffset, char[] dst, int dstOffset, int length) {
+        duplicateRange(src, srcOffset, length).get(dst, dstOffset, length);
+    }
+
+    /**
+     * Copies the range {@code [srcOffset, srcOffset + length)} of the given buffer's contents to the range {@code [dstOffset, dstOffset + length)} of the given array. The buffer's {@link Buffer#position() position} is not modified.
+     *
+     * @param src       the source
+     * @param srcOffset the index of the first element in {@code src}
+     * @param dst       the destination
+     * @param dstOffset the index of the first element in {@code dst}
+     * @param length    the number of elements to copy
+     */
+    public static void copy(IntBuffer src, int srcOffset, int[] dst, int dstOffset, int length) {
+        duplicateRange(src, srcOffset, length).get(dst, dstOffset, length);
+    }
+
+    /**
+     * Copies the range {@code [srcOffset, srcOffset + length)} of the given buffer's contents to the range {@code [dstOffset, dstOffset + length)} of the given array. The buffer's {@link Buffer#position() position} is not modified.
+     *
+     * @param src       the source
+     * @param srcOffset the index of the first element in {@code src}
+     * @param dst       the destination
+     * @param dstOffset the index of the first element in {@code dst}
+     * @param length    the number of elements to copy
+     */
+    public static void copy(LongBuffer src, int srcOffset, long[] dst, int dstOffset, int length) {
+        duplicateRange(src, srcOffset, length).get(dst, dstOffset, length);
+    }
+
+    /**
+     * Copies the range {@code [srcOffset, srcOffset + length)} of the given buffer's contents to the range {@code [dstOffset, dstOffset + length)} of the given array. The buffer's {@link Buffer#position() position} is not modified.
+     *
+     * @param src       the source
+     * @param srcOffset the index of the first element in {@code src}
+     * @param dst       the destination
+     * @param dstOffset the index of the first element in {@code dst}
+     * @param length    the number of elements to copy
+     */
+    public static void copy(FloatBuffer src, int srcOffset, float[] dst, int dstOffset, int length) {
+        duplicateRange(src, srcOffset, length).get(dst, dstOffset, length);
+    }
+
+    /**
+     * Copies the range {@code [srcOffset, srcOffset + length)} of the given buffer's contents to the range {@code [dstOffset, dstOffset + length)} of the given array. The buffer's {@link Buffer#position() position} is not modified.
+     *
+     * @param src       the source
+     * @param srcOffset the index of the first element in {@code src}
+     * @param dst       the destination
+     * @param dstOffset the index of the first element in {@code dst}
+     * @param length    the number of elements to copy
+     */
+    public static void copy(DoubleBuffer src, int srcOffset, double[] dst, int dstOffset, int length) {
+        duplicateRange(src, srcOffset, length).get(dst, dstOffset, length);
+    }
+
+    /**
+     * Copies the range {@code [srcOffset, srcOffset + length)} of the given array's contents to the range {@code [dstOffset, dstOffset + length)} of the given buffer. The buffer's {@link Buffer#position() position} is not modified.
+     *
+     * @param src       the source
+     * @param srcOffset the index of the first element in {@code src}
+     * @param dst       the destination
+     * @param dstOffset the index of the first element in {@code dst}
+     * @param length    the number of elements to copy
+     */
+    public static void copy(byte[] src, int srcOffset, ByteBuffer dst, int dstOffset, int length) {
+        duplicateRange(dst, dstOffset, length).put(src, srcOffset, length);
+    }
+
+    /**
+     * Copies the range {@code [srcOffset, srcOffset + length)} of the given array's contents to the range {@code [dstOffset, dstOffset + length)} of the given buffer. The buffer's {@link Buffer#position() position} is not modified.
+     *
+     * @param src       the source
+     * @param srcOffset the index of the first element in {@code src}
+     * @param dst       the destination
+     * @param dstOffset the index of the first element in {@code dst}
+     * @param length    the number of elements to copy
+     */
+    public static void copy(short[] src, int srcOffset, ShortBuffer dst, int dstOffset, int length) {
+        duplicateRange(dst, dstOffset, length).put(src, srcOffset, length);
+    }
+
+    /**
+     * Copies the range {@code [srcOffset, srcOffset + length)} of the given array's contents to the range {@code [dstOffset, dstOffset + length)} of the given buffer. The buffer's {@link Buffer#position() position} is not modified.
+     *
+     * @param src       the source
+     * @param srcOffset the index of the first element in {@code src}
+     * @param dst       the destination
+     * @param dstOffset the index of the first element in {@code dst}
+     * @param length    the number of elements to copy
+     */
+    public static void copy(char[] src, int srcOffset, CharBuffer dst, int dstOffset, int length) {
+        duplicateRange(dst, dstOffset, length).put(src, srcOffset, length);
+    }
+
+    /**
+     * Copies the range {@code [srcOffset, srcOffset + length)} of the given array's contents to the range {@code [dstOffset, dstOffset + length)} of the given buffer. The buffer's {@link Buffer#position() position} is not modified.
+     *
+     * @param src       the source
+     * @param srcOffset the index of the first element in {@code src}
+     * @param dst       the destination
+     * @param dstOffset the index of the first element in {@code dst}
+     * @param length    the number of elements to copy
+     */
+    public static void copy(int[] src, int srcOffset, IntBuffer dst, int dstOffset, int length) {
+        duplicateRange(dst, dstOffset, length).put(src, srcOffset, length);
+    }
+
+    /**
+     * Copies the range {@code [srcOffset, srcOffset + length)} of the given array's contents to the range {@code [dstOffset, dstOffset + length)} of the given buffer. The buffer's {@link Buffer#position() position} is not modified.
+     *
+     * @param src       the source
+     * @param srcOffset the index of the first element in {@code src}
+     * @param dst       the destination
+     * @param dstOffset the index of the first element in {@code dst}
+     * @param length    the number of elements to copy
+     */
+    public static void copy(long[] src, int srcOffset, LongBuffer dst, int dstOffset, int length) {
+        duplicateRange(dst, dstOffset, length).put(src, srcOffset, length);
+    }
+
+    /**
+     * Copies the range {@code [srcOffset, srcOffset + length)} of the given array's contents to the range {@code [dstOffset, dstOffset + length)} of the given buffer. The buffer's {@link Buffer#position() position} is not modified.
+     *
+     * @param src       the source
+     * @param srcOffset the index of the first element in {@code src}
+     * @param dst       the destination
+     * @param dstOffset the index of the first element in {@code dst}
+     * @param length    the number of elements to copy
+     */
+    public static void copy(float[] src, int srcOffset, FloatBuffer dst, int dstOffset, int length) {
+        duplicateRange(dst, dstOffset, length).put(src, srcOffset, length);
+    }
+
+    /**
+     * Copies the range {@code [srcOffset, srcOffset + length)} of the given array's contents to the range {@code [dstOffset, dstOffset + length)} of the given buffer. The buffer's {@link Buffer#position() position} is not modified.
+     *
+     * @param src       the source
+     * @param srcOffset the index of the first element in {@code src}
+     * @param dst       the destination
+     * @param dstOffset the index of the first element in {@code dst}
+     * @param length    the number of elements to copy
+     */
+    public static void copy(double[] src, int srcOffset, DoubleBuffer dst, int dstOffset, int length) {
+        duplicateRange(dst, dstOffset, length).put(src, srcOffset, length);
     }
 }

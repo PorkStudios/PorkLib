@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2022 DaPorkchop_
+ * Copyright (c) 2018-2026 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -15,43 +15,19 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
-package net.daporkchop.lib.natives.util.exception;
+package net.daporkchop.lib.compression.deflate.jdk;
 
-import net.daporkchop.lib.common.pool.recycler.Recycler;
-import net.daporkchop.lib.common.system.PlatformInfo;
-import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.compression.context.IContext;
+import net.daporkchop.lib.natives.util.MemoryPreference;
 
 /**
- * Thrown when the current platform does not support native libraries.
- *
  * @author DaPorkchop_
  */
-public final class NativeFeaturesUnavailableException extends RuntimeException {
-    public NativeFeaturesUnavailableException() {
-        super();
-    }
-
-    public NativeFeaturesUnavailableException(String message) {
-        super(message);
-    }
-
+abstract class AbstractJdkDeflateContext implements IContext {
     @Override
-    public String getMessage() {
-        Recycler<StringBuilder> recycler = PorkUtil.stringBuilderRecycler();
-        StringBuilder builder = recycler.allocate();
-
-        builder.append("Arch: ").append(PlatformInfo.ARCHITECTURE.name())
-                .append(", OS: ").append(PlatformInfo.OPERATING_SYSTEM.name());
-        String msg = super.getMessage();
-        if (msg != null) {
-            builder.append(", ").append(msg);
-        }
-
-        String result = builder.toString();
-        recycler.release(builder); //return builder to the recycler
-        return result;
+    public final MemoryPreference memoryPreference() {
+        return MemoryPreference.PREFER_HEAP;
     }
 }

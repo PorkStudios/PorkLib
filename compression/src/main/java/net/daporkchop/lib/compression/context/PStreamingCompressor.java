@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2025 DaPorkchop_
+ * Copyright (c) 2018-2026 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -25,12 +25,14 @@ import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.annotation.NotThreadSafe;
 import net.daporkchop.lib.common.annotation.param.NotNegative;
 import net.daporkchop.lib.common.annotation.param.Positive;
+import net.daporkchop.lib.compression.util.PNetty4Buffers;
 
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ReadOnlyBufferException;
 import java.nio.channels.GatheringByteChannel;
 import java.nio.channels.WritableByteChannel;
+import java.util.OptionalInt;
 import java.util.OptionalLong;
 
 /**
@@ -51,16 +53,14 @@ public interface PStreamingCompressor extends StreamingContext {
      *
      * @return a hint for the recommended input buffer size, or an empty optional if the implementation either doesn't know or doesn't care
      */
-    @Positive
-    OptionalLong getRecommendedInputBufferSize();
+    @Positive OptionalInt getRecommendedInputBufferSize();
 
     /**
      * Returns a hint for the recommended output buffer size. The return value is generally a constant, independent of the current decompressor state.
      *
      * @return a hint for the recommended output buffer size, or an empty optional if the implementation either doesn't know or doesn't care
      */
-    @Positive
-    OptionalLong getRecommendedOutputBufferSize();
+    @Positive OptionalInt getRecommendedOutputBufferSize();
 
     /**
      * Resets this compressor's parameters to the defaults.
@@ -90,50 +90,71 @@ public interface PStreamingCompressor extends StreamingContext {
     /**
      * Equivalent to calling {@link #resetStream()} followed by {@link #resetParameters()}.
      */
-    void resetStreamAndParameters();
+    default void resetStreamAndParameters() {
+        this.resetStream();
+        this.resetParameters();
+    }
 
     /**
      * Creates an {@link OutputStream} which will compress data written to it and write the compressed data to the given {@link OutputStream}.
      * <p>
      * This compressor will be automatically {@link #resetStream() reset}, cancelling any ongoing compression work.
+     * <p>
+     * The returned {@link OutputStream} will borrow ownership of this context until explicitly {@link OutputStream#close() closed}. In particular,
+     * context state such as {@link #getLastReadBytes()}/{@link #getLastWrittenBytes()} are meaningless when streaming in this way and so their values are not defined.
+     * Additionally, the {@link #compress} methods cannot be used while the {@link OutputStream} is open.
+     * <p>
+     * {@link OutputStream#close() Closing} the {@link OutputStream} will effectively call {@link #resetStream()}, cancelling any ongoing compression work and
+     * allowing regular compression to continue.
      *
      * @param dst   the {@link OutputStream} to write to
-     * @param close if {@code true}, closing the returned {@link OutputStream} will also close {@code dst}
      * @param flush the {@link FlushMode} to use when {@link OutputStream#flush()} is called
      * @return an {@link OutputStream}
      */
-    OutputStream wrapCompressing(@NonNull OutputStream dst, boolean close, @NonNull FlushMode flush);
+    OutputStream wrapCompressing(@NonNull OutputStream dst, @NonNull FlushMode flush);
 
     /**
      * Creates a {@link WritableByteChannel} which will compress data written to it and write the compressed data to the given {@link WritableByteChannel}.
      * <p>
      * This compressor will be automatically {@link #resetStream() reset}, cancelling any ongoing compression work.
+     * <p>
+     * The returned {@link WritableByteChannel} will borrow ownership of this context until explicitly {@link WritableByteChannel#close() closed}. In particular,
+     * context state such as {@link #getLastReadBytes()}/{@link #getLastWrittenBytes()} are meaningless when streaming in this way and so their values are not defined.
+     * Additionally, the {@link #compress} methods cannot be used while the {@link WritableByteChannel} is open.
+     * <p>
+     * {@link WritableByteChannel#close() Closing} the {@link WritableByteChannel} will effectively call {@link #resetStream()}, cancelling any ongoing compression work and
+     * allowing regular compression to continue.
      *
-     * @param dst   the {@link WritableByteChannel} to write to
-     * @param close if {@code true}, closing the returned {@link WritableByteChannel} will also close {@code dst}
+     * @param dst the {@link WritableByteChannel} to write to
      * @return a {@link WritableByteChannel}
      */
-    GatheringByteChannel wrapCompressing(@NonNull WritableByteChannel dst, boolean close);
+    GatheringByteChannel wrapCompressing(@NonNull WritableByteChannel dst);
 
     /**
      * Creates a {@link DataOut} which will compress data written to it and write the compressed data to the given {@link DataOut}.
      * <p>
      * This compressor will be automatically {@link #resetStream() reset}, cancelling any ongoing compression work.
+     * <p>
+     * The returned {@link DataOut} will borrow ownership of this context until explicitly {@link DataOut#close() closed}. In particular,
+     * context state such as {@link #getLastReadBytes()}/{@link #getLastWrittenBytes()} are meaningless when streaming in this way and so their values are not defined.
+     * Additionally, the {@link #compress} methods cannot be used while the {@link DataOut} is open.
+     * <p>
+     * {@link DataOut#close() Closing} the {@link DataOut} will effectively call {@link #resetStream()}, cancelling any ongoing compression work and
+     * allowing regular compression to continue.
      *
      * @param dst   the {@link DataOut} to write to
-     * @param close if {@code true}, closing the returned {@link DataOut} will also close {@code dst}
      * @param flush the {@link FlushMode} to use when {@link OutputStream#flush()} is called
      * @return a {@link DataOut}
      */
-    DataOut wrapCompressing(@NonNull DataOut dst, boolean close, @NonNull FlushMode flush);
+    DataOut wrapCompressing(@NonNull DataOut dst, @NonNull FlushMode flush);
 
     /**
-     * @return the number of input bytes which were read by the last successful call to {@link #compress}
+     * @return the number of input bytes which were read by the last call to {@link #compress}
      */
     @NotNegative long getLastReadBytes();
 
     /**
-     * @return the number of output bytes which were written by the last successful call to {@link #compress}
+     * @return the number of output bytes which were written by the last call to {@link #compress}
      */
     @NotNegative long getLastWrittenBytes();
 
@@ -167,7 +188,19 @@ public interface PStreamingCompressor extends StreamingContext {
      * @return {@code true} if all the available input data was read and all output was written according to the given {@link FlushMode}, {@code false} if more output space is requested
      * @throws ReadOnlyBufferException if the destination buffer is read-only
      */
-    boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, @NonNull FlushMode flush) throws ReadOnlyBufferException;
+    default boolean compress(@NonNull ByteBuf src, @NonNull ByteBuf dst, @NonNull FlushMode flush) throws ReadOnlyBufferException {
+        //this default implementation simply delegates to NIO ByteBuffer overload
+        ByteBuffer nioSrc = PNetty4Buffers.getNioBufferForRead(src); //copies content to heap if src is composite
+        ByteBuffer nioDst = PNetty4Buffers.getNioBufferForWrite(dst); //throws ReadOnlyBufferException or CompositeBufferException as necessary
+
+        int initialNioSrcPosition = nioSrc.position();
+        int initialNioDstPosition = nioDst.position();
+
+        boolean result = this.compress(nioSrc, nioDst, flush);
+        src.skipBytes(nioSrc.position() - initialNioSrcPosition);
+        dst.writerIndex(dst.writerIndex() + nioDst.position() - initialNioDstPosition);
+        return result;
+    }
 
     //TODO: add a method which reads from multiple buffers and writes to multiple buffers (essentially concatenating multiple inputs and outputs without additional copies)
 

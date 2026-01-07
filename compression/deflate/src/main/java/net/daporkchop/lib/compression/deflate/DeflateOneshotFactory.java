@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2025 DaPorkchop_
+ * Copyright (c) 2018-2026 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -40,14 +40,48 @@ public interface DeflateOneshotFactory extends OneshotCompressionFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @return a new {@link DeflateOneshotCompressor} in ZLIB format
      */
     @Override
-    DeflateOneshotCompressor makeOneshotCompressor();
+    default DeflateOneshotCompressor makeOneshotCompressor() {
+        return this.makeOneshotZlibCompressor();
+    }
 
     /**
-     * {@inheritDoc}
+     * @return a new {@link DeflateOneshotDecompressor} in ZLIB format
      */
     @Override
-    DeflateOneshotDecompressor makeOneshotDecompressor();
+    default DeflateOneshotDecompressor makeOneshotDecompressor() {
+        return this.makeOneshotZlibDecompressor();
+    }
+
+    /**
+     * @return a new {@link DeflateOneshotCompressor} in DEFLATE format
+     */
+    DeflateOneshotCompressor makeOneshotDeflateCompressor();
+
+    /**
+     * @return a new {@link DeflateOneshotDecompressor} in DEFLATE format
+     */
+    DeflateOneshotDecompressor makeOneshotDeflateDecompressor();
+
+    /**
+     * @return a new {@link DeflateOneshotCompressor} in GZIP format
+     */
+    DeflateOneshotCompressor makeOneshotGzipCompressor();
+
+    /**
+     * @return a new {@link DeflateOneshotDecompressor} in GZIP format
+     */
+    DeflateOneshotDecompressor makeOneshotGzipDecompressor();
+
+    /**
+     * @return a new {@link DeflateOneshotCompressor} in ZLIB format
+     */
+    DeflateOneshotCompressor makeOneshotZlibCompressor();
+
+    /**
+     * @return a new {@link DeflateOneshotDecompressor} in ZLIB format
+     */
+    DeflateOneshotDecompressor makeOneshotZlibDecompressor();
 }

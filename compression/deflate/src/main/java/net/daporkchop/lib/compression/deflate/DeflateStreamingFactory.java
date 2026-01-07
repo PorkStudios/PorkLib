@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2025 DaPorkchop_
+ * Copyright (c) 2018-2026 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -26,14 +26,48 @@ import net.daporkchop.lib.compression.StreamingCompressionFactory;
  */
 public interface DeflateStreamingFactory extends StreamingCompressionFactory, DeflateOneshotFactory {
     /**
-     * {@inheritDoc}
+     * @return a new {@link DeflateStreamingCompressor} in ZLIB format
      */
     @Override
-    DeflateStreamingDecompressor makeStreamingDecompressor();
+    default DeflateStreamingCompressor makeStreamingCompressor() {
+        return this.makeStreamingZlibCompressor();
+    }
 
     /**
-     * {@inheritDoc}
+     * @return a new {@link DeflateStreamingDecompressor} in ZLIB format
      */
     @Override
-    DeflateStreamingCompressor makeStreamingCompressor();
+    default DeflateStreamingDecompressor makeStreamingDecompressor() {
+        return this.makeStreamingZlibDecompressor();
+    }
+
+    /**
+     * @return a new {@link DeflateStreamingCompressor} in DEFLATE format
+     */
+    DeflateStreamingCompressor makeStreamingDeflateCompressor();
+
+    /**
+     * @return a new {@link DeflateStreamingDecompressor} in DEFLATE format
+     */
+    DeflateStreamingDecompressor makeStreamingDeflateDecompressor();
+
+    /**
+     * @return a new {@link DeflateStreamingCompressor} in GZIP format
+     */
+    DeflateStreamingCompressor makeStreamingGzipCompressor();
+
+    /**
+     * @return a new {@link DeflateStreamingDecompressor} in GZIP format
+     */
+    DeflateStreamingDecompressor makeStreamingGzipDecompressor();
+
+    /**
+     * @return a new {@link DeflateStreamingCompressor} in ZLIB format
+     */
+    DeflateStreamingCompressor makeStreamingZlibCompressor();
+
+    /**
+     * @return a new {@link DeflateStreamingDecompressor} in ZLIB format
+     */
+    DeflateStreamingDecompressor makeStreamingZlibDecompressor();
 }

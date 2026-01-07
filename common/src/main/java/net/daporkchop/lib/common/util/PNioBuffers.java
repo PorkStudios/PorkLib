@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2025 DaPorkchop_
+ * Copyright (c) 2018-2026 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -49,7 +49,7 @@ public final class PNioBuffers {
     private static final class EmptyBuffers {
         static final ByteBuffer BYTE_DIRECT = ByteBuffer.allocateDirect(0).duplicate();
         static final ByteBuffer BYTE_HEAP = ByteBuffer.wrap(PorkUtil.emptyByteArray());
-        
+
         static final ShortBuffer SHORT_DIRECT = BYTE_DIRECT.asShortBuffer();
         static final ShortBuffer SHORT_HEAP = ShortBuffer.wrap(PorkUtil.emptyShortArray());
 
@@ -61,10 +61,10 @@ public final class PNioBuffers {
 
         static final LongBuffer LONG_DIRECT = BYTE_DIRECT.asLongBuffer();
         static final LongBuffer LONG_HEAP = LongBuffer.wrap(PorkUtil.emptyLongArray());
-        
+
         static final FloatBuffer FLOAT_DIRECT = BYTE_DIRECT.asFloatBuffer();
         static final FloatBuffer FLOAT_HEAP = FloatBuffer.wrap(PorkUtil.emptyFloatArray());
-        
+
         static final DoubleBuffer DOUBLE_DIRECT = BYTE_DIRECT.asDoubleBuffer();
         static final DoubleBuffer DOUBLE_HEAP = DoubleBuffer.wrap(PorkUtil.emptyDoubleArray());
     }
@@ -613,6 +613,97 @@ public final class PNioBuffers {
     public static double[] toArray(DoubleBuffer buffer, @NotNegative int offset, @NotNegative int length) {
         //the object allocation in duplicate() will hopefully get optimized away
         return readToArray(duplicateRange(buffer, offset, length));
+    }
+
+    /**
+     * Allocates a new {@link ByteBuffer} with heap memory.
+     * <p>
+     * Unlike {@link ByteBuffer#allocate(int)}, this method does not guarantee that the underlying memory will be zero-initialized.
+     *
+     * @param capacity the capacity
+     * @return a new {@link ByteBuffer}
+     * @see ByteBuffer#allocate(int)
+     */
+    public static ByteBuffer allocateUninitializedHeapByte(@NotNegative int capacity) {
+        return ByteBuffer.wrap(PUnsafe.allocateUninitializedByteArray(capacity));
+    }
+
+    /**
+     * Allocates a new {@link ShortBuffer} with heap memory.
+     * <p>
+     * Unlike {@link ShortBuffer#allocate(int)}, this method does not guarantee that the underlying memory will be zero-initialized.
+     *
+     * @param capacity the capacity
+     * @return a new {@link ShortBuffer}
+     * @see ShortBuffer#allocate(int)
+     */
+    public static ShortBuffer allocateUninitializedHeapShort(@NotNegative int capacity) {
+        return ShortBuffer.wrap(PUnsafe.allocateUninitializedShortArray(capacity));
+    }
+
+    /**
+     * Allocates a new {@link CharBuffer} with heap memory.
+     * <p>
+     * Unlike {@link CharBuffer#allocate(int)}, this method does not guarantee that the underlying memory will be zero-initialized.
+     *
+     * @param capacity the capacity
+     * @return a new {@link CharBuffer}
+     * @see CharBuffer#allocate(int)
+     */
+    public static CharBuffer allocateUninitializedHeapChar(@NotNegative int capacity) {
+        return CharBuffer.wrap(PUnsafe.allocateUninitializedCharArray(capacity));
+    }
+
+    /**
+     * Allocates a new {@link IntBuffer} with heap memory.
+     * <p>
+     * Unlike {@link IntBuffer#allocate(int)}, this method does not guarantee that the underlying memory will be zero-initialized.
+     *
+     * @param capacity the capacity
+     * @return a new {@link IntBuffer}
+     * @see IntBuffer#allocate(int)
+     */
+    public static IntBuffer allocateUninitializedHeapInt(@NotNegative int capacity) {
+        return IntBuffer.wrap(PUnsafe.allocateUninitializedIntArray(capacity));
+    }
+
+    /**
+     * Allocates a new {@link LongBuffer} with heap memory.
+     * <p>
+     * Unlike {@link LongBuffer#allocate(int)}, this method does not guarantee that the underlying memory will be zero-initialized.
+     *
+     * @param capacity the capacity
+     * @return a new {@link LongBuffer}
+     * @see LongBuffer#allocate(int)
+     */
+    public static LongBuffer allocateUninitializedHeapLong(@NotNegative int capacity) {
+        return LongBuffer.wrap(PUnsafe.allocateUninitializedLongArray(capacity));
+    }
+
+    /**
+     * Allocates a new {@link FloatBuffer} with heap memory.
+     * <p>
+     * Unlike {@link FloatBuffer#allocate(int)}, this method does not guarantee that the underlying memory will be zero-initialized.
+     *
+     * @param capacity the capacity
+     * @return a new {@link FloatBuffer}
+     * @see FloatBuffer#allocate(int)
+     */
+    public static FloatBuffer allocateUninitializedHeapFloat(@NotNegative int capacity) {
+        return FloatBuffer.wrap(PUnsafe.allocateUninitializedFloatArray(capacity));
+    }
+
+    /**
+     * Allocates a new {@link DoubleBuffer} with heap memory.
+     * <p>
+     * Unlike {@link DoubleBuffer#allocate(int)}, this method does not guarantee that the underlying memory will be zero-initialized.
+     *
+     * @param capacity the capacity
+     * @return a new {@link DoubleBuffer}
+     * @see DoubleBuffer#allocate(int)
+     */
+    public static DoubleBuffer allocateUninitializedHeapDouble(@NotNegative int capacity) {
+        return DoubleBuffer.wrap(PUnsafe.allocateUninitializedDoubleArray(capacity));
     }
 
     /**

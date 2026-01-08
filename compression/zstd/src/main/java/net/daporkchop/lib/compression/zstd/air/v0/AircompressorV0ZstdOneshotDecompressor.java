@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2025 DaPorkchop_
+ * Copyright (c) 2018-2026 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -25,6 +25,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.common.annotation.ExtendedBorrow;
 import net.daporkchop.lib.compression.zstd.ZstdDecompressDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdOneshotDecompressor;
+import net.daporkchop.lib.compression.zstd.util.JavaZstdFrameInspector;
 
 import java.nio.ByteBuffer;
 import java.nio.ReadOnlyBufferException;
@@ -37,6 +38,7 @@ import static net.daporkchop.lib.common.util.PValidation.*;
  */
 final class AircompressorV0ZstdOneshotDecompressor extends AbstractAircompressorV0ZstdContext implements ZstdOneshotDecompressor {
     private final ZstdDecompressor decompressor = new ZstdDecompressor(); //TODO: share this weakly between all instances, the ByteBuffer method constructs a new state every time anyway
+    private boolean singleFrame;
 
     @Override
     public int decompress(@NonNull ByteBuffer src, @NonNull ByteBuffer dst) throws DataFormatException, ReadOnlyBufferException {
@@ -46,7 +48,20 @@ final class AircompressorV0ZstdOneshotDecompressor extends AbstractAircompressor
 
         try {
             int dstPosition = dst.position();
-            this.decompressor.decompress(src, dst);
+            if (this.singleFrame) {
+                //figure out the compressed size of the first frame in the input buffer, then temporarily adjust the buffer limit to that
+                int srcFrameSize = Math.toIntExact(JavaZstdFrameInspector.getFrameSizeInfo(src).compressedSize());
+                int srcLimit = src.limit();
+                try {
+                    src.limit(srcFrameSize);
+                    this.decompressor.decompress(src, dst);
+                } finally {
+                    src.limit(srcLimit);
+                }
+            } else {
+                //decompress all the frames in the input buffer
+                this.decompressor.decompress(src, dst);
+            }
             return dst.position() - dstPosition;
         } catch (MalformedInputException e) {
             //this is pretty gross but there isn't really a better way to do it
@@ -59,7 +74,17 @@ final class AircompressorV0ZstdOneshotDecompressor extends AbstractAircompressor
     }
 
     @Override
+    public void resetParameters() {
+        this.singleFrame = false;
+    }
+
+    @Override
     public void setDictionary(@ExtendedBorrow ZstdDecompressDictionary dictionary) throws IllegalArgumentException {
         checkArg(dictionary == null, "dictionary isn't supported!");
+    }
+
+    @Override
+    public void setSingleStream(boolean singleStream) {
+        this.singleFrame = singleStream;
     }
 }

@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2025 DaPorkchop_
+ * Copyright (c) 2018-2026 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -542,6 +542,44 @@ public final class JavaZstdFrameInspector {
         //slow path: inspect each block individually and add up their bounds
         val frameSizeInfo = getFrameSizeInfo(buf, index, inputLimit);
         return new ZstdFrameSizeBounds(frameSizeInfo.decompressedSizeLowerBound(), frameSizeInfo.decompressedSizeUpperBound());
+    }
+
+    /**
+     * Inspects a single ZSTD frame starting at the given buffer's current position and computes information about its total compressed and uncompressed size.
+     * <p>
+     * This method <strong>will</strong> access and validate compressed data until the end of the frame is reached. Any unknown/garbage data past the end
+     * of the frame will be ignored.
+     * <p>
+     * The buffer's indices will not be modified.
+     *
+     * @param buf the buffer containing the input data
+     * @return information about the size of a single ZSTD frame
+     * @throws DataFormatException if the input data does not contain a valid ZSTD frame
+     */
+    public static ZstdFrameSizeInfo getFrameSizeInfo(@NonNull ByteBuffer buf) throws DataFormatException {
+        int index = buf.position();
+        final int inputLimit = buf.limit();
+
+        return getFrameSizeInfo(buf, index, inputLimit);
+    }
+
+    /**
+     * Inspects a single ZSTD frame starting at the given buffer's current position and computes information about its total compressed and uncompressed size.
+     * <p>
+     * This method <strong>will</strong> access and validate compressed data until the end of the frame is reached. Any unknown/garbage data past the end
+     * of the frame will be ignored.
+     * <p>
+     * The buffer's indices will not be modified.
+     *
+     * @param buf the buffer containing the input data
+     * @return information about the size of a single ZSTD frame
+     * @throws DataFormatException if the input data does not contain a valid ZSTD frame
+     */
+    public static ZstdFrameSizeInfo getFrameSizeInfo(@NonNull ByteBuf buf) throws DataFormatException {
+        int index = buf.readerIndex();
+        final int inputLimit = buf.writerIndex();
+
+        return getFrameSizeInfo(buf, index, inputLimit);
     }
 
     /**

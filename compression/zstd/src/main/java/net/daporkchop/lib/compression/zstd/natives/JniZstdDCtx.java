@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2025 DaPorkchop_
+ * Copyright (c) 2018-2026 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -80,6 +80,10 @@ final class JniZstdDCtx extends NativeZstdDCtx {
             throw new IllegalArgumentException("buffer not supported: " + dst);
         }
 
+        if (this.singleFrame) {
+            throw new UnsupportedOperationException(); //TODO: support single frame decompression
+        }
+
         long result = JniZstdFunctions.ZSTD_decompressDCtx(this.ctx,
                 srcArray, srcArrayLength, srcAddressOrOffset, src.remaining(),
                 dstArray, dstArrayLength, dstAddressOrOffset, dst.remaining());
@@ -135,6 +139,10 @@ final class JniZstdDCtx extends NativeZstdDCtx {
         } else {
             // This is almost certainly a composite buffer, we won't bother handling it.
             throw new CompositeBufferException(dst);
+        }
+
+        if (this.singleFrame) {
+            throw new UnsupportedOperationException(); //TODO: support single frame decompression
         }
 
         long result = JniZstdFunctions.ZSTD_decompressDCtx(this.ctx,

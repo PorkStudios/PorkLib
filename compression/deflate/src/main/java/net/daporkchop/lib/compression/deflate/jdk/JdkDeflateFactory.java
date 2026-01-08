@@ -73,7 +73,7 @@ final class JdkDeflateFactory implements DeflateStreamingFactory {
 
     @Override
     public DeflateStreamingDecompressor makeStreamingDeflateDecompressor() {
-        throw new AbstractMethodError(); //TODO
+        return new JdkDeflateStreamingDecompressor(true);
     }
 
     @Override
@@ -83,7 +83,7 @@ final class JdkDeflateFactory implements DeflateStreamingFactory {
 
     @Override
     public DeflateStreamingDecompressor makeStreamingGzipDecompressor() {
-        throw new AbstractMethodError(); //TODO
+        return new JdkGzipStreamingDecompressor();
     }
 
     @Override
@@ -93,6 +93,6 @@ final class JdkDeflateFactory implements DeflateStreamingFactory {
 
     @Override
     public DeflateStreamingDecompressor makeStreamingZlibDecompressor() {
-        throw new AbstractMethodError(); //TODO
+        return new JdkDeflateStreamingDecompressor(false);
     }
 }

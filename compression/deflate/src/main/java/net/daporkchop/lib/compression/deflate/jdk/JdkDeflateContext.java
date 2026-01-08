@@ -19,35 +19,15 @@
 
 package net.daporkchop.lib.compression.deflate.jdk;
 
-import net.daporkchop.lib.compression.deflate.DeflateDecompressParameters;
-
-import java.util.zip.Inflater;
+import net.daporkchop.lib.compression.context.IContext;
+import net.daporkchop.lib.natives.util.MemoryPreference;
 
 /**
  * @author DaPorkchop_
  */
-abstract class AbstractJdkDeflateDecompressContext extends AbstractJdkDeflateContext implements DeflateDecompressParameters {
-    final Inflater inflater;
-    boolean singleStream;
-
-    AbstractJdkDeflateDecompressContext(boolean noWrap) {
-        this.inflater = new Inflater(noWrap);
-    }
-
+interface JdkDeflateContext extends IContext {
     @Override
-    public final void resetParameters() throws IllegalStateException {
-        //TODO: check if streaming decompression is ongoing
-        this.singleStream = false;
-    }
-
-    @Override
-    public final void setSingleStream(boolean singleStream) {
-        //TODO: check if streaming decompression is ongoing
-        this.singleStream = singleStream;
-    }
-
-    @Override
-    public final void close() {
-        this.inflater.end();
+    default MemoryPreference memoryPreference() {
+        return JdkDeflateUtils.supportsByteBufferMethods() ? MemoryPreference.ANY : MemoryPreference.PREFER_HEAP;
     }
 }

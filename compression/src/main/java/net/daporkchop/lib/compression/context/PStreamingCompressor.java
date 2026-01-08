@@ -24,7 +24,6 @@ import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.annotation.NotThreadSafe;
 import net.daporkchop.lib.common.annotation.param.NotNegative;
-import net.daporkchop.lib.common.annotation.param.Positive;
 import net.daporkchop.lib.compression.util.PNetty4Buffers;
 
 import java.io.OutputStream;
@@ -32,8 +31,6 @@ import java.nio.ByteBuffer;
 import java.nio.ReadOnlyBufferException;
 import java.nio.channels.GatheringByteChannel;
 import java.nio.channels.WritableByteChannel;
-import java.util.OptionalInt;
-import java.util.OptionalLong;
 
 /**
  * A context for doing repeated streaming compression operations.
@@ -41,60 +38,7 @@ import java.util.OptionalLong;
  * @author DaPorkchop_
  */
 @NotThreadSafe
-public interface PStreamingCompressor extends StreamingContext {
-    //
-    //
-    // misc. methods
-    //
-    //
-
-    /**
-     * Returns a hint for the recommended input buffer size. The return value is generally a constant, independent of the current decompressor state.
-     *
-     * @return a hint for the recommended input buffer size, or an empty optional if the implementation either doesn't know or doesn't care
-     */
-    @Positive OptionalInt getRecommendedInputBufferSize();
-
-    /**
-     * Returns a hint for the recommended output buffer size. The return value is generally a constant, independent of the current decompressor state.
-     *
-     * @return a hint for the recommended output buffer size, or an empty optional if the implementation either doesn't know or doesn't care
-     */
-    @Positive OptionalInt getRecommendedOutputBufferSize();
-
-    /**
-     * Resets this compressor's parameters to the defaults.
-     * <p>
-     * Parameters may only be reset between sessions (i.e. no compression is currently ongoing).
-     * <p>
-     * Parameters are sticky and will remain until explicitly reset.
-     *
-     * @throws IllegalStateException if a compression session is currently ongoing
-     */
-    @Override
-    void resetParameters() throws IllegalStateException;
-
-    //
-    //
-    // compression methods
-    //
-    //
-
-    /**
-     * Resets this compressor's state.
-     * <p>
-     * This will cause the ongoing compression session (if any) to be aborted. Call this method before starting to compress new data.
-     */
-    void resetStream();
-
-    /**
-     * Equivalent to calling {@link #resetStream()} followed by {@link #resetParameters()}.
-     */
-    default void resetStreamAndParameters() {
-        this.resetStream();
-        this.resetParameters();
-    }
-
+public interface PStreamingCompressor extends StreamingContext, GenericCompressParameters {
     /**
      * Creates an {@link OutputStream} which will compress data written to it and write the compressed data to the given {@link OutputStream}.
      * <p>
@@ -149,20 +93,13 @@ public interface PStreamingCompressor extends StreamingContext {
     DataOut wrapCompressing(@NonNull DataOut dst, @NonNull FlushMode flush);
 
     /**
-     * @return the number of input bytes which were read by the last call to {@link #compress}
-     */
-    @NotNegative long getLastReadBytes();
-
-    /**
-     * @return the number of output bytes which were written by the last call to {@link #compress}
-     */
-    @NotNegative long getLastWrittenBytes();
-
-    /**
      * @return a hint for the remaining number of bytes to be flushed to the output
      * @apiNote this may return {@code 0} for implementations which don't know/care
      */
-    @NotNegative long getRequestedOutputBytes();
+    default @NotNegative long getRequestedOutputBytes() {
+        //don't care
+        return 0L;
+    }
 
     /**
      * Compresses as much data as possible and writes it to the output buffer.

@@ -62,6 +62,7 @@ class JdkOneshotDeflateDecompressor extends AbstractJdkDeflateDecompressContext 
             }
 
             //TODO: check if we read to the end of the input buffer
+            //TODO: handle this.singleStream
 
             if (this.inflater.finished()) {
                 if (dstCopyArray == null) {

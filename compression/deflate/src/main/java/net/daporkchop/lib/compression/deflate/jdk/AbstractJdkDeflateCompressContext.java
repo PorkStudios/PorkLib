@@ -34,15 +34,15 @@ abstract class AbstractJdkDeflateCompressContext extends AbstractJdkDeflateConte
     }
 
     @Override
-    public void setLevel(int level) throws IllegalArgumentException {
+    public final void resetParameters() throws IllegalStateException {
         //TODO: check if streaming compression is ongoing
-        this.deflater.setLevel(level);
+        this.deflater.setLevel(Deflater.DEFAULT_COMPRESSION);
     }
 
     @Override
-    public void resetParameters() throws IllegalStateException {
+    public final void setLevel(int level) throws IllegalArgumentException {
         //TODO: check if streaming compression is ongoing
-        this.deflater.setLevel(Deflater.DEFAULT_COMPRESSION);
+        this.deflater.setLevel(level);
     }
 
     @Override

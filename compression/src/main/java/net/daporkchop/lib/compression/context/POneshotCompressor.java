@@ -35,7 +35,7 @@ import java.nio.ReadOnlyBufferException;
  * @author DaPorkchop_
  */
 @NotThreadSafe
-public interface POneshotCompressor extends OneshotContext {
+public interface POneshotCompressor extends OneshotContext, GenericCompressParameters {
     //
     //
     // misc. methods

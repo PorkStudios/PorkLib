@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2025 DaPorkchop_
+ * Copyright (c) 2018-2026 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -32,6 +32,7 @@ import static net.daporkchop.lib.compression.zstd.natives.NativeZstdFunctions.*;
  */
 abstract class NativeZstdDCtx extends AbstractNativeZstdContext implements ZstdOneshotDecompressor {
     private NativeZstdDDict dictionary;
+    boolean singleFrame;
 
     NativeZstdDCtx(@NonNull NativeZstdFunctions functions) {
         super(functions, functions.ZSTD_createDCtx());
@@ -46,6 +47,7 @@ abstract class NativeZstdDCtx extends AbstractNativeZstdContext implements ZstdO
     public final void resetParameters() { //TODO: merge exception rules when we also implement streaming
         this.functions.checkForErrorAndThrow(this.functions.ZSTD_DCtx_reset(this.ctx, ZSTD_reset_parameters));
         this.dictionary = null;
+        this.singleFrame = false;
     }
 
     @Override
@@ -53,5 +55,10 @@ abstract class NativeZstdDCtx extends AbstractNativeZstdContext implements ZstdO
         checkArg(dictionary == null || dictionary instanceof NativeZstdDDict, dictionary);
         this.dictionary = (NativeZstdDDict) dictionary;
         this.functions.checkForErrorAndThrow(this.functions.ZSTD_DCtx_refDDict(this.ctx, dictionary != null ? this.dictionary.dict : 0L));
+    }
+
+    @Override
+    public final void setSingleStream(boolean singleStream) {
+        this.singleFrame = singleStream;
     }
 }

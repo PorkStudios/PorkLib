@@ -25,6 +25,7 @@ import net.daporkchop.lib.natives.util.MemoryPreference;
 /**
  * @author DaPorkchop_
  */
+@Deprecated
 abstract class AbstractJdkDeflateContext implements IContext {
     @Override
     public final MemoryPreference memoryPreference() {

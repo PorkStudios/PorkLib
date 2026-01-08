@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2025 DaPorkchop_
+ * Copyright (c) 2018-2026 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -19,19 +19,19 @@
 
 package net.daporkchop.lib.compression.deflate;
 
-import net.daporkchop.lib.compression.context.IContext;
+import net.daporkchop.lib.compression.context.GenericCompressParameters;
 
 /**
  * @author DaPorkchop_
  */
-public interface DeflateCompressParameters extends IContext {
+public interface DeflateCompressParameters extends GenericCompressParameters {
     /**
      * Set the compression level. The special value {@link java.util.zip.Deflater#DEFAULT_COMPRESSION} means that the default compression level will be used.
      * <p>
      * The default value is {@link java.util.zip.Deflater#DEFAULT_COMPRESSION}.
      *
      * @param level the compression level
-     * @throws IllegalArgumentException if the given compression level isn't supported by the implementation
+     * @throws IllegalArgumentException      if the given compression level isn't supported by the implementation
      * @throws UnsupportedOperationException if the implementation doesn't allow setting the compression level
      * @see #resetParameters()
      */

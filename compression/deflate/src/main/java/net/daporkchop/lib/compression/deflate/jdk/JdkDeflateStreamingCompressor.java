@@ -54,16 +54,6 @@ class JdkDeflateStreamingCompressor extends AbstractJdkDeflateCompressContext im
     }
 
     @Override
-    public final @Positive OptionalInt getRecommendedInputBufferSize() {
-        return OptionalInt.empty();
-    }
-
-    @Override
-    public final @Positive OptionalInt getRecommendedOutputBufferSize() {
-        return OptionalInt.empty();
-    }
-
-    @Override
     public void resetStream() {
         this.deflater.reset();
 
@@ -106,12 +96,6 @@ class JdkDeflateStreamingCompressor extends AbstractJdkDeflateCompressContext im
     @Override
     public final @NotNegative long getLastWrittenBytes() {
         return this.lastWrittenBytes;
-    }
-
-    @Override
-    public final @NotNegative long getRequestedOutputBytes() {
-        //don't care
-        return 0L;
     }
 
     @Override

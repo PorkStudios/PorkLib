@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2025 DaPorkchop_
+ * Copyright (c) 2018-2026 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -20,12 +20,12 @@
 package net.daporkchop.lib.compression.zstd;
 
 import net.daporkchop.lib.common.annotation.ExtendedBorrow;
-import net.daporkchop.lib.compression.context.IContext;
+import net.daporkchop.lib.compression.context.GenericCompressParameters;
 
 /**
  * @author DaPorkchop_
  */
-public interface ZstdCompressParameters extends IContext {
+public interface ZstdCompressParameters extends GenericCompressParameters {
     /**
      * Set the compression level. The special value {@link Zstd#LEVEL_DEFAULT} means that the default compression level will be used.
      * <p>

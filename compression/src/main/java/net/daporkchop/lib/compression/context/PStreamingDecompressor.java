@@ -21,10 +21,8 @@ package net.daporkchop.lib.compression.context;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataIn;
 import net.daporkchop.lib.common.annotation.NotThreadSafe;
 import net.daporkchop.lib.common.annotation.param.NotNegative;
-import net.daporkchop.lib.common.annotation.param.Positive;
 import net.daporkchop.lib.compression.util.PNetty4Buffers;
 
 import java.io.InputStream;
@@ -32,8 +30,6 @@ import java.nio.ByteBuffer;
 import java.nio.ReadOnlyBufferException;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.ScatteringByteChannel;
-import java.util.OptionalInt;
-import java.util.OptionalLong;
 import java.util.zip.DataFormatException;
 
 /**
@@ -42,60 +38,7 @@ import java.util.zip.DataFormatException;
  * @author DaPorkchop_
  */
 @NotThreadSafe
-public interface PStreamingDecompressor extends StreamingContext {
-    //
-    //
-    // misc. methods
-    //
-    //
-
-    /**
-     * Returns a hint for the recommended input buffer size. The return value is generally a constant, independent of the current decompressor state.
-     *
-     * @return a hint for the recommended input buffer size, or an empty optional if the implementation either doesn't know or doesn't care
-     */
-    @Positive OptionalInt getRecommendedInputBufferSize();
-
-    /**
-     * Returns a hint for the recommended output buffer size. The return value is generally a constant, independent of the current decompressor state.
-     *
-     * @return a hint for the recommended output buffer size, or an empty optional if the implementation either doesn't know or doesn't care
-     */
-    @Positive OptionalInt getRecommendedOutputBufferSize();
-
-    /**
-     * Resets this decompressor's parameters to the defaults.
-     * <p>
-     * Parameters may only be reset between sessions (i.e. no decompression is currently ongoing).
-     * <p>
-     * Parameters are sticky and will remain until explicitly reset.
-     *
-     * @throws IllegalStateException if a decompression session is currently ongoing
-     */
-    @Override
-    void resetParameters() throws IllegalStateException;
-
-    //
-    //
-    // compression methods
-    //
-    //
-
-    /**
-     * Resets this decompressor's state.
-     * <p>
-     * This will cause the ongoing decompression session (if any) to be aborted. Call this method before starting to decompress new data.
-     */
-    void resetStream();
-
-    /**
-     * Equivalent to calling {@link #resetStream()} followed by {@link #resetParameters()}.
-     */
-    default void resetStreamAndParameters() {
-        this.resetStream();
-        this.resetParameters();
-    }
-
+public interface PStreamingDecompressor extends StreamingContext, GenericDecompressParameters {
     /**
      * Creates an {@link InputStream} which will read compressed data from the given {@link InputStream} and decompress it.
      * <p>
@@ -108,11 +51,10 @@ public interface PStreamingDecompressor extends StreamingContext {
      * {@link InputStream#close() Closing} the {@link InputStream} will effectively call {@link #resetStream()}, cancelling any ongoing decompression work and
      * allowing regular decompression to continue. Note that the {@link InputStream} implementation may buffer input data eagerly and therefore could end up
      * discarding data which was otherwise intended to be read.
-     * <p>
-     * The behavior when compression reaches a stopping point depends on the compression algorithm.
      *
      * @param src the {@link InputStream} to read from
      * @return an {@link InputStream}
+     * @throws UnsupportedOperationException if the {@link #setSingleStream(boolean) single stream} parameter is set to {@code true}
      */
     InputStream wrapDecompressing(@NonNull InputStream src);
 
@@ -128,55 +70,32 @@ public interface PStreamingDecompressor extends StreamingContext {
      * {@link ReadableByteChannel#close() Closing} the {@link ReadableByteChannel} will effectively call {@link #resetStream()}, cancelling any ongoing decompression work and
      * allowing regular decompression to continue. Note that the {@link ReadableByteChannel} implementation may buffer input data eagerly and therefore could end up
      * discarding data which was otherwise intended to be read.
-     * <p>
-     * The behavior when compression reaches a stopping point depends on the compression algorithm.
      *
      * @param src the {@link ReadableByteChannel} to read from
      * @return a {@link ReadableByteChannel}
+     * @throws UnsupportedOperationException if the {@link #setSingleStream(boolean) single stream} parameter is set to {@code true}
      */
-    ScatteringByteChannel wrapDecompressing(@NonNull ReadableByteChannel src);
-
-    /**
-     * Creates a {@link DataIn} which will read compressed data from the given {@link DataIn} and decompress it.
-     * <p>
-     * This decompressor will be automatically {@link #resetStream() reset}, cancelling any ongoing decompression work.
-     * <p>
-     * The returned {@link DataIn} will borrow ownership of this context until explicitly {@link DataIn#close() closed}. In particular,
-     * context state such as {@link #getLastReadBytes()}/{@link #getLastWrittenBytes()} are meaningless when streaming in this way and so their values are not defined.
-     * Additionally, the {@link #decompress} methods cannot be used while the {@link DataIn} is open.
-     * <p>
-     * {@link DataIn#close() Closing} the {@link DataIn} will effectively call {@link #resetStream()}, cancelling any ongoing decompression work and
-     * allowing regular decompression to continue. Note that the {@link DataIn} implementation may buffer input data eagerly and therefore could end up
-     * discarding data which was otherwise intended to be read.
-     * <p>
-     * The behavior when compression reaches a stopping point depends on the compression algorithm.
-     *
-     * @param src the {@link DataIn} to read from
-     * @return a {@link DataIn}
-     */
-    DataIn wrapDecompressing(@NonNull DataIn src);
-
-    /**
-     * @return the number of input bytes which were read by the last call to {@link #decompress}
-     */
-    @NotNegative long getLastReadBytes();
-
-    /**
-     * @return the number of output bytes which were written by the last call to {@link #decompress}
-     */
-    @NotNegative long getLastWrittenBytes();
+    ReadableByteChannel wrapDecompressing(@NonNull ReadableByteChannel src);
 
     /**
      * @return a hint for the suggested minimum number of input bytes to provide to the next call to {@link #decompress}
      * @apiNote this may return {@code 0} for implementations which don't know/care
      */
-    @NotNegative long getRequestedInputBytes();
+    default @NotNegative long getRequestedInputBytes() {
+        //don't care
+        return 0L;
+    }
 
     /**
      * @return a hint for the remaining number of bytes to be flushed to the output
      * @apiNote this may return {@code 0} for implementations which don't know/care
      */
-    @NotNegative long getRequestedOutputBytes();
+    default @NotNegative long getRequestedOutputBytes() {
+        //don't care
+        return 0L;
+    }
+
+    //TODO: update documentation about stopping points, it's no longer valid
 
     /**
      * Reads compressed data from the input buffer and writes it to the output buffer until the next stopping point is reached.

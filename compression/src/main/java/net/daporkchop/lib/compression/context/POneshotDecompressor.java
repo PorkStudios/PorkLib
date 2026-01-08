@@ -37,7 +37,7 @@ import java.util.zip.DataFormatException;
  * @author DaPorkchop_
  */
 @NotThreadSafe
-public interface POneshotDecompressor extends OneshotContext {
+public interface POneshotDecompressor extends OneshotContext, GenericDecompressParameters {
     //
     //
     // misc. methods
@@ -107,6 +107,8 @@ public interface POneshotDecompressor extends OneshotContext {
     // decompression methods
     //
     //
+
+    //TODO: the source buffer position actually should be incremented (especially important for single-frame decompression)
 
     /**
      * Decompresses the given source data into the given destination buffer.

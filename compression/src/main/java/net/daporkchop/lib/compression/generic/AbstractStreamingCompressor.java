@@ -17,37 +17,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.compression.deflate.jdk;
+package net.daporkchop.lib.compression.generic;
 
-import net.daporkchop.lib.compression.deflate.DeflateDecompressParameters;
-
-import java.util.zip.Inflater;
+import net.daporkchop.lib.compression.context.PStreamingCompressor;
 
 /**
  * @author DaPorkchop_
  */
-abstract class AbstractJdkDeflateDecompressContext extends AbstractJdkDeflateContext implements DeflateDecompressParameters {
-    final Inflater inflater;
-    boolean singleStream;
-
-    AbstractJdkDeflateDecompressContext(boolean noWrap) {
-        this.inflater = new Inflater(noWrap);
-    }
-
-    @Override
-    public final void resetParameters() throws IllegalStateException {
-        //TODO: check if streaming decompression is ongoing
-        this.singleStream = false;
-    }
-
-    @Override
-    public final void setSingleStream(boolean singleStream) {
-        //TODO: check if streaming decompression is ongoing
-        this.singleStream = singleStream;
-    }
-
-    @Override
-    public final void close() {
-        this.inflater.end();
-    }
+public abstract class AbstractStreamingCompressor extends AbstractStreamingContext implements PStreamingCompressor {
 }

@@ -21,7 +21,6 @@ package net.daporkchop.lib.compression.deflate.jdk;
 
 import net.daporkchop.lib.compression.deflate.DeflateOneshotCompressor;
 import net.daporkchop.lib.compression.deflate.DeflateOneshotDecompressor;
-import net.daporkchop.lib.compression.deflate.DeflateOneshotFactory;
 import net.daporkchop.lib.compression.deflate.DeflateProviderCapabilities;
 import net.daporkchop.lib.compression.deflate.DeflateStreamingCompressor;
 import net.daporkchop.lib.compression.deflate.DeflateStreamingDecompressor;

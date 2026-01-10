@@ -19,35 +19,10 @@
 
 package net.daporkchop.lib.compression.generic;
 
-import lombok.NonNull;
-import net.daporkchop.lib.compression.context.PStreamingCompressor;
+import net.daporkchop.lib.compression.context.POneshotCompressor;
 
 /**
  * @author DaPorkchop_
  */
-public abstract class AbstractStreamingCompressor extends AbstractStreamingContext implements PStreamingCompressor {
-    // misc. shared state
-    private FlushMode expectedFlushMode = null;
-
-    @Override
-    public void resetStream() {
-        super.resetStream();
-        this.expectedFlushMode = null;
-    }
-
-    protected final void validateFlushParameter(@NonNull FlushMode flush) throws IllegalArgumentException {
-        if (this.expectedFlushMode == null) {
-            if (flush == FlushMode.NO) {
-                //this is fine
-            } else {
-                this.expectedFlushMode = flush;
-            }
-        } else if (this.expectedFlushMode != flush) {
-            throw new IllegalArgumentException("expected flush=" + this.expectedFlushMode + " but got " + flush);
-        }
-    }
-
-    protected final void handlePartialFlushComplete() {
-        this.expectedFlushMode = null;
-    }
+public abstract class AbstractOneshotCompressor extends AbstractOneshotContext implements POneshotCompressor {
 }

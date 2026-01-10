@@ -170,6 +170,7 @@ public interface PStreamingCompressor extends StreamingContext, GenericCompressP
          * {@link #getLastReadBytes()} bytes) and more output space until it returns {@code true}. Once {@code true} is returned, the user may continue to call
          * {@link #compress} with additional input data and any flush mode.
          */
+        //TODO: figure out if i want to keep this, as not all compression algorithms necessarily support this mode
         FULL,
         /**
          * All pending output data is flushed to the specified output buffer, and the compressed output stream is ended.

@@ -38,12 +38,12 @@ public abstract class AbstractStreamingContext implements StreamingContext {
     public final @NotNegative long getLastWrittenBytes() {
         return this.lastWrittenBytes;
     }
-    
+
     protected final void setLastReadWrittenBytes(@NotNegative long lastReadBytes, @NotNegative long lastWrittenBytes) {
         this.lastReadBytes = lastReadBytes;
         this.lastWrittenBytes = lastWrittenBytes;
     }
-    
+
     protected final void addLastReadWrittenBytes(@NotNegative long lastReadBytes, @NotNegative long lastWrittenBytes) {
         this.lastReadBytes += lastReadBytes;
         this.lastWrittenBytes += lastWrittenBytes;

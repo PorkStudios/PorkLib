@@ -69,7 +69,7 @@ final class JdkGzipStreamingDecompressor extends AbstractStreamingDecompressor i
 
     @Override
     protected boolean isStreamOngoing() {
-        return this.state == STATE_RESET;
+        return this.state != STATE_RESET;
     }
 
     @Override

@@ -22,11 +22,10 @@ package net.daporkchop.lib.compression.deflate.jdk;
 import lombok.NonNull;
 import lombok.val;
 import net.daporkchop.lib.binary.stream.DataOut;
-import net.daporkchop.lib.common.annotation.param.NotNegative;
-import net.daporkchop.lib.common.annotation.param.Positive;
 import net.daporkchop.lib.common.util.PNioBuffers;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.compression.deflate.DeflateStreamingCompressor;
+import net.daporkchop.lib.compression.generic.AbstractStreamingCompressor;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.OutputStream;
@@ -34,31 +33,56 @@ import java.nio.ByteBuffer;
 import java.nio.ReadOnlyBufferException;
 import java.nio.channels.GatheringByteChannel;
 import java.nio.channels.WritableByteChannel;
-import java.util.OptionalInt;
-import java.util.OptionalLong;
+import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 
 /**
  * @author DaPorkchop_
  */
-class JdkDeflateStreamingCompressor extends AbstractJdkDeflateCompressContext implements DeflateStreamingCompressor {
-    boolean ongoingStream = false;
+final class JdkDeflateStreamingCompressor extends AbstractStreamingCompressor implements DeflateStreamingCompressor, JdkDeflateContext {
+    private static final byte STATE_RESET = 0;
+    private static final byte STATE_COMPRESS_NORMAL = 1;
+    private static final byte STATE_COMPRESS_FINISHING = 2;
+
+    final Deflater deflater;
+
+    private byte state = STATE_RESET;
 
     FlushMode expectedNextFlushMode = null;
 
-    long lastReadBytes = 0L;
-    long lastWrittenBytes = 0L;
-
     JdkDeflateStreamingCompressor(boolean noWrap) {
-        super(noWrap);
+        this.deflater = new Deflater(Deflater.DEFAULT_COMPRESSION, noWrap);
+    }
+
+    @Override
+    public void close() {
+        this.deflater.end();
     }
 
     @Override
     public void resetStream() {
-        this.deflater.reset();
+        super.resetStream();
 
-        this.ongoingStream = false;
+        this.deflater.reset();
+        this.state = STATE_RESET;
         this.expectedNextFlushMode = null;
+    }
+
+    @Override
+    protected boolean isStreamOngoing() {
+        return this.state != STATE_RESET;
+    }
+
+    @Override
+    public void resetParameters() throws IllegalStateException {
+        super.resetParameters();
+        this.deflater.setLevel(Deflater.DEFAULT_COMPRESSION);
+    }
+
+    @Override
+    public void setLevel(int level) throws IllegalArgumentException {
+        this.ensureStreamInactive();
+        this.deflater.setLevel(level);
     }
 
     @Override
@@ -89,44 +113,34 @@ class JdkDeflateStreamingCompressor extends AbstractJdkDeflateCompressContext im
     }
 
     @Override
-    public final @NotNegative long getLastReadBytes() {
-        return this.lastReadBytes;
-    }
-
-    @Override
-    public final @NotNegative long getLastWrittenBytes() {
-        return this.lastWrittenBytes;
-    }
-
-    @Override
     public boolean compress(@NonNull ByteBuffer src, @NonNull ByteBuffer dst, @NonNull FlushMode flush) throws ReadOnlyBufferException {
+        this.setLastReadWrittenBytes(0, 0);
+
         if (dst.isReadOnly()) {
             throw new ReadOnlyBufferException();
         }
 
-        if (!this.ongoingStream) {
-            this.resetStream();
-        } else if (this.expectedNextFlushMode != null && this.expectedNextFlushMode != flush) {
+        if (this.state == STATE_RESET) {
+            this.state = STATE_COMPRESS_NORMAL;
+        }
+
+        if (this.expectedNextFlushMode != null && this.expectedNextFlushMode != flush) {
             throw new IllegalArgumentException("expected " + this.expectedNextFlushMode + " but got " + flush);
         }
 
+        if (this.expectedNextFlushMode == null && flush == FlushMode.FINISH) {
+            this.deflater.finish();
+        }
+
+        val initialBytesRead = this.deflater.getBytesRead();
+        val initialBytesWritten = this.deflater.getBytesWritten();
         try {
-            val initialBytesRead = this.deflater.getBytesRead();
-            val initialBytesWritten = this.deflater.getBytesWritten();
-
-            if (this.expectedNextFlushMode == null && flush == FlushMode.FINISH) {
-                this.deflater.finish();
-            }
-
+            //TODO: SYNC_FLUSH/FULL_FLUSH modes require a minimum of 6 bytes of output space, we should probably add a temporary small buffer in case the output buffer
+            //      is very small... see DeflaterOutputStream#flush()
             if (JdkDeflateUtils.supportsByteBufferMethods()) {
                 //use the new ByteBuffer methods directly
-                val initialSrcPosition = src.position();
-
                 JdkDeflateUtils.setInput(this.deflater, src);
                 JdkDeflateUtils.deflate(this.deflater, dst, JdkDeflateUtils.flushModeToJdk(flush));
-
-                //notify input callback
-                this.onInputConsumed(src, initialSrcPosition, src.position() - initialSrcPosition);
             } else {
                 if (src.hasArray()) {
                     this.deflater.setInput(src.array(), src.arrayOffset() + src.position(), src.remaining());
@@ -148,54 +162,48 @@ class JdkDeflateStreamingCompressor extends AbstractJdkDeflateCompressContext im
                     dst.put(dstTmpArray, 0, written);
                 }
 
-                //notify input callback and increment src position
-                int read = Math.toIntExact(this.deflater.getBytesRead() - initialBytesRead);
-                this.onInputConsumed(src, src.position(), read);
-                src.position(src.position() + read);
+                //increment src position
+                // Unlike in the decompressor, here's no need for any exception handling here, since Deflater#deflate() shouldn't be able
+                // to throw an exception (assuming we're using it correctly) and therefore this code will always execute
+                src.position(src.position() + Math.toIntExact(this.deflater.getBytesRead() - initialBytesRead));
             }
-
-            boolean result;
-            FlushMode nextFlushMode;
-            switch (flush) {
-                case NO:
-                    result = this.deflater.needsInput();
-                    nextFlushMode = null;
-                    break;
-                case SYNC:
-                case FULL:
-                    result = this.deflater.needsInput();
-                    nextFlushMode = result ? null : flush;
-                    break;
-                case FINISH:
-                    result = this.deflater.finished();
-                    if (result) {
-                        nextFlushMode = null;
-                        //the stream is finished, mark it as such
-                        this.ongoingStream = false;
-                    } else {
-                        nextFlushMode = flush;
-                    }
-                    break;
-                default:
-                    throw new IllegalArgumentException(String.valueOf(flush));
-            }
-
-            this.expectedNextFlushMode = nextFlushMode;
-
-            this.lastReadBytes = this.deflater.getBytesRead() - initialBytesRead;
-            this.lastWrittenBytes = this.deflater.getBytesWritten() - initialBytesWritten;
-            return result;
         } finally {
             //ensure that the input array can be GCd
             this.deflater.setInput(PorkUtil.emptyByteArray());
+
+            //set last read/written count (no need to increment, both fields are already set to zero)
+            this.setLastReadWrittenBytes(
+                    this.deflater.getBytesRead() - initialBytesRead,
+                    this.deflater.getBytesWritten() - initialBytesWritten);
         }
-    }
 
-    protected void onInputConsumed(byte[] src, int offset, int length) {
-        //no-op, used by gzip compression
-    }
+        boolean result;
+        switch (flush) {
+            case NO:
+                //TODO: i don't think this return value is correct, it should probably also include a check for 'there is free space in the output buffer'
+                result = this.deflater.needsInput();
+                this.expectedNextFlushMode = null;
+                break;
+            case SYNC:
+            case FULL:
+                //TODO: i don't think this return value is correct, it should probably also include a check for 'there is free space in the output buffer'
+                result = this.deflater.needsInput();
+                this.expectedNextFlushMode = result ? null : flush;
+                break;
+            case FINISH:
+                result = this.deflater.finished();
+                if (result) {
+                    this.expectedNextFlushMode = null;
+                    //the stream is finished, reset the context
+                    this.resetStream();
+                } else {
+                    this.expectedNextFlushMode = flush;
+                }
+                break;
+            default:
+                throw new IllegalArgumentException(String.valueOf(flush));
+        }
 
-    protected void onInputConsumed(ByteBuffer src, int offset, int length) {
-        //no-op, used by gzip compression
+        return result;
     }
 }

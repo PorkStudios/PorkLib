@@ -19,71 +19,23 @@
 
 package net.daporkchop.lib.compression.generic;
 
-import lombok.NonNull;
-import net.daporkchop.lib.compression.context.PStreamingDecompressor;
-
-import java.io.InputStream;
-import java.nio.channels.ReadableByteChannel;
+import net.daporkchop.lib.compression.context.POneshotDecompressor;
 
 /**
  * @author DaPorkchop_
  */
-public abstract class AbstractStreamingDecompressor extends AbstractStreamingContext implements PStreamingDecompressor {
-    // misc. shared state
-    private boolean expectedEof = false;
-
+public abstract class AbstractOneshotDecompressor extends AbstractOneshotContext implements POneshotDecompressor {
     // parameters
     protected boolean singleStream = false;
 
-    // misc. shared state
-
     @Override
-    public void resetStream() {
-        super.resetStream();
-        this.expectedEof = false;
-    }
-
-    protected final void validateEofParameter(boolean eof) throws IllegalArgumentException {
-        if (eof) {
-            this.expectedEof = true;
-        } else if (this.expectedEof) {
-            throw new IllegalArgumentException("expected eof=true");
-        }
-    }
-
-    // parameters
-
-    @Override
-    public void resetParameters() throws IllegalStateException {
+    public void resetParameters() {
         super.resetParameters();
         this.singleStream = false;
     }
 
     @Override
     public final void setSingleStream(boolean singleStream) {
-        this.ensureStreamInactive();
         this.singleStream = singleStream;
-    }
-
-    // IO stream wrappers
-
-    protected final void ensureNotSingleStream() {
-        if (this.singleStream) {
-            throw new UnsupportedOperationException("stream wrappers are incompatible with parameter singleStream=true");
-        }
-    }
-
-    @Override
-    public InputStream wrapDecompressing(@NonNull InputStream src) {
-        this.ensureNotSingleStream();
-        this.resetStream();
-        return new GenericDecompressorInputStream(src, this);
-    }
-
-    @Override
-    public ReadableByteChannel wrapDecompressing(@NonNull ReadableByteChannel src) {
-        this.ensureNotSingleStream();
-        this.resetStream();
-        return new GenericDecompressorReadableByteChannel(src, this);
     }
 }

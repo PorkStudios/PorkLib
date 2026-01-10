@@ -22,6 +22,8 @@ package net.daporkchop.lib.compression.deflate.jdk;
 import lombok.NonNull;
 import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.util.PNioBuffers;
+import net.daporkchop.lib.compression.deflate.DeflateStreamingCompressor;
+import net.daporkchop.lib.compression.generic.AbstractStreamingCompressor;
 
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -31,16 +33,20 @@ import java.nio.channels.GatheringByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.util.zip.CRC32;
 import java.util.zip.Deflater;
+import java.util.zip.GZIPInputStream;
 
 /**
  * @author DaPorkchop_
  */
-final class JdkGzipStreamingCompressor extends JdkDeflateStreamingCompressor {
-    private static final int GZIP_MAGIC = 0x8B1F;
+final class JdkGzipStreamingCompressor extends AbstractStreamingCompressor implements DeflateStreamingCompressor, JdkDeflateContext {
+    private static final byte STATE_RESET = 0;
+    private static final byte STATE_WRITE_HEADER = 1;
+    private static final byte STATE_COMPRESS = 2;
+    private static final byte STATE_WRITE_TRAILER = 3;
 
     private static final byte[] HEADER = {
-            (byte) GZIP_MAGIC,
-            (byte) (GZIP_MAGIC >> 8),
+            (byte) GZIPInputStream.GZIP_MAGIC,
+            (byte) (GZIPInputStream.GZIP_MAGIC >> 8),
             Deflater.DEFLATED,
             0,
             0,
@@ -51,28 +57,50 @@ final class JdkGzipStreamingCompressor extends JdkDeflateStreamingCompressor {
             0
     };
 
+    private final JdkDeflateStreamingCompressor deflater;
     private final CRC32 crc = new CRC32();
 
-    private State state = State.DONE;
+    private byte state = STATE_RESET;
 
-    private int writtenHeaderBytes;
+    private byte[] rawBytes;
+    private int rawBytesIndex;
 
+    //temporary array for re-use
     private final byte[] trailer = new byte[Integer.BYTES * 2];
-    private int writtenTrailerBytes;
 
     JdkGzipStreamingCompressor() {
-        super(true);
+        this.deflater = new JdkDeflateStreamingCompressor(true);
+    }
+
+    @Override
+    public void close() {
+        this.deflater.close();
     }
 
     @Override
     public void resetStream() {
         super.resetStream();
 
+        this.deflater.resetStream();
         this.crc.reset();
+        this.state = STATE_RESET;
+    }
 
-        this.state = State.WRITE_HEADER;
-        this.writtenHeaderBytes = 0;
-        this.writtenTrailerBytes = 0;
+    @Override
+    protected boolean isStreamOngoing() {
+        return this.state != STATE_RESET;
+    }
+
+    @Override
+    public void resetParameters() throws IllegalStateException {
+        super.resetParameters();
+        this.deflater.resetParameters();
+    }
+
+    @Override
+    public void setLevel(int level) throws IllegalArgumentException {
+        this.ensureStreamInactive();
+        this.deflater.setLevel(level);
     }
 
     @Override
@@ -92,86 +120,104 @@ final class JdkGzipStreamingCompressor extends JdkDeflateStreamingCompressor {
 
     @Override
     public boolean compress(@NonNull ByteBuffer src, @NonNull ByteBuffer dst, @NonNull FlushMode flush) throws ReadOnlyBufferException {
-        int readBytes = 0;
-        int writtenBytes = 0;
+        this.setLastReadWrittenBytes(0, 0);
 
-        super.lastReadBytes = 0L;
-        super.lastWrittenBytes = 0L;
+        if (dst.isReadOnly()) {
+            throw new ReadOnlyBufferException();
+        }
 
-        try {
-            if (this.state == State.DONE) {
-                this.resetStream();
-            }
+        this.validateFlushParameter(flush);
 
-            if (this.state == State.WRITE_HEADER) {
-                int headerWriteCount = Math.min(HEADER.length - this.writtenHeaderBytes, dst.remaining());
-                dst.put(HEADER, this.writtenHeaderBytes, headerWriteCount);
-                this.writtenHeaderBytes += headerWriteCount;
-                writtenBytes += headerWriteCount;
+        switch (this.state) {
+            case STATE_RESET:
+                this.state = STATE_WRITE_HEADER;
+                this.rawBytesBegin(HEADER);
 
-                if (this.writtenHeaderBytes == HEADER.length) {
-                    this.state = State.COMPRESS;
-                } else {
+                //fallthrough
+            case STATE_WRITE_HEADER:
+                if (!this.rawBytesStep(dst)) {
+                    //wait for more output space
                     return false;
                 }
-            }
 
-            if (this.state == State.COMPRESS) {
-                if (flush == FlushMode.FULL) {
-                    flush = FlushMode.FINISH;
+                this.state = STATE_COMPRESS;
+
+                //fallthrough
+            case STATE_COMPRESS:
+
+                //implementation note:
+                // both FULL and FINISH modes are treated equivalently. in either mode, the current GZIP member is finished by first finishing the
+                // underlying DEFLATE stream, then appending the GZIP member trailer. subsequent compression calls will cause a new GZIP member to
+                // be started.
+                // the reason for not simply passing FULL mode through to the underlying DEFLATE stream is that it would make FULL mode effectively
+                // useless, as that would not be enough to guarantee that compression can be resumed if the previous data is corrupted. separate GZIP
+                // members are needed between FULL flushes to ensure that the GZIP checksums do not cover corrupt data.
+                //TODO: i should probably double-check the actual zlib library to see how it handles the above case.
+
+                boolean done;
+                try {
+                    done = this.deflater.compress(src, dst, flush == FlushMode.FULL ? FlushMode.FINISH : flush);
+                } finally {
+                    //increment last read/written bytes
+                    int lastReadBytes = Math.toIntExact(this.deflater.getLastReadBytes());
+                    this.addLastReadWrittenBytes(lastReadBytes, this.deflater.getLastWrittenBytes());
+
+                    //update checksum with the input bytes which have actually been read
+                    this.crc.update(PNioBuffers.duplicateRange(src, src.position() - lastReadBytes, lastReadBytes));
                 }
 
-                boolean result = super.compress(src, dst, flush);
-
-                if (result && (flush == FlushMode.FULL || flush == FlushMode.FINISH)) {
-                    this.prepareTrailer();
-                    this.state = State.WRITE_TRAILER;
-                } else {
-                    return result;
-                }
-            }
-
-            if (this.state == State.WRITE_TRAILER) {
-                int trailerWriteCount = Math.min(this.trailer.length - this.writtenTrailerBytes, dst.remaining());
-                dst.put(this.trailer, this.writtenTrailerBytes, trailerWriteCount);
-                this.writtenTrailerBytes += trailerWriteCount;
-                writtenBytes += trailerWriteCount;
-
-                if (this.writtenTrailerBytes == this.trailer.length) {
-                    this.state = State.DONE;
+                if (!done) {
+                    //wait for more input/output space
+                    return false;
+                } else if (flush != FlushMode.FULL && flush != FlushMode.FINISH) {
+                    //all pending output data has been flushed, but we aren't terminating the GZIP member here so just return
+                    //true and keep going
+                    this.handlePartialFlushComplete();
                     return true;
                 } else {
+                    assert flush == FlushMode.FULL || flush == FlushMode.FINISH : flush;
+
+                    //the DEFLATE stream has been finished, we can now terminate the GZIP member by appending the trailer
+                    this.state = STATE_WRITE_TRAILER;
+                    this.rawBytesBegin(this.prepareTrailer());
+                }
+
+                //fallthrough
+            case STATE_WRITE_TRAILER:
+                if (!this.rawBytesStep(dst)) {
+                    //wait for more output space
                     return false;
                 }
-            }
 
-            throw new IllegalStateException(String.valueOf(this.state));
-        } finally {
-            super.lastReadBytes += readBytes;
-            super.lastWrittenBytes += writtenBytes;
+                //compression is done, we can reset the stream now :)
+                this.resetStream();
+                return true;
+            default:
+                throw new IllegalStateException(String.valueOf(this.state));
         }
     }
 
-    @Override
-    protected void onInputConsumed(byte[] src, int offset, int length) {
-        this.crc.update(src, offset, length);
+    private void rawBytesBegin(byte[] rawBytes) {
+        this.rawBytes = rawBytes;
+        this.rawBytesIndex = 0;
     }
 
-    @Override
-    protected void onInputConsumed(ByteBuffer src, int offset, int length) {
-        this.crc.update(PNioBuffers.duplicateRange(src, offset, length));
+    private boolean rawBytesStep(ByteBuffer dst) {
+        while (this.rawBytesIndex < this.rawBytes.length) {
+            if (!dst.hasRemaining()) {
+                return false;
+            }
+
+            dst.put(this.rawBytes[this.rawBytesIndex++]);
+            this.addLastReadWrittenBytes(0, 1);
+        }
+        return true;
     }
 
-    private void prepareTrailer() {
+    private byte[] prepareTrailer() {
         ByteBuffer.wrap(this.trailer).order(ByteOrder.LITTLE_ENDIAN)
                 .putInt((int) this.crc.getValue())
-                .putInt(super.deflater.getTotalIn());
-    }
-
-    private enum State {
-        WRITE_HEADER,
-        COMPRESS,
-        WRITE_TRAILER,
-        DONE,
+                .putInt(this.deflater.deflater.getTotalIn());
+        return this.trailer;
     }
 }

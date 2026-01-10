@@ -23,7 +23,6 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import net.daporkchop.lib.common.system.PlatformInfo;
-import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.compression.context.PStreamingCompressor;
 
 import java.lang.invoke.MethodHandle;

@@ -29,7 +29,6 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ReadOnlyBufferException;
 import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.ScatteringByteChannel;
 import java.util.zip.DataFormatException;
 
 /**

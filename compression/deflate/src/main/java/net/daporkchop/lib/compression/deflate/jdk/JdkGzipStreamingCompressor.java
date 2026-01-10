@@ -20,17 +20,13 @@
 package net.daporkchop.lib.compression.deflate.jdk;
 
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.util.PNioBuffers;
 import net.daporkchop.lib.compression.deflate.DeflateStreamingCompressor;
 import net.daporkchop.lib.compression.generic.AbstractStreamingCompressor;
 
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.ReadOnlyBufferException;
-import java.nio.channels.GatheringByteChannel;
-import java.nio.channels.WritableByteChannel;
 import java.util.zip.CRC32;
 import java.util.zip.Deflater;
 import java.util.zip.GZIPInputStream;
@@ -101,21 +97,6 @@ final class JdkGzipStreamingCompressor extends AbstractStreamingCompressor imple
     public void setLevel(int level) throws IllegalArgumentException {
         this.ensureStreamInactive();
         this.deflater.setLevel(level);
-    }
-
-    @Override
-    public OutputStream wrapCompressing(@NonNull OutputStream dst, @NonNull FlushMode flush) {
-        throw new AbstractMethodError(); //TODO
-    }
-
-    @Override
-    public GatheringByteChannel wrapCompressing(@NonNull WritableByteChannel dst) {
-        throw new AbstractMethodError(); //TODO
-    }
-
-    @Override
-    public DataOut wrapCompressing(@NonNull DataOut dst, @NonNull FlushMode flush) {
-        throw new AbstractMethodError(); //TODO
     }
 
     @Override

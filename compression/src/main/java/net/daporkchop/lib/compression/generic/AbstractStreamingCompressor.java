@@ -22,6 +22,9 @@ package net.daporkchop.lib.compression.generic;
 import lombok.NonNull;
 import net.daporkchop.lib.compression.context.PStreamingCompressor;
 
+import java.io.OutputStream;
+import java.nio.channels.WritableByteChannel;
+
 /**
  * @author DaPorkchop_
  */
@@ -49,5 +52,26 @@ public abstract class AbstractStreamingCompressor extends AbstractStreamingConte
 
     protected final void handlePartialFlushComplete() {
         this.expectedFlushMode = null;
+    }
+
+    // IO stream wrappers
+
+    protected final void ensureNotFinishMode(@NonNull FlushMode flush) throws IllegalArgumentException {
+        if (flush == FlushMode.FINISH) {
+            throw new IllegalArgumentException(String.valueOf(flush));
+        }
+    }
+
+    @Override
+    public OutputStream wrapCompressing(@NonNull OutputStream dst, @NonNull FlushMode flush) throws IllegalArgumentException {
+        this.ensureNotFinishMode(flush);
+        this.resetStream();
+        return new GenericCompressorOutputStream(dst, this, flush);
+    }
+
+    @Override
+    public WritableByteChannel wrapCompressing(@NonNull WritableByteChannel dst) {
+        this.resetStream();
+        return new GenericCompressorWritableByteChannel(dst, this);
     }
 }

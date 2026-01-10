@@ -21,6 +21,7 @@ package net.daporkchop.lib.binary.nio.channel;
 
 import java.io.IOException;
 import java.nio.channels.Channel;
+import java.nio.channels.ClosedChannelException;
 
 /**
  * @author DaPorkchop_
@@ -44,4 +45,12 @@ public abstract class AbstractNonInterruptibleSynchronizedChannel implements Cha
     }
 
     protected abstract void implCloseChannel() throws IOException;
+
+    protected final void requireOpen() throws IOException {
+        assert Thread.holdsLock(this) : "caller must be synchronized";
+
+        if (!this.open) {
+            throw new ClosedChannelException();
+        }
+    }
 }

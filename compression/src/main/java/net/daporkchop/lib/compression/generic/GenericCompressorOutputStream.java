@@ -51,6 +51,8 @@ public class GenericCompressorOutputStream extends OutputStream {
     }
 
     public GenericCompressorOutputStream(@NonNull OutputStream out, @NonNull PStreamingCompressor compressor, @NonNull PStreamingCompressor.FlushMode flush, @Positive int bufferSize) {
+        PValidation.checkArg(flush != PStreamingCompressor.FlushMode.FINISH, flush);
+
         this.out = out;
         this.compressor = compressor;
         this.flush = flush;
@@ -71,6 +73,10 @@ public class GenericCompressorOutputStream extends OutputStream {
 
     @Override
     public void write(byte[] b, int off, int len) throws IOException {
+        if (this.closed) {
+            throw new IOException("write beyond end of stream");
+        }
+
         ByteBuffer inputBuffer = ByteBuffer.wrap(b, off, len);
 
         boolean done;
@@ -90,7 +96,11 @@ public class GenericCompressorOutputStream extends OutputStream {
 
     @Override
     public void flush() throws IOException {
-        this.flush(this.flush);
+        if (!this.closed && this.flush != PStreamingCompressor.FlushMode.NO) {
+            //this can never be FINISH, so it's safe to flush the compressor here
+            this.flush(this.flush);
+        }
+
         this.out.flush();
     }
 
@@ -101,6 +111,8 @@ public class GenericCompressorOutputStream extends OutputStream {
 
             try (val ignored = this.out) {
                 this.flush(PStreamingCompressor.FlushMode.FINISH);
+            } finally {
+                this.compressor.resetStream();
             }
         }
     }

@@ -21,7 +21,6 @@ package net.daporkchop.lib.compression.context;
 
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
-import net.daporkchop.lib.binary.stream.DataOut;
 import net.daporkchop.lib.common.annotation.NotThreadSafe;
 import net.daporkchop.lib.common.annotation.param.NotNegative;
 import net.daporkchop.lib.compression.util.PNetty4Buffers;
@@ -29,7 +28,6 @@ import net.daporkchop.lib.compression.util.PNetty4Buffers;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ReadOnlyBufferException;
-import java.nio.channels.GatheringByteChannel;
 import java.nio.channels.WritableByteChannel;
 
 /**
@@ -48,14 +46,18 @@ public interface PStreamingCompressor extends StreamingContext, GenericCompressP
      * context state such as {@link #getLastReadBytes()}/{@link #getLastWrittenBytes()} are meaningless when streaming in this way and so their values are not defined.
      * Additionally, the {@link #compress} methods cannot be used while the {@link OutputStream} is open.
      * <p>
-     * {@link OutputStream#close() Closing} the {@link OutputStream} will effectively call {@link #resetStream()}, cancelling any ongoing compression work and
-     * allowing regular compression to continue.
+     * {@link OutputStream#flush() Flushing} the {@link OutputStream} will attempt to flush this context using the {@link FlushMode} provided to this method and write
+     * all resulting output to the destination.
+     * <p>
+     * {@link OutputStream#close() Closing} the {@link OutputStream} will attempt to {@link FlushMode#FINISH finish} the compressed stream and write all resulting output
+     * to the target. Once the call returns, this context is guaranteed to be {@link #resetStream() reset}.
      *
      * @param dst   the {@link OutputStream} to write to
-     * @param flush the {@link FlushMode} to use when {@link OutputStream#flush()} is called
+     * @param flush the {@link FlushMode} to use when {@link OutputStream#flush()} is called. If you don't care, use {@link FlushMode#NO}.
      * @return an {@link OutputStream}
+     * @throws IllegalArgumentException if the provided {@link FlushMode} is {@link FlushMode#FINISH}
      */
-    OutputStream wrapCompressing(@NonNull OutputStream dst, @NonNull FlushMode flush);
+    OutputStream wrapCompressing(@NonNull OutputStream dst, @NonNull FlushMode flush) throws IllegalArgumentException;
 
     /**
      * Creates a {@link WritableByteChannel} which will compress data written to it and write the compressed data to the given {@link WritableByteChannel}.
@@ -66,31 +68,13 @@ public interface PStreamingCompressor extends StreamingContext, GenericCompressP
      * context state such as {@link #getLastReadBytes()}/{@link #getLastWrittenBytes()} are meaningless when streaming in this way and so their values are not defined.
      * Additionally, the {@link #compress} methods cannot be used while the {@link WritableByteChannel} is open.
      * <p>
-     * {@link WritableByteChannel#close() Closing} the {@link WritableByteChannel} will effectively call {@link #resetStream()}, cancelling any ongoing compression work and
-     * allowing regular compression to continue.
+     * {@link WritableByteChannel#close() Closing} the {@link WritableByteChannel} will attempt to {@link FlushMode#FINISH finish} the compressed stream and write all
+     * resulting output to the target. Once the call returns, this context is guaranteed to be {@link #resetStream() reset}.
      *
      * @param dst the {@link WritableByteChannel} to write to
      * @return a {@link WritableByteChannel}
      */
-    GatheringByteChannel wrapCompressing(@NonNull WritableByteChannel dst);
-
-    /**
-     * Creates a {@link DataOut} which will compress data written to it and write the compressed data to the given {@link DataOut}.
-     * <p>
-     * This compressor will be automatically {@link #resetStream() reset}, cancelling any ongoing compression work.
-     * <p>
-     * The returned {@link DataOut} will borrow ownership of this context until explicitly {@link DataOut#close() closed}. In particular,
-     * context state such as {@link #getLastReadBytes()}/{@link #getLastWrittenBytes()} are meaningless when streaming in this way and so their values are not defined.
-     * Additionally, the {@link #compress} methods cannot be used while the {@link DataOut} is open.
-     * <p>
-     * {@link DataOut#close() Closing} the {@link DataOut} will effectively call {@link #resetStream()}, cancelling any ongoing compression work and
-     * allowing regular compression to continue.
-     *
-     * @param dst   the {@link DataOut} to write to
-     * @param flush the {@link FlushMode} to use when {@link OutputStream#flush()} is called
-     * @return a {@link DataOut}
-     */
-    DataOut wrapCompressing(@NonNull DataOut dst, @NonNull FlushMode flush);
+    WritableByteChannel wrapCompressing(@NonNull WritableByteChannel dst);
 
     /**
      * @return a hint for the remaining number of bytes to be flushed to the output

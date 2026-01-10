@@ -64,9 +64,7 @@ public class GenericDecompressorReadableByteChannel extends AbstractNonInterrupt
 
     @Override
     public synchronized int read(ByteBuffer outputBuffer) throws IOException {
-        if (!this.isOpen()) {
-            throw new ClosedChannelException();
-        }
+        this.requireOpen();
 
         if (this.finished) {
             //already reached the end of the decompressed stream

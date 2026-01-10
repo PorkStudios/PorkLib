@@ -37,32 +37,32 @@ final class JdkDeflateFactory implements DeflateStreamingFactory {
 
     @Override
     public DeflateOneshotCompressor makeOneshotDeflateCompressor() {
-        return new JdkOneshotDeflateCompressor(true);
+        return new JdkOneshotCompressor(new JdkDeflateStreamingCompressor(true));
     }
 
     @Override
     public DeflateOneshotDecompressor makeOneshotDeflateDecompressor() {
-        return new JdkOneshotDeflateDecompressor(true);
+        return new JdkOneshotDecompressor(new JdkDeflateStreamingDecompressor(true));
     }
 
     @Override
     public DeflateOneshotCompressor makeOneshotGzipCompressor() {
-        throw new AbstractMethodError(); //TODO
+        return new JdkOneshotCompressor(new JdkGzipStreamingCompressor());
     }
 
     @Override
     public DeflateOneshotDecompressor makeOneshotGzipDecompressor() {
-        throw new AbstractMethodError(); //TODO
+        return new JdkOneshotDecompressor(new JdkGzipStreamingDecompressor());
     }
 
     @Override
     public DeflateOneshotCompressor makeOneshotZlibCompressor() {
-        return new JdkOneshotDeflateCompressor(false);
+        return new JdkOneshotCompressor(new JdkDeflateStreamingCompressor(false));
     }
 
     @Override
     public DeflateOneshotDecompressor makeOneshotZlibDecompressor() {
-        return new JdkOneshotDeflateDecompressor(false);
+        return new JdkOneshotDecompressor(new JdkDeflateStreamingDecompressor(false));
     }
 
     @Override

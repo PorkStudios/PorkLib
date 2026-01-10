@@ -23,7 +23,6 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import net.daporkchop.lib.common.system.PlatformInfo;
-import net.daporkchop.lib.compression.context.PStreamingCompressor;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -37,20 +36,6 @@ import java.util.zip.Inflater;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 final class JdkDeflateUtils {
-    public static int flushModeToJdk(PStreamingCompressor.FlushMode flush) {
-        switch (flush) {
-            case NO:
-            case FINISH:
-                return Deflater.NO_FLUSH;
-            case SYNC:
-                return Deflater.SYNC_FLUSH;
-            case FULL:
-                return Deflater.FULL_FLUSH;
-            default:
-                throw new IllegalArgumentException(String.valueOf(flush));
-        }
-    }
-
     public static boolean supportsByteBufferMethods() {
         return PlatformInfo.JAVA_VERSION >= 9;
     }

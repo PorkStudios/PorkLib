@@ -134,37 +134,20 @@ final class JdkDeflateStreamingCompressor extends AbstractStreamingCompressor im
 
         final boolean deflaterNeedsInput;
         try {
-            //TODO: SYNC_FLUSH/FULL_FLUSH modes require a minimum of 6 bytes of output space, we should probably add a temporary small buffer in case the output buffer
-            //      is very small... see DeflaterOutputStream#flush()
+            //sanity check, i haven't implemented a workaround for this because it's such an obscure edge case that i can't imagine it would ever be relevant
+            //see https://stackoverflow.com/questions/31861983/deflater-deflate-and-small-output-buffers and DeflaterOutputStream#flush()
+            if ((jdkFlush == Deflater.SYNC_FLUSH || jdkFlush == Deflater.FULL_FLUSH) && dst.remaining() <= 6) {
+                throw new AssertionError("SYNC_FLUSH and FULL_FLUSH require more than 6 bytes of output space!");
+            }
+
             if (JdkDeflateUtils.supportsByteBufferMethods()) {
                 //use the new ByteBuffer methods directly
                 JdkDeflateUtils.setInput(this.deflater, src);
                 JdkDeflateUtils.deflate(this.deflater, dst, jdkFlush);
             } else {
-                if (src.hasArray()) {
-                    this.deflater.setInput(src.array(), src.arrayOffset() + src.position(), src.remaining());
-                } else {
-                    //src is a direct or read-only buffer, copy to a temporary array (slow!)
-                    //TODO: we could do streaming compression here?
-                    this.deflater.setInput(PNioBuffers.toArray(src));
-                }
-
-                int written;
-                if (dst.hasArray()) {
-                    written = this.deflater.deflate(dst.array(), dst.arrayOffset() + dst.position(), dst.remaining(), jdkFlush);
-                    dst.position(dst.position() + written);
-                } else {
-                    //dst is a direct buffer, compress into a temporary array and then copy the actually written bytes to dst (slow!)
-                    //TODO: we could do streaming compression here?
-                    byte[] dstTmpArray = PUnsafe.allocateUninitializedByteArray(dst.remaining());
-                    written = this.deflater.deflate(dstTmpArray, 0, dstTmpArray.length, jdkFlush);
-                    dst.put(dstTmpArray, 0, written);
-                }
-
-                //increment src position
-                // Unlike in the decompressor, here's no need for any exception handling here, since Deflater#deflate() shouldn't be able
-                // to throw an exception (assuming we're using it correctly) and therefore this code will always execute
-                src.position(src.position() + Math.toIntExact(this.deflater.getBytesRead() - initialBytesRead));
+                //use the old byte[] methods (this may compress in smaller blocks to avoid allocating massive temporary arrays)
+                //this will automatically increment src and dst buffer positions
+                this.deflateArray(src, dst, jdkFlush);
             }
 
             //check Deflater#needsInput() before resetting the input array, as otherwise it would always return true
@@ -207,6 +190,50 @@ final class JdkDeflateStreamingCompressor extends AbstractStreamingCompressor im
                 }
             default:
                 throw new IllegalArgumentException(String.valueOf(flush));
+        }
+    }
+
+    private void deflateArray(ByteBuffer src, ByteBuffer dst, int flush) {
+        if (src.hasArray()) {
+            this.deflater.setInput(src.array(), src.arrayOffset() + src.position(), src.remaining());
+        } else {
+            //src is a direct or read-only buffer, copy to a temporary array (slow!)
+            //TODO: we could do streaming compression here? it will be difficult to
+            this.deflater.setInput(src.hasRemaining() ? PNioBuffers.toArray(src) : PorkUtil.emptyByteArray());
+        }
+
+        final int STREAM_BUF_SIZE = 8192;
+
+        final byte[] dstStreamBuf;
+        if (dst.hasArray()) {
+            dstStreamBuf = null;
+        } else {
+            dstStreamBuf = PUnsafe.allocateUninitializedByteArray(Math.min(dst.remaining(), STREAM_BUF_SIZE));
+        }
+
+        int prevBytesReadTotal = this.deflater.getTotalIn();
+        while (true) {
+            int bytesWritten;
+            if (dst.hasArray()) {
+                //deflate directly into the dst buffer's array, then increment the dst buffer's position
+                bytesWritten = this.deflater.deflate(dst.array(), dst.arrayOffset() + dst.position(), dst.remaining(), flush);
+                dst.position(dst.position() + bytesWritten);
+            } else {
+                //deflate into dstStreamBuffer, then copy the written bytes to the real dst buffer
+                bytesWritten = this.deflater.deflate(dstStreamBuf, 0, Math.min(dstStreamBuf.length, dst.remaining()), flush);
+                dst.put(dstStreamBuf, 0, bytesWritten);
+            }
+
+            //increment the src position by the number of bytes that were consumed
+            int nextBytesReadTotal = this.deflater.getTotalIn();
+            src.position(src.position() + (nextBytesReadTotal - prevBytesReadTotal));
+            prevBytesReadTotal = nextBytesReadTotal;
+
+            if (this.deflater.finished() //if we've reached the end of the stream, we must be done
+                    || bytesWritten == 0 //there was no output produced and we can't supply any more input data to enable further progress
+                    || !dst.hasRemaining()) { //there's no more output space, so no more progress is possible
+                return;
+            }
         }
     }
 }

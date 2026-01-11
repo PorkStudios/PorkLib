@@ -94,36 +94,14 @@ final class JdkDeflateStreamingDecompressor extends AbstractStreamingDecompresso
             val initialBytesRead = this.inflater.getBytesRead();
             val initialBytesWritten = this.inflater.getBytesWritten();
             try {
-                //TODO: i think the ByteBuffer methods increment the input position even in case of an exception, can we make sure the behavior
-                //  is consistent when using the plain byte array methods?
                 if (JdkDeflateUtils.supportsByteBufferMethods()) {
                     //use the new ByteBuffer methods directly
                     JdkDeflateUtils.setInput(this.inflater, src);
                     JdkDeflateUtils.inflate(this.inflater, dst);
                 } else {
-                    if (src.hasArray()) {
-                        this.inflater.setInput(src.array(), src.arrayOffset() + src.position(), src.remaining());
-                    } else {
-                        //src is a direct or read-only buffer, copy to a temporary array (slow!)
-                        //TODO: we could do streaming decompression here?
-                        this.inflater.setInput(PNioBuffers.toArray(src));
-                    }
-
-                    int written;
-                    if (dst.hasArray()) {
-                        written = this.inflater.inflate(dst.array(), dst.arrayOffset() + dst.position(), dst.remaining());
-                        dst.position(dst.position() + written);
-                    } else {
-                        //dst is a direct buffer, decompress into a temporary array and then copy the actually written bytes to dst (slow!)
-                        //TODO: we could do streaming decompression here?
-                        byte[] dstTmpArray = PUnsafe.allocateUninitializedByteArray(dst.remaining());
-                        written = this.inflater.inflate(dstTmpArray, 0, dstTmpArray.length);
-                        dst.put(dstTmpArray, 0, written);
-                    }
-
-                    //increment src position
-                    int read = Math.toIntExact(this.inflater.getBytesRead() - initialBytesRead);
-                    src.position(src.position() + read);
+                    //use the old byte[] methods (this may decompress in smaller blocks to avoid allocating massive temporary arrays)
+                    //this will automatically increment src and dst buffer positions
+                    this.inflateArray(src, dst);
                 }
             } finally {
                 //ensure that the input array can be GCd
@@ -168,5 +146,79 @@ final class JdkDeflateStreamingDecompressor extends AbstractStreamingDecompresso
         }
 
         return false;
+    }
+
+    private void inflateArray(ByteBuffer src, ByteBuffer dst) throws DataFormatException {
+        final int STREAM_BUF_SIZE = 8192;
+
+        final byte[] srcStreamBuf;
+        boolean allInputPresented;
+        if (src.hasArray()) {
+            this.inflater.setInput(src.array(), src.arrayOffset() + src.position(), src.remaining());
+            srcStreamBuf = null;
+            allInputPresented = true;
+        } else {
+            this.inflater.setInput(PorkUtil.emptyByteArray()); //this ensures that inflater.needsInput() will return true when we enter the loop below
+            srcStreamBuf = PUnsafe.allocateUninitializedByteArray(Math.min(src.remaining(), STREAM_BUF_SIZE));
+            allInputPresented = false;
+        }
+
+        final byte[] dstStreamBuf;
+        if (dst.hasArray()) {
+            dstStreamBuf = null;
+        } else {
+            dstStreamBuf = PUnsafe.allocateUninitializedByteArray(Math.min(dst.remaining(), STREAM_BUF_SIZE));
+        }
+
+        int lastBytesReadTotal = this.inflater.getTotalIn();
+        int lastBytesWrittenTotal = this.inflater.getTotalOut();
+        while (true) {
+            if (!allInputPresented && this.inflater.needsInput()) {
+                //copy some more bytes into srcStreamBuffer (without changing its position, we'll do that later)
+                int nextInputBytesSubmitted = Math.min(srcStreamBuf.length, src.remaining());
+                PNioBuffers.copy(src, src.position(), srcStreamBuf, 0, nextInputBytesSubmitted);
+                this.inflater.setInput(srcStreamBuf, 0, nextInputBytesSubmitted);
+
+                if (nextInputBytesSubmitted == src.remaining()) {
+                    allInputPresented = true;
+                }
+            }
+
+            int bytesWritten;
+            try {
+                if (dstStreamBuf == null) {
+                    //inflate directly into the dst buffer's array, then increment the dst buffer's position
+                    bytesWritten = this.inflater.inflate(dst.array(), dst.arrayOffset() + dst.position(), dst.remaining());
+                } else {
+                    //inflate into dstStreamBuffer, then copy the decompressed bytes to the real dst buffer
+                    bytesWritten = this.inflater.inflate(dstStreamBuf, 0, Math.min(dstStreamBuf.length, dst.remaining()));
+                }
+            } finally {
+                //increment buffer positions in a finally block, so that they always get updated even in case of an exception
+
+                int nextBytesReadTotal = this.inflater.getTotalIn();
+                int nextBytesWrittenTotal = this.inflater.getTotalOut();
+
+                //increment the src position
+                src.position(src.position() + (nextBytesReadTotal - lastBytesReadTotal));
+
+                if (dstStreamBuf == null) {
+                    //increment the dst position
+                    dst.position(dst.position() + (nextBytesWrittenTotal - lastBytesWrittenTotal));
+                } else {
+                    //copy the decompressed bytes to the real dst buffer
+                    dst.put(dstStreamBuf, 0, nextBytesWrittenTotal - lastBytesWrittenTotal);
+                }
+
+                lastBytesReadTotal = nextBytesReadTotal;
+                lastBytesWrittenTotal = nextBytesWrittenTotal;
+            }
+
+            if (this.inflater.finished() //if we've reached the end of the stream, we must be done
+                    || (bytesWritten == 0 && !src.hasRemaining()) //there was no output produced and we can't supply any more input data to enable further progress
+                    || !dst.hasRemaining()) { //there's no more output space, so no more progress is possible
+                return;
+            }
+        }
     }
 }

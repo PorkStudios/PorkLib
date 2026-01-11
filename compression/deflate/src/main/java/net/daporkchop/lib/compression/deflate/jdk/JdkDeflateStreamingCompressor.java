@@ -131,6 +131,8 @@ final class JdkDeflateStreamingCompressor extends AbstractStreamingCompressor im
 
         val initialBytesRead = this.deflater.getBytesRead();
         val initialBytesWritten = this.deflater.getBytesWritten();
+
+        final boolean deflaterNeedsInput;
         try {
             //TODO: SYNC_FLUSH/FULL_FLUSH modes require a minimum of 6 bytes of output space, we should probably add a temporary small buffer in case the output buffer
             //      is very small... see DeflaterOutputStream#flush()
@@ -164,6 +166,9 @@ final class JdkDeflateStreamingCompressor extends AbstractStreamingCompressor im
                 // to throw an exception (assuming we're using it correctly) and therefore this code will always execute
                 src.position(src.position() + Math.toIntExact(this.deflater.getBytesRead() - initialBytesRead));
             }
+
+            //check Deflater#needsInput() before resetting the input array, as otherwise it would always return true
+            deflaterNeedsInput = this.deflater.needsInput();
         } finally {
             //ensure that the input array can be GCd
             this.deflater.setInput(PorkUtil.emptyByteArray());
@@ -184,7 +189,7 @@ final class JdkDeflateStreamingCompressor extends AbstractStreamingCompressor im
                 //force the user to make one additional call to compress() in case the flushed data just happens to perfectly fit the
                 //provided output buffer size, but that's probably pretty unlikely and shouldn't cause much of a performance hit even if it
                 //does occur.
-                if (this.deflater.needsInput() && dst.hasRemaining()) {
+                if (deflaterNeedsInput && dst.hasRemaining()) {
                     this.handlePartialFlushComplete();
                     return true;
                 } else {

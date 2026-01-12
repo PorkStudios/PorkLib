@@ -274,18 +274,18 @@ final class JdkDeflateStreamingCompressor extends AbstractStreamingCompressor im
     }
 
     private boolean stepBufferedOutput(ByteBuffer dst) {
-        assert this.bufferedOutputArray != null;
-
-        while (this.bufferedOutputPosition < this.bufferedOutputLimit) {
-            if (!dst.hasRemaining()) {
-                return false;
-            }
-
-            dst.put(this.bufferedOutputArray[this.bufferedOutputPosition++]);
-            this.addLastReadWrittenBytes(0, 1);
+        val count = Math.min(this.bufferedOutputLimit - this.bufferedOutputPosition, dst.remaining());
+        if (count > 0) {
+            dst.put(this.bufferedOutputArray, this.bufferedOutputPosition, count);
+            this.bufferedOutputPosition += count;
         }
 
-        this.bufferedOutputArray = null;
-        return true;
+        if (this.bufferedOutputPosition < this.bufferedOutputLimit) {
+            //wait for more output space
+            return false;
+        } else {
+            this.bufferedOutputArray = null;
+            return true;
+        }
     }
 }

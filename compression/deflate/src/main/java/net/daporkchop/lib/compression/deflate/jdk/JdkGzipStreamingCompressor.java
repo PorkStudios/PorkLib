@@ -20,6 +20,7 @@
 package net.daporkchop.lib.compression.deflate.jdk;
 
 import lombok.NonNull;
+import lombok.val;
 import net.daporkchop.lib.common.util.PNioBuffers;
 import net.daporkchop.lib.compression.deflate.DeflateStreamingCompressor;
 import net.daporkchop.lib.compression.generic.AbstractStreamingCompressor;
@@ -189,15 +190,13 @@ final class JdkGzipStreamingCompressor extends AbstractStreamingCompressor imple
     }
 
     private boolean rawBytesStep(ByteBuffer dst) {
-        while (this.rawBytesIndex < this.rawBytes.length) {
-            if (!dst.hasRemaining()) {
-                return false;
-            }
-
-            dst.put(this.rawBytes[this.rawBytesIndex++]);
-            this.addLastReadWrittenBytes(0, 1);
+        val count = Math.min(this.rawBytes.length - this.rawBytesIndex, dst.remaining());
+        if (count > 0) {
+            dst.put(this.rawBytes, this.rawBytesIndex, count);
+            this.rawBytesIndex += count;
         }
-        return true;
+
+        return this.rawBytesIndex == this.rawBytes.length;
     }
 
     private byte[] prepareTrailer() {

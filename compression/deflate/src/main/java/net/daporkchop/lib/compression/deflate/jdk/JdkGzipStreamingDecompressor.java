@@ -90,100 +90,103 @@ final class JdkGzipStreamingDecompressor extends AbstractStreamingDecompressor i
 
         this.validateEofParameter(eof);
 
-        if (this.state == STATE_AWAIT_MEMBER) {
-            if (!src.hasRemaining()) {
-                if (eof) {
-                    if (this.singleStream) {
-                        //we've reached the end of the input stream and there's no input data remaining, but not a single GZIP member has been decompressed so we're going to abort
-                        throw new DataFormatException("empty input stream is not allowed in single stream mode");
+        while (true) {
+            if (this.state == STATE_AWAIT_MEMBER) {
+                if (!src.hasRemaining()) {
+                    if (eof) {
+                        if (this.singleStream) {
+                            //we've reached the end of the input stream and there's no input data remaining, but not a single GZIP member has been decompressed so we're going to abort
+                            throw new DataFormatException("empty input stream is not allowed in single stream mode");
+                        } else {
+                            //we've reached the end of the input stream and there's no input data remaining, so we're finished here :)
+                            this.state = STATE_DONE;
+                        }
                     } else {
-                        //we've reached the end of the input stream and there's no input data remaining, so we're finished here :)
-                        this.state = STATE_DONE;
+                        //wait for more input
+                        return false;
                     }
                 } else {
-                    //wait for more input
-                    return false;
-                }
-            } else {
-                //there is some input available, begin decompressing the next member
-                this.state = STATE_READ_HEADER;
-                this.readHeaderBegin();
-            }
-        }
-
-        if (this.state == STATE_READ_HEADER) {
-            //this automatically increments lastReadBytes
-            if (this.readHeaderStep(src)) {
-                //we've read the entire header, begin decompressing the contents
-                this.state = STATE_DECOMPRESS;
-                this.crc.reset();
-            } else {
-                //we need more input data!
-                assert !src.hasRemaining() : src; //if we get to this point, readHeaderStep() should have consumed all of the available input
-                if (eof) {
-                    throw new DataFormatException("Unexpected end of GZIP input stream");
-                } else {
-                    //wait for more input
-                    return false;
+                    //there is some input available, begin decompressing the next member
+                    this.state = STATE_READ_HEADER;
+                    this.readHeaderBegin();
                 }
             }
-        }
 
-        if (this.state == STATE_DECOMPRESS) {
-            final boolean done;
-            try {
-                //TODO: figure out what to do with buffer positions in case of an exception being thrown later on
-                done = this.inflater.decompress(src, dst, eof);
-            } finally {
-                //increment last read/written count
-                this.addLastReadWrittenBytes(this.inflater.getLastReadBytes(), this.inflater.getLastWrittenBytes());
-            }
-
-            //update the checksum on the uncompressed output
-            val inflaterLastWrittenBytes = Math.toIntExact(this.inflater.getLastWrittenBytes());
-            this.crc.update(PNioBuffers.duplicateRange(dst, dst.position() - inflaterLastWrittenBytes, inflaterLastWrittenBytes));
-            this.totalOutputBytesInflated += inflaterLastWrittenBytes;
-
-            if (done) {
-                //reached the end of the compressed stream, now we just need to read and verify the checksum
-                this.state = STATE_READ_TRAILER;
-                this.readTrailerBegin();
-            } else {
-                //wait for more input or output space
-                return false;
-            }
-        }
-
-        if (this.state == STATE_READ_TRAILER) {
-            //this automatically increments lastReadBytes
-            if (this.readTrailerStep(src)) {
-                //we've read the entire trailer, and thus the end of this GZIP member
-                if (this.singleStream) {
-                    //stop after completing a single member
-                    this.state = STATE_DONE;
+            if (this.state == STATE_READ_HEADER) {
+                //this automatically increments lastReadBytes
+                if (this.readHeaderStep(src)) {
+                    //we've read the entire header, begin decompressing the contents
+                    this.state = STATE_DECOMPRESS;
+                    this.crc.reset();
                 } else {
-                    //wait for the next GZIP member or EOF
-                    this.state = STATE_AWAIT_MEMBER;
+                    //we need more input data!
+                    assert !src.hasRemaining() : src; //if we get to this point, readHeaderStep() should have consumed all of the available input
+                    if (eof) {
+                        throw new DataFormatException("Unexpected end of GZIP input stream");
+                    } else {
+                        //wait for more input
+                        return false;
+                    }
                 }
-            } else {
-                //we need more input data!
-                assert !src.hasRemaining() : src; //if we get to this point, readTrailerStep() should have consumed all of the available input
-                if (eof) {
-                    throw new DataFormatException("Unexpected end of GZIP input stream");
+            }
+
+            if (this.state == STATE_DECOMPRESS) {
+                final boolean done;
+                try {
+                    //TODO: figure out what to do with buffer positions in case of an exception being thrown later on
+                    done = this.inflater.decompress(src, dst, eof);
+                } finally {
+                    //increment last read/written count
+                    this.addLastReadWrittenBytes(this.inflater.getLastReadBytes(), this.inflater.getLastWrittenBytes());
+                }
+
+                //update the checksum on the uncompressed output
+                val inflaterLastWrittenBytes = Math.toIntExact(this.inflater.getLastWrittenBytes());
+                this.crc.update(PNioBuffers.duplicateRange(dst, dst.position() - inflaterLastWrittenBytes, inflaterLastWrittenBytes));
+                this.totalOutputBytesInflated += inflaterLastWrittenBytes;
+
+                if (done) {
+                    //reached the end of the compressed stream, now we just need to read and verify the checksum
+                    this.state = STATE_READ_TRAILER;
+                    this.readTrailerBegin();
                 } else {
-                    //wait for more input
+                    //wait for more input or output space
                     return false;
                 }
             }
-        }
 
-        if (this.state == STATE_DONE) {
-            //decompression is done, we can reset the stream now :)
-            this.resetStream();
-            return true;
-        }
+            if (this.state == STATE_READ_TRAILER) {
+                //this automatically increments lastReadBytes
+                if (this.readTrailerStep(src)) {
+                    //we've read the entire trailer, and thus the end of this GZIP member
+                    if (this.singleStream) {
+                        //stop after completing a single member
+                        this.state = STATE_DONE;
+                    } else {
+                        //wait for the next GZIP member or EOF
+                        this.state = STATE_AWAIT_MEMBER;
+                        continue; //jump back to function beginning, STATE_AWAIT_MEMBER is handled at the top
+                    }
+                } else {
+                    //we need more input data!
+                    assert !src.hasRemaining() : src; //if we get to this point, readTrailerStep() should have consumed all of the available input
+                    if (eof) {
+                        throw new DataFormatException("Unexpected end of GZIP input stream");
+                    } else {
+                        //wait for more input
+                        return false;
+                    }
+                }
+            }
 
-        return false;
+            if (this.state == STATE_DONE) {
+                //decompression is done, we can reset the stream now :)
+                this.resetStream();
+                return true;
+            }
+
+            return false;
+        }
     }
 
     //

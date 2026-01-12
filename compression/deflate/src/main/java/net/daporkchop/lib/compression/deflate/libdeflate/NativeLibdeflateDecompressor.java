@@ -17,34 +17,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.compression.deflate.jdk;
+package net.daporkchop.lib.compression.deflate.libdeflate;
 
-import net.daporkchop.lib.compression.deflate.DeflateOneshotFactory;
-import net.daporkchop.lib.compression.deflate.DeflateProviderCapabilities;
-import net.daporkchop.lib.compression.deflate.DeflateStreamingFactory;
-import net.daporkchop.lib.compression.deflate.DeflateStreamingProvider;
+import lombok.NonNull;
+import net.daporkchop.lib.compression.deflate.DeflateOneshotDecompressor;
+import net.daporkchop.lib.compression.generic.AbstractOneshotDecompressor;
 import net.daporkchop.lib.natives.util.MemoryPreference;
+import net.daporkchop.lib.unsafe.PCleaner;
 
 /**
  * @author DaPorkchop_
  */
-@DeflateProviderCapabilities(
-        memoryPreference = MemoryPreference.PREFER_HEAP,
-        supportsCompressionLevel = true)
-public final class JdkDeflateProvider implements DeflateStreamingProvider {
-    @Override
-    public Throwable unavailabilityCause() {
-        //always available
-        return null;
+abstract class NativeLibdeflateDecompressor extends AbstractOneshotDecompressor implements DeflateOneshotDecompressor {
+    final @NonNull NativeLibdeflateFunctions functions;
+    final byte mode;
+
+    final long decompressor;
+    private final PCleaner cleaner;
+
+    NativeLibdeflateDecompressor(@NonNull NativeLibdeflateFunctions functions, byte mode) {
+        this.functions = functions;
+        this.mode = mode;
+
+        long decompressor = functions.libdeflate_alloc_decompressor();
+        if (decompressor == 0L) {
+            throw new OutOfMemoryError();
+        }
+
+        this.decompressor = decompressor;
+        this.cleaner = PCleaner.cleaner(this, () -> functions.libdeflate_free_decompressor(decompressor));
     }
 
     @Override
-    public DeflateOneshotFactory getOneshotFactory() {
-        return new JdkDeflateFactory();
+    public final void close() {
+        this.cleaner.clean();
     }
 
     @Override
-    public DeflateStreamingFactory getStreamingFactory() {
-        return new JdkDeflateFactory();
+    public final MemoryPreference memoryPreference() {
+        return MemoryPreference.ANY;
     }
 }

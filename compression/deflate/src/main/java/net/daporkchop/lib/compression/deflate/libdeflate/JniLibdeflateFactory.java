@@ -17,34 +17,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.compression.deflate.jdk;
+package net.daporkchop.lib.compression.deflate.libdeflate;
 
-import net.daporkchop.lib.compression.deflate.DeflateOneshotFactory;
-import net.daporkchop.lib.compression.deflate.DeflateProviderCapabilities;
-import net.daporkchop.lib.compression.deflate.DeflateStreamingFactory;
-import net.daporkchop.lib.compression.deflate.DeflateStreamingProvider;
-import net.daporkchop.lib.natives.util.MemoryPreference;
+import net.daporkchop.lib.compression.deflate.DeflateOneshotCompressor;
+import net.daporkchop.lib.compression.deflate.DeflateOneshotDecompressor;
 
 /**
  * @author DaPorkchop_
  */
-@DeflateProviderCapabilities(
-        memoryPreference = MemoryPreference.PREFER_HEAP,
-        supportsCompressionLevel = true)
-public final class JdkDeflateProvider implements DeflateStreamingProvider {
-    @Override
-    public Throwable unavailabilityCause() {
-        //always available
-        return null;
+final class JniLibdeflateFactory extends AbstractNativeLibdeflateFactory {
+    JniLibdeflateFactory() {
+        super(JniLibdeflateFunctions.get());
     }
 
     @Override
-    public DeflateOneshotFactory getOneshotFactory() {
-        return new JdkDeflateFactory();
+    protected DeflateOneshotCompressor makeCompressor(byte mode) {
+        return new JniLibdeflateCompressor(this.functions, mode);
     }
 
     @Override
-    public DeflateStreamingFactory getStreamingFactory() {
-        return new JdkDeflateFactory();
+    protected DeflateOneshotDecompressor makeDecompressor(byte mode) {
+        return new JniLibdeflateDecompressor(this.functions, mode);
     }
 }

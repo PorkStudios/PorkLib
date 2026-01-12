@@ -17,34 +17,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.compression.deflate.jdk;
+package net.daporkchop.lib.compression.deflate.libdeflate;
 
 import net.daporkchop.lib.compression.deflate.DeflateOneshotFactory;
-import net.daporkchop.lib.compression.deflate.DeflateProviderCapabilities;
-import net.daporkchop.lib.compression.deflate.DeflateStreamingFactory;
-import net.daporkchop.lib.compression.deflate.DeflateStreamingProvider;
-import net.daporkchop.lib.natives.util.MemoryPreference;
+import net.daporkchop.lib.natives.JniLoader;
+
+import java.lang.invoke.MethodHandles;
 
 /**
  * @author DaPorkchop_
  */
-@DeflateProviderCapabilities(
-        memoryPreference = MemoryPreference.PREFER_HEAP,
-        supportsCompressionLevel = true)
-public final class JdkDeflateProvider implements DeflateStreamingProvider {
+public final class JniLibdeflateProvider extends AbstractNativeLibdeflateProvider {
+    static Throwable UNAVAILABILITY_CAUSE;
+
+    static {
+        try {
+            JniLoader.loadNamedRelocatableLibrary(
+                    MethodHandles.lookup(), "porklib_compression_deflate_libdeflate",
+                    "net!daporkchop!lib!compression!deflate!libdeflate!JniLibdeflateProvider",
+                    JniLoader.namedLibraryFromResourceLoader(""));
+        } catch (Throwable caught) {
+            UNAVAILABILITY_CAUSE = caught;
+            caught.printStackTrace();
+        }
+    }
+
     @Override
     public Throwable unavailabilityCause() {
-        //always available
-        return null;
+        return UNAVAILABILITY_CAUSE;
     }
 
     @Override
-    public DeflateOneshotFactory getOneshotFactory() {
-        return new JdkDeflateFactory();
-    }
-
-    @Override
-    public DeflateStreamingFactory getStreamingFactory() {
-        return new JdkDeflateFactory();
+    public DeflateOneshotFactory getOneshotFactory() throws UnsatisfiedLinkError {
+        this.ensureAvailability();
+        return new JniLibdeflateFactory();
     }
 }

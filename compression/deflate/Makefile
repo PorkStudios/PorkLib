@@ -1,7 +1,7 @@
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 .PHONY: $(BUILD) clean
 
-export OUTDIR	:=	$(CURDIR)/src/main/resources/net/daporkchop/lib/compression/zlib/natives
+export OUTDIR	:=	$(CURDIR)/src/main/resources/net/daporkchop/lib/compression/deflate/libdeflate
 BUILDDIR		:=	build/native/$(BUILD_TYPE)/$(BUILD)
 
 clean:
@@ -38,17 +38,19 @@ build: $(OUTDIR)/$(BUILD).$(EXT)
 
 $(OUTDIR)/$(BUILD).$(EXT): $(OFILES) $(CURDIR)/lib-zlib/libz-ng.a $(MAKEFILES)
 	@[ -d $(OUTDIR) ] || mkdir -p $(OUTDIR)
-	$(LD) $(LDFLAGS) -o $@ $(OFILES) $(CURDIR)/lib-zlib/libz-ng.a
+#	$(LD) $(LDFLAGS) -o $@ $(OFILES) $(CURDIR)/lib-zlib/libz-ng.a
+	$(LD) $(LDFLAGS) -ldeflate -o $@ $(OFILES)
 
-%.cpp.o: $(CURDIR)/lib-zlib/libz-ng.a $$(subst __,/,%.cpp) $(MAKEFILES)
+#%.cpp.o: $(CURDIR)/lib-zlib/libz-ng.a $$(subst __,/,%.cpp) $(MAKEFILES)
+%.cpp.o: $$(subst __,/,%.cpp) $(MAKEFILES)
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -MMD -MP -c $(subst .o,,$(subst __,/,$@)) -o $@
 
-$(CURDIR)/lib-zlib/libz-ng.a: $(TOPDIR)/zlib-ng-1.2.11.tar.gz $(MAKEFILES)
-	@[ ! -d lib-zlib ] || rm -rf lib-zlib/
-	@tar zxf $(TOPDIR)/zlib-ng-1.2.11.tar.gz
-	@mv zlib-ng-1.2.11/ lib-zlib/
-	@cd lib-zlib/ && ./configure --static && cd ..
-#	@cd lib-zlib/ && ./configure --static --with-gzfileops && cd ..
-	@$(MAKE) -C $(CURDIR)/lib-zlib/ -f $(CURDIR)/lib-zlib/Makefile libz-ng.a
+#$(CURDIR)/lib-zlib/libz-ng.a: $(TOPDIR)/zlib-ng-1.2.11.tar.gz $(MAKEFILES)
+#	@[ ! -d lib-zlib ] || rm -rf lib-zlib/
+#	@tar zxf $(TOPDIR)/zlib-ng-1.2.11.tar.gz
+#	@mv zlib-ng-1.2.11/ lib-zlib/
+#	@cd lib-zlib/ && ./configure --static && cd ..
+##	@cd lib-zlib/ && ./configure --static --with-gzfileops && cd ..
+#	@$(MAKE) -C $(CURDIR)/lib-zlib/ -f $(CURDIR)/lib-zlib/Makefile libz-ng.a
 
 endif

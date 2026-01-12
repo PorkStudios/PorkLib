@@ -4,7 +4,7 @@
 #include <porklib_jni_exceptions.hpp>
 #include <porklib_jni_load.hpp>
 
-#include <libdeflate.h>
+#include <lib-libdeflate/libdeflate.h>
 
 #define PORKLIB_COMPRESSION_DEFLATE_LIBDEFLATE_PACKAGE "net/daporkchop/lib/compression/deflate/libdeflate/"
 

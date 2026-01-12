@@ -33,11 +33,11 @@ export ARCHS		:=	$(notdir $(wildcard $(TOOLCHAINS)/*))
 #export ARCHS		:=	$(foreach arch,$(ARCHS),$(if $(shell which $(arch)-g++),$(arch)))
 export ARCH_TASKS	:=	$(foreach arch,$(ARCHS),build.$(arch))
 
-export MODULES		:=	../compression/zlib ../compression/zstd
+export MODULES		:=	../compression/deflate ../compression/zstd
 
 export LIBDIR		:=	$(TOPDIR)/src/main/native/lib
 export LIB_URL_BASE	:=	https://cloud.daporkchop.net/programs/source/
-export LIBS			:=	zlib-ng-1.2.11.tar.gz zstd-1.5.7.tar.gz
+export LIBS			:=	libdeflate-1.25.tar.gz zlib-ng-1.2.11.tar.gz zstd-1.5.7.tar.gz
 
 .PHONY: build clean .FORCE
 

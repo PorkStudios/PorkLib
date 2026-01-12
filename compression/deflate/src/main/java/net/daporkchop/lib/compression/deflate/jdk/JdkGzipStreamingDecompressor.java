@@ -46,6 +46,9 @@ final class JdkGzipStreamingDecompressor extends AbstractStreamingDecompressor i
     private final JdkDeflateStreamingDecompressor inflater;
     private final CRC32 crc = new CRC32();
 
+    //not re-using 'this.inflater.inflater.getTotalIn()' because 'this.inflater' gets reset before this class begins reading the trailer
+    private int totalOutputBytesInflated;
+
     private byte state = STATE_RESET;
 
     JdkGzipStreamingDecompressor() {
@@ -64,6 +67,7 @@ final class JdkGzipStreamingDecompressor extends AbstractStreamingDecompressor i
 
         this.inflater.resetStream();
         this.crc.reset();
+        this.totalOutputBytesInflated = 0;
         this.state = STATE_RESET;
     }
 
@@ -138,6 +142,7 @@ final class JdkGzipStreamingDecompressor extends AbstractStreamingDecompressor i
             //update the checksum on the uncompressed output
             val inflaterLastWrittenBytes = Math.toIntExact(this.inflater.getLastWrittenBytes());
             this.crc.update(PNioBuffers.duplicateRange(dst, dst.position() - inflaterLastWrittenBytes, inflaterLastWrittenBytes));
+            this.totalOutputBytesInflated += inflaterLastWrittenBytes;
 
             if (done) {
                 //reached the end of the compressed stream, now we just need to read and verify the checksum
@@ -394,7 +399,7 @@ final class JdkGzipStreamingDecompressor extends AbstractStreamingDecompressor i
         }
 
         val trailer = ByteBuffer.wrap(this.trailerBuf).order(ByteOrder.LITTLE_ENDIAN);
-        if (trailer.getInt() != (int) this.crc.getValue() || trailer.getInt() != (int) this.inflater.inflater.getBytesWritten()) {
+        if (trailer.getInt() != (int) this.crc.getValue() || trailer.getInt() != this.totalOutputBytesInflated) {
             throw new DataFormatException("Corrupt GZIP trailer");
         }
 

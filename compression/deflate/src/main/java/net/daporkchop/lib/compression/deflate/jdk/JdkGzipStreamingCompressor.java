@@ -61,6 +61,9 @@ final class JdkGzipStreamingCompressor extends AbstractStreamingCompressor imple
     private byte[] rawBytes;
     private int rawBytesIndex;
 
+    //not re-using 'this.deflater.deflater.getTotalIn()' because 'this.deflater' gets reset before this class begins writing the trailer
+    private int totalInputBytesDeflated;
+
     //temporary array for re-use
     private final byte[] trailer = new byte[Integer.BYTES * 2];
 
@@ -79,6 +82,7 @@ final class JdkGzipStreamingCompressor extends AbstractStreamingCompressor imple
 
         this.deflater.resetStream();
         this.crc.reset();
+        this.totalInputBytesDeflated = 0;
         this.state = STATE_RESET;
     }
 
@@ -142,6 +146,7 @@ final class JdkGzipStreamingCompressor extends AbstractStreamingCompressor imple
                     //increment last read/written bytes
                     int lastReadBytes = Math.toIntExact(this.deflater.getLastReadBytes());
                     this.addLastReadWrittenBytes(lastReadBytes, this.deflater.getLastWrittenBytes());
+                    this.totalInputBytesDeflated += lastReadBytes;
 
                     //update checksum with the input bytes which have actually been read
                     this.crc.update(PNioBuffers.duplicateRange(src, src.position() - lastReadBytes, lastReadBytes));
@@ -198,7 +203,7 @@ final class JdkGzipStreamingCompressor extends AbstractStreamingCompressor imple
     private byte[] prepareTrailer() {
         ByteBuffer.wrap(this.trailer).order(ByteOrder.LITTLE_ENDIAN)
                 .putInt((int) this.crc.getValue())
-                .putInt(this.deflater.deflater.getTotalIn());
+                .putInt(this.totalInputBytesDeflated);
         return this.trailer;
     }
 }

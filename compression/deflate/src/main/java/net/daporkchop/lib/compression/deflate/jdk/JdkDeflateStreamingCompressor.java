@@ -45,6 +45,10 @@ final class JdkDeflateStreamingCompressor extends AbstractStreamingCompressor im
 
     private byte state = STATE_RESET;
 
+    private byte[] bufferedOutputArray = null;
+    private int bufferedOutputPosition;
+    private int bufferedOutputLimit;
+
     JdkDeflateStreamingCompressor(boolean noWrap) {
         this.deflater = new Deflater(Deflater.DEFAULT_COMPRESSION, noWrap);
     }
@@ -129,6 +133,11 @@ final class JdkDeflateStreamingCompressor extends AbstractStreamingCompressor im
                 throw new IllegalArgumentException(String.valueOf(flush));
         }
 
+        if (this.bufferedOutputArray != null && !this.stepBufferedOutput(dst)) {
+            //wait for more output
+            return false;
+        }
+
         val initialBytesRead = this.deflater.getBytesRead();
         val initialBytesWritten = this.deflater.getBytesWritten();
 
@@ -185,6 +194,25 @@ final class JdkDeflateStreamingCompressor extends AbstractStreamingCompressor im
                     this.resetStream();
                     return true;
                 } else {
+                    if (!src.hasRemaining() && !dst.hasRemaining()) {
+                        //it's possible that the deflater is actually finished, but the dst buffer is exactly the right size as the output, thus making
+                        //zlib indicate that it needs more output space even though no more bytes would be written.
+                        byte[] oneByteFinishArray = PUnsafe.allocateUninitializedByteArray(1);
+                        int written = this.deflater.deflate(oneByteFinishArray);
+                        if (written != 0) {
+                            //there is actually more unflushed output... save it for later and wait for more output space
+                            this.beginBufferedOutput(oneByteFinishArray, 0, written);
+                            return false;
+                        } else if (this.deflater.finished()) {
+                            //compression is done, we can reset the stream now :)
+                            this.resetStream();
+                            return true;
+                        } else {
+                            //should be impossible
+                            throw new AssertionError("unreachable");
+                        }
+                    }
+
                     //wait for more output space
                     return false;
                 }
@@ -198,7 +226,7 @@ final class JdkDeflateStreamingCompressor extends AbstractStreamingCompressor im
             this.deflater.setInput(src.array(), src.arrayOffset() + src.position(), src.remaining());
         } else {
             //src is a direct or read-only buffer, copy to a temporary array (slow!)
-            //TODO: we could do streaming compression here? it will be difficult to
+            //TODO: we could do streaming compression here? it will be difficult to have this interoperate correctly with flush parameters, though...
             this.deflater.setInput(src.hasRemaining() ? PNioBuffers.toArray(src) : PorkUtil.emptyByteArray());
         }
 
@@ -235,5 +263,29 @@ final class JdkDeflateStreamingCompressor extends AbstractStreamingCompressor im
                 return;
             }
         }
+    }
+
+    private void beginBufferedOutput(byte[] array, int position, int limit) {
+        assert this.bufferedOutputArray == null;
+
+        this.bufferedOutputArray = array;
+        this.bufferedOutputPosition = position;
+        this.bufferedOutputLimit = limit;
+    }
+
+    private boolean stepBufferedOutput(ByteBuffer dst) {
+        assert this.bufferedOutputArray != null;
+
+        while (this.bufferedOutputPosition < this.bufferedOutputLimit) {
+            if (!dst.hasRemaining()) {
+                return false;
+            }
+
+            dst.put(this.bufferedOutputArray[this.bufferedOutputPosition++]);
+            this.addLastReadWrittenBytes(0, 1);
+        }
+
+        this.bufferedOutputArray = null;
+        return true;
     }
 }

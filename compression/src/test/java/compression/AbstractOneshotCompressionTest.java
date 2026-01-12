@@ -66,13 +66,22 @@ public abstract class AbstractOneshotCompressionTest<FACTORY extends OneshotComp
     }
 
     @Test
-    public void testCompress_NioBuffer() {
+    public void testCompress_NioBuffer_OutputBoundSize() {
+        this.do_testCompress_NioBuffer(false);
+    }
+
+    @Test
+    public void testCompress_NioBuffer_OutputExactSize() {
+        this.do_testCompress_NioBuffer(true);
+    }
+
+    private void do_testCompress_NioBuffer(boolean exactSize) {
         try (val compressor = this.factory.makeOneshotCompressor()) {
             val tmpDst = ByteBuffer.allocate(compressor.compressBound(this.expectedData.length));
             byte[] expectedCompressedData = PNioBuffers.toArray(tmpDst, 0, compressor.compress(ByteBuffer.wrap(this.expectedData), tmpDst));
 
             CompressionTestUtils.forEachNioBufferTypeInput(this.expectedData, src -> {
-                CompressionTestUtils.forEachNioBufferTypeOutput(compressor.compressBound(src.remaining()), dst -> {
+                CompressionTestUtils.forEachNioBufferTypeOutput(exactSize ? expectedCompressedData.length : compressor.compressBound(src.remaining()), dst -> {
                     int origSrcPosition = src.position();
                     int origDstPosition = dst.position();
 

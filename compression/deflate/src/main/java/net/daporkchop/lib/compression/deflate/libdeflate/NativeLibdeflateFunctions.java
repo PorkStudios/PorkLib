@@ -58,6 +58,33 @@ abstract class NativeLibdeflateFunctions {
     abstract void libdeflate_free_compressor(long compressor);
 
     /**
+     * Computes a worst-case upper bound on the compressed size of an input of the given size.
+     *
+     * @param compressor a pointer to the compresssor, or {@code 0} if the upper bound should be computed for ANY possible libdeflate compressor
+     * @param in_nbytes  the input size, in bytes
+     * @return the compressed upper bound. If less than the input size, an overflow has occurred.
+     */
+    abstract long libdeflate_deflate_compress_bound(long compressor, long in_nbytes);
+
+    /**
+     * Computes a worst-case upper bound on the compressed size of an input of the given size.
+     *
+     * @param compressor a pointer to the compresssor, or {@code 0} if the upper bound should be computed for ANY possible libdeflate compressor
+     * @param in_nbytes  the input size, in bytes
+     * @return the compressed upper bound. If less than the input size, an overflow has occurred.
+     */
+    abstract long libdeflate_zlib_compress_bound(long compressor, long in_nbytes);
+
+    /**
+     * Computes a worst-case upper bound on the compressed size of an input of the given size.
+     *
+     * @param compressor a pointer to the compresssor, or {@code 0} if the upper bound should be computed for ANY possible libdeflate compressor
+     * @param in_nbytes  the input size, in bytes
+     * @return the compressed upper bound. If less than the input size, an overflow has occurred.
+     */
+    abstract long libdeflate_gzip_compress_bound(long compressor, long in_nbytes);
+
+    /**
      * Creates a new decompressor.
      *
      * @return a pointer to a new decompressor, or {@code 0} if out-of-memory

@@ -19,7 +19,9 @@
 
 package net.daporkchop.lib.compression.deflate;
 
+import lombok.NonNull;
 import net.daporkchop.lib.compression.StreamingCompressionFactory;
+import net.daporkchop.lib.compression.deflate.util.DeflateWrapperFormat;
 
 /**
  * @author DaPorkchop_
@@ -39,6 +41,38 @@ public interface DeflateStreamingFactory extends StreamingCompressionFactory, De
     @Override
     default DeflateStreamingDecompressor makeStreamingDecompressor() {
         return this.makeStreamingZlibDecompressor();
+    }
+
+    /**
+     * @return a new {@link DeflateStreamingCompressor} in the given format
+     */
+    default DeflateStreamingCompressor makeStreamingCompressor(@NonNull DeflateWrapperFormat format) {
+        switch (format) {
+            case DEFLATE:
+                return this.makeStreamingDeflateCompressor();
+            case ZLIB:
+                return this.makeStreamingZlibCompressor();
+            case GZIP:
+                return this.makeStreamingGzipCompressor();
+            default:
+                throw new IllegalArgumentException(String.valueOf(format));
+        }
+    }
+
+    /**
+     * @return a new {@link DeflateStreamingDecompressor} in the given format
+     */
+    default DeflateStreamingDecompressor makeStreamingDecompressor(@NonNull DeflateWrapperFormat format) {
+        switch (format) {
+            case DEFLATE:
+                return this.makeStreamingDeflateDecompressor();
+            case ZLIB:
+                return this.makeStreamingZlibDecompressor();
+            case GZIP:
+                return this.makeStreamingGzipDecompressor();
+            default:
+                throw new IllegalArgumentException(String.valueOf(format));
+        }
     }
 
     /**

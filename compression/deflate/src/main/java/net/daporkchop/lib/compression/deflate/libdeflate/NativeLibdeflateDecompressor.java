@@ -22,13 +22,12 @@ package net.daporkchop.lib.compression.deflate.libdeflate;
 import lombok.NonNull;
 import net.daporkchop.lib.compression.deflate.DeflateOneshotDecompressor;
 import net.daporkchop.lib.compression.generic.AbstractOneshotDecompressor;
-import net.daporkchop.lib.natives.util.MemoryPreference;
 import net.daporkchop.lib.unsafe.PCleaner;
 
 /**
  * @author DaPorkchop_
  */
-abstract class NativeLibdeflateDecompressor extends AbstractOneshotDecompressor implements DeflateOneshotDecompressor {
+abstract class NativeLibdeflateDecompressor extends AbstractOneshotDecompressor implements DeflateOneshotDecompressor, LibdeflateDeflateContext {
     final @NonNull NativeLibdeflateFunctions functions;
     final byte mode;
 
@@ -51,10 +50,5 @@ abstract class NativeLibdeflateDecompressor extends AbstractOneshotDecompressor 
     @Override
     public final void close() {
         this.cleaner.clean();
-    }
-
-    @Override
-    public final MemoryPreference memoryPreference() {
-        return MemoryPreference.ANY;
     }
 }

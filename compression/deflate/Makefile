@@ -39,7 +39,7 @@ build: $(OUTDIR)/$(BUILD).$(EXT)
 $(OUTDIR)/$(BUILD).$(EXT): $(OFILES) $(CURDIR)/lib-zlib/libz-ng.a $(MAKEFILES)
 	@[ -d $(OUTDIR) ] || mkdir -p $(OUTDIR)
 #	$(LD) $(LDFLAGS) -o $@ $(OFILES) $(CURDIR)/lib-zlib/libz-ng.a
-	$(LD) $(LDFLAGS) -ldeflate -o $@ $(OFILES)
+	$(LD) $(LDFLAGS) -o $@ $(OFILES) -ldeflate
 
 #%.cpp.o: $(CURDIR)/lib-zlib/libz-ng.a $$(subst __,/,%.cpp) $(MAKEFILES)
 %.cpp.o: $$(subst __,/,%.cpp) $(MAKEFILES)

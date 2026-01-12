@@ -19,7 +19,9 @@
 
 package net.daporkchop.lib.compression.deflate;
 
+import lombok.NonNull;
 import net.daporkchop.lib.compression.OneshotCompressionFactory;
+import net.daporkchop.lib.compression.deflate.util.DeflateWrapperFormat;
 import net.daporkchop.lib.natives.util.MemoryPreference;
 
 /**
@@ -53,6 +55,38 @@ public interface DeflateOneshotFactory extends OneshotCompressionFactory {
     @Override
     default DeflateOneshotDecompressor makeOneshotDecompressor() {
         return this.makeOneshotZlibDecompressor();
+    }
+
+    /**
+     * @return a new {@link DeflateOneshotCompressor} in the given format
+     */
+    default DeflateOneshotCompressor makeOneshotCompressor(@NonNull DeflateWrapperFormat format) {
+        switch (format) {
+            case DEFLATE:
+                return this.makeOneshotDeflateCompressor();
+            case ZLIB:
+                return this.makeOneshotZlibCompressor();
+            case GZIP:
+                return this.makeOneshotGzipCompressor();
+            default:
+                throw new IllegalArgumentException(String.valueOf(format));
+        }
+    }
+
+    /**
+     * @return a new {@link DeflateOneshotDecompressor} in the given format
+     */
+    default DeflateOneshotDecompressor makeOneshotDecompressor(@NonNull DeflateWrapperFormat format) {
+        switch (format) {
+            case DEFLATE:
+                return this.makeOneshotDeflateDecompressor();
+            case ZLIB:
+                return this.makeOneshotZlibDecompressor();
+            case GZIP:
+                return this.makeOneshotGzipDecompressor();
+            default:
+                throw new IllegalArgumentException(String.valueOf(format));
+        }
     }
 
     /**

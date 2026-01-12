@@ -22,6 +22,21 @@ namespace porklib::compression::deflate::libdeflate::JniLibdeflateFunctions {
         libdeflate_free_compressor(compressor);
     }
 
+    static jlong JNICALL deflate_compress_bound(JNIEnv* env, jobject, jlong _compressor, jlong in_nbytes) {
+        auto* compressor = reinterpret_cast<libdeflate_compressor*>(_compressor);
+        return static_cast<jlong>(libdeflate_deflate_compress_bound(compressor, in_nbytes));
+    }
+
+    static jlong JNICALL zlib_compress_bound(JNIEnv* env, jobject, jlong _compressor, jlong in_nbytes) {
+        auto* compressor = reinterpret_cast<libdeflate_compressor*>(_compressor);
+        return static_cast<jlong>(libdeflate_zlib_compress_bound(compressor, in_nbytes));
+    }
+
+    static jlong JNICALL gzip_compress_bound(JNIEnv* env, jobject, jlong _compressor, jlong in_nbytes) {
+        auto* compressor = reinterpret_cast<libdeflate_compressor*>(_compressor);
+        return static_cast<jlong>(libdeflate_gzip_compress_bound(compressor, in_nbytes));
+    }
+
     static jlong JNICALL compress(JNIEnv* env, jobject,
             jlong _compressor,
             PORKLIB_JNI_BYTEREGION_ARGS_DECL(src),
@@ -109,6 +124,9 @@ namespace porklib::compression::deflate::libdeflate {
         return porklib::jni::registerNatives(env, params, PORKLIB_COMPRESSION_DEFLATE_LIBDEFLATE_PACKAGE "JniLibdeflateFunctions", {{
             porklib::jni::makeJNINativeMethod("libdeflate_alloc_compressor", "(I)J", JniLibdeflateFunctions::alloc_compressor),
             porklib::jni::makeJNINativeMethod("libdeflate_free_compressor", "(J)V", JniLibdeflateFunctions::free_compressor),
+            porklib::jni::makeJNINativeMethod("libdeflate_deflate_compress_bound", "(JJ)J", JniLibdeflateFunctions::deflate_compress_bound),
+            porklib::jni::makeJNINativeMethod("libdeflate_zlib_compress_bound", "(JJ)J", JniLibdeflateFunctions::zlib_compress_bound),
+            porklib::jni::makeJNINativeMethod("libdeflate_gzip_compress_bound", "(JJ)J", JniLibdeflateFunctions::gzip_compress_bound),
 
             porklib::jni::makeJNINativeMethod("libdeflate_compress", "(J" PORKLIB_JNI_BYTEREGION_SIG PORKLIB_JNI_BYTEREGION_SIG "B)J", JniLibdeflateFunctions::compress),
 

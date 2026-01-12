@@ -17,31 +17,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.compression.deflate.jdk;
-
-import net.daporkchop.lib.common.annotation.param.NotNegative;
-import net.daporkchop.lib.common.util.PValidation;
-import net.daporkchop.lib.compression.deflate.DeflateOneshotCompressor;
-import net.daporkchop.lib.compression.deflate.DeflateStreamingCompressor;
-import net.daporkchop.lib.compression.generic.GenericStreamingAsOneshotCompressor;
+package net.daporkchop.lib.compression.deflate.util;
 
 /**
  * @author DaPorkchop_
  */
-final class JdkOneshotCompressor extends GenericStreamingAsOneshotCompressor<DeflateStreamingCompressor> implements DeflateOneshotCompressor {
-    public JdkOneshotCompressor(DeflateStreamingCompressor compressor) {
-        super(compressor);
-    }
-
-    @Override
-    public void setLevel(int level) throws IllegalArgumentException {
-        this.compressor.setLevel(level);
-    }
-
-    @Override
-    public @NotNegative long compressBound(@NotNegative long srcSize) throws IllegalArgumentException, ArithmeticException {
-        // https://github.com/madler/zlib/blob/ecbaf031f81ddfcff200dcfd052df48c9047f3cf/compress.c#L72-L76
-        PValidation.notNegative(srcSize, "srcSize");
-        return Math.addExact(Math.addExact(Math.addExact(Math.addExact(srcSize, srcSize >> 12), srcSize >> 14), srcSize >> 25), 13);
-    }
+public enum DeflateWrapperFormat {
+    /**
+     * Raw DEFLATE compression without a wrapper.
+     */
+    DEFLATE,
+    /**
+     * DEFLATE with the ZLIB wrapper format.
+     */
+    ZLIB,
+    /**
+     * DEFLATE with the GZIP wrapper format.
+     */
+    GZIP,
 }

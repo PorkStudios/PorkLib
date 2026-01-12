@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2025 DaPorkchop_
+ * Copyright (c) 2018-2026 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -20,7 +20,6 @@
 package net.daporkchop.lib.compression.deflate;
 
 import net.daporkchop.lib.common.annotation.NotThreadSafe;
-import net.daporkchop.lib.common.annotation.param.NotNegative;
 import net.daporkchop.lib.compression.context.POneshotCompressor;
 
 /**
@@ -28,13 +27,4 @@ import net.daporkchop.lib.compression.context.POneshotCompressor;
  */
 @NotThreadSafe
 public interface DeflateOneshotCompressor extends POneshotCompressor, DeflateCompressParameters {
-    @Override
-    default @NotNegative int compressBound(@NotNegative int srcSize) throws IllegalArgumentException, ArithmeticException {
-        throw new AbstractMethodError(); //TODO
-    }
-
-    @Override
-    default @NotNegative long compressBound(@NotNegative long srcSize) throws IllegalArgumentException, ArithmeticException {
-        throw new AbstractMethodError(); //TODO
-    }
 }

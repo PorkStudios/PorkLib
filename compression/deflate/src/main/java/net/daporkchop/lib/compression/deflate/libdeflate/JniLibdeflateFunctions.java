@@ -43,6 +43,15 @@ final class JniLibdeflateFunctions extends NativeLibdeflateFunctions {
     @Override
     native void libdeflate_free_compressor(long compressor);
 
+    @Override
+    native long libdeflate_deflate_compress_bound(long compressor, long in_nbytes);
+
+    @Override
+    native long libdeflate_zlib_compress_bound(long compressor, long in_nbytes);
+
+    @Override
+    native long libdeflate_gzip_compress_bound(long compressor, long in_nbytes);
+
     static native long libdeflate_compress(
             long compressor,
             byte[] srcArray, int srcArrayLength, long srcAddressOrOffset, long srcSize,

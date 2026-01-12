@@ -23,10 +23,10 @@ import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
+import net.daporkchop.lib.common.annotation.param.NotNegative;
 import net.daporkchop.lib.common.function.PFunctions;
 import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.compression.deflate.DeflateOneshotCompressor;
-import net.daporkchop.lib.natives.util.MemoryPreference;
 import net.daporkchop.lib.unsafe.PCleaner;
 
 import java.util.zip.Deflater;
@@ -35,12 +35,13 @@ import java.util.zip.Deflater;
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
-abstract class NativeLibdeflateCompressor implements DeflateOneshotCompressor {
+abstract class NativeLibdeflateCompressor implements DeflateOneshotCompressor, LibdeflateDeflateContext {
     private static final int DEFAULT_LEVEL = 6;
 
     final @NonNull NativeLibdeflateFunctions functions;
     final byte mode;
 
+    //unfortunately, libdeflate won't let us re-use the same compressor instance for different compression levels, so instead we'll re-create them as needed when the level changes
     private long compressor;
     private int compressorLevel = -1;
     private final PCleaner cleaner = PCleaner.cleaner(this, PFunctions.noopRunnable());
@@ -51,11 +52,6 @@ abstract class NativeLibdeflateCompressor implements DeflateOneshotCompressor {
     public final void close() {
         this.compressor = 0L;
         this.cleaner.clean();
-    }
-
-    @Override
-    public final MemoryPreference memoryPreference() {
-        return MemoryPreference.ANY;
     }
 
     @Override
@@ -87,5 +83,31 @@ abstract class NativeLibdeflateCompressor implements DeflateOneshotCompressor {
         functions.libdeflate_free_compressor(oldCompressor);
 
         return newCompressor;
+    }
+
+    @Override
+    public final @NotNegative long compressBound(@NotNegative long srcSize) throws IllegalArgumentException, ArithmeticException {
+        PValidation.notNegative(srcSize, "srcSize");
+
+        long result;
+        switch (this.mode) {
+            case NativeLibdeflateFunctions.MODE_DEFLATE:
+                result = this.functions.libdeflate_deflate_compress_bound(0L, srcSize);
+                break;
+            case NativeLibdeflateFunctions.MODE_ZLIB:
+                result = this.functions.libdeflate_zlib_compress_bound(0L, srcSize);
+                break;
+            case NativeLibdeflateFunctions.MODE_GZIP:
+                result = this.functions.libdeflate_gzip_compress_bound(0L, srcSize);
+                break;
+            default:
+                throw new IllegalStateException(String.valueOf(this.mode));
+        }
+
+        if (result < srcSize) {
+            throw new ArithmeticException();
+        }
+
+        return result;
     }
 }

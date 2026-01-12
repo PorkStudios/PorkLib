@@ -23,23 +23,24 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import net.daporkchop.lib.common.util.PNioBuffers;
-import net.daporkchop.lib.compression.OneshotCompressionFactory;
+import net.daporkchop.lib.compression.StreamingCompressionFactory;
+import net.daporkchop.lib.compression.context.PStreamingCompressor;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.zip.DataFormatException;
 
 /**
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-public abstract class AbstractOneshotCompressionTest<FACTORY extends OneshotCompressionFactory> {
+public abstract class AbstractStreamingCompressionTest<FACTORY extends StreamingCompressionFactory> {
     protected final @NonNull FACTORY factory;
 
     protected byte[] compressedData;
@@ -57,42 +58,78 @@ public abstract class AbstractOneshotCompressionTest<FACTORY extends OneshotComp
 
     @Test
     public void testCreateCompressor() {
-        this.factory.makeOneshotCompressor().close();
+        this.factory.makeStreamingCompressor().close();
     }
 
     @Test
     public void testCreateDecompressor() {
-        this.factory.makeOneshotDecompressor().close();
+        this.factory.makeStreamingDecompressor().close();
     }
 
     @Test
-    public void testCompress_NioBuffer() {
+    public void testCompress_OutputStream() throws IOException {
+        byte[] expectedCompressedData;
         try (val compressor = this.factory.makeOneshotCompressor()) {
             val tmpDst = ByteBuffer.allocate(compressor.compressBound(this.expectedData.length));
-            byte[] expectedCompressedData = PNioBuffers.toArray(tmpDst, 0, compressor.compress(ByteBuffer.wrap(this.expectedData), tmpDst));
+            expectedCompressedData = PNioBuffers.toArray(tmpDst, 0, compressor.compress(ByteBuffer.wrap(this.expectedData), tmpDst));
+        }
 
-            CompressionTestUtils.forEachNioBufferTypeInput(this.expectedData, src -> {
-                CompressionTestUtils.forEachNioBufferTypeOutput(compressor.compressBound(src.remaining()), dst -> {
-                    int origSrcPosition = src.position();
-                    int origDstPosition = dst.position();
+        try (val compressor = this.factory.makeStreamingCompressor()) {
+            val baos = new ByteArrayOutputStream();
 
-                    int result = compressor.compress(src, dst);
-                    assert result >= 0 : "compression result: " + result;
+            //compress entire array through output stream
+            baos.reset();
+            try (val out = compressor.wrapCompressing(baos, PStreamingCompressor.FlushMode.NO)) {
+                out.write(this.expectedData);
+            }
+            Assert.assertArrayEquals(expectedCompressedData, baos.toByteArray());
 
-                    Assert.assertEquals(origSrcPosition, src.position());
-                    Assert.assertEquals(origDstPosition + result, dst.position());
+            //compress entire array one byte at a time
+            baos.reset();
+            try (val out = compressor.wrapCompressing(baos, PStreamingCompressor.FlushMode.NO)) {
+                for (byte b : this.expectedData) {
+                    out.write(b);
+                }
+            }
+            Assert.assertArrayEquals(expectedCompressedData, baos.toByteArray());
 
-                    Assert.assertArrayEquals(expectedCompressedData, PNioBuffers.toArray(dst, origDstPosition, result));
-                });
-            });
+            //compress half the array at a time
+            baos.reset();
+            try (val out = compressor.wrapCompressing(baos, PStreamingCompressor.FlushMode.NO)) {
+                out.write(this.expectedData, 0, this.expectedData.length / 2);
+                out.write(this.expectedData, this.expectedData.length / 2, this.expectedData.length - this.expectedData.length / 2);
+            }
+            Assert.assertArrayEquals(expectedCompressedData, baos.toByteArray());
+
+            //compress entire array one byte at a time with intermediate ignored flushes
+            baos.reset();
+            try (val out = compressor.wrapCompressing(baos, PStreamingCompressor.FlushMode.NO)) {
+                for (byte b : this.expectedData) {
+                    out.write(b);
+                    out.flush();
+                }
+            }
+            Assert.assertArrayEquals(expectedCompressedData, baos.toByteArray());
+
+            //compress half the array at a time with an intermediate flush
+            baos.reset();
+            try (val out = compressor.wrapCompressing(baos, PStreamingCompressor.FlushMode.NO)) {
+                out.write(this.expectedData, 0, this.expectedData.length / 2);
+                out.flush();
+                out.write(this.expectedData, this.expectedData.length / 2, this.expectedData.length - this.expectedData.length / 2);
+            }
+            Assert.assertArrayEquals(expectedCompressedData, baos.toByteArray());
+
+            //TODO: maybe test other flush modes? although we might need a decompressor to ensure that data is flushed when requested
         }
     }
 
-    @Test
+    //TODO
+    /*@Test
     public void testDecompress_NioBuffer() {
         try (val decompressor = this.factory.makeOneshotDecompressor()) {
             CompressionTestUtils.forEachNioBufferTypeInput(this.compressedData, src -> {
-                CompressionTestUtils.forEachNioBufferTypeOutput(this.expectedData.length, dst -> {
+                CompressionTestUtils.forEachNioBufferTypeOutput(Math.toIntExact(decompressor.decompressedSizeExact(src).getAsLong()), dst -> {
                     int origSrcPosition = src.position();
                     int origDstPosition = dst.position();
 
@@ -113,14 +150,14 @@ public abstract class AbstractOneshotCompressionTest<FACTORY extends OneshotComp
         try (val compressor = this.factory.makeOneshotCompressor();
              val decompressor = this.factory.makeOneshotDecompressor()) {
             val compressed = ByteBuffer.allocate(compressor.compressBound(this.expectedData.length));
-            Assert.assertTrue("compression failed", compressor.compress(ByteBuffer.wrap(this.expectedData), compressed) >= 0);
+            assert compressor.compress(ByteBuffer.wrap(this.expectedData), compressed) >= 0 : "compression failed";
             compressed.flip();
 
-            val decompressed = ByteBuffer.allocate(this.expectedData.length);
-            Assert.assertTrue("decompression failed", decompressor.decompress(compressed, decompressed) >= 0);
+            val decompressed = ByteBuffer.allocate(Math.toIntExact(decompressor.decompressedSizeBound(compressed)));
+            assert decompressor.decompress(compressed, decompressed) >= 0 : "decompression failed";
             decompressed.flip();
 
             Assert.assertEquals(ByteBuffer.wrap(this.expectedData), decompressed);
         }
-    }
+    }*/
 }

@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2025 DaPorkchop_
+ * Copyright (c) 2018-2026 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -36,21 +36,25 @@ import java.util.zip.DataFormatException;
 public interface DeflateOneshotDecompressor extends POneshotDecompressor, DeflateDecompressParameters {
     @Override
     default @NotNegative OptionalLong decompressedSizeExact(@NonNull ByteBuffer src) throws DataFormatException, ArithmeticException {
-        throw new AbstractMethodError(); //TODO
+        //cannot be computed easily
+        return OptionalLong.empty();
     }
 
     @Override
     default @NotNegative OptionalLong decompressedSizeExact(@NonNull ByteBuf src) throws DataFormatException, ArithmeticException {
-        throw new AbstractMethodError(); //TODO
+        //cannot be computed easily
+        return OptionalLong.empty();
     }
 
     @Override
     default @NotNegative long decompressedSizeBound(@NonNull ByteBuffer src) throws DataFormatException, ArithmeticException {
-        throw new AbstractMethodError(); //TODO
+        //TODO: this could be made quite a bit smarter
+        //the theoretical maximum ZLIB compression factor is 1032:1 according to https://www.zlib.net/zlib_tech.html
+        return Math.multiplyExact(src.remaining(), 1032L);
     }
 
     @Override
     default @NotNegative long decompressedSizeBound(@NonNull ByteBuf src) throws DataFormatException, ArithmeticException {
-        throw new AbstractMethodError(); //TODO
+        return Math.multiplyExact(src.readableBytes(), 1032L);
     }
 }

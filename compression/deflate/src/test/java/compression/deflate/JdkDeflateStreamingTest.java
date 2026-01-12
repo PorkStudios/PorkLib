@@ -19,17 +19,15 @@
 
 package compression.deflate;
 
-import lombok.val;
-import net.daporkchop.lib.compression.deflate.Deflate;
-import org.junit.Test;
+import lombok.NonNull;
+import net.daporkchop.lib.compression.deflate.jdk.JdkDeflateProvider;
+import net.daporkchop.lib.compression.deflate.util.DeflateWrapperFormat;
 
 /**
  * @author DaPorkchop_
  */
-public class TestDeflateOneshot {
-    @Test
-    public void testCreateDelete() {
-        val factory = Deflate.getDefaultOneshotFactory();
-        factory.makeOneshotDeflateCompressor().close();
+public class JdkDeflateStreamingTest extends AbstractDeflateStreamingTest {
+    public JdkDeflateStreamingTest(@NonNull DeflateWrapperFormat format) {
+        super(new JdkDeflateProvider(), format);
     }
 }

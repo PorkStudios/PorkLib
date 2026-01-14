@@ -96,6 +96,8 @@ public interface PStreamingCompressor extends StreamingContext, GenericCompressP
      * After every invocation of this method, even those that fail with an exception, it is guaranteed that {@link #getLastReadBytes()} and {@link #getLastWrittenBytes()} will
      * return the number of bytes read from the input stream and the number of bytes written to the output stream during that invocation, and that the input and output buffers'
      * positions will be increased by the same amount.
+     * <p>
+     * The behavior is undefined if the source and destination buffer's memory regions overlap.
      *
      * @param src   the buffer to read the input data from. The bytes remaining in the input buffer once this method returns are expected to be a prefix of the remaining bytes in
      *              the input buffer passed to subsequent calls to this method.
@@ -117,6 +119,8 @@ public interface PStreamingCompressor extends StreamingContext, GenericCompressP
      * After every invocation of this method, even those that fail with an exception, it is guaranteed that {@link #getLastReadBytes()} and {@link #getLastWrittenBytes()} will
      * return the number of bytes read from the input stream and the number of bytes written to the output stream during that invocation, and that the input and output buffers'
      * reader resp. writer indices will be increased by the same amount.
+     * <p>
+     * The behavior is undefined if the source and destination buffer's memory regions overlap.
      *
      * @param src   the buffer to read the input data from. The readable bytes remaining in the input buffer once this method returns are expected to be a prefix of the remaining bytes in
      *              the input buffer passed to subsequent calls to this method.
@@ -129,6 +133,7 @@ public interface PStreamingCompressor extends StreamingContext, GenericCompressP
         //this default implementation simply delegates to NIO ByteBuffer overload
         ByteBuffer nioSrc = PNetty4Buffers.getNioBufferForRead(src); //copies content to heap if src is composite
         ByteBuffer nioDst = PNetty4Buffers.getNioBufferForWrite(dst); //throws ReadOnlyBufferException or CompositeBufferException as necessary
+        //TODO: handle composite buffers
 
         int initialNioSrcPosition = nioSrc.position();
         int initialNioDstPosition = nioDst.position();

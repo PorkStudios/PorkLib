@@ -44,9 +44,10 @@ public interface GenericDecompressParameters extends IContext {
      * <p>
      * The default value is {@code false}.
      *
-     * @param singleFrame If {@code true}, the decompressor will stop after fully decompressing exactly one frame from the input stream.
-     *                     If {@code false}, the entire input stream will be consumed. Compression formats allowing concatenation will try to decompress everything,
-     *                     while formats which do not allow concatenation will throw an exception if there is any data remaining after the first frame.
+     * @param singleFrame If {@code true}, the decompressor will stop after fully decompressing exactly one frame from the input stream. Decompression will fail with
+     *                    an exception if the input stream is empty.
+     *                    If {@code false}, the entire input stream will be consumed. Compression formats allowing concatenation will try to decompress everything,
+     *                    while formats which do not allow concatenation will throw an exception if there is any data remaining after the first frame.
      * @see #resetParameters()
      */
     void setSingleFrame(boolean singleFrame);

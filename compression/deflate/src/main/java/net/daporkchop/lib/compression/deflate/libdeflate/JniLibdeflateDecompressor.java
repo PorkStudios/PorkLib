@@ -87,30 +87,29 @@ final class JniLibdeflateDecompressor extends NativeLibdeflateDecompressor {
 
             switch (result) {
                 case NativeLibdeflateFunctions.LIBDEFLATE_SUCCESS: {
-                    int actual_in_nbytes_ret = Math.toIntExact(this.nbytesArray[0]);
-                    int actual_out_nbytes_ret = Math.toIntExact(this.nbytesArray[1]);
+                    totalSrcBytesRead += Math.toIntExact(this.nbytesArray[0]);
+                    totalDstBytesWritten += Math.toIntExact(this.nbytesArray[1]);
 
                     if (this.singleFrame) {
                         //in single-frame mode we always stop after decompressing exactly one stream/member, there is nothing special to do here
-                    } else if (actual_in_nbytes_ret != src.remaining() - totalSrcBytesRead) {
+                    } else if (totalSrcBytesRead != src.remaining()) {
                         switch (this.mode) {
                             case NativeLibdeflateFunctions.MODE_DEFLATE:
                             case NativeLibdeflateFunctions.MODE_ZLIB:
                                 //throw an exception if there is any input data remaining
                                 throw new DataFormatException("unexpected trailing data beyond end of compressed stream");
                             case NativeLibdeflateFunctions.MODE_GZIP:
-                                //increment the offsets and then decompress the next GZIP member until there's no input left
-                                totalSrcBytesRead += actual_in_nbytes_ret;
-                                totalDstBytesWritten += actual_out_nbytes_ret;
+                                //decompress the next GZIP member until there's no input left
                                 continue;
                             default:
                                 throw new IllegalStateException(String.valueOf(this.mode));
                         }
                     }
 
-                    //increment buffer positions and exit
-                    dst.position(dst.position() + (totalDstBytesWritten + actual_out_nbytes_ret));
-                    return totalDstBytesWritten + actual_out_nbytes_ret;
+                    //notify tracker, increment buffer positions and exit
+                    src.position(src.position() + totalSrcBytesRead);
+                    dst.position(dst.position() + totalDstBytesWritten);
+                    return totalDstBytesWritten;
                 }
                 case NativeLibdeflateFunctions.LIBDEFLATE_BAD_DATA:
                     throw new DataFormatException();

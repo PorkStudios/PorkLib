@@ -108,14 +108,16 @@ public interface POneshotDecompressor extends OneshotContext, GenericDecompressP
     //
     //
 
-    //TODO: the source buffer position actually should be incremented (especially important for single-frame decompression)
-
     /**
      * Decompresses the given source data into the given destination buffer.
      * <p>
-     * On success, the destination buffer's position will be increased by the number of bytes produced by this operation (which is equal to the number returned by this
-     * method). On failure, the destination buffer's position remains unchanged, however the contents of the destination buffer's remaining bytes may be modified. In
-     * either case the source buffer's position and contents remain unchanged.
+     * On success, this method returns the number of bytes written to the destination buffer. The source and destination buffers' positions will be increased by the
+     * number of bytes read and written, respectively.
+     * <p>
+     * On failure (either due to insufficient destination space or an exception), the source and destination buffers' positions are not modified. However, the
+     * contents of the destination buffer's remaining bytes may be modified.
+     * <p>
+     * In either case the source buffer's contents remain unchanged.
      * <p>
      * The behavior is undefined if the source and destination buffer's memory regions overlap.
      * <p>
@@ -125,7 +127,7 @@ public interface POneshotDecompressor extends OneshotContext, GenericDecompressP
      * @param src the {@link ByteBuffer} to read source data from
      * @param dst the {@link ByteBuffer} to write compressed data to
      * @return the size of the decompressed data in bytes, or a negative value if the destination buffer was too small for the decompressed data
-     * @throws DataFormatException if the source data is not valid compressed data
+     * @throws DataFormatException     if the source data is not valid compressed data
      * @throws ReadOnlyBufferException if the destination buffer is read-only
      */
     int decompress(@NonNull ByteBuffer src, @NonNull ByteBuffer dst) throws DataFormatException, ReadOnlyBufferException;
@@ -133,9 +135,13 @@ public interface POneshotDecompressor extends OneshotContext, GenericDecompressP
     /**
      * Decompresses the given source data into the given destination buffer.
      * <p>
-     * On success, the destination buffer's writer index will be increased by the number of bytes produced by this operation (which is equal to the number returned by this
-     * method). On failure, the destination buffer's indices remain unchanged, however the contents of the destination buffer's writable bytes may be modified. In
-     * either case the source buffer's indices and contents remain unchanged.
+     * On success, this method returns the number of bytes written to the destination buffer. The source and destination buffers' reader and writer indices will be
+     * increased by the number of bytes read and written, respectively.
+     * <p>
+     * On failure (either due to insufficient destination space or an exception), the source and destination buffers' indices are not modified. However, the
+     * contents of the destination buffer's writable bytes may be modified.
+     * <p>
+     * In either case the source buffer's contents remain unchanged.
      * <p>
      * The behavior is undefined if the source and destination buffer's memory regions overlap.
      * <p>
@@ -145,8 +151,8 @@ public interface POneshotDecompressor extends OneshotContext, GenericDecompressP
      * @param src the {@link ByteBuf} to read source data from
      * @param dst the {@link ByteBuf} to write decompressed data to
      * @return the size of the decompressed data in bytes, or a negative value if the destination buffer was too small for the decompressed data
-     * @throws DataFormatException if the source data is not valid compressed data
-     * @throws ReadOnlyBufferException if the destination buffer is read-only
+     * @throws DataFormatException      if the source data is not valid compressed data
+     * @throws ReadOnlyBufferException  if the destination buffer is read-only
      * @throws CompositeBufferException if the destination buffer is a composite buffer with more than one component
      */
     default int decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws DataFormatException, ReadOnlyBufferException, CompositeBufferException {
@@ -154,9 +160,11 @@ public interface POneshotDecompressor extends OneshotContext, GenericDecompressP
         ByteBuffer nioSrc = PNetty4Buffers.getNioBufferForRead(src); //copies content to heap if src is composite
         ByteBuffer nioDst = PNetty4Buffers.getNioBufferForWrite(dst); //throws ReadOnlyBufferException or CompositeBufferException as necessary
 
+        int initialNioSrcPosition = nioSrc.position();
         int initialNioDstPosition = nioDst.position();
 
         int result = this.decompress(nioSrc, nioDst);
+        src.skipBytes(nioSrc.position() - initialNioSrcPosition);
         dst.writerIndex(dst.writerIndex() + nioDst.position() - initialNioDstPosition);
         return result;
     }

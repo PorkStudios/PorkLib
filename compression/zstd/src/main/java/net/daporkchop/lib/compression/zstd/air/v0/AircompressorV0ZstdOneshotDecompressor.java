@@ -22,10 +22,12 @@ package net.daporkchop.lib.compression.zstd.air.v0;
 import io.airlift.compress.MalformedInputException;
 import io.airlift.compress.zstd.ZstdDecompressor;
 import lombok.NonNull;
+import lombok.val;
 import net.daporkchop.lib.common.annotation.ExtendedBorrow;
 import net.daporkchop.lib.compression.zstd.ZstdDecompressDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdOneshotDecompressor;
 import net.daporkchop.lib.compression.zstd.util.JavaZstdFrameInspector;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.nio.ByteBuffer;
 import java.nio.ReadOnlyBufferException;
@@ -46,23 +48,19 @@ final class AircompressorV0ZstdOneshotDecompressor extends AbstractAircompressor
             throw new ReadOnlyBufferException();
         }
 
+        val srcSlice = src.slice();
+        val dstSlice = dst.slice();
+
+        if (this.singleFrame) {
+            //figure out the compressed size of the first frame in the input buffer, then only decompress to that point
+            int srcFrameSize = Math.toIntExact(JavaZstdFrameInspector.getFrameSizeInfo(src).compressedSize());
+            srcSlice.limit(srcFrameSize);
+        } else {
+            //we'll decompress the entire input buffer
+        }
+
         try {
-            int dstPosition = dst.position();
-            if (this.singleFrame) {
-                //figure out the compressed size of the first frame in the input buffer, then temporarily adjust the buffer limit to that
-                int srcFrameSize = Math.toIntExact(JavaZstdFrameInspector.getFrameSizeInfo(src).compressedSize());
-                int srcLimit = src.limit();
-                try {
-                    src.limit(srcFrameSize);
-                    this.decompressor.decompress(src, dst);
-                } finally {
-                    src.limit(srcLimit);
-                }
-            } else {
-                //decompress all the frames in the input buffer
-                this.decompressor.decompress(src, dst);
-            }
-            return dst.position() - dstPosition;
+            this.decompressor.decompress(srcSlice, dstSlice);
         } catch (MalformedInputException e) {
             //this is pretty gross but there isn't really a better way to do it
             if ("Output buffer too small".equals(e.getMessage())) {
@@ -71,6 +69,11 @@ final class AircompressorV0ZstdOneshotDecompressor extends AbstractAircompressor
                 throw (DataFormatException) new DataFormatException(e.getMessage()).initCause(e);
             }
         }
+
+        //increment buffer positions by the number of bytes consumed, then exit
+        src.position(src.position() + srcSlice.position());
+        dst.position(dst.position() + dstSlice.position());
+        return dstSlice.position();
     }
 
     @Override

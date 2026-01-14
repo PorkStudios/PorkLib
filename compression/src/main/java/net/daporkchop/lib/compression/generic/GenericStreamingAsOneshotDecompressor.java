@@ -21,7 +21,6 @@ package net.daporkchop.lib.compression.generic;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.val;
 import net.daporkchop.lib.compression.context.POneshotDecompressor;
 import net.daporkchop.lib.compression.context.PStreamingDecompressor;
 import net.daporkchop.lib.natives.util.MemoryPreference;
@@ -59,22 +58,22 @@ public abstract class GenericStreamingAsOneshotDecompressor<StreamingDecompresso
 
     @Override
     public int decompress(@NonNull ByteBuffer src, @NonNull ByteBuffer dst) throws DataFormatException, ReadOnlyBufferException {
-        val initialSrcPosition = src.position();
-        val initialDstPosition = dst.position();
-
         boolean done;
         try {
-            done = this.decompressor.decompress(src, dst, true);
+            done = this.decompressor.decompress(src.duplicate(), dst.duplicate(), true);
         } finally {
             this.decompressor.resetStream();
-            src.position(initialSrcPosition);
         }
 
         if (done) {
             //the decompressed data fits in the output buffer, return the decompressed size
-            return dst.position() - initialDstPosition;
+            int readBytes = Math.toIntExact(this.decompressor.getLastReadBytes());
+            int writtenBytes = Math.toIntExact(this.decompressor.getLastWrittenBytes());
+            src.position(src.position() + readBytes);
+            dst.position(dst.position() + writtenBytes);
+            return writtenBytes;
         } else {
-            //not enough output space
+            //not enough output space, reset the buffer indices to their initial values
             return -1;
         }
     }

@@ -131,7 +131,7 @@ public abstract class AbstractOneshotCompressionTest<FACTORY extends OneshotComp
             Assert.assertTrue("compression failed", compressor.compress(ByteBuffer.wrap(this.expectedData), compressed) >= 0);
             compressed.flip();
 
-            val decompressed = ByteBuffer.allocate(this.expectedData.length + 1024);
+            val decompressed = ByteBuffer.allocate(this.expectedData.length);
             Assert.assertTrue("decompression failed", decompressor.decompress(compressed, decompressed) >= 0);
             decompressed.flip();
 

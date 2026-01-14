@@ -277,6 +277,7 @@ final class JdkDeflateStreamingCompressor extends AbstractStreamingCompressor im
         val count = Math.min(this.bufferedOutputLimit - this.bufferedOutputPosition, dst.remaining());
         if (count > 0) {
             dst.put(this.bufferedOutputArray, this.bufferedOutputPosition, count);
+            this.addLastReadWrittenBytes(0, count);
             this.bufferedOutputPosition += count;
         }
 

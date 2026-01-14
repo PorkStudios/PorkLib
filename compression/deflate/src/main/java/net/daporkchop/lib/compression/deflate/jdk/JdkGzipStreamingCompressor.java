@@ -193,6 +193,7 @@ final class JdkGzipStreamingCompressor extends AbstractStreamingCompressor imple
         val count = Math.min(this.rawBytes.length - this.rawBytesIndex, dst.remaining());
         if (count > 0) {
             dst.put(this.rawBytes, this.rawBytesIndex, count);
+            this.addLastReadWrittenBytes(0, count);
             this.rawBytesIndex += count;
         }
 

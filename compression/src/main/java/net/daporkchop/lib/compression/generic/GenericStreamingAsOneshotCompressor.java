@@ -53,20 +53,20 @@ public abstract class GenericStreamingAsOneshotCompressor<StreamingCompressor ex
 
     @Override
     public int compress(@NonNull ByteBuffer src, @NonNull ByteBuffer dst) throws ReadOnlyBufferException {
-        val initialSrcPosition = src.position();
-        val initialDstPosition = dst.position();
-
         boolean done;
         try {
-            done = this.compressor.compress(src, dst, PStreamingCompressor.FlushMode.FINISH);
+            done = this.compressor.compress(src.duplicate(), dst.duplicate(), PStreamingCompressor.FlushMode.FINISH);
         } finally {
             this.compressor.resetStream();
-            src.position(initialSrcPosition);
         }
 
         if (done) {
             //the compressed data fits in the output buffer, return the compressed size
-            return dst.position() - initialDstPosition;
+            int readBytes = Math.toIntExact(this.compressor.getLastReadBytes());
+            int writtenBytes = Math.toIntExact(this.compressor.getLastWrittenBytes());
+            src.position(src.position() + readBytes);
+            dst.position(dst.position() + writtenBytes);
+            return writtenBytes;
         } else {
             //not enough output space
             return -1;

@@ -83,6 +83,7 @@ final class JniLibdeflateCompressor extends NativeLibdeflateCompressor {
             return -1;
         } else {
             //success, advance buffer indices (we assume that the result is in bounds and therefore won't overflow)
+            src.position(src.limit());
             dst.position(dst.position() + (int) result);
             return (int) result;
         }

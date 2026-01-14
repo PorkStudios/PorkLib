@@ -164,8 +164,10 @@ public interface POneshotDecompressor extends OneshotContext, GenericDecompressP
         int initialNioDstPosition = nioDst.position();
 
         int result = this.decompress(nioSrc, nioDst);
-        src.skipBytes(nioSrc.position() - initialNioSrcPosition);
-        dst.writerIndex(dst.writerIndex() + nioDst.position() - initialNioDstPosition);
+        if (result >= 0) {
+            src.skipBytes(nioSrc.position() - initialNioSrcPosition);
+            dst.writerIndex(dst.writerIndex() + nioDst.position() - initialNioDstPosition);
+        }
         return result;
     }
 }

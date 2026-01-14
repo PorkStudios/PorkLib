@@ -71,7 +71,7 @@ final class AircompressorV0ZstdOneshotDecompressor extends AbstractAircompressor
         }
 
         //increment buffer positions by the number of bytes consumed, then exit
-        src.position(src.position() + srcSlice.position());
+        src.position(srcSlice.limit());
         dst.position(dst.position() + dstSlice.position());
         return dstSlice.position();
     }

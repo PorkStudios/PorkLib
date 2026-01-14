@@ -86,13 +86,12 @@ public abstract class AbstractOneshotCompressionTest<FACTORY extends OneshotComp
                 CompressionTestUtils.forEachNioBufferTypeOutput(exactSize ? expectedCompressedData.length : compressor.compressBound(src.remaining()), dst -> {
                     src.reset();
 
-                    int origSrcPosition = src.position();
                     int origDstPosition = dst.position();
 
                     int result = compressor.compress(src, dst);
                     assert result >= 0 : "compression result: " + result;
 
-                    Assert.assertEquals(origSrcPosition, src.position());
+                    Assert.assertEquals(src.limit(), src.position());
                     Assert.assertEquals(origDstPosition + result, dst.position());
 
                     Assert.assertArrayEquals(expectedCompressedData, PNioBuffers.toArray(dst, origDstPosition, result));
@@ -132,7 +131,7 @@ public abstract class AbstractOneshotCompressionTest<FACTORY extends OneshotComp
             Assert.assertTrue("compression failed", compressor.compress(ByteBuffer.wrap(this.expectedData), compressed) >= 0);
             compressed.flip();
 
-            val decompressed = ByteBuffer.allocate(this.expectedData.length);
+            val decompressed = ByteBuffer.allocate(this.expectedData.length + 1024);
             Assert.assertTrue("decompression failed", decompressor.decompress(compressed, decompressed) >= 0);
             decompressed.flip();
 

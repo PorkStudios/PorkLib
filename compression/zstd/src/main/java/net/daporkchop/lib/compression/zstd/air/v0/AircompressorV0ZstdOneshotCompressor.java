@@ -21,6 +21,7 @@ package net.daporkchop.lib.compression.zstd.air.v0;
 
 import io.airlift.compress.zstd.ZstdCompressor;
 import lombok.NonNull;
+import lombok.val;
 import net.daporkchop.lib.common.annotation.ExtendedBorrow;
 import net.daporkchop.lib.compression.zstd.Zstd;
 import net.daporkchop.lib.compression.zstd.ZstdCompressDictionary;
@@ -43,10 +44,10 @@ final class AircompressorV0ZstdOneshotCompressor extends AbstractAircompressorV0
             throw new ReadOnlyBufferException();
         }
 
+        val dstSlice = dst.slice();
+
         try {
-            int dstPosition = dst.position();
-            this.compressor.compress(src, dst);
-            return dst.position() - dstPosition;
+            this.compressor.compress(src, dstSlice);
         } catch (IllegalArgumentException e) {
             //this is pretty gross but there isn't really a better way to do it
             if ("Output buffer too small".equals(e.getMessage())) {
@@ -55,6 +56,11 @@ final class AircompressorV0ZstdOneshotCompressor extends AbstractAircompressorV0
                 throw e;
             }
         }
+
+        //increment buffer positions by the number of bytes consumed, then exit
+        src.position(src.limit());
+        dst.position(dst.position() + dstSlice.position());
+        return dstSlice.position();
     }
 
     @Override

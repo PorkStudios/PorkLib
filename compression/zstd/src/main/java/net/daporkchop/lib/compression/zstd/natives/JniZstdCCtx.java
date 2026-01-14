@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2025 DaPorkchop_
+ * Copyright (c) 2018-2026 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -87,6 +87,7 @@ final class JniZstdCCtx extends NativeZstdCCtx {
         switch (this.functions.ZSTD_getErrorCode(result)) {
             case ZSTD_error_no_error:
                 //success, advance buffer indices (we assume that the result is in bounds and therefore won't overflow)
+                src.position(src.limit());
                 dst.position(dst.position() + (int) result);
                 return (int) result;
             case ZSTD_error_dstSize_tooSmall:
@@ -144,6 +145,7 @@ final class JniZstdCCtx extends NativeZstdCCtx {
         switch (this.functions.ZSTD_getErrorCode(result)) {
             case ZSTD_error_no_error:
                 //success, advance buffer indices (we assume that the result is in bounds and therefore won't overflow)
+                src.skipBytes(src.readableBytes());
                 dst.writerIndex(dst.writerIndex() + (int) result);
                 return (int) result;
             case ZSTD_error_dstSize_tooSmall:

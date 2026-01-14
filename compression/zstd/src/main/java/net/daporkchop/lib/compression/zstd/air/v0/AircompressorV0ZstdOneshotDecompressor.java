@@ -84,7 +84,7 @@ final class AircompressorV0ZstdOneshotDecompressor extends AbstractAircompressor
     }
 
     @Override
-    public void setSingleStream(boolean singleStream) {
-        this.singleFrame = singleStream;
+    public void setSingleFrame(boolean singleFrame) {
+        this.singleFrame = singleFrame;
     }
 }

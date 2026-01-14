@@ -58,7 +58,7 @@ abstract class NativeZstdDCtx extends AbstractNativeZstdContext implements ZstdO
     }
 
     @Override
-    public final void setSingleStream(boolean singleStream) {
-        this.singleFrame = singleStream;
+    public final void setSingleFrame(boolean singleFrame) {
+        this.singleFrame = singleFrame;
     }
 }

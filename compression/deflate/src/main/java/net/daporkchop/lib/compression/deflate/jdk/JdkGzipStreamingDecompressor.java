@@ -53,7 +53,7 @@ final class JdkGzipStreamingDecompressor extends AbstractStreamingDecompressor i
 
     JdkGzipStreamingDecompressor() {
         this.inflater = new JdkDeflateStreamingDecompressor(true);
-        this.inflater.setSingleStream(true);
+        this.inflater.setSingleFrame(true);
     }
 
     @Override
@@ -94,9 +94,9 @@ final class JdkGzipStreamingDecompressor extends AbstractStreamingDecompressor i
             if (this.state == STATE_AWAIT_MEMBER) {
                 if (!src.hasRemaining()) {
                     if (eof) {
-                        if (this.singleStream) {
+                        if (this.singleFrame) {
                             //we've reached the end of the input stream and there's no input data remaining, but not a single GZIP member has been decompressed so we're going to abort
-                            throw new DataFormatException("empty input stream is not allowed in single stream mode");
+                            throw new DataFormatException("empty input stream is not allowed in single frame mode");
                         } else {
                             //we've reached the end of the input stream and there's no input data remaining, so we're finished here :)
                             this.state = STATE_DONE;
@@ -159,7 +159,7 @@ final class JdkGzipStreamingDecompressor extends AbstractStreamingDecompressor i
                 //this automatically increments lastReadBytes
                 if (this.readTrailerStep(src)) {
                     //we've read the entire trailer, and thus the end of this GZIP member
-                    if (this.singleStream) {
+                    if (this.singleFrame) {
                         //stop after completing a single member
                         this.state = STATE_DONE;
                     } else {

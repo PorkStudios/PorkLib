@@ -26,16 +26,16 @@ import net.daporkchop.lib.compression.context.POneshotDecompressor;
  */
 public abstract class AbstractOneshotDecompressor extends AbstractOneshotContext implements POneshotDecompressor {
     // parameters
-    protected boolean singleStream = false;
+    protected boolean singleFrame = false;
 
     @Override
     public void resetParameters() {
         super.resetParameters();
-        this.singleStream = false;
+        this.singleFrame = false;
     }
 
     @Override
-    public final void setSingleStream(boolean singleStream) {
-        this.singleStream = singleStream;
+    public final void setSingleFrame(boolean singleFrame) {
+        this.singleFrame = singleFrame;
     }
 }

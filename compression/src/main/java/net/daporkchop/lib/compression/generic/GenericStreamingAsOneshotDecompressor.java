@@ -53,8 +53,8 @@ public abstract class GenericStreamingAsOneshotDecompressor<StreamingDecompresso
     }
 
     @Override
-    public void setSingleStream(boolean singleStream) {
-        this.decompressor.setSingleStream(singleStream);
+    public void setSingleFrame(boolean singleFrame) {
+        this.decompressor.setSingleFrame(singleFrame);
     }
 
     @Override

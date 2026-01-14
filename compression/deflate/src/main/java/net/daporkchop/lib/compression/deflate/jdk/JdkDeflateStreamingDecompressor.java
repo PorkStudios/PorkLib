@@ -71,7 +71,7 @@ final class JdkDeflateStreamingDecompressor extends AbstractStreamingDecompresso
 
     @Override
     public InputStream wrapDecompressing(@NonNull InputStream src) {
-        this.ensureNotSingleStream();
+        this.ensureNotSingleFrame();
         this.resetStream();
         return new InflaterInputStream(src, this.inflater);
     }
@@ -114,7 +114,7 @@ final class JdkDeflateStreamingDecompressor extends AbstractStreamingDecompresso
             }
 
             if (this.inflater.finished()) {
-                if (this.singleStream) {
+                if (this.singleFrame) {
                     //we've reached the end of the compressed stream, stop here and exit
                     this.state = STATE_DONE;
                 } else {

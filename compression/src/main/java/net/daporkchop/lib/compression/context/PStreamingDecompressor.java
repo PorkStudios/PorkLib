@@ -53,7 +53,7 @@ public interface PStreamingDecompressor extends StreamingContext, GenericDecompr
      *
      * @param src the {@link InputStream} to read from
      * @return an {@link InputStream}
-     * @throws UnsupportedOperationException if the {@link #setSingleStream(boolean) single stream} parameter is set to {@code true}
+     * @throws UnsupportedOperationException if the {@link #setSingleFrame(boolean) single frame} parameter is set to {@code true}
      */
     InputStream wrapDecompressing(@NonNull InputStream src);
 
@@ -72,7 +72,7 @@ public interface PStreamingDecompressor extends StreamingContext, GenericDecompr
      *
      * @param src the {@link ReadableByteChannel} to read from
      * @return a {@link ReadableByteChannel}
-     * @throws UnsupportedOperationException if the {@link #setSingleStream(boolean) single stream} parameter is set to {@code true}
+     * @throws UnsupportedOperationException if the {@link #setSingleFrame(boolean) single frame} parameter is set to {@code true}
      */
     ReadableByteChannel wrapDecompressing(@NonNull ReadableByteChannel src);
 

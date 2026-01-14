@@ -24,9 +24,9 @@ package net.daporkchop.lib.compression.context;
  */
 public interface GenericDecompressParameters extends IContext {
     /**
-     * Defines the different modes of operation when decompressing data in compression formats consisting of one or more streams which know their own size.
+     * Defines the different modes of operation when decompressing data in compression formats consisting of one or more frames which know their own size.
      * <p>
-     * Some compression formats consist of one or more separate sized streams, which may be concatenated freely. For example:
+     * Some compression formats consist of one or more separate sized frames, which may be concatenated freely. For example:
      * <ul>
      *     <li>standard ZSTD ("frames")</li>
      *     <li>GZIP ("members")</li>
@@ -34,7 +34,7 @@ public interface GenericDecompressParameters extends IContext {
      *     <li>bzip2 ("streams")</li>
      * </ul>
      * <p>
-     * Some compression formats consist of a single sized stream, and do not consider multiple concatenated streams to be part of the same stream. For example:
+     * Some compression formats consist of a single sized frame, and do not consider multiple concatenated frames to be part of the same frame. For example:
      * <ul>
      *     <li>raw DEFLATE</li>
      *     <li>ZLIB</li>
@@ -44,10 +44,10 @@ public interface GenericDecompressParameters extends IContext {
      * <p>
      * The default value is {@code false}.
      *
-     * @param singleStream If {@code true}, the decompressor will stop after fully decompressing exactly one frame from the input stream.
+     * @param singleFrame If {@code true}, the decompressor will stop after fully decompressing exactly one frame from the input stream.
      *                     If {@code false}, the entire input stream will be consumed. Compression formats allowing concatenation will try to decompress everything,
-     *                     while formats which do not allow concatenation will throw an exception if there is any data remaining after the first stream.
+     *                     while formats which do not allow concatenation will throw an exception if there is any data remaining after the first frame.
      * @see #resetParameters()
      */
-    void setSingleStream(boolean singleStream);
+    void setSingleFrame(boolean singleFrame);
 }

@@ -33,7 +33,7 @@ public abstract class AbstractStreamingDecompressor extends AbstractStreamingCon
     private boolean expectedEof = false;
 
     // parameters
-    protected boolean singleStream = false;
+    protected boolean singleFrame = false;
 
     // misc. shared state
 
@@ -56,33 +56,33 @@ public abstract class AbstractStreamingDecompressor extends AbstractStreamingCon
     @Override
     public void resetParameters() throws IllegalStateException {
         super.resetParameters();
-        this.singleStream = false;
+        this.singleFrame = false;
     }
 
     @Override
-    public final void setSingleStream(boolean singleStream) {
+    public final void setSingleFrame(boolean singleFrame) {
         this.ensureStreamInactive();
-        this.singleStream = singleStream;
+        this.singleFrame = singleFrame;
     }
 
     // IO stream wrappers
 
-    protected final void ensureNotSingleStream() {
-        if (this.singleStream) {
-            throw new UnsupportedOperationException("stream wrappers are incompatible with parameter singleStream=true");
+    protected final void ensureNotSingleFrame() {
+        if (this.singleFrame) {
+            throw new UnsupportedOperationException("stream wrappers are incompatible with parameter singleFrame=true");
         }
     }
 
     @Override
     public InputStream wrapDecompressing(@NonNull InputStream src) {
-        this.ensureNotSingleStream();
+        this.ensureNotSingleFrame();
         this.resetStream();
         return new GenericDecompressorInputStream(src, this);
     }
 
     @Override
     public ReadableByteChannel wrapDecompressing(@NonNull ReadableByteChannel src) {
-        this.ensureNotSingleStream();
+        this.ensureNotSingleFrame();
         this.resetStream();
         return new GenericDecompressorReadableByteChannel(src, this);
     }

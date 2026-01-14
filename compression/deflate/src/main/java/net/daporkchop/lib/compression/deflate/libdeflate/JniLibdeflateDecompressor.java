@@ -90,8 +90,8 @@ final class JniLibdeflateDecompressor extends NativeLibdeflateDecompressor {
                     int actual_in_nbytes_ret = Math.toIntExact(this.nbytesArray[0]);
                     int actual_out_nbytes_ret = Math.toIntExact(this.nbytesArray[1]);
 
-                    if (this.singleStream) {
-                        //in single-stream mode we always stop after decompressing exactly one stream/member, there is nothing special to do here
+                    if (this.singleFrame) {
+                        //in single-frame mode we always stop after decompressing exactly one stream/member, there is nothing special to do here
                     } else if (actual_in_nbytes_ret != src.remaining() - totalSrcBytesRead) {
                         switch (this.mode) {
                             case NativeLibdeflateFunctions.MODE_DEFLATE:

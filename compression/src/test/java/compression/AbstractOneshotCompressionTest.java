@@ -105,7 +105,7 @@ public abstract class AbstractOneshotCompressionTest<FACTORY extends OneshotComp
                     int result = decompressor.decompress(src, dst);
                     assert result >= 0 : "decompression result: " + result;
 
-                    //Assert.assertEquals(src.limit(), src.position());
+                    Assert.assertEquals(src.limit(), src.position());
                     Assert.assertEquals(origDstPosition + result, dst.position());
 
                     Assert.assertArrayEquals(this.expectedData, PNioBuffers.toArray(dst, origDstPosition, result));

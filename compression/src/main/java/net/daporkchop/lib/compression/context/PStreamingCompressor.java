@@ -87,11 +87,19 @@ public interface PStreamingCompressor extends StreamingContext, GenericCompressP
 
     /**
      * Compresses as much data as possible and writes it to the output buffer.
+     * <p>
+     * An invocation of this method will always make as much forward progress as possible until all available input data has been read and all pending output was written
+     * according to the given {@link FlushMode}, or until it runs out of output space. In particular, it is guaranteed that if the output buffer contains exactly enough
+     * space (according to the given {@link FlushMode}) for the remaining input data plus any buffered output, this method will compress all the remaining data and return
+     * {@code true} after a single invocation.
+     * <p>
+     * After every invocation of this method, even those that fail with an exception, it is guaranteed that {@link #getLastReadBytes()} and {@link #getLastWrittenBytes()} will
+     * return the number of bytes read from the input stream and the number of bytes written to the output stream during that invocation, and that the input and output buffers'
+     * positions will be increased by the same amount.
      *
-     * @param src   the buffer to read the input data from. If no exception is thrown, this buffer's position will be incremented by {@link #getLastReadBytes()}.
-     *              The bytes remaining in the input buffer once this method returns are expected to be a prefix of the readable bytes in the input buffer passed
-     *              to subsequent calls to this method
-     * @param dst   the buffer to write the compressed data to. If no exception is thrown, this buffer's position will be incremented by {@link #getLastWrittenBytes()}
+     * @param src   the buffer to read the input data from. The bytes remaining in the input buffer once this method returns are expected to be a prefix of the remaining bytes in
+     *              the input buffer passed to subsequent calls to this method.
+     * @param dst   the buffer to write the decompressed data to
      * @param flush the flush mode to use
      * @return {@code true} if all the available input data was read and all output was written according to the given {@link FlushMode}, {@code false} if more output space is requested
      * @throws ReadOnlyBufferException if the destination buffer is read-only
@@ -100,11 +108,19 @@ public interface PStreamingCompressor extends StreamingContext, GenericCompressP
 
     /**
      * Compresses as much data as possible and writes it to the output buffer.
+     * <p>
+     * An invocation of this method will always make as much forward progress as possible until all available input data has been read and all pending output was written
+     * according to the given {@link FlushMode}, or until it runs out of output space. In particular, it is guaranteed that if the output buffer contains exactly enough
+     * space (according to the given {@link FlushMode}) for the remaining input data plus any buffered output, this method will compress all the remaining data and return
+     * {@code true} after a single invocation.
+     * <p>
+     * After every invocation of this method, even those that fail with an exception, it is guaranteed that {@link #getLastReadBytes()} and {@link #getLastWrittenBytes()} will
+     * return the number of bytes read from the input stream and the number of bytes written to the output stream during that invocation, and that the input and output buffers'
+     * reader resp. writer indices will be increased by the same amount.
      *
-     * @param src   the buffer to read the input data from. If no exception is thrown, this buffer's reader index will be incremented by {@link #getLastReadBytes()}.
-     *              The bytes remaining in the input buffer once this method returns are expected to be a prefix of the readable bytes in the input buffer passed
-     *              to subsequent calls to this method
-     * @param dst   the buffer to write the compressed data to. If no exception is thrown, this buffer's writer index will be incremented by {@link #getLastWrittenBytes()}
+     * @param src   the buffer to read the input data from. The readable bytes remaining in the input buffer once this method returns are expected to be a prefix of the remaining bytes in
+     *              the input buffer passed to subsequent calls to this method.
+     * @param dst   the buffer to write the compressed data to. This buffer's capacity will not be increased.
      * @param flush the flush mode to use
      * @return {@code true} if all the available input data was read and all output was written according to the given {@link FlushMode}, {@code false} if more output space is requested
      * @throws ReadOnlyBufferException if the destination buffer is read-only

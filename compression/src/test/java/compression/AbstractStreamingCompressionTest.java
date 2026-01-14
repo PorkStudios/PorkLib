@@ -160,4 +160,26 @@ public abstract class AbstractStreamingCompressionTest<FACTORY extends Streaming
             Assert.assertEquals(ByteBuffer.wrap(this.expectedData), decompressed);
         }
     }*/
+
+    @Test
+    public void testCompress_OneCall() throws IOException {
+        try (val decompressor = this.factory.makeStreamingDecompressor()) {
+            CompressionTestUtils.forEachNioBufferTypeInput(this.compressedData, src -> {
+                src.mark();
+                CompressionTestUtils.forEachNioBufferTypeOutput(this.expectedData.length, dst -> {
+                    src.reset();
+
+                    int origSrcPosition = src.position();
+                    int origDstPosition = dst.position();
+
+                    Assert.assertTrue(decompressor.decompress(src, dst, true));
+
+                    Assert.assertEquals(origSrcPosition + this.compressedData.length, src.position());
+                    Assert.assertEquals(origDstPosition + this.expectedData.length, dst.position());
+
+                    Assert.assertArrayEquals(this.expectedData, PNioBuffers.toArray(dst, origDstPosition, dst.position() - origDstPosition));
+                });
+            });
+        }
+    }
 }

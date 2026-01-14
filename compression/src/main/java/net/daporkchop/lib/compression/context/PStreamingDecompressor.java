@@ -94,53 +94,83 @@ public interface PStreamingDecompressor extends StreamingContext, GenericDecompr
         return 0L;
     }
 
-    //TODO: update documentation about stopping points, it's no longer valid
-
     /**
-     * Reads compressed data from the input buffer and writes it to the output buffer until the next stopping point is reached.
+     * Reads compressed data from the input buffer and writes decompressed data to the output buffer until the end of the compressed stream has been consumed and
+     * all uncompressed data has been returned.
      * <p>
-     * A stopping point is generally a point at which the compressed data stream was {@link PStreamingCompressor.FlushMode#FINISH finished}, but may also include points
-     * where it was {@link PStreamingCompressor.FlushMode#SYNC flushed} or {@link PStreamingCompressor.FlushMode#FULL fully flushed}. Most compression algorithms allow
-     * concatenating multiple compressed streams into a single compressed stream, so whether or not to continue decompressing after a stopping point has been reached is
-     * generally up to the user.
+     * What exactly defines the end of the compressed stream depends on the compression algorithm and the {@link #setSingleFrame(boolean) single stream} parameter:
      * <p>
-     * If a stopping point is read from the input buffer but there is insufficient space in the output buffer, this method will not read any more bytes from the
-     * input buffer or return {@code true} until all output data has been written to the output buffer.
+     * <ul>
+     *     <li>If the {@link #setSingleFrame(boolean) single frame} parameter is {@code true}, this will occur after exactly one stream has been decompressed from
+     *     the input. Note that for compression formats which support stream concatenation, this may include points at which the compressor was
+     *     {@link PStreamingCompressor.FlushMode#FULL fully flushed}.</li>
+     *     <li>If the {@link #setSingleFrame(boolean) single frame} parameter is {@code false} and the compression format <strong>does not</strong> support concatenation,
+     *     this method returns {@code true} once exactly one stream has been decompressed from the input.</li>
+     *     <li>If the {@link #setSingleFrame(boolean) single frame} parameter is {@code false} and the compression format <strong>does</strong> support concatenation,
+     *     this method returns {@code true} once the end of the input stream has been reached (i.e. {@code eof} is {@code true} and all of the input data has been consumed).</li>
+     * </ul>
+     * <p>
+     * An invocation of this method will always make as much forward progress as possible until it runs out of either input or output space, or the end of the
+     * compressed stream is reached (which would cause this method to return {@code true}). In particular, it is guaranteed that if the input buffer contains
+     * all the remaining compressed data, the output buffer contains exactly enough space for the remaining uncompressed data and the {@code eof} parameter
+     * is set appropriately for the algorithm to determine whether the end of the compressed stream has been reached according to the rules above, this method will
+     * decompress the entire compressed stream and return {@code true} after a single invocation.
+     * <p>
+     * If the end of the compressed stream has been read from the input stream but there is still buffered output remaining, this method will not read any more bytes
+     * from the input until sufficient output space is provided that this method is able to flush all the remaining output and return {@code true}.
+     * <p>
+     * After every invocation of this method, even those that fail with an exception, it is guaranteed that {@link #getLastReadBytes()} and {@link #getLastWrittenBytes()} will
+     * return the number of bytes read from the input stream and the number of bytes written to the output stream during that invocation, and that the input and output buffers'
+     * positions will be increased by the same amount.
      *
-     * @param src the buffer to read the input data from. If no exception is thrown, this buffer's position will be incremented by {@link #getLastReadBytes()}.
-     *            The bytes remaining in the input buffer once this method returns are expected to be a prefix of the readable bytes in the input buffer passed
-     *            to subsequent calls to this method
-     * @param dst the buffer to write the decompressed data to. If no exception is thrown, this buffer's position will be incremented by {@link #getLastWrittenBytes()}.
-     *            This buffer's capacity will not be increased.
+     * @param src the buffer to read the input data from. The bytes remaining in the input buffer once this method returns are expected to be a prefix of the remaining bytes in
+     *            the input buffer passed to subsequent calls to this method.
+     * @param dst the buffer to write the decompressed data to
      * @param eof {@code true} if the end of the input data stream has been reached. Once this argument has been {@code true}, no more input data may be provided,
      *            and this method must be called until it returns {@code true}, with more output space provided as needed. If {@code eof} is {@code true} and the
-     *            input data ends before the decompressor reaches a stopping point, this method will fail with {@link DataFormatException}.
-     * @return {@code true} if the decompressor has reached a stopping point and all data up to the stopping point has been written to the output buffer, or {@code false} if more input data and/or output space is required
+     *            input data ends before the decompressor reaches the end of the current compressed stream, this method will fail with {@link DataFormatException}.
+     * @return {@code true} if the decompressor has reached the end of the compressed stream and all pending data has been written to the output buffer, or {@code false} if more input data and/or output space and/or an explicit indicator of end-of-stream status is required
      * @throws DataFormatException     if the source data is not valid compressed data
      * @throws ReadOnlyBufferException if the destination buffer is read-only
      */
     boolean decompress(@NonNull ByteBuffer src, @NonNull ByteBuffer dst, boolean eof) throws DataFormatException, ReadOnlyBufferException;
 
     /**
-     * Reads compressed data from the input buffer and writes it to the output buffer until the next stopping point is reached.
+     * Reads compressed data from the input buffer and writes decompressed data to the output buffer until the end of the compressed stream has been consumed and
+     * all uncompressed data has been returned.
      * <p>
-     * A stopping point is generally a point at which the compressed data stream was {@link PStreamingCompressor.FlushMode#FINISH finished}, but may also include points
-     * where it was {@link PStreamingCompressor.FlushMode#SYNC flushed} or {@link PStreamingCompressor.FlushMode#FULL fully flushed}. Most compression algorithms allow
-     * concatenating multiple compressed streams into a single compressed stream, so whether or not to continue decompressing after a stopping point has been reached is
-     * generally up to the user.
+     * What exactly defines the end of the compressed stream depends on the compression algorithm and the {@link #setSingleFrame(boolean) single stream} parameter:
      * <p>
-     * If a stopping point is read from the input buffer but there is insufficient space in the output buffer, this method will not read any more bytes from the
-     * input buffer or return {@code true} until all output data has been written to the output buffer.
+     * <ul>
+     *     <li>If the {@link #setSingleFrame(boolean) single frame} parameter is {@code true}, this will occur after exactly one stream has been decompressed from
+     *     the input. Note that for compression formats which support stream concatenation, this may include points at which the compressor was
+     *     {@link PStreamingCompressor.FlushMode#FULL fully flushed}.</li>
+     *     <li>If the {@link #setSingleFrame(boolean) single frame} parameter is {@code false} and the compression format <strong>does not</strong> support concatenation,
+     *     this method returns {@code true} once exactly one stream has been decompressed from the input.</li>
+     *     <li>If the {@link #setSingleFrame(boolean) single frame} parameter is {@code false} and the compression format <strong>does</strong> support concatenation,
+     *     this method returns {@code true} once the end of the input stream has been reached (i.e. {@code eof} is {@code true} and all of the input data has been consumed).</li>
+     * </ul>
+     * <p>
+     * An invocation of this method will always make as much forward progress as possible until it runs out of either input or output space, or the end of the
+     * compressed stream is reached (which would cause this method to return {@code true}). In particular, it is guaranteed that if the input buffer contains
+     * all the remaining compressed data, the output buffer contains exactly enough space for the remaining uncompressed data and the {@code eof} parameter
+     * is set appropriately for the algorithm to determine whether the end of the compressed stream has been reached according to the rules above, this method will
+     * decompress the entire compressed stream and return {@code true} after a single invocation.
+     * <p>
+     * If the end of the compressed stream has been read from the input stream but there is still buffered output remaining, this method will not read any more bytes
+     * from the input until sufficient output space is provided that this method is able to flush all the remaining output and return {@code true}.
+     * <p>
+     * After every invocation of this method, even those that fail with an exception, it is guaranteed that {@link #getLastReadBytes()} and {@link #getLastWrittenBytes()} will
+     * return the number of bytes read from the input stream and the number of bytes written to the output stream during that invocation, and that the input and output buffers'
+     * reader resp. writer indices will be increased by the same amount.
      *
-     * @param src the buffer to read the input data from. If no exception is thrown, this buffer's reader index will be incremented by {@link #getLastReadBytes()}.
-     *            The bytes remaining in the input buffer once this method returns are expected to be a prefix of the readable bytes in the input buffer passed
-     *            to subsequent calls to this method
-     * @param dst the buffer to write the decompressed data to. If no exception is thrown, this buffer's writer index will be incremented by {@link #getLastWrittenBytes()}.
-     *            This buffer's capacity will not be increased.
+     * @param src the buffer to read the input data from. The readable bytes remaining in the input buffer once this method returns are expected to be a prefix of the readable bytes in
+     *            the input buffer passed to subsequent calls to this method.
+     * @param dst the buffer to write the decompressed data to. This buffer's capacity will not be increased.
      * @param eof {@code true} if the end of the input data stream has been reached. Once this argument has been {@code true}, no more input data may be provided,
      *            and this method must be called until it returns {@code true}, with more output space provided as needed. If {@code eof} is {@code true} and the
-     *            input data ends before the decompressor reaches a stopping point, this method will fail with {@link DataFormatException}.
-     * @return {@code true} if the decompressor has reached a stopping point and all data up to the stopping point has been written to the output buffer, or {@code false} if more input data and/or output space is required
+     *            input data ends before the decompressor reaches the end of the current compressed stream, this method will fail with {@link DataFormatException}.
+     * @return {@code true} if the decompressor has reached the end of the compressed stream and all pending data has been written to the output buffer, or {@code false} if more input data and/or output space and/or an explicit indicator of end-of-stream status is required
      * @throws DataFormatException     if the source data is not valid compressed data
      * @throws ReadOnlyBufferException if the destination buffer is read-only
      */

@@ -162,33 +162,6 @@ public abstract class AbstractStreamingCompressionTest<FACTORY extends Streaming
     }*/
 
     @Test
-    public void testCompress_OneCall() {
-        byte[] expectedCompressedData;
-        try (val compressor = this.factory.makeOneshotCompressor()) {
-            val tmpDst = ByteBuffer.allocate(compressor.compressBound(this.expectedData.length));
-            expectedCompressedData = PNioBuffers.toArray(tmpDst, 0, compressor.compress(ByteBuffer.wrap(this.expectedData), tmpDst));
-        }
-
-        try (val compressor = this.factory.makeStreamingCompressor()) {
-            CompressionTestUtils.forEachNioBufferTypeInput(this.expectedData, src -> {
-                src.mark();
-                CompressionTestUtils.forEachNioBufferTypeOutput(expectedCompressedData.length, dst -> {
-                    src.reset();
-
-                    int origDstPosition = dst.position();
-
-                    Assert.assertTrue(compressor.compress(src, dst, PStreamingCompressor.FlushMode.FINISH));
-
-                    Assert.assertEquals(src.limit(), src.position());
-                    Assert.assertEquals(origDstPosition + expectedCompressedData.length, dst.position());
-
-                    Assert.assertArrayEquals(expectedCompressedData, PNioBuffers.toArray(dst, origDstPosition, dst.position() - origDstPosition));
-                });
-            });
-        }
-    }
-
-    @Test
     public void testDecompress_OneCall() {
         try (val decompressor = this.factory.makeStreamingDecompressor()) {
             CompressionTestUtils.forEachNioBufferTypeInput(this.compressedData, src -> {

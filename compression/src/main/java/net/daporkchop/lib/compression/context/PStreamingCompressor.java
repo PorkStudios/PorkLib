@@ -89,9 +89,9 @@ public interface PStreamingCompressor extends StreamingContext, GenericCompressP
      * Compresses as much data as possible and writes it to the output buffer.
      * <p>
      * An invocation of this method will always make as much forward progress as possible until all available input data has been read and all pending output was written
-     * according to the given {@link FlushMode}, or until it runs out of output space. In particular, it is guaranteed that if the output buffer contains exactly enough
-     * space (according to the given {@link FlushMode}) for the remaining input data plus any buffered output, this method will compress all the remaining data and return
-     * {@code true} after a single invocation.
+     * according to the given {@link FlushMode}, or until it runs out of output space. Note that if the output buffers are perfectly sized, an implementation may not
+     * return {@code true} until more output space is provided, even if no more output bytes are left (corollary: this method can read and write zero bytes and still
+     * have its return value change from {@code false} to {@code true}).
      * <p>
      * After every invocation of this method, even those that fail with an exception, it is guaranteed that {@link #getLastReadBytes()} and {@link #getLastWrittenBytes()} will
      * return the number of bytes read from the input stream and the number of bytes written to the output stream during that invocation, and that the input and output buffers'
@@ -112,9 +112,9 @@ public interface PStreamingCompressor extends StreamingContext, GenericCompressP
      * Compresses as much data as possible and writes it to the output buffer.
      * <p>
      * An invocation of this method will always make as much forward progress as possible until all available input data has been read and all pending output was written
-     * according to the given {@link FlushMode}, or until it runs out of output space. In particular, it is guaranteed that if the output buffer contains exactly enough
-     * space (according to the given {@link FlushMode}) for the remaining input data plus any buffered output, this method will compress all the remaining data and return
-     * {@code true} after a single invocation.
+     * according to the given {@link FlushMode}, or until it runs out of output space. Note that if the output buffers are perfectly sized, an implementation may not
+     * return {@code true} until more output space is provided, even if no more output bytes are left (corollary: this method can read and write zero bytes and still
+     * have its return value change from {@code false} to {@code true}).
      * <p>
      * After every invocation of this method, even those that fail with an exception, it is guaranteed that {@link #getLastReadBytes()} and {@link #getLastWrittenBytes()} will
      * return the number of bytes read from the input stream and the number of bytes written to the output stream during that invocation, and that the input and output buffers'

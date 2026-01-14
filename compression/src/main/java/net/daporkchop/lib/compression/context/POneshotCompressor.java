@@ -93,6 +93,9 @@ public interface POneshotCompressor extends OneshotContext, GenericCompressParam
      * <p>
      * Note that if the source buffer is read-only, its content may have be copied to a temporary heap allocation, resulting in higher memory use and garbage
      * collection pressure.
+     * <p>
+     * Note that compression may fail with insufficient output space even if the actual compressed size would be less than the provided output buffer space.
+     * Compression is only guaranteed to succeed if the given destination buffer has at least {@link #compressBound} bytes of space available.
      *
      * @param src the {@link ByteBuffer} to read source data from
      * @param dst the {@link ByteBuffer} to write compressed data to
@@ -116,6 +119,9 @@ public interface POneshotCompressor extends OneshotContext, GenericCompressParam
      * <p>
      * Note that if the source buffer is read-only and/or a composite, its content may have be copied to a temporary heap allocation, resulting in higher memory
      * use and garbage collection pressure.
+     * <p>
+     * Note that compression may fail with insufficient output space even if the actual compressed size would be less than the provided output buffer space.
+     * Compression is only guaranteed to succeed if the given destination buffer has at least {@link #compressBound} bytes of space available.
      *
      * @param src the {@link ByteBuf} to read source data from
      * @param dst the {@link ByteBuf} to write compressed data to

@@ -19,20 +19,20 @@
 
 package net.daporkchop.lib.compression.zstd.air.v0;
 
-import net.daporkchop.lib.compression.context.OneshotContext;
+import net.daporkchop.lib.compression.context.IContext;
 import net.daporkchop.lib.natives.util.MemoryPreference;
 
 /**
  * @author DaPorkchop_
  */
-abstract class AbstractAircompressorV0ZstdContext implements OneshotContext {
+interface AircompressorV0Context extends IContext {
     @Override
-    public final MemoryPreference memoryPreference() {
+    default MemoryPreference memoryPreference() {
         return MemoryPreference.ANY;
     }
 
     @Override
-    public final void close() {
+    default void close() {
         //no-op
     }
 }

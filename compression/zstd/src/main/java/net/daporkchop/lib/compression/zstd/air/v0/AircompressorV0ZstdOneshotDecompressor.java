@@ -24,10 +24,10 @@ import io.airlift.compress.zstd.ZstdDecompressor;
 import lombok.NonNull;
 import lombok.val;
 import net.daporkchop.lib.common.annotation.ExtendedBorrow;
+import net.daporkchop.lib.compression.generic.AbstractOneshotDecompressor;
 import net.daporkchop.lib.compression.zstd.ZstdDecompressDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdOneshotDecompressor;
 import net.daporkchop.lib.compression.zstd.util.JavaZstdFrameInspector;
-import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.nio.ByteBuffer;
 import java.nio.ReadOnlyBufferException;
@@ -38,9 +38,8 @@ import static net.daporkchop.lib.common.util.PValidation.*;
 /**
  * @author DaPorkchop_
  */
-final class AircompressorV0ZstdOneshotDecompressor extends AbstractAircompressorV0ZstdContext implements ZstdOneshotDecompressor {
+final class AircompressorV0ZstdOneshotDecompressor extends AbstractOneshotDecompressor implements ZstdOneshotDecompressor, AircompressorV0Context {
     private final ZstdDecompressor decompressor = new ZstdDecompressor(); //TODO: share this weakly between all instances, the ByteBuffer method constructs a new state every time anyway
-    private boolean singleFrame;
 
     @Override
     public int decompress(@NonNull ByteBuffer src, @NonNull ByteBuffer dst) throws DataFormatException, ReadOnlyBufferException {
@@ -77,17 +76,7 @@ final class AircompressorV0ZstdOneshotDecompressor extends AbstractAircompressor
     }
 
     @Override
-    public void resetParameters() {
-        this.singleFrame = false;
-    }
-
-    @Override
     public void setDictionary(@ExtendedBorrow ZstdDecompressDictionary dictionary) throws IllegalArgumentException {
         checkArg(dictionary == null, "dictionary isn't supported!");
-    }
-
-    @Override
-    public void setSingleFrame(boolean singleFrame) {
-        this.singleFrame = singleFrame;
     }
 }

@@ -23,6 +23,7 @@ import io.airlift.compress.zstd.ZstdCompressor;
 import lombok.NonNull;
 import lombok.val;
 import net.daporkchop.lib.common.annotation.ExtendedBorrow;
+import net.daporkchop.lib.compression.generic.AbstractOneshotCompressor;
 import net.daporkchop.lib.compression.zstd.Zstd;
 import net.daporkchop.lib.compression.zstd.ZstdCompressDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdOneshotCompressor;
@@ -35,7 +36,7 @@ import static net.daporkchop.lib.common.util.PValidation.*;
 /**
  * @author DaPorkchop_
  */
-final class AircompressorV0ZstdOneshotCompressor extends AbstractAircompressorV0ZstdContext implements ZstdOneshotCompressor {
+final class AircompressorV0ZstdOneshotCompressor extends AbstractOneshotCompressor implements ZstdOneshotCompressor, AircompressorV0Context {
     private final ZstdCompressor compressor = new ZstdCompressor();
 
     @Override
@@ -61,11 +62,6 @@ final class AircompressorV0ZstdOneshotCompressor extends AbstractAircompressorV0
         src.position(src.limit());
         dst.position(dst.position() + dstSlice.position());
         return dstSlice.position();
-    }
-
-    @Override
-    public void resetParameters() {
-        //no-op
     }
 
     @Override

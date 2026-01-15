@@ -76,6 +76,15 @@ abstract class NativeZstdDCtx extends AbstractStreamingDecompressor implements Z
     }
 
     @Override
+    public final void resetStreamAndParameters() {
+        super.resetStream();
+        super.resetParameters();
+
+        this.functions.ZSTD_DCtx_reset(this.dctx.addr(), ZSTD_reset_session_and_parameters); //resetting session never fails
+        this.dictionary = null;
+    }
+
+    @Override
     public final void setDictionary(@ExtendedBorrow ZstdDecompressDictionary dictionary) throws IllegalArgumentException, IllegalStateException {
         this.ensureStreamInactive();
         checkArg(dictionary == null || dictionary instanceof NativeZstdDDict, dictionary);

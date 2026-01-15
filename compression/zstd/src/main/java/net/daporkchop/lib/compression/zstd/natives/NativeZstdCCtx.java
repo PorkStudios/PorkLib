@@ -80,6 +80,16 @@ abstract class NativeZstdCCtx extends AbstractStreamingCompressor implements Zst
     }
 
     @Override
+    public final void resetStreamAndParameters() {
+        super.resetStream();
+        super.resetParameters();
+
+        this.functions.ZSTD_CCtx_reset(this.cctx.addr(), ZSTD_reset_session_and_parameters); //resetting session and parameters never fails
+        this.remainingBytesToFlush = 0;
+        this.dictionary = null;
+    }
+
+    @Override
     public final void setLevel(int level) throws IllegalArgumentException, IllegalStateException {
         this.ensureStreamInactive();
         this.functions.checkForErrorAndThrow(this.functions.ZSTD_CCtx_setParameter(this.cctx.addr(), ZSTD_c_compressionLevel, Zstd.checkLevel(level)));

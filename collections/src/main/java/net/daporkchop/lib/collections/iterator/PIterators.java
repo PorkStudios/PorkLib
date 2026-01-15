@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2025 DaPorkchop_
+ * Copyright (c) 2018-2026 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -19,10 +19,16 @@
 
 package net.daporkchop.lib.collections.iterator;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.UtilityClass;
 
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.function.Consumer;
 
 /**
  * Helper methods for {@link Iterator}.
@@ -34,7 +40,7 @@ public class PIterators {
     /**
      * Returns an empty {@link Iterator} instance.
      *
-     * @return an empty {@link Iterator} instance
+     * @return an {@link Iterator}
      */
     public static <E> Iterator<E> empty() {
         return Collections.emptyIterator();
@@ -43,9 +49,81 @@ public class PIterators {
     /**
      * Returns an {@link Iterable} which always returns an empty {@link Iterator} instance.
      *
-     * @return an {@link Iterable} which always returns an empty {@link Iterator} instance
+     * @return an {@link Iterable}
      */
     public static <E> Iterable<E> emptyIterable() {
         return Collections::emptyIterator;
+    }
+
+    /**
+     * Returns an {@link Iterator} which provides read-only access to the given array.
+     *
+     * @param array the array
+     * @return an {@link Iterator}
+     */
+    public static <E> Iterator<E> array(E @NonNull [] array) {
+        return new ArrayIterator<>(array);
+    }
+
+    /**
+     * Returns an {@link Iterable} which provides read-only access to the given array.
+     *
+     * @param array the array
+     * @return an {@link Iterable}
+     */
+    public static <E> Iterable<E> arrayIterable(E @NonNull [] array) {
+        return new ArrayIterable<>(array);
+    }
+
+    @RequiredArgsConstructor
+    private static final class ArrayIterator<E> implements Iterator<E> {
+        private final E @NonNull [] array;
+        private int nextIndex;
+
+        @Override
+        public boolean hasNext() {
+            return this.nextIndex < this.array.length;
+        }
+
+        @Override
+        public E next() {
+            if (!this.hasNext()) {
+                throw new NoSuchElementException();
+            }
+
+            return this.array[this.nextIndex++];
+        }
+
+        @Override
+        public void forEachRemaining(@NonNull Consumer<? super E> action) {
+            E[] array = this.array;
+            int nextIndex = this.nextIndex;
+
+            while (nextIndex < array.length) {
+                action.accept(array[nextIndex++]);
+            }
+        }
+    }
+
+    @RequiredArgsConstructor
+    private static final class ArrayIterable<E> implements Iterable<E> {
+        private final E @NonNull [] array;
+
+        @Override
+        public Iterator<E> iterator() {
+            return new ArrayIterator<>(this.array);
+        }
+
+        @Override
+        public void forEach(@NonNull Consumer<? super E> action) {
+            for (E element : this.array) {
+                action.accept(element);
+            }
+        }
+
+        @Override
+        public Spliterator<E> spliterator() {
+            return Spliterators.spliterator(this.array, Spliterator.ORDERED);
+        }
     }
 }

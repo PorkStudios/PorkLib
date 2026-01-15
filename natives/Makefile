@@ -1,7 +1,5 @@
 export SHELL		:=	/bin/bash
 
-export NPROC		:=	$(shell nproc)
-
 export TARGET		:=	$(shell basename $(CURDIR))
 export TOPDIR		:=	$(CURDIR)
 export TOOLCHAINS	:=	$(CURDIR)/toolchain
@@ -9,7 +7,7 @@ export COMMONSRC	:=	$(CURDIR)/src/main/native
 
 FLAGS				:=	-shared -fPIC -ffunction-sections -fdata-sections -fvisibility=hidden
 FLAGS				+=	-O2
-FLAGS				+=	-flto=$(NPROC) -fno-fat-lto-objects
+FLAGS				+=	-flto=jobserver -fno-fat-lto-objects
 
 export CFLAGS		:=	$(FLAGS) -Wall
 export CXXFLAGS		:=	$(CFLAGS) -std=c++20

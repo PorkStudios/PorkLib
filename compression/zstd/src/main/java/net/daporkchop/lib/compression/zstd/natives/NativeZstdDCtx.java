@@ -21,6 +21,7 @@ package net.daporkchop.lib.compression.zstd.natives;
 
 import lombok.NonNull;
 import net.daporkchop.lib.common.annotation.ExtendedBorrow;
+import net.daporkchop.lib.compression.generic.AbstractOneshotDecompressor;
 import net.daporkchop.lib.compression.zstd.ZstdDecompressDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdOneshotDecompressor;
 
@@ -30,35 +31,37 @@ import static net.daporkchop.lib.compression.zstd.natives.NativeZstdFunctions.*;
 /**
  * @author DaPorkchop_
  */
-abstract class NativeZstdDCtx extends AbstractNativeZstdContext implements ZstdOneshotDecompressor {
+abstract class NativeZstdDCtx extends AbstractOneshotDecompressor implements ZstdOneshotDecompressor, NativeZstdContext {
+    final NativeZstdFunctions functions;
+    NativeZstdObject dctx;
+
+    //parameters
     private NativeZstdDDict dictionary;
-    boolean singleFrame;
 
     NativeZstdDCtx(@NonNull NativeZstdFunctions functions) {
-        super(functions, functions.ZSTD_createDCtx());
+        this.functions = functions;
+        this.dctx = NativeZstdObject.createDCtx(functions);
     }
 
     @Override
-    final Runnable freeCtxRunnable(@NonNull NativeZstdFunctions functions, long ctx) {
-        return () -> functions.ZSTD_freeDCtx(ctx);
+    public final void close() {
+        if (this.dctx != null) {
+            this.dctx.close();
+            this.dctx = null;
+        }
     }
 
     @Override
     public final void resetParameters() { //TODO: merge exception rules when we also implement streaming
-        this.functions.checkForErrorAndThrow(this.functions.ZSTD_DCtx_reset(this.ctx, ZSTD_reset_parameters));
+        super.resetParameters();
+        this.functions.checkForErrorAndThrow(this.functions.ZSTD_DCtx_reset(this.dctx.addr(), ZSTD_reset_parameters));
         this.dictionary = null;
-        this.singleFrame = false;
     }
 
     @Override
     public final void setDictionary(@ExtendedBorrow ZstdDecompressDictionary dictionary) throws IllegalArgumentException {
         checkArg(dictionary == null || dictionary instanceof NativeZstdDDict, dictionary);
         this.dictionary = (NativeZstdDDict) dictionary;
-        this.functions.checkForErrorAndThrow(this.functions.ZSTD_DCtx_refDDict(this.ctx, dictionary != null ? this.dictionary.dict : 0L));
-    }
-
-    @Override
-    public final void setSingleFrame(boolean singleFrame) {
-        this.singleFrame = singleFrame;
+        this.functions.checkForErrorAndThrow(this.functions.ZSTD_DCtx_refDDict(this.dctx.addr(), dictionary != null ? this.dictionary.dict : 0L));
     }
 }

@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2025 DaPorkchop_
+ * Copyright (c) 2018-2026 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -19,45 +19,15 @@
 
 package net.daporkchop.lib.compression.zstd.natives;
 
-import lombok.NonNull;
 import net.daporkchop.lib.compression.context.IContext;
 import net.daporkchop.lib.natives.util.MemoryPreference;
-import net.daporkchop.lib.unsafe.PCleaner;
 
 /**
  * @author DaPorkchop_
  */
-abstract class AbstractNativeZstdContext implements IContext {
-    final NativeZstdFunctions functions;
-
-    final long ctx;
-    private PCleaner cleaner;
-
-    AbstractNativeZstdContext(@NonNull NativeZstdFunctions functions, long ctx) {
-        this.functions = functions;
-        this.ctx = ctx;
-        this.cleaner = PCleaner.cleaner(this, this.freeCtxRunnable(functions, ctx));
-    }
-
-    final void ensureOpen() {
-        if (this.cleaner == null) {
-            throw new IllegalStateException("already closed!");
-        }
-    }
-
+interface NativeZstdContext extends IContext {
     @Override
-    public final void close() {
-        PCleaner cleaner = this.cleaner;
-        this.cleaner = null;
-        if (cleaner != null) {
-            cleaner.clean();
-        }
-    }
-
-    abstract Runnable freeCtxRunnable(@NonNull NativeZstdFunctions functions, long ctx);
-
-    @Override
-    public final MemoryPreference memoryPreference() {
+    default MemoryPreference memoryPreference() {
         return MemoryPreference.PREFER_DIRECT;
     }
 }

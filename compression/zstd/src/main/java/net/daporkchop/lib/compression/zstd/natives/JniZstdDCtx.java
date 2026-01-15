@@ -84,7 +84,7 @@ final class JniZstdDCtx extends NativeZstdDCtx {
             throw new UnsupportedOperationException(); //TODO: support single frame decompression
         }
 
-        long result = JniZstdFunctions.ZSTD_decompressDCtx(this.ctx,
+        long result = JniZstdFunctions.ZSTD_decompressDCtx(this.dctx.addr(),
                 srcArray, srcArrayLength, srcAddressOrOffset, src.remaining(),
                 dstArray, dstArrayLength, dstAddressOrOffset, dst.remaining());
 
@@ -146,7 +146,7 @@ final class JniZstdDCtx extends NativeZstdDCtx {
             throw new UnsupportedOperationException(); //TODO: support single frame decompression
         }
 
-        long result = JniZstdFunctions.ZSTD_decompressDCtx(this.ctx,
+        long result = JniZstdFunctions.ZSTD_decompressDCtx(this.dctx.addr(),
                 srcArray, srcArrayLength, srcAddressOrOffset, src.readableBytes(),
                 dstArray, dstArrayLength, dstAddressOrOffset, dst.writableBytes());
 

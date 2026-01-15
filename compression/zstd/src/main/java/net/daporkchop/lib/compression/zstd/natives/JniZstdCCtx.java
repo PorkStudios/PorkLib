@@ -80,7 +80,7 @@ final class JniZstdCCtx extends NativeZstdCCtx {
             throw new IllegalArgumentException("buffer not supported: " + dst);
         }
 
-        long result = JniZstdFunctions.ZSTD_compress2(this.ctx,
+        long result = JniZstdFunctions.ZSTD_compress2(this.cctx.addr(),
                 srcArray, srcArrayLength, srcAddressOrOffset, src.remaining(),
                 dstArray, dstArrayLength, dstAddressOrOffset, dst.remaining());
 
@@ -138,7 +138,7 @@ final class JniZstdCCtx extends NativeZstdCCtx {
             throw new CompositeBufferException(dst);
         }
 
-        long result = JniZstdFunctions.ZSTD_compress2(this.ctx,
+        long result = JniZstdFunctions.ZSTD_compress2(this.cctx.addr(),
                 srcArray, srcArrayLength, srcAddressOrOffset, src.readableBytes(),
                 dstArray, dstArrayLength, dstAddressOrOffset, dst.writableBytes());
 

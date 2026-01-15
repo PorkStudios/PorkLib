@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2025 DaPorkchop_
+ * Copyright (c) 2018-2026 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -21,9 +21,12 @@ package net.daporkchop.lib.compression.zstd.natives;
 
 import lombok.NonNull;
 import net.daporkchop.lib.common.annotation.ExtendedBorrow;
+import net.daporkchop.lib.compression.generic.AbstractOneshotCompressor;
+import net.daporkchop.lib.compression.generic.AbstractStreamingCompressor;
 import net.daporkchop.lib.compression.zstd.Zstd;
 import net.daporkchop.lib.compression.zstd.ZstdCompressDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdOneshotCompressor;
+import net.daporkchop.lib.unsafe.PCleaner;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 import static net.daporkchop.lib.compression.zstd.natives.NativeZstdFunctions.*;
@@ -31,22 +34,31 @@ import static net.daporkchop.lib.compression.zstd.natives.NativeZstdFunctions.*;
 /**
  * @author DaPorkchop_
  */
-abstract class NativeZstdCCtx extends AbstractNativeZstdContext implements ZstdOneshotCompressor {
+abstract class NativeZstdCCtx extends AbstractOneshotCompressor implements ZstdOneshotCompressor, NativeZstdContext {
+    final NativeZstdFunctions functions;
+    NativeZstdObject cctx;
+
+    //parameters
     private int level = Zstd.LEVEL_DEFAULT;
     private NativeZstdCDict dictionary;
 
     NativeZstdCCtx(@NonNull NativeZstdFunctions functions) {
-        super(functions, functions.ZSTD_createCCtx());
+        this.functions = functions;
+        this.cctx = NativeZstdObject.createCCtx(functions);
     }
 
     @Override
-    final Runnable freeCtxRunnable(@NonNull NativeZstdFunctions functions, long ctx) {
-        return () -> functions.ZSTD_freeCCtx(ctx);
+    public final void close() {
+        if (this.cctx != null) {
+            this.cctx.close();
+            this.cctx = null;
+        }
     }
 
     @Override
     public final void resetParameters() { //TODO: merge exception rules when we also implement streaming
-        this.functions.checkForErrorAndThrow(this.functions.ZSTD_CCtx_reset(this.ctx, ZSTD_reset_parameters));
+        super.resetParameters();
+        this.functions.checkForErrorAndThrow(this.functions.ZSTD_CCtx_reset(this.cctx.addr(), ZSTD_reset_parameters));
         this.level = Zstd.LEVEL_DEFAULT;
         this.dictionary = null;
     }
@@ -54,28 +66,28 @@ abstract class NativeZstdCCtx extends AbstractNativeZstdContext implements ZstdO
     @Override
     public final void setLevel(int level) throws IllegalArgumentException {
         this.level = Zstd.checkLevel(level);
-        this.functions.checkForErrorAndThrow(this.functions.ZSTD_CCtx_setParameter(this.ctx, ZSTD_c_compressionLevel, level));
+        this.functions.checkForErrorAndThrow(this.functions.ZSTD_CCtx_setParameter(this.cctx.addr(), ZSTD_c_compressionLevel, level));
     }
 
     @Override
     public final void setDictionary(@ExtendedBorrow ZstdCompressDictionary dictionary) throws IllegalArgumentException {
         checkArg(dictionary == null || dictionary instanceof NativeZstdCDict, dictionary);
         this.dictionary = (NativeZstdCDict) dictionary;
-        this.functions.checkForErrorAndThrow(this.functions.ZSTD_CCtx_refCDict(this.ctx, dictionary != null ? this.dictionary.dict : 0L));
+        this.functions.checkForErrorAndThrow(this.functions.ZSTD_CCtx_refCDict(this.cctx.addr(), dictionary != null ? this.dictionary.dict : 0L));
     }
 
     @Override
     public final void setChecksumFlag(boolean checksumFlag) throws IllegalArgumentException {
-        this.functions.checkForErrorAndThrow(this.functions.ZSTD_CCtx_setParameter(this.ctx, ZSTD_c_checksumFlag, checksumFlag ? 1 : 0));
+        this.functions.checkForErrorAndThrow(this.functions.ZSTD_CCtx_setParameter(this.cctx.addr(), ZSTD_c_checksumFlag, checksumFlag ? 1 : 0));
     }
 
     @Override
     public final void setContentSizeFlag(boolean contentSizeFlag) throws IllegalArgumentException {
-        this.functions.checkForErrorAndThrow(this.functions.ZSTD_CCtx_setParameter(this.ctx, ZSTD_c_contentSizeFlag, contentSizeFlag ? 1 : 0));
+        this.functions.checkForErrorAndThrow(this.functions.ZSTD_CCtx_setParameter(this.cctx.addr(), ZSTD_c_contentSizeFlag, contentSizeFlag ? 1 : 0));
     }
 
     @Override
     public final void setDictIdFlag(boolean dictIdFlag) throws IllegalArgumentException {
-        this.functions.checkForErrorAndThrow(this.functions.ZSTD_CCtx_setParameter(this.ctx, ZSTD_c_dictIDFlag, dictIdFlag ? 1 : 0));
+        this.functions.checkForErrorAndThrow(this.functions.ZSTD_CCtx_setParameter(this.cctx.addr(), ZSTD_c_dictIDFlag, dictIdFlag ? 1 : 0));
     }
 }

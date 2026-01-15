@@ -103,6 +103,10 @@ abstract class NativeZstdFunctions {
      */
     abstract void ZSTD_freeCCtx(long cctx);
 
+    Runnable freeCCtxRunnable(long cctx) {
+        return () -> this.ZSTD_freeCCtx(cctx);
+    }
+
     /**
      * Attaches a dictionary to a compression context.
      *
@@ -159,6 +163,10 @@ abstract class NativeZstdFunctions {
      * @param dctx the decompression context
      */
     abstract void ZSTD_freeDCtx(long dctx);
+
+    Runnable freeDCtxRunnable(long dctx) {
+        return () -> this.ZSTD_freeDCtx(dctx);
+    }
 
     /**
      * Attaches a dictionary to a decompression context.

@@ -74,16 +74,16 @@ public abstract class AbstractStreamingDecompressor extends AbstractStreamingCon
     }
 
     @Override
-    public InputStream wrapDecompressing(@NonNull InputStream src) {
+    public InputStream wrapDecompressing(@NonNull InputStream src) throws IllegalStateException {
         this.ensureNotSingleFrame();
-        this.resetStream();
+        this.ensureStreamInactive();
         return new GenericDecompressorInputStream(src, this);
     }
 
     @Override
-    public ReadableByteChannel wrapDecompressing(@NonNull ReadableByteChannel src) {
+    public ReadableByteChannel wrapDecompressing(@NonNull ReadableByteChannel src) throws IllegalStateException {
         this.ensureNotSingleFrame();
-        this.resetStream();
+        this.ensureStreamInactive();
         return new GenericDecompressorReadableByteChannel(src, this);
     }
 }

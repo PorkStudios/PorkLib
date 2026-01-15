@@ -35,7 +35,8 @@ public interface ZstdStreamingCompressor extends PStreamingCompressor, ZstdCompr
      * This parameter may only be set while the compressor is not currently compressing a ZSTD frame, i.e. the compressor must be reset or
      * have been flushed with either {@link FlushMode#FULL} or {@link FlushMode#FINISH}.
      * <p>
-     * This parameter only applies to the next ZSTD frame, it will be reset when the next frame is completed or the stream (note: NOT parameters!) is reset.
+     * This parameter only applies to the next ZSTD frame, it will be reset when the next frame is completed or the stream (note: NOT parameters!) is reset. It also
+     * applies to the next frame written by one of the {@link #wrapCompressing compressing stream wrappers}.
      * <p>
      * The default value is {@link -1}.
      *

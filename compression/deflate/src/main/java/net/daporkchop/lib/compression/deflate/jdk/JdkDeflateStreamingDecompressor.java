@@ -60,9 +60,9 @@ final class JdkDeflateStreamingDecompressor extends AbstractStreamingDecompresso
     }
 
     @Override
-    public InputStream wrapDecompressing(@NonNull InputStream src) {
+    public InputStream wrapDecompressing(@NonNull InputStream src) throws IllegalStateException {
         this.ensureNotSingleFrame();
-        this.resetStream();
+        this.ensureStreamInactive();
         return new InflaterInputStream(src, this.inflater);
     }
 

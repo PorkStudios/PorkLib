@@ -72,11 +72,11 @@ final class JdkDeflateStreamingCompressor extends AbstractStreamingCompressor im
     }
 
     @Override
-    public OutputStream wrapCompressing(@NonNull OutputStream dst, @NonNull FlushMode flush) throws IllegalArgumentException {
+    public OutputStream wrapCompressing(@NonNull OutputStream dst, @NonNull FlushMode flush) throws IllegalArgumentException, IllegalStateException {
         switch (flush) {
             case NO:
             case SYNC:
-                this.resetStream();
+                this.ensureStreamInactive();
                 return new DeflaterOutputStream(dst, this.deflater, flush == FlushMode.SYNC);
             default:
                 return super.wrapCompressing(dst, flush);

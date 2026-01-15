@@ -40,8 +40,6 @@ public interface PStreamingCompressor extends StreamingContext, GenericCompressP
     /**
      * Creates an {@link OutputStream} which will compress data written to it and write the compressed data to the given {@link OutputStream}.
      * <p>
-     * This compressor will be automatically {@link #resetStream() reset}, cancelling any ongoing compression work.
-     * <p>
      * The returned {@link OutputStream} will borrow ownership of this context until explicitly {@link OutputStream#close() closed}. In particular,
      * context state such as {@link #getLastReadBytes()}/{@link #getLastWrittenBytes()} are meaningless when streaming in this way and so their values are not defined.
      * Additionally, the {@link #compress} methods cannot be used while the {@link OutputStream} is open.
@@ -56,8 +54,9 @@ public interface PStreamingCompressor extends StreamingContext, GenericCompressP
      * @param flush the {@link FlushMode} to use when {@link OutputStream#flush()} is called. If you don't care, use {@link FlushMode#NO}.
      * @return an {@link OutputStream}
      * @throws IllegalArgumentException if the provided {@link FlushMode} is {@link FlushMode#FINISH}
+     * @throws IllegalStateException if any compression work is currently ongoing (i.e. the compressor isn't in a {@link #resetStream() reset} state)
      */
-    OutputStream wrapCompressing(@NonNull OutputStream dst, @NonNull FlushMode flush) throws IllegalArgumentException;
+    OutputStream wrapCompressing(@NonNull OutputStream dst, @NonNull FlushMode flush) throws IllegalArgumentException, IllegalStateException;
 
     /**
      * Creates a {@link WritableByteChannel} which will compress data written to it and write the compressed data to the given {@link WritableByteChannel}.
@@ -73,8 +72,9 @@ public interface PStreamingCompressor extends StreamingContext, GenericCompressP
      *
      * @param dst the {@link WritableByteChannel} to write to
      * @return a {@link WritableByteChannel}
+     * @throws IllegalStateException if any compression work is currently ongoing (i.e. the compressor isn't in a {@link #resetStream() reset} state)
      */
-    WritableByteChannel wrapCompressing(@NonNull WritableByteChannel dst);
+    WritableByteChannel wrapCompressing(@NonNull WritableByteChannel dst) throws IllegalStateException;
 
     /**
      * @return a hint for the remaining number of bytes to be flushed to the output

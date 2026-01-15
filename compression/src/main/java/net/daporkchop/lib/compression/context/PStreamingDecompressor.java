@@ -54,8 +54,9 @@ public interface PStreamingDecompressor extends StreamingContext, GenericDecompr
      * @param src the {@link InputStream} to read from
      * @return an {@link InputStream}
      * @throws UnsupportedOperationException if the {@link #setSingleFrame(boolean) single frame} parameter is set to {@code true}
+     * @throws IllegalStateException if any compression work is currently ongoing (i.e. the compressor isn't in a {@link #resetStream() reset} state)
      */
-    InputStream wrapDecompressing(@NonNull InputStream src);
+    InputStream wrapDecompressing(@NonNull InputStream src) throws IllegalStateException;
 
     /**
      * Creates a {@link ReadableByteChannel} which will read compressed data from the given {@link ReadableByteChannel} and decompress it.
@@ -73,8 +74,9 @@ public interface PStreamingDecompressor extends StreamingContext, GenericDecompr
      * @param src the {@link ReadableByteChannel} to read from
      * @return a {@link ReadableByteChannel}
      * @throws UnsupportedOperationException if the {@link #setSingleFrame(boolean) single frame} parameter is set to {@code true}
+     * @throws IllegalStateException if any compression work is currently ongoing (i.e. the compressor isn't in a {@link #resetStream() reset} state)
      */
-    ReadableByteChannel wrapDecompressing(@NonNull ReadableByteChannel src);
+    ReadableByteChannel wrapDecompressing(@NonNull ReadableByteChannel src) throws IllegalStateException;
 
     /**
      * @return a hint for the suggested minimum number of input bytes to provide to the next call to {@link #decompress}

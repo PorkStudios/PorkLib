@@ -63,15 +63,15 @@ public abstract class AbstractStreamingCompressor extends AbstractStreamingConte
     }
 
     @Override
-    public OutputStream wrapCompressing(@NonNull OutputStream dst, @NonNull FlushMode flush) throws IllegalArgumentException {
+    public OutputStream wrapCompressing(@NonNull OutputStream dst, @NonNull FlushMode flush) throws IllegalArgumentException, IllegalStateException {
         this.ensureNotFinishMode(flush);
-        this.resetStream();
+        this.ensureStreamInactive();
         return new GenericCompressorOutputStream(dst, this, flush);
     }
 
     @Override
-    public WritableByteChannel wrapCompressing(@NonNull WritableByteChannel dst) {
-        this.resetStream();
+    public WritableByteChannel wrapCompressing(@NonNull WritableByteChannel dst) throws IllegalStateException {
+        this.ensureStreamInactive();
         return new GenericCompressorWritableByteChannel(dst, this);
     }
 }

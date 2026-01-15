@@ -33,7 +33,7 @@ public final class JniZstdProvider extends AbstractNativeZstdProvider {
     static {
         try {
             JniLoader.loadNamedRelocatableLibrary(
-                    MethodHandles.lookup(), "porklib_compression_zstd_native_jni",
+                    MethodHandles.lookup(), "porklib_compression_zstd_jni",
                     "net!daporkchop!lib!compression!zstd!natives!JniZstdProvider",
                     JniLoader.namedLibraryFromResourceLoader(""));
         } catch (Throwable caught) {

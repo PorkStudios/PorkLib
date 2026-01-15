@@ -7,7 +7,7 @@
 #include <lib-zstd/lib/zstd.h>
 #include <lib-zstd/lib/zstd_errors.h>
 
-#define PORKLIB_COMPRESSION_ZSTD_NATIVE_JNI_PACKAGE "net/daporkchop/lib/compression/zstd/natives/"
+#define PORKLIB_COMPRESSION_ZSTD_JNI_PACKAGE "net/daporkchop/lib/compression/zstd/natives/"
 
 namespace porklib::compression::zstd::jni::JniZstdFunctions {
     static jboolean JNICALL isError(JNIEnv* env, jobject, jlong code) {
@@ -233,7 +233,7 @@ namespace porklib::compression::zstd::jni::JniZstdFunctions {
 
 namespace porklib::compression::zstd::jni {
     static jint OnLoad(JNIEnv* env, porklib::jni::LoadParams params) {
-        return porklib::jni::registerNatives(env, params, PORKLIB_COMPRESSION_ZSTD_NATIVE_JNI_PACKAGE "JniZstdFunctions", {{
+        return porklib::jni::registerNatives(env, params, PORKLIB_COMPRESSION_ZSTD_JNI_PACKAGE "JniZstdFunctions", {{
             porklib::jni::makeJNINativeMethod("ZSTD_isError", "(J)Z", JniZstdFunctions::isError),
             porklib::jni::makeJNINativeMethod("ZSTD_getErrorCode", "(J)I", JniZstdFunctions::getErrorCode),
             porklib::jni::makeJNINativeMethod("ZSTD_getErrorName", "(J)Ljava/lang/String;", JniZstdFunctions::getErrorName),
@@ -266,8 +266,8 @@ namespace porklib::compression::zstd::jni {
     }
 
     static void OnUnload(JNIEnv* env, porklib::jni::UnloadParams params) {
-        porklib::jni::unregisterNatives(env, params, PORKLIB_COMPRESSION_ZSTD_NATIVE_JNI_PACKAGE "JniZstdFunctions");
+        porklib::jni::unregisterNatives(env, params, PORKLIB_COMPRESSION_ZSTD_JNI_PACKAGE "JniZstdFunctions");
     }
 }
 
-PORKLIB_JNI_REGISTER_LOADERS(porklib_compression_zstd_native_jni, porklib::compression::zstd::jni::OnLoad, porklib::compression::zstd::jni::OnUnload)
+PORKLIB_JNI_REGISTER_LOADERS(porklib_compression_zstd_jni, porklib::compression::zstd::jni::OnLoad, porklib::compression::zstd::jni::OnUnload)

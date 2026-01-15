@@ -23,7 +23,7 @@ MAKEFILES		:=	$(TOPDIR)/Makefile $(TOOLCHAINS)/$(BUILD) $(PROJDIR)/Makefile
 #dummy rule
 $(TOOLCHAINS)/$(BUILD):
 
-SOURCES			:=	$(PROJDIR)/src/main/native/common $(PROJDIR)/src/main/native/$(BUILD) $(COMMONSRC)/common $(COMMONSRC)/$(BUILD)
+SOURCES			:=	$(PROJDIR)/src/main/native $(COMMONSRC)/common $(COMMONSRC)/$(BUILD)
 SOURCES			:=	$(abspath $(SOURCES))
 
 CPPFILES		:=	$(foreach dir,$(SOURCES),$(wildcard $(dir)/*.cpp))

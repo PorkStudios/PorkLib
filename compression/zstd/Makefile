@@ -57,6 +57,7 @@ $(CURDIR)/lib-zstd/lib/libzstd.a: $(CURDIR)/lib-zstd/lib/zstd.h $(MAKEFILES)
 $(CURDIR)/lib-zstd/lib/zstd.h: $(TOPDIR)/zstd-1.5.7.tar.gz
 	@[ ! -d lib-zstd ] || rm -rf lib-zstd/
 	@tar zxf $(TOPDIR)/zstd-1.5.7.tar.gz
+	@touch zstd-1.5.7/lib/zstd.h
 	@mv zstd-1.5.7/ lib-zstd/
 
 endif

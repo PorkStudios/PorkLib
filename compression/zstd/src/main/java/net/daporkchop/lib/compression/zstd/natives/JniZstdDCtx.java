@@ -19,11 +19,8 @@
 
 package net.daporkchop.lib.compression.zstd.natives;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufUtil;
 import lombok.NonNull;
 import net.daporkchop.lib.common.util.PNioBuffers;
-import net.daporkchop.lib.compression.util.exception.CompositeBufferException;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.nio.ByteBuffer;
@@ -119,71 +116,6 @@ final class JniZstdDCtx extends NativeZstdDCtx {
                 //success, advance buffer indices (we assume that the result is in bounds and therefore won't overflow)
                 src.position(src.limit());
                 dst.position(dst.position() + (int) result);
-                return (int) result;
-            case ZSTD_error_dstSize_tooSmall:
-                return -1;
-            default:
-                throw new DataFormatException(this.functions.ZSTD_getErrorName(result));
-        }
-    }
-
-    @Override
-    public int decompress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws DataFormatException, ReadOnlyBufferException, CompositeBufferException {
-        if (this.singleFrame) {
-            //ByteBuffer overload has the stuff for single-frame decompression
-            return super.decompress(src, dst);
-        }
-
-        this.resetStream();
-
-        //get buffer pointers
-        byte[] srcArray;
-        int srcArrayLength;
-        long srcAddressOrOffset;
-        if (src.hasMemoryAddress()) {
-            srcArray = null;
-            srcArrayLength = 0;
-            srcAddressOrOffset = src.memoryAddress() + src.readerIndex();
-        } else if (src.hasArray()) {
-            srcArray = src.array();
-            srcArrayLength = srcArray.length;
-            srcAddressOrOffset = src.arrayOffset() + src.readerIndex();
-        } else {
-            // This is most likely either a read-only heap buffer, a composite buffer, or another buffer of some unknown type.
-            // Since we can't access the underlying storage, we'll copy it to a heap array (slow!!!)
-            //TODO: maybe do streaming decompression here if the source data is composite and/or if the source data is very big
-            srcArray = ByteBufUtil.getBytes(src);
-            srcArrayLength = srcArray.length;
-            srcAddressOrOffset = 0;
-        }
-
-        byte[] dstArray;
-        int dstArrayLength;
-        long dstAddressOrOffset;
-        if (dst.isReadOnly()) {
-            throw new ReadOnlyBufferException();
-        } else if (dst.hasMemoryAddress()) {
-            dstArray = null;
-            dstArrayLength = 0;
-            dstAddressOrOffset = dst.memoryAddress() + dst.writerIndex();
-        } else if (dst.hasArray()) {
-            dstArray = dst.array();
-            dstArrayLength = dstArray.length;
-            dstAddressOrOffset = dst.arrayOffset() + dst.writerIndex();
-        } else {
-            // This is almost certainly a composite buffer, we won't bother handling it.
-            throw new CompositeBufferException(dst);
-        }
-
-        long result = JniZstdFunctions.ZSTD_decompressDCtx(this.dctx.addr(),
-                srcArray, srcArrayLength, srcAddressOrOffset, src.readableBytes(),
-                dstArray, dstArrayLength, dstAddressOrOffset, dst.writableBytes());
-
-        switch (this.functions.ZSTD_getErrorCode(result)) {
-            case ZSTD_error_no_error:
-                //success, advance buffer indices (we assume that the result is in bounds and therefore won't overflow)
-                src.skipBytes(src.readableBytes());
-                dst.writerIndex(dst.writerIndex() + (int) result);
                 return (int) result;
             case ZSTD_error_dstSize_tooSmall:
                 return -1;

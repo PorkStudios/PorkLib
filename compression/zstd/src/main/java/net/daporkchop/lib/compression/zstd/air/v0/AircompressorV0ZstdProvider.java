@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2025 DaPorkchop_
+ * Copyright (c) 2018-2026 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -37,7 +37,8 @@ import java.nio.ByteOrder;
         supportsCompressionLevel = false,
         supportsChecksumFlag = false,
         supportsContentSizeFlag = false,
-        supportsDictIdFlag = false)
+        supportsDictIdFlag = false,
+        supportsPledgedSrcSize = false)
 public final class AircompressorV0ZstdProvider implements ZstdOneshotProvider {
     private static final Throwable UNAVAILABILITY_CAUSE;
 

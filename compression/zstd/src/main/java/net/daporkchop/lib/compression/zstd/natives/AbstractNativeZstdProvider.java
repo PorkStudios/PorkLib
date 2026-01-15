@@ -33,7 +33,8 @@ import net.daporkchop.lib.natives.util.MemoryPreference;
         supportsDictionary = true,
         supportsChecksumFlag = true,
         supportsContentSizeFlag = true,
-        supportsDictIdFlag = true)
+        supportsDictIdFlag = true,
+        supportsPledgedSrcSize = true)
 abstract class AbstractNativeZstdProvider implements ZstdStreamingProvider {
     @Override
     public final ZstdOneshotFactory getOneshotFactory() throws UnsatisfiedLinkError {

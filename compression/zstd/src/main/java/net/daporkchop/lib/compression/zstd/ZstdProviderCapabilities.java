@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2025 DaPorkchop_
+ * Copyright (c) 2018-2026 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -65,4 +65,9 @@ public @interface ZstdProviderCapabilities {
      * {@code true} iff. the implementation supports compression with the dictionary ID flag set to {@code false}.
      */
     boolean supportsDictIdFlag();
+
+    /**
+     * {@code true} iff. the implementation supports streaming compression with a pledged frame size
+     */
+    boolean supportsPledgedSrcSize();
 }

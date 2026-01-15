@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2025 DaPorkchop_
+ * Copyright (c) 2018-2026 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -27,6 +27,8 @@ import net.daporkchop.lib.compression.zstd.ZstdCompressDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdDecompressDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdOneshotCompressor;
 import net.daporkchop.lib.compression.zstd.ZstdOneshotDecompressor;
+import net.daporkchop.lib.compression.zstd.ZstdStreamingCompressor;
+import net.daporkchop.lib.compression.zstd.ZstdStreamingDecompressor;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.nio.ByteBuffer;
@@ -100,6 +102,16 @@ final class JniZstdFactory extends AbstractNativeZstdFactory {
 
     @Override
     public ZstdOneshotDecompressor makeOneshotDecompressor() {
+        return new JniZstdDCtx(this.functions);
+    }
+
+    @Override
+    public ZstdStreamingCompressor makeStreamingCompressor() {
+        return new JniZstdCCtx(this.functions);
+    }
+
+    @Override
+    public ZstdStreamingDecompressor makeStreamingDecompressor() {
         return new JniZstdDCtx(this.functions);
     }
 }

@@ -20,10 +20,16 @@
 package net.daporkchop.lib.compression.zstd.natives;
 
 import lombok.NonNull;
+import lombok.val;
 import net.daporkchop.lib.common.annotation.ExtendedBorrow;
-import net.daporkchop.lib.compression.generic.AbstractOneshotDecompressor;
+import net.daporkchop.lib.compression.generic.AbstractStreamingDecompressor;
 import net.daporkchop.lib.compression.zstd.ZstdDecompressDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdOneshotDecompressor;
+import net.daporkchop.lib.compression.zstd.ZstdStreamingDecompressor;
+
+import java.nio.ByteBuffer;
+import java.nio.ReadOnlyBufferException;
+import java.util.zip.DataFormatException;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 import static net.daporkchop.lib.compression.zstd.natives.NativeZstdFunctions.*;
@@ -31,9 +37,15 @@ import static net.daporkchop.lib.compression.zstd.natives.NativeZstdFunctions.*;
 /**
  * @author DaPorkchop_
  */
-abstract class NativeZstdDCtx extends AbstractOneshotDecompressor implements ZstdOneshotDecompressor, NativeZstdContext {
+abstract class NativeZstdDCtx extends AbstractStreamingDecompressor implements ZstdOneshotDecompressor, ZstdStreamingDecompressor, NativeZstdContext {
+    static final byte STATE_RESET = 0;
+    static final byte STATE_AWAIT_FRAME = 1;
+    static final byte STATE_DECOMPRESS = 2;
+
     final NativeZstdFunctions functions;
     NativeZstdObject dctx;
+
+    private byte state = STATE_RESET;
 
     //parameters
     private NativeZstdDDict dictionary;
@@ -52,16 +64,97 @@ abstract class NativeZstdDCtx extends AbstractOneshotDecompressor implements Zst
     }
 
     @Override
-    public final void resetParameters() { //TODO: merge exception rules when we also implement streaming
+    protected final boolean isStreamOngoing() {
+        return this.state != STATE_RESET;
+    }
+
+    @Override
+    public final void resetStream() {
+        super.resetStream();
+
+        this.functions.ZSTD_DCtx_reset(this.dctx.addr(), ZSTD_reset_session_only); //resetting session never fails
+        this.state = STATE_RESET;
+    }
+
+    @Override
+    public final void resetParameters() throws IllegalStateException {
         super.resetParameters();
+
         this.functions.checkForErrorAndThrow(this.functions.ZSTD_DCtx_reset(this.dctx.addr(), ZSTD_reset_parameters));
         this.dictionary = null;
     }
 
     @Override
-    public final void setDictionary(@ExtendedBorrow ZstdDecompressDictionary dictionary) throws IllegalArgumentException {
+    public final void setDictionary(@ExtendedBorrow ZstdDecompressDictionary dictionary) throws IllegalArgumentException, IllegalStateException {
+        this.ensureStreamInactive();
         checkArg(dictionary == null || dictionary instanceof NativeZstdDDict, dictionary);
         this.dictionary = (NativeZstdDDict) dictionary;
         this.functions.checkForErrorAndThrow(this.functions.ZSTD_DCtx_refDDict(this.dctx.addr(), dictionary != null ? this.dictionary.dict : 0L));
     }
+
+    @Override
+    public final boolean decompress(@NonNull ByteBuffer src, @NonNull ByteBuffer dst, boolean eof) throws DataFormatException, ReadOnlyBufferException {
+        this.setLastReadWrittenBytes(0, 0);
+
+        if (dst.isReadOnly()) {
+            throw new ReadOnlyBufferException();
+        }
+
+        if (this.state == STATE_RESET) {
+            this.state = STATE_AWAIT_FRAME;
+        }
+
+        this.validateEofParameter(eof);
+
+        while (true) {
+            if (this.state == STATE_AWAIT_FRAME) {
+                if (!src.hasRemaining()) {
+                    if (eof) {
+                        if (this.singleFrame) {
+                            //we've reached the end of the input stream and there's no input data remaining, but not a single ZSTD frame has been decompressed so we're going to abort
+                            throw new DataFormatException("empty input stream is not allowed in single frame mode");
+                        } else {
+                            //we've reached the end of the input stream and there's no input data remaining, so we're finished here :)
+                            this.resetStream();
+                            return true;
+                        }
+                    } else {
+                        //wait for more input
+                        return false;
+                    }
+                } else {
+                    //there is some input available, begin decompressing the next frame
+                    this.state = STATE_DECOMPRESS;
+                }
+            }
+
+            if (this.state == STATE_DECOMPRESS) {
+                val initialSrcPosition = src.position();
+                val initialDstPosition = dst.position();
+
+                long result = this.ZSTD_decompressStream(src, dst);
+                this.addLastReadWrittenBytes(src.position() - initialSrcPosition, dst.position() - initialDstPosition);
+
+                if (this.functions.ZSTD_isError(result)) {
+                    throw new DataFormatException(this.functions.ZSTD_getErrorName(result));
+                } else if (result != 0) {
+                    //wait for more input or output space
+                    return false;
+                } else {
+                    //the frame has been completely decoded and fully flushed
+                    if (this.singleFrame) {
+                        //stop after completing a single frame
+                        this.resetStream();
+                        return true;
+                    } else {
+                        //wait for the next ZSTD frame or EOF
+                        this.state = STATE_AWAIT_FRAME;
+                        continue; //jump back to function beginning, STATE_AWAIT_FRAME is handled at the top
+                    }
+                }
+            }
+        }
+    }
+
+    protected abstract long ZSTD_decompressStream(ByteBuffer src, ByteBuffer dst);
 }

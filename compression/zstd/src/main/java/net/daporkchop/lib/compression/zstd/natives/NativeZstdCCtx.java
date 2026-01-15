@@ -20,13 +20,18 @@
 package net.daporkchop.lib.compression.zstd.natives;
 
 import lombok.NonNull;
+import lombok.val;
 import net.daporkchop.lib.common.annotation.ExtendedBorrow;
-import net.daporkchop.lib.compression.generic.AbstractOneshotCompressor;
+import net.daporkchop.lib.common.annotation.param.NotNegative;
 import net.daporkchop.lib.compression.generic.AbstractStreamingCompressor;
 import net.daporkchop.lib.compression.zstd.Zstd;
 import net.daporkchop.lib.compression.zstd.ZstdCompressDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdOneshotCompressor;
-import net.daporkchop.lib.unsafe.PCleaner;
+import net.daporkchop.lib.compression.zstd.ZstdStreamingCompressor;
+import net.daporkchop.lib.natives.NativeException;
+
+import java.nio.ByteBuffer;
+import java.nio.ReadOnlyBufferException;
 
 import static net.daporkchop.lib.common.util.PValidation.*;
 import static net.daporkchop.lib.compression.zstd.natives.NativeZstdFunctions.*;
@@ -34,9 +39,15 @@ import static net.daporkchop.lib.compression.zstd.natives.NativeZstdFunctions.*;
 /**
  * @author DaPorkchop_
  */
-abstract class NativeZstdCCtx extends AbstractOneshotCompressor implements ZstdOneshotCompressor, NativeZstdContext {
+abstract class NativeZstdCCtx extends AbstractStreamingCompressor implements ZstdOneshotCompressor, ZstdStreamingCompressor, NativeZstdContext {
+    static final byte STATE_RESET = 0;
+    static final byte STATE_COMPRESS = 1;
+
     final NativeZstdFunctions functions;
     NativeZstdObject cctx;
+
+    private byte state = STATE_RESET;
+    private long remainingBytesToFlush;
 
     //parameters
     private int level = Zstd.LEVEL_DEFAULT;
@@ -56,38 +67,127 @@ abstract class NativeZstdCCtx extends AbstractOneshotCompressor implements ZstdO
     }
 
     @Override
-    public final void resetParameters() { //TODO: merge exception rules when we also implement streaming
+    protected final boolean isStreamOngoing() {
+        return this.state != STATE_RESET;
+    }
+
+    @Override
+    public final void resetStream() {
+        super.resetStream();
+
+        this.functions.ZSTD_CCtx_reset(this.cctx.addr(), ZSTD_reset_session_only); //resetting session never fails
+        this.state = STATE_RESET;
+        this.remainingBytesToFlush = 0;
+    }
+
+    @Override
+    public final void resetParameters() throws IllegalStateException {
         super.resetParameters();
+
         this.functions.checkForErrorAndThrow(this.functions.ZSTD_CCtx_reset(this.cctx.addr(), ZSTD_reset_parameters));
         this.level = Zstd.LEVEL_DEFAULT;
         this.dictionary = null;
     }
 
     @Override
-    public final void setLevel(int level) throws IllegalArgumentException {
+    public final void setLevel(int level) throws IllegalArgumentException, IllegalStateException {
+        this.ensureStreamInactive();
         this.level = Zstd.checkLevel(level);
         this.functions.checkForErrorAndThrow(this.functions.ZSTD_CCtx_setParameter(this.cctx.addr(), ZSTD_c_compressionLevel, level));
     }
 
     @Override
-    public final void setDictionary(@ExtendedBorrow ZstdCompressDictionary dictionary) throws IllegalArgumentException {
+    public final void setDictionary(@ExtendedBorrow ZstdCompressDictionary dictionary) throws IllegalArgumentException, IllegalStateException {
+        this.ensureStreamInactive();
         checkArg(dictionary == null || dictionary instanceof NativeZstdCDict, dictionary);
         this.dictionary = (NativeZstdCDict) dictionary;
         this.functions.checkForErrorAndThrow(this.functions.ZSTD_CCtx_refCDict(this.cctx.addr(), dictionary != null ? this.dictionary.dict : 0L));
     }
 
     @Override
-    public final void setChecksumFlag(boolean checksumFlag) throws IllegalArgumentException {
+    public final void setChecksumFlag(boolean checksumFlag) throws IllegalStateException {
+        this.ensureStreamInactive();
         this.functions.checkForErrorAndThrow(this.functions.ZSTD_CCtx_setParameter(this.cctx.addr(), ZSTD_c_checksumFlag, checksumFlag ? 1 : 0));
     }
 
     @Override
-    public final void setContentSizeFlag(boolean contentSizeFlag) throws IllegalArgumentException {
+    public final void setContentSizeFlag(boolean contentSizeFlag) throws IllegalStateException {
+        this.ensureStreamInactive();
         this.functions.checkForErrorAndThrow(this.functions.ZSTD_CCtx_setParameter(this.cctx.addr(), ZSTD_c_contentSizeFlag, contentSizeFlag ? 1 : 0));
     }
 
     @Override
-    public final void setDictIdFlag(boolean dictIdFlag) throws IllegalArgumentException {
+    public final void setDictIdFlag(boolean dictIdFlag) throws IllegalStateException {
+        this.ensureStreamInactive();
         this.functions.checkForErrorAndThrow(this.functions.ZSTD_CCtx_setParameter(this.cctx.addr(), ZSTD_c_dictIDFlag, dictIdFlag ? 1 : 0));
     }
+
+    @Override
+    public final @NotNegative long getRequestedOutputBytes() {
+        return this.remainingBytesToFlush;
+    }
+
+    @Override
+    public final boolean compress(@NonNull ByteBuffer src, @NonNull ByteBuffer dst, @NonNull FlushMode flush) throws ReadOnlyBufferException {
+        this.setLastReadWrittenBytes(0, 0);
+
+        if (dst.isReadOnly()) {
+            throw new ReadOnlyBufferException();
+        }
+
+        this.validateFlushParameter(flush);
+
+        if (this.state == STATE_RESET) {
+            this.state = STATE_COMPRESS;
+        }
+
+        final int endOp;
+        switch (flush) {
+            case NO:
+                endOp = ZSTD_e_continue;
+                break;
+            case SYNC:
+                endOp = ZSTD_e_flush;
+                break;
+            case FULL:
+            case FINISH:
+                endOp = ZSTD_e_end;
+                break;
+            default:
+                throw new IllegalArgumentException(String.valueOf(flush));
+        }
+
+        val initialSrcPosition = src.position();
+        val initialDstPosition = dst.position();
+
+        long result = this.ZSTD_compressStream2(src, dst, endOp);
+
+        this.setLastReadWrittenBytes(src.position() - initialSrcPosition, dst.position() - initialDstPosition);
+
+        if (this.functions.ZSTD_isError(result)) {
+            throw new NativeException(this.functions.ZSTD_getErrorName(result));
+        }
+
+        this.remainingBytesToFlush = result;
+        if (result != 0) {
+            //wait for more output space
+            return false;
+        } else {
+            switch (endOp) {
+                case ZSTD_e_continue:
+                case ZSTD_e_flush:
+                    //no more output space is required
+                    this.handlePartialFlushComplete();
+                    return true;
+                case ZSTD_e_end:
+                    //compression is done, we can reset the stream now :)
+                    this.resetStream();
+                    return true;
+                default:
+                    throw new IllegalArgumentException(String.valueOf(endOp));
+            }
+        }
+    }
+
+    protected abstract long ZSTD_compressStream2(ByteBuffer src, ByteBuffer dst, int endOp);
 }

@@ -36,12 +36,16 @@ import static net.daporkchop.lib.compression.zstd.natives.NativeZstdFunctions.*;
  * @author DaPorkchop_
  */
 final class JniZstdCCtx extends NativeZstdCCtx {
+    private final long[] nbytesArray = new long[2];
+
     JniZstdCCtx(@NonNull NativeZstdFunctions functions) {
         super(functions);
     }
 
     @Override
     public int compress(@NonNull ByteBuffer src, @NonNull ByteBuffer dst) throws ReadOnlyBufferException {
+        this.resetStream();
+
         //get buffer pointers
         byte[] srcArray;
         int srcArrayLength;
@@ -99,6 +103,8 @@ final class JniZstdCCtx extends NativeZstdCCtx {
 
     @Override
     public int compress(@NonNull ByteBuf src, @NonNull ByteBuf dst) throws ReadOnlyBufferException, CompositeBufferException {
+        this.resetStream();
+
         //get buffer pointers
         byte[] srcArray;
         int srcArrayLength;
@@ -153,5 +159,57 @@ final class JniZstdCCtx extends NativeZstdCCtx {
             default:
                 throw new NativeException(this.functions.ZSTD_getErrorName(result));
         }
+    }
+
+    @Override
+    protected long ZSTD_compressStream2(ByteBuffer src, ByteBuffer dst, int endOp) {
+        //get buffer pointers
+        byte[] srcArray;
+        int srcArrayLength;
+        long srcAddressOrOffset;
+        if (src.isDirect()) {
+            srcArray = null;
+            srcArrayLength = 0;
+            srcAddressOrOffset = PUnsafe.pork_directBufferAddress(src) + src.position();
+        } else if (src.hasArray()) {
+            srcArray = src.array();
+            srcArrayLength = srcArray.length;
+            srcAddressOrOffset = src.arrayOffset() + src.position();
+        } else {
+            // This is most likely a read-only heap buffer, or another buffer of some unknown type.
+            // Since we can't access the underlying storage, we'll copy it to a heap array (slow!!!)
+            //TODO: maybe do streaming compression here if the source data is very big?
+            srcArray = PNioBuffers.toArray(src);
+            srcArrayLength = srcArray.length;
+            srcAddressOrOffset = 0;
+        }
+
+        byte[] dstArray;
+        int dstArrayLength;
+        long dstAddressOrOffset;
+        if (dst.isReadOnly()) {
+            throw new ReadOnlyBufferException();
+        } else if (dst.isDirect()) {
+            dstArray = null;
+            dstArrayLength = 0;
+            dstAddressOrOffset = PUnsafe.pork_directBufferAddress(dst) + dst.position();
+        } else if (dst.hasArray()) {
+            dstArray = dst.array();
+            dstArrayLength = dstArray.length;
+            dstAddressOrOffset = dst.arrayOffset() + dst.position();
+        } else {
+            throw new IllegalArgumentException("buffer not supported: " + dst);
+        }
+
+        long result = JniZstdFunctions.ZSTD_compressStream2(this.cctx.addr(),
+                srcArray, srcArrayLength, srcAddressOrOffset, src.remaining(),
+                dstArray, dstArrayLength, dstAddressOrOffset, dst.remaining(),
+                endOp, this.nbytesArray);
+
+        //advance buffer indices (we assume that the result is in bounds and therefore won't overflow)
+        src.position(src.position() + (int) this.nbytesArray[0]);
+        dst.position(dst.position() + (int) this.nbytesArray[1]);
+
+        return result;
     }
 }

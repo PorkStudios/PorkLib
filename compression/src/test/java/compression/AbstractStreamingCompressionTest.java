@@ -22,19 +22,23 @@ package compression;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
+import net.daporkchop.lib.binary.oio.StreamUtil;
 import net.daporkchop.lib.common.util.PNioBuffers;
 import net.daporkchop.lib.compression.StreamingCompressionFactory;
 import net.daporkchop.lib.compression.context.PStreamingCompressor;
+import net.daporkchop.lib.unsafe.PUnsafe;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 
 /**
  * @author DaPorkchop_
@@ -68,12 +72,6 @@ public abstract class AbstractStreamingCompressionTest<FACTORY extends Streaming
 
     @Test
     public void testCompress_OutputStream() throws IOException {
-        byte[] expectedCompressedData;
-        try (val compressor = this.factory.makeOneshotCompressor()) {
-            val tmpDst = ByteBuffer.allocate(compressor.compressBound(this.expectedData.length));
-            expectedCompressedData = PNioBuffers.toArray(tmpDst, 0, compressor.compress(ByteBuffer.wrap(this.expectedData), tmpDst));
-        }
-
         try (val compressor = this.factory.makeStreamingCompressor()) {
             val baos = new ByteArrayOutputStream();
 
@@ -82,7 +80,7 @@ public abstract class AbstractStreamingCompressionTest<FACTORY extends Streaming
             try (val out = compressor.wrapCompressing(baos, PStreamingCompressor.FlushMode.NO)) {
                 out.write(this.expectedData);
             }
-            Assert.assertArrayEquals(expectedCompressedData, baos.toByteArray());
+            byte[] expectedCompressedData = baos.toByteArray();
 
             //compress entire array one byte at a time
             baos.reset();
@@ -111,7 +109,7 @@ public abstract class AbstractStreamingCompressionTest<FACTORY extends Streaming
             }
             Assert.assertArrayEquals(expectedCompressedData, baos.toByteArray());
 
-            //compress half the array at a time with an intermediate flush
+            //compress half the array at a time with an intermediate ignored flush
             baos.reset();
             try (val out = compressor.wrapCompressing(baos, PStreamingCompressor.FlushMode.NO)) {
                 out.write(this.expectedData, 0, this.expectedData.length / 2);
@@ -120,7 +118,54 @@ public abstract class AbstractStreamingCompressionTest<FACTORY extends Streaming
             }
             Assert.assertArrayEquals(expectedCompressedData, baos.toByteArray());
 
-            //TODO: maybe test other flush modes? although we might need a decompressor to ensure that data is flushed when requested
+            for (val mode : Arrays.asList(PStreamingCompressor.FlushMode.SYNC, PStreamingCompressor.FlushMode.FULL)) {
+                //compress entire array one byte at a time with intermediate flushes
+                baos.reset();
+                try (val out = compressor.wrapCompressing(baos, mode)) {
+                    for (byte b : this.expectedData) {
+                        out.write(b);
+                        out.flush();
+                    }
+                }
+                Assert.assertFalse(mode.name(), Arrays.equals(expectedCompressedData, baos.toByteArray()));
+
+                //compress half the array at a time with an intermediate flush
+                baos.reset();
+                try (val out = compressor.wrapCompressing(baos, mode)) {
+                    out.write(this.expectedData, 0, this.expectedData.length / 2);
+                    out.flush();
+                    out.write(this.expectedData, this.expectedData.length / 2, this.expectedData.length - this.expectedData.length / 2);
+                }
+                Assert.assertFalse(mode.name(), Arrays.equals(expectedCompressedData, baos.toByteArray()));
+            }
+
+            //TODO: add another test which uses a decompressor to verify that data is flushed when requested, and also that the
+            //      data is the same
+        }
+    }
+
+    @Test
+    public void testDecompress_InputStream() throws IOException {
+        try (val decompressor = this.factory.makeStreamingDecompressor()) {
+            //decompress entire stream to an array
+            try (val in = decompressor.wrapDecompressing(new ByteArrayInputStream(this.compressedData))) {
+                Assert.assertArrayEquals(this.expectedData, StreamUtil.toByteArray(in));
+            }
+
+            //decompress entire array one byte at a time
+            try (val in = decompressor.wrapDecompressing(new ByteArrayInputStream(this.compressedData))) {
+                int idx = 0;
+                for (int b; (b = in.read()) >= 0; ) {
+                    Assert.assertEquals(this.expectedData[idx++], b);
+                }
+                Assert.assertEquals(this.expectedData.length, idx);
+            }
+
+            //decompress half the array at a time
+            try (val in = decompressor.wrapDecompressing(new ByteArrayInputStream(this.compressedData))) {
+                Assert.assertArrayEquals(this.expectedData, StreamUtil.readFully(in, new byte[this.expectedData.length]));
+                Assert.assertEquals(-1, in.read());
+            }
         }
     }
 

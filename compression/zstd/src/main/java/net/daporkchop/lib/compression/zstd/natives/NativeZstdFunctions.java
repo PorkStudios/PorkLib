@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2025 DaPorkchop_
+ * Copyright (c) 2018-2026 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -53,6 +53,10 @@ abstract class NativeZstdFunctions {
     static final int ZSTD_c_contentSizeFlag = 200;
     static final int ZSTD_c_checksumFlag = 201;
     static final int ZSTD_c_dictIDFlag = 202;
+
+    static final int ZSTD_e_continue = 0;
+    static final int ZSTD_e_flush = 1;
+    static final int ZSTD_e_end = 2;
 
     static final int ZSTD_reset_session_only = 1;
     static final int ZSTD_reset_parameters = 2;

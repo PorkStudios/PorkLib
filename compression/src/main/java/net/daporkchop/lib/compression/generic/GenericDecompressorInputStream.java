@@ -93,23 +93,7 @@ public class GenericDecompressorInputStream extends InputStream {
         }
 
         while (true) {
-            try {
-                this.finished = this.decompressor.decompress(this.inputBuffer, outputBuffer, this.eof);
-            } catch (DataFormatException caught) {
-                //close this stream, as we can't really make any progress from here
-                throw PResourceUtil.closeSuppressed(PThrowables.initCause(new ZipException(), caught), this);
-            }
-
-            if (outputBuffer.position() > 0) {
-                //some output was generated, return that
-                return outputBuffer.position();
-            } else if (this.finished) {
-                //we have reached the end of the stream! no output was generated, so we'll return -1.
-                return -1;
-            } else if (!this.inputBuffer.hasRemaining()) {
-                //TODO: what if the decompressor can't make progress until more input is available than what's left in the buffer?
-                assert !this.eof : "already reached EOF!";
-
+            if (!this.eof && !this.inputBuffer.hasRemaining()) {
                 //we need more input data
                 try {
                     int count = this.in.read(this.inputBuffer.array(), this.inputBuffer.arrayOffset(), this.inputBuffer.capacity());
@@ -125,6 +109,21 @@ public class GenericDecompressorInputStream extends InputStream {
                     //close this channel, as we can't really make any progress from here
                     throw PResourceUtil.closeSuppressed(caught, this);
                 }
+            }
+
+            try {
+                this.finished = this.decompressor.decompress(this.inputBuffer, outputBuffer, this.eof);
+            } catch (DataFormatException caught) {
+                //close this stream, as we can't really make any progress from here
+                throw PResourceUtil.closeSuppressed(PThrowables.initCause(new ZipException(), caught), this);
+            }
+
+            if (outputBuffer.position() != off) {
+                //some output was generated, return that
+                return outputBuffer.position() - off;
+            } else if (this.finished) {
+                //we have reached the end of the stream! no output was generated, so we'll return -1.
+                return -1;
             }
         }
     }

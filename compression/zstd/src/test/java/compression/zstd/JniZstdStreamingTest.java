@@ -17,26 +17,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.daporkchop.lib.compression.zstd.natives;
+package compression.zstd;
 
-import net.daporkchop.lib.compression.zstd.ZstdOneshotFactory;
-import net.daporkchop.lib.compression.zstd.ZstdProviderCapabilities;
-import net.daporkchop.lib.compression.zstd.ZstdStreamingProvider;
-import net.daporkchop.lib.natives.util.MemoryPreference;
+import net.daporkchop.lib.compression.zstd.natives.JniZstdProvider;
 
 /**
  * @author DaPorkchop_
  */
-@ZstdProviderCapabilities(
-        memoryPreference = MemoryPreference.PREFER_DIRECT,
-        supportsCompressionLevel = true,
-        supportsDictionary = true,
-        supportsChecksumFlag = true,
-        supportsContentSizeFlag = true,
-        supportsDictIdFlag = true)
-abstract class AbstractNativeZstdProvider implements ZstdStreamingProvider {
-    @Override
-    public final ZstdOneshotFactory getOneshotFactory() throws UnsatisfiedLinkError {
-        return this.getStreamingFactory();
+public class JniZstdStreamingTest extends AbstractZstdStreamingTest {
+    public JniZstdStreamingTest() {
+        super(new JniZstdProvider());
     }
 }

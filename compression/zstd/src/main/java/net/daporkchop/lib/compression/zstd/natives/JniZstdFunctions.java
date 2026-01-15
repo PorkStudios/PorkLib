@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2025 DaPorkchop_
+ * Copyright (c) 2018-2026 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -66,6 +66,12 @@ final class JniZstdFunctions extends NativeZstdFunctions {
             byte[] srcArray, int srcArrayLength, long srcAddressOrOffset, long srcSize,
             byte[] dstArray, int dstArrayLength, long dstAddressOrOffset, long dstSize);
 
+    static native long ZSTD_compressStream2(
+            long cctx,
+            byte[] srcArray, int srcArrayLength, long srcAddressOrOffset, long srcSize,
+            byte[] dstArray, int dstArrayLength, long dstAddressOrOffset, long dstSize,
+            int endOp, long[] nbytesArray);
+
     static native long ZSTD_createCDict(
             byte[] dictArray, int dictArrayLength, long dictAddressOrOffset, long dictSize,
             int level);
@@ -95,6 +101,12 @@ final class JniZstdFunctions extends NativeZstdFunctions {
             long dctx,
             byte[] srcArray, int srcArrayLength, long srcAddressOrOffset, long srcSize,
             byte[] dstArray, int dstArrayLength, long dstAddressOrOffset, long dstSize);
+
+    static native long ZSTD_decompressStream(
+            long cctx,
+            byte[] srcArray, int srcArrayLength, long srcAddressOrOffset, long srcSize,
+            byte[] dstArray, int dstArrayLength, long dstAddressOrOffset, long dstSize,
+            long[] nbytesArray);
 
     static native long ZSTD_createDDict(
             byte[] dictArray, int dictArrayLength, long dictAddressOrOffset, long dictSize);

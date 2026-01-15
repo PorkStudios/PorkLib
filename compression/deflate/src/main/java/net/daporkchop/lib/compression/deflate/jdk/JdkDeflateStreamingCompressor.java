@@ -37,13 +37,10 @@ import java.util.zip.DeflaterOutputStream;
  * @author DaPorkchop_
  */
 final class JdkDeflateStreamingCompressor extends AbstractStreamingCompressor implements DeflateStreamingCompressor, JdkDeflateContext {
-    private static final byte STATE_RESET = 0;
-    private static final byte STATE_COMPRESS_NORMAL = 1;
-    private static final byte STATE_COMPRESS_FINISHING = 2;
+    private static final byte STATE_COMPRESS_NORMAL = STATE_RESET + 1;
+    private static final byte STATE_COMPRESS_FINISHING = STATE_RESET + 2;
 
     final Deflater deflater;
-
-    private byte state = STATE_RESET;
 
     JdkDeflateStreamingCompressor(boolean noWrap) {
         this.deflater = new Deflater(Deflater.DEFAULT_COMPRESSION, noWrap);
@@ -59,17 +56,12 @@ final class JdkDeflateStreamingCompressor extends AbstractStreamingCompressor im
         super.resetStream();
 
         this.deflater.reset();
-        this.state = STATE_RESET;
-    }
-
-    @Override
-    protected boolean isStreamOngoing() {
-        return this.state != STATE_RESET;
     }
 
     @Override
     public void resetParameters() throws IllegalStateException {
         super.resetParameters();
+
         this.deflater.setLevel(Deflater.DEFAULT_COMPRESSION);
     }
 

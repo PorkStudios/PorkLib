@@ -36,20 +36,16 @@ import java.util.zip.GZIPInputStream;
  * @author DaPorkchop_
  */
 final class JdkGzipStreamingDecompressor extends AbstractStreamingDecompressor implements DeflateStreamingDecompressor, JdkDeflateContext {
-    private static final byte STATE_RESET = 0;
-    private static final byte STATE_AWAIT_MEMBER = 1;
-    private static final byte STATE_READ_HEADER = 2;
-    private static final byte STATE_DECOMPRESS = 3;
-    private static final byte STATE_READ_TRAILER = 4;
-    private static final byte STATE_DONE = 5;
+    private static final byte STATE_AWAIT_MEMBER = STATE_RESET + 1;
+    private static final byte STATE_READ_HEADER = STATE_RESET + 2;
+    private static final byte STATE_DECOMPRESS = STATE_RESET + 3;
+    private static final byte STATE_READ_TRAILER = STATE_RESET + 4;
 
     private final JdkDeflateStreamingDecompressor inflater;
     private final CRC32 crc = new CRC32();
 
     //not re-using 'this.inflater.inflater.getTotalIn()' because 'this.inflater' gets reset before this class begins reading the trailer
     private int totalOutputBytesInflated;
-
-    private byte state = STATE_RESET;
 
     JdkGzipStreamingDecompressor() {
         this.inflater = new JdkDeflateStreamingDecompressor(true);
@@ -68,12 +64,6 @@ final class JdkGzipStreamingDecompressor extends AbstractStreamingDecompressor i
         this.inflater.resetStream();
         this.crc.reset();
         this.totalOutputBytesInflated = 0;
-        this.state = STATE_RESET;
-    }
-
-    @Override
-    protected boolean isStreamOngoing() {
-        return this.state != STATE_RESET;
     }
 
     @Override
@@ -99,7 +89,8 @@ final class JdkGzipStreamingDecompressor extends AbstractStreamingDecompressor i
                             throw new DataFormatException("empty input stream is not allowed in single frame mode");
                         } else {
                             //we've reached the end of the input stream and there's no input data remaining, so we're finished here :)
-                            this.state = STATE_DONE;
+                            this.resetStream();
+                            return true;
                         }
                     } else {
                         //wait for more input
@@ -161,7 +152,8 @@ final class JdkGzipStreamingDecompressor extends AbstractStreamingDecompressor i
                     //we've read the entire trailer, and thus the end of this GZIP member
                     if (this.singleFrame) {
                         //stop after completing a single member
-                        this.state = STATE_DONE;
+                        this.resetStream();
+                        return true;
                     } else {
                         //wait for the next GZIP member or EOF
                         this.state = STATE_AWAIT_MEMBER;
@@ -177,12 +169,6 @@ final class JdkGzipStreamingDecompressor extends AbstractStreamingDecompressor i
                         return false;
                     }
                 }
-            }
-
-            if (this.state == STATE_DONE) {
-                //decompression is done, we can reset the stream now :)
-                this.resetStream();
-                return true;
             }
 
             return false;

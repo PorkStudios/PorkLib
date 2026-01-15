@@ -40,13 +40,11 @@ import static net.daporkchop.lib.compression.zstd.natives.NativeZstdFunctions.*;
  * @author DaPorkchop_
  */
 abstract class NativeZstdCCtx extends AbstractStreamingCompressor implements ZstdOneshotCompressor, ZstdStreamingCompressor, NativeZstdContext {
-    static final byte STATE_RESET = 0;
-    static final byte STATE_COMPRESS = 1;
+    static final byte STATE_COMPRESS = STATE_RESET + 1;
 
     final NativeZstdFunctions functions;
     NativeZstdObject cctx;
 
-    private byte state = STATE_RESET;
     private long remainingBytesToFlush;
 
     //parameters
@@ -66,16 +64,10 @@ abstract class NativeZstdCCtx extends AbstractStreamingCompressor implements Zst
     }
 
     @Override
-    protected final boolean isStreamOngoing() {
-        return this.state != STATE_RESET;
-    }
-
-    @Override
     public final void resetStream() {
         super.resetStream();
 
         this.functions.ZSTD_CCtx_reset(this.cctx.addr(), ZSTD_reset_session_only); //resetting session never fails
-        this.state = STATE_RESET;
         this.remainingBytesToFlush = 0;
     }
 

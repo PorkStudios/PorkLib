@@ -36,10 +36,9 @@ import java.util.zip.GZIPInputStream;
  * @author DaPorkchop_
  */
 final class JdkGzipStreamingCompressor extends AbstractStreamingCompressor implements DeflateStreamingCompressor, JdkDeflateContext {
-    private static final byte STATE_RESET = 0;
-    private static final byte STATE_WRITE_HEADER = 1;
-    private static final byte STATE_COMPRESS = 2;
-    private static final byte STATE_WRITE_TRAILER = 3;
+    private static final byte STATE_WRITE_HEADER = STATE_RESET + 1;
+    private static final byte STATE_COMPRESS = STATE_RESET + 2;
+    private static final byte STATE_WRITE_TRAILER = STATE_RESET + 3;
 
     private static final byte[] HEADER = {
             (byte) GZIPInputStream.GZIP_MAGIC,
@@ -56,8 +55,6 @@ final class JdkGzipStreamingCompressor extends AbstractStreamingCompressor imple
 
     private final JdkDeflateStreamingCompressor deflater;
     private final CRC32 crc = new CRC32();
-
-    private byte state = STATE_RESET;
 
     private byte[] rawBytes;
     private int rawBytesIndex;
@@ -84,12 +81,6 @@ final class JdkGzipStreamingCompressor extends AbstractStreamingCompressor imple
         this.deflater.resetStream();
         this.crc.reset();
         this.totalInputBytesDeflated = 0;
-        this.state = STATE_RESET;
-    }
-
-    @Override
-    protected boolean isStreamOngoing() {
-        return this.state != STATE_RESET;
     }
 
     @Override

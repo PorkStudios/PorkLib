@@ -38,14 +38,10 @@ import java.util.zip.InflaterInputStream;
  * @author DaPorkchop_
  */
 final class JdkDeflateStreamingDecompressor extends AbstractStreamingDecompressor implements DeflateStreamingDecompressor, JdkDeflateContext {
-    private static final byte STATE_RESET = 0;
-    private static final byte STATE_DECOMPRESS = 1;
-    private static final byte STATE_ASSERT_NO_TRAILING_DATA = 2;
-    private static final byte STATE_DONE = 3;
+    private static final byte STATE_DECOMPRESS = STATE_RESET + 1;
+    private static final byte STATE_ASSERT_NO_TRAILING_DATA = STATE_RESET + 2;
 
     final Inflater inflater;
-
-    private byte state = STATE_RESET;
 
     JdkDeflateStreamingDecompressor(boolean noWrap) {
         this.inflater = new Inflater(noWrap);
@@ -61,12 +57,6 @@ final class JdkDeflateStreamingDecompressor extends AbstractStreamingDecompresso
         super.resetStream();
 
         this.inflater.reset();
-        this.state = STATE_RESET;
-    }
-
-    @Override
-    protected boolean isStreamOngoing() {
-        return this.state != STATE_RESET;
     }
 
     @Override
@@ -116,7 +106,8 @@ final class JdkDeflateStreamingDecompressor extends AbstractStreamingDecompresso
             if (this.inflater.finished()) {
                 if (this.singleFrame) {
                     //we've reached the end of the compressed stream, stop here and exit
-                    this.state = STATE_DONE;
+                    this.resetStream();
+                    return true;
                 } else {
                     this.state = STATE_ASSERT_NO_TRAILING_DATA;
                 }
@@ -132,17 +123,12 @@ final class JdkDeflateStreamingDecompressor extends AbstractStreamingDecompresso
                 throw new DataFormatException("unexpected trailing data beyond end of compressed stream");
             } else if (eof) {
                 //we've reached the end of the input stream and there was no more input data, so we're all good here.
-                this.state = STATE_DONE;
+                this.resetStream();
+                return true;
             } else {
                 //there's no input data available right now, but we haven't reached the end of the input stream so there might be more coming later. we'll
                 //just fallthrough here, return false and wait for more input or an explicit EOF notification.
             }
-        }
-
-        if (this.state == STATE_DONE) {
-            //decompression is done, we can reset the stream now :)
-            this.resetStream();
-            return true;
         }
 
         return false;

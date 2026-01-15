@@ -38,14 +38,11 @@ import static net.daporkchop.lib.compression.zstd.natives.NativeZstdFunctions.*;
  * @author DaPorkchop_
  */
 abstract class NativeZstdDCtx extends AbstractStreamingDecompressor implements ZstdOneshotDecompressor, ZstdStreamingDecompressor, NativeZstdContext {
-    static final byte STATE_RESET = 0;
-    static final byte STATE_AWAIT_FRAME = 1;
-    static final byte STATE_DECOMPRESS = 2;
+    static final byte STATE_AWAIT_FRAME = STATE_RESET + 1;
+    static final byte STATE_DECOMPRESS = STATE_RESET + 2;
 
     final NativeZstdFunctions functions;
     NativeZstdObject dctx;
-
-    private byte state = STATE_RESET;
 
     //parameters
     private NativeZstdDDict dictionary;
@@ -64,16 +61,10 @@ abstract class NativeZstdDCtx extends AbstractStreamingDecompressor implements Z
     }
 
     @Override
-    protected final boolean isStreamOngoing() {
-        return this.state != STATE_RESET;
-    }
-
-    @Override
     public final void resetStream() {
         super.resetStream();
 
         this.functions.ZSTD_DCtx_reset(this.dctx.addr(), ZSTD_reset_session_only); //resetting session never fails
-        this.state = STATE_RESET;
     }
 
     @Override

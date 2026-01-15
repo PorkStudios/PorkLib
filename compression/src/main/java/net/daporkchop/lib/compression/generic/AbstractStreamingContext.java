@@ -26,8 +26,12 @@ import net.daporkchop.lib.compression.context.StreamingContext;
  * @author DaPorkchop_
  */
 public abstract class AbstractStreamingContext implements StreamingContext {
-    protected @NotNegative long lastReadBytes;
-    protected @NotNegative long lastWrittenBytes;
+    protected static final byte STATE_RESET = 0;
+
+    protected byte state = STATE_RESET; //implementations don't have to use this field, but it's here for convenience for ones that are backed by a state machine
+
+    private @NotNegative long lastReadBytes;
+    private @NotNegative long lastWrittenBytes;
 
     @Override
     public final @NotNegative long getLastReadBytes() {
@@ -51,7 +55,7 @@ public abstract class AbstractStreamingContext implements StreamingContext {
 
     @Override
     public void resetStream() {
-        //no-op
+        this.state = STATE_RESET;
     }
 
     protected final void ensureStreamInactive() throws IllegalStateException {
@@ -63,7 +67,9 @@ public abstract class AbstractStreamingContext implements StreamingContext {
     /**
      * @return {@code true} if this context is currently processing an incomplete [de]compression stream (i.e. has not finished or been manually reset)
      */
-    protected abstract boolean isStreamOngoing();
+    protected boolean isStreamOngoing() {
+        return this.state != STATE_RESET;
+    }
 
     @Override
     public void resetParameters() throws IllegalStateException {

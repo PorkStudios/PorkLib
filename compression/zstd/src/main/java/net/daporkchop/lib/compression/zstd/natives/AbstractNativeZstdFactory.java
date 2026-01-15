@@ -23,10 +23,10 @@ import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.annotation.Borrow;
+import net.daporkchop.lib.compression.util.PNetty4Buffers;
 import net.daporkchop.lib.compression.zstd.ZstdCompressDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdDecompressDictionary;
 import net.daporkchop.lib.compression.zstd.ZstdProviderCapabilities;
-import net.daporkchop.lib.compression.zstd.ZstdOneshotFactory;
 import net.daporkchop.lib.compression.zstd.ZstdStreamingFactory;
 
 /**
@@ -44,12 +44,12 @@ abstract class AbstractNativeZstdFactory implements ZstdStreamingFactory {
     @Override
     public ZstdCompressDictionary makeCompressionDictionary(@Borrow @NonNull ByteBuf dict, int level) throws IllegalArgumentException {
         //just delegate to the ByteBuffer version, any performance hit is negligible and i don't care
-        return this.makeCompressionDictionary(dict.nioBuffer(), level);
+        return this.makeCompressionDictionary(PNetty4Buffers.getNioBufferForRead(dict), level);
     }
 
     @Override
     public ZstdDecompressDictionary makeDecompressionDictionary(@Borrow @NonNull ByteBuf dict) {
         //just delegate to the ByteBuffer version, any performance hit is negligible and i don't care
-        return this.makeDecompressionDictionary(dict.nioBuffer());
+        return this.makeDecompressionDictionary(PNetty4Buffers.getNioBufferForRead(dict));
     }
 }

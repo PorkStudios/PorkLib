@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2025 DaPorkchop_
+ * Copyright (c) 2018-2026 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -35,7 +35,11 @@ import java.nio.ReadOnlyBufferException;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PNetty4Buffers {
     public static ByteBuffer getNioBufferForRead(@NonNull @ExtendedBorrow ByteBuf buf) {
-        return buf.nioBuffer();
+        if (buf.nioBufferCount() == 1) {
+            return buf.internalNioBuffer(buf.readerIndex(), buf.readableBytes());
+        } else {
+            return buf.nioBuffer();
+        }
     }
 
     public static ByteBuffer getNioBufferForWrite(@NonNull @ExtendedBorrow ByteBuf buf) throws ReadOnlyBufferException, CompositeBufferException {

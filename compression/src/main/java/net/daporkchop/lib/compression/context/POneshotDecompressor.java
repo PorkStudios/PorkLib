@@ -22,13 +22,11 @@ package net.daporkchop.lib.compression.context;
 import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.daporkchop.lib.common.annotation.NotThreadSafe;
-import net.daporkchop.lib.common.annotation.param.NotNegative;
 import net.daporkchop.lib.compression.util.PNetty4Buffers;
 import net.daporkchop.lib.compression.util.exception.CompositeBufferException;
 
 import java.nio.ByteBuffer;
 import java.nio.ReadOnlyBufferException;
-import java.util.OptionalLong;
 import java.util.zip.DataFormatException;
 
 /**
@@ -51,56 +49,6 @@ public interface POneshotDecompressor extends OneshotContext, GenericDecompressP
      */
     @Override
     void resetParameters();
-
-    /**
-     * Tries to determine the exact size of the given source data once fully decompressed.
-     * <p>
-     * Source data is accessed from the given buffer's remaining bytes, but the buffer's position will not be modified.
-     *
-     * @param src the {@link ByteBuffer} containing the compressed source data
-     * @return the exact decompressed size of the given source data, or an empty optional if the decompressed size is not available (either because it was not
-     * included in the source data, or the compression format doesn't support it)
-     * @throws DataFormatException if the source data is not valid compressed data
-     * @throws ArithmeticException if the result would be larger than {@link Long#MAX_VALUE}
-     */
-    @NotNegative OptionalLong decompressedSizeExact(@NonNull ByteBuffer src) throws DataFormatException, ArithmeticException;
-
-    /**
-     * Tries to determine the exact size of the given source data once fully decompressed.
-     * <p>
-     * Source data is accessed from the given buffer's readable range, but the buffer's indices will not be modified.
-     *
-     * @param src the {@link ByteBuf} containing the compressed source data
-     * @return the exact decompressed size of the given source data, or an empty optional if the decompressed size is not available (either because it was not
-     * included in the source data, or the compression format doesn't support it)
-     * @throws DataFormatException if the source data is not valid compressed data
-     * @throws ArithmeticException if the result would be larger than {@link Long#MAX_VALUE}
-     */
-    @NotNegative OptionalLong decompressedSizeExact(@NonNull ByteBuf src) throws DataFormatException, ArithmeticException;
-
-    /**
-     * Compute an upper bound on the size of the given source data once fully decompressed.
-     * <p>
-     * Source data is accessed from the given buffer's remaining bytes, but the buffer's position will not be modified.
-     *
-     * @param src the {@link ByteBuffer} containing the compressed source data
-     * @return an upper bound on the source data's decompressed size
-     * @throws DataFormatException if the source data is not valid compressed data
-     * @throws ArithmeticException if the result would be larger than {@link Long#MAX_VALUE}
-     */
-    @NotNegative long decompressedSizeBound(@NonNull ByteBuffer src) throws DataFormatException, ArithmeticException;
-
-    /**
-     * Compute an upper bound on the size of the given source data once fully decompressed.
-     * <p>
-     * Source data is accessed from the given buffer's readable range, but the buffer's indices will not be modified.
-     *
-     * @param src the {@link ByteBuf} containing the compressed source data
-     * @return an upper bound on the source data's decompressed size
-     * @throws DataFormatException if the source data is not valid compressed data
-     * @throws ArithmeticException if the result would be larger than {@link Long#MAX_VALUE}
-     */
-    @NotNegative long decompressedSizeBound(@NonNull ByteBuf src) throws DataFormatException, ArithmeticException;
 
     //
     //

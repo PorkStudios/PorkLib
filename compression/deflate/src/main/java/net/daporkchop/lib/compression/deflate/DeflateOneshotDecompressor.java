@@ -19,42 +19,12 @@
 
 package net.daporkchop.lib.compression.deflate;
 
-import io.netty.buffer.ByteBuf;
-import lombok.NonNull;
 import net.daporkchop.lib.common.annotation.NotThreadSafe;
-import net.daporkchop.lib.common.annotation.param.NotNegative;
 import net.daporkchop.lib.compression.context.POneshotDecompressor;
-
-import java.nio.ByteBuffer;
-import java.util.OptionalLong;
-import java.util.zip.DataFormatException;
 
 /**
  * @author DaPorkchop_
  */
 @NotThreadSafe
 public interface DeflateOneshotDecompressor extends POneshotDecompressor, DeflateDecompressParameters {
-    @Override
-    default @NotNegative OptionalLong decompressedSizeExact(@NonNull ByteBuffer src) throws DataFormatException, ArithmeticException {
-        //cannot be computed easily
-        return OptionalLong.empty();
-    }
-
-    @Override
-    default @NotNegative OptionalLong decompressedSizeExact(@NonNull ByteBuf src) throws DataFormatException, ArithmeticException {
-        //cannot be computed easily
-        return OptionalLong.empty();
-    }
-
-    @Override
-    default @NotNegative long decompressedSizeBound(@NonNull ByteBuffer src) throws DataFormatException, ArithmeticException {
-        //TODO: this could be made quite a bit smarter
-        //the theoretical maximum ZLIB compression factor is 1032:1 according to https://www.zlib.net/zlib_tech.html
-        return Math.multiplyExact(src.remaining(), 1032L);
-    }
-
-    @Override
-    default @NotNegative long decompressedSizeBound(@NonNull ByteBuf src) throws DataFormatException, ArithmeticException {
-        return Math.multiplyExact(src.readableBytes(), 1032L);
-    }
 }

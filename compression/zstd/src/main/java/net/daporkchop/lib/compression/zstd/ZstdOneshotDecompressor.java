@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2025 DaPorkchop_
+ * Copyright (c) 2018-2026 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -35,22 +35,62 @@ import java.util.zip.DataFormatException;
  */
 @NotThreadSafe
 public interface ZstdOneshotDecompressor extends POneshotDecompressor, ZstdDecompressParameters {
-    @Override
+    //TODO: these methods should respect the current singleFrame parameter
+
+    /**
+     * Tries to determine the exact size of the given source data once fully decompressed.
+     * <p>
+     * Source data is accessed from the given buffer's remaining bytes, but the buffer's position will not be modified.
+     *
+     * @param src the {@link ByteBuffer} containing the compressed source data
+     * @return the exact decompressed size of the given source data, or an empty optional if the decompressed size is not available (either because it was not
+     * included in the source data, or the compression format doesn't support it)
+     * @throws DataFormatException if the source data is not valid compressed data
+     * @throws ArithmeticException if the result would be larger than {@link Long#MAX_VALUE}
+     */
     default @NotNegative OptionalLong decompressedSizeExact(@NonNull ByteBuffer src) throws DataFormatException, ArithmeticException {
         return JavaZstdFrameInspector.getSequenceSizeInfo(src).decompressedSizeExact();
     }
 
-    @Override
+    /**
+     * Tries to determine the exact size of the given source data once fully decompressed.
+     * <p>
+     * Source data is accessed from the given buffer's readable range, but the buffer's indices will not be modified.
+     *
+     * @param src the {@link ByteBuf} containing the compressed source data
+     * @return the exact decompressed size of the given source data, or an empty optional if the decompressed size is not available (either because it was not
+     * included in the source data, or the compression format doesn't support it)
+     * @throws DataFormatException if the source data is not valid compressed data
+     * @throws ArithmeticException if the result would be larger than {@link Long#MAX_VALUE}
+     */
     default @NotNegative OptionalLong decompressedSizeExact(@NonNull ByteBuf src) throws DataFormatException, ArithmeticException {
         return JavaZstdFrameInspector.getSequenceSizeInfo(src).decompressedSizeExact();
     }
 
-    @Override
+    /**
+     * Compute an upper bound on the size of the given source data once fully decompressed.
+     * <p>
+     * Source data is accessed from the given buffer's remaining bytes, but the buffer's position will not be modified.
+     *
+     * @param src the {@link ByteBuffer} containing the compressed source data
+     * @return an upper bound on the source data's decompressed size
+     * @throws DataFormatException if the source data is not valid compressed data
+     * @throws ArithmeticException if the result would be larger than {@link Long#MAX_VALUE}
+     */
     default @NotNegative long decompressedSizeBound(@NonNull ByteBuffer src) throws DataFormatException, ArithmeticException {
         return JavaZstdFrameInspector.getSequenceSizeInfo(src).decompressedSizeUpperBound();
     }
 
-    @Override
+    /**
+     * Compute an upper bound on the size of the given source data once fully decompressed.
+     * <p>
+     * Source data is accessed from the given buffer's readable range, but the buffer's indices will not be modified.
+     *
+     * @param src the {@link ByteBuf} containing the compressed source data
+     * @return an upper bound on the source data's decompressed size
+     * @throws DataFormatException if the source data is not valid compressed data
+     * @throws ArithmeticException if the result would be larger than {@link Long#MAX_VALUE}
+     */
     default @NotNegative long decompressedSizeBound(@NonNull ByteBuf src) throws DataFormatException, ArithmeticException {
         return JavaZstdFrameInspector.getSequenceSizeInfo(src).decompressedSizeUpperBound();
     }

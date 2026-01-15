@@ -50,6 +50,11 @@ namespace porklib::compression::zstd::jni::JniZstdFunctions {
         return static_cast<jlong>(ZSTD_CCtx_setParameter(cctx, param, value));
     }
 
+    static jlong JNICALL CCtx_setPledgedSrcSize(JNIEnv* env, jobject, jlong _cctx, jlong pledgedSrcSize) {
+        auto* cctx = reinterpret_cast<ZSTD_CCtx*>(_cctx);
+        return static_cast<jlong>(ZSTD_CCtx_setPledgedSrcSize(cctx, pledgedSrcSize));
+    }
+
     static jlong JNICALL compress2(JNIEnv* env, jobject,
             jlong _cctx,
             PORKLIB_JNI_BYTEREGION_ARGS_DECL(src),
@@ -238,6 +243,7 @@ namespace porklib::compression::zstd::jni {
             porklib::jni::makeJNINativeMethod("ZSTD_CCtx_refCDict", "(JJ)J", JniZstdFunctions::CCtx_refCDict),
             porklib::jni::makeJNINativeMethod("ZSTD_CCtx_reset", "(JI)J", JniZstdFunctions::CCtx_reset),
             porklib::jni::makeJNINativeMethod("ZSTD_CCtx_setParameter", "(JII)J", JniZstdFunctions::CCtx_setParameter),
+            porklib::jni::makeJNINativeMethod("ZSTD_CCtx_setPledgedSrcSize", "(JJ)J", JniZstdFunctions::CCtx_setPledgedSrcSize),
             porklib::jni::makeJNINativeMethod("ZSTD_compress2", "(J" PORKLIB_JNI_BYTEREGION_SIG PORKLIB_JNI_BYTEREGION_SIG ")J", JniZstdFunctions::compress2),
             porklib::jni::makeJNINativeMethod("ZSTD_compressStream2", "(J" PORKLIB_JNI_BYTEREGION_SIG PORKLIB_JNI_BYTEREGION_SIG "I[J)J", JniZstdFunctions::compressStream2),
 

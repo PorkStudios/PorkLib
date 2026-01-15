@@ -62,6 +62,9 @@ abstract class NativeZstdFunctions {
     static final int ZSTD_reset_parameters = 2;
     static final int ZSTD_reset_session_and_parameters = 3;
 
+    static final long ZSTD_CONTENTSIZE_UNKNOWN = -1;
+    static final long ZSTD_CONTENTSIZE_ERROR = -2;
+
     /**
      * Checks if the given value indicates an error.
      *
@@ -138,6 +141,15 @@ abstract class NativeZstdFunctions {
      * @return an undefined value, which may be an error (should be checked using {@link #ZSTD_isError(long)})
      */
     abstract long ZSTD_CCtx_setParameter(long cctx, int param, int value);
+
+    /**
+     * Sets a parameter for a compression context.
+     *
+     * @param cctx  the compression context
+     * @param pledgedSrcSize the input size, or {@link #ZSTD_CONTENTSIZE_UNKNOWN}
+     * @return zero, or an error (should be checked using {@link #ZSTD_isError(long)})
+     */
+    abstract long ZSTD_CCtx_setPledgedSrcSize(long cctx, long pledgedSrcSize);
 
     /**
      * Deletes the given compression dictionary.

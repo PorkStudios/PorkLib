@@ -50,7 +50,6 @@ abstract class NativeZstdCCtx extends AbstractStreamingCompressor implements Zst
     private long remainingBytesToFlush;
 
     //parameters
-    private int level = Zstd.LEVEL_DEFAULT;
     private NativeZstdCDict dictionary;
 
     NativeZstdCCtx(@NonNull NativeZstdFunctions functions) {
@@ -85,15 +84,13 @@ abstract class NativeZstdCCtx extends AbstractStreamingCompressor implements Zst
         super.resetParameters();
 
         this.functions.checkForErrorAndThrow(this.functions.ZSTD_CCtx_reset(this.cctx.addr(), ZSTD_reset_parameters));
-        this.level = Zstd.LEVEL_DEFAULT;
         this.dictionary = null;
     }
 
     @Override
     public final void setLevel(int level) throws IllegalArgumentException, IllegalStateException {
         this.ensureStreamInactive();
-        this.level = Zstd.checkLevel(level);
-        this.functions.checkForErrorAndThrow(this.functions.ZSTD_CCtx_setParameter(this.cctx.addr(), ZSTD_c_compressionLevel, level));
+        this.functions.checkForErrorAndThrow(this.functions.ZSTD_CCtx_setParameter(this.cctx.addr(), ZSTD_c_compressionLevel, Zstd.checkLevel(level)));
     }
 
     @Override
@@ -120,6 +117,13 @@ abstract class NativeZstdCCtx extends AbstractStreamingCompressor implements Zst
     public final void setDictIdFlag(boolean dictIdFlag) throws IllegalStateException {
         this.ensureStreamInactive();
         this.functions.checkForErrorAndThrow(this.functions.ZSTD_CCtx_setParameter(this.cctx.addr(), ZSTD_c_dictIDFlag, dictIdFlag ? 1 : 0));
+    }
+
+    @Override
+    public final void setPledgedSrcSize(long pledgedSrcSize) throws IllegalArgumentException, IllegalStateException {
+        this.ensureStreamInactive();
+        checkArg(pledgedSrcSize == -1 || pledgedSrcSize >= 0, pledgedSrcSize);
+        this.functions.checkForErrorAndThrow(this.functions.ZSTD_CCtx_setPledgedSrcSize(this.cctx.addr(), pledgedSrcSize == -1 ? ZSTD_CONTENTSIZE_UNKNOWN : pledgedSrcSize));
     }
 
     @Override

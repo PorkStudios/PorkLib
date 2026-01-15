@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2025 DaPorkchop_
+ * Copyright (c) 2018-2026 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -27,4 +27,23 @@ import net.daporkchop.lib.compression.context.PStreamingCompressor;
  */
 @NotThreadSafe
 public interface ZstdStreamingCompressor extends PStreamingCompressor, ZstdCompressParameters {
+    /**
+     * Set the total input size of the next ZSTD frame. The special value {@link -1} means that the input size is unknown.
+     * <p>
+     * Setting this parameter means that the content size field will be included in the ZSTD frame header.
+     * <p>
+     * This parameter may only be set while the compressor is not currently compressing a ZSTD frame, i.e. the compressor must be reset or
+     * have been flushed with either {@link FlushMode#FULL} or {@link FlushMode#FINISH}.
+     * <p>
+     * This parameter only applies to the next ZSTD frame, it will be reset when the next frame is completed or the stream (note: NOT parameters!) is reset.
+     * <p>
+     * The default value is {@link -1}.
+     *
+     * @param pledgedSrcSize the pledged input data size
+     * @throws IllegalArgumentException      if {@code pledgedSrcSize} isn't a non-negative value or the special value {@code -1}
+     * @throws IllegalStateException         if a frame compression is currently ongoing (i.e. the compressor hasn't been flushed with either {@link FlushMode#FULL} or {@link FlushMode#FINISH})
+     * @throws UnsupportedOperationException if the ZSTD implementation doesn't support this option
+     * @see #resetParameters()
+     */
+    void setPledgedSrcSize(long pledgedSrcSize) throws IllegalArgumentException, IllegalStateException;
 }

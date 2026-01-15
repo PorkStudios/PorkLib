@@ -61,6 +61,9 @@ final class JniZstdFunctions extends NativeZstdFunctions {
     @Override
     native long ZSTD_CCtx_setParameter(long cctx, int param, int value);
 
+    @Override
+    native long ZSTD_CCtx_setPledgedSrcSize(long cctx, long pledgedSrcSize);
+
     static native long ZSTD_compress2(
             long cctx,
             byte[] srcArray, int srcArrayLength, long srcAddressOrOffset, long srcSize,

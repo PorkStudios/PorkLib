@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2020 DaPorkchop_
+ * Copyright (c) 2018-2026 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -15,7 +15,6 @@
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 
 package net.daporkchop.lib.binary.oio;
@@ -23,6 +22,7 @@ package net.daporkchop.lib.binary.oio;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.util.PValidation;
+import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -45,13 +45,12 @@ public class StreamUtil {
      * @throws IOException if an IO exception occurs you dummy
      */
     public byte[] toByteArray(@NonNull InputStream in) throws IOException {
-        byte[] arr = new byte[4096];
+        byte[] arr = PUnsafe.allocateUninitializedByteArray(4096);
         int pos = 0;
         for (int i; (i = in.read(arr, pos, arr.length - pos)) != -1; pos += i) {
             if (pos + i == arr.length) {
                 //grow array
-                byte[] old = arr;
-                System.arraycopy(old, 0, arr = new byte[arr.length << 1], 0, old.length);
+                arr = Arrays.copyOf(arr, arr.length * 2);
             }
         }
         return pos == arr.length ? arr : Arrays.copyOf(arr, pos); //don't copy if the size is exactly the size of the array already

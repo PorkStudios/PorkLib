@@ -25,6 +25,7 @@ import net.daporkchop.lib.common.util.PNioBuffers;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.compression.deflate.DeflateStreamingDecompressor;
 import net.daporkchop.lib.compression.generic.AbstractStreamingDecompressor;
+import net.daporkchop.lib.compression.generic.GenericResetOnCloseInputStream;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.InputStream;
@@ -63,7 +64,7 @@ final class JdkDeflateStreamingDecompressor extends AbstractStreamingDecompresso
     public InputStream wrapDecompressing(@NonNull InputStream src) throws IllegalStateException {
         this.ensureNotSingleFrame();
         this.ensureStreamInactive();
-        return new InflaterInputStream(src, this.inflater);
+        return new GenericResetOnCloseInputStream(new InflaterInputStream(src, this.inflater), this);
     }
 
     @Override

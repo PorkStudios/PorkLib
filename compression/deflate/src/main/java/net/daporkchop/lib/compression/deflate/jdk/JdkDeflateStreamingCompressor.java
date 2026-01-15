@@ -25,6 +25,7 @@ import net.daporkchop.lib.common.util.PNioBuffers;
 import net.daporkchop.lib.common.util.PorkUtil;
 import net.daporkchop.lib.compression.deflate.DeflateStreamingCompressor;
 import net.daporkchop.lib.compression.generic.AbstractStreamingCompressor;
+import net.daporkchop.lib.compression.generic.GenericResetOnCloseOutputStream;
 import net.daporkchop.lib.unsafe.PUnsafe;
 
 import java.io.OutputStream;
@@ -77,7 +78,7 @@ final class JdkDeflateStreamingCompressor extends AbstractStreamingCompressor im
             case NO:
             case SYNC:
                 this.ensureStreamInactive();
-                return new DeflaterOutputStream(dst, this.deflater, flush == FlushMode.SYNC);
+                return new GenericResetOnCloseOutputStream(new DeflaterOutputStream(dst, this.deflater, flush == FlushMode.SYNC), this);
             default:
                 return super.wrapCompressing(dst, flush);
         }

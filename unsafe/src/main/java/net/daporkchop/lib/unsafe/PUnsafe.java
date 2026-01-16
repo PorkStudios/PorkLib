@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2025 DaPorkchop_
+ * Copyright (c) 2018-2026 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -3132,28 +3132,14 @@ public class PUnsafe {
         return PUnsafe.getLong(buffer, DIRECT_BUFFER_ADDRESS_OFFSET);
     }
 
-    //TODO: these methods won't work on Java 9+
-    public Object pork_directBufferAttachment(Buffer buffer) {
-        return ((DirectBuffer) buffer).attachment();
-    }
-
-    public Cleaner pork_directBufferCleaner(Buffer buffer) {
-        return ((DirectBuffer) buffer).cleaner();
-    }
-
+    //TODO: this won't work on Java 9+
     public void pork_releaseBuffer(Buffer buffer) {
-        if (buffer instanceof DirectBuffer) {
-            Cleaner cleaner = pork_directBufferCleaner(buffer);
+        if (JAVA_VERSION <= 8 && buffer instanceof DirectBuffer) {
+            Cleaner cleaner = ((DirectBuffer) buffer).cleaner();
             if (cleaner != null) {
                 cleaner.clean();
             }
         }
-    }
-
-    public long pork_allocateMemory(@NonNull Object cleanerTarget, long size) {
-        long offset = sun_misc_Unsafe.allocateMemory(size);
-        PCleaner.cleaner(cleanerTarget, offset);
-        return offset;
     }
 
     //

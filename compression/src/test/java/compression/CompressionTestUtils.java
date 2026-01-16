@@ -1,7 +1,7 @@
 /*
  * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2025 DaPorkchop_
+ * Copyright (c) 2018-2026 DaPorkchop_
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -24,7 +24,10 @@ import io.netty.buffer.Unpooled;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.function.exception.EConsumer;
+import net.daporkchop.lib.common.util.PThrowables;
+import net.daporkchop.lib.natives.OptionalFeature;
 import net.daporkchop.lib.unsafe.PUnsafe;
+import org.junit.AssumptionViolatedException;
 
 import java.nio.ByteBuffer;
 
@@ -33,6 +36,13 @@ import java.nio.ByteBuffer;
  */
 @UtilityClass
 public class CompressionTestUtils {
+    public static <F extends OptionalFeature> F assumeFeatureAvailable(F feature) {
+        if (!feature.isAvailable()) {
+            throw PThrowables.initCause(new AssumptionViolatedException("feature not available: " + feature), feature.unavailabilityCause());
+        }
+        return feature;
+    }
+
     public static void forEachNioBufferTypeInput(byte @NonNull [] input, @NonNull EConsumer<? super ByteBuffer> action) {
         // heap ByteBuffer, wrapping entire array
         action.accept(ByteBuffer.wrap(input.clone()));

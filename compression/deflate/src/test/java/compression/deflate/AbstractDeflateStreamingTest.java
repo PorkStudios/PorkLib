@@ -20,6 +20,7 @@
 package compression.deflate;
 
 import compression.AbstractStreamingCompressionTest;
+import compression.CompressionTestUtils;
 import compression.deflate.util.DefaultModeDeflateStreamingFactory;
 import lombok.NonNull;
 import lombok.SneakyThrows;
@@ -51,7 +52,7 @@ public abstract class AbstractDeflateStreamingTest extends AbstractStreamingComp
     protected final DeflateWrapperFormat format;
 
     public AbstractDeflateStreamingTest(@NonNull DeflateStreamingProvider provider, @NonNull DeflateWrapperFormat format) {
-        super(new DefaultModeDeflateStreamingFactory<>(provider.getStreamingFactory(), format));
+        super(new DefaultModeDeflateStreamingFactory<>(CompressionTestUtils.assumeFeatureAvailable(provider).getStreamingFactory(), format));
         this.format = format;
     }
 

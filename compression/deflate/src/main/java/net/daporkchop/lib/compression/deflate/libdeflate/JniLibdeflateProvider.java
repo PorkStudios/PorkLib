@@ -38,7 +38,6 @@ public final class JniLibdeflateProvider extends AbstractNativeLibdeflateProvide
                     JniLoader.namedLibraryFromResourceLoader(""));
         } catch (Throwable caught) {
             UNAVAILABILITY_CAUSE = caught;
-            caught.printStackTrace();
         }
     }
 

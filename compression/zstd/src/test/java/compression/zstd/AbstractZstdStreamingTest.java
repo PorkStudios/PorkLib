@@ -46,7 +46,7 @@ public abstract class AbstractZstdStreamingTest extends AbstractStreamingCompres
     protected byte[] dictionaryData;
 
     public AbstractZstdStreamingTest(@NonNull ZstdStreamingProvider provider) {
-        super(provider.getStreamingFactory());
+        super(CompressionTestUtils.assumeFeatureAvailable(provider).getStreamingFactory());
     }
 
     @Before

@@ -20,6 +20,7 @@
 package compression.deflate;
 
 import compression.AbstractOneshotCompressionTest;
+import compression.CompressionTestUtils;
 import compression.deflate.util.DefaultModeDeflateOneshotFactory;
 import lombok.NonNull;
 import lombok.SneakyThrows;
@@ -51,7 +52,7 @@ public abstract class AbstractDeflateOneshotTest extends AbstractOneshotCompress
     protected final DeflateWrapperFormat format;
 
     public AbstractDeflateOneshotTest(@NonNull DeflateOneshotProvider provider, @NonNull DeflateWrapperFormat format) {
-        super(new DefaultModeDeflateOneshotFactory<>(provider.getOneshotFactory(), format));
+        super(new DefaultModeDeflateOneshotFactory<>(CompressionTestUtils.assumeFeatureAvailable(provider).getOneshotFactory(), format));
         this.format = format;
     }
 

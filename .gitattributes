@@ -12,6 +12,7 @@
 *.html text=auto eol=lf
 *.settings text=auto eol=lf
 *.properties text=auto eol=lf
+Dockerfile text=auto eol=lf
 Jenkinsfile text=auto eol=lf
 
 # Batch files are only for windows so we use CRLF

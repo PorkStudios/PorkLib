@@ -20,12 +20,9 @@
 
 set -e
 
-exec ./docker_entry.sh make -j12 build.x86_64-linux-gnu
+if [ ! -d docker/ ]; then echo 'must be run from natives dir'; exit 1; fi
 
-#i use this script simply so that i can add the natives compilation as a run configuration in intellij
-
-export PORKLIB_NATIVES_DEBUG="true"
-
-#make clean && \
-#make -j$( nproc )
-make -j$( nproc ) build.x86_64-linux-gnu
+docker build -t daporkchop/porklib_build docker/
+cd ..
+echo "running '$@'..." >&2
+exec docker run --rm -v "$PWD:$PWD:rw" --user "$( id -u ):$( id -g )" -w "$PWD/natives" daporkchop/porklib_build "$@"

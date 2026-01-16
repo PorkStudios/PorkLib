@@ -27,10 +27,10 @@ namespace porklib::jni {
 }
 
 #define PORKLIB_JNI_REGISTER_LOADERS(LIB_NAME, ONLOAD, ONUNLOAD) \
-    extern "C" __attribute__((visibility("default"))) JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) { \
+    extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) { \
         return porklib::jni::JNI_OnLoad(vm, reserved, #LIB_NAME, ONLOAD); \
     } \
-    extern "C" __attribute__((visibility("default"))) JNIEXPORT void JNICALL JNI_OnUnload(JavaVM* vm, void* reserved) { \
+    extern "C" JNIEXPORT void JNICALL JNI_OnUnload(JavaVM* vm, void* reserved) { \
         return porklib::jni::JNI_OnUnload(vm, reserved, #LIB_NAME, ONUNLOAD); \
     }
     // We could also add the JNI_OnLoad_##LIB_NAME functions here for when the library is statically linked with the JVM,

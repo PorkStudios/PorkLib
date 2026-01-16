@@ -57,7 +57,7 @@ export BUILD_TYPE	:=	release
 $(info natives: building for $(BUILD_TYPE))
 
 export SOURCES		:=
-export INCLUDES		:=	$(COMMONSRC)/include $(JAVA_HOME)/include $(JAVA_HOME)/include/linux
+export INCLUDES		:=	$(COMMONSRC)/include $(JAVA_HOME)/include
 
 export ARCHS		:=	$(notdir $(wildcard $(TOOLCHAINS)/*))
 export ARCH_TASKS	:=	$(foreach arch,$(ARCHS),build.$(arch))

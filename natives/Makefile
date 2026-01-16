@@ -5,30 +5,61 @@ export TOPDIR		:=	$(CURDIR)
 export TOOLCHAINS	:=	$(CURDIR)/toolchain
 export COMMONSRC	:=	$(CURDIR)/src/main/native
 
-FLAGS				:=	-shared -fPIC -ffunction-sections -fdata-sections -fvisibility=hidden
-FLAGS				+=	-O2
-FLAGS				+=	-flto=jobserver -fno-fat-lto-objects
+# global flags (these apply during both compilation and linking)
+export GLOBAL_FLAGS_COMMON		+=	-ffunction-sections -fdata-sections -fvisibility=hidden
+export GLOBAL_FLAGS_COMMON		+=	-O2
+export GLOBAL_FLAGS_COMMON		+=	-fno-fat-lto-objects
 
-export CFLAGS		:=	$(FLAGS) -Wall
-export CXXFLAGS		:=	$(CFLAGS) -std=c++20
-export LDFLAGS		:=	$(FLAGS) -Wl,--gc-sections
+export GLOBAL_FLAGS_GNUC		+=	-flto=jobserver
+export GLOBAL_FLAGS_CLANG		+=	-flto=jobserver
 
-ifndef PORKLIB_NATIVES_DEBUG
+export GLOBAL_FLAGS_LINUX		+=
+export GLOBAL_FLAGS_WINDOWS		+=
+
+# compile flags (both C and C++ code)
+export COMPILE_FLAGS_COMMON		+=	-Wall
+
+export COMPILE_FLAGS_GNUC		+=
+export COMPILE_FLAGS_CLANG		+=
+
+export COMPILE_FLAGS_LINUX		+=	-fPIC
+export COMPILE_FLAGS_WINDOWS	+=
+
+# compile flags (only C code)
+export COMPILE_CFLAGS_COMMON	+=
+
+export COMPILE_CFLAGS_GNUC		+=
+export COMPILE_CFLAGS_CLANG		+=
+
+export COMPILE_CFLAGS_LINUX		+=
+export COMPILE_CFLAGS_WINDOWS	+=
+
+# compile flags (only C++ code)
+export COMPILE_CXXFLAGS_COMMON	+=	-std=c++20
+
+export COMPILE_CXXFLAGS_GNUC	+=
+export COMPILE_CXXFLAGS_CLANG	+=
+
+export COMPILE_CXXFLAGS_LINUX	+=
+export COMPILE_CXXFLAGS_WINDOWS	+=
+
+# link flags
+export LDFLAGS_COMMON			+=	-Wl,--gc-sections
+export LDFLAGS_COMMON			+=	-shared
+
+export LDFLAGS_GNUC				+=
+export LDFLAGS_CLANG			+=
+
+export LDFLAGS_LINUX			+=
+export LDFLAGS_WINDOWS			+=	-fuse-ld=lld
+
 export BUILD_TYPE	:=	release
-else
-export CFLAGS		+=	-DPORKLIB_NATIVES_DEBUG
-export CXXFLAGS		+=	-DPORKLIB_NATIVES_DEBUG
-export BUILD_TYPE	:=	debug
-endif
 $(info natives: building for $(BUILD_TYPE))
 
 export SOURCES		:=
 export INCLUDES		:=	$(COMMONSRC)/include $(JAVA_HOME)/include $(JAVA_HOME)/include/linux
 
 export ARCHS		:=	$(notdir $(wildcard $(TOOLCHAINS)/*))
-#TODO: export ARCHS		+=	x86_64-w64-mingw32
-#export ARCHS		:=	$(foreach arch,$(ARCHS),$(if $(shell which $(arch)-gcc),$(arch)))
-#export ARCHS		:=	$(foreach arch,$(ARCHS),$(if $(shell which $(arch)-g++),$(arch)))
 export ARCH_TASKS	:=	$(foreach arch,$(ARCHS),build.$(arch))
 
 export MODULES		:=	../compression/deflate ../compression/zstd
@@ -40,6 +71,7 @@ export LIBS			:=	libdeflate-1.25.tar.gz zlib-ng-1.2.11.tar.gz zstd-1.5.7.tar.gz
 .PHONY: build clean .FORCE
 
 build: $(ARCH_TASKS) $(LIBS)
+	@echo 'Done!'
 
 build.%: .FORCE $(foreach module,$(MODULES),%,$(module).lib)
 	@echo Built libraries for $(shell echo '$@' | perl -n -e '/build\.(.+)/ && print $$1')!

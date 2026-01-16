@@ -17,7 +17,35 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,t
 # misc. build tools
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked --mount=type=tmpfs,target=/var/log/apt \
     apt-get update \
-    && apt-get install -y build-essential tar wget
+    && apt-get install -y build-essential clang lld tar wget
+
+#
+# MSVC SETUP
+# https://github.com/mstorsjo/msvc-wine
+#
+FROM base AS msvc-wine
+
+# msvc-wine deps
+# also git because we'll need it to fetch the repo stuff
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked --mount=type=tmpfs,target=/var/log/apt \
+    apt-get update \
+    && apt-get install -y git wine64 python3 msitools ca-certificates
+
+# MSVC 17.14 is compatible with clang 19 (the version shipped in debian trixie)
+# Found by searching for "clang" in https://github.com/microsoft/STL/commits/main/stl/inc/yvals_core.h
+RUN eatmydata git clone https://github.com/mstorsjo/msvc-wine \
+    && eatmydata ./msvc-wine/vsdownload.py \
+        --accept-license \
+        --msvc-version 17.14 \
+        --dest /opt/msvc \
+    && eatmydata ./msvc-wine/install.sh /opt/msvc \
+    && cp -a ./msvc-wine/msvcenv-native.sh /opt/msvc \
+    && rm -rf ./msvc-wine/
+
+#
+# FINAL OUTPUT IMAGE
+#
+FROM base AS build
 
 # JDK (for jni.h)
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked --mount=type=tmpfs,target=/var/log/apt \
@@ -29,3 +57,7 @@ ENV JAVA_HOME=/usr/lib/jvm/default-java
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked --mount=type=tmpfs,target=/var/log/apt \
     apt-get update \
     && apt-get install -y crossbuild-essential-arm64 crossbuild-essential-amd64 crossbuild-essential-armhf crossbuild-essential-i386 crossbuild-essential-ppc64el crossbuild-essential-s390x
+
+# add MSVC cross-compiler infrastructure
+COPY --link --from=msvc-wine /opt/msvc /opt/msvc
+COPY msvc-wine-scripts/bin/* /usr/local/bin

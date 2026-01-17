@@ -2,7 +2,6 @@
 
 #include <atomic> // std::atomic_flag
 #include <cassert>
-#include <cstdio> // fflush(), fprintf(), stderr
 #include <memory> // std::unique_ptr
 #include <new> // std::bad_alloc
 #include <stdexcept> // std::runtime_error
@@ -11,6 +10,7 @@
 #include <vector>
 
 #include <porklib_jni_arrays.hpp> // porklib::jni::_detail::configureJniArrays()
+#include <porklib_jni_exceptions.hpp> // porklib::jni::throwAlreadyThrownJniException()
 
 namespace porklib::jni {
     constexpr static auto REQUIRED_JNI_VERSION = JNI_VERSION_1_8;
@@ -51,8 +51,72 @@ namespace porklib::jni {
         ~_LoadState() = default;
     };
 
+    [[nodiscard]] static std::string remapLibraryClassName(JNIEnv* env, _LoadState& state, const char* className) {
+        return PACKAGE_PREFIX + className;
+    }
+
+    jclass findSystemClass(JNIEnv* env, _LoadState& state, const char* className) {
+        return env->FindClass(className);
+    }
+
+    jclass findLibraryClass(JNIEnv* env, _LoadState& state, const char* className) {
+        return env->FindClass(remapLibraryClassName(env, state, className).c_str());
+    }
+
+    jint getFieldIDs(JNIEnv* env, LoadParams params, jclass clazz, std::span<const _FieldInit> fields) {
+        for (auto& field : fields) {
+            jfieldID id = env->GetFieldID(clazz, field.name, field.sig);
+            if (id == nullptr) [[unlikely]] return JNI_ERR;
+            *field.dst = id;
+        }
+        return JNI_OK;
+    }
+
+    jint getStaticFieldIDs(JNIEnv* env, LoadParams params, jclass clazz, std::span<const _FieldInit> fields) {
+        for (auto& field : fields) {
+            jfieldID id = env->GetStaticFieldID(clazz, field.name, field.sig);
+            if (id == nullptr) [[unlikely]] return JNI_ERR;
+            *field.dst = id;
+        }
+        return JNI_OK;
+    }
+
+    jint getMethodIDs(JNIEnv* env, LoadParams params, jclass clazz, std::span<const _MethodInit> methods) {
+        for (auto& method : methods) {
+            jmethodID id = env->GetMethodID(clazz, method.name, method.sig);
+            if (id == nullptr) [[unlikely]] return JNI_ERR;
+            *method.dst = id;
+        }
+        return JNI_OK;
+    }
+
+    jint getStaticMethodIDs(JNIEnv* env, LoadParams params, jclass clazz, std::span<const _MethodInit> methods) {
+        for (auto& method : methods) {
+            jmethodID id = env->GetStaticMethodID(clazz, method.name, method.sig);
+            if (id == nullptr) [[unlikely]] return JNI_ERR;
+            *method.dst = id;
+        }
+        return JNI_OK;
+    }
+
+    jfieldID getFieldID(JNIEnv* env, _LoadState& state, jclass clazz, const char* name, const char* sig) {
+        return env->GetFieldID(clazz, name, sig);
+    }
+
+    jfieldID getStaticFieldID(JNIEnv* env, _LoadState& state, jclass clazz, const char* name, const char* sig) {
+        return env->GetStaticFieldID(clazz, name, sig);
+    }
+
+    jmethodID getMethodID(JNIEnv* env, _LoadState& state, jclass clazz, const char* name, const char* sig) {
+        return env->GetMethodID(clazz, name, sig);
+    }
+
+    jmethodID getStaticMethodID(JNIEnv* env, _LoadState& state, jclass clazz, const char* name, const char* sig) {
+        return env->GetStaticMethodID(clazz, name, sig);
+    }
+
     jint registerNatives(JNIEnv* env, _LoadState& state, const char* className, std::span<const JNINativeMethod> methods) {
-        jclass clazz = env->FindClass((PACKAGE_PREFIX + className).c_str());
+        jclass clazz = findLibraryClass(env, state, className);
         if (!clazz) [[unlikely]] return JNI_ERR;
 
         //save the class instance so that we can un-register the natives again if an exception occurs
@@ -200,11 +264,8 @@ namespace porklib::jni {
                 loadState.onLoadFailure(env);
                 throw;
             }
-        } catch (const std::bad_alloc&) {
-            return JNI_ENOMEM;
-        } catch (const std::exception& e) {
-            fprintf(stderr, "FATAL: while loading JNI library '%s': %s\n", libName, e.what());
-            fflush(stderr);
+        } catch (...) {
+            porklib::jni::handleCppExceptionTail(env);
             return JNI_ERR;
         }
     }

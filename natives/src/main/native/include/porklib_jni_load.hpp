@@ -10,6 +10,35 @@ namespace porklib::jni {
     using LoadParams = _LoadState&;
     using UnloadParams = const char*;
 
+    [[nodiscard]] jclass findSystemClass(JNIEnv* env, LoadParams params, const char* className);
+    [[nodiscard]] jclass findLibraryClass(JNIEnv* env, LoadParams params, const char* className);
+
+    struct _FieldInit {
+        const char* name;
+        const char* sig;
+        jfieldID* dst;
+
+        _FieldInit(const char* name, const char* sig, jfieldID* dst) noexcept : name{name}, sig{sig}, dst{dst} {}
+    };
+    [[nodiscard]] jint getFieldIDs(JNIEnv* env, LoadParams params, jclass clazz, std::span<const _FieldInit> fields);
+    [[nodiscard]] jint getStaticFieldIDs(JNIEnv* env, LoadParams params, jclass clazz, std::span<const _FieldInit> fields);
+
+    struct _MethodInit {
+        const char* name;
+        const char* sig;
+        jmethodID* dst;
+
+        _MethodInit(const char* name, const char* sig, jmethodID* dst) noexcept : name{name}, sig{sig}, dst{dst} {}
+    };
+    [[nodiscard]] jint getFieldIDs(JNIEnv* env, LoadParams params, jclass clazz, std::span<const _MethodInit> methods);
+    [[nodiscard]] jint getStaticFieldIDs(JNIEnv* env, LoadParams params, jclass clazz, std::span<const _MethodInit> methods);
+
+    [[nodiscard]] jfieldID getFieldID(JNIEnv* env, LoadParams params, jclass clazz, const char* name, const char* sig);
+    [[nodiscard]] jfieldID getStaticFieldID(JNIEnv* env, LoadParams params, jclass clazz, const char* name, const char* sig);
+
+    [[nodiscard]] jmethodID getMethodID(JNIEnv* env, LoadParams params, jclass clazz, const char* name, const char* sig);
+    [[nodiscard]] jmethodID getStaticMethodID(JNIEnv* env, LoadParams params, jclass clazz, const char* name, const char* sig);
+
     [[nodiscard]] jint registerNatives(JNIEnv* env, LoadParams params, const char* className, std::span<const JNINativeMethod> methods);
 
     [[nodiscard, gnu::always_inline]] static inline JNINativeMethod makeJNINativeMethod(const char* name, const char* signature, auto* fnPtr) noexcept {

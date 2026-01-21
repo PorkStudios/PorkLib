@@ -1,0 +1,14 @@
+{
+  "imports": [
+    "lombok.NonNull",
+    "java.util.function.Consumer"
+  ],
+  "params": [
+    {
+      "type": "primitive",
+      "options": {
+        "genericName": "T"
+      }
+    }
+  ]
+}

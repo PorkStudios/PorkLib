@@ -1,0 +1,7 @@
+    /**
+     * @see Comparator#thenComparing(Function)
+     */
+    default<1% <_p1_ extends Comparable<? super _p1_>>%> _P0_Comparator_GP0_ thenComparing<1!%_P1_%>(@NonNull _P0__P1_Function_G0super1extends_ keyExtractor) {
+        return this.thenComparing(comparing<1!%_P1_%>(keyExtractor));
+    }
+

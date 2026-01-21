@@ -1,0 +1,20 @@
+_headers_
+
+/**
+ * Package-private implementation of {@link ObjHashStrategy} for {@code _nameP0_[]}s which delegates equality checks and hash calculations to {@link Arrays}.
+ *
+ * @author DaPorkchop_
+ */
+final class _P0_ArrayHashStrategy_G_ implements ObjHashStrategy<_p0_[]> {
+    public static final _P0_ArrayHashStrategy INSTANCE = new _P0_ArrayHashStrategy();
+
+    @Override
+    public boolean eq(_p0_[] a, _p0_[] b) {
+        return Arrays.equals(a, b);
+    }
+
+    @Override
+    public int hash(_p0_[] e) {
+        return Arrays.hashCode(e);
+    }
+}

@@ -1,0 +1,15 @@
+#skip compiler ouput directories
+build/
+out/
+
+#don't index the generator's own source code
+generator/
+
+#don't index the template files (there are no source files in there)
+template/
+
+#don't index example, main, orig or testOrig sources (since they're written by hand, and shouldn't be auto-deleted by the generator)
+**/src/example/
+**/src/main/
+**/src/orig/
+**/src/testOrig/

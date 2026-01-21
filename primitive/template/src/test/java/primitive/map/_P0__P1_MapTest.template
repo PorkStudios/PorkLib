@@ -1,0 +1,92 @@
+_headers_
+
+import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.primitive.common.strategy.hash._P0_HashStrategy;
+import net.daporkchop.lib.primitive.iterators._P0_Iterator;
+import net.daporkchop.lib.primitive.map._P0__P1_Map;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+<%
+@SuppressWarnings("unchecked")%>
+public class _P0__P1_MapTest {
+    protected final _P0__P1_Map[] map = {
+        new net.daporkchop.lib.primitive.map.open._P0__P1_OpenHashMap()<0int0long0Object%<1Object%,
+        new net.daporkchop.lib.primitive.map.concurrent._P0__P1_ConcurrentHashMap(),
+        new net.daporkchop.lib.primitive.map.concurrent._P0__P1_ConcurrentCustomHashMap(_P0_HashStrategy.def()),<0Object%
+        new net.daporkchop.lib.primitive.map.concurrent._P0__P1_ConcurrentUncachedHashMap(),%>
+        new net.daporkchop.lib.primitive.map.concurrent._P0__P1_ConcurrentCustomUncachedHashMap(_P0_HashStrategy.def())%>%><0int0long0Object%<1int1long%,
+        new net.daporkchop.lib.primitive.map.concurrent._P0__P1_ConcurrentHashMap(_EP1_),
+        new net.daporkchop.lib.primitive.map.concurrent._P0__P1_ConcurrentCustomHashMap(_EP1_, _P0_HashStrategy.def()),<0Object%
+        new net.daporkchop.lib.primitive.map.concurrent._P0__P1_ConcurrentUncachedHashMap(_EP1_),%>
+        new net.daporkchop.lib.primitive.map.concurrent._P0__P1_ConcurrentCustomUncachedHashMap(_EP1_, _P0_HashStrategy.def())%>%>
+    };
+
+    @Test
+    public void test()  {
+        for (_P0__P1_Map map : this.map)    {
+            try {
+                this.test0(map);
+            } catch (Exception e)   {
+                throw new RuntimeException("Exception while testing " + PorkUtil.className(map), e);
+            }
+        }
+    }
+
+    private void test0(@NonNull _P0__P1_Map map)   {
+        checkState(map.isEmpty() && map.size() == 0, map);
+
+        Map<_objP0_, _objP1_> java = new HashMap<>(); //reference map which we know is implemented correctly
+        Map<_objP0_, _objP1_> j2 = new HashMap<>();
+
+        {
+            _nameP0_ k = random_P0_();
+            _nameP1_ v = this.randomValue();
+            checkState(!map.containsKey(k), k);
+            checkState(eq(map.computeIfAbsent(k, key -> v), v));
+            checkState(!map.isEmpty() && map.size() == 1, map.size());
+            checkState(map.containsKey(k));
+            checkState(eq(map.get(k), v));
+            java.put(k, v);
+        }
+
+        for (int i = 0; i < 256; i++)   {
+            _nameP0_ k = random_P0_();
+            if (!map.containsKey(k))    {
+                _nameP1_ v = this.randomValue();
+                _nameP1_ put = map.put(k, v);
+                checkState(eq(put, <1!%map.defaultValue()%><1%null%>));
+                checkState(map.containsKey(k));
+                checkState(eq(map.get(k), v));
+                java.put(k, v);
+            }
+            checkState(map.size() == java.size());
+        }
+
+        //make sure maps are equal
+        j2.clear();
+        map.forEach(j2::put);
+        checkState(java.equals(j2));
+
+        for (_P0_Iterator i = map.keySet().iterator(); i.hasNext();)    {
+            _nameP0_ k = i.next<0!%_P0_%>();
+            if ((randomInt() & 3) == 0) {
+                i.remove();
+                java.remove(k);
+            }
+        }
+
+        j2.clear();
+        map.forEach(j2::put);
+        checkState(java.equals(j2));
+    }
+
+    private _nameP1_ randomValue()  {
+        _nameP1_ v;
+        do {
+            v = random_P1_();
+        } while (eq(_EP1_, v));
+        return v;
+    }
+}

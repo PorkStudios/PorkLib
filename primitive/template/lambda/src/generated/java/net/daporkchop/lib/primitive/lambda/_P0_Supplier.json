@@ -1,0 +1,13 @@
+{
+  "imports": [
+    "java.util.function.Supplier"
+  ],
+  "params": [
+    {
+      "type": "primitive",
+      "options": {
+        "genericName": "T"
+      }
+    }
+  ]
+}

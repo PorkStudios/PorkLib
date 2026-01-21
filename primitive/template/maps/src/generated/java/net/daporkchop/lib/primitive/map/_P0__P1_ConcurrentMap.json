@@ -1,0 +1,27 @@
+{
+  "params": [
+    //this is only generated for a limited selection of types because it doesn't make any sense to be using a concurrent map with byte keys lol
+    {
+      "type": "primitive",
+      "options": {
+        "genericName": "K"
+      },
+      "whitelist": [
+        "int",
+        "long",
+        "Object"
+      ]
+    },
+    {
+      "type": "primitive",
+      "options": {
+        "genericName": "V"
+      },
+      "whitelist": [
+        "int",
+        "long",
+        "Object"
+      ]
+    }
+  ]
+}

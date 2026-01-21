@@ -1,0 +1,27 @@
+_headers_
+
+/**
+ * A function that accepts three parameters (_nameP0_, _nameP1_, _nameP2_) and returns nothing.
+ * <p>
+ * Conceptually the same as a {@link Consumer} with 3 arguments.
+ *
+ * @see Consumer
+ * @author DaPorkchop_
+ */
+@FunctionalInterface
+public interface _P0__P1__P2_Consumer_G_ {
+    /**
+     * @see Consumer#accept(Object)
+     */
+    void accept(_p0_ t, _p1_ u, _p2_ v);
+
+    /**
+     * @see Consumer#andThen(Consumer)
+     */
+    default _P0__P1__P2_Consumer_G_ andThen(@NonNull _P0__P1__P2_Consumer_Gsuper_ after) {
+        return (t, u, v) -> {
+            this.accept(t, u, v);
+            after.accept(t, u, v);
+        };
+    }
+}

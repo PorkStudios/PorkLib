@@ -1,0 +1,25 @@
+{
+  "hello world": {
+    "int": 12345,
+    "long": 12904798274593,
+    "biginteger": 12904798274540968307589732398572965786378650393000,
+    "double": 3.1415926,
+    "boolean": true
+  },
+  "jef": {
+    "subentry": {}
+  },
+  "arrays": {
+    "intArray": [3,9,23],
+    "doubleArray": [395.4, 2.2, 0.00000001],
+    "strings": [
+      "name",
+      "jeff",
+      "lol",
+      "",
+      "me",
+      "too",
+      "thanks"
+    ]
+  }
+}

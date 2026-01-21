@@ -1,0 +1,41 @@
+{
+  "params": {
+    "types": {
+      "custom": {
+        "regular": {},
+        "custom": {}
+      },
+      "hash_cache": {
+        "cached": {},
+        "uncached": {}
+      }
+    },
+    "params": [
+      {
+        "type": "primitive",
+        "options": {
+          "genericName": "K"
+        },
+        "whitelist": [
+          "int",
+          "long",
+          "Object"
+        ]
+      },
+      {
+        "type": "primitive",
+        "options": {
+          "genericName": "V"
+        },
+        "whitelist": [
+          "int",
+          "long",
+          "Object"
+        ]
+      },
+      "custom",
+      "hash_cache"
+    ]
+  },
+  "name_override": "<0Object2custom%_P0__P1_Concurrent<2custom%Custom%><3uncached%Uncached%>HashMap%><0Object!%<2custom!%<3uncached%_P0__P1_Concurrent<2custom%Custom%>HashMap%>%>%>"
+}

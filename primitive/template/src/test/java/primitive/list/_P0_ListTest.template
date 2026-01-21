@@ -1,0 +1,76 @@
+_headers_
+
+import net.daporkchop.lib.common.util.PorkUtil;
+import net.daporkchop.lib.primitive.iterators._P0_Iterator;
+import net.daporkchop.lib.primitive.list._P0_List;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+<%
+@SuppressWarnings("unchecked")%>
+public class _P0_ListTest {
+    protected final _P0_List[] lists = {
+        new net.daporkchop.lib.primitive.list.array._P0_ArrayList()
+    };
+
+    @Test
+    public void test()  {
+        for (_P0_List list : this.lists)    {
+            try {
+                this.test0(list);
+            } catch (Exception e)   {
+                throw new RuntimeException("Exception while testing " + PorkUtil.className(list), e);
+            }
+        }
+    }
+
+    private void test0(@NonNull _P0_List list)   {
+        checkState(list.isEmpty() && list.size() == 0, list);
+
+        List<_objP0_> java = new ArrayList<>(); //reference list which we know is implemented correctly
+        for (int i = 0; i < 99; i++)   {
+            _objP0_ v = random_P0_();
+            list.add(v);
+            java.add(v);
+            checkState(!list.isEmpty() && list.size() == java.size(), list);
+        }
+
+        _objP0_ v = random_P0_();
+        list.add(50, v);
+        java.add(50, v);
+        checkState(!list.isEmpty() && list.size() == java.size(), list);
+
+        for (int i = 0, size = list.size(); i < size; i++)  {
+            checkState(eq(list.get(i), (_nameP0_) java.get(i)), "mismatch @ index %d", i);
+        }
+
+        for (int i = 0, size = list.size(); i < size; i += 3)  {
+            v = random_P0_();
+            list.set(i, v);
+            java.set(i, v);
+            checkState(!list.isEmpty() && list.size() == java.size(), list);
+        }
+
+        for (int i = 0, size = list.size(); i < size; i++)  {
+            checkState(eq(list.get(i), (_nameP0_) java.get(i)), "mismatch @ index %d", i);
+        }
+
+        {
+            _P0_Iterator i1 = list.iterator();
+            Iterator i2 = java.iterator();
+            while (i1.hasNext())    {
+                checkState(eq(i1.next<0!%_P0_%>(), (_nameP0_) i2.next()));
+                if (randomBool())   {
+                    i1.remove();
+                    i2.remove();
+                }
+            }
+        }
+
+        checkState(!list.isEmpty() && list.size() == java.size(), list);
+        for (int i = 0, size = list.size(); i < size; i++)  {
+            checkState(eq(list.get(i), (_nameP0_) java.get(i)), "mismatch @ index %d", i);
+        }
+    }
+}

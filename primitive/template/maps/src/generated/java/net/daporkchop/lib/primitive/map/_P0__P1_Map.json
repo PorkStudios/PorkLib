@@ -1,0 +1,19 @@
+{
+  "params": [
+    {
+      "type": "primitive",
+      "options": {
+        "genericName": "K"
+      },
+      "blacklist": [
+        "boolean"
+      ]
+    },
+    {
+      "type": "primitive",
+      "options": {
+        "genericName": "V"
+      }
+    }
+  ]
+}

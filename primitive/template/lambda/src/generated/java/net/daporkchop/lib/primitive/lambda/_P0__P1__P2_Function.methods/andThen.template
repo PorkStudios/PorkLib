@@ -1,0 +1,7 @@
+    /**
+     * @see BiFunction#andThen(Function)
+     */
+    default<3% _GP3_%> _P0__P1__P3_Function_G0,1,3_ andThen<3!%To_P3_%>(@NonNull _P2__P3_Function_G2super3extends_ after) {
+        return (t, u) -> after.apply<3!%As_P3_%>(this.apply<2!%As_P2_%>(t, u));
+    }
+

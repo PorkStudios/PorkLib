@@ -1,0 +1,34 @@
+_headers_
+
+import net.daporkchop.lib.primitive.common.PrimitiveHelper;<%
+
+import java.util.Arrays;%>
+
+/**
+ * A strategy which is able to compare two {@code _p0_} values to check if they are equal.
+ *
+ * @see Object#equals(Object)
+ * @author DaPorkchop_
+ */
+@FunctionalInterface
+public interface _P0_EqualityStrategy_G_ {
+    /**
+     * Checks whether or not the given values are equal.
+     *
+     * @param a a value
+     * @param b a value
+     * @return {@code true} if the two given values are equal
+     */
+    boolean eq(_p0_ a, _p0_ b);
+
+    /**
+     * Gets an instance of {@link _P0_EqualityStrategy} which delegates equality checks to {@link PrimitiveHelper#eq(_p0_, _p0_)}.
+     *
+     * @return an instance of {@link _P0_EqualityStrategy}
+     */
+    static<% _G_%> _P0_EqualityStrategy_G_ def() {
+        return PrimitiveHelper::eq;
+    }<%
+
+_Marray_%>
+}

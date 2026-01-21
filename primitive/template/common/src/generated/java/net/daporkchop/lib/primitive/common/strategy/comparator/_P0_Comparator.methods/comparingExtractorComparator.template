@@ -1,0 +1,7 @@
+    /**
+     * @see Comparator#comparing(Function, Comparator)
+     */
+    static<% _G_%> _P0_Comparator_GP0_ comparing<1!%_P1_%>(@NonNull _P0__P1_Function_G0super1extends_ keyExtractor, @NonNull _P1_Comparator_GsuperP1_ keyComparator) {
+        return (_P0_Comparator_GP0_ & Serializable) (a, b) -> keyComparator.compare(keyExtractor.apply<1!%As_P1_%>(a), keyExtractor.apply<1!%As_P1_%>(b));
+    }
+

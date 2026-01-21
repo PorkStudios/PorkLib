@@ -1,0 +1,25 @@
+_headers_
+
+/**
+ * A function that accepts two parameters (_nameP0_, _nameP1_) and returns nothing.
+ *
+ * @see BiConsumer
+ * @author DaPorkchop_
+ */
+@FunctionalInterface
+public interface _P0__P1_Consumer_G_ {
+    /**
+     * @see BiConsumer#accept(Object, Object)
+     */
+    void accept(_p0_ t, _p1_ u);
+
+    /**
+     * @see BiConsumer#andThen(BiConsumer)
+     */
+    default _P0__P1_Consumer_G_ andThen(@NonNull _P0__P1_Consumer_Gsuper_ after) {
+        return (l, r) -> {
+            this.accept(l, r);
+            after.accept(l, r);
+        };
+    }
+}

@@ -1,22 +1,29 @@
 /*
- * Adapted from the Wizardry License
+ * Adapted from The MIT License (MIT)
  *
- * Copyright (c) 2018-2018 DaPorkchop_ and contributors
+ * Copyright (c) 2018-2020 DaPorkchop_
  *
- * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software
+ * is furnished to do so, subject to the following conditions:
  *
- * The persons and/or organizations are also disallowed from sub-licensing and/or trademarking this software without explicit permission from DaPorkchop_.
+ * Any persons and/or organizations using this software must include the above copyright notice and this permission notice,
+ * provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
  *
- * Any persons and/or organizations using this software must disclose their source code and have it publicly available, include this license, provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package net.daporkchop.lib.hash.util;
 
-import net.daporkchop.lib.binary.UTF8;
+import lombok.NonNull;
 import net.daporkchop.lib.encoding.basen.Base58;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,7 +43,7 @@ public class Base58WithHeaders {
      * @param content The actual data
      * @return A string encoded in Base58
      */
-    public static String encode(byte version, String prefix, byte[] content) {
+    public static String encode(byte version, @NonNull String prefix, @NonNull byte[] content) {
         if (prefix == null) {
             prefix = "";
         }
@@ -55,9 +62,9 @@ public class Base58WithHeaders {
             newData[i] = version; //fill with random data for hash
         }
 
-        byte[] hash = Digest.SHA512.hash(Digest.SHA512.hash(new byte[]{version}, prefix.getBytes(UTF8.utf8), content).getHash()).getHash();
+        byte[] hash = Digest.SHA512.hash(Digest.SHA512.hash(new byte[]{version}, prefix.getBytes(StandardCharsets.UTF_8), content).getHash()).getHash();
         System.arraycopy(hash, 0, newData, (newData.length - 4), 4);
-        return Base58.INSTANCE.alphabet[prefix.length()] + prefix + Base58.encodeBase58(newData);
+        return Base58.ALPHABET.charAt(prefix.length()) + prefix + Base58.encodeBase58(newData);
     }
 
     /**
@@ -66,12 +73,12 @@ public class Base58WithHeaders {
      * @param pork58 Input string, Pork58-encoded
      * @return Decoded data!
      */
-    public static Decoded decode(String pork58) {
+    public static Decoded decode(@NonNull String pork58) {
         List<Character> chars = pork58.chars().mapToObj(e -> (char) e).collect(Collectors.toList());
         char prefixLengthChar = chars.remove(0);
         int prefixLength = -1;
-        for (int i = 0; i < Base58.INSTANCE.length; i++) {
-            if (Base58.INSTANCE.alphabet[i] == (int) prefixLengthChar) {
+        for (int i = 0; i < 58; i++) {
+            if (Base58.ALPHABET.charAt(i) == (int) prefixLengthChar) {
                 prefixLength = i;
             }
         }
@@ -93,7 +100,7 @@ public class Base58WithHeaders {
             hash[i - (rawData.length - 4)] = rawData[i];
             rawData[i] = version;
         }
-        byte[] newHash = Digest.SHA512.hash(Digest.SHA512.hash(new byte[]{version}, prefix.toString().getBytes(UTF8.utf8), data).getHash()).getHash();
+        byte[] newHash = Digest.SHA512.hash(Digest.SHA512.hash(new byte[]{version}, prefix.toString().getBytes(StandardCharsets.UTF_8), data).getHash()).getHash();
         for (int i = 0; i < 4; i++) {
             if (hash[i] != newHash[i]) {
                 throw new IllegalArgumentException("Invalid checksum!");

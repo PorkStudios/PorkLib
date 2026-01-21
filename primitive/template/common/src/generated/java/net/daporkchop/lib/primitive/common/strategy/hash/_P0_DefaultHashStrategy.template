@@ -1,0 +1,25 @@
+_headers_
+
+/**
+ * Package-private implementation of {@link _P0_HashStrategy} which delegates equality checks and hash calculations to {@link PrimitiveHelper}.
+ *
+ * @author DaPorkchop_
+ */
+final class _P0_DefaultHashStrategy_G_ implements _P0_HashStrategy_G_ {
+    public static final _P0_DefaultHashStrategy<%<?>%> INSTANCE = new _P0_DefaultHashStrategy<%<>%>();
+
+    @Override
+    public boolean eq(_p0_ a, _p0_ b) {
+        return PrimitiveHelper.eq(a, b);
+    }
+
+    @Override
+    public int hash(_p0_ e) {
+        return PrimitiveHelper.hash(e);
+    }
+
+    @Override
+    public long hash64(_p0_ e) {
+        return PrimitiveHelper.hash64(e);
+    }
+}

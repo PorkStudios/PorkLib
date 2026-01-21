@@ -1,0 +1,75 @@
+_headers_
+
+import net.daporkchop.lib.primitive.lambda._P0_Consumer;
+
+import java.util.function.Consumer;
+import java.util.PrimitiveIterator;
+import java.util.NoSuchElementException;
+
+/**
+ * Allows iteration over a sequence of {@code _p0_} values.
+ *
+ * @author DaPorkchop_
+ * @see PrimitiveIterator
+ */
+public interface _P0_Iterator_G_ extends PrimitiveIterator<_fullnameP0_, _P0_Consumer_G_> {
+    /**
+     * Returns the next {@code _p0_} element in the iteration.
+     *
+     * @return the next {@code _p0_} element in the iteration
+     * @throws NoSuchElementException if the iteration has no more elements
+     */
+    _p0_ next_P0_();
+
+    /**
+     * Performs the given action for each remaining element until all elements
+     * have been processed or the action throws an exception.  Actions are
+     * performed in the order of iteration, if that order is specified.
+     * Exceptions thrown by the action are relayed to the caller.
+     *
+     * @implSpec
+     * <p>The default implementation behaves as if:
+     * <pre>{@code
+     *     while (this.hasNext())
+     *         action.accept(this.next_P0_());
+     * }</pre>
+     *
+     * @param action The action to be performed for each element
+     * @throws NullPointerException if the specified action is null
+     */
+    default void forEachRemaining(@NonNull _P0_Consumer_G_ action) {
+        while (this.hasNext())  {
+            action.accept(this.next_P0_());
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     * @implSpec
+     * The default implementation boxes the result of calling
+     * {@link #next_P0_()}, and returns that boxed result.
+     */
+    @Override
+    @Deprecated
+    default _fullnameP0_ next() {
+        return this.next_P0_();
+    }
+
+    /**
+     * {@inheritDoc}
+     * @implSpec
+     * If the action is an instance of {@code _P0_Consumer} then it is cast
+     * to {@code _P0_Consumer} and passed to {@link #forEachRemaining};
+     * otherwise the action is adapted to an instance of
+     * {@code _P0_Consumer}, by boxing the argument of {@code _P0_Consumer},
+     * and then passed to {@link #forEachRemaining}.
+     */
+    @Override
+    default void forEachRemaining(@NonNull Consumer<? super _fullnameP0_> action) {
+        if (action instanceof _P0_Consumer) {
+            this.forEachRemaining((_P0_Consumer) action);
+        } else {
+            this.forEachRemaining((_P0_Consumer) action::accept);
+        }
+    }
+}

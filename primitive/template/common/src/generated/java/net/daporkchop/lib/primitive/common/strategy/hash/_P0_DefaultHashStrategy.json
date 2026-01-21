@@ -1,0 +1,13 @@
+{
+  "imports": [
+    "net.daporkchop.lib.primitive.common.PrimitiveHelper"
+  ],
+  "params": [
+    {
+      "type": "primitive",
+      "options": {
+        "genericName": "T"
+      }
+    }
+  ]
+}

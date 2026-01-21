@@ -1,0 +1,12 @@
+_headers_
+
+import net.daporkchop.lib.primitive.collections._P0_Collection;
+
+/**
+ * A {@link _P0_Collection} with unique values.
+ *
+ * @author DaPorkchop_
+ */
+public interface _P0_Set_G_ extends _P0_Collection_G_ {
+    //there are literally no new methods to define here
+}

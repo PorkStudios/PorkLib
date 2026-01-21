@@ -1,0 +1,165 @@
+_headers_
+
+import net.daporkchop.lib.primitive.collections._P1_Collection;
+import net.daporkchop.lib.primitive.lambda._P0__P1_Consumer;
+import net.daporkchop.lib.primitive.lambda._P0__P1_Function;
+import net.daporkchop.lib.primitive.lambda._P0__P1__P1_Function;
+import net.daporkchop.lib.primitive.lambda._P1__P1__P1_Function;
+import net.daporkchop.lib.primitive.set._P0_Set;
+
+/**
+ * A {@link _P0__P1_Map} providing thread safety and atomicity guarantees.
+ * <p>
+ * Unless otherwise specified by an implementation, concurrent maps disallow use of <1!%{@link #defaultValue()}%><1%{@code null}%> as a value, in
+ * order to allow the {@link #get(_nameP0_)} method to be able to atomically check for missing values. Implementations that allow <1!%{@link #defaultValue()}%><1%{@code null}%>
+ * values will have to override most default methods provided by this interface.
+ *
+ * @author DaPorkchop_
+ */
+public interface _P0__P1_ConcurrentMap_G_ extends _P0__P1_Map_G_ {
+    @Override
+    default _p1_ getOrDefault(_nameP0_ key, _p1_ defaultValue)  {
+        _p1_ v = this.get(key);
+        return v == <1!%this.defaultValue()%><1%null%> ? defaultValue : v;
+    }
+
+    /**
+     * Implementations must be atomic.
+     *
+     * @see _P0__P1_Map#putIfAbsent(_nameP0_, _nameP1_)
+     */
+    @Override
+    _p1_ putIfAbsent(_p0_ key, _p1_ value);
+
+    /**
+     * Implementations must be atomic.
+     *
+     * @see _P0__P1_Map#remove(_nameP0_, _nameP1_)
+     */
+    @Override
+    boolean remove(_nameP0_ key, _nameP1_ value);
+
+    /**
+     * Implementations must be atomic.
+     *
+     * @see _P0__P1_Map#replace(_nameP0_, _nameP1_, _nameP1_)
+     */
+    @Override
+    boolean replace(_p0_ key, _p1_ oldValue, _p1_ newValue);
+
+    /**
+     * Implementations must be atomic.
+     *
+     * @see _P0__P1_Map#replace(_nameP0_, _nameP1_)
+     */
+    @Override
+    _p1_ replace(_p0_ key, _p1_ value);
+
+    @Override
+    default void forEach(@NonNull _P0__P1_Consumer_Gsuper_ action)  {
+        for (Entry_G_ entry : this.entrySet()) {
+            _p0_ k;
+            _p1_ v;
+            try {
+                k = entry.getKey();
+                v = entry.getValue();
+            } catch (IllegalStateException e)   {
+                continue; //assume that this means the entry was removed from the map
+            }
+            action.accept(k, v);
+        }
+    }
+
+    @Override
+    default void replaceAll(@NonNull _P0__P1__P1_Function_G0super1super1extends_ function) {
+        this.forEach((key, value) -> {
+            while (!this.replace(key, value, function.apply<1!%As_P1_%>(key, value)))   {
+                if (!this.containsKey(key)) {
+                    return; //entry was removed
+                }
+            }
+        });
+    }
+
+    @Override
+    default _p1_ computeIfAbsent(_p0_ key, @NonNull _P0__P1_Function_G0super1extends_ mappingFunction)  {
+        _p1_ defaultValue = <1!%this.defaultValue()%><1%null%>;
+        _p1_ v = this.get(key), newValue;
+        return v == defaultValue
+               && (newValue = mappingFunction.apply<1!%As_P1_%>(key)) != defaultValue
+               && (v = putIfAbsent(key, newValue)) == defaultValue ? newValue : v;
+    }
+
+    @Override
+    default _p1_ computeIfPresent(_p0_ key, @NonNull _P0__P1__P1_Function_G0super1super1extends_ remappingFunction) {
+        _p1_ oldValue;
+        _p1_ defaultValue = <1!%this.defaultValue()%><1%null%>;
+        while ((oldValue = this.get(key)) != defaultValue)  {
+            _p1_ newValue = remappingFunction.apply<1!%As_P1_%>(key, oldValue);
+            if (newValue != defaultValue)   {
+                if (this.replace(key, oldValue, newValue))  {
+                    return newValue;
+                }
+            } else if (this.remove(key, oldValue)) {
+                return defaultValue;
+            }
+        }
+        return oldValue;
+    }
+
+    @Override
+    default _p1_ compute(_p0_ key, @NonNull _P0__P1__P1_Function_G0super1super1extends_ remappingFunction) {
+        _p1_ oldValue = this.get(key);
+        _p1_ defaultValue = <1!%this.defaultValue()%><1%null%>;
+        while (true) {
+            _p1_ newValue = remappingFunction.apply<1!%As_P1_%>(key, oldValue);
+            if (newValue == defaultValue) {
+                if (oldValue != defaultValue || this.containsKey(key)) {
+                    if (this.remove(key, oldValue)) {
+                        return defaultValue;
+                    } else {
+                        oldValue = this.get(key);
+                    }
+                } else {
+                    return defaultValue;
+                }
+            } else {
+                if (oldValue != defaultValue) {
+                    if (this.replace(key, oldValue, newValue)) {
+                        return newValue;
+                    } else {
+                        oldValue = this.get(key);
+                    }
+                } else {
+                    if ((oldValue = this.putIfAbsent(key, newValue)) == defaultValue) {
+                        return newValue;
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    default _p1_ merge(_p0_ key, _p1_ value, @NonNull _P1__P1__P1_Function_G1super1super1extends_ remappingFunction) {
+        _p1_ oldValue = this.get(key);
+        _p1_ defaultValue = <1!%this.defaultValue()%><1%null%>;
+        checkArg(value != defaultValue, "value (%s) may not be default value!", value);
+        while (true) {
+            if (oldValue != defaultValue) {
+                _p1_ newValue = remappingFunction.apply<1!%As_P1_%>(oldValue, value);
+                if (newValue != defaultValue) {
+                    if (this.replace(key, oldValue, newValue))  {
+                        return newValue;
+                    }
+                } else if (this.remove(key, oldValue)) {
+                    return defaultValue;
+                }
+                oldValue = this.get(key);
+            } else {
+                if ((oldValue = this.putIfAbsent(key, value)) == defaultValue) {
+                    return value;
+                }
+            }
+        }
+    }
+}

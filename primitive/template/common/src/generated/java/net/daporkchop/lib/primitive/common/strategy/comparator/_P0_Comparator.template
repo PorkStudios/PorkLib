@@ -1,0 +1,80 @@
+_headers_
+
+/**
+ * A strategy which is able to compare two {@code _p0_} values to check if they are equal.
+ *
+ * @see Comparator
+ * @author DaPorkchop_
+ */
+@FunctionalInterface
+public interface _P0_Comparator_G_ {
+    /**
+     * @see Comparator#compare(Object, Object)
+     */
+    int compare(_p0_ a, _p0_ b);
+
+    /**
+     * @see Comparator#reversed()
+     */
+    default _P0_Comparator_G_ reversed() {
+        @RequiredArgsConstructor
+        class Reversed_G_ implements _P0_Comparator_G_ {
+            @NonNull
+            protected final _P0_Comparator_G_ delegate;
+
+            @Override
+            public int compare(_p0_ a, _p0_ b) {
+                return this.delegate.compare(b, a);
+            }
+
+            @Override
+            public _P0_Comparator_G_ reversed() {
+                return this.delegate;
+            }
+
+            @Override
+            public boolean equals(Object o) {
+                return o == this || (o instanceof Reversed && this.delegate.equals(((Reversed) o).delegate));
+            }
+
+            @Override
+            public int hashCode() {
+                return this.delegate.hashCode() ^ Integer.MIN_VALUE;
+            }
+        }
+
+        return new Reversed_G_(this);
+    }
+
+    /**
+     * @see Comparator#thenComparing(Comparator)
+     */
+    default _P0_Comparator_G_ thenComparing(@NonNull _P0_Comparator_GsuperP0_ other) {
+        return (_P0_Comparator_G_ & Serializable) (a, b) -> {
+            int result = this.compare(a, b);
+            return result != 0 ? result : other.compare(a, b);
+        };
+    }
+
+_MthenComparingExtractorComparator_
+
+_MthenComparingExtractor_
+
+    /**
+     * @see Comparator#naturalOrder()
+     */
+    static<% <T extends Comparable<? super T>>%> _P0_Comparator_G_ naturalOrder() {
+        return PrimitiveHelper::compare;
+    }
+
+    /**
+     * @see Comparator#reverseOrder()
+     */
+    static<% <T extends Comparable<? super T>>%> _P0_Comparator_G_ reverseOrder() {
+        return PrimitiveHelper::compareReverse;
+    }
+
+_McomparingExtractorComparator_
+
+_McomparingExtractor_
+}

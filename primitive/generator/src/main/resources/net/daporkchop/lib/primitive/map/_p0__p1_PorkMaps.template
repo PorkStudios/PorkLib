@@ -1,6 +1,0 @@
-_headers_
-
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class PorkMaps {
-_methods_
-}

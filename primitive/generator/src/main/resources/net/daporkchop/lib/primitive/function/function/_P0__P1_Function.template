@@ -1,5 +1,0 @@
-_headers_
-
-public interface _P0__P1_Function_gH_ extends _P0_Acceptor, _P0_Provider {
-    _p1_ apply(_p0_ t);
-}
